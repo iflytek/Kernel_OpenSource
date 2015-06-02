@@ -12,13 +12,14 @@
 /* setup data types */
 #define SETUP_NONE			0
 #define SETUP_E820_EXT			1
+#define SETUP_DTB			2
 
 /* extensible setup data list node */
 struct setup_data {
 	__u64 next;
 	__u32 type;
 	__u32 len;
-	__u8 data[0];
+	__u8 data[];
 };
 
 struct setup_header {

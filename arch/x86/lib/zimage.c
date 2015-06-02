@@ -24,7 +24,10 @@
 #include <asm/arch/timestamp.h>
 #endif
 #include <linux/compiler.h>
+#include <malloc.h>
+#include <libfdt.h>
 
+#define DEFAULT_SETUP_DTB_ADDR	0x500
 DECLARE_GLOBAL_DATA_PTR;
 
 /*
@@ -235,6 +238,21 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 
 	setup_base->e820_entries = install_e820_map(
 		ARRAY_SIZE(setup_base->e820_map), setup_base->e820_map);
+
+	/* if FDT then pass it to the kernel setup header */
+	if (gd->fdt_blob) {
+		struct setup_data *sd;
+		/* use setup_dtb_addr if defined */
+		sd = (void *)(getenv_ulong("setup_dtb_addr", 16, 0UL) ? :
+			DEFAULT_SETUP_DTB_ADDR);
+
+		sd->next = 0;
+		sd->type = SETUP_DTB;
+		sd->len = fdt_totalsize(gd->fdt_blob);
+		memcpy(sd->data, gd->fdt_blob, sd->len);
+		/* we assume this is the only one setup_data entry */
+		hdr->setup_data = (__u32)sd;
+	}
 
 	if (bootproto == 0x0100) {
 		setup_base->screen_info.cl_magic = COMMAND_LINE_MAGIC;
