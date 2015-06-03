@@ -1,1 +1,1 @@
-obj-y += car.o isharkl.o dram.o
+obj-y += car.o isharkl.o dram.o cpu.o
