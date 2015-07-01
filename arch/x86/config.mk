@@ -16,6 +16,7 @@ PF_CPPFLAGS_X86   := $(call cc-option, -fno-toplevel-reorder, \
 PLATFORM_CPPFLAGS += $(PF_CPPFLAGS_X86)
 PLATFORM_CPPFLAGS += -fno-dwarf2-cfi-asm
 PLATFORM_CPPFLAGS += -march=i386 -m32
+PLATFORM_CPPFLAGS += -fno-pic
 
 PLATFORM_RELFLAGS += -ffunction-sections -fvisibility=hidden
 
