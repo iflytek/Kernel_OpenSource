@@ -1,0 +1,22 @@
+#
+# Copyright (C) 2015
+#
+# SPDX-License-Identifier:      GPL-2.0+
+#
+
+if VENDOR_SPRD
+
+choice
+	prompt "Mainboard model"
+	optional
+
+config TARGET_ISHARKL
+	bool "Spreadtrum isharkl"
+	help
+	  This is the Spreadtrum iSharkL  Board
+
+endchoice
+
+source "board/spreadtrum/isharkl/Kconfig"
+
+endif

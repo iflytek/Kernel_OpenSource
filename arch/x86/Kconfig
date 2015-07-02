@@ -20,6 +20,9 @@ config VENDOR_GOOGLE
 config VENDOR_INTEL
 	bool "Intel"
 
+config VENDOR_SPRD
+	bool "Spreadtrum"
+
 endchoice
 
 # board-specific options below
@@ -27,6 +30,7 @@ source "board/coreboot/Kconfig"
 source "board/emulation/Kconfig"
 source "board/google/Kconfig"
 source "board/intel/Kconfig"
+source "board/spreadtrum/Kconfig"
 
 # platform-specific options below
 source "arch/x86/cpu/baytrail/Kconfig"
@@ -35,6 +39,7 @@ source "arch/x86/cpu/ivybridge/Kconfig"
 source "arch/x86/cpu/qemu/Kconfig"
 source "arch/x86/cpu/quark/Kconfig"
 source "arch/x86/cpu/queensbay/Kconfig"
+source "arch/x86/cpu/isharkl/Kconfig"
 
 # architecture-specific options below
 
