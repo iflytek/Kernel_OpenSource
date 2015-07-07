@@ -43,6 +43,24 @@
 car_init:
 	post_code(POST_CAR_START)
 
+	/* Get number of physical address bits */
+	movl	$CPU_PHYSMASK_HI, %edi
+	movl	$0x80000000, %eax
+	cpuid
+	cmpl	$0x80000008, %eax
+	jb	no_addr_info
+	movl	$0x80000008, %eax
+	cpuid
+	subb	$32, %al
+	jc	no_addr_info
+	movb	%al, %cl
+	movl	$1, %eax
+	shll	%cl, %eax
+	decl	%eax
+	movl	%eax, %edi
+no_addr_info:
+	movl	%edi, %ebx
+
 	/* Send INIT IPI to all excluding ourself */
 	movl	$0x000C4500, %eax
 	movl	$0xFEE00300, %esi
@@ -63,8 +81,8 @@ car_init:
 	xorl	%eax, %eax
 	xorl	%edx, %edx
 clear_mtrrs:
-	movw	(%esi), %bx
-	movzx	%bx, %ecx
+	xorl	%ecx, %ecx
+	movw	(%esi), %cx
 	wrmsr
 	add	$2, %esi
 	dec	%edi
@@ -88,7 +106,7 @@ clear_mtrrs:
 	/* Set Cache-as-RAM mask */
 	movl	$(MTRR_PHYS_MASK_MSR(0)), %ecx
 	movl	$(~(CACHE_AS_RAM_SIZE - 1) | MTRR_PHYS_MASK_VALID), %eax
-	movl	$CPU_PHYSMASK_HI, %edx
+	movl	%ebx, %edx
 	wrmsr
 
 	post_code(POST_CAR_MASK)
@@ -140,7 +158,7 @@ clear_mtrrs:
 	wrmsr
 
 	movl	$MTRR_PHYS_MASK_MSR(1), %ecx
-	movl	$CPU_PHYSMASK_HI, %edx
+	movl	%ebx, %edx
 	movl	$(~(CONFIG_XIP_ROM_SIZE - 1) | MTRR_PHYS_MASK_VALID), %eax
 	wrmsr
 
@@ -153,7 +171,7 @@ clear_mtrrs:
 	wrmsr
 	movl	$MTRR_PHYS_MASK_MSR(2), %ecx
 	movl	$(CACHE_MRC_MASK | MTRR_PHYS_MASK_VALID), %eax
-	movl	$CPU_PHYSMASK_HI, %edx
+	movl	%ebx, %edx
 	wrmsr
 #endif
 

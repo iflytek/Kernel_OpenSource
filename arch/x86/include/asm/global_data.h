@@ -65,6 +65,7 @@ struct arch_global_data {
 	struct mtrr_request mtrr_req[MAX_MTRR_REQUESTS];
 	int mtrr_req_count;
 	int has_mtrr;
+	int phys_addr_bits;
 	/* MRC training data to save for the next boot */
 	char *mrc_output;
 	unsigned int mrc_output_len;

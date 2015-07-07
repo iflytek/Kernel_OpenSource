@@ -31,7 +31,7 @@ static int do_mtrr_list(void)
 
 		base = native_read_msr(MTRR_PHYS_BASE_MSR(i));
 		mask = native_read_msr(MTRR_PHYS_MASK_MSR(i));
-		size = ~mask & ((1ULL << CONFIG_CPU_ADDR_BITS) - 1);
+		size = ~mask & ((1ULL << gd->arch.phys_addr_bits) - 1);
 		size |= (1 << 12) - 1;
 		size += 1;
 		valid = mask & MTRR_PHYS_MASK_VALID;
@@ -68,7 +68,7 @@ static int do_mtrr_set(uint reg, int argc, char * const argv[])
 	base = start | type;
 	valid = native_read_msr(MTRR_PHYS_MASK_MSR(reg)) & MTRR_PHYS_MASK_VALID;
 	mask = ~((uint64_t)size - 1);
-	mask &= (1ULL << CONFIG_CPU_ADDR_BITS) - 1;
+	mask &= (1ULL << gd->arch.phys_addr_bits) - 1;
 	if (valid)
 		mask |= MTRR_PHYS_MASK_VALID;
 

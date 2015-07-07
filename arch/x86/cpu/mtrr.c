@@ -14,6 +14,7 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/cpu.h>
 #include <asm/msr.h>
 #include <asm/mtrr.h>
 
@@ -57,7 +58,7 @@ int mtrr_commit(bool do_caches)
 	mtrr_open(&state);
 	for (i = 0; i < gd->arch.mtrr_req_count; i++, req++) {
 		mask = ~(req->size - 1);
-		mask &= (1ULL << CONFIG_CPU_ADDR_BITS) - 1;
+		mask &= (1ULL << gd->arch.phys_addr_bits) - 1;
 		wrmsrl(MTRR_PHYS_BASE_MSR(i), req->start | req->type);
 		wrmsrl(MTRR_PHYS_MASK_MSR(i), mask | MTRR_PHYS_MASK_VALID);
 	}
@@ -87,7 +88,7 @@ int mtrr_add_request(int type, uint64_t start, uint64_t size)
 	debug("%d: type=%d, %08llx  %08llx\n", gd->arch.mtrr_req_count - 1,
 	      req->type, req->start, req->size);
 	mask = ~(req->size - 1);
-	mask &= (1ULL << CONFIG_CPU_ADDR_BITS) - 1;
+	mask &= (1ULL << gd->arch.phys_addr_bits) - 1;
 	mask |= MTRR_PHYS_MASK_VALID;
 	debug("   %016llx %016llx\n", req->start | req->type, mask);
 

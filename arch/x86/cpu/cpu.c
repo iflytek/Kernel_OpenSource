@@ -232,6 +232,20 @@ static bool has_mtrr(void)
 	return cpuid_edx(0x00000001) & (1 << 12) ? true : false;
 }
 
+static int phys_addr_bits(void)
+{
+	struct cpuid_result id;
+	int bits = CONFIG_CPU_ADDR_BITS;
+
+	id = cpuid(0x80000000);
+	if (id.eax >= 0x80000008) {
+		id = cpuid(0x80000008);
+		bits = id.eax & 0xFF;
+	}
+
+	return bits;
+}
+
 static int build_vendor_name(char *vendor_name)
 {
 	struct cpuid_result result;
@@ -329,6 +343,7 @@ int x86_cpu_init_f(void)
 		gd->arch.x86_device = cpu.device;
 
 		gd->arch.has_mtrr = has_mtrr();
+		gd->arch.phys_addr_bits = phys_addr_bits();
 	}
 
 	return 0;
