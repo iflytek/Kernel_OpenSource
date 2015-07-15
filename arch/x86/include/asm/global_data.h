@@ -68,6 +68,8 @@ struct arch_global_data {
 	/* MRC training data to save for the next boot */
 	char *mrc_output;
 	unsigned int mrc_output_len;
+	const void *microcode_data;
+	int microcode_size;
 	void *gdt;			/* Global descriptor table */
 };
 

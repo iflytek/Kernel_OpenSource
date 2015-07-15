@@ -23,8 +23,8 @@
 #include <asm/pci.h>
 #include <asm/post.h>
 #include <asm/processor.h>
+#include <asm/microcode.h>
 #include <asm/arch/model_206ax.h>
-#include <asm/arch/microcode.h>
 #include <asm/arch/pch.h>
 #include <asm/arch/sandybridge.h>
 
@@ -272,9 +272,7 @@ int print_cpuinfo(void)
 
 	enable_lapic();
 
-	ret = microcode_update_intel();
-	if (ret)
-		return ret;
+	microcode_update();
 
 	/* Enable upper 128bytes of CMOS */
 	writel(1 << 2, RCB_REG(RC));

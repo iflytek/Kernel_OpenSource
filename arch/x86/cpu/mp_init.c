@@ -231,7 +231,7 @@ static int load_sipi_vector(atomic_t **ap_countp)
 		return -ENOMEM;
 	params->stack_top = (u32)(stack + size);
 
-	params->microcode_ptr = 0;
+	params->microcode_ptr = (u32)gd->arch.microcode_data;
 	params->msr_table_ptr = (u32)msr_save;
 	ret = save_bsp_msrs(msr_save, sizeof(msr_save));
 	if (ret < 0)

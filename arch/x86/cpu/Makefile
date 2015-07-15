@@ -25,3 +25,4 @@ obj-y += mtrr.o
 obj-$(CONFIG_PCI) += pci.o
 obj-$(CONFIG_SMP) += sipi_vector.o
 obj-y += turbo.o
+obj-$(CONFIG_INTEL_MICROCODE) += microcode_intel.o

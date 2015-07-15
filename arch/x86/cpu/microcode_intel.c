@@ -15,7 +15,7 @@
 #include <asm/msr.h>
 #include <asm/msr-index.h>
 #include <asm/processor.h>
-#include <asm/arch/microcode.h>
+#include <asm/microcode.h>
 
 /**
  * struct microcode_update - standard microcode header from Intel
@@ -115,7 +115,7 @@ static void microcode_read_cpu(struct microcode_update *cpu)
 }
 
 /* Get a microcode update from the device tree and apply it */
-int microcode_update_intel(void)
+int microcode_update(void)
 {
 	struct microcode_update cpu, update;
 	const void *blob = gd->fdt_blob;
@@ -160,6 +160,9 @@ int microcode_update_intel(void)
 		if (update.update_revision != rev) {
 			printf("Microcode update failed\n");
 			return -EFAULT;
+		} else {
+			gd->arch.microcode_data = update.data;
+			gd->arch.microcode_size = update.size;
 		}
 		count++;
 	} while (1);

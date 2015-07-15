@@ -17,7 +17,7 @@
  * @return 0 if OK, -EEXIST if the updates were already applied, -ENOENT if
  * not updates were found, -EINVAL if an update was invalid
  */
-int microcode_update_intel(void);
+int microcode_update(void);
 #endif /* __ASSEMBLY__ */
 
 #endif

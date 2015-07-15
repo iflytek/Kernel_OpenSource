@@ -155,6 +155,12 @@ config ROM_SIZE
 	default 0xc00000 if UBOOT_ROMSIZE_KB_12288
 	default 0x1000000 if UBOOT_ROMSIZE_KB_16384
 
+config INTEL_MICROCODE
+	depends on OF_CONTROL
+	bool "Enable Intel CPU microcode update"
+	help
+	  Enable Intel CPU microcode update from Device Tree.
+
 config HAVE_INTEL_ME
 	bool "Platform requires Intel Management Engine"
 	help

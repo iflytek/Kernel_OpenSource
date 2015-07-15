@@ -613,6 +613,11 @@ int last_stage_init(void)
 }
 #endif
 
+__weak int microcode_update(void)
+{
+	return -ENOSYS;
+}
+
 __weak int x86_init_cpus(void)
 {
 	return 0;
