@@ -17,7 +17,7 @@ static int pch_uclass_post_bind(struct udevice *bus)
 	 * Before relocation, only bind devices marked for pre-relocation
 	 * use.
 	 */
-	return dm_scan_fdt_node(bus, gd->fdt_blob, bus->of_offset,
+	return dm_scan_fdt_node(bus, gd->fdt_blob, dev_of_offset(bus),
 				gd->flags & GD_FLG_RELOC ? false : true);
 }
 

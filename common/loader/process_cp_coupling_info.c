@@ -13,7 +13,7 @@
 
 //#define CP_MEM_DECOUP_DEBUG
 
-extern void of_bus_default_count_cells(void *blob, int parentoffset,
+extern void fdt_support_default_count_cells(void *blob, int parentoffset,
 					int *addrc, int *sizec);
 
 static boot_image_required_t s_boot_image_cp_table[MAX_REGION_NUM];
@@ -271,10 +271,10 @@ static int do_parse_decoup_sipc_info(struct cp_mem_coupling_info *info, struct f
 	debugf("start update sipc node info\n");
 	print_fdt_node(fdt, offs);
 
-	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
+	fdt_support_default_count_cells(fdt, p_offs, &na, &ns);
 	debugf("a_cells = %d, s_cells = %d\n", na, ns);
 
-	of_bus_default_count_cells(fdt, offs, &c_na, &c_ns);
+	fdt_support_default_count_cells(fdt, offs, &c_na, &c_ns);
 	debugf("ca_cells: %d, cs_cells: %d\n", c_na, c_ns);
 
 	prop_init("reg", 0, &c_reg);
@@ -339,8 +339,8 @@ static int create_cproc_subnode(struct fdt_header *fdt,
 		ns = 1;
 	}
 
-	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
-	of_bus_default_count_cells(fdt, offs, &c_na, &c_ns);
+	fdt_support_default_count_cells(fdt, p_offs, &na, &ns);
+	fdt_support_default_count_cells(fdt, offs, &c_na, &c_ns);
 
 	delta = base - p_base;
 	snprintf(node_name, sizeof(node_name), "%s@%x", name, delta);
@@ -424,7 +424,7 @@ static int do_parse_decoup_info_v1(struct cp_mem_coupling_info *info,
 	debugf("start update cproc node info\n");
 	print_fdt_node(fdt, offs);
 
-	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
+	fdt_support_default_count_cells(fdt, p_offs, &na, &ns);
 	debugf("a_cells: %d, s_cells: %d\n", na, ns);
 
 	if (!is_new_format) {
@@ -587,7 +587,7 @@ static int do_parse_decoup_info(struct mem_coupling_info * info,
 	if (do_add_prop_to_fdt(fdt, 0, &prop) < 0)
 		goto err0;
 
-	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
+	fdt_support_default_count_cells(fdt, p_offs, &na, &ns);
 	debugf("addr cells: %d, size cells: %d\n", na, ns);
 
 	for (region = info->region; region->size != 0; region++) {

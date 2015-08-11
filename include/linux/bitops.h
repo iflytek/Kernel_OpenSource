@@ -2,6 +2,11 @@
 #define _LINUX_BITOPS_H
 
 #include <asm/types.h>
+#include <asm-generic/bitsperlong.h>
+
+#define BIT(nr)			(1UL << (nr))
+#define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
+#define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
 
 /*
  * ffs: find first bit set. This is defined the same way as

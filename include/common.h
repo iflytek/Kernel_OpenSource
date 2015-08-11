@@ -118,6 +118,8 @@ typedef volatile unsigned char	vu_char;
 #define debugf(fmt, args...)
 #endif
 #define errorf(fmt, args...) do { printf("Error!%s(): ", __func__); printf(fmt, ##args); } while (0)
+/* Show a message if not in SPL */
+#define warn_non_spl(fmt, args...)			\
 
 /*
  * An assertion is run-time check done in debug mode only. If DEBUG is not

@@ -8,6 +8,7 @@
  */
 
 #include <common.h>
+#include <dm.h>
 #include <errno.h>
 #include <malloc.h>
 #include <dm/device.h>
@@ -56,9 +57,14 @@ static int uclass_add(enum uclass_id id, struct uclass **ucp)
 	*ucp = NULL;
 	uc_drv = lists_uclass_lookup(id);
 	if (!uc_drv) {
-		dm_warn("Cannot find uclass for id %d: please add the UCLASS_DRIVER() declaration for this UCLASS_... id\n",
-			id);
-		return -ENOENT;
+		debug("Cannot find uclass for id %d: please add the UCLASS_DRIVER() declaration for this UCLASS_... id\n",
+		      id);
+		/*
+		 * Use a strange error to make this case easier to find. When
+		 * a uclass is not available it can prevent driver model from
+		 * starting up and this failure is otherwise hard to debug.
+		 */
+		return -EPFNOSUPPORT;
 	}
 	uc = calloc(1, sizeof(*uc));
 	if (!uc)
@@ -111,7 +117,7 @@ int uclass_destroy(struct uclass *uc)
 	while (!list_empty(&uc->dev_head)) {
 		dev = list_first_entry(&uc->dev_head, struct udevice,
 				       uclass_node);
-		ret = device_remove(dev);
+		ret = device_remove(dev, DM_REMOVE_NORMAL);
 		if (ret)
 			return ret;
 		ret = device_unbind(dev);
@@ -143,6 +149,15 @@ int uclass_get(enum uclass_id id, struct uclass **ucp)
 	return 0;
 }
 
+const char *uclass_get_name(enum uclass_id id)
+{
+	struct uclass *uc;
+
+	if (uclass_get(id, &uc))
+		return NULL;
+	return uc->uc_drv->name;
+}
+
 int uclass_find_device(enum uclass_id id, int index, struct udevice **devp)
 {
 	struct uclass *uc;
@@ -153,6 +168,8 @@ int uclass_find_device(enum uclass_id id, int index, struct udevice **devp)
 	ret = uclass_get(id, &uc);
 	if (ret)
 		return ret;
+	if (list_empty(&uc->dev_head))
+		return -ENODEV;
 
 	list_for_each_entry(dev, &uc->dev_head, uclass_node) {
 		if (!index--) {
@@ -234,7 +251,7 @@ int uclass_find_device_by_seq(enum uclass_id id, int seq_or_req_seq,
 		return ret;
 
 	list_for_each_entry(dev, &uc->dev_head, uclass_node) {
-		debug("   - %d %d\n", dev->req_seq, dev->seq);
+		debug("   - %d %d '%s'\n", dev->req_seq, dev->seq, dev->name);
 		if ((find_req_seq ? dev->req_seq : dev->seq) ==
 				seq_or_req_seq) {
 			*devp = dev;
@@ -247,8 +264,8 @@ int uclass_find_device_by_seq(enum uclass_id id, int seq_or_req_seq,
 	return -ENODEV;
 }
 
-static int uclass_find_device_by_of_offset(enum uclass_id id, int node,
-					   struct udevice **devp)
+int uclass_find_device_by_of_offset(enum uclass_id id, int node,
+				    struct udevice **devp)
 {
 	struct uclass *uc;
 	struct udevice *dev;
@@ -262,10 +279,88 @@ static int uclass_find_device_by_of_offset(enum uclass_id id, int node,
 		return ret;
 
 	list_for_each_entry(dev, &uc->dev_head, uclass_node) {
-		if (dev->of_offset == node) {
+		if (dev_of_offset(dev) == node) {
 			*devp = dev;
 			return 0;
 		}
+	}
+
+	return -ENODEV;
+}
+
+int uclass_find_device_by_ofnode(enum uclass_id id, ofnode node,
+				 struct udevice **devp)
+{
+	struct uclass *uc;
+	struct udevice *dev;
+	int ret;
+
+	*devp = NULL;
+	if (!ofnode_valid(node))
+		return -ENODEV;
+	ret = uclass_get(id, &uc);
+	if (ret)
+		return ret;
+
+	list_for_each_entry(dev, &uc->dev_head, uclass_node) {
+		if (ofnode_equal(dev_ofnode(dev), node)) {
+			*devp = dev;
+			return 0;
+		}
+	}
+
+	return -ENODEV;
+}
+
+#if CONFIG_IS_ENABLED(OF_CONTROL)
+static int uclass_find_device_by_phandle(enum uclass_id id,
+					 struct udevice *parent,
+					 const char *name,
+					 struct udevice **devp)
+{
+	struct udevice *dev;
+	struct uclass *uc;
+	int find_phandle;
+	int ret;
+
+	*devp = NULL;
+	find_phandle = dev_read_u32_default(parent, name, -1);
+	if (find_phandle <= 0)
+		return -ENOENT;
+	ret = uclass_get(id, &uc);
+	if (ret)
+		return ret;
+
+	list_for_each_entry(dev, &uc->dev_head, uclass_node) {
+		uint phandle;
+
+		phandle = dev_read_phandle(dev);
+
+		if (phandle == find_phandle) {
+			*devp = dev;
+			return 0;
+		}
+	}
+
+	return -ENODEV;
+}
+#endif
+
+int uclass_get_device_by_driver(enum uclass_id id,
+				const struct driver *find_drv,
+				struct udevice **devp)
+{
+	struct udevice *dev;
+	struct uclass *uc;
+	int ret;
+
+	ret = uclass_get(id, &uc);
+	if (ret)
+		return ret;
+
+	list_for_each_entry(dev, &uc->dev_head, uclass_node) {
+		if (dev->driver == find_drv)
+			return uclass_get_device_tail(dev, 0, devp);
 	}
 
 	return -ENODEV;
@@ -336,6 +431,31 @@ int uclass_get_device_by_of_offset(enum uclass_id id, int node,
 	return uclass_get_device_tail(dev, ret, devp);
 }
 
+int uclass_get_device_by_ofnode(enum uclass_id id, ofnode node,
+				struct udevice **devp)
+{
+	struct udevice *dev;
+	int ret;
+
+	*devp = NULL;
+	ret = uclass_find_device_by_ofnode(id, node, &dev);
+
+	return uclass_get_device_tail(dev, ret, devp);
+}
+
+#if CONFIG_IS_ENABLED(OF_CONTROL)
+int uclass_get_device_by_phandle(enum uclass_id id, struct udevice *parent,
+				 const char *name, struct udevice **devp)
+{
+	struct udevice *dev;
+	int ret;
+
+	*devp = NULL;
+	ret = uclass_find_device_by_phandle(id, parent, name, &dev);
+	return uclass_get_device_tail(dev, ret, devp);
+}
+#endif
+
 int uclass_first_device(enum uclass_id id, struct udevice **devp)
 {
 	struct udevice *dev;
@@ -346,6 +466,19 @@ int uclass_first_device(enum uclass_id id, struct udevice **devp)
 	if (!dev)
 		return 0;
 	return uclass_get_device_tail(dev, ret, devp);
+}
+
+int uclass_first_device_err(enum uclass_id id, struct udevice **devp)
+{
+	int ret;
+
+	ret = uclass_first_device(id, devp);
+	if (ret)
+		return ret;
+	else if (!*devp)
+		return -ENODEV;
+
+	return 0;
 }
 
 int uclass_next_device(struct udevice **devp)
@@ -377,11 +510,6 @@ int uclass_bind_device(struct udevice *dev)
 				goto err;
 		}
 	}
-	if (uc->uc_drv->post_bind) {
-		ret = uc->uc_drv->post_bind(dev);
-		if (ret)
-			goto err;
-	}
 
 	return 0;
 err:
@@ -391,7 +519,7 @@ err:
 	return ret;
 }
 
-#ifdef CONFIG_DM_DEVICE_REMOVE
+#if CONFIG_IS_ENABLED(DM_DEVICE_REMOVE)
 int uclass_unbind_device(struct udevice *dev)
 {
 	struct uclass *uc;
@@ -471,25 +599,18 @@ int uclass_post_probe_device(struct udevice *dev)
 	return 0;
 }
 
-#ifdef CONFIG_DM_DEVICE_REMOVE
+#if CONFIG_IS_ENABLED(DM_DEVICE_REMOVE)
 int uclass_pre_remove_device(struct udevice *dev)
 {
-	struct uclass_driver *uc_drv;
 	struct uclass *uc;
 	int ret;
 
 	uc = dev->uclass;
-	uc_drv = uc->uc_drv;
 	if (uc->uc_drv->pre_remove) {
 		ret = uc->uc_drv->pre_remove(dev);
 		if (ret)
 			return ret;
 	}
-	if (uc_drv->per_device_auto_alloc_size) {
-		free(dev->uclass_priv);
-		dev->uclass_priv = NULL;
-	}
-	dev->seq = -1;
 
 	return 0;
 }

@@ -179,7 +179,7 @@ static int cpu_x86_baytrail_bind(struct udevice *dev)
 {
 	struct cpu_platdata *plat = dev_get_parent_platdata(dev);
 
-	plat->cpu_id = fdtdec_get_int(gd->fdt_blob, dev->of_offset,
+	plat->cpu_id = fdtdec_get_int(gd->fdt_blob, dev->node,
 				      "intel,apic-id", -1);
 
 	return 0;
