@@ -21,7 +21,7 @@
  * The following definitions are related each other, shoud be
  * calculated specifically.
  */
-#define VA_BITS			(42)	/* 42 bits virtual address */
+#define VA_BITS			(39)	/* 42 bits virtual address */
 
 /* PAGE_SHIFT determines the page size */
 #undef  PAGE_SIZE
@@ -32,7 +32,7 @@
 /*
  * section address mask and size definitions.
  */
-#define SECTION_SHIFT		29
+#define SECTION_SHIFT		30
 #define SECTION_SIZE		(UL(1) << SECTION_SHIFT)
 #define SECTION_MASK		(~(SECTION_SIZE-1))
 /***************************************************************/
@@ -98,12 +98,12 @@
 #define TCR_TG0_4K		(0 << 14)
 #define TCR_TG0_64K		(1 << 14)
 #define TCR_TG0_16K		(2 << 14)
-#define TCR_EL1_IPS_BITS	(UL(3) << 32)	/* 42 bits physical address */
-#define TCR_EL2_IPS_BITS	(3 << 16)	/* 42 bits physical address */
-#define TCR_EL3_IPS_BITS	(3 << 16)	/* 42 bits physical address */
+#define TCR_EL1_IPS_BITS	(UL(2) << 32)	/* 40 bits physical address */
+#define TCR_EL2_IPS_BITS	(2 << 16)	/* 40 bits physical address */
+#define TCR_EL3_IPS_BITS	(2 << 16)	/* 40 bits physical address */
 
 /* PTWs cacheable, inner/outer WBWA and non-shareable */
-#define TCR_FLAGS		(TCR_TG0_64K |		\
+#define TCR_FLAGS		(TCR_TG0_4K |		\
 				TCR_SHARED_NON |	\
 				TCR_ORGN_WBWA |		\
 				TCR_IRGN_WBWA |		\

@@ -14,7 +14,7 @@
 #define CR_WXN		(1 << 19)	/* Write Permision Imply XN	*/
 #define CR_EE		(1 << 25)	/* Exception (Big) Endian	*/
 
-#define PGTABLE_SIZE	(0x10000)
+#define PGTABLE_SIZE	(0x1000)
 
 #ifndef __ASSEMBLY__
 

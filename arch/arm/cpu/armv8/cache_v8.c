@@ -39,6 +39,12 @@ static void mmu_setup(void)
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
 		ulong start = bd->bi_dram[i].start;
 		ulong end = bd->bi_dram[i].start + bd->bi_dram[i].size;
+
+		if(end % (1 << SECTION_SHIFT))
+		{
+			end = end +(1 << SECTION_SHIFT);
+		}
+
 		for (j = start >> SECTION_SHIFT;
 		     j < end >> SECTION_SHIFT; j++) {
 			set_pgtable_section(page_table, j, j << SECTION_SHIFT,
