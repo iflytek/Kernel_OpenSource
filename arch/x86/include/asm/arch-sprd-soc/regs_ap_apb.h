@@ -11,7 +11,11 @@
 #define BIT(x) (1<<x)
 #endif
 
+#if defined(CONFIG_SPRD_SOC_ISHARKL)
 #define REGS_AP_APB_BASE	0xe8300000
+#elif defined(CONFIG_SPRD_SOC_IWHALE2)
+#define REGS_AP_APB_BASE	0xe42e0000
+#endif
 
 /* registers definitions for AP_APB */
 #define REG_AP_APB_APB_EB		(REGS_AP_APB_BASE + 0x0000)

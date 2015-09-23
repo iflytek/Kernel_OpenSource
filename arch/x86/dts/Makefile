@@ -5,7 +5,8 @@ dtb-y += chromebook_link.dtb \
 	minnowmax.dtb \
 	qemu-x86_i440fx.dtb \
 	qemu-x86_q35.dtb \
-	isharkl.dtb
+	isharkl.dtb \
+	iwhale2.dtb
 
 targets += $(dtb-y)
 

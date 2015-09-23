@@ -13,10 +13,16 @@ choice
 config TARGET_ISHARKL
 	bool "Spreadtrum isharkl"
 	help
-	  This is the Spreadtrum iSharkL  Board
+	  This is the Spreadtrum iSharkL Board
+
+config TARGET_IWHALE2
+	bool "Spreadtrum iwhale2"
+	help
+	  This is the Spreadtrum iWhaleL2 Board
 
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
+source "board/spreadtrum/iwhale2/Kconfig"
 
 endif

@@ -6,4 +6,4 @@
 
 .globl early_board_init
 early_board_init:
-        jmp     early_board_init_ret
+	jmp	early_board_init_ret
