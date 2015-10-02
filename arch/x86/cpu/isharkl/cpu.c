@@ -14,6 +14,7 @@
 #include <asm/lapic.h>
 #include <asm/mp.h>
 #include <asm/msr.h>
+#include <asm/bootparam.h>
 
 #ifdef CONFIG_SMP
 static int enable_smis(struct udevice *cpu, void *unused)
@@ -88,6 +89,9 @@ int x86_init_cpus(void)
 static int cpu_x86_isharkl_probe(struct udevice *dev)
 {
         debug("Init Buillhill core\n");
+
+	gd->arch.hardware_subarch = X86_SUBARCH_SHARKL;
+
 	return 0;
 }
 

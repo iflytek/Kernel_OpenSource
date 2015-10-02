@@ -71,6 +71,7 @@ struct arch_global_data {
 	unsigned int mrc_output_len;
 	const void *microcode_data;
 	int microcode_size;
+	uint32_t hardware_subarch;
 	void *gdt;			/* Global descriptor table */
 };
 

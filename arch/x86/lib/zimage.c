@@ -254,9 +254,8 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 		hdr->setup_data = (__u32)sd;
 	}
 
-#ifdef CONFIG_SYS_ISHARKL
-	hdr->hardware_subarch = X86_SUBARCH_SHARKL;
-#endif
+	if (gd->arch.hardware_subarch)
+		hdr->hardware_subarch = gd->arch.hardware_subarch;
 
 	if (bootproto == 0x0100) {
 		setup_base->screen_info.cl_magic = COMMAND_LINE_MAGIC;
