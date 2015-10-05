@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Intel, Inc
+ * Copyright (C) 2015, Intel Corporation
  *
  * SPDX-License-Identifier:     GPL-2.0+
  *
@@ -45,7 +45,7 @@ static int detect_num_cpus(void)
 		leaf_b = cpuid_ext(0xb, ecx);
 
 		/*
-		 * iSharkL doesn't have hyperthreading so just determine the
+		 * BaseIA doesn't have hyperthreading so just determine the
 		 * number of cores by from level type (ecx[15:8] == * 2)
 		 */
 		if ((leaf_b.ecx & 0xff00) == 0x0200)
@@ -54,7 +54,7 @@ static int detect_num_cpus(void)
 	}
 }
 
-static int isharkl_init_cpus(void)
+static int baseia_init_cpus(void)
 {
 	struct mp_params mp_params;
 
@@ -81,16 +81,17 @@ int x86_init_cpus(void)
 {
 #ifdef CONFIG_SMP
 	debug("Init additional CPUs class %d\n", UCLASS_CPU);
-	isharkl_init_cpus();
+	baseia_init_cpus();
 #endif
+
 	return 0;
 }
 
-static int cpu_x86_isharkl_probe(struct udevice *dev)
+int cpu_x86_baseia_probe(struct udevice *dev)
 {
-        debug("Init Buillhill core\n");
+	debug("Init:%s:%s\n", dev->driver->name, dev->name);
 
-	gd->arch.hardware_subarch = X86_SUBARCH_SHARKL;
+	gd->arch.hardware_subarch = X86_SUBARCH_BASEIA;
 
 	return 0;
 }
@@ -126,39 +127,20 @@ static unsigned long tsc_freq(void)
 	return bclk * ((platform_info.lo >> 8) & 0xff);
 }
 
-static int isharkl_get_info(struct udevice *dev, struct cpu_info *info)
+int baseia_get_info(struct udevice *dev, struct cpu_info *info)
 {
-        info->cpu_freq = tsc_freq();
-        info->features = 1 << CPU_FEAT_L1_CACHE | 1 << CPU_FEAT_MMU;
+	info->cpu_freq = tsc_freq();
+	info->features = 1 << CPU_FEAT_L1_CACHE | 1 << CPU_FEAT_MMU;
 
-        return 0;
+	return 0;
 }
 
-static int cpu_x86_isharkl_bind(struct udevice *dev)
+int cpu_x86_baseia_bind(struct udevice *dev)
 {
-        struct cpu_platdata *plat = dev_get_parent_platdata(dev);
+	struct cpu_platdata *plat = dev_get_parent_platdata(dev);
 
-        plat->cpu_id = fdtdec_get_int(gd->fdt_blob, dev->of_offset,
-                                      "intel,apic-id", -1);
+	plat->cpu_id = fdtdec_get_int(gd->fdt_blob, dev->of_offset,
+			"intel,apic-id", -1);
 
-        return 0;
+	return 0;
 }
-
-static const struct cpu_ops cpu_x86_isharkl_ops = {
-        .get_desc       = x86_cpu_get_desc,
-        .get_info       = isharkl_get_info,
-};
-
-static const struct udevice_id cpu_x86_isharkl_ids[] = {
-        { .compatible = "intel,bullhill" },
-        { }
-};
-
-U_BOOT_DRIVER(cpu_x86_isharkl_drv) = {
-        .name           = "cpu_x86_isharkl",
-        .id             = UCLASS_CPU,
-        .of_match       = cpu_x86_isharkl_ids,
-        .bind           = cpu_x86_isharkl_bind,
-        .probe          = cpu_x86_isharkl_probe,
-        .ops            = &cpu_x86_isharkl_ops,
-};

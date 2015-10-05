@@ -1,0 +1,12 @@
+# Copyright (C) 2015, Intel Corporation
+#
+# SPDX-License-Identifier:      GPL-2.0+
+#
+
+config BASEIA
+	bool
+
+config BULLHILL
+	bool "x86 BullHill Architecture"
+	select BASEIA
+	depends on X86

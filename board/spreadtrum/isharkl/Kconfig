@@ -17,7 +17,7 @@ config SYS_TEXT_BASE
 
 config BOARD_SPECIFIC_OPTIONS # dummy
 	def_bool y
-	select SYS_ISHARKL
+	select BULLHILL
 
 config DEFAULT_DEVICE_TREE
 	string "Board Device Tree Source (dts) file"
