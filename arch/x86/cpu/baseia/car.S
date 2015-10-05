@@ -4,6 +4,8 @@
 
 .globl car_init
 
+#define SRAM_START 0xFFFB0000
+
 #define IA32_MTRRCAP 0x00FE
 #define IA32_MTRR_DEF_TYPE 0x02FF
 #define IA32_MTRR_PHYSBASE0 0x0200
@@ -52,25 +54,25 @@ no_address_info:
 	movl	$IA32_MTRR_PHYSBASE0, %ecx
 	xorl	%esi, %esi
 
-/* Variable Range MTRR #0: FFFF8000-FFFFFFFF, WP */
+/* Variable Range MTRR #0: FFFF0000-FFFFFFFF, WP */
 
 	movl	$0, %edx
-	movl	$0xFFFF8005, %eax
+	movl	$0xFFFF0005, %eax
 	wrmsr
 	incl	%ecx
 
 	movl	%ebx, %edx
-	movl	$0xFFFF8800, %eax
+	movl	$0xFFFF0800, %eax
 	wrmsr
 	incl	%ecx
 
 	incl	%esi
 
 
-/* Variable Range MTRR #1: FFFB0000-FFFBFFFF, WP */
+/* Variable Range MTRR #1: xxxx0000-xxxxFFFF, WP (SRAM) */
 
 	movl	$0, %edx
-	movl	$0xFFFBC005, %eax
+	movl	$(SRAM_START | 0x0005), %eax
 	wrmsr
 	incl	%ecx
 
