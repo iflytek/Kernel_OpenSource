@@ -15,6 +15,7 @@
 #include <asm/mp.h>
 #include <asm/msr.h>
 #include <asm/bootparam.h>
+#include <asm/microcode.h>
 
 #ifdef CONFIG_SMP
 static int enable_smis(struct udevice *cpu, void *unused)
@@ -66,7 +67,7 @@ static int baseia_init_cpus(void)
 	mp_params.parallel_microcode_load = 0,
 		mp_params.flight_plan = &mp_steps[0];
 	mp_params.num_records = ARRAY_SIZE(mp_steps);
-	mp_params.microcode_pointer = 0;
+	mp_params.microcode_pointer = gd->arch.microcode_data;
 
 	if (mp_init(&mp_params)) {
 		printf("Warning: MP init failure\n");
@@ -77,8 +78,27 @@ static int baseia_init_cpus(void)
 }
 #endif
 
+static void bios_reset_done(void)
+{
+	/* IOSF Message Data:
+	 *  bit [0] (BIOS_RESET_DONE)
+	 */
+	outl(0x800000D4, 0xCF8);
+	outl(0x00000001, 0xCFC);
+
+	/* IOSF Message Control:
+	 *  opcode 0x07 (Write), port 0x04 (Punit),
+	 *  offset 0x05 (PUNIT_BIOS_RESET_CPL)
+	 */
+	outl(0x800000D0, 0xCF8);
+	outl(0x070405F0, 0xCFC);
+}
+
 int x86_init_cpus(void)
 {
+	if (microcode_update() >= 0)
+		bios_reset_done();
+
 #ifdef CONFIG_SMP
 	debug("Init additional CPUs class %d\n", UCLASS_CPU);
 	baseia_init_cpus();
