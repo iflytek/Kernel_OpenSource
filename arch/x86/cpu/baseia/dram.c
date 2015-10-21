@@ -6,11 +6,25 @@ unsigned install_e820_map(unsigned max_entries, struct e820entry *entries)
 {
 	u8  e820_entries = 0;
 
+#ifdef CONFIG_SPRD_SOC_IWHALE2
+    entries->addr = 0x0;
+    entries->size = 0x40000;
+    entries->type = E820_RESERVED;
+    e820_entries++;
+    entries++;
+
+    entries->addr = 0x40000;
+    entries->size = PHYS_SDRAM_1_SIZE - 0x40000;
+    entries->type = E820_RAM;
+    e820_entries++;
+    entries++;
+#else
 	entries->addr = 0x0;
 	entries->size = PHYS_SDRAM_1_SIZE;
 	entries->type = E820_RAM;
 	e820_entries++;
 	entries++;
+#endif
 
 	entries->addr = 0xfe000000;
 	entries->size = 0x1000000;
