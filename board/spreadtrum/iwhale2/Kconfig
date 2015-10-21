@@ -13,7 +13,7 @@ config SYS_CONFIG_NAME
 	default "iwhale2"
 
 config SYS_TEXT_BASE
-	default 0x7f000000
+	default 0x7C000000
 
 config BOARD_SPECIFIC_OPTIONS # dummy
 	def_bool y
