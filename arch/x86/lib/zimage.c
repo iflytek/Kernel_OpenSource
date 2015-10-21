@@ -274,8 +274,12 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 	}
 #endif
 
+#ifdef CONFIG_SUBARCH_PLATFORM
+	hdr->hardware_subarch = CONFIG_SUBARCH_PLATFORM;
+#else
 	if (gd->arch.hardware_subarch)
 		hdr->hardware_subarch = gd->arch.hardware_subarch;
+#endif
 
 	if (bootproto == 0x0100) {
 		setup_base->screen_info.cl_magic = COMMAND_LINE_MAGIC;
