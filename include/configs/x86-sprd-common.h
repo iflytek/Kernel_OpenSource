@@ -21,7 +21,6 @@
 #define CONFIG_SYS_MAX_FLASH_SECT  512
 
 #define CONFIG_NR_DRAM_BANKS	1
-#define PHYS_SDRAM_1_SIZE	0x80000000
 
 /*-----------------------------------------------------------------------
  * Environment configuration
