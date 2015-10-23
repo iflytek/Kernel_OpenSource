@@ -665,6 +665,7 @@ libs-y += drivers/usb/ulpi/
 libs-y += common/
 libs-$(CONFIG_API) += api/
 libs-$(CONFIG_HAS_POST) += post/
+libs-y += common/loader/
 libs-y += test/
 libs-y += test/dm/
 libs-$(CONFIG_UT_ENV) += test/env/

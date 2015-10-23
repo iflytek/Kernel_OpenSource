@@ -103,14 +103,21 @@ typedef volatile unsigned char	vu_char;
  * computed by a preprocessor in the best case, allowing for the best
  * optimization.
  */
-#define debug_cond(cond, fmt, args...)			\
-	do {						\
-		if (cond)				\
+#define debug_cond(cond, fmt, args...)		\
+	do {					\
+		if (cond)			\
 			printf(pr_fmt(fmt), ##args);	\
 	} while (0)
 
 #define debug(fmt, args...)			\
 	debug_cond(_DEBUG, fmt, ##args)
+
+#ifdef DEBUG
+#define debugf(fmt, args...) do { printf("%s(): ", __func__); printf(fmt, ##args); } while (0)
+#else
+#define debugf(fmt, args...)
+#endif
+#define errorf(fmt, args...) do { printf("Error!%s(): ", __func__); printf(fmt, ##args); } while (0)
 
 /*
  * An assertion is run-time check done in debug mode only. If DEBUG is not

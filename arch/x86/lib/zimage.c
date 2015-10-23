@@ -14,6 +14,7 @@
  */
 
 #include <common.h>
+#include <android_bootimg.h>
 #include <asm/io.h>
 #include <asm/ptrace.h>
 #include <asm/zimage.h>
@@ -235,10 +236,28 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 {
 	struct setup_header *hdr = &setup_base->hdr;
 	int bootproto = get_boot_protocol(hdr);
-
 	setup_base->e820_entries = install_e820_map(
 		ARRAY_SIZE(setup_base->e820_map), setup_base->e820_map);
+#ifdef CONFIG_VP_DEBUG
+	uint32_t dt_img_adr = DT_ADR;
+	if(load_dtb((uint64_t) DT_ADR,dt_img_adr))
+	{
+		printf("\nWARNING:load dtb from bootimg failed!\n");
+	}
+	else
+	{
+		struct setup_data *sd;
+		u8 *fdt_blob =(u8*)DT_ADR;
+		sd = (void *)DEFAULT_SETUP_DTB_ADDR;
+		sd->next = 0;
+		sd->type = SETUP_DTB;
+		sd->len = fdt_totalsize(fdt_blob);
+		memcpy(sd->data, (const void *)DT_ADR, sd->len);
+		/* we assume this is the only one setup_data entry */
+		hdr->setup_data = (__u32)sd;
 
+	}
+#else
 	/* if FDT then pass it to the kernel setup header */
 	if (gd->fdt_blob) {
 		struct setup_data *sd;
@@ -253,6 +272,7 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 		/* we assume this is the only one setup_data entry */
 		hdr->setup_data = (__u32)sd;
 	}
+#endif
 
 	if (gd->arch.hardware_subarch)
 		hdr->hardware_subarch = gd->arch.hardware_subarch;
@@ -307,12 +327,14 @@ void __setup_pcat_compatibility(void)
 int do_zboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
 	struct boot_params *base_ptr;
+	struct boot_img_hdr *boot_hdr;
 	void *bzImage_addr = NULL;
 	ulong load_address;
 	char *s;
 	ulong bzImage_size = 0;
 	ulong initrd_addr = 0;
 	ulong initrd_size = 0;
+	ulong dtb_size = 0;
 
 	disable_interrupts();
 
@@ -338,7 +360,20 @@ int do_zboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 		initrd_addr = simple_strtoul(argv[3], NULL, 16);
 	if (argc >= 5)
 		initrd_size = simple_strtoul(argv[4], NULL, 16);
+#ifdef CONFIG_VP_DEBUG
+	boot_hdr = malloc(512*4);
+	memcpy((void *)boot_hdr,(const void *)BOOTIMG_ADR,512*4);
+	bzImage_size = (boot_hdr->kernel_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+	initrd_size = (boot_hdr->ramdisk_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+	dtb_size = (boot_hdr->dt_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+	memcpy((void *)KERNEL_ADR,(const void *)BOOTIMG_ADR+512*4,bzImage_size);
+	memcpy((void *)RAMDISK_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size,initrd_size);
+	memcpy((void *)DT_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size+initrd_size,dtb_size);
 
+	debugf("\nthe kernel is loading in the address:%x,size is %d\n",KERNEL_ADR,bzImage_size);
+	debugf("\nthe ramdisk is loading in the address:%x,size is %d\n",RAMDISK_ADR,initrd_size);
+	debugf("\nthe dtb is loading in the address:%x,size is %d\n",DT_ADR,dtb_size);
+#endif
 	/* Lets look for */
 	base_ptr = load_zimage(bzImage_addr, bzImage_size, &load_address);
 

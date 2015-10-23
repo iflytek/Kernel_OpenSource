@@ -20,9 +20,14 @@ config TARGET_IWHALE2
 	help
 	  This is the Spreadtrum iWhaleL2 Board
 
+config TARGET_IWHALE2_VP
+	bool "Spreadtrum iwhale2_vp"
+	help
+	  This is the Spreadtrum iWhaleL2 Board
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
 source "board/spreadtrum/iwhale2/Kconfig"
+source "board/spreadtrum/iwhale2_vp/Kconfig"
 
 endif
