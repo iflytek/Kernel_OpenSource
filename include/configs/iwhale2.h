@@ -5,6 +5,4 @@
 
 #define CONFIG_SPRD_SOC_IWHALE2
 
-#define CONFIG_SUBARCH_PLATFORM        X86_SUBARCH_SOFIA
-
 #endif /* __CONFIG_H */
