@@ -5,6 +5,4 @@
 
 #define CONFIG_SPRD_SOC_ISHARKL
 
-#define PHYS_SDRAM_1_SIZE      0x80000000
-
 #endif /* __CONFIG_H */
