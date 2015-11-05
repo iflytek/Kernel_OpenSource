@@ -28,10 +28,7 @@
 #include <malloc.h>
 #include <libfdt.h>
 
-#ifndef DEFAULT_SETUP_DTB_ADDR
 #define DEFAULT_SETUP_DTB_ADDR	0x500
-#endif
-
 DECLARE_GLOBAL_DATA_PTR;
 
 /*
