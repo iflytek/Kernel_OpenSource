@@ -30,11 +30,11 @@ static int sprd_serial_init(void)
 	struct sprd_uart_regs *regs = sprd_uart_get_regs(CONSOLE_PORT);
 	u32 divider = (ARM_APB_CLK + baudrate / 2) / baudrate;
 	/* Disable UART*/
-	//writel(readl(REG_AP_APB_APB_EB) & (~BIT_UART1_EB), REG_AP_APB_APB_EB);
+	writel(readl(REG_AP_APB_APB_EB) & (~BIT_UART0_EB), REG_AP_APB_APB_EB);
 	/*Disable Interrupt */
 	writel(0, &regs->uart_ien);
 	/* Enable UART*/
-	//writel(readl(REG_AP_APB_APB_EB) | BIT_UART1_EB, REG_AP_APB_APB_EB);
+	writel(readl(REG_AP_APB_APB_EB) | BIT_UART0_EB, REG_AP_APB_APB_EB);
 	/* Set baud rate  */
 	writel(LWORD (divider), &regs->uart_ckd0);
 	/* Set port for 8 bit, one stop, no parity  */
