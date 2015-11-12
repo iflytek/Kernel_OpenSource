@@ -16,7 +16,7 @@
 
 #include <bcd.h>
 #include <rtc_def.h>
-
+#include <common.h>
 #ifdef CONFIG_DM_RTC
 
 struct rtc_ops {

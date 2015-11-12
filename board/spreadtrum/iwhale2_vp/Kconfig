@@ -1,7 +1,7 @@
 if TARGET_IWHALE2_VP
 
 config SYS_BOARD
-	default "iwhale2"
+	default "iwhale2_vp"
 
 config SYS_VENDOR
 	default "spreadtrum"

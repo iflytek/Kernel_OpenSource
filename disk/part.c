@@ -42,7 +42,7 @@ static const struct block_drvr block_drvr[] = {
 	{
 		.name = "mmc",
 		.get_dev = mmc_get_dev,
-		.select_hwpart = mmc_select_hwpart,
+		//.select_hwpart = mmc_select_hwpart,
 	},
 #endif
 #if defined(CONFIG_SYSTEMACE)
@@ -444,7 +444,21 @@ int get_partition_info(block_dev_desc_t *dev_desc, int part,
 
 	return -1;
 }
-
+int get_partition_info_by_name(block_dev_desc_t *dev_desc,uchar* partition_name,disk_partition_t *info)
+{
+	switch(dev_desc->part_type){
+#ifdef CONFIG_EFI_PARTITION
+	case PART_TYPE_EFI:
+		if(get_partition_info_by_name_efi(dev_desc,partition_name,info)==0){
+		return (0);
+		}
+		break;
+#endif
+	default:
+		break;
+	}
+	return(-1);
+}
 int get_device(const char *ifname, const char *dev_hwpart_str,
 	       block_dev_desc_t **dev_desc)
 {

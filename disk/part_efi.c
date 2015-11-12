@@ -309,7 +309,62 @@ int get_partition_info_efi_by_name(block_dev_desc_t *dev_desc,
 	}
 	return -2;
 }
+int get_partition_info_by_name_efi(block_dev_desc_t * dev_desc, uchar *partition_name, disk_partition_t *info)
+{
+	ALLOC_CACHE_ALIGN_BUFFER_PAD(gpt_header, gpt_head, 1, dev_desc->blksz);
+	gpt_entry *pgpt_pte = NULL;
+	int ret=-1;
+	unsigned int i,j,partition_nums=0;
+	uchar disk_partition[PARTNAME_SZ];
 
+	if (!dev_desc || !info || !partition_name) {
+		printf("%s: Invalid Argument(s)\n", __func__);
+		return -1;
+	}
+	/* This function validates AND fills in the GPT header and PTE */
+	if (is_gpt_valid(dev_desc, GPT_PRIMARY_PARTITION_TABLE_LBA,
+			gpt_head, &pgpt_pte) != 1) {
+		printf("%s: *** ERROR: Invalid Main GPT ***\n", __func__);
+		if (is_gpt_valid(dev_desc, (dev_desc->lba - 1),
+				 gpt_head, &pgpt_pte) != 1) {
+			printf("%s: *** ERROR: Invalid alternate GPT ***\n",
+			       __func__);
+			return -1;
+		}
+	}
+	/*Get the partition info*/
+	partition_nums=le32_to_cpu(gpt_head->num_partition_entries);
+	   for(i=0;i<partition_nums;i++)
+	{
+		for(j=0;j<PARTNAME_SZ;j++)
+	{
+		disk_partition[j]=pgpt_pte[i].partition_name[j]&0xFF;
+	}
+		if(0==strcmp(disk_partition,partition_name))
+	{
+	/* The ulong casting  limits the maximum disk size to 2 TB */
+	info->start = (ulong)le64_to_cpu(pgpt_pte[i].starting_lba);
+	/* The ending LBA is inclusive, to calculate size, add 1 to it */
+	info->size = (ulong)le64_to_cpu((pgpt_pte[i].ending_lba) + 1)
+		     - info->start;
+	info->blksz = dev_desc->blksz;
+
+	sprintf((char *)info->name, "%s",print_efiname(&((pgpt_pte)[i])));
+	sprintf((char *)info->type, "U-Boot");
+
+
+	debug("%s: start 0x" LBAF ", size 0x" LBAF ", name %s\n", __func__,
+	      info->start, info->size, info->name);
+	ret =0;
+	break;
+	}
+}
+	/* Remember to free pte */
+	if(pgpt_pte!=NULL){
+	free(pgpt_pte);
+}
+	return ret;
+}
 int test_part_efi(block_dev_desc_t * dev_desc)
 {
 	ALLOC_CACHE_ALIGN_BUFFER_PAD(legacy_mbr, legacymbr, 1, dev_desc->blksz);
