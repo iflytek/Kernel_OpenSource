@@ -51,6 +51,13 @@ static const struct block_drvr block_drvr[] = {
 #if defined(CONFIG_SANDBOX)
 	{ .name = "host", .get_dev = host_get_dev, },
 #endif
+#if defined(CONFIG_UFS)
+	{
+		.name = "ufs",
+		.get_dev = ufs_get_dev,
+	},
+#endif
+
 	{ },
 };
 
