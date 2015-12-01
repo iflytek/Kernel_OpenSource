@@ -105,10 +105,70 @@ unsigned install_e820_map_auto_detect(unsigned max_entries, struct e820entry *en
 }
 #endif
 
+static void dram_configure_bridge_perf(void)
+{
+	u32 reg;
+
+	/*
+	 * Sync FIFO to have same CLK
+	 * 0 - Not same
+	 * 1 - same
+	 * Bit[4]
+	 */
+	outl(0x800000D0,0xCF8);
+	outl(0x061B00F0,0xCFC);
+	outl(0x800000D4,0xCF8);
+	reg = inl(0xCFC);
+	reg |= 0x10;
+	outl(0x800000D4,0xCF8);
+	outl(reg,0xCFC);
+	outl(0x800000D0,0xCF8);
+	outl(0x071B00F0,0xCFC);
+
+	/*
+	 * Request MAX_NUM of pending reads
+	 * Bit[7:0]
+	 * Update cache paramaters
+	 * Bit[19:16]
+	 */
+	outl(0x800000D0,0xCF8);
+	outl(0x061B01F0,0xCFC);
+	outl(0x800000D4,0xCF8);
+	reg = inl(0xCFC);
+	reg |= 0x100FF;
+	outl(0x800000D4,0xCF8);
+	outl(reg,0xCFC);
+	outl(0x800000D0,0xCF8);
+	outl(0x071B01F0,0xCFC);
+
+	/*
+	 * Disable Non-posted writes
+	 * Bit[0]
+	 * Clear last bit
+	 */
+	outl(0x800000D0,0xCF8);
+	outl(0x061410F0,0xCFC);
+	outl(0x800000D4,0xCF8);
+	reg = inl(0xCFC);
+	reg &= 0xFFFFFFFE;
+	outl(reg,0xCFC);
+	outl(0x800000D0,0xCF8);
+	outl(0x071410F0,0xCFC);
+}
+
 int dram_init(void)
 {
 	gd->ram_size = PHYS_SDRAM_1_SIZE;
 	post_code(POST_DRAM);
+
+	/* Configure mem bridges for better performance
+	 * Since these are memory related bridges it makes sense
+	 * to enabled them once the DRAM is up
+	 * TODO: need to further investigate if this is
+	 * 	 the best place to enable
+	 * TODO: Do we need to reenable after suspend?
+	 */
+	dram_configure_bridge_perf();
 
 	return 0;
 }
