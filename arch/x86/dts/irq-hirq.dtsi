@@ -4,7 +4,7 @@
 #define HIRQ_OFFSET 512
 
 main_hirq:main-hirq-interrupt-controller {
-	compatible = "intel,vmm-main-hirq";
+	compatible = "intel,mv-main-hirq";
 	#interrupt-cells = <2>;
 	interrupt-controller;
 	interrupt-parent = <&pic>;
@@ -12,7 +12,7 @@ main_hirq:main-hirq-interrupt-controller {
 		< HIRQ IRQ_TYPE_DEFAULT >;
 };
 hirq:hirq-interrupt-controller {
-	compatible = "intel,vmm-hirq";
+	compatible = "intel,mv-hirq";
 	#interrupt-cells = <2>;
 	interrupt-controller;
 	interrupt-parent = <&main_hirq>;

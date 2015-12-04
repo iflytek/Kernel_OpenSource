@@ -14,7 +14,7 @@
 
 	chosen {
 		linux,stdout-path = &uart0;
-		bootargs = "earlycon apic=vmm mce=off no_timer_check";
+		bootargs = "earlycon mobilevisor mce=off no_timer_check";
 	};
 
 	aliases {
@@ -94,7 +94,7 @@
 		ranges;
 
 		pic: interrupt-controller {
-			compatible = "intel,vmm-vpic";
+			compatible = "intel,mv-vpic";
 			#interrupt-cells = <2>;
 			interrupt-controller;
 			reg = <0xfec00000 0x2000>,
