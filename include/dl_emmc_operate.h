@@ -1,7 +1,6 @@
 #ifndef _FDL_EMMC_OPERATE_H
 #define _FDL_EMMC_OPERATE_H
 
-#if 0
 //#include <asm/arch/fdl_stdio.h>
 #include "dl_cmd_def.h"
 #include "packet.h"
@@ -92,5 +91,4 @@ OPERATE_STATUS dl_erase(uchar * partition_name, uint32_t size);
 OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_num);
 
 #endif //CONFIG_EMMC_BOOT
-#endif
 #endif //_FDL_EMMC_OPERATE_H
