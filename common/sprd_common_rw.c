@@ -295,8 +295,16 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 
 	if (0 == strcmp(part_name, "splloader")) {
 		dev_id = get_lun_by_bootable(MAIN_BOOT);
-	} else if (0 == strcmp(part_name, "uboot")) {
+	} else if(0 == strcmp(part_name, "splloader_bak")) {
 		dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
+	} else if(0 == strcmp(part_name, "uboot")) {
+		dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
+	} else if(0 == strcmp(part_name, "uboot_main")) {
+		dev_id = get_user_lun(&part_info, "uboot");
+		part_start = part_info.start;
+		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
+		if (size + offset < total_part_size)
+			return -1;
 	} else {
 		dev_id = get_user_lun(&part_info, part_name);
 		part_start = part_info.start;
@@ -325,7 +333,7 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 	disk_partition_t part_info;
 	block_dev_desc_t *dev_desc;
 	uint64_t total_part_size = 0;
-
+	/*TODO, if size=0, erase whole partition, if part_name=erase_all, erase whole flash*/
 	if (0 == strcmp(part_name, "splloader")) {
 		dev_id = get_lun_by_bootable(MAIN_BOOT);
 	} else if (0 == strcmp(part_name, "uboot")) {
@@ -346,7 +354,8 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 		return -1;
 
 	offset += (uint64_t)part_start * dev_desc->blksz;
-	
+
+	/*TODO*/
 	return block_dev_erase(dev_desc, size, offset);
 
 }
@@ -374,10 +383,12 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 		counter++;
 	}
 
-	if (3 == counter)
+	if (3 == counter) {
 		return -1;
-	else
+	} else {
+		init_part(dev_desc);
 		return 0;
+	}
 }
 
 #endif
