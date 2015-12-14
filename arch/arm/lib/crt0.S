@@ -129,7 +129,8 @@ clr_gd:
 	orr	lr, #1				/* As required by Thumb-only */
 #endif
 	ldr	r0, [r9, #GD_RELOCADDR]		/* r0 = gd->relocaddr */
-	b	relocate_code
+/*no need of relocate here*/
+/*	b	relocate_code */
 here:
 /*
  * now relocate vectors

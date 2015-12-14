@@ -20,7 +20,7 @@
 #define SCI_ADDR(_b_, _o_)                              ( (u32)(_b_) + (_o_) )
 #endif
 
-#include <asm/sizes.h>
+#include <linux/sizes.h>
 #include "regs_adi.h"
 #include "sprd_eic.h"
 #include "rtc_reg_v3.h"
