@@ -15,7 +15,7 @@
 //#include <mmc.h>
 //#include <fat.h>
 #include <rtc.h>
-#include <asm/sizes.h>
+#include <linux/sizes.h>
 #include <boot_mode.h>
 #include <common.h>
 
@@ -27,12 +27,20 @@
 #include <fat.h>
 #include "loader_common.h"
 
+#include <libfdt.h>
+#include <fdt.h>
+#include <linux/ctype.h>
+#include <fdtdec.h>
+
+
 extern void MMU_DisableIDCM(void);
 //extern lcd_display(void);
 extern void set_backlight(uint32_t value);
 //extern void lcd_setfgcolor(int color);
 extern void lcd_printf(const char *fmt, ...);
 extern  int sprd_host_init(int sdio_type);
+
+static int display_crashinfo(struct sysdump_info *sinfo, int rst_mode);
 
 void display_writing_sysdump(void)
 {
@@ -137,6 +145,7 @@ void write_mem_to_mmc(char *path, char *filename,
 	void *memaddr, unsigned long memsize)
 {
 	int ret;
+	loff_t size;
 
 	if (path) {
 		do {} while (0); /* TODO: jianjun.he */
@@ -148,7 +157,7 @@ void write_mem_to_mmc(char *path, char *filename,
 	lcd_printf("writing 0x%lx bytes to sd file %s\n", memsize, filename);
 #endif
 //	lcd_display();
-	ret = file_fat_write(filename, memaddr, memsize);
+	ret = file_fat_write(filename, memaddr, 0, memsize, &size);
 	if (ret <= 0) {
 		debugf("sd file write error %d\n", ret);
 	}
@@ -527,34 +536,159 @@ void mtd_dump(void)
 }
 #endif
 
+static int check_dts_sysdump_node(void)
+{
+	unsigned char *fdt_blob = (unsigned char*) DT_ADR;
+	int nodeoffset = fdt_path_offset(fdt_blob, "/sprd_sysdump");
+	debugf("nodeoffset = %d\n", nodeoffset);
+
+	return nodeoffset;
+}
+static int fill_dump_mem(struct sysdump_mem *sprd_dump_mem, int nodeoffset)
+{
+	int sprd_dump_mem_num, lenp, offset;
+	unsigned long *ptr = NULL, *ptr_end = NULL;
+	unsigned char *fdt_blob = (unsigned char*) DT_ADR;
+	int i = 0;
+
+	ptr = fdt_getprop(fdt_blob, nodeoffset, "ram", &lenp);
+	if (ptr == NULL)
+		debugf("no ram property.\n");
+	else {
+		offset = fdt_path_offset(fdt_blob, ptr);
+		ptr = fdt_getprop(fdt_blob, offset, "reg", &lenp);
+		ptr_end = ptr + lenp / (sizeof(unsigned long));
+		while (ptr < ptr_end) {
+		sprd_dump_mem[i].paddr = fdt_addr_to_cpu (*ptr ++);
+		sprd_dump_mem[i].size  = fdt_size_to_cpu (*ptr ++);
+		sprd_dump_mem[i].soff  = 0xffffffff;
+		sprd_dump_mem[i].type  = SYSDUMP_RAM;
+		debugf("sprd_dump_mem[%d].paddr is %lx\n", i, sprd_dump_mem[i].paddr);
+		debugf("sprd_dump_mem[%d].size  is %lx\n", i, sprd_dump_mem[i].size);
+		i ++;
+		}
+	}
+    ptr = fdt_getprop(fdt_blob, nodeoffset, "modem", &lenp);
+    if (ptr == NULL)
+		debugf("no modem property.\n");
+    else {
+		ptr_end = ptr + lenp / (sizeof(unsigned long));
+		while (ptr < ptr_end) {
+		sprd_dump_mem[i].paddr = fdt_addr_to_cpu (*ptr ++);
+		sprd_dump_mem[i].size  = fdt_size_to_cpu (*ptr ++);
+		sprd_dump_mem[i].soff  = 0xffffffff;
+		sprd_dump_mem[i].type  = SYSDUMP_MODEM;
+		debugf("sprd_dump_mem[%d].paddr is %lx\n", i, sprd_dump_mem[i].paddr);
+		debugf("sprd_dump_mem[%d].size  is %lx\n", i, sprd_dump_mem[i].size);
+		i ++;
+		}
+	}
+	sprd_dump_mem_num = i;
+	return sprd_dump_mem_num;
+}
+
+static unsigned long get_sprd_sysdump_info_paddr(int nodeoffset)
+{
+	unsigned char *fdt_blob = (unsigned char *) DT_ADR;
+	unsigned long sprd_dump_magic = 0;
+	unsigned long *ptr = NULL;
+	int lenp = 0;
+
+    /*const char *prop = fdt_get_name(fdt_blob, nodeoffset, &lenp);
+	if(prop)
+	{
+		debugf("device_type is %s\n",prop);
+		debugf("device_type ptr is %p\n",prop);
+		debugf("lenp  is %d\n",lenp);
+	}*/
+
+	ptr = fdt_getprop(fdt_blob, nodeoffset, "magic-addr", &lenp);
+	if (ptr == NULL) {
+		debugf("no magic-addr property.\n");
+		return 0;
+	}
+	sprd_dump_magic = fdt_addr_to_cpu(*ptr);
+	debugf("sprd_dump_magic is 0x%lx\n", sprd_dump_magic);
+
+	return sprd_dump_magic;
+}
+
+static unsigned long get_sprd_dump_size(int nodeoffset)
+{
+	unsigned char *fdt_blob = (unsigned char *) DT_ADR;
+	unsigned long *ptr = NULL, *ptr_end = NULL;
+	unsigned long size = 0;
+	int lenp, offset;
+
+	ptr = fdt_getprop(fdt_blob, nodeoffset, "magic-addr", &lenp);
+    if (ptr == NULL)
+		debugf("no magic-addr property.\n");
+	else {
+		ptr_end = ptr + lenp / (sizeof(unsigned long));
+		while (ptr < ptr_end) {
+			ptr ++;
+			size += fdt_size_to_cpu(*ptr);
+			ptr ++;
+			debugf("size  is %lx\n", size);
+		}
+	}
+
+	ptr = fdt_getprop(fdt_blob, nodeoffset, "ram", &lenp);
+	if (ptr == NULL)
+		debugf("no ram property.\n");
+	else {
+		offset = fdt_path_offset(fdt_blob, ptr);
+		ptr = fdt_getprop(fdt_blob, offset, "reg", &lenp);
+		ptr_end = ptr + lenp / (sizeof(unsigned long));
+		while (ptr < ptr_end) {
+			ptr ++;
+			size += fdt_size_to_cpu(*ptr);
+			ptr ++;
+			debugf("size is %lx\n",size);
+		}
+	}
+
+	ptr = fdt_getprop(fdt_blob, nodeoffset, "modem", &lenp);
+	if (ptr == NULL)
+		debugf("no modem property.\n");
+	else {
+		ptr_end = ptr + lenp / (sizeof(unsigned long));
+		while (ptr < ptr_end) {
+			ptr ++;
+			size += fdt_size_to_cpu(*ptr);
+			ptr ++;
+			debugf("size is %lx\n",size);
+		}
+	}
+	return size;
+}
+
 void write_sysdump_before_boot(int rst_mode)
 {
-	int i, j, len;
-	char fnbuf[72], *path;
+	int i, j, len, sprd_dump_mem_num;
+	char fnbuf[72], *path, *waddr;
 	struct rtc_time rtc;
-	char *waddr;
 	struct sysdump_mem *mem;
-	struct sysdump_info *infop = (struct sysdump_info *)SPRD_SYSDUMP_MAGIC;
+	struct sysdump_mem sprd_dump_mem[MAX_NUM_DUMP_MEM];
+    struct sysdump_info *infop = NULL;
+    unsigned long sprd_sysdump_magic = 0;
+    int nodeoffset = check_dts_sysdump_node();
 
-	struct sysdump_mem sprd_dump_mem[] = {
-		{
-			.paddr = CONFIG_PHYS_OFFSET,
-			.vaddr = PAGE_OFFSET,
-			.soff = 0xffffffff,
-			.size = get_real_ram_size(),
-			.type = SYSDUMP_RAM,
-		},
-	};
+    if (nodeoffset < 0) {
+		debugf("ERROR: device tree must have /sprd_sysdump node %s.\n", fdt_strerror(nodeoffset));
+		goto FINISH;
+	}
 
-	int sprd_dump_mem_num = 1;
+    sprd_sysdump_magic = get_sprd_sysdump_info_paddr(nodeoffset);
+    if (sprd_sysdump_magic <= 0)
+		goto FINISH;
 
-	debugf("rst_mode:0x%x, Check if need to write sysdump info of 0x%08lx to file...\t", rst_mode,
-		SPRD_SYSDUMP_MAGIC);
-
+	infop = (struct sysdump_info *)sprd_sysdump_magic;
+	debugf("rst_mode:0x%x, Check if need to write sysdump info of 0x%08lx to file...\n", rst_mode,
+	sprd_sysdump_magic);
 	if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_UNKNOW_REBOOT_MODE) || (rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || \
-		((rst_mode == CMD_PANIC_REBOOT) && !memcmp(infop->magic, SYSDUMP_MAGIC, sizeof(infop->magic))) || (rst_mode == CMD_SPECIAL_MODE) ) {
+		((rst_mode == CMD_PANIC_REBOOT) && !memcmp(infop->magic, SYSDUMP_MAGIC, sizeof(infop->magic)))|| (rst_mode == CMD_SPECIAL_MODE) ) {
 		debugf("\n");
-
 		memset(infop->magic, 0, sizeof(infop->magic));
 
 		if(-1 == sysdump_flag_check()) {
@@ -564,6 +698,8 @@ void write_sysdump_before_boot(int rst_mode)
 		//MMU_DisableIDCM();
 		if (init_mmc_fat())
 			goto FINISH;
+
+		display_crashinfo(infop, rst_mode);
 
 		/* display on screen */
 		display_writing_sysdump();
@@ -577,7 +713,11 @@ void write_sysdump_before_boot(int rst_mode)
 //		lcd_display();
 
 		int mod, key_code;
-		mod = fat_checksys(sprd_dump_mem[0].size);
+		unsigned long max_size = 0;
+        max_size = get_sprd_dump_size(nodeoffset);
+		mod = fat_checksys(max_size);
+		debugf("max space size is %lx\n",max_size);
+
 		if (mod &(FSFATAL | FSNOSPACE)) {
 			if (mod & FSFATAL)
 				lcd_printf("\ndetect sd is demaged");
@@ -601,6 +741,8 @@ void write_sysdump_before_boot(int rst_mode)
 		if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_UNKNOW_REBOOT_MODE) ||
 			(rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || (rst_mode == CMD_SPECIAL_MODE)) {
 			infop->dump_path[0] = '\0';
+
+		    sprd_dump_mem_num = fill_dump_mem(sprd_dump_mem, nodeoffset);
 			infop->mem_num = sprd_dump_mem_num;
 			infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
 			strcpy(infop->time, "hw_watchdog");
@@ -650,13 +792,13 @@ void write_sysdump_before_boot(int rst_mode)
 		mem = (struct sysdump_mem *)infop->dump_mem_paddr;
 		for (i = 0; i < infop->mem_num; i++) {
 			if (0xffffffff != mem[i].soff)
-				waddr = (char *)infop + sizeof(*infop) + 
+				waddr = (char *)infop + sizeof(*infop) +
 						infop->elfhdr_size + mem[i].soff;
 			else
 				waddr = mem[i].paddr;
 
 		#ifdef CONFIG_RAMDUMP_NO_SPLIT
-				sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT"_0x%8.8x-0x%8.8x_dump.lst", i + 1, mem[i].paddr, mem[i].paddr + mem[i].size -1);
+				sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT"_0x%08lx-0x%08lx_dump.lst", i + 1, mem[i].paddr, mem[i].paddr + mem[i].size -1);
 				write_mem_to_mmc(path, fnbuf, waddr, mem[i].size);
 		#else
 			if (mem[i].size <= SZ_8M) {
@@ -707,4 +849,21 @@ FINISH:
 
 
 
+static int display_crashinfo(struct sysdump_info *sinfo, int rst_mode)
+{
+	struct crash_info *cinfo;
+        cinfo = &sinfo->crash;
+
+	if (!strncmp(cinfo->magic, U_MAGIC, sizeof(U_MAGIC))
+	    || !strncmp(cinfo->magic, K_MAGIC, sizeof(K_MAGIC)))
+	{
+		lcd_printf("\n ==============================================================");
+                lcd_printf("\n  Crash mode: %s ",GET_RST_MODE(rst_mode));
+		lcd_printf("\n  Crash info: %s", cinfo->payload);
+		lcd_printf("\n ==============================================================\n\n\n\n");
+		return 0;
+	}
+
+	return 1;
+}
 

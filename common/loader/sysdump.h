@@ -20,6 +20,7 @@
 #define SYSDUMP_CORE_NAME_FMT 	"sysdump/sysdump.core.%02d" /* time, number */
 #define NR_KCORE_MEM		80
 #define SYSDUMP_MAGIC		"SPRD_SYSDUMP_119"
+#define MAX_NUM_DUMP_MEM 20
 
 #define SPRD_SYSDUMP_MAGIC    RAMDISK_ADR
 
@@ -34,6 +35,17 @@
 #ifndef PAGE_ALIGN
 #define PAGE_ALIGN(addr) ALIGN(addr, PAGE_SIZE)
 #endif
+
+#define U_MAGIC "sprd_framework"
+#define K_MAGIC "sprd_kernel"
+
+struct crash_info {
+        char magic[16];
+        char time[32];
+        int size;
+        unsigned char *payload;
+};
+
 
 struct sysdump_mem {
 	unsigned long paddr;
@@ -51,6 +63,7 @@ struct sysdump_info {
 	int mem_num;
 	unsigned long dump_mem_paddr;
 	int crash_key;
+	struct crash_info crash;
 };
 
 

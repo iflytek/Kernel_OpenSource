@@ -25,6 +25,7 @@ static const int vfat_enabled = 1;
 static const int vfat_enabled = 0;
 #endif
 
+static int total_sector;
 /*
  * Convert a string to lowercase.
  */
@@ -43,7 +44,7 @@ static disk_partition_t cur_part_info;
 #define DOS_FS_TYPE_OFFSET	0x36
 #define DOS_FS32_TYPE_OFFSET	0x52
 
-static int disk_read(__u32 block, __u32 nr_blocks, void *buf)
+int disk_read(__u32 block, __u32 nr_blocks, void *buf)
 {
 	if (!cur_dev || !cur_dev->block_read)
 		return -1;
@@ -1260,6 +1261,7 @@ int file_fat_detectfs(void)
 	vol_label[11] = '\0';
 	volinfo.fs_type[5] = '\0';
 
+	total_sector = bs.total_sect;
 	printf("Filesystem: %s \"%s\"\n", volinfo.fs_type, vol_label);
 
 	return 0;

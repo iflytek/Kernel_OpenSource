@@ -96,6 +96,16 @@
 					((fatsize) != 16 ? 0xff0 : 0xfff0) : \
 					0xffffff0))
 
+#define	FSOK		0		/* Check was OK */
+#define	FSBOOTMOD	1		/* Boot block was modified */
+#define	FSDIRMOD	2		/* Some directory was modified */
+#define	FSFATMOD	4		/* The FAT was modified */
+#define	FSERROR		8		/* Some unrecovered error remains */
+#define	FSFATAL		16		/* Some unrecoverable error occured */
+#define FSDIRTY		32		/* File system is dirty */
+#define FSFIXFAT	64		/* Fix file system FAT */
+#define FSNOSPACE	128		/* SD have no space for sysdump */
+
 typedef struct boot_sector {
 	__u8	ignored[3];	/* Bootstrap code */
 	char	system_id[8];	/* Name of fs */
@@ -211,4 +221,7 @@ int file_fat_write(const char *filename, void *buf, loff_t offset, loff_t len,
 int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 		  loff_t *actread);
 void fat_close(void);
+int fat_format(void);
+int fat_checksys(__u64 ram_size);
+int do_new_folder(char* filename);
 #endif /* _FAT_H_ */
