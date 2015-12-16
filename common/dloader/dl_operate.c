@@ -174,13 +174,23 @@ int _parser_repartition_cfg_v0(disk_partition_t * partition_info, const uchar * 
 	uint16_t i = 0;
 	uint16_t j = 0;
 	uint32_t partition_size_m = 0;
-	lbaint_t partition_start_lba = STARTING_LBA_OF_FIRST_PARTITION;
-	uint32_t lbas_per_m = SZ_1M /EFI_SECTOR_SIZE;
+	lbaint_t partition_start_lba = 0;
+	int32_t blksz = 0;
+	uint32_t lbas_per_m = 0;
+
+	blksz = common_get_lba_size();
+	if (-1 == blksz)
+		return -1;
+
+	lbas_per_m = SZ_1M / blksz;
+
+	/*first 1 MB will be reserved, no partition can located here*/
+	partition_start_lba = SZ_1M / blksz;
 
 	/*Decode String: Partition Name(72Byte)+SIZE(4Byte)+... */
 	for (i = 0; i < total_partition_num; i++) {
-		partition_info[i].blksz = EFI_SECTOR_SIZE;
-		strcpy(partition_info[i].type, "U-boot");	/*no use */
+		partition_info[i].blksz = (ulong)blksz;
+		strcpy(partition_info[i].type, "U-boot");	/*not useful */
 
 		partition_size_m = *(uint32_t *) (partition_cfg + 76 * (i + 1) - 4);
 		/*the last partition and partition_size_m is 0xFFFFFFFF means this partition use all the spare lba */
@@ -225,7 +235,12 @@ int _parser_repartition_cfg_v1(disk_partition_t * partition_info, uchar* partiti
 	int64_t gap_raw;
 	int64_t gap_lba;
 	uint64_t partition_start_lba = 0;
+	int32_t blksz = 0;
 
+	blksz = common_get_lba_size();
+	if (-1 == blksz)
+		return -1;
+	
 	/*V1 partition table format: Partition Name(72Byte)+SIZE(8Byte)+GAP(8Byte)...*/
 	for (i = 0; i < total_partition_num; i++) {
 		partition_size_raw = *(uint64_t *)(partition_cfg + 88 * (i + 1) - 16);
@@ -235,29 +250,23 @@ int _parser_repartition_cfg_v1(disk_partition_t * partition_info, uchar* partiti
 		switch (size_unit) {
 		/*unit is MB*/
 		case 0:
-			partition_size_lba = partition_size_raw * SZ_1M / EFI_SECTOR_SIZE;
-			gap_lba = gap_raw * SZ_1M / EFI_SECTOR_SIZE;
+			partition_size_lba = partition_size_raw * SZ_1M / blksz;
+			gap_lba = gap_raw * SZ_1M / blksz;
 			break;
 		/*unit is 512K*/
 		case 1:
-			partition_size_lba = partition_size_raw * SZ_1K;
-			gap_lba = gap_raw * SZ_1K;
+			partition_size_lba = partition_size_raw * SZ_512K / blksz;
+			gap_lba = gap_raw * SZ_512K / blksz;
 			break;
 		/*unit is KB*/
 		case 2:
-			partition_size_lba = partition_size_raw * SZ_1K / EFI_SECTOR_SIZE;
-			gap_lba = gap_raw * SZ_1K / EFI_SECTOR_SIZE;
+			partition_size_lba = PAD_SIZE(partition_size_raw * SZ_1K, blksz) / blksz;
+			gap_lba = PAD_SIZE(gap_raw * SZ_1K, blksz) / blksz;
 			break;
 		/*unit is bytes, min partition unit supported is lba(512byte), so we pad it if neccessary*/
 		case 3:
-			if (partition_size_raw % EFI_SECTOR_SIZE != 0)
-				partition_size_lba = partition_size_raw / EFI_SECTOR_SIZE + 1;
-			else
-				partition_size_lba = partition_size_raw / EFI_SECTOR_SIZE;
-			if (gap_raw % EFI_SECTOR_SIZE != 0)
-				gap_lba = gap_raw / EFI_SECTOR_SIZE + 1;
-			else
-				gap_lba = gap_raw / EFI_SECTOR_SIZE;
+			partition_size_lba = PAD_SIZE(partition_size_raw, blksz) / blksz;
+			gap_lba = PAD_SIZE(gap_raw, blksz) / blksz;
 			break;
 		/*unit is sector*/
 		case 4:
@@ -266,17 +275,18 @@ int _parser_repartition_cfg_v1(disk_partition_t * partition_info, uchar* partiti
 			break;
 		/*unsupported unit we consider it as MB*/
 		default:
-			partition_size_lba = partition_size_raw * SZ_1M / EFI_SECTOR_SIZE;
-			gap_lba = gap_raw * SZ_1M / EFI_SECTOR_SIZE;
+			partition_size_lba = partition_size_raw * SZ_1M / blksz;
+			gap_lba = gap_raw * SZ_1M / blksz;
 			break;
 		}
 
 		/*check the gap of the first partition*/
 		if (0 == i) {
 			if (0 == gap_lba) {
-				gap_lba = STARTING_LBA_OF_FIRST_PARTITION;
+				/*first 1 MB will be reserved, no partition can located here*/
+				gap_lba = SZ_1M / blksz;
 			} else if (gap_lba < FIRST_USABLE_LBA_FOR_PARTITION) {
-				printf("%s: FATAL ERROR, gap of the first partition counted in lba CAN NOT less than 34\n", __FUNCTION__);
+				errorf("%s: FATAL ERROR, gap of the first partition counted in lba CAN NOT less than 34\n", __FUNCTION__);
 				return -1;
 			}
 		}
@@ -288,12 +298,13 @@ int _parser_repartition_cfg_v1(disk_partition_t * partition_info, uchar* partiti
 			debugf("the last partition use all the left lba\n");
 		}
 		partition_start_lba += gap_lba;
+		partition_info[i].blksz = (ulong)blksz;
 		partition_info[i].start = (lbaint_t)partition_start_lba;
 		partition_info[i].size = (lbaint_t)partition_size_lba;
 		if (0 != partition_size_lba)
 			partition_start_lba += partition_size_lba;
 
-		strcpy(partition_info[i].type, "U-boot");	/*no use */
+		strcpy(partition_info[i].type, "U-boot");	/*not useful */
 
 		for (j = 0; j < 32 - 1; j++)
 			partition_info[i].name[j] = *((uint16_t *)partition_cfg + 44 * i + j) & 0xFF;
@@ -647,7 +658,7 @@ int _download_image(int is_total_recv)
 	if (IMG_WITH_SPARSE == g_dl_eMMCStatus.curImgType) {
 		debugf("Handle the saving of image with sparse,name=%s,buf start at 0x%x,size=0x%x\n",
 		       g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, g_status.unsave_recv_size);
-		retval = write_simg2emmc(g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, g_status.unsave_recv_size);
+		retval = write_sparse_img(g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, g_status.unsave_recv_size);
 		if (-1 == retval) {
 			g_status.unsave_recv_size = 0;
 			debugf("Write sparse img fail\n");
@@ -691,16 +702,9 @@ int _img_write_with_backup(uchar *partition)
 		strcat(partition, "_bak");
 		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
 			return 0;
-
-	} else if (0 == strcmp("uboot",  partition)) {
-		write_size = g_status.total_recv_size;
-		if (0 != common_raw_write("uboot_main", write_size, 0, 0, g_eMMCBuf))
-			return 0;
-		strcat(partition, "_bak");
-		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
-			return 0;
-
-	} else if (0 == strcmp("trustos",partition) || 0 == strcmp("sml",partition)) {
+	} else if (0 == strcmp("uboot",  partition)
+		|| 0 == strcmp("trustos",partition)
+		|| 0 == strcmp("sml",partition)) {
 		write_size = g_status.total_recv_size;
 		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
 			return 0;
@@ -1015,7 +1019,7 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 			return OPERATE_INVALID_SIZE;
 		}
 		
-		memset(g_eMMCBuf, 0xff, FIXNV_SIZE + EFI_SECTOR_SIZE);
+		memset(g_eMMCBuf, 0xff, FIXNV_SIZE + NV_HEADER_SIZE);
 		g_checksum = nv_checksum;
 	} else if (0 == strcmp("splloader", partition_name)) {
 #ifdef CONFIG_SECURE_BOOT
