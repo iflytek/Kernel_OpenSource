@@ -232,6 +232,17 @@ HOSTARCH := $(shell uname -m | \
 HOSTOS := $(shell uname -s | tr '[:upper:]' '[:lower:]' | \
 	    sed -e 's/\(cygwin\).*/cygwin/')
 
+ARCH	?= $(HOSTARCH)
+DIRARCH	:= $(ARCH)
+
+# Additional ARCH settings for x86
+ifeq ($(ARCH),i386)
+        DIRARCH := x86
+endif
+ifeq ($(ARCH),x86_64)
+        DIRARCH := x86
+endif
+
 export	HOSTARCH HOSTOS
 
 #########################################################################
@@ -364,7 +375,7 @@ UBOOTRELEASE = $(shell cat include/config/uboot.release 2> /dev/null)
 UBOOTVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
 
 export VERSION PATCHLEVEL SUBLEVEL UBOOTRELEASE UBOOTVERSION
-export ARCH CPU BOARD VENDOR SOC CPUDIR BOARDDIR
+export ARCH CPU BOARD VENDOR SOC CPUDIR BOARDDIR DIRARCH
 export CONFIG_SHELL HOSTCC HOSTCFLAGS HOSTLDFLAGS CROSS_COMPILE AS LD CC
 export CPP AR NM LDR STRIP OBJCOPY OBJDUMP
 export MAKE AWK PERL PYTHON
