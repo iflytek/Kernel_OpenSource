@@ -468,6 +468,10 @@ config ARCH_MX5
 	bool "Freescale MX5"
 	select CPU_V7
 
+config ARCH_SC9630
+	bool "Spreadtrum SC9630"
+	select CPU_V7
+
 config TARGET_M53EVK
 	bool "Support m53evk"
 	select CPU_V7
@@ -868,6 +872,8 @@ source "arch/arm/cpu/armv7/Kconfig"
 source "arch/arm/cpu/armv8/Kconfig"
 
 source "arch/arm/imx-common/Kconfig"
+
+source "arch/arm/cpu/armv7/sc9630/Kconfig"
 
 source "board/aristainetos/Kconfig"
 source "board/BuR/kwb/Kconfig"

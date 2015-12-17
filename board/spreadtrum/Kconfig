@@ -24,17 +24,11 @@ config TARGET_IWHALE2_VP
 	help
 	  This is the Spreadtrum iWhaleL2 Board
 
-config TARGET_SP9830A_5H10_GA1
-	bool "Spreadtrum sp9830a-5h10_ga1"
-	help
-	  This is the Spreadtrum sp9830a-5h10_ga1 Board
-
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
 source "board/spreadtrum/iwhale2/Kconfig"
 source "board/spreadtrum/iwhale2_vp/Kconfig"
-source "board/spreadtrum/sp9830a-5h10_ga1/Kconfig"
 
 endif
 
