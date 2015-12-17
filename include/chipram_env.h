@@ -14,8 +14,10 @@ typedef struct chipram_env {
 	boot_mode_t mode;
 	u32 dram_size; //MB
 	u64 vol_para_addr;
+	u32 keep_charge;
 	u32 reserved;
 }chipram_env_t;
 
+chipram_env_t* get_chipram_env(void);
 #endif
 

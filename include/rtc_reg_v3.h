@@ -17,7 +17,7 @@
 /**---------------------------------------------------------------------------*
 **                               Micro Define                                **
 **---------------------------------------------------------------------------*/
-#include "sprd_reg.h"
+#include "asm/arch/sprd_reg.h"
 
 ////
 /*----------Real Timer Counter Register----------*/
@@ -39,6 +39,9 @@
 #define ANA_RTC_INT_RSTS                (RTC_BASE + 0x34)
 #define ANA_RTC_INT_CLR                 (RTC_BASE + 0x38)
 #define ANA_RTC_INT_MSK                 (RTC_BASE + 0x3C)
+
+#define ANA_RTC_SPG_VALUE               (RTC_BASE + 0x50)
+#define ANA_RTC_SPG_UPD                 (RTC_BASE + 0x54)
 
 //The corresponding bit of RTC_CTL register.
 #define RTC_SEC_BIT                 BIT_0        //Sec int enable
