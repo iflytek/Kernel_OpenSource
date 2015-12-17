@@ -66,10 +66,6 @@ choice
 	prompt "Target select"
 	optional
 
-config VENDOR_SPRD
-	bool "spreadtrum ARMV7"
-	select CPU_V7
-
 config ARCH_AT91
 	bool "Atmel AT91"
 
@@ -822,8 +818,6 @@ config TARGET_STM32F429_DISCOVERY
 	select CPU_V7M
 
 endchoice
-
-source "board/spreadtrum/Kconfig"
 
 source "arch/arm/mach-at91/Kconfig"
 
