@@ -19,7 +19,8 @@
 #include <common.h>
 #include <asm/io.h>
 
-#include <asm/arch/ldo.h>
+//#include <asm/arch/ldo.h>
+#include <sprd_regulator.h>
 #include <asm/arch/chip_drv_common_io.h>
 #include <asm/arch/sprd_reg.h>
 

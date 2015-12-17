@@ -20,8 +20,8 @@
 #ifndef _ADI_HAL_INTERNAL_H_
 #define  _ADI_HAL_INTERNAL_H_
 
-#include <asm/arch/adi.h>
-
+#include "adi.h"
+#include <asm/arch/sci_types.h>
 
 #define		ADI_init	sci_adi_init
 
