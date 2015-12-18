@@ -6,6 +6,9 @@ config SYS_BOARD
 config SYS_VENDOR
 	default "spreadtrum"
 
+config SYS_SOC
+	default "sc9630"
+
 config SYS_CONFIG_NAME
 	default "sp9830a-7h10_ga1"
 

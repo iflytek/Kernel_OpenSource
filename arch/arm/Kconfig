@@ -468,10 +468,6 @@ config ARCH_MX5
 	bool "Freescale MX5"
 	select CPU_V7
 
-config ARCH_SC9630
-	bool "Spreadtrum SC9630"
-	select CPU_V7
-
 config TARGET_M53EVK
 	bool "Support m53evk"
 	select CPU_V7
@@ -821,6 +817,9 @@ config TARGET_STM32F429_DISCOVERY
 	bool "Support STM32F429 Discovery"
 	select CPU_V7M
 
+config VENDOR_SPRD
+	bool "Spreadtrum"
+
 endchoice
 
 source "arch/arm/mach-at91/Kconfig"
@@ -872,8 +871,6 @@ source "arch/arm/cpu/armv7/Kconfig"
 source "arch/arm/cpu/armv8/Kconfig"
 
 source "arch/arm/imx-common/Kconfig"
-
-source "arch/arm/cpu/armv7/sc9630/Kconfig"
 
 source "board/aristainetos/Kconfig"
 source "board/BuR/kwb/Kconfig"
@@ -990,6 +987,7 @@ source "board/work-microwave/work_92105/Kconfig"
 source "board/xaeniax/Kconfig"
 source "board/xilinx/zynqmp/Kconfig"
 source "board/zipitz2/Kconfig"
+source "board/spreadtrum/Kconfig"
 
 source "arch/arm/Kconfig.debug"
 
