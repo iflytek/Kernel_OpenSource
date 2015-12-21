@@ -3,9 +3,19 @@
  *
  * Copyright (C) 2004 David Brownell
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * SPDX-License-Identifier:	GPL-2.0+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Ported to U-boot by: Thomas Smits <ts.smits@gmail.com> and
  *                      Remy Bohmer <linux@bohmer.net>
@@ -23,7 +33,7 @@
 /* we must assign addresses for configurable endpoints (like net2280) */
 static unsigned epnum;
 
-/* #define MANY_ENDPOINTS */
+#define MANY_ENDPOINTS
 #ifdef MANY_ENDPOINTS
 /* more than 15 configurable endpoints */
 static unsigned in_epnum;
@@ -105,10 +115,18 @@ static int ep_matches(
 		tmp--;
 		if (!isdigit(*tmp)) {
 			if (desc->bEndpointAddress & USB_DIR_IN) {
+#ifdef CONFIG_DWC_OTG
+				if(('n' != *tmp) || ('5' != ep->name[2]))
+#else
 				if ('n' != *tmp)
+#endif
 					return 0;
 			} else {
+#ifdef CONFIG_DWC_OTG
+				if(('t' != *tmp) || ('6' != ep->name[2]))
+#else
 				if ('t' != *tmp)
+#endif
 					return 0;
 			}
 		}
@@ -170,6 +188,7 @@ static int ep_matches(
 			size = 64;
 		put_unaligned(cpu_to_le16(size), &desc->wMaxPacketSize);
 	}
+	ep->address = desc->bEndpointAddress;
 	return 1;
 }
 
@@ -274,10 +293,10 @@ struct usb_ep *usb_ep_autoconfig(
 			name = "ep1in";
 		else if ((desc->bEndpointAddress & USB_DIR_IN) == 0 &&
 			 type == USB_ENDPOINT_XFER_BULK)
-			name = "ep2out";
+			name = "ep1out";
 		else if ((desc->bEndpointAddress & USB_DIR_IN) &&
 			 type == USB_ENDPOINT_XFER_INT)
-			name = "ep3in";
+			name = "ep2in";
 
 		if (name)
 			ep = find_ep(gadget, name);

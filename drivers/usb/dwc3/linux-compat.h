@@ -12,6 +12,8 @@
 #ifndef __DWC3_LINUX_COMPAT__
 #define __DWC3_LINUX_COMPAT__
 
+#include <linux/compat.h>
+
 #define pr_debug(format)                debug(format)
 #define WARN(val, format, arg...)	debug(format, ##arg)
 #define dev_WARN(dev, format, arg...)	debug(format, ##arg)

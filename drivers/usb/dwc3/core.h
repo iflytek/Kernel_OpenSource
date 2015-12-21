@@ -21,7 +21,7 @@
 #include <linux/ioport.h>
 
 #include <linux/usb/ch9.h>
-#include <linux/usb/otg.h>
+
 
 #define DWC3_MSG_MAX	500
 
@@ -138,6 +138,7 @@
 
 /* Global Configuration Register */
 #define DWC3_GCTL_PWRDNSCALE(n)	((n) << 19)
+#define DWC3_GCTL_PWRDNSCALE_MASK (0x1fff << 19)
 #define DWC3_GCTL_U2RSTECN	(1 << 16)
 #define DWC3_GCTL_RAMCLKSEL(x)	(((x) & DWC3_GCTL_CLK_MASK) << 6)
 #define DWC3_GCTL_CLK_BUS	(0)
@@ -162,7 +163,11 @@
 
 /* Global USB2 PHY Configuration Register */
 #define DWC3_GUSB2PHYCFG_PHYSOFTRST	(1 << 31)
-#define DWC3_GUSB2PHYCFG_SUSPHY		(1 << 6)
+#define DWC3_GUSB2PHYCFG_USBTRDTIM(n)  ((n) << 10)
+#define DWC3_GUSB2PHYCFG_USBTRDTIM_MASK        DWC3_GUSB2PHYCFG_USBTRDTIM(0xf)
+#define DWC3_GUSB2PHYCFG_ENBLSLPM      (1 << 8)
+#define DWC3_GUSB2PHYCFG_SUSPHY                (1 << 6)
+#define DWC3_GUSB2PHYCFG_PHYIF         (1 << 3)
 
 /* Global USB3 PIPE Control Register */
 #define DWC3_GUSB3PIPECTL_PHYSOFTRST	(1 << 31)
@@ -727,7 +732,7 @@ struct dwc3 {
 	void __iomem		*regs;
 	size_t			regs_size;
 
-	enum usb_dr_mode	dr_mode;
+	u32			dr_mode;
 
 	/* used for suspend/resume */
 	u32			dcfg;
@@ -978,28 +983,34 @@ struct dwc3_gadget_ep_cmd_params {
 	u32	param0;
 };
 
-/*
- * DWC3 Features to be used as Driver Data
- */
-
-#define DWC3_HAS_PERIPHERAL		BIT(0)
-#define DWC3_HAS_XHCI			BIT(1)
-#define DWC3_HAS_OTG			BIT(3)
+struct dwc3_device {
+	struct dwc3 *dwc;
+	int base;
+	u32 dr_mode;
+	u32 maximum_speed;
+	unsigned tx_fifo_resize:1;
+	unsigned has_lpm_erratum;
+	u8 lpm_nyet_threshold;
+	unsigned is_utmi_l1_suspend;
+	u8 hird_threshold;
+	unsigned disable_scramble_quirk;
+	unsigned u2exit_lfps_quirk;
+	unsigned u2ss_inp3_quirk;
+	unsigned req_p1p2p3_quirk;
+	unsigned del_p1p2p3_quirk;
+	unsigned del_phy_power_chg_quirk;
+	unsigned lfps_filter_quirk;
+	unsigned rx_detect_poll_quirk;
+	unsigned dis_u3_susphy_quirk;
+	unsigned dis_u2_susphy_quirk;
+	unsigned tx_de_emphasis_quirk;
+	unsigned tx_de_emphasis;
+};
 
 /* prototypes */
 int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc);
 
-#ifdef CONFIG_USB_DWC3_HOST
-int dwc3_host_init(struct dwc3 *dwc);
-void dwc3_host_exit(struct dwc3 *dwc);
-#else
-static inline int dwc3_host_init(struct dwc3 *dwc)
-{ return 0; }
-static inline void dwc3_host_exit(struct dwc3 *dwc)
-{ }
-#endif
 
-#ifdef CONFIG_USB_DWC3_GADGET
 int dwc3_gadget_init(struct dwc3 *dwc);
 void dwc3_gadget_exit(struct dwc3 *dwc);
 int dwc3_gadget_set_test_mode(struct dwc3 *dwc, int mode);
@@ -1008,25 +1019,8 @@ int dwc3_gadget_set_link_state(struct dwc3 *dwc, enum dwc3_link_state state);
 int dwc3_send_gadget_ep_cmd(struct dwc3 *dwc, unsigned ep,
 		unsigned cmd, struct dwc3_gadget_ep_cmd_params *params);
 int dwc3_send_gadget_generic_command(struct dwc3 *dwc, unsigned cmd, u32 param);
-#else
-static inline int dwc3_gadget_init(struct dwc3 *dwc)
-{ return 0; }
-static inline void dwc3_gadget_exit(struct dwc3 *dwc)
-{ }
-static inline int dwc3_gadget_set_test_mode(struct dwc3 *dwc, int mode)
-{ return 0; }
-static inline int dwc3_gadget_get_link_state(struct dwc3 *dwc)
-{ return 0; }
-static inline int dwc3_gadget_set_link_state(struct dwc3 *dwc,
-		enum dwc3_link_state state)
-{ return 0; }
-
-static inline int dwc3_send_gadget_ep_cmd(struct dwc3 *dwc, unsigned ep,
-		unsigned cmd, struct dwc3_gadget_ep_cmd_params *params)
-{ return 0; }
-static inline int dwc3_send_gadget_generic_command(struct dwc3 *dwc,
-		int cmd, u32 param)
-{ return 0; }
-#endif
+int dwc3_uboot_init(struct dwc3_device *dev);
+void dwc3_uboot_exit(struct dwc3_device *dev);
+void dwc3_uboot_handle_interrupt(struct dwc3_device *dev);
 
 #endif /* __DRIVERS_USB_DWC3_CORE_H */

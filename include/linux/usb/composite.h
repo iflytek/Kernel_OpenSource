@@ -96,6 +96,7 @@ struct usb_function {
 	struct usb_gadget_strings	**strings;
 	struct usb_descriptor_header	**descriptors;
 	struct usb_descriptor_header	**hs_descriptors;
+	struct usb_descriptor_header	**ss_descriptors;
 
 	struct usb_configuration	*config;
 
@@ -328,7 +329,7 @@ struct usb_composite_dev {
 	/* private: */
 	/* internals */
 	unsigned int			suspended:1;
-	struct usb_device_descriptor __aligned(CONFIG_SYS_CACHELINE_SIZE) desc;
+	struct usb_device_descriptor __aligned(64) desc;
 	struct list_head		configs;
 	struct usb_composite_driver	*driver;
 	u8				next_string_id;

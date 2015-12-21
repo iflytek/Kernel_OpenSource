@@ -19,7 +19,7 @@
 #include <dwc3-uboot.h>
 #include <asm/dma-mapping.h>
 #include <linux/ioport.h>
-
+#include <linux/kernel.h>
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
 
@@ -29,7 +29,7 @@
 
 #include "linux-compat.h"
 
-static LIST_HEAD(dwc3_list);
+#define CONFIG_SYS_CACHELINE_SIZE 64
 /* -------------------------------------------------------------------------- */
 
 static void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
@@ -95,7 +95,7 @@ static int dwc3_core_soft_reset(struct dwc3 *dwc)
 static void dwc3_free_one_event_buffer(struct dwc3 *dwc,
 		struct dwc3_event_buffer *evt)
 {
-	dma_free_coherent(evt->buf);
+	//dma_free_coherent(evt->buf);
 }
 
 /**
@@ -117,8 +117,8 @@ static struct dwc3_event_buffer *dwc3_alloc_one_event_buffer(struct dwc3 *dwc,
 
 	evt->dwc	= dwc;
 	evt->length	= length;
-	evt->buf	= dma_alloc_coherent(length,
-					     (unsigned long *)&evt->dma);
+	evt->buf	= 0x1E000; //memalign(length, length);
+	evt->dma	= evt->buf;
 	if (!evt->buf)
 		return ERR_PTR(-ENOMEM);
 
@@ -374,7 +374,12 @@ static void dwc3_phy_setup(struct dwc3 *dwc)
 
 	mdelay(100);
 
+
 	reg = dwc3_readl(dwc->regs, DWC3_GUSB2PHYCFG(0));
+
+	reg |= DWC3_GUSB2PHYCFG_PHYIF;
+	reg &= ~DWC3_GUSB2PHYCFG_USBTRDTIM_MASK;
+	reg |= DWC3_GUSB2PHYCFG_USBTRDTIM(5);
 
 	/*
 	 * Above 1.94a, it is recommended to set DWC3_GUSB2PHYCFG_SUSPHY to
@@ -443,28 +448,12 @@ static int dwc3_core_init(struct dwc3 *dwc)
 
 	reg = dwc3_readl(dwc->regs, DWC3_GCTL);
 	reg &= ~DWC3_GCTL_SCALEDOWN_MASK;
+	reg &= ~DWC3_GCTL_PWRDNSCALE_MASK;
+	reg |= DWC3_GCTL_PWRDNSCALE(2);
 
 	switch (DWC3_GHWPARAMS1_EN_PWROPT(dwc->hwparams.hwparams1)) {
 	case DWC3_GHWPARAMS1_EN_PWROPT_CLK:
-		/**
-		 * WORKAROUND: DWC3 revisions between 2.10a and 2.50a have an
-		 * issue which would cause xHCI compliance tests to fail.
-		 *
-		 * Because of that we cannot enable clock gating on such
-		 * configurations.
-		 *
-		 * Refers to:
-		 *
-		 * STAR#9000588375: Clock Gating, SOF Issues when ref_clk-Based
-		 * SOF/ITP Mode Used
-		 */
-		if ((dwc->dr_mode == USB_DR_MODE_HOST ||
-				dwc->dr_mode == USB_DR_MODE_OTG) &&
-				(dwc->revision >= DWC3_REVISION_210A &&
-				dwc->revision <= DWC3_REVISION_250A))
-			reg |= DWC3_GCTL_DSBLCLKGTNG | DWC3_GCTL_SOFITPSYNC;
-		else
-			reg &= ~DWC3_GCTL_DSBLCLKGTNG;
+		reg &= ~DWC3_GCTL_DSBLCLKGTNG;
 		break;
 	case DWC3_GHWPARAMS1_EN_PWROPT_HIB:
 		/* enable hibernation here */
@@ -539,63 +528,27 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
 {
 	int ret;
 
-	switch (dwc->dr_mode) {
-	case USB_DR_MODE_PERIPHERAL:
-		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
-		ret = dwc3_gadget_init(dwc);
-		if (ret) {
-			dev_err(dev, "failed to initialize gadget\n");
-			return ret;
-		}
-		break;
-	case USB_DR_MODE_HOST:
-		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
-		ret = dwc3_host_init(dwc);
-		if (ret) {
-			dev_err(dev, "failed to initialize host\n");
-			return ret;
-		}
-		break;
-	case USB_DR_MODE_OTG:
-		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
-		ret = dwc3_host_init(dwc);
-		if (ret) {
-			dev_err(dev, "failed to initialize host\n");
-			return ret;
-		}
-
-		ret = dwc3_gadget_init(dwc);
-		if (ret) {
-			dev_err(dev, "failed to initialize gadget\n");
-			return ret;
-		}
-		break;
-	default:
-		dev_err(dev, "Unsupported mode of operation %d\n", dwc->dr_mode);
-		return -EINVAL;
+	dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
+	ret = dwc3_gadget_init(dwc);
+	if (ret) {
+		dev_err(dev, "failed to initialize gadget\n");
+		return ret;
 	}
-
 	return 0;
 }
 
 static void dwc3_core_exit_mode(struct dwc3 *dwc)
 {
-	switch (dwc->dr_mode) {
-	case USB_DR_MODE_PERIPHERAL:
-		dwc3_gadget_exit(dwc);
-		break;
-	case USB_DR_MODE_HOST:
-		dwc3_host_exit(dwc);
-		break;
-	case USB_DR_MODE_OTG:
-		dwc3_host_exit(dwc);
-		dwc3_gadget_exit(dwc);
-		break;
-	default:
-		/* do nothing */
-		break;
-	}
+	dwc3_gadget_exit(dwc);
 }
+
+
+static struct dwc3 *dwc3;
+uint32_t dwc3_get_evt_lpos()
+{
+	return dwc3->ev_buffs[0]->lpos;
+}
+
 
 #define DWC3_ALIGN_MASK		(16 - 1)
 
@@ -610,6 +563,7 @@ static void dwc3_core_exit_mode(struct dwc3 *dwc)
  *
  * Generally called from board_usb_init() implemented in board file.
  */
+
 int dwc3_uboot_init(struct dwc3_device *dwc3_dev)
 {
 	struct dwc3		*dwc;
@@ -627,9 +581,11 @@ int dwc3_uboot_init(struct dwc3_device *dwc3_dev)
 		return -ENOMEM;
 
 	dwc = PTR_ALIGN(mem, DWC3_ALIGN_MASK + 1);
+	dwc3 = dwc;
 	dwc->mem = mem;
+	dwc3_dev->dwc = dwc;
 
-	dwc->regs	= (int *)(dwc3_dev->base + DWC3_GLOBALS_REGS_START);
+	dwc->regs	= (void *)(dwc3_dev->base + DWC3_GLOBALS_REGS_START);
 
 	/* default to highest possible threshold */
 	lpm_nyet_threshold = 0xff;
@@ -679,7 +635,6 @@ int dwc3_uboot_init(struct dwc3_device *dwc3_dev)
 	dwc->hird_threshold = hird_threshold
 		| (dwc->is_utmi_l1_suspend << 4);
 
-	dwc->index = dwc3_dev->index;
 
 	dwc3_cache_hwparams(dwc);
 
@@ -689,13 +644,7 @@ int dwc3_uboot_init(struct dwc3_device *dwc3_dev)
 		return -ENOMEM;
 	}
 
-	if (IS_ENABLED(CONFIG_USB_DWC3_HOST))
-		dwc->dr_mode = USB_DR_MODE_HOST;
-	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
-		dwc->dr_mode = USB_DR_MODE_PERIPHERAL;
-
-	if (dwc->dr_mode == USB_DR_MODE_UNKNOWN)
-		dwc->dr_mode = USB_DR_MODE_OTG;
+	dwc->dr_mode = DWC3_GCTL_PRTCAP_DEVICE;
 
 	ret = dwc3_core_init(dwc);
 	if (ret) {
@@ -712,9 +661,6 @@ int dwc3_uboot_init(struct dwc3_device *dwc3_dev)
 	ret = dwc3_core_init_mode(dwc);
 	if (ret)
 		goto err2;
-
-	list_add_tail(&dwc->list, &dwc3_list);
-
 	return 0;
 
 err2:
@@ -731,55 +677,34 @@ err0:
 
 /**
  * dwc3_uboot_exit - dwc3 core uboot cleanup code
- * @index: index of this controller
  *
  * Performs cleanup of memory allocated in dwc3_uboot_init and other misc
- * cleanups (equivalent to dwc3_remove in linux). index of _this_ controller
- * should be passed and should match with the index passed in
- * dwc3_device during init.
+ * cleanups (equivalent to dwc3_remove in linux).
  *
  * Generally called from board file.
  */
-void dwc3_uboot_exit(int index)
+void dwc3_uboot_exit(struct dwc3_device *dwc3_dev)
 {
-	struct dwc3 *dwc;
+	struct dwc3 *dwc = dwc3_dev->dwc;
 
-	list_for_each_entry(dwc, &dwc3_list, list) {
-		if (dwc->index != index)
-			continue;
-
-		dwc3_core_exit_mode(dwc);
-		dwc3_event_buffers_cleanup(dwc);
-		dwc3_free_event_buffers(dwc);
-		dwc3_core_exit(dwc);
-		list_del(&dwc->list);
-		kfree(dwc->mem);
-		break;
-	}
+	dwc3_core_exit_mode(dwc);
+	dwc3_event_buffers_cleanup(dwc);
+	dwc3_free_event_buffers(dwc);
+	dwc3_core_exit(dwc);
+	kfree(dwc->mem);
 }
 
 /**
  * dwc3_uboot_handle_interrupt - handle dwc3 core interrupt
- * @index: index of this controller
  *
  * Invokes dwc3 gadget interrupts.
  *
  * Generally called from board file.
  */
-void dwc3_uboot_handle_interrupt(int index)
+void dwc3_uboot_handle_interrupt(struct dwc3_device *dwc3_dev)
 {
-	struct dwc3 *dwc = NULL;
+	struct dwc3 *dwc = dwc3_dev->dwc;
 
-	list_for_each_entry(dwc, &dwc3_list, list) {
-		if (dwc->index != index)
-			continue;
-
-		dwc3_gadget_uboot_handle_interrupt(dwc);
-		break;
-	}
+	dwc3_gadget_uboot_handle_interrupt(dwc);
 }
 
-MODULE_ALIAS("platform:dwc3");
-MODULE_AUTHOR("Felipe Balbi <balbi@ti.com>");
-MODULE_LICENSE("GPL v2");
-MODULE_DESCRIPTION("DesignWare USB3 DRD Controller Driver");

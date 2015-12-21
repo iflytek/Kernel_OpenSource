@@ -27,6 +27,12 @@ extern struct p_current *current;
 #define printk	printf
 #define printk_once	printf
 
+#define DBG(d, fmt, args...)     debug(fmt , ## args)
+#define VDBG(d, fmt, args...)    debug(fmt , ## args)
+#define ERROR(d, fmt, args...)   do { } while (0)
+#define WARNING(d, fmt, args...) do { } while (0)
+#define INFO(d, fmt, args...)    do { } while (0)
+
 #define KERN_EMERG
 #define KERN_ALERT
 #define KERN_CRIT

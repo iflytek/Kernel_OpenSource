@@ -20,7 +20,14 @@
 
 #include <asm/io.h>
 
+#define CONFIG_SYS_CACHELINE_SIZE 64
 #define	CACHELINE_SIZE		CONFIG_SYS_CACHELINE_SIZE
+
+extern void
+invalidate_dcache_range(unsigned long start, unsigned long end );
+extern void
+flush_dcache_range(unsigned long start , unsigned long end);
+
 static inline u32 dwc3_readl(void __iomem *base, u32 offset)
 {
 	u32 offs = offset - DWC3_GLOBALS_REGS_START;
@@ -48,8 +55,11 @@ static inline void dwc3_writel(void __iomem *base, u32 offset, u32 value)
 	writel(value, base + offs);
 }
 
-static inline void dwc3_flush_cache(int addr, int length)
+static inline void dwc3_flush_cache(unsigned long addr, int size, int dir)
 {
-	flush_dcache_range(addr, addr + ROUND(length, CACHELINE_SIZE));
+	if(dir)
+		flush_dcache_range(addr, addr + size);
+	else
+		invalidate_dcache_range(addr, addr + size);
 }
 #endif /* __DRIVERS_USB_DWC3_IO_H */
