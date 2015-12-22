@@ -113,11 +113,11 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 {
 	MODE_REGIST(CMD_NORMAL_MODE, normal_mode);
 	MODE_REGIST(CMD_RECOVERY_MODE, recovery_mode);
-	//MODE_REGIST(CMD_FASTBOOT_MODE, fastboot_mode);
+	MODE_REGIST(CMD_FASTBOOT_MODE, fastboot_mode);
 	MODE_REGIST(CMD_WATCHDOG_REBOOT, watchdog_mode);
 	MODE_REGIST(CMD_UNKNOW_REBOOT_MODE, unknow_reboot_mode);
 	MODE_REGIST(CMD_PANIC_REBOOT, panic_reboot_mode);
-	//MODE_REGIST(CMD_AUTODLOADER_REBOOT, autodloader_mode);
+	MODE_REGIST(CMD_AUTODLOADER_REBOOT, autodloader_mode);
 	MODE_REGIST(CMD_SPECIAL_MODE, special_mode);
 	MODE_REGIST(CMD_CHARGE_MODE, charge_mode);
 	MODE_REGIST(CMD_ENGTEST_MODE,factorytest_mode);//engtest_mode

@@ -1,10 +1,11 @@
 #include <common.h>
 #include "loader_common.h"
 #include <malloc.h>
-#include <mmc.h>
+//#include <mmc.h>
+#include <sprd_mmc.h>
 #include <ext_common.h>
 #include <ext4fs.h>
-#include <asm/sizes.h>
+#include <linux/sizes.h>
 
 #ifdef CONFIG_ARM7_RAM_ACTIVE
     extern void pmic_arm7_RAM_active(void);
@@ -598,7 +599,12 @@ int _boot_load_kernel_ramdisk_image(block_dev_desc_t * dev, char *bootmode, boot
 		return 0;
 	}
 	debugf("%s ramdisk read OK,size=%u! \n", partition, size);
+
 #ifdef CONFIG_OF_LIBFDT
+#ifdef CONFIG_SEPARATE_DT
+	if (!_boot_load_separate_dt())
+		return 0;
+#else
 	//read dt image
 	offset += size / 512;
 	offset = ((offset + 3) / 4) * 4;
@@ -617,6 +623,7 @@ int _boot_load_kernel_ramdisk_image(block_dev_desc_t * dev, char *bootmode, boot
 		errorf("dt load error!\n");
 		return 0;
 	}
+#endif
 #endif
 
 	boot_mode_type_str = getenv("bootmode");
@@ -646,6 +653,55 @@ int _boot_load_kernel_ramdisk_image(block_dev_desc_t * dev, char *bootmode, boot
 #endif
 	return 1;
 }
+
+#ifdef CONFIG_SEPARATE_DT
+int _boot_load_separate_dt(void)
+{
+	struct dt_table *table = malloc(EMMC_SECTOR_SIZE);
+	struct dt_entry *dt_entry_ptr;
+	uint32_t secure_boot_offset = 0;
+
+#ifdef CONFIG_SECURE_BOOT
+	if (do_raw_data_read("dt", EMMC_SECTOR_SIZE, 0, (u8 *) table)) {
+		errorf("dt read error!\n");
+		free(table);
+		return 0;
+	}
+	secure_boot_offset = get_code_offset(table);
+#endif
+
+	if (do_raw_data_read("dt", EMMC_SECTOR_SIZE, 0 + secure_boot_offset, (u8 *) table)) {
+		errorf("dt read error!\n");
+		free(table);
+		return 0;
+	}
+
+	/* Validate the device tree table header */
+	if((table->magic != DEV_TREE_MAGIC) && (table->version != DEV_TREE_VERSION)) {
+		errorf("Cannot validate Device Tree Table \n");
+		free(table);
+		return 0;
+	}
+
+	/* Calculate the offset of device tree within device tree table */
+	if((dt_entry_ptr = dev_tree_get_entry_ptr(table)) == NULL) {
+		errorf("Getting device tree address failed\n");
+		free(table);
+		return 0;
+	}
+
+	if (do_raw_data_read("dt", dt_entry_ptr->size,
+			dt_entry_ptr->offset + secure_boot_offset, (u8 *) DT_ADR)) {
+		errorf("dt read error!\n");
+		free(table);
+		return 0;
+	}
+
+	debugf("dtb read OK,size=%u! \n", dt_entry_ptr->size);
+	free(table);
+	return 1;
+}
+#endif
 
 #ifdef CONFIG_SECURE_BOOT
 int secure_verify_partition(block_dev_desc_t * dev, uchar * partition_name, void *ram_addr)

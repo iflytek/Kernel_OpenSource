@@ -7,7 +7,7 @@
 
 #define MAX_CALIBRATION_LEN   50
 
-static unsigned int nv_buffer[256]={0};
+static unsigned int nv_buffer[128]={0};
 static int s_is_calibration_mode = 0;
 static char calibration_cmd_buf[MAX_CALIBRATION_LEN] = {0};
 uint8_t pctool_cmd_buf[20];
@@ -46,8 +46,8 @@ typedef  struct tag_cali_command {
 } COMMAND_T;
 
 extern int serial_tstc(void);
-static unsigned long long start_time;
-static unsigned long long now_time;
+static unsigned long start_time;
+static unsigned long now_time;
 
 
 
@@ -186,12 +186,12 @@ int pctool_mode_detect_uart(void)
 }
 
 
-int get_cal_enum_ms(void)
+unsigned long get_cal_enum_ms(void)
 {
     return CALIBRATE_ENUM_MS;
 }
 
-int get_cal_io_ms(void)
+unsigned long get_cal_io_ms(void)
 {
     return CALIBRATE_IO_MS;
 }
@@ -237,16 +237,14 @@ int check_pctool_cmd(uint8_t* buf, int len)
 }
 
 extern int power_button_pressed(void);
-static int count_ms;
-static unsigned long long start_time;
-static unsigned long long now_time;
+static unsigned long count_ms;
 
 int is_timeout(void)
 {
 
     now_time = get_timer_masked();
 
-    if(now_time - start_time>count_ms)
+    if((now_time - start_time)>count_ms)
       	return 1;
     else{
         return 0;
@@ -312,7 +310,7 @@ int cali_usb_enum(void)
 		if(ret == 0)
 			continue;
 		else{
-			printf("usb calibrate configuration timeout\n");
+			printf("usb calibrate configuration timeout,%lu,%lu,%lu\n",now_time,start_time,count_ms);
 			return 0;
 			}
 		}	
@@ -325,7 +323,7 @@ int cali_usb_enum(void)
 		if(ret == 0)
 			continue;
 		else{
-			printf("usb calibrate port open timeout\n");
+			printf("usb calibrate port open timeout%lu,%lu,%lu\n",now_time,start_time,count_ms);
 			return 0;
 			}
 		}
@@ -609,12 +607,38 @@ int read_adc_calibration_data(char *buffer,int size)
 	boot_mode_t boot_role = cr_env->mode;
 	if (boot_role == BOOTLOADER_MODE_DOWNLOAD)
 		return 0;
-	if(do_fs_file_read("prodnv", "/adc.bin", (char *)nv_buffer,sizeof(nv_buffer)))
-	    	return 0;
+
+	unsigned int adc_magic_flag = 0;
+	int phase_check_len = sizeof(SP09_PHASE_CHECK_T);
+	int adc_magic_len = sizeof(unsigned int);
+	int tmp_size = phase_check_len + adc_magic_len + sizeof(nv_buffer);
+	char *tmp = malloc(tmp_size);
+
+	debugf("start read miscdata adc data...\n");
+	if(do_raw_data_read("miscdata", tmp_size, 0, tmp)) {
+		errorf("read miscdata adc data error.\n");
+		free(tmp);
+		return 0;
+	}
+	adc_magic_flag = *((unsigned int *)(tmp + phase_check_len));
+	if(adc_magic_flag == ADC_MAGIC) {
+		debugf("ADC MAGIC is true!\n");
+		memcpy(nv_buffer, tmp + phase_check_len + adc_magic_len, sizeof(nv_buffer));
+
+	} else {
+		debugf("ADC MAGIC is false!\nstart read prodnv /adc.bin...\n");
+		if(do_fs_file_read("prodnv", "/adc.bin", (char *)nv_buffer,sizeof(nv_buffer))) {
+			errorf("read prodnv /adb.bin error.\n");
+			free(tmp);
+			return 0;
+		}
+
+	}
 
 	if(size>48)
 		size=48;
 	memcpy(buffer,&nv_buffer[2],size);
+	free(tmp);
 	return size;
 #elif defined(CONFIG_EMMC_BOOT) && defined (CONFIG_SC8825)
 	#define FIXNV_ADR        0x80480000

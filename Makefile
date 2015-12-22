@@ -656,11 +656,12 @@ libs-y += drivers/spi/
 libs-$(CONFIG_FMAN_ENET) += drivers/net/fm/
 libs-$(CONFIG_SYS_FSL_DDR) += drivers/ddr/fsl/
 libs-y += drivers/serial/
-libs-y += drivers/usb/dwc3/
 libs-y += drivers/usb/emul/
 libs-y += drivers/usb/eth/
 libs-y += drivers/usb/gadget/
-libs-y += drivers/usb/gadget/udc/
+libs-$(CONFIG_DWC_OTG) += drivers/usb/dwc_otg/
+libs-$(CONFIG_USB_DWC3) += drivers/usb/dwc3/
+libs-$(CONFIG_USB_DWC3_GADGET) += drivers/usb/gadget/udc/
 libs-y += drivers/usb/host/
 libs-y += drivers/usb/musb/
 libs-y += drivers/usb/musb-new/
@@ -670,6 +671,7 @@ libs-y += common/
 libs-$(CONFIG_API) += api/
 libs-$(CONFIG_HAS_POST) += post/
 libs-y += common/loader/
+libs-y += common/dloader/
 libs-y += test/
 libs-y += test/dm/
 libs-$(CONFIG_UT_ENV) += test/env/
@@ -1311,11 +1313,12 @@ checkdtc:
 checkarmreloc: u-boot
 	@RELOC="`$(CROSS_COMPILE)readelf -r -W $< | cut -d ' ' -f 4 | \
 		grep R_A | sort -u`"; \
-	if test "$$RELOC" != "R_ARM_RELATIVE" -a \
-		 "$$RELOC" != "R_AARCH64_RELATIVE"; then \
-		echo "$< contains unexpected relocations: $$RELOC"; \
-		false; \
-	fi
+
+#	if test "$$RELOC" != "R_ARM_RELATIVE" -a \
+#		 "$$RELOC" != "R_AARCH64_RELATIVE"; then \
+#		echo "$< contains unexpected relocations: $$RELOC"; \
+#		false; \
+#	fi
 
 env: scripts_basic
 	$(Q)$(MAKE) $(build)=tools/$@

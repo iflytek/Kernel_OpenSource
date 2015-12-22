@@ -39,7 +39,8 @@
 #ifdef CONFIG_EMMC_BOOT
 #include "dl_emmc_operate.h"
 #include <asm/arch/chip_releted_def.h>
-#include <mmc.h>
+//#include <mmc.h>
+#include <sprd_mmc.h>
 #include <dl_emmc_operate.h>
 
 extern unsigned char *g_eMMCBuf;
@@ -308,7 +309,7 @@ int _fb_emmc_write(unsigned int part_type, uint32_t startBlock, uint32_t count, 
 	uint32_t each, saved = 0;
 	uint32_t base = startBlock;
 	while (count) {
-		each = MIN(count, max_mutil_write);
+		each = min(count, max_mutil_write);
 		if (!Emmc_Write(part_type, base, each, buf + (saved * EFI_SECTOR_SIZE))) {
 			debugf("emmc write error\n");
 			return 0;

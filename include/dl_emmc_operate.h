@@ -7,12 +7,14 @@
 #ifdef CONFIG_EMMC_BOOT
 #include "part.h"
 
+#define IMG_BAK_HEADER 0x42544844
+
 #define EFI_SECTOR_SIZE 		(512)
 #define EMMC_MAX_MUTIL_WRITE  (0x8000)
 #define ERASE_SECTOR_SIZE		((64 * 1024) / EFI_SECTOR_SIZE)
 
 /*buffer must over 50M ,otherwise download userdata.img will fail*/
-#define EMMC_BUF_SIZE			(((128 * 1024 * 1024) / EFI_SECTOR_SIZE) * EFI_SECTOR_SIZE)
+#define EMMC_BUF_SIZE			(((256 * 1024 * 1024) / EFI_SECTOR_SIZE) * EFI_SECTOR_SIZE)
 
 #define MAX_GPT_PARTITION_SUPPORT  (50)
 #define EMMC_ERASE_ALIGN_LENGTH  (0x800)
@@ -30,7 +32,12 @@
 /*according to standard ,the first usable LBA is 34,
 but actually use 0x800 as the first LBA of all partitions can enhance the erase speed*/
 #define STARTING_LBA_OF_FIRST_PARTITION   (0x800)
+#define FIRST_USABLE_LBA_FOR_PARTITION    (34)
+#define ALTERNATE_GPT_PTE_SIZE (33)
+
 #define MAX_SIZE_FLAG	0xFFFFFFFF
+
+#define ALTERNATIVE_BUFFER_SIZE  0x200000
 
 #define TRUE   1		/* Boolean true value. */
 #define FALSE  0		/* Boolean false value. */
@@ -80,6 +87,30 @@ typedef struct {
 	uint32_t hashLen;
 } EMMC_BootHeader;
 
+typedef struct _ALTER_BUFFER_ATTR {
+	uchar* addr;
+	uchar* pointer;
+	uint32_t size;
+	uint32_t used;
+	uint32_t spare;
+	uint32_t status;
+	struct _ALTER_BUFFER_ATTR* next;
+} ALTER_BUFFER_ATTR;
+
+typedef enum _ALTERNATIVE_BUFFER_STATUS {
+	BUFFER_CLEAN,
+	BUFFER_DIRTY
+} ALTERNATIVE_BUFFER_STATUS;
+typedef  struct {
+    unsigned int mMagicNum; // "BTHD" == "0x42544844" == "boothead"
+    unsigned int mVersion; // 1
+    unsigned char mPayloadHash[32];//sha256 hash value
+    long long mImgAddr; //image loaded address
+    unsigned int mImgSize; //image size
+    unsigned char reserved[512-(13*4)]; // reserved\uff0c make sure total size is 512B.
+}sys_img_header;
+
+
 OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t nv_checksum);
 OPERATE_STATUS dl_download_midst(uint16_t size, char *buf);
 OPERATE_STATUS dl_download_end(void);
@@ -88,7 +119,8 @@ OPERATE_STATUS dl_read_start(uchar * partition_name, uint32_t size);
 OPERATE_STATUS dl_read_midst(uint32_t size, uint32_t off, uchar * buf);
 OPERATE_STATUS dl_read_end(void);
 OPERATE_STATUS dl_erase(uchar * partition_name, uint32_t size);
-OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_num);
+OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_num,
+									uchar version, uchar size_unit);
 
 #endif //CONFIG_EMMC_BOOT
 #endif //_FDL_EMMC_OPERATE_H

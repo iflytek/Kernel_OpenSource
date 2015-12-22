@@ -60,6 +60,10 @@ ifdef	BOARD
 sinclude $(srctree)/board/$(BOARDDIR)/config.mk	# include board specific rules
 endif
 
+ifeq ($(AUTOBOOT_FLAG), true)
+PLATFORM_CPPFLAGS += -DCONFIG_AUTOBOOT
+endif
+
 ifdef FTRACE
 PLATFORM_CPPFLAGS += -finstrument-functions -DFTRACE
 endif
@@ -77,7 +81,7 @@ OBJCOPYFLAGS += --gap-fill=0xff
 
 PLATFORM_CPPFLAGS += $(RELFLAGS)
 PLATFORM_CPPFLAGS += -pipe
-
+PLATFORM_CPPFLAGS += $(UBOOT_DEBUG_FLAG)
 LDFLAGS += $(PLATFORM_LDFLAGS)
 LDFLAGS_FINAL += -Bstatic
 

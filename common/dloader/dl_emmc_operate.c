@@ -1,7 +1,8 @@
 
 #include "common.h"
 
-#include <mmc.h>
+#//#include <mmc.h>
+#include <sprd_mmc.h>
 #include "packet.h"
 #include <malloc.h>
 #include <asm/arch/chip_releted_def.h>
@@ -10,7 +11,7 @@
 #include "dl_emmc_operate.h"
 #include <ext_common.h>
 #include "dl_crc.h"
-#include <asm/sizes.h>
+#include <linux/sizes.h>
 #include <sparse_format.h>
 
 
@@ -310,10 +311,10 @@ int _parser_repartition_cfg_v0(disk_partition_t * partition_info, const uchar * 
 			partition_info[i].size = (lbaint_t) partition_size_m * lbas_per_m;
 		}
 
-		/*in raw data rcv from download tool,partition_name is 38 uint16_t length; 
+		/*in raw data rcv from download tool,partition_name is 38 uint16_t length;
 		 **in part.h ,disk_partition_t.name is 32 uchar length;
-		 **in part_efi.h ,gpt_entry.partition_name is 36 uint16_t length, 
-		 **we convert raw data to disk_partition_t format here , gpt_fill_pte() in part_efi.c will 
+		 **in part_efi.h ,gpt_entry.partition_name is 36 uint16_t length,
+		 **we convert raw data to disk_partition_t format here , gpt_fill_pte() in part_efi.c will
 		 **convert disk_partition_t to gpt_entry*/
 		for (j = 0; j < 32 - 1; j++) {
 			/*transform 64 bytes uint16_t to 32 bytes uchar ,and discard the last 8 bytes */
@@ -939,7 +940,7 @@ static int _emmc_secure_download(uchar * partition_name)
 
 	//write code
 	while (count) {
-		each = MIN(count, EMMC_MAX_MUTIL_WRITE);
+		each = min(count, EMMC_MAX_MUTIL_WRITE);
 		if (!Emmc_Write(g_dl_eMMCStatus.curEMMCArea, base_sector, each, (unsigned char *)(g_eMMCBuf + (saved * EFI_SECTOR_SIZE)))) {
 			g_status.unsave_recv_size = 0;
 			return 0;
@@ -1009,7 +1010,7 @@ int _emmc_download_image(uint32_t nSectorCount, uint32_t each_write_block, int i
 		uint32_t each;
 		uint32_t base_sector = g_dl_eMMCStatus.base_sector;
 		while (count) {
-			each = MIN(count, each_write_block);
+			each = min(count, each_write_block);
 #ifdef CONFIG_SECURE_BOOT
 			if (!Emmc_Write(g_dl_eMMCStatus.curEMMCArea, base_sector, each, (unsigned char *)(g_eMMCBuf + (saved * EFI_SECTOR_SIZE) + code_off)))
 #else
@@ -1191,7 +1192,7 @@ int _write_img_to_partition(uint32_t nSectorCount, uint32_t each_write_block)
 	uint32_t each=0;
 	uint32_t base_sector=g_dl_eMMCStatus.base_sector;
 	while(count) {
-		each = MIN(count,each_write_block);
+		each = min(count,each_write_block);
 		if (!Emmc_Write(g_dl_eMMCStatus.curEMMCArea, base_sector,
 			each, (uchar *) (g_eMMCBuf + (saved * EFI_SECTOR_SIZE)))) {
 			g_status.unsave_recv_size = 0;
@@ -1431,7 +1432,7 @@ OPERATE_STATUS dl_read_start(uchar * partition_name, uint32_t size)
 
 	if (0 == strcmp("prodnv", g_dl_eMMCStatus.curUserPartitionName)) {
 		struct ext2_sblock *sblock = NULL;
-		sblock = malloc(MAX(EFI_SECTOR_SIZE, sizeof(struct ext2_sblock)));
+		sblock = malloc(max(EFI_SECTOR_SIZE, sizeof(struct ext2_sblock)));
 		if (!sblock) {
 			debugf("malloc sblock failed\n");
 			goto err;
@@ -1644,7 +1645,7 @@ OPERATE_STATUS dl_download_midst(uint16_t size, char *buf)
 #else
 	if ((IMG_RAW == g_dl_eMMCStatus.curImgType) && (g_status.total_size > ALTERNATIVE_BUFFER_SIZE))
 		ret = speedup_download_process(size, buf);
-	else 
+	else
 		ret = regular_download_process(size, buf);
 #endif
 

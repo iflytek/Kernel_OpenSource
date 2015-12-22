@@ -14,16 +14,18 @@ typedef enum {
 	CMD_ALARM_MODE,
 	CMD_CHARGE_MODE,
 	CMD_ENGTEST_MODE,
-	CMD_WATCHDOG_REBOOT ,
+	CMD_WATCHDOG_REBOOT,
 	CMD_SPECIAL_MODE,
 	CMD_UNKNOW_REBOOT_MODE,
 	CMD_PANIC_REBOOT,
 	CMD_CALIBRATION_MODE,
+	CMD_FACTORYTEST_MODE,
 	CMD_AUTODLOADER_REBOOT,
-    CMD_AUTOTEST_MODE,
+	CMD_AUTOTEST_MODE,
 	CMD_EXT_RSTN_REBOOT_MODE,
 	CMD_IQ_REBOOT_MODE,
 	CMD_SLEEP_MODE,
+	CMD_SPRDISK_MODE,
 
 	/*this is not a mode name ,beyond CMD_MAX_MODE means overflow*/
 	CMD_MAX_MODE
@@ -46,9 +48,8 @@ int is_bat_low(void);
 int alarm_flag_check(void);
 int cali_file_check(void);
 int read_adc_calibration_data(char *buffer,int size);
-extern int calibration_detect(int key);
-
-
+int pctool_mode_detect_uart(void);
+int sprdisk_mode_detect(void);
 
 void normal_mode(void);
 void recovery_mode(void);
@@ -57,6 +58,7 @@ void fastboot_mode(void);
 void alarm_mode(void);
 void engtest_mode(void);
 void calibration_mode(void);
+void factorytest_mode(void);
 void watchdog_mode(void);
 void unknow_reboot_mode(void);
 void special_mode(void);
@@ -64,6 +66,7 @@ void panic_reboot_mode(void);
 void autodloader_mode(void);
 void iq_mode(void);
 void autotest_mode(void);
+void sprdisk_mode(void);
 
 boot_mode_enum_type get_mode_from_arg(char* mode_name);
 boot_mode_enum_type get_mode_from_pctool(void);

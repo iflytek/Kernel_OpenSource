@@ -4,7 +4,13 @@
 
 #define PARTITION_SIZE_LENGTH          (4)
 #define MAX_PARTITION_NAME_SIZE   (36)
+#define GAP_SIZE_LENGTH   (8)
+#define PARTITION_SIZE_LENGTH_V1  (8)
+#define REPARTITION_HEADER_MAGIC 0x3A726170
+
 #define REPARTITION_UNIT_LENGTH    (MAX_PARTITION_NAME_SIZE *2 + PARTITION_SIZE_LENGTH)
+#define REPARTITION_UNIT_LENGTH_V1    (MAX_PARTITION_NAME_SIZE *2 +  PARTITION_SIZE_LENGTH_V1 + GAP_SIZE_LENGTH)
+
 
 typedef enum OPERATE_STATUS {
 	OPERATE_SUCCESS = 1,
@@ -18,6 +24,18 @@ typedef enum OPERATE_STATUS {
 	OPERATE_CHECKSUM_DIFF
 } OPERATE_STATUS;
 
+typedef struct _REPARTITION_TABLE_INFO
+{
+	unsigned char version;
+	unsigned char unit;
+	unsigned char table_count;
+	unsigned char reserved;
+	unsigned int     table_tag;
+	unsigned short     table_offset;
+	unsigned short     table_size;
+} REPARTITION_TABLE_INFO;
+
+
 int dl_cmd_write_start(dl_packet_t * packet, void *arg);
 int dl_cmd_write_midst(dl_packet_t * packet, void *arg);
 int dl_cmd_write_end(dl_packet_t * packet, void *arg);
@@ -27,6 +45,9 @@ int dl_cmd_read_end(dl_packet_t * packet, void *arg);
 int dl_cmd_erase(dl_packet_t * packet, void *arg);
 int dl_cmd_repartition(dl_packet_t * pakcet, void *arg);
 int dl_cmd_reboot (dl_packet_t *pakcet, void *arg);
+int dl_powerdown_device(dl_packet_t *packet, void *arg);
 int dl_cmd_read_mcptype(dl_packet_t * packet, void *arg);
+int dl_cmd_check_rootflag(dl_packet_t * packet, void *arg);
+
 
 #endif /*DL_CMD_PROC_H */

@@ -1,6 +1,7 @@
 #include <common.h>
 #include <malloc.h>
-#include <sdhci.h>
+//#include <sdhci.h>
+#include <sprd_sdhci.h>
 
 #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
 static struct sdhci_ops mv_ops;

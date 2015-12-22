@@ -4,7 +4,8 @@
 #include <ubi_uboot.h>
 #endif
 #ifdef  CONFIG_EMMC_BOOT
-#include <mmc.h>
+//#include <mmc.h>
+#include <sprd_mmc.h>
 #endif
 
 
@@ -156,7 +157,7 @@ end:
 		return ret;
 	}
 
-	if(size != uboot_ubi_read(vol, buf, off, size)) 
+	if(size != uboot_ubi_read(vol, buf, off, size))
 		printf("%s: read vol %s failed!\n",__func__,part);
 	else
 		ret = 0;

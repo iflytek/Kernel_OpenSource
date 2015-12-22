@@ -55,7 +55,7 @@ void iq_mode(void)
 	debugf("iq_mode\n");
 	setenv("bootmode", "iq");
 	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
-	return;	
+	return;
 
 }
 
@@ -85,7 +85,6 @@ void panic_reboot_mode(void)
 	return;
 
 }
-
 
 void fastboot_mode(void)
 {
@@ -120,7 +119,6 @@ void autodloader_mode(void)
 	/*reach here means error happened*/
 	return;
 }
-
 
 void charge_mode(void)
 {

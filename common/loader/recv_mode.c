@@ -5,7 +5,8 @@
 
 
 #ifdef CONFIG_EMMC_BOOT
-#include <mmc.h>
+//#include <mmc.h>
+#include <sprd_mmc.h>
 
 char misc_buf[8192];
 

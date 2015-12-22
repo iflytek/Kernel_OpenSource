@@ -43,6 +43,8 @@ typedef enum dl_cmd_type {
     BSL_CMD_READ_FLASH_MIDST,		/*0x11*/
     BSL_CMD_READ_FLASH_END,		/*0x12*/
     BSL_CMD_OFF_CHG = 0x13,                     /* 0x13*/
+    BSL_CMD_POWER_DOWN_TYPE = 0x17,             /* 0x17*/
+    BSL_CMD_CHECK_ROOTFLAG = 0x19,               /* 0x19*/
     BSL_CMD_TYPE_MAX,
 
     /* Start of the Command can be transmited by phone*/
@@ -94,6 +96,9 @@ typedef enum dl_cmd_type {
     BSL_EEROR_CHECKSUM = 0xA0,
     BSL_CHECKSUM_DIFF,
     BSL_WRITE_ERROR,
+
+    /*phone root return value*/
+    BSL_PHONE_ROOTFLAG = 0xA7,
     BSL_PKT_TYPE_MAX
 }dl_cmd_type_t ;
 
