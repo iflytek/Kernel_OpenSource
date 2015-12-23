@@ -50,7 +50,7 @@
  * differently. On the x86 architecture, we just read/write the
  * memory location directly.
  */
-
+typedef unsigned long int uintptr_t;
 #define readb(addr) (*(volatile unsigned char *) (addr))
 #define readw(addr) (*(volatile unsigned short *) (addr))
 #define readl(addr) (*(volatile unsigned int *) (addr))

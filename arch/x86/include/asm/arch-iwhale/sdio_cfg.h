@@ -27,11 +27,19 @@ extern   "C"
 /**---------------------------------------------------------------------------*
 **                               Micro Define                                **
 **---------------------------------------------------------------------------*/
-#include "asm/arch/ldo.h"
-#include <sdhci_v40.h>
+#include <sprd_regulator.h>
+//#include <sdhci.h>
+#include <sprd_sdhci.h>
 
 #define	 EMMC 	0
 #define 	 SD 		1
+
+typedef struct
+{
+	uint32_t 	pin_base;
+	uint32_t 	pin_offset;
+	uint32_t 	pin_value;
+}SDIO_PING_REG;
 
 typedef struct
 {
@@ -40,7 +48,7 @@ typedef struct
 	uint32_t  baseclk_reg;
 	uint32_t  baseclk_mask;
 
- 	uint32_t  maxclk;
+	uint32_t  maxclk;
 	uint32_t  minclk;
 
 	uint32_t  ahb_enable_reg;

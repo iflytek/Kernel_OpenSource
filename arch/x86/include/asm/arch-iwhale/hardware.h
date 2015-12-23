@@ -26,6 +26,6 @@
 #include "rtc_reg_v3.h"
 
 
-#include "__hardware-sc9836a.h"
+#include "chip_iwhale2/__hardware-iwhale2.h"
 
 #endif
