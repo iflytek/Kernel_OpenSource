@@ -1,3 +1,4 @@
+#include <configs/soc-sprd-iwhale2.h>
 #ifndef __CONFIG_X86_SPRD_COMMON_H
 #define __CONFIG_X86_SPRD_COMMON_H
 #define CONFIG_SPRD_SOC_IWHALE2
@@ -80,8 +81,5 @@
 #define CONFIG_SYS_SERIAL0		0xe7000000
 /* SPRD VP DEBUG ANDROID     */
 #define CONFIG_VP_DEBUG
-#define DT_ADR 	    0x15400000
-#define RAMDISK_ADR 0X15500000
-#define KERNEL_ADR  0x10080000
-#define BOOTIMG_ADR 0X7D000000
+
 #endif /* __CONFIG_H */
