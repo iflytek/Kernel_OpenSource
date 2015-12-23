@@ -64,9 +64,10 @@ extern chipram_env_t  local_chipram_env;
 static inline int fls(int x)
 {
 	int ret;
-
+#if !(CONFIG_X86)
 	asm("clz\t%0, %1": "=r"(ret):"r"(x));
 	ret = 32 - ret;
+#endif
 	return ret;
 }
 
