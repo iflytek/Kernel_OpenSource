@@ -802,10 +802,12 @@ cmd_pad_cat = $(cmd_objcopy) && $(append) || rm -f $@
 
 all:		$(ALL-y)
 ifneq ($(CONFIG_SYS_GENERIC_BOARD),y)
-	@echo "===================== WARNING ======================"
-	@echo "Please convert this board to generic board."
-	@echo "Otherwise it will be removed by the end of 2014."
-	@echo "See doc/README.generic-board for further information"
+	@echo "===================================================="
+	@echo "Build Successfully..........."
+#	@echo "===================== WARNING ======================"
+#	@echo "Please convert this board to generic board."
+#	@echo "Otherwise it will be removed by the end of 2014."
+#	@echo "See doc/README.generic-board for further information"
 	@echo "===================================================="
 endif
 ifeq ($(CONFIG_DM_I2C_COMPAT),y)
