@@ -11,7 +11,7 @@
 #include <smsc_lpc47m.h>
 #include <malloc.h>
 #include <boot_mode.h>
-#include <asm/arch/adi_hal_internal.h>
+#include <adi_hal_internal.h>
 
 #define SERIAL_DEV PNP_DEV(0x2e, 4)
 

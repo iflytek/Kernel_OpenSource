@@ -7,7 +7,7 @@ config SYS_VENDOR
 	default "spreadtrum"
 
 config SYS_SOC
-	default "sprd-soc"
+	default "iwhale"
 
 config SYS_CONFIG_NAME
 	string "Board Config Header file"
