@@ -781,8 +781,10 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_CMD_ONENAND
 	initr_onenand,
 #endif
+#if 0
 #ifdef CONFIG_GENERIC_MMC
 	initr_mmc,
+#endif
 #endif
 #ifdef CONFIG_HAS_DATAFLASH
 	initr_dataflash,

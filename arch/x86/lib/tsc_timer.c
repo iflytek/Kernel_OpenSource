@@ -298,6 +298,17 @@ u64 __attribute__((no_instrument_function)) get_ticks(void)
 	return now_tick - gd->arch.tsc_base;
 }
 
+u64 __attribute__((no_instrument_function)) SCI_GetTickCount(void)
+{
+	u64 now_tick = rdtsc();
+
+	/* We assume that 0 means the base hasn't been set yet */
+	if (!gd->arch.tsc_base)
+		panic("No tick base available");
+	return now_tick - gd->arch.tsc_base;
+}
+
+
 /* Get the speed of the TSC timer in MHz */
 unsigned __attribute__((no_instrument_function)) long get_tbclk_mhz(void)
 {
@@ -366,4 +377,4 @@ int timer_init(void)
 #endif
 
 	return 0;
-}
+}		

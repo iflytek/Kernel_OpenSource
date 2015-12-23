@@ -45,9 +45,10 @@ boot_mode_enum_type get_mode_from_arg(char* mode_name)
 		return CMD_SPRDISK_MODE;
 
 	/*just for debug*/
+#ifdef CONFIG_SPRD_SYSDUMP
 	if(!strcmp(mode_name,"sysdump"))
 		write_sysdump_before_boot(CMD_UNKNOW_REBOOT_MODE);
-
+#endif
 	return CMD_UNDEFINED_MODE;
 
 }

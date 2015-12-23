@@ -20,6 +20,7 @@
 #include <linux/mtd/partitions.h>
 #endif
 
+#define COMMAND_LINE_OFFSET	0x9000 /*for x86 linux startup*/
 extern unsigned char raw_header[8192];
 
 #define TRUE   1		/* Boolean true value. */

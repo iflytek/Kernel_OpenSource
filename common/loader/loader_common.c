@@ -117,6 +117,8 @@ void fdt_fixup_all(void)
 
 	return;
 }
+
+
 static int start_linux_x86()
 {
 	struct boot_params *base_ptr;
@@ -124,7 +126,7 @@ static int start_linux_x86()
 	ulong load_address;
 	char *bzImage_addr = KERNEL_ADR;
 	ulong bzImage_size = 0;
-	ulong initrd_addr = RMADISK_ADR;
+	ulong initrd_addr = RAMDISK_ADR;
 	ulong initrd_size = 0;
 	ulong dtb_addr = 0;
 
@@ -148,6 +150,7 @@ static int start_linux_x86()
 	/* we assume that the kernel is in place */
 	return boot_linux_kernel((ulong)base_ptr, load_address, false);
 }
+#ifdef CONFIG_ARM
 static int start_linux()
 {
 #ifdef CONFIG_OF_LIBFDT
@@ -183,7 +186,7 @@ static int start_linux()
 	while (1) ;
 	return 0;
 }
-
+#endif
 static int start_linux_armv8()
 {
 	void (*theKernel) (void *dtb_addr, int zero, int arch, int reserved);
