@@ -80,7 +80,7 @@ enum TIMING {
 };
 
 struct pll_regs {
-	union __reg_03__ {
+	/*union __reg_03__ {
 		struct __03 {
 			u8 prbs_bist: 1;
 			u8 en_lp_treot: 1;
@@ -158,6 +158,78 @@ struct pll_regs {
 			u8 pll_pu: 1;
 			u8 reserved1: 3;
 			u8 kstep_l: 3;
+		} bits;
+		u8 val;
+	} _0e;*/
+	union __reg_03__ {
+		struct __03 {
+			u8 bists: 8;		
+		} bits;
+		u8 val;
+	} _03;
+	union __reg_04__ {
+		struct __04 {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _04;
+	union __reg_05__ {
+		struct __05 {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _05;
+	union __reg_06__ {
+		struct __06 {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _06;
+	union __reg_07__ {
+		struct __07 {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _07;
+	union __reg_08__ {
+		struct __08 {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _08;
+	union __reg_09__ {
+		struct __09 {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _09;
+	union __reg_0a__ {
+		struct __0a {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _0a;
+	union __reg_0b__ {
+		struct __0b {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _0b;
+	union __reg_0c__ {
+		struct __0c {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _0c;
+	union __reg_0d__ {
+		struct __0d {
+			u8 bists: 8;
+		} bits;
+		u8 val;
+	} _0d;
+	union __reg_0e__ {
+		struct __0e {
+			u8 bists: 8;
 		} bits;
 		u8 val;
 	} _0e;
@@ -320,6 +392,8 @@ FAIL:
 	return ERR_DSI_PHY_PLL_NOT_LOCKED;
 }
 
+static u8 reg_val[12]={0x1f, 0x88, 0x88, 0x26, 0x07, 0x4e, 0x76, 0x27, 0x61, 0x02, 0x8a, 0x00};
+static u8 reg_val_600[11]={0x1b, 0x88, 0x2e, 0x0e, 0x8f, 0x27, 0x62, 0x72, 0x02, 0x8a, 0x00};
 static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 {
 	int i;
@@ -327,7 +401,7 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 
 	struct pll_regs regs;
 	u8 regs_addr[] = {
-		0x03, 0x04, 0x06, 0x07, 0x08, 0x09,
+		0x03, 0x04,0x06, 0x07, 0x08, 0x09,
 		0x0a, 0x0b, 0x0c, 0x0d, 0x0e
 	};
 
@@ -335,7 +409,7 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 		goto FAIL;
 
 	memset((u8 *)&regs, '\0', sizeof(regs));
-	regs._03.bits.prbs_bist = 1;
+	/*regs._03.bits.prbs_bist = 1;
 	regs._03.bits.en_lp_treot = TRUE;
 	regs._03.bits.lpf_sel = pll->lpf_sel;
 	regs._03.bits.txfifo_bypass = 0;
@@ -359,13 +433,28 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 	regs._0d.bits.kstep_m = (pll->kstep >> 3) & 0xff;
 	regs._0e.bits.pll_pu_byp = 0;
 	regs._0e.bits.pll_pu = 0;
-	regs._0e.bits.kstep_l = pll->kstep & 0x7;
+	regs._0e.bits.kstep_l = pll->kstep & 0x7;*/
+
+	regs._03.bits.bists = 0x1f;
+	regs._04.bits.bists = 0x88;
+	regs._05.bits.bists = 0x88;
+	regs._06.bits.bists = 0x26;
+	regs._07.bits.bists = 0x07;
+	regs._08.bits.bists = 0x4e;
+	regs._09.bits.bists = 0x76;
+	regs._0a.bits.bists = 0x27;
+	regs._0b.bits.bists = 0x61;
+	regs._0c.bits.bists = 0x02;
+	regs._0d.bits.bists = 0x8a;
+	regs._0e.bits.bists = 0x00;
 
 	val = (u8 *)&regs;
-
+if (0)
 	for (i = 0; i < sizeof(regs_addr); ++i)
 		mipi_dsih_dphy_write(phy, regs_addr[i], &val[i], 1);
-
+else
+	for (i = 0; i < sizeof(regs_addr); ++i)
+		mipi_dsih_dphy_write(phy, regs_addr[i], &reg_val_600[i], 1);
 	return 0;
 
 FAIL:
@@ -403,10 +492,14 @@ static int mipi_dsih_dphy_set_timing_regs(dphy_t *phy, int type, u8 val[])
 			mipi_dsih_dphy_write(phy, 0x31, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x41, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x51, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x61, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x71, &val[DATA], 1);
 		} else {
 			mipi_dsih_dphy_write(phy, 0x90, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xa0, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xb0, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xc0, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xd0, &val[DATA], 1);
 		}
 		break;
 	case PREPARE_TIME:
@@ -414,10 +507,14 @@ static int mipi_dsih_dphy_set_timing_regs(dphy_t *phy, int type, u8 val[])
 			mipi_dsih_dphy_write(phy, 0x32, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x42, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x52, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x62, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x72, &val[DATA], 1);
 		} else {
 			mipi_dsih_dphy_write(phy, 0x91, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xa1, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xb1, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xc1, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xd1, &val[DATA], 1);
 		}
 		break;
 	case ZERO_TIME:
@@ -425,10 +522,14 @@ static int mipi_dsih_dphy_set_timing_regs(dphy_t *phy, int type, u8 val[])
 			mipi_dsih_dphy_write(phy, 0x33, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x43, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x53, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x63, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x73, &val[DATA], 1);
 		} else {
 			mipi_dsih_dphy_write(phy, 0x92, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xa2, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xb2, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xc2, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xd2, &val[DATA], 1);
 		}
 		break;
 	case TRAIL_TIME:
@@ -436,10 +537,14 @@ static int mipi_dsih_dphy_set_timing_regs(dphy_t *phy, int type, u8 val[])
 			mipi_dsih_dphy_write(phy, 0x34, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x44, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x54, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x64, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x74, &val[DATA], 1);
 		} else {
 			mipi_dsih_dphy_write(phy, 0x93, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xa3, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xb3, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xc3, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xd3, &val[DATA], 1);
 		}
 		break;
 	case EXIT_TIME:
@@ -447,10 +552,14 @@ static int mipi_dsih_dphy_set_timing_regs(dphy_t *phy, int type, u8 val[])
 			mipi_dsih_dphy_write(phy, 0x36, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x46, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x56, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x66, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0x76, &val[DATA], 1);
 		} else {
 			mipi_dsih_dphy_write(phy, 0x95, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xA5, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xB5, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xc5, &val[DATA], 1);
+			mipi_dsih_dphy_write(phy, 0xd5, &val[DATA], 1);
 		}
 		break;
 	case CLKPOST_TIME:
@@ -800,9 +909,10 @@ void mipi_dsih_dphy_stop_wait_time(dphy_t *phy,
 void mipi_dsih_dphy_no_of_lanes(dphy_t *phy, u8 no_of_lanes)
 {
 	/* currently, dphy only support 2 lanes */
+#if 0
 	if (no_of_lanes > MAX_LANES)
 		no_of_lanes = MAX_LANES;
-
+#endif
 	mipi_dsih_dphy_write_part(phy, R_DPHY_IF_CFG,
 			no_of_lanes - 1, 0, 2);
 }

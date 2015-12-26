@@ -23,6 +23,9 @@
 
 #define DSI_EDPI_CFG (0x6c)
 
+#define MAX_TIME_HS2LP	120 /* unit: ns */
+#define MAX_TIME_LP2HS	500 /* unit: ns */
+
 
 struct sprdfb_dsi_context {
 	uint16_t			is_inited;
@@ -114,6 +117,7 @@ static int32_t dsi_dpi_init(struct sprdfb_device *dev)
 	dsih_error_t result;
 	struct panel_spec* panel = dev->panel;
 	struct info_mipi * mipi = panel->info.mipi;
+	uint32_t hs2lp, lp2hs;
 
 	dpi_param.no_of_lanes = mipi->lan_number;
 	dpi_param.byte_clock = mipi->phy_feq / 8;
@@ -123,8 +127,14 @@ static int32_t dsi_dpi_init(struct sprdfb_device *dev)
 	dpi_param.pixel_clock = 6500;
 #endif
 #ifdef CONFIG_DSIH_VERSION_1P21A
-	dpi_param.max_hs_to_lp_cycles = 4;//110;
-	dpi_param.max_lp_to_hs_cycles = 15;//10;
+	hs2lp = MAX_TIME_HS2LP * mipi->phy_feq / 8000000;
+	hs2lp += (MAX_TIME_HS2LP * mipi->phy_feq % 8000000) < 4000000 ? 0 : 1;
+	dpi_param.max_hs_to_lp_cycles = hs2lp;
+
+	lp2hs = MAX_TIME_LP2HS * mipi->phy_feq / 8000000;
+	lp2hs += (MAX_TIME_LP2HS * mipi->phy_feq % 8000000) < 4000000 ? 0 : 1;
+	dpi_param.max_lp_to_hs_cycles = lp2hs;
+
 	dpi_param.max_clk_hs_to_lp_cycles = 4;//110;
 	dpi_param.max_clk_lp_to_hs_cycles = 15;//10;
 #endif

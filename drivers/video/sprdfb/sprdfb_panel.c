@@ -58,6 +58,8 @@ extern struct panel_spec lcd_nt35596h_mipi_spec;
 extern struct panel_spec lcd_nt35596h_rdc_mipi_spec;
 extern struct panel_spec lcd_s6d7aa0x62_mipi_spec;
 extern struct panel_spec lcd_ams549hq01_mipi_spec;
+extern struct panel_spec lcd_nt35596_mipi_spec;
+extern struct panel_spec lcd_nt35597_mipi_spec;
 
 void sprdfb_panel_remove(struct sprdfb_device *dev);
 
@@ -376,6 +378,20 @@ static struct panel_cfg panel_cfg[] = {
 },
 #endif
 
+#ifdef CONFIG_FB_LCD_NT35596_MIPI
+{
+	.lcd_id = 0x96,
+	.panel = &lcd_nt35596_mipi_spec,
+},
+#endif
+
+#ifdef CONFIG_FB_LCD_NT35597_MIPI
+{
+	.lcd_id = 0x97,
+	.panel = &lcd_nt35597_mipi_spec,
+},
+#endif
+
 #ifdef CONFIG_FB_LCD_NT35596H_RDC_MIPI
 {
 	.lcd_id = 0x86,
@@ -419,6 +435,9 @@ vidinfo_t panel_info = {
 #elif defined(CONFIG_LCD_1080P)
 	.vl_col = 1080,
 	.vl_row = 1920,
+#elif defined(CONFIG_LCD_1440P)
+	.vl_col = 1440,
+	.vl_row = 2560,
 #endif
 	.vl_bpix = 4,
 	.cmap = colormap,
@@ -426,11 +445,24 @@ vidinfo_t panel_info = {
 
 static int32_t panel_reset_dispc(struct panel_spec *self)
 {
-	dispc_write(1, DISPC_RSTN);
+	//dispc_write(1, DISPC_RSTN);
+	__raw_writel(1, (SPRD_DISPC0_BASE + DISPC_RSTN));
 	mdelay(20);
-	dispc_write(0, DISPC_RSTN);
+	//dispc_write(0, DISPC_RSTN);
+	__raw_writel(0, (SPRD_DISPC0_BASE + DISPC_RSTN));
 	mdelay(20);
-	dispc_write(1, DISPC_RSTN);
+
+	sprd_gpio_request(NULL, 168);
+	sprd_gpio_direction_output(NULL, 168, 1);
+	sprd_gpio_set(NULL, 168, 1);
+	mdelay(10);
+	sprd_gpio_request(NULL, 169);
+	sprd_gpio_direction_output(NULL, 169, 1);
+	sprd_gpio_set(NULL, 169, 1);
+	mdelay(20);
+
+	//dispc_write(1, DISPC_RSTN);
+	__raw_writel(1, (SPRD_DISPC0_BASE + DISPC_RSTN));
 	/* wait 10ms util the lcd is stable */
 	mdelay(120);
 	return 0;
