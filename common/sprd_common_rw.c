@@ -1,10 +1,12 @@
 #include <common.h>
 #include <malloc.h>
+#include <part.h>
+#include <sprd_common_rw.h>
 #ifdef CONFIG_CMD_UBI
 #include <ubi_uboot.h>
 #endif
 #ifdef  CONFIG_EMMC_BOOT
-#include <mmc.h>
+#include <sprd_mmc.h>
 #endif
 
 
@@ -71,24 +73,6 @@ int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
 }
 
 
-
-int get_partition_info_by_name (block_dev_desc_t *dev_desc, uchar * partition_name,
-						disk_partition_t *info)
-{
-	switch(dev_desc->part_type){
-
-	case PART_TYPE_EFI:
-		if (get_partition_info_efi_by_name(dev_desc, partition_name, info)== 0) {
-			//PRINTF ("## Valid EFI partition found ##\n");
-			return (0);
-		}
-		break;
-	default:
-		break;
-	}
-	return -1;
-}
-
 int block_dev_read(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, char *buf)
 {
 	lbaint_t start = 0;
@@ -107,8 +91,10 @@ int block_dev_read(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, c
 	offb = offset % dev_desc->blksz;
 	if (0 != offb) {
 		header_sz = dev_desc->blksz - offb;
-		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp))
+		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp)) {
+			errorf("read start block 0x%x fail\n", start);
 			goto fail;
+		}
 		if (size <= header_sz) {
 			memcpy(buf, temp + offb, size);
 			size = 0;
@@ -122,16 +108,20 @@ int block_dev_read(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, c
 
 	blkcnt = size / dev_desc->blksz;
 	if (blkcnt > 0) {
-		if (blkcnt != dev_desc->block_read(dev_desc->dev, start, blkcnt, buf))
+		if (blkcnt != dev_desc->block_read(dev_desc->dev, start, blkcnt, buf)) {
+			errorf("read block 0x%x size 0x%x fail\n", start, blkcnt);
 			goto fail;
+		}
 		start += blkcnt;
 		buf += (blkcnt * dev_desc->blksz);
 		size = size % dev_desc->blksz;
 	}
 
 	if (size > 0) {
-		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp))
+		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp)) {
+			errorf("read end block 0x%x fail\n", start);
 			goto fail;
+		}
 		memcpy(buf, temp, size);
 	}
 
@@ -162,36 +152,112 @@ int block_dev_write(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, 
 	offb = offset % dev_desc->blksz;
 	if (0 != offb) {
 		header_sz = dev_desc->blksz - offb;
-		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp))
+		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp)) {
+			errorf("read start block 0x%x for write fail\n", start);
 			goto fail;
+		}
 		if (size <= header_sz) {
 			memcpy(temp + offb, buf, size);
 			size = 0;
 		} else {
 			memcpy(temp + offb, buf, header_sz);
-			start++;
 			buf += header_sz;
 			size -= header_sz;
 		}
-		if (1 != dev_desc->block_write(dev_desc->dev, start, 1, temp))
+		if (1 != dev_desc->block_write(dev_desc->dev, start, 1, temp)) {
+			errorf("write start block 0x%x fail\n", start);
 			goto fail;
+		}
+		start++;
 	}
 
 	blkcnt = size / dev_desc->blksz;
 	if (blkcnt > 0) {
-		if (blkcnt != dev_desc->block_write(dev_desc->dev, start, blkcnt, buf))
+		if (blkcnt != dev_desc->block_write(dev_desc->dev, start, blkcnt, buf)) {
+			errorf("write block 0x%x size 0x%x fail\n", start, blkcnt);
 			goto fail;
+		}
 		start += blkcnt;
 		buf += (blkcnt * dev_desc->blksz);
 		size = size % dev_desc->blksz;
 	}
 
 	if (size > 0) {
-		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp))
+		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp)) {
+			errorf("read end block 0x%x for write fail\n", start);
 			goto fail;
+		}
 		memcpy(temp, buf, size);
-		if (1 != dev_desc->block_write(dev_desc->dev, start, 1, temp))
+		if (1 != dev_desc->block_write(dev_desc->dev, start, 1, temp)) {
+			errorf("write end block 0x%x fail\n", start);
 			goto fail;
+		}
+	}
+
+	return 0;
+
+fail:
+	if (NULL != temp)
+		free(temp);
+	return -1;
+}
+
+int block_dev_erase(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset)
+{
+	lbaint_t start = 0;
+	lbaint_t blkcnt = 0;
+	char * temp = NULL;
+	uint64_t header_sz = 0;
+	uint64_t offb = 0;
+
+	if ((0 != size % dev_desc->blksz) || (0 != offset % dev_desc->blksz)) {
+		temp = malloc(dev_desc->blksz);
+		if (NULL == temp)
+			goto fail;
+	}
+
+	start = offset / dev_desc->blksz;
+	offb = offset % dev_desc->blksz;
+	if (0 != offb) {
+		header_sz = dev_desc->blksz - offb;
+		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp)) {
+			errorf("read start block 0x%x for erase fail\n", start);
+			goto fail;
+		}
+		if (size <= header_sz) {
+			memset(temp + offb, 0, size);
+			size = 0;
+		} else {
+			memset(temp + offb, 0, header_sz);
+			size -= header_sz;
+		}
+		if (1 != dev_desc->block_write(dev_desc->dev, start, 1, temp)) {
+			errorf("erase start block 0x%x fail\n", start);
+			goto fail;
+		}
+		start++;
+	}
+
+	blkcnt = size / dev_desc->blksz;
+	if (blkcnt > 0) {
+		if (blkcnt != dev_desc->block_erase(dev_desc->dev, start, blkcnt)) {
+			errorf("erase block 0x%x size 0x%x fail\n", start, blkcnt);
+			goto fail;
+		}
+		start += blkcnt;
+		size = size % dev_desc->blksz;
+	}
+
+	if (size > 0) {
+		if (1 != dev_desc->block_read(dev_desc->dev, start, 1, temp)) {
+			errorf("read end block 0x%x for erase fail\n", start);
+			goto fail;
+		}
+		memset(temp, 0, size);
+		if (1 != dev_desc->block_write(dev_desc->dev, start, 1, temp)) {
+			errorf("erase end block 0x%x fail\n", start);
+			goto fail;
+		}
 	}
 
 	return 0;
@@ -440,6 +506,7 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
 		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		if (-1 == ret) {
+			ret = 0;
 			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
 		} else {
 			part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
@@ -452,8 +519,10 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-		if (size + offset > total_part_size)
+		if (size + offset > total_part_size) {
+			errorf("read size(0x%x + 0x%x) overflow the total partition size(0x%x)\n", size, offset, total_part_size);
 			ret = -1;
+		}
 	}
 
 	if (-1 == ret || NULL == dev_desc)
@@ -482,7 +551,9 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
 		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		if (-1 == ret) {
+			debugf("no uboot partition in user hardwarepart, write to boot2\n");
 			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
+			ret = 0;
 		} else {
 			part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
@@ -494,8 +565,10 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-		if (size + offset > total_part_size)
+		if (size + offset > total_part_size) {
+			errorf("write size overflow the total partition size\n");
 			ret = -1;
+		}
 	}
 
 	if (-1 == ret || NULL == dev_desc)
@@ -516,38 +589,68 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 	uint64_t total_part_size = 0;
 	int ret = 0;
 
+	if (0 == strcmp(part_name, "erase_all")) {
+		debugf("erase all the flash\n");
+		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
+		total_part_size = Emmc_GetCapacity(PARTITION_BOOT1);
+		if (NULL == dev_desc || 0 == total_part_size)
+			return -1;
+		if (0 != block_dev_erase(dev_desc, total_part_size, 0))
+			return -1;
+
+		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
+		total_part_size = Emmc_GetCapacity(PARTITION_BOOT2);
+		if (NULL == dev_desc || 0 == total_part_size)
+			return -1;
+		if (0 != block_dev_erase(dev_desc, total_part_size, 0))
+			return -1;
+
+		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
+		total_part_size = Emmc_GetCapacity(PARTITION_USER);
+		if (NULL == dev_desc || 0 == total_part_size)
+			return -1;
+		if (0 != block_dev_erase(dev_desc, total_part_size, 0))
+			return -1;
+		return 0;
+	}
+
 	/*TODO, if size=0, erase whole partition, if part_name=erase_all, erase whole flash*/
 	if (0 == strcmp(part_name, "splloader")) {
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
+		total_part_size = Emmc_GetCapacity(PARTITION_BOOT1);
 	} else if (0 == strcmp(part_name, "splloader_bak")) {
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
+		total_part_size = Emmc_GetCapacity(PARTITION_BOOT2);
 	} else if (0 == strcmp(part_name, "uboot")) {
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
 		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		if (-1 == ret) {
+			ret = 0;
 			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
+			total_part_size = Emmc_GetCapacity(PARTITION_BOOT2);
 		} else {
 			part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-			if (size + offset > total_part_size)
-				ret = -1;
 		}
 	} else {
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
 		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-		if (size + offset > total_part_size)
-			ret = -1;
 	}
 
-	if (-1 == ret || NULL == dev_desc)
+	if (-1 == ret || NULL == dev_desc || 0 == total_part_size)
 		return -1;
 
-	offset += part_start;
+	if (0 == size) {
+		size = total_part_size;
+		offset = part_start;
+	} else if (size + offset > total_part_size) {
+		return -1;
+	} else {
+		offset += part_start;
+	}
 
-
-	/*TODO*/
 	return block_dev_erase(dev_desc, size, offset);
 
 }
@@ -561,8 +664,10 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 
 
 	dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-	if (NULL == dev_desc)
+	if (NULL == dev_desc) {
+		errorf("get mmc device hardware part(%d) fail\n", PARTITION_USER);
 		return -1;
+	}
 
 	while (3 < counter) {
 		ret = gpt_restore(dev_desc, SPRD_DISK_GUID_STR, partitions, parts_count);

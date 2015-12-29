@@ -100,6 +100,7 @@ typedef struct disk_partition {
 /* Misc _get_dev functions */
 #ifdef CONFIG_PARTITIONS
 block_dev_desc_t *get_dev(const char *ifname, int dev);
+block_dev_desc_t *get_dev_hwpart(const char *ifname, int dev, int hwpart);
 block_dev_desc_t* ide_get_dev(int dev);
 block_dev_desc_t* sata_get_dev(int dev);
 block_dev_desc_t* scsi_get_dev(int dev);

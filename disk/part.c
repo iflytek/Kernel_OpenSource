@@ -42,7 +42,7 @@ static const struct block_drvr block_drvr[] = {
 	{
 		.name = "mmc",
 		.get_dev = mmc_get_dev,
-		//.select_hwpart = mmc_select_hwpart,
+		.select_hwpart = mmc_select_hwpart,
 	},
 #endif
 #if defined(CONFIG_SYSTEMACE)
@@ -64,7 +64,7 @@ static const struct block_drvr block_drvr[] = {
 DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef HAVE_BLOCK_DEVICE
-static block_dev_desc_t *get_dev_hwpart(const char *ifname, int dev, int hwpart)
+block_dev_desc_t *get_dev_hwpart(const char *ifname, int dev, int hwpart)
 {
 	const struct block_drvr *drvr = block_drvr;
 	block_dev_desc_t* (*reloc_get_dev)(int dev);

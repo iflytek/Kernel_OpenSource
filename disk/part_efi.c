@@ -124,11 +124,11 @@ static int validate_gpt_header(gpt_header *gpt_h, lbaint_t lba,
 		       le64_to_cpu(gpt_h->last_usable_lba), lastlba);
 		return -1;
 	}
-
+	/*
 	debug("GPT: first_usable_lba: %llX last_usable_lba: %llX last lba: "
 	      LBAF "\n", le64_to_cpu(gpt_h->first_usable_lba),
 	      le64_to_cpu(gpt_h->last_usable_lba), lastlba);
-
+	*/
 	return 0;
 }
 
@@ -802,11 +802,11 @@ static gpt_entry *alloc_read_gpt_entries(block_dev_desc_t * dev_desc,
 
 	count = le32_to_cpu(pgpt_head->num_partition_entries) *
 		le32_to_cpu(pgpt_head->sizeof_partition_entry);
-
+	/*
 	debug("%s: count = %u * %u = %zu\n", __func__,
 	      (u32) le32_to_cpu(pgpt_head->num_partition_entries),
 	      (u32) le32_to_cpu(pgpt_head->sizeof_partition_entry), count);
-
+	*/
 	/* Allocate memory for PTE, remember to FREE */
 	if (count != 0) {
 		pte = memalign(ARCH_DMA_MINALIGN,

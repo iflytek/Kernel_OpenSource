@@ -32,7 +32,6 @@
 #define UBOOT_PARTITION_NAME   "uboot"
 #define SPL_PARTITION_NAME          "splloader"
 
-#define SPRD_DISK_GUID_STR "11111111-2222-3333-4444-000000000000"
 
 /*according to standard ,the first usable LBA is 34,
 but actually use 0x800 as the first LBA of all partitions can enhance the erase speed*/

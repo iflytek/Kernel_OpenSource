@@ -1,18 +1,18 @@
 
 #include "common.h"
 
-#include <mmc.h>
+#include <sprd_mmc.h>
 #include "packet.h"
 #include <malloc.h>
 #include <asm/arch/chip_releted_def.h>
 #include "dl_common.h"
 #include "dl_cmd_proc.h"
-#include "dl_emmc_operate.h"
+#include "dl_operate.h"
 #include <ext_common.h>
 #include "dl_crc.h"
-#include <asm/sizes.h>
+#include <linux/sizes.h>
 #include <sparse_format.h>
-
+#include <sprd_common_rw.h>
 
 #ifdef CONFIG_SECURE_BOOT
 #include "secure_verify.h"
@@ -378,6 +378,7 @@ void prepare_alternative_buffers(void)
 
 }
 
+#if 0
 int speedup_download_process(uint16_t size, char *buf)
 {
 	uint32_t blk_count = 0;
@@ -440,6 +441,14 @@ int speedup_download_process(uint16_t size, char *buf)
 
 	return OPERATE_SUCCESS;
 }
+
+#else
+int speedup_download_process(uint16_t size, char *buf)
+{
+	return 0;
+}
+
+#endif
 
 
 #ifdef CONFIG_SECURE_BOOT
@@ -599,7 +608,7 @@ int _nv_img_write(uchar * partition, uint32_t size)
 	nv_header_p->checksum = (uint32_t) fdl_calc_checksum(g_eMMCBuf, size);
 	nv_header_p->version = NV_VERSION;
 
-	debugf("Start to write first block of NV partition\n");
+	debugf("Start to write first block of NV partition(%s)\n", partition);
 	if (0 != common_raw_write(partition, NV_HEADER_SIZE, 0, 0, header_buf))
 		return 0;
 	
@@ -734,7 +743,7 @@ int regular_download_process(uint16_t size, char *buf)
 
 		if (g_status.total_recv_size == g_status.total_size) {
 			if (PARTITION_PURPOSE_NV == g_dl_eMMCStatus.partitionpurpose) {
-				debugf("Get all data of partition<%s>,start write to EMMC\n", g_dl_eMMCStatus.curUserPartitionName);
+				debugf("Get all data of partition<%s>,start write to flash\n", g_dl_eMMCStatus.curUserPartitionName);
 				fix_nv_checksum = Get_CheckSum((uchar *) g_eMMCBuf, g_status.total_recv_size);
 				if (fix_nv_checksum != g_checksum) {
 					/*may data transfer error */
@@ -944,6 +953,7 @@ OPERATE_STATUS dl_read_start(uchar * partition_name, uint32_t size)
 			return OPERATE_SYSTEM_ERROR;
 	}
 
+
 	if (0 == strcmp("prodnv", g_dl_eMMCStatus.curUserPartitionName)) {
 		sblock_size = sizeof(struct ext2_sblock);
 		sblock = malloc(sblock_size);
@@ -952,13 +962,13 @@ OPERATE_STATUS dl_read_start(uchar * partition_name, uint32_t size)
 			goto err;
 		}
 
-		if (0 != common_raw_read(g_dl_eMMCStatus.curUserPartitionName, sblock_size, 0, sblock)) {
+		if (0 != common_raw_read(g_dl_eMMCStatus.curUserPartitionName, sblock_size, 1024, sblock)) {
 			errorf("read prodnv super block fail\n");
 			goto err;
 		}
 
 		if (sblock->magic != EXT2_MAGIC) {
-			errorf("bad prodnv image magic\n");
+			errorf("bad prodnv image magic(0x%x)\n", sblock->magic);
 			goto err;
 		}
 		free(sblock);
@@ -976,7 +986,7 @@ OPERATE_STATUS dl_read_midst(uint32_t size, uint32_t off, uchar * buf)
 	if (PARTITION_PURPOSE_NV == g_dl_eMMCStatus.partitionpurpose) {
 		memcpy(buf, (uchar *) (g_eMMCBuf + off), size);
 	} else {
-		if (!common_raw_read(g_dl_eMMCStatus.curUserPartitionName, size, off, buf)) {
+		if (0 != common_raw_read(g_dl_eMMCStatus.curUserPartitionName, size, off, buf)) {
 			errorf("read error!\n");
 			return OPERATE_SYSTEM_ERROR;
 		}
@@ -1008,6 +1018,8 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 	}
 #endif
 	strcpy(g_dl_eMMCStatus.curUserPartitionName, partition_name);
+	g_dl_eMMCStatus.offset = 0;
+
 	/*get special partition attr */
 	_get_partition_attribute(partition_name);
 
@@ -1097,9 +1109,9 @@ OPERATE_STATUS dl_download_midst(uint16_t size, char *buf)
 #endif
 
 #else
-	if ((IMG_RAW == g_dl_eMMCStatus.curImgType) && (g_status.total_size > ALTERNATIVE_BUFFER_SIZE))
-		ret = speedup_download_process(size, buf);
-	else 
+	//if ((IMG_RAW == g_dl_eMMCStatus.curImgType) && (g_status.total_size > ALTERNATIVE_BUFFER_SIZE))
+		//ret = speedup_download_process(size, buf);
+	//else 
 		ret = regular_download_process(size, buf);
 #endif
 
@@ -1133,7 +1145,7 @@ OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_nu
 	/*prepare mem to store <total_partition_num> partitions' info */
 	partition_info = malloc(sizeof(disk_partition_t) * total_partition_num);
 	if (NULL == partition_info) {
-		debugf("No space to store partition_info!\n");
+		errorf("No space to store partition_info!\n");
 		return OPERATE_SYSTEM_ERROR;
 	}
 
@@ -1144,10 +1156,12 @@ OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_nu
 	}
 
 	res = common_repartition(partition_info, total_partition_num);
-
 	free(partition_info);
 
-	return res;
+	if (0 == res)
+		return OPERATE_SUCCESS;
+	else
+		return OPERATE_SYSTEM_ERROR;
 }
 
 
