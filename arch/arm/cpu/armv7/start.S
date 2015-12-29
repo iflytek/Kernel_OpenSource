@@ -64,10 +64,7 @@ save_boot_params_ret:
 #endif
 
 	/* the mask ROM code should have PLL and others stable */
-#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 	bl	cpu_init_cp15
-	bl	cpu_init_crit
-#endif
 
 	bl	_main
 
@@ -135,6 +132,10 @@ ENTRY(cpu_init_cp15)
 #endif
 	mcr	p15, 0, r0, c1, c0, 0
 
+	/* Enable coherent requested to the processor.*/
+	mrc	p15, 0, r0, c1, c0, 1	@ read system control register
+	orr	r0, r0, #(0x1<<6)	@ set bit SMP
+	mcr	p15, 0, r0, c1, c0, 1	@ write system control register
 #ifdef CONFIG_ARM_ERRATA_716044
 	mrc	p15, 0, r0, c1, c0, 0	@ read system control register
 	orr	r0, r0, #1 << 11	@ set bit #11
