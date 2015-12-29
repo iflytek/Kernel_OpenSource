@@ -17,7 +17,7 @@
 #include <config.h>
 #include <linux/types.h>
 
-#define SYSDUMP_CORE_NAME_FMT 	"sysdump/sysdump.core.%02d" /* time, number */
+#define SYSDUMP_CORE_NAME_FMT 	"sysdump.core.%02d" /* time, number */
 #define NR_KCORE_MEM		80
 #define SYSDUMP_MAGIC		"SPRD_SYSDUMP_119"
 #define MAX_NUM_DUMP_MEM 20
@@ -35,6 +35,7 @@
 #ifndef PAGE_ALIGN
 #define PAGE_ALIGN(addr) ALIGN(addr, PAGE_SIZE)
 #endif
+#define SYSDUMP_FOLDER_NUM 3
 
 #define U_MAGIC "sprd_framework"
 #define K_MAGIC "sprd_kernel"
@@ -51,7 +52,7 @@ struct sysdump_mem {
 	unsigned long paddr;
 	unsigned long vaddr;
 	unsigned long soff;
-	size_t size;
+	unsigned long size;
 	int type;
 };
 

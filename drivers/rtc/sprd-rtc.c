@@ -11,6 +11,19 @@
 #include <common.h>
 #include "rtc_reg_v3.h"
 #include "adi_hal_internal.h"
+#include <rtc.h>
+
+static const unsigned short rtc_ydays[2][13] = {
+/*Normal years*/
+	   {0,31,59,90,120,151,181,212,243,273,304,334,365},
+/* Leap years */
+	   {0,31,60,91,121,152,182,213,244,274,305,335,366}
+};
+
+static const unsigned char rtc_days_in_month[] = {
+	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+};
+
 
 #define CLEAR_RTC_INT(mask) \
 	do{ ANA_REG_SET(ANA_RTC_INT_CLR, mask); \
@@ -210,4 +223,70 @@ int sprd_is_poweroff_alarm(void)
 	} else {
 		return 0;
 	}
+}
+
+/*whether it is a leap year*/
+static inline bool is_leap_year(unsigned int year)
+{
+	return (!(year % 4) && (year % 100)) || !(year % 400);
+}
+
+/*Calculate the number of leap years by y*/
+#define LEAPS_THRU_END_OF(y) ((y)/4 - (y)/100 + (y)/400)
+
+/*The number of days in the month*/
+static int rtc_month_days(unsigned int month, unsigned int year)
+{
+	return rtc_days_in_month[month] + (is_leap_year(year) && month == 1);
+}
+
+/*
+ *get year, month and date by days,
+ *which comes from "inline unsigned get_day(void)"
+ */
+struct rtc_time get_time_by_sec(void)
+{
+	struct rtc_time tm;
+	unsigned int month, year, year_base = 2012;
+	int days;
+
+	#ifdef CONFIG_RTC_START_YEAR
+	year_base = CONFIG_RTC_START_YEAR;
+	#endif
+
+	unsigned long times = sprd_rtc_get_sec();
+	days = times / 86400;
+	times -= (unsigned int) days * 86400;
+	year = year_base + days / 365;
+	days -= (year - year_base) * 365
+			+ LEAPS_THRU_END_OF(year - 1)
+			- LEAPS_THRU_END_OF(year_base - 1);
+	if (days < 0) {
+			year -= 1;
+			days += 365 + is_leap_year(year);
+		}
+	for (month = 0; month < 11; month++) {
+			int newdays;
+
+			newdays = days - rtc_month_days(month, year);
+			if (newdays < 0)
+				break;
+			days = newdays;
+		}
+
+	month ++;
+	tm.tm_year = year;
+	tm.tm_mday = days + 1;
+	tm.tm_mon = month;
+
+	tm.tm_hour = times / 3600;
+	times -= tm.tm_hour * 3600;
+	tm.tm_min = times / 60;
+	tm.tm_sec = times - tm.tm_min * 60;
+
+	tm.tm_hour += 8;
+	tm.tm_hour = ((tm.tm_hour >= 24) ? (tm.tm_hour - 24):tm.tm_hour);
+
+	return tm;
+
 }

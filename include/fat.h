@@ -223,5 +223,8 @@ int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 void fat_close(void);
 int fat_format(void);
 int fat_checksys(__u64 ram_size);
-int do_new_folder(char* filename);
+unsigned long do_new_folder(char* filename, unsigned long startcluster);
+int rename_folder(const char *scr, const char *dest, unsigned long scr_cluster);
+int delete_folder(const char *filename, unsigned long cur_clust);
+struct dir_entry* check_folder_flag(const char *filename, unsigned long curclust, fsdata *mydata);
 #endif /* _FAT_H_ */
