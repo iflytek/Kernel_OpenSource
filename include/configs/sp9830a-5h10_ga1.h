@@ -26,6 +26,7 @@
 
 /* Flat Device Tree Definitions */
 #define CONFIG_OF_LIBFDT
+#define CONFIG_SPRD_PLATFORM
 
 
 #define DT_PLATFROM_ID 9830

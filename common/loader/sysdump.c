@@ -23,7 +23,7 @@
 #include "sysdump.h"
 #include <linux/mtd/mtd.h>
 #include <asm/arch/check_reboot.h>
-#include <mmc.h>
+#include <sprd_mmc.h>
 #include <fat.h>
 #include "loader_common.h"
 
