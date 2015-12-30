@@ -9,69 +9,7 @@
 #include <sprd_mmc.h>
 #endif
 
-
-int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
-{
-#ifdef CONFIG_FS_EXT4
-	disk_partition_t info;
-	block_dev_desc_t *dev_desc;
-
-	dev_desc = get_dev("mmc", 0);
-	if (NULL == dev_desc) {
-		printf("ext4_read_content get dev error\n");
-		return -1;
-	}
-
-	if (get_partition_info_by_name(dev_desc, mpart, &info) == -1) {
-		printf("## Valid EFI partition not found ##\n");
-		return -1;
-	}
-
-	/* set the device as block device */
-	ext4fs_set_blk_dev(dev_desc, &info);
-
-	/* mount the filesystem */
-	if (!ext4fs_mount(info.size)) {
-		printf("Bad ext4 partition:%s\n",  mpart);
-		ext4fs_close();
-		return -1;
-	}
-
-	/* start read */
-	if (ext4_read_file(filenm, buf, 0,len) == -1) {
-		printf("** Error ext4_read_file() **\n");
-		ext4fs_close();
-		return -1;
-	}
-
-	ext4fs_close();
-	return 0;
-#elif defined(CONFIG_FS_UBIFS)
-	int ret=-1;
-	static int is_ubifs_init = 0;
-	if(is_ubifs_init == 0){
-		ubifs_init();
-		is_ubifs_init = 1;
-	}
-
-	ret = ubifs_mount(mpart);
-	if(ret){
-		printf("do_fs_file_read:mount %s failed!\n",mpart);
-		return ret;
-	}
-	ret = ubifs_load(filenm, buf, len);
-	if(ret)
-		printf("do_fs_file_read:file %s not found!\n", filenm);
-	return ret;
-#endif
-}
-
-int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
-{
-	/*do not write in uboot now*/
-	return -1;
-}
-
+static disk_partition_t local_part_info;
 
 int block_dev_read(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, char *buf)
 {
@@ -580,7 +518,6 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 	
 }
 
-/*TODO*/
 int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 {
 	uint64_t part_start = 0;
@@ -655,6 +592,54 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 
 }
 
+int common_write_Backstage(char *part_name, uint32_t size, uint32_t offset, char *buf)
+{
+	uint32_t start = 0;
+	uint32_t blk_num = 0;
+	uint64_t total_part_size = 0;
+	block_dev_desc_t *dev_desc = NULL;
+	int ret = 0;
+	if (0 != strcmp(part_name, local_part_info.name)) {
+		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
+		ret = get_partition_info_by_name(dev_desc, part_name, &local_part_info);
+	}
+
+	/*invoker must guarantee that the size and offset aligned to the block size*/
+	if (0 != size % local_part_info.blksz || 0 != offset % local_part_info.blksz) {
+		errorf("input size or offset in not aligned, size(0x%x), offset(0x%x)\n", size, offset);
+		ret = -1;
+	}
+
+	blk_num = size / local_part_info.blksz;
+	start = local_part_info.start + (offset / local_part_info.blksz);
+	if (blk_num + start > local_part_info.size + local_part_info.start) {
+		errorf("backstage write size overflow the total partition size\n");
+		ret = -1;
+	}
+
+	if (-1 == ret)
+		return -1;
+
+	/*only user partition can use backstage write*/
+	if (blk_num != emmc_write_backstage(PARTITION_USER, start, blk_num, buf))
+		return -1;
+
+	return 0;
+}
+
+
+int common_query_backstage(char *part_name, uint64_t size, char *buf)
+{
+	uint32_t blk_num = 0;
+	if (0 != strcmp(part_name, local_part_info.name))
+		return -1;
+	blk_num = size / local_part_info.blksz;
+	if (blk_num != emmc_query_backstage(PARTITION_USER, blk_num, buf))
+		return -1;
+
+	return 0;
+}
+
 
 int common_repartition(disk_partition_t *partitions, int parts_count)
 {
@@ -662,6 +647,7 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 	int counter = 0;
 	int ret = 0;
 
+	memset(&local_part_info, 0 , sizeof(disk_partition_t));
 
 	dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
 	if (NULL == dev_desc) {

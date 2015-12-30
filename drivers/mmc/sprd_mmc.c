@@ -1602,7 +1602,7 @@ int mmc_init(struct mmc *mmc)
 	unsigned start = get_timer(0);
 
 	if (mmc->has_init){
-		debugf("mmc_init has_init\n", err);
+		//debugf("has_init\n", err);
 		return 0;
 	}
 	if (!mmc->init_in_progress)

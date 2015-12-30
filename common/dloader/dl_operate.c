@@ -1,16 +1,11 @@
-
 #include "common.h"
 
-#include <sprd_mmc.h>
-#include "packet.h"
 #include <malloc.h>
 #include <asm/arch/chip_releted_def.h>
 #include "dl_common.h"
 #include "dl_cmd_proc.h"
 #include "dl_operate.h"
 #include <ext_common.h>
-#include "dl_crc.h"
-#include <linux/sizes.h>
 #include <sparse_format.h>
 #include <sprd_common_rw.h>
 
@@ -378,11 +373,10 @@ void prepare_alternative_buffers(void)
 
 }
 
-#if 0
 int speedup_download_process(uint16_t size, char *buf)
 {
 	uint32_t blk_count = 0;
-	uint32_t num = current_buffer->size / EFI_SECTOR_SIZE;
+	uint32_t tot_buf_size = current_buffer->size;
 	uint32_t last_size = 0;
 	if (current_buffer->spare > size)  {
 		memcpy(current_buffer->pointer, buf, size);
@@ -391,28 +385,36 @@ int speedup_download_process(uint16_t size, char *buf)
 		current_buffer->pointer += size;
 
 		if (g_status.total_recv_size == g_status.total_size) {
-			if (0 == (current_buffer->used % EFI_SECTOR_SIZE))
-				blk_count = current_buffer->used / EFI_SECTOR_SIZE;
-			else
-				blk_count = current_buffer->used / EFI_SECTOR_SIZE + 1;
-
 			if (BUFFER_DIRTY == current_buffer->next->status)
-				if (!Emmc_Query_Backstage(g_dl_eMMCStatus.curEMMCArea, num, current_buffer->next->addr))
+				if (0 != common_query_backstage(g_dl_eMMCStatus.curUserPartitionName,
+					tot_buf_size, current_buffer->next->addr)) {
+					errorf("last query backstage fail, offset=0x%x\n", g_dl_eMMCStatus.offset);
 					return OPERATE_WRITE_ERROR;
+				}
 
-			if (!Emmc_Write(g_dl_eMMCStatus.curEMMCArea, g_dl_eMMCStatus.base_sector, blk_count, current_buffer->addr))
+			if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName,
+				current_buffer->used, 0, g_dl_eMMCStatus.offset, current_buffer->addr)) {
+				errorf("last write fail, offset=0x%x\n", g_dl_eMMCStatus.offset);
 				return OPERATE_WRITE_ERROR;
+			}
 			g_status.unsave_recv_size = 0;
 		}
 	} else {
 		memcpy(current_buffer->pointer, buf, current_buffer->spare);
 		last_size = size - current_buffer->spare;
 		if (BUFFER_DIRTY == current_buffer->next->status)
-			if (!Emmc_Query_Backstage(g_dl_eMMCStatus.curEMMCArea, num, current_buffer->next->addr))
+			if (0 != common_query_backstage(g_dl_eMMCStatus.curUserPartitionName,
+				tot_buf_size, current_buffer->next->addr)) {
+				errorf("query backstage fail, offset=0x%x\n", g_dl_eMMCStatus.offset);
 				return OPERATE_WRITE_ERROR;
-		if (!Emmc_Write_Backstage(PARTITION_USER, g_dl_eMMCStatus.base_sector, num, current_buffer->addr))
+			}
+
+		if (0 != common_write_Backstage(g_dl_eMMCStatus.curUserPartitionName,
+			tot_buf_size, g_dl_eMMCStatus.offset, current_buffer->addr)) {
+			errorf("write backstage fail, offset=0x%x\n", g_dl_eMMCStatus.offset);
 			return OPERATE_WRITE_ERROR;
-		g_dl_eMMCStatus.base_sector += num;
+		}
+		g_dl_eMMCStatus.offset += tot_buf_size;
 		if (0 != last_size)
 			memcpy(current_buffer->next->addr, buf + current_buffer->spare, last_size);
 		current_buffer->used = 0;
@@ -425,15 +427,17 @@ int speedup_download_process(uint16_t size, char *buf)
 		current_buffer->used = last_size;
 		current_buffer->spare = current_buffer->size - last_size;
 		if (g_status.total_recv_size == g_status.total_size) {
-			if (!Emmc_Query_Backstage(g_dl_eMMCStatus.curEMMCArea, num, current_buffer->next->addr))
+			if (0 != common_query_backstage(g_dl_eMMCStatus.curUserPartitionName,
+				tot_buf_size, current_buffer->next->addr)) {
+				errorf("last cross query backstage fail, offset=0x%x\n", g_dl_eMMCStatus.offset);
 				return OPERATE_WRITE_ERROR;
+			}
 			if (0 != current_buffer->used) {
-				if (0 == (current_buffer->used % EFI_SECTOR_SIZE))
-					blk_count = current_buffer->used / EFI_SECTOR_SIZE;
-				else
-					blk_count = current_buffer->used / EFI_SECTOR_SIZE + 1;
-				if (!Emmc_Write(g_dl_eMMCStatus.curEMMCArea, g_dl_eMMCStatus.base_sector, blk_count, current_buffer->addr))
+				if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName,
+					current_buffer->used, 0, g_dl_eMMCStatus.offset, current_buffer->addr)) {
+					errorf("last cross write fail, offset=0x%x\n", g_dl_eMMCStatus.offset);
 					return OPERATE_WRITE_ERROR;
+				}
 			}
 			g_status.unsave_recv_size = 0;
 		}
@@ -441,14 +445,6 @@ int speedup_download_process(uint16_t size, char *buf)
 
 	return OPERATE_SUCCESS;
 }
-
-#else
-int speedup_download_process(uint16_t size, char *buf)
-{
-	return 0;
-}
-
-#endif
 
 
 #ifdef CONFIG_SECURE_BOOT
@@ -1025,23 +1021,16 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 
 	if (PARTITION_PURPOSE_NV == g_dl_eMMCStatus.partitionpurpose) {
 		debugf("partition purpose is NV\n");
-		g_dl_eMMCStatus.curEMMCArea = PARTITION_USER;
 		if (size > FIXNV_SIZE) {
-			debugf("size(0x%x) beyond FIXNV_SIZE:0x%x !\n", size, FIXNV_SIZE);
+			errorf("size(0x%x) beyond FIXNV_SIZE:0x%x !\n", size, FIXNV_SIZE);
 			return OPERATE_INVALID_SIZE;
 		}
-		
 		memset(g_eMMCBuf, 0xff, FIXNV_SIZE + NV_HEADER_SIZE);
 		g_checksum = nv_checksum;
 	} else if (0 == strcmp("splloader", partition_name)) {
 #ifdef CONFIG_SECURE_BOOT
 		secure_image_flag = SPL_CHECK;	//2;
 #endif
-
-		//memset(g_eMMCBuf, 0xff, g_dl_eMMCStatus.part_total_size);
-	} else if (0 == strcmp("uboot", g_dl_eMMCStatus.curUserPartitionName)) {
-
-		//memset(g_eMMCBuf, 0xff, g_dl_eMMCStatus.part_total_size);
 	} else if (0 == strcmp("system", partition_name)) {
 		debugf("partition purpose is normal\n");
 #ifdef CONFIG_SECURE_BOOT
@@ -1051,8 +1040,6 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 			Sec_SHA1_Start();
 #endif
 #endif
-
-
 	}
 
 	g_status.total_recv_size = 0;
@@ -1109,9 +1096,9 @@ OPERATE_STATUS dl_download_midst(uint16_t size, char *buf)
 #endif
 
 #else
-	//if ((IMG_RAW == g_dl_eMMCStatus.curImgType) && (g_status.total_size > ALTERNATIVE_BUFFER_SIZE))
-		//ret = speedup_download_process(size, buf);
-	//else 
+	if ((IMG_RAW == g_dl_eMMCStatus.curImgType) && (g_status.total_size > ALTERNATIVE_BUFFER_SIZE))
+		ret = speedup_download_process(size, buf);
+	else
 		ret = regular_download_process(size, buf);
 #endif
 

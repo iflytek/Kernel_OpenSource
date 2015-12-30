@@ -1,43 +1,23 @@
 #ifndef _FDL_EMMC_OPERATE_H
 #define _FDL_EMMC_OPERATE_H
 
-//#include <asm/arch/fdl_stdio.h>
-#include "dl_cmd_def.h"
-#include "packet.h"
-#ifdef CONFIG_EMMC_BOOT
-#include "part.h"
+#include <linux/sizes.h>
 
 #define IMG_BAK_HEADER 0x42544844
 
 #define NV_HEADER_SIZE            (512)
-#define EFI_SECTOR_SIZE 		(512)
-#define EMMC_MAX_MUTIL_WRITE  (0x8000)
-#define ERASE_SECTOR_SIZE		((64 * 1024) / EFI_SECTOR_SIZE)
 
 #define ORIGIN_BACKUP_NV_OK 0x0
 #define ORIGIN_NV_DAMAGED      0x1
 #define BACKUP_NV_DAMAGED   0x2
 
-/*buffer must over 50M ,otherwise download userdata.img will fail*/
-#define EMMC_BUF_SIZE			(((256 * 1024 * 1024) / EFI_SECTOR_SIZE) * EFI_SECTOR_SIZE)
-
-#define MAX_GPT_PARTITION_SUPPORT  (50)
-#define EMMC_ERASE_ALIGN_LENGTH  (0x800)
+#define EMMC_BUF_SIZE		SZ_256M
 
 #define MAGIC_DATA	0xAA55A5A5
-#define CHECKSUM_START_OFFSET	0x28
-#define MAGIC_DATA_SAVE_OFFSET	(0x20/4)
-#define CHECKSUM_SAVE_OFFSET	(0x24/4)
-
-#define UBOOT_PARTITION_NAME   "uboot"
-#define SPL_PARTITION_NAME          "splloader"
-
 
 /*according to standard ,the first usable LBA is 34,
-but actually use 0x800 as the first LBA of all partitions can enhance the erase speed*/
-#define STARTING_LBA_OF_FIRST_PARTITION   (0x800)
+but actually reserve 1MB space before the first partition can enhance the erase speed*/
 #define FIRST_USABLE_LBA_FOR_PARTITION    (34)
-#define ALTERNATE_GPT_PTE_SIZE (33)
 
 #define MAX_SIZE_FLAG	0xFFFFFFFF
 
@@ -45,10 +25,6 @@ but actually use 0x800 as the first LBA of all partitions can enhance the erase 
 
 #define TRUE   1		/* Boolean true value. */
 #define FALSE  0		/* Boolean false value. */
-typedef enum READ_INFO_METHOD {
-	FORCE_READ,
-	FLEXIBLE_READ
-} READ_INFO_METHOD;
 
 typedef enum _PARTITION_IMG_TYPE {
 	IMG_RAW = 0,
@@ -63,11 +39,9 @@ typedef enum _PARTITION_PURPOSE {
 } PARTITION_PURPOSE;
 
 typedef struct DL_EMMC_STATUS_TAG {
-	uint32_t part_total_size;
 	uint32_t offset;
 	uchar curUserPartitionName[32];
 	PARTITION_PURPOSE partitionpurpose;
-	uint8_t curEMMCArea;
 	PARTITION_IMG_TYPE curImgType;
 } DL_EMMC_STATUS;
 
@@ -105,6 +79,7 @@ typedef enum _ALTERNATIVE_BUFFER_STATUS {
 	BUFFER_CLEAN,
 	BUFFER_DIRTY
 } ALTERNATIVE_BUFFER_STATUS;
+
 typedef  struct {
     unsigned int mMagicNum; // "BTHD" == "0x42544844" == "boothead"
     unsigned int mVersion; // 1
@@ -119,12 +94,11 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 OPERATE_STATUS dl_download_midst(uint16_t size, char *buf);
 OPERATE_STATUS dl_download_end(void);
 OPERATE_STATUS dl_read_start(uchar * partition_name, uint32_t size);
-
 OPERATE_STATUS dl_read_midst(uint32_t size, uint32_t off, uchar * buf);
 OPERATE_STATUS dl_read_end(void);
 OPERATE_STATUS dl_erase(uchar * partition_name, uint32_t size);
 OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_num,
 									uchar version, uchar size_unit);
 
-#endif //CONFIG_EMMC_BOOT
+
 #endif //_FDL_EMMC_OPERATE_H

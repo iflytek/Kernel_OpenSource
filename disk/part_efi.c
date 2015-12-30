@@ -352,9 +352,10 @@ int get_partition_info_by_name_efi(block_dev_desc_t * dev_desc, uchar *partition
 	sprintf((char *)info->name, "%s",print_efiname(&((pgpt_pte)[i])));
 	sprintf((char *)info->type, "U-Boot");
 
-
+	/*
 	debug("%s: start 0x" LBAF ", size 0x" LBAF ", name %s\n", __func__,
 	      info->start, info->size, info->name);
+	*/
 	ret =0;
 	break;
 	}
