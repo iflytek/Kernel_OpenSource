@@ -25,7 +25,6 @@
 #include "chip_iwhale2/__regs_pmu_apb.h"
 #include "chip_iwhale2/__regs_pub0_apb.h"
 #include "chip_iwhale2/__regs_pub1_apb.h"
-#include "chip_iwhale2/__regs_sc2723_ana_glb.h"
 #include "chip_iwhale2/__regs_vsp_sys_ahb.h"
 
 

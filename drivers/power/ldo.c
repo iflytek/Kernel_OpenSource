@@ -19,7 +19,6 @@
 #include <common.h>
 #include <asm/io.h>
 
-//#include <asm/arch/ldo.h>
 #include <sprd_regulator.h>
 #include <asm/arch/chip_drv_common_io.h>
 #include <asm/arch/sprd_reg.h>
@@ -41,7 +40,7 @@
 		} \
 	}while(0)
 
-#if defined(CONFIG_SPX15) || defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
+#if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
 struct {
 	LDO_ID_E id;
 	const char *name;
@@ -59,9 +58,16 @@ struct {
 	{
 		.id = LDO_LDO_SDIO1, .name = "vddsdio",
 	},
-	{
-		.id = LDO_LDO_EMMCIO, .name = "vddgen1",
-	},
+        #if defined(CONFIG_SPX20)
+                {
+                        .id = LDO_LDO_EMMCIO, .name = "vddgen0",
+                },
+        #else
+                {
+                        .id = LDO_LDO_EMMCIO, .name = "vddgen1",
+			.id = LDO_LDO_GEN0, .name = "vddgen0",
+                },
+        #endif
 #else
 	{
 		.id = LDO_LDO_EMMCIO, .name = "vddemmcio",
@@ -81,7 +87,6 @@ struct {
 	},
 };
 
-#ifdef CONFIG_SPRD_PLATFORM
 const char* __LDO_NAME(LDO_ID_E ldo_id)
 {
 	int i = 0;
@@ -124,30 +129,75 @@ LDO_ERR_E LDO_TurnOnLDO(LDO_ID_E ldo_id)
 {
 	return regulator_enable(__LDO_NAME(ldo_id));
 }
+#elif defined(CONFIG_ADIE_SC2731)	//TODO2731
+struct {
+	LDO_ID_E id;
+	const char *name;
+}__ldo_names[] = {
+	{
+		.id = LDO_LDO_USB, .name = "vddusb33",
+	},
+	{
+		.id = LDO_LDO_EMMCCORE, .name = "vddemmccore",
+	},
+	{
+		.id = LDO_LDO_SDIO0, .name = "vddsdcore",
+	},
+	{
+		.id = LDO_LDO_SDIO1, .name = "vddsdio",
+	},
+        {
+                .id = LDO_LDO_EMMCIO, .name = "vddgen",
+        },
+	{
+		.id = LDO_LDO_SIM0, .name = "vddsim0",
+	},
+	{
+		.id = LDO_LDO_SIM1, .name = "vddsim1",
+	},
+};
 
-#else
-LDO_ERR_E LDO_TurnOnLDO(LDO_ID_E ldo_id)
+const char* __LDO_NAME(LDO_ID_E ldo_id)
 {
-	return 0;
+	int i = 0;
+	for(i = 0; i < ARRAY_SIZE(__ldo_names); i++) {
+		if (ldo_id == __ldo_names[i].id)
+			return __ldo_names[i].name;
+	}
+	return NULL;
+}
+
+int LDO_Init(void)
+{
+	return regulator_init();
+}
+
+void LDO_TurnOffAllLDO(void)
+{
+	unsigned int reg_val;
+
+	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE,BITS_PWR_WR_PROT_VALUE(0x6e7f));
+
+	do{
+		reg_val = (ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & BIT_PWR_WR_PROT);
+	}while(reg_val == 0);
+
+	ANA_REG_SET(ANA_REG_GLB_POWER_PD_HW,0x1);
+
+	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE,BITS_PWR_WR_PROT_VALUE(0x0000));
+	//never return here and wait power down action
+	while(1);
 }
 
 LDO_ERR_E LDO_TurnOffLDO(LDO_ID_E ldo_id)
 {
-	return 0;
+	return regulator_disable(__LDO_NAME(ldo_id));
 }
 
-void LDO_TurnOffAllLDO(void)
-{	return;		}
-
-int LDO_Init(void)
-{	return 0;	}
-
-const char* __LDO_NAME(LDO_ID_E ldo_id)
+LDO_ERR_E LDO_TurnOnLDO(LDO_ID_E ldo_id)
 {
-	return 0;
+	return regulator_enable(__LDO_NAME(ldo_id));
 }
-#endif
-
 #else
 
 struct ldo_ctl_info {

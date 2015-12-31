@@ -53,4 +53,4 @@
 #define ADC_BASE                ANA_ADC_BASE
 #define SPRD_APBCKG_BASE        0x00000000
 #define SPRD_GPTIMER0_BASE      0x00000000
-
+#define BIT_PWR_WR_PROT 0
