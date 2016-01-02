@@ -8,6 +8,8 @@
 
 #include <config.h>
 #include "hardware.h"
+#include "sci_types.h"
+#include "sprd_module_config.h""
 
 #include "chip_iwhale2/temp.h"
 #include "chip_iwhale2/__regs_ap_apb.h"

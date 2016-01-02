@@ -3,7 +3,7 @@
 #include <asm/arch/sprd_reg.h>
 #include <asm/arch/sci_types.h>
 #include "adi_hal_internal.h"
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 
 /*
 	REG_AON_APB_BOND_OPT0  ==> romcode set

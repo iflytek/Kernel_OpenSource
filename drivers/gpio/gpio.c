@@ -16,7 +16,7 @@
 #include <asm/arch/sprd_reg.h>
 #include "gpio_reg_v0.h"
 #include "asm_generic_gpio.h"
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 #include <asm/errno.h>
 
 #define KERN_WARNING ""

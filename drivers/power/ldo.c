@@ -20,7 +20,7 @@
 #include <asm/io.h>
 
 #include <sprd_regulator.h>
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 #include <asm/arch/sprd_reg.h>
 
 #define LDO_INVALID_REG	0xFFFFFFFF

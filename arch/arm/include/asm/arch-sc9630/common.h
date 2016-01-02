@@ -22,6 +22,8 @@
 #include "linux/string.h"
 #include <linux/types.h>
 #include "migrate.h"
+#include "sprd_debug.h"
+
 /**---------------------------------------------------------------------------*
  **                             Compiler Flag                                 *
  **---------------------------------------------------------------------------*/
@@ -32,16 +34,6 @@ extern   "C"
 /**----------------------------------------------------------------------------*
 **                               Micro Define                                 **
 **----------------------------------------------------------------------------*/
-#define ENABLE   1
-#define DISABLE  0
-#define	LOCAL		static
-#define PUBLIC
-typedef unsigned char			BOOLEAN;
-
-#define TRUE   1   /* Boolean true value. */
-#define FALSE  0   /* Boolean false value. */
-
-
 
 //#define REG32(x)                                    (*((volatile uint32 *)(x)))
 /*
@@ -79,6 +71,39 @@ typedef unsigned char			BOOLEAN;
 #define BIT_29              0x20000000
 #define BIT_30              0x40000000
 #define BIT_31              0x80000000
+
+
+
+//#define REG32(ChipReg)        ( *((volatile ChipRegT*) (ChipReg)))
+#define REG32(x)                                    (*((volatile uint32_t *)(x)))
+
+
+#define REG8(ChipReg)  ( *((volatile u8*) (ChipReg)))
+#define CHIP_REG_OR(reg_addr, value)    (*(volatile u32 *)(reg_addr) |= (u32)(value))
+#define CHIP_REG_AND(reg_addr, value)   (*(volatile u32 *)(reg_addr) &= (u32)(value))
+#define CHIP_REG_GET(reg_addr)          (*(volatile u32 *)(reg_addr))
+#define CHIP_REG_SET(reg_addr, value)   (*(volatile u32 *)(reg_addr)  = (u32)(value))
+
+
+//Debug info Function and MacroS.
+
+#define CHIP_DRV_ASSERT SCI_ASSERT
+#define CHIP_DRV_PASSERT SCI_PASSERT
+
+typedef enum{
+TYPE_RESET = 0,           //bit[4:0]
+TYPE_BACKLIGHT,         //bit[5]
+TYPE_DSPEXCEPTION,  //bit[6]
+TYPE_USB,                    //bit[7]
+TYPE_MAX
+}WDG_HW_FLAG_T;
+
+typedef enum{
+TDPLL_REF0 = 0,
+TDPLL_REF1,
+TDPLL_MAX,
+}TDPLL_REF_T;
+
 /**----------------------------------------------------------------------------*
 **                             Data Prototype                                 **
 **----------------------------------------------------------------------------*/

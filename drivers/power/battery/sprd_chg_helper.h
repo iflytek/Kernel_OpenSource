@@ -1,5 +1,4 @@
 #include <asm/arch/sci_types.h>
-#include <asm/arch/os_api.h>
 #include <sprd_battery.h>
 #include <common.h>
 #include <i2c.h>

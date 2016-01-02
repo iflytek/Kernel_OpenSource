@@ -24,7 +24,7 @@
 #include <linux/sizes.h>
 #include <asm/arch/sprd_reg.h>
 
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 
 #ifdef SPRD_MISC_BASE
 #undef SPRD_MISC_BASE

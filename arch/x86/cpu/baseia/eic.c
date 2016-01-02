@@ -17,7 +17,7 @@
 #include <asm/arch/sci_types.h>
 #include <asm/arch/sprd_eic.h>
 #include "adi_hal_internal.h"
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 
 #define KERN_WARNING ""
 #define WARN(nmu, fmt...) printf(fmt)

@@ -16,6 +16,7 @@
 #include <dl_crc.h>
 #include "sprd_usb2_def.h"
 #include <usb/sprd_usb_drv.h>
+#include <asm/arch/sci_types.h>
 
 #define FDL2_MODULE	1
 

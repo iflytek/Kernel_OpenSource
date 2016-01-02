@@ -3,7 +3,7 @@
 #include "key_map.h"
 #include <boot_mode.h>
 #include <asm/arch/mfp.h>
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 
 void board_keypad_init(void)
 {

@@ -16,7 +16,7 @@
 #define _ADC_REG_V3_H_
 
 #include <asm/arch/sprd_reg.h>
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 
 /**---------------------------------------------------------------------------*
 **                               Micro Define                                **

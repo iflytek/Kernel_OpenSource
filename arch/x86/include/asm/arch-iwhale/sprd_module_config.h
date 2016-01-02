@@ -51,7 +51,7 @@ extern   "C"
 #define KPD_NUM  ((0x01 << 16) | (0x03 << 20))//KPDCTL_KPD ;//  5*5
 #endif
 
-#define KPD_NUM  (0x31 << 16)
+//#define KPD_NUM  (0x31 << 16)
 
 /**---------------------------------------------------------------------------*
 **                               Macro Define for pwm                        **

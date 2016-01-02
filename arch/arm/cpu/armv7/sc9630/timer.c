@@ -41,7 +41,7 @@
 #include <asm/io.h>
 #include <linux/types.h>
 #include "asm/arch/sci_types.h"
-#include "asm/arch/chip_drv_common_io.h"
+#include "asm/arch/common.h"
 #include "asm/arch/sys_timer_reg_v0.h"
 #include "asm/arch/timer_reg_v3.h"
 

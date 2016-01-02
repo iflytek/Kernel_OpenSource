@@ -1,7 +1,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include "sprd_wdt.h"
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 /*****************************************************************************/
 //  Description:    This function config the watch dog module.
 //  Dependency:     No

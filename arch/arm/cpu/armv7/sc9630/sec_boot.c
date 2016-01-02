@@ -4,7 +4,6 @@
 #include <asm/arch/sprd_reg.h>
 #include <asm/arch/sci_types.h>
 #include "secure_boot.h"
-#include <asm/arch/chip_drv_common_io.h>
 #include "sha1_32.h"
 #ifndef USE_LEGENCY_RSA
 #include "rsa_sprd.h"

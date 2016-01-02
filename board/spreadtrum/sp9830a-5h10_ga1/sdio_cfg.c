@@ -18,7 +18,7 @@
 #include <asm/io.h>
 #include <asm/arch/sdio_cfg.h>
 #include <asm/arch/sdio_reg.h>
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 
 
 const  SDIO_BASE_INFO  sdio_ctrl_info[2] =

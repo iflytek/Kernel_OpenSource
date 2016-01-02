@@ -1,7 +1,7 @@
 #include <common.h>
 #include <boot_mode.h>
 #include <asm/arch/sprd_reg.h>
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 #include "adi_hal_internal.h"
 #include <asm/arch/check_reboot.h>
 #include <asm/arch/sprd_debug.h>

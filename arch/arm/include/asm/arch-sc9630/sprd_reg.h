@@ -8,6 +8,8 @@
 
 #include <config.h>
 #include "hardware.h"
+#include "sci_types.h"
+#include "sprd_module_config.h"
 
 #if defined(CONFIG_ARCH_SCX35L)
 	#if defined CONFIG_ARCH_SCX20L
