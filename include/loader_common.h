@@ -32,6 +32,7 @@ extern unsigned char raw_header[8192];
 #define RECOVERY_PART "recovery"
 #define FACTORY_PART "prodnv"
 #define PRODUCTINFO_FILE_PATITION  "miscdata"
+#define DT_PART "dt"
 
 /*FDT_ADD_SIZE used to describe the size of the new bootargs items*/
 

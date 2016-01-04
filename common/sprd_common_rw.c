@@ -683,6 +683,3 @@ int32_t common_get_lba_size(void)
 
 #endif
 
-
-
-
