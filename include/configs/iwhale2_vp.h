@@ -46,9 +46,6 @@
  * Miscellaneous configurable options
  */
 
-#define CONFIG_FIT
-#define CONFIG_FIT_SIGNATURE
-#define CONFIG_RSA
 
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_CBSIZE	512
