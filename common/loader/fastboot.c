@@ -116,6 +116,11 @@ extern int usb_fastboot_init(void);
 extern int fb_usb_write(void *buf, unsigned len);
 extern int fb_usb_read(void *_buf, unsigned len);
 
+uint32_t efi_GetPartBaseSec(uchar * partition_name)
+{
+	return 0;
+}
+
 void fastboot_register(const char *prefix, void (*handle) (const char *arg, void *data, unsigned sz))
 {
 	struct fastboot_cmd *cmd;

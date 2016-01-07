@@ -14,7 +14,7 @@
 #include "secure_boot.h"
 #endif
 static DL_EMMC_FILE_STATUS g_status;
-static DL_EMMC_STATUS g_dl_eMMCStatus = { 0, 0, 0, 0, 0, 0, 0 };
+static DL_EMMC_STATUS g_dl_eMMCStatus;
 
 static unsigned long g_checksum;
 static unsigned long g_sram_addr;
@@ -146,10 +146,13 @@ void splFillCheckData(uchar * splBuf)
 	uint32_t pad_data;
 	uint32_t w_len;
 	uint32_t w_offset;
+	uchar * buf = splBuf + BOOTLOADER_HEADER_OFFSET + sizeof(EMMC_BootHeader);
 	w_len = (SPL_CHECKSUM_LEN - (BOOTLOADER_HEADER_OFFSET + sizeof(*header))) / 4;
 	w_offset = w_len - 1;
+
 	/*pad the data inorder to make check sum to 0 */
-	pad_data = (uint32_t) get_pad_data(splBuf + BOOTLOADER_HEADER_OFFSET + sizeof(*header), w_len, w_offset, 0);
+	pad_data = get_pad_data((uint32_t *)buf, w_len, w_offset, 0);
+	debugf("splloader fill pad_data=0x%x\n", pad_data);
 	*(volatile unsigned int *)(splBuf + SPL_CHECKSUM_LEN - 4) = pad_data;
 	header = (EMMC_BootHeader *) (splBuf + BOOTLOADER_HEADER_OFFSET);
 	header->version = 0;
@@ -629,10 +632,16 @@ int _download_image(int is_total_recv)
 {
 	int32_t retval;
 	unsigned int code_off = 0;
+	uint32_t write_size = 0;
 
-	if (0 == strcmp("splloader", g_dl_eMMCStatus.curUserPartitionName))
+	if (0 == strcmp("splloader", g_dl_eMMCStatus.curUserPartitionName)) {
 		splFillCheckData(g_eMMCBuf);
+		write_size = max(g_status.unsave_recv_size, SPL_CHECKSUM_LEN);
+	} else {
+		write_size = g_status.unsave_recv_size;
+	}
 
+/*TODO*/
 #ifdef CONFIG_SECURE_BOOT
 	unsigned char is_header = FALSE;
 
@@ -662,11 +671,11 @@ int _download_image(int is_total_recv)
 
 	if (IMG_WITH_SPARSE == g_dl_eMMCStatus.curImgType) {
 		debugf("Handle the saving of image with sparse,name=%s,buf start at 0x%x,size=0x%x\n",
-		       g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, g_status.unsave_recv_size);
-		retval = write_sparse_img(g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, g_status.unsave_recv_size);
+		       g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, write_size);
+		retval = write_sparse_img(g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, (ulong)write_size);
 		if (-1 == retval) {
 			g_status.unsave_recv_size = 0;
-			debugf("Write sparse img fail\n");
+			errorf("Write sparse img fail\n");
 			return 0;
 		}
 		debugf("Write packed img success,return value=%d\n", retval);
@@ -680,8 +689,9 @@ int _download_image(int is_total_recv)
 			g_sram_addr = (unsigned long) g_eMMCBuf;
 		}
 	} else {
-		if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName, g_status.unsave_recv_size, 0,
-			g_dl_eMMCStatus.offset, (unsigned char *)(g_eMMCBuf + code_off))) {
+		if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName, (uint64_t)write_size, 0,
+			g_dl_eMMCStatus.offset, (uchar *)(g_eMMCBuf + code_off))) {
+			errorf("write %s size 0x%x offset 0x%x fail\n", g_dl_eMMCStatus.curUserPartitionName, write_size, g_dl_eMMCStatus.offset);
 			g_status.unsave_recv_size = 0;
 			return 0;
 		}
@@ -1028,6 +1038,7 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 		memset(g_eMMCBuf, 0xff, FIXNV_SIZE + NV_HEADER_SIZE);
 		g_checksum = nv_checksum;
 	} else if (0 == strcmp("splloader", partition_name)) {
+		memset(g_eMMCBuf, 0xff, SPL_CHECKSUM_LEN);
 #ifdef CONFIG_SECURE_BOOT
 		secure_image_flag = SPL_CHECK;	//2;
 #endif

@@ -504,7 +504,7 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 		part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
 		if (size + offset > total_part_size) {
-			errorf("write size overflow the total partition size\n");
+			errorf("write size(0x%llx) + offset(0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
 			ret = -1;
 		}
 	}
@@ -648,14 +648,13 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 	int ret = 0;
 
 	memset(&local_part_info, 0 , sizeof(disk_partition_t));
-
 	dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
 	if (NULL == dev_desc) {
 		errorf("get mmc device hardware part(%d) fail\n", PARTITION_USER);
 		return -1;
 	}
 
-	while (3 < counter) {
+	while (counter < 3) {
 		ret = gpt_restore(dev_desc, SPRD_DISK_GUID_STR, partitions, parts_count);
 		if (0 == ret)
 			break;

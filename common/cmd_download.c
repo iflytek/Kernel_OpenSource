@@ -26,7 +26,6 @@ static struct dl_cmd *cmdlist = NULL;
 void dl_cmd_register(enum dl_cmd_type type,
 		       int (*handle)(struct dl_packet *pkt, void *arg))
 {
-	printf("%s:enter\n", __FUNCTION__);
 	struct dl_cmd *cmd = (void *)0;
 
 	cmd = (struct dl_cmd *)malloc(sizeof(struct dl_cmd));
@@ -37,7 +36,6 @@ void dl_cmd_register(enum dl_cmd_type type,
 		cmd->next = cmdlist;
 		cmdlist = cmd;
 	}
-	printf("%s:leave\n", __FUNCTION__);
 	return;
 }
 void dl_cmd_handler(void)

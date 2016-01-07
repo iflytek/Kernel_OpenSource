@@ -342,7 +342,7 @@ struct mmc *find_mmc_device(int dev_num)
  {
 
 	 lbaint_t cur, blocks_todo = blkcnt;
-	debugf("mmc_bwrite \n");
+	//debugf("mmc_bwrite \n");
 	 struct mmc *mmc = find_mmc_device(dev_num);
 	 if (!mmc)
 		 return 0;
@@ -358,7 +358,7 @@ struct mmc *find_mmc_device(int dev_num)
 		 start += cur;
 		 src += cur * mmc->write_bl_len;
 	 } while (blocks_todo > 0);
-	debugf("mmc_bwrite end \n");
+	//debugf("mmc_bwrite end \n");
 	 return blkcnt;
  }
 
