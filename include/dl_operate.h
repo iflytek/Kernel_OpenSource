@@ -2,6 +2,7 @@
 #define _FDL_EMMC_OPERATE_H
 
 #include <linux/sizes.h>
+#include "dl_cmd_proc.h"
 
 #define IMG_BAK_HEADER 0x42544844
 

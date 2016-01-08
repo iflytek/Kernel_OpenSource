@@ -1,5 +1,6 @@
 obj-y += loader_common.o
-obj-y += loader_emmc.o
+#obj-y += loader_emmc.o
+obj-y += loader_nvm.o
 obj-y += boot_mode.o
 obj-y += fs_common_rw.o
 obj-y += dev_tree.o

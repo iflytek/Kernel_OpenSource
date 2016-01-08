@@ -3,7 +3,6 @@
 #include <malloc.h>
 #include <asm/arch/chip_releted_def.h>
 #include "dl_common.h"
-#include "dl_cmd_proc.h"
 #include "dl_operate.h"
 #include <ext_common.h>
 #include <sparse_format.h>
@@ -530,42 +529,6 @@ static int _emmc_secure_download(uchar * partition_name)
 }
 #endif
 
-
-OPERATE_STATUS dummy_dl_erase(uchar * partition_name, uint32_t size)
-{
-	int32_t retval;
-	uint32_t part_size;
-	uchar *backup_partition_name = NULL;
-
-	if ((0 == strcmp(partition_name, "erase_all")) && (0xffffffff == size)) {
-		debugf("Erase all!\n");
-		if (!_emmc_erase_allflash()) {
-			return OPERATE_WRITE_ERROR;
-		}
-	} else {
-		debugf("erase partition %s!\n", partition_name);
-		if (!_get_compatible_partition(partition_name)) {
-			return OPERATE_INCOMPATIBLE_PART;
-		}
-
-		if (!_emmc_real_erase_partition(g_dl_eMMCStatus.curUserPartitionName)) {
-			return OPERATE_WRITE_ERROR;
-		}
-
-		backup_partition_name = _get_backup_partition_name(g_dl_eMMCStatus.curUserPartitionName);
-
-		if (NULL != backup_partition_name) {
-			if (!_emmc_real_erase_partition(backup_partition_name)) {
-				return OPERATE_WRITE_ERROR;
-			}
-		}
-
-	}
-
-	return OPERATE_SUCCESS;
-}
-
-
 void _get_partition_attribute(uchar * partition_name)
 {
 	int i;
@@ -860,11 +823,9 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 		/*check crc */
 		if (fdl_check_crc(buf, header_p->len, header_p->checksum)) {
 			debugf("read origin nv image success and crc correct\n");
-			break;
 		} else {
 			errorf("check origin nv image crc wrong\n");
 			status |= ORIGIN_NV_DAMAGED;
-			break;
 		}
 	} while(0);
 
@@ -897,11 +858,9 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 		/*check crc */
 		if (fdl_check_crc(backup_nv_buf, backup_header_p->len, backup_header_p->checksum)) {
 			debugf("read backup nv image success and crc correct\n");
-			break;
 		} else {
 			errorf("check backup nv image crc wrong\n");
 			status |= BACKUP_NV_DAMAGED;
-			break;
 		}
 	} while(0);
 

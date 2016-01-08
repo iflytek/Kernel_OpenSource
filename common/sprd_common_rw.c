@@ -458,7 +458,7 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 		part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
 		if (size + offset > total_part_size) {
-			errorf("read size(0x%x + 0x%x) overflow the total partition size(0x%x)\n", size, offset, total_part_size);
+			errorf("read size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
 			ret = -1;
 		}
 	}

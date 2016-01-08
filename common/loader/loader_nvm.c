@@ -1,14 +1,14 @@
 #include <common.h>
 #include "loader_common.h"
 #include <malloc.h>
-//#include <mmc.h>
-#include <sprd_mmc.h>
 #include <ext_common.h>
 #include <ext4fs.h>
 #include <linux/sizes.h>
+#include "dl_operate.h"
+#include "sprd_common_rw.h"
 
-#include <secureboot/sprdsec_header.h>
-#include <secureboot/sec_common.h>
+//#include <secureboot/sprdsec_header.h>
+//#include <secureboot/sec_common.h>
 
 #ifdef CONFIG_ARM7_RAM_ACTIVE
     extern void pmic_arm7_RAM_active(void);
@@ -200,30 +200,6 @@ static boot_image_required_t *const s_boot_image_table[] = {
 
 #ifdef CONFIG_SECURE_BOOT
 uint8_t header_buf[SEC_HEADER_MAX_SIZE];
-#endif
-int read_logoimg(char *bmp_img, size_t size)
-{
-	block_dev_desc_t *p_block_dev = NULL;
-	disk_partition_t info;
-
-	p_block_dev = get_dev("mmc", 0);
-	if (NULL == p_block_dev)
-		return -1;
-
-	if (!get_partition_info_by_name(p_block_dev, "logo", &info)) {
-		if (FALSE == Emmc_Read(PARTITION_USER, info.start, size / EMMC_SECTOR_SIZE, bmp_img)) {
-			debugf("function: %s nand read error\n");
-			return -1;
-		}
-		debugf("read logo partition OK!\n");
-	} else {
-		debugf("no logo partition , no need to display\n");
-		return -1;
-	}
-	return 0;
-}
-
-#ifdef CONFIG_SECURE_BOOT
 
 int get_spl_hash(void *hash_data)
 {
@@ -270,81 +246,8 @@ void _boot_secure_check(void)
 	return;
 }
 
-/**
-	Function for reading user partition.
-*/
-int _boot_partition_read(block_dev_desc_t * dev, uchar * partition_name, uint32_t offsetsector, uint32_t size, uint8_t * buf)
-{
-	int ret = 0;
-	uint32_t left;
-	uint32_t nsct;
-	char *sctbuf = NULL;
-	disk_partition_t info;
-
-	if (NULL == buf) {
-		debugf("buf is NULL!\n");
-		goto end;
-	}
-	nsct = size / EMMC_SECTOR_SIZE;
-	left = size % EMMC_SECTOR_SIZE;
-
-	if (get_partition_info_by_name(dev, partition_name, &info)) {
-		errorf("get partition %s info failed!\n", partition_name);
-		goto end;
-	}
-
-	if(nsct) {
-		if (FALSE == Emmc_Read(PARTITION_USER, info.start + offsetsector, nsct, buf))
-			goto end;
-	}
-
-	if (left) {
-		sctbuf = malloc(EMMC_SECTOR_SIZE);
-		if (NULL != sctbuf) {
-			if (FALSE != Emmc_Read(PARTITION_USER, info.start + offsetsector + nsct, 1, sctbuf)) {
-				memcpy(buf + (nsct * EMMC_SECTOR_SIZE), sctbuf, left);
-				ret = 1;
-			}
-			free(sctbuf);
-		}
-	} else {
-		ret = 1;
-	}
-
-end:
-	debugf("partition %s read %s!\n", partition_name, ret ? "success" : "failed");
-	return ret;
-}
-
-/**
-	Function for writing user partition.
-*/
-int _boot_partition_write(block_dev_desc_t * dev, uchar * partition_name, u32 size, u8 * buf)
-{
-	disk_partition_t info;
-
-	if (NULL == buf) {
-		debugf("buf is NULL!\n");
-		return 0;
-	}
-	size = (size + (EMMC_SECTOR_SIZE - 1)) & (~(EMMC_SECTOR_SIZE - 1));
-	size = size / EMMC_SECTOR_SIZE;
-	if (0 == get_partition_info_by_name(dev, partition_name, &info)) {
-		if (TRUE != Emmc_Write(PARTITION_USER, info.start, size, buf)) {
-			debugf("partition:%s read error!\n", partition_name);
-			return 0;
-		}
-	} else {
-		debugf("partition:%s >>>get partition info failed!\n", partition_name);
-		return 0;
-	}
-	debugf("partition:%s write success!\n", partition_name);
-	return 1;
-}
-
 int splash_screen_prepare(void)
 {
-	int ret;
 	size_t size = SZ_1M;
 	u8 *addr;
 	u8 *s;
@@ -355,89 +258,135 @@ int splash_screen_prepare(void)
 		return -1;
 	}
 	addr = (u8 *) simple_strtoul(s, NULL, 16);
-	ret = read_logoimg(addr, size);
-	if (ret) {
-		debugf("%s: failed to read logo partition\n");
-		return ret;
+	if (0 != common_raw_read("logo", size, 0, addr)) {
+		errorf("failed to read logo partition\n");
+		return -1;
 	}
 
 	return 0;
 }
 
-/**
-	we assume partition with backup must check ecc.
-*/
-int _boot_read_partition_with_backup(block_dev_desc_t * dev, boot_image_required_t info)
-{
-	uint8_t *bakbuf = NULL;
-	uint8_t *oribuf = NULL;
-	uint8_t status = 0;
-	uint8_t header[EMMC_SECTOR_SIZE];
-	uint32_t checksum = 0;
-	nv_header_t *header_p = NULL;
-	uint32_t bufsize = info.size + EMMC_SECTOR_SIZE;
 
-	header_p = header;
-	bakbuf = malloc(bufsize);
-	if (NULL == bakbuf) {
-		debugf("bakbuf malloc fail\n");
+int32_t _boot_read_partition_with_backup(boot_image_required_t info)
+{
+	uchar header_buf[NV_HEADER_SIZE];
+	uchar backup_header_buf[NV_HEADER_SIZE];
+	nv_header_t *header_p = header_buf;
+	nv_header_t *backup_header_p = backup_header_buf;
+	uchar * backup_nv_buf = NULL;
+	int status = ORIGIN_BACKUP_NV_OK;
+	int ret = 0;
+
+	backup_nv_buf = malloc(info.size);
+	if (NULL == backup_nv_buf) {
+		errorf("no enough space for backup nv buffer\n");
 		return 0;
 	}
-	memset(bakbuf, 0xff, bufsize);
-	oribuf = malloc(bufsize);
-	if (NULL == oribuf) {
-		debugf("oribuf malloc fail\n");
-		free(bakbuf);
-		return 0;
-	}
-	memset(oribuf, 0xff, bufsize);
-	if (_boot_partition_read(dev, info.partition, 0, info.size + EMMC_SECTOR_SIZE, oribuf)) {
-		memset(header, 0, EMMC_SECTOR_SIZE);
-		memcpy(header, oribuf, EMMC_SECTOR_SIZE);
-		checksum = header_p->checksum;
-		debugf("_boot_read_partition_with_backup origin checksum 0x%x\n", checksum);
-		if (_chkNVEcc(oribuf + EMMC_SECTOR_SIZE, info.size, checksum)) {
-			memcpy(info.mem_addr, oribuf + EMMC_SECTOR_SIZE, info.size);
-			status += 1;
+
+	do {
+		/*read origin image header */
+		if (0 != common_raw_read(info.partition, NV_HEADER_SIZE, 0, header_buf)) {
+			errorf("read origin <<<%s>>> image header failed\n", info.partition);
+			status |= ORIGIN_NV_DAMAGED;
+			break;
 		}
-	}
-	if (_boot_partition_read(dev, info.bak_partition, 0, info.size + EMMC_SECTOR_SIZE, bakbuf)) {
-		memset(header, 0, EMMC_SECTOR_SIZE);
-		memcpy(header, bakbuf, EMMC_SECTOR_SIZE);
-		checksum = header_p->checksum;
-		debugf("_boot_read_partition_with_backup backup checksum 0x%x\n", checksum);
-		if (_chkNVEcc(bakbuf + EMMC_SECTOR_SIZE, info.size, checksum))
-			status += 1 << 1;
-	}
+
+		if (NV_HEAD_MAGIC != header_p->magic) {
+			errorf("<<<%s>>> header magic error, wrong magic=0x%x\n", info.partition, header_p->magic);
+			status |= ORIGIN_NV_DAMAGED;
+			break;
+		}
+
+		/*read origin image */
+		if (0 != common_raw_read(info.partition, info.size, NV_HEADER_SIZE, info.mem_addr)) {
+			errorf("read origin <<<%s>>> image data failed\n", info.partition);
+			status |= ORIGIN_NV_DAMAGED;
+			break;
+		}
+
+		/*check crc */
+		if (_chkNVEcc(info.mem_addr, info.size, header_p->checksum)) {
+			debugf("read origin <<<%s>>> image success and crc correct\n", info.partition);
+		} else {
+			errorf("check origin <<<%s>>> image crc wrong\n", info.partition);
+			status |= ORIGIN_NV_DAMAGED;
+		}
+	} while(0);
+
+	do {
+		/*read backup header */
+		if (0 != common_raw_read(info.bak_partition, NV_HEADER_SIZE, 0, backup_header_buf)) {
+			errorf("read backup <<<%s>>> image header failed\n", info.bak_partition);
+			status |= BACKUP_NV_DAMAGED;
+			break;
+		}
+
+		if (NV_HEAD_MAGIC != backup_header_p->magic) {
+			errorf("backup <<<%s>>> header magic error, wrong magic=0x%x\n", info.bak_partition, backup_header_p->magic);
+			status |= BACKUP_NV_DAMAGED;
+			break;
+		}
+
+		/*read bakup image */
+		if (0 != common_raw_read(info.bak_partition, info.size, NV_HEADER_SIZE, backup_nv_buf)) {
+			errorf("read backup <<<%s>>> image failed\n", info.bak_partition);
+			status |= BACKUP_NV_DAMAGED;
+			break;
+		}
+
+		/*check crc */
+		if (_chkNVEcc(backup_nv_buf, info.size, backup_header_p->checksum)) {
+			debugf("read backup <<<%s>>> image success and crc correct\n", info.bak_partition);
+		} else {
+			errorf("check backup <<<%s>>> image crc wrong\n", info.bak_partition);
+			status |= BACKUP_NV_DAMAGED;
+		}
+	} while(0);
 
 	switch (status) {
-	case 0:
-		debugf("(%s)both org and bak partition are damaged!\n", info.partition);
-		memset(info.mem_addr, 0, info.size);
-		free(bakbuf);
-		free(oribuf);
-		return 0;
-	case 1:
-		debugf("(%s)bak partition is damaged!\n", info.bak_partition);
-		_boot_partition_write(dev, info.bak_partition, info.size + EMMC_SECTOR_SIZE, oribuf);
+	case ORIGIN_BACKUP_NV_OK :
+		debugf("both org and bak nv partition are ok\n");
+		ret = 1;
 		break;
-	case 2:
-		debugf("(%s)org partition is damaged!\n!", info.partition);
-		memcpy(info.mem_addr, bakbuf + EMMC_SECTOR_SIZE, info.size);
-		_boot_partition_write(dev, info.partition, info.size + EMMC_SECTOR_SIZE, bakbuf);
+	case ORIGIN_NV_DAMAGED :
+		memcpy(info.mem_addr, backup_nv_buf, info.size);
+		if (0 != common_raw_write(info.partition, NV_HEADER_SIZE, 0, 0, backup_header_buf)) {
+			errorf("reapire origin <<<%s>>> image header fail\n", info.partition);
+			ret = 0;
+			break;
+		}
+
+		if (0 != common_raw_write(info.partition, info.size, 0, NV_HEADER_SIZE, backup_nv_buf)) {
+			errorf("reapire origin <<<%s>>> image data fail\n", info.partition);
+			ret = 0;
+			break;
+		}
+
+		ret = 1;
 		break;
-	case 3:
-		debugf("(%s)both org and bak partition are ok!\n", info.partition);
+	case BACKUP_NV_DAMAGED :
+		if (0 != common_raw_write(info.bak_partition, NV_HEADER_SIZE, 0, 0, header_buf)) {
+			errorf("reapire backup <<<%s>>> image header fail\n", info.bak_partition);
+			ret = 0;
+			break;
+		}
+
+		if (0 != common_raw_write(info.bak_partition, info.size, 0, NV_HEADER_SIZE, info.mem_addr)) {
+			errorf("reapire backup <<<%s>>> image data fail\n", info.bak_partition);
+			ret = 0;
+			break;
+		}
+		debugf("repair backup <<<%s>>> image OK\n", info.bak_partition);
+		ret = 1;
 		break;
-	default:
-		debugf("status error!\n");
-		free(bakbuf);
-		free(oribuf);
-		return 0;
+	case ORIGIN_NV_DAMAGED | BACKUP_NV_DAMAGED :
+		errorf("both org <<<%s>>> and bak <<<%s>>> partition are damaged!\n", info.partition, info.bak_partition);
+		ret = 0;
+		break;
 	}
-	free(bakbuf);
-	free(oribuf);
-	return 1;
+
+	free(backup_nv_buf);
+	return ret;
 }
 
 static uint32_t get_boot_offset(boot_image_required_t img_info, uint32_t secure_offset)
@@ -576,7 +525,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 		errorf("read %s header error!\n", partition);
 		return 0;
 	}
-	
+
 	/*image header check */
 	if (0 != memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 		errorf("bad boot image header, give up boot!!!!\n");
@@ -590,11 +539,12 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 		errorf("kernel image should not be zero!\n");
 		return 0;
 	}
+
 	if (0 != common_raw_read(partition, size, offset, (char *)KERNEL_ADR)) {
 		errorf("%s kernel read error!\n", partition);
 		return 0;
 	}
-	debugf("%s kernel read OK,size=0x%x! \n", partition, size);
+	debugf("%s kernel read OK,size=0x%x, locate to 0x%x \n", partition, size, (ulong)KERNEL_ADR);
 	
 	/*read ramdisk image */
 	offset += size;
@@ -607,7 +557,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 		errorf("%s ramdisk read error!\n", partition);
 		return 0;
 	}
-	debugf("%s ramdisk read OK,size=0x%x! \n", partition, size);
+	debugf("%s ramdisk read OK,size=0x%x, locate to 0x%x \n", partition, size, (ulong)RAMDISK_ADR);
 
 #ifdef CONFIG_OF_LIBFDT
 #ifdef CONFIG_SEPARATE_DT
@@ -626,11 +576,12 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 		errorf("%s ramdisk read error!\n", partition);
 		return 0;
 	}
-	debugf("%s dtb read OK,size=0x%x! \n", partition, size);
+
 	if (load_dtb((void*) DT_ADR, (void *)dt_img_adr)) {
 		errorf("dt load error!\n");
 		return 0;
 	}
+	debugf("%s dtb read OK,size=0x%x, locate to 0x%x \n", partition, size, (ulong)DT_ADR);
 #endif
 #endif
 
@@ -720,7 +671,7 @@ int _boot_load_separate_dt(void)
 		goto fail;
 	}
 
-	debugf("dtb read OK,size=0x%x! \n", size);
+	debugf("load separate DT OK,size=0x%x, locate to 0x%x \n", size, (ulong)DT_ADR);
 	free(header);
 	return 1;
 

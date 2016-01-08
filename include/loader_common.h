@@ -69,20 +69,6 @@ typedef struct _tagSP09_PHASE_CHECK {
 
 } SP09_PHASE_CHECK_T, *LPSP09_PHASE_CHECK_T;
 
-typedef enum {
-	IMG_RAW,
-	IMG_UBIFS,
-	IMG_YAFFS,
-	IMG_MAX
-} img_fs_type;
-
-typedef struct vol_image_required {
-	char *vol;		//volume name
-	char *bak_vol;		//if no backup vol, set NULL
-	unsigned long size;	//partition size to be read
-	unsigned long mem_addr;	//target memory addr
-	img_fs_type fs_type;
-} vol_image_required_t;
 
 typedef struct boot_image_required {
 	uchar *partition;	//partition name record on disk
