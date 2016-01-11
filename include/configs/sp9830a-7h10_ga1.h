@@ -28,7 +28,6 @@
 #define CONFIG_OF_LIBFDT
 #define CONFIG_SPRD_PLATFORM
 
-
 #define DT_PLATFROM_ID 9830
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
@@ -38,17 +37,12 @@
 #define BOOT_NATIVE_LINUX_MODEM  1
 #define CONFIG_SILENT_CONSOLE
 
-
-
 /*
  * SPREADTRUM BIGPHONE board - SoC Configuration
  */
-#define CONFIG_AUTODLOADER
-#define CONFIG_SP9830A_7H10_GA1
 #define CONFIG_SC9630
 #define CONFIG_ADIE_SC2723
-//#define CONFIG_ARCH_SCX35L
-#define CONFIG_SPL_32K
+#define CONFIG_ARCH_SCX35L
 
 #define DFS_ON_ARM7
 #define DFS_PARAM_SRC_ADDR     0x0001c0c
@@ -92,62 +86,13 @@
 #define DFS_SIZE    32768 //32K
 
 
-#define CONFIG_PMIC_ARM7_BOOT
-#define CONFIG_CP1_BOOT
-#define CHIP_ENDIAN_LITTLE
-#define _LITTLE_ENDIAN 1
-
-#define CONFIG_RAM512M
-
-#define CONFIG_EMMC_BOOT
-#define CONFIG_ARCH_SCX35L
-#define CONFIG_SPRD_MMC
-#define CONFIG_SUPPORT_EMMC_BOOT
-
-#ifdef  CONFIG_EMMC_BOOT
-#define EMMC_SECTOR_SIZE 512
-
-#define CONFIG_FS_EXT4
-#define CONFIG_EXT4_WRITE
-#define CONFIG_CMD_EXT4
-#define CONFIG_CMD_EXT4_WRITE
-
-
-#define CONFIG_UEFI_PARTITION
-#define CONFIG_EXT4_SPARSE_DOWNLOAD
-#endif
-
-/*
- * MMC definition
- */
-#define CONFIG_CMD_FAT			1
-#define CONFIG_FAT_WRITE		1
-#define CONFIG_MMC
-#define CONFIG_GENERIC_MMC
-#define CONFIG_SDHCI
-#define CONFIG_SDHCI_CTRL_NO_HISPD 	1 /* disable high speed control */
-#define CONFIG_SYS_MMC_MAX_BLK_COUNT	0x1000
-#define CONFIG_MMC_SDMA
-#define CONFIG_DOS_PARTITION
-#define CONFIG_EFI_PARTITION		1
-#define CONFIG_SYS_MMC_NUM		1
-
-
-
-#define CONFIG_SYS_HZ			1000
-#define CONFIG_SPRD_TIMER_CLK		1000 /*32768*/
-
-#define CP0_ZERO_MAP_ADR    0x50000000
-#define CP0_ARM0_EXEC_ADR        0x88400000 
-
-#define CP1_ZERO_MAP_ADR    0x50001000
-#define CP1_EXEC_ADR        LTE_MODEM_ADDR
-
-
+#ifdef SECURE_BOOT_ENABLE
 #define MODEM_SIZE		(0x800000)
 #define DSP_SIZE		(0x2E0000)
+#endif
+
 #define RUNTIMENV_SIZE		(3*128 * 1024)
-#ifdef CONFIG_ROM_VERIFY_SPL	
+#ifdef CONFIG_ROM_VERIFY_SPL
 #define CONFIG_SPL_LOAD_LEN     (0x8000)	/* 32 KB */
 #define CONFIG_BOOTINFO_LENGTH  (0x200)	/* 512 Bytes */
 #define PUBKEY_BSC_BLOCK_INDEX  (CONFIG_SPL_LOAD_LEN - CONFIG_BOOTINFO_LENGTH * 2) / EMMC_SECTOR_SIZE
@@ -162,32 +107,47 @@
 #define CONFIG_SPL_HASH_LEN (0xC00) /* 3KB */
 #endif
 
-
-
-/*#define CMDLINE_NEED_CONV */
-
-
-#define CONFIG_SYS_SDRAM_BASE 0x80000000
-#define CONFIG_SYS_SDRAM_END (CONFIG_SYS_SDRAM_BASE + PHYS_SDRAM_1_SIZE)
+#define CP1_ZERO_MAP_ADR    0x50001000
+#define CP1_EXEC_ADR        LTE_MODEM_ADDR
 
 #define CONFIG_SYS_INIT_SP_ADDR     \
 	(CONFIG_SYS_SDRAM_END - 0x10000 - GENERATED_GBL_DATA_SIZE)
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
+/*
+ * MMC definition
+ */
+#define CONFIG_EMMC_BOOT
+#define CONFIG_SPRD_MMC
+#define CONFIG_SUPPORT_EMMC_BOOT
+#ifdef  CONFIG_EMMC_BOOT
+#define EMMC_SECTOR_SIZE 512
+#define CONFIG_FS_EXT4
+#define CONFIG_EXT4_WRITE
+#define CONFIG_CMD_EXT4
+#define CONFIG_CMD_EXT4_WRITE
+#define CONFIG_EXT4_SPARSE_DOWNLOAD
+#endif
+#define CONFIG_CMD_FAT			1
+#define CONFIG_FAT_WRITE		1
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_SDHCI
+#define CONFIG_SYS_MMC_MAX_BLK_COUNT	0x1000
+#define CONFIG_MMC_SDMA
+#define CONFIG_DOS_PARTITION
+#define CONFIG_EFI_PARTITION		1
 
+/*timer*/
+#define CONFIG_SYS_HZ			1000
+#define CONFIG_SPRD_TIMER_CLK		1000 /*32768*/
 
-
-
-#define CONFIG_CMDLINE_TAG		1	/* enable passing of ATAGs */
-#define CONFIG_SETUP_MEMORY_TAGS	1
-#define CONFIG_INITRD_TAG		1
 
 /*
  * Memory Info
  */
-/* malloc() len */
-//#define CONFIG_SYS_MALLOC_LEN		(2 << 20)	/* 1 MiB */
+/* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 3 * 1024 * 1024)
 /*
  * Board has 2 32MB banks of DRAM but there is a bug when using
@@ -201,6 +161,8 @@
 #define PHYS_SDRAM_2		0x90000000
 #define PHYS_SDRAM_2_SIZE	0x10000000
 #endif
+#define CONFIG_SYS_SDRAM_BASE PHYS_SDRAM_1
+#define CONFIG_SYS_SDRAM_END (CONFIG_SYS_SDRAM_BASE + PHYS_SDRAM_1_SIZE)
 /* 8MB DRAM test */
 #define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM_1
 #define CONFIG_SYS_MEMTEST_END		(PHYS_SDRAM_1+0x0800000)
@@ -212,55 +174,10 @@
 /* No NOR flash present */
 #define CONFIG_SYS_NO_FLASH	1
 #define CONFIG_ENV_IS_NOWHERE
-#define CONFIG_ENV_SIZE		(128 * 1024)	
-/*
-#define	CONFIG_ENV_IS_IN_NAND
-#define	CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN
-#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET + CONFIG_ENV_SIZE)
-*/
-
-/* DDR */
-//#define DDR_CLK 464
-//---these three macro below,only one can be open
-//#define DDR_LPDDR1
-//#define DDR_LPDDR2
-//#define DDR_DDR3
+#define CONFIG_ENV_SIZE		(128 * 1024)
 
 #define CONFIG_DDR_AUTO_DETECT
 #define CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM    0x1C00   /* IRAM store ddr info */
-
-//#define DDR_TYPE DRAM_LPDDR2_2CS_8G_X32
-//#define DDR_TYPE DRAM_LPDDR2_1CS_4G_X32
-//#define DDR_TYPE DRAM_LPDDR2_1CS_8G_X32
-//#define DDR_TYPE DRAM_LPDDR2_2CS_16G_X32
-//#define DDR_TYPE DRAM_DDR3_1CS_2G_X8_4P
-//#define DDR_TYPE DRAM_DDR3_1CS_4G_X16_2P
-
-//#define DDR3_DLL_ON TRUE
-//#define DLL_BYPASS
-//#define DDR_APB_CLK 128
-//#define DDR_DFS_SUPPORT
-//#define DDR_DFS_VAL_BASE 0X1c00
-
-//#define DDR_SCAN_SUPPORT
-//#define MEM_IO_DS LPDDR2_DS_40R
-
-//#define PUBL_LPDDR1_DS PUBL_LPDDR1_DS_48OHM
-//#define PUBL_LPDDR2_DS PUBL_LPDDR2_DS_40OHM
-//#define PUBL_DDR3_DS   PUBL_DDR3_DS_34OHM
-
-/* NAND */
-#define CONFIG_NAND_SC9630
-//#define CONFIG_SPRD_NAND_REGS_BASE	(0x21100000)
-#define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define CONFIG_SYS_NAND_BASE		(0x21100000)
-
-
-#define CONFIG_CMD_MTDPARTS
-#define CONFIG_MTD_PARTITIONS
-#define CONFIG_MTD_DEVICE
-#define CONFIG_CMD_UBI
-#define CONFIG_RBTREE
 
 /* U-Boot general configuration */
 #define CONFIG_SYS_PROMPT	"=> "	/* Monitor Command Prompt */
@@ -273,33 +190,25 @@
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
 #define CONFIG_SYS_LONGHELP
 
-
-
-
-#define CONFIG_BOOTDELAY	0
-
-
 #define CONFIG_LOADADDR		(CONFIG_SYS_TEXT_BASE - CONFIG_SYS_MALLOC_LEN - 4*1024*1024)	/* loadaddr env var */
 #define CONFIG_SYS_LOAD_ADDR	CONFIG_LOADADDR
 
-
-#define MTDIDS_DEFAULT "nand0=sprd-nand"
-#define MTDPARTS_DEFAULT "mtdparts=sprd-nand:256k(spl),512k(2ndbl),256k(params),512k(vmjaluna),10m(modem),3840k(fixnv),3840k(backupfixnv),5120k(dsp),3840k(runtimenv),10m(boot),10m(recovery),250m(system),180m(userdata),20m(cache),256k(misc),1m(boot_logo),1m(fastboot_logo),3840k(productinfo),512k(kpanic)"
-#define CONFIG_BOOTARGS "mem=512M loglevel=1 console=ttyS1,115200n8 init=/init " MTDPARTS_DEFAULT
-
-#define COPY_LINUX_KERNEL_SIZE	(0x600000)
-
+#define CONFIG_BOOTDELAY	0
 #define CONFIG_BOOTCOMMAND "cboot normal"
-#define	CONFIG_EXTRA_ENV_SETTINGS				""	
+#define CONFIG_EXTRA_ENV_SETTINGS				""
 
-
-
+/*used in usb drv*/
+#define CHIP_ENDIAN_LITTLE
+#define _LITTLE_ENDIAN 1
 #define CONFIG_USB_GADGET_SC8800G
 #define CONFIG_USB_DWC
 #define CONFIG_USB_GADGET_DUALSPEED
-
 #define CONFIG_MODEM_CALIBERATE
+#define CALIBRATE_ENUM_MS 3000
+#define CALIBRATE_IO_MS 2000
+#define CONFIG_DWC_OTG
 
+/*lcd config*/
 #define CONFIG_LCD
 #ifdef  CONFIG_LCD
 #define CONFIG_DSIH_VERSION_1P21A
@@ -311,7 +220,7 @@
 #define CONFIG_FB_LCD_OTM8019A_MIPI
 #define CONFIG_SYS_WHITE_ON_BLACK
 #ifdef  LCD_TEST_PATTERN
-#define CONSOLE_COLOR_RED 0xf800 
+#define CONSOLE_COLOR_RED 0xf800
 #define CONSOLE_COLOR_GREEN 0x07e0
 #define CONSOLE_COLOR_YELLOW 0x07e0
 #define CONSOLE_COLOR_BLUE 0x001f
@@ -326,9 +235,6 @@
 #define SPRD_SYSDUMP_MAGIC		RAMDISK_ADR
 #define REAL_SDRAM_SIZE 0x40000000	/*dump 1G */
 
-
-#define CALIBRATE_ENUM_MS 3000
-#define CALIBRATE_IO_MS 2000
 
 //#define LOW_BAT_ADC_LEVEL 782 /*phone battery adc value low than this value will not boot up*/
 #define LOW_BAT_VOL            3400 /*phone battery voltage low than this value will not boot up*/
@@ -359,13 +265,8 @@
 #define CALIBRATION_FLAG_CP0        (0x88AF0000)
 #define CALIBRATION_FLAG_CP1        (0x8AA41800)
 
-
-
-
-/* #define CONFIG_SPRD_AUDIO_DEBUG */
-
-#define CONFIG_PBINT_7S_RESET_V1
 /*7S reset config*/
+#define CONFIG_PBINT_7S_RESET_V1
 #define CONFIG_7S_RST_MODULE_EN		1	//0:disable module; 1:enable module
 
 #define CONFIG_7S_RST_SW_MODE		1	//0:hw reset,1:arm reset,power keep on
@@ -377,10 +278,6 @@
 #define KERNEL_ADR      0x80008000
 #define VLX_TAG_ADDR    0x82000100
 #define RAMDISK_ADR     0x85500000
-#define CONFIG_SPRD_VBAT_CHEK
-#define CONFIG_USB_DOWNLOAD
-#define CONFIG_DWC_OTG
-#define CONFIG_ARM32
 #define CONFIG_ARCH_SHARK
 #define CONFIG_PREBOOT "role"
 #define CONFIG_BOARD_LATE_INIT
@@ -388,10 +285,8 @@
 
 
 /*rf board id */
-
-//#define RF_BAND_INFO                    
-
-#ifdef RF_BAND_INFO                     
+//#define RF_BAND_INFO
+#ifdef RF_BAND_INFO
 #define LB_GPIO_NUM 			134
 #define MB_GPIO_NUM 			135
 //#define HB_GPIO_NUM 			0
@@ -422,12 +317,12 @@
 #define CONFIG_CONS_INDEX	1	/* use UART0 for console */
 #define CONFIG_BAUDRATE		115200	/* Default baud rate */
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 #define CONFIG_SPRD_UART_PORTS	{ (void *) (CONFIG_SYS_SERIAL0), (void *) (CONFIG_SYS_SERIAL1) }
 #define CONFIG_SYS_SERIAL0		0x70000000
 #define CONFIG_SYS_SERIAL1		0x70100000
 
 /* Chip Driver Macro Definitions End*/
+
 /*active arm7 ram before access to it*/
 #define CONFIG_ARM7_RAM_ACTIVE
 

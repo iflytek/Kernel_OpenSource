@@ -289,6 +289,7 @@ int fdt_fixup_boot_mode(void *fdt)
 }
 #endif
 
+#ifdef CONFIG_NAND_BOOT
 int fdt_fixup_mtd(void *fdt)
 {
 	char buf[128];
@@ -304,6 +305,7 @@ int fdt_fixup_mtd(void *fdt)
 	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
 	return ret;
 }
+#endif
 
 int fdt_fixup_lcdid(void *fdt)
 {
