@@ -17,6 +17,7 @@
 
 #include <boot_mode.h>
 #include <chipram_env.h>
+#include <asm/arch/sprd_reg.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -30,6 +31,30 @@ phys_size_t real_ram_size = 0x40000000;
 
 
 //extern struct eic_gpio_resource sprd_gpio_resource[];
+static void sprd_pmu_init(void)
+{
+	__raw_writel(__raw_readl(REG_PMU_APB_PD_MM_TOP_CFG)
+		& ~(BIT_PD_MM_TOP_FORCE_SHUTDOWN),
+		REG_PMU_APB_PD_MM_TOP_CFG);
+
+	while (__raw_readl(REG_PMU_APB_PWR_STATUS0_DBG) & 0xf0000000) {};
+
+	__raw_writel(__raw_readl(REG_PMU_APB_PD_GPU_TOP_CFG)
+		& ~(BIT_PD_GPU_TOP_FORCE_SHUTDOWN),
+		REG_PMU_APB_PD_GPU_TOP_CFG);
+
+	while (__raw_readl(REG_PMU_APB_PWR_STATUS0_DBG) & 0x0f000000) {};
+
+	__raw_writel(__raw_readl(REG_AON_APB_APB_EB0) | BIT_MM_EB |
+		BIT_GPU_EB, REG_AON_APB_APB_EB0);
+	__raw_writel(__raw_readl(REG_MM_AHB_RF_AHB_EB) | BIT_CKG_EB,
+		REG_MM_AHB_RF_AHB_EB);
+	__raw_writel(__raw_readl(REG_MM_AHB_RF_GEN_CKG_CFG)
+		| BIT_MM_MTX_AXI_CKG_EN | BIT_MM_AXI_CKG_EN,
+		REG_MM_AHB_RF_GEN_CKG_CFG);
+	__raw_writel(__raw_readl(REG_MM_CLK_MM_AHB_CFG) | 0x3,
+		REG_MM_CLK_MM_AHB_CFG);
+}
 
 int board_init()
 {
@@ -47,7 +72,7 @@ int board_init()
 	sprd_gpio_init();
 	init_ldo_sleep_gr();
 //	TDPllRefConfig(1);
-
+	sprd_pmu_init();
 	return 0;
 }
 
