@@ -20,7 +20,7 @@
 #include "adi_hal_internal.h"
 //#include "asm/arch/wdg_drvapi.h"
 #include "asm/arch/sprd_reg.h"
-#include "asm/arch/boot_drvapi.h"
+//#include "asm/arch/boot_drvapi.h"
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/
