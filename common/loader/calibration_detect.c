@@ -4,6 +4,7 @@
 #include <asm/arch/check_reboot.h>
 #include <chipram_env.h>
 #include <linux/usb/usb_uboot.h>
+#include <sprd_common_rw.h>
 
 #define MAX_CALIBRATION_LEN   50
 
@@ -615,7 +616,7 @@ int read_adc_calibration_data(char *buffer,int size)
 	char *tmp = malloc(tmp_size);
 
 	debugf("start read miscdata adc data...\n");
-	if(do_raw_data_read("miscdata", tmp_size, 0, tmp)) {
+	if(common_raw_read("miscdata", (uint64_t)tmp_size, 0, tmp)) {
 		errorf("read miscdata adc data error.\n");
 		free(tmp);
 		return 0;

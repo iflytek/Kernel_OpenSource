@@ -726,14 +726,17 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 	ret = memcmp(kernel_pname, RECOVERY_PART, strlen(RECOVERY_PART));
 	if ((ret != 0) || (boot_load_recovery_in_sd(hdr) != 0))
 		if (!_boot_load_kernel_ramdisk_image(kernel_pname, hdr))
-			return;
+			ret = -1;
 #else
 	/*loader kernel and ramdisk*/
 	if (!_boot_load_kernel_ramdisk_image(kernel_pname, hdr))
-		return;
+		ret = -1;
 #endif
 
 	set_vibrator(0);
+
+	if (-1 == ret)
+		return;
 
 	/*load required image which config in table */
 	i = 0;

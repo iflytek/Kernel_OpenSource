@@ -30,8 +30,6 @@
 #include <linux/ctype.h>
 #include <fdtdec.h>
 
-
-extern void MMU_DisableIDCM(void);
 //extern lcd_display(void);
 extern void set_backlight(uint32_t value);
 //extern void lcd_setfgcolor(int color);
@@ -466,7 +464,7 @@ char *rstmode[] = {
 
 #define GET_RST_MODE(x) rstmode[(x) < 17 ? (x) : 0]
 
-#ifndef CONFIG_EMMC_BOOT
+#ifdef CONFIG_NAND_BOOT
 /*Copy the data saved in nand flash to ram*/
 int read_nand_to_ram( struct mtd_info *mtd, loff_t paddr, unsigned int size, unsigned char *buf)
 {
@@ -879,7 +877,7 @@ void write_sysdump_before_boot(int rst_mode)
 		}
 #endif
 
-#ifndef CONFIG_EMMC_BOOT
+#ifdef CONFIG_NAND_BOOT
 #ifdef CONFIG_SPLASH_SCREEN
 		lcd_printf("\nBegin to dump nand flash:\n");
 #endif

@@ -17,7 +17,6 @@
 /*Dangerous defination, always avoid use buffer like this!*/
 #define BACKUP_RECOVERY_BUF_ADDR    0x9d000000
 
-extern char misc_buf[8192];
 extern int _boot_load_separate_dt(void);
 
 int find_sd_backup_misc_flag = 0;
@@ -62,6 +61,10 @@ int _sd_fat_mount()
 	return 0;
 }
 
+#ifdef OTA_BACKUP_MISC_RECOVERY
+
+char misc_buf[8192];
+
 int get_recovery_msg_in_sd(void* out,int size)
 {
 
@@ -85,6 +88,7 @@ int get_recovery_msg_in_sd(void* out,int size)
 	debugf("fat_read %d,tick=%ld\n", ret,get_ticks());
 	return ret;
 }
+
 
 
 int boot_load_recovery_in_sd(boot_img_hdr * hdr)
@@ -158,6 +162,8 @@ int boot_load_recovery_in_sd(boot_img_hdr * hdr)
 
 	return 0;
 }
+
+#endif
 
 int load_sd_ramdisk(void* buf,int size)
 {

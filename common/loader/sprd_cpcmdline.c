@@ -22,7 +22,7 @@ static const char *cmd_arr[] = {
 static unsigned int gpio_state(unsigned int GPIO_NUM){
 	int value = 0 ;
 	sprd_gpio_request(NULL, GPIO_NUM);
-        sprd_gpio_direction_input(NULL, GPIO_NUM);
+	sprd_gpio_direction_input(NULL, GPIO_NUM);
 	value = sprd_gpio_get(NULL,GPIO_NUM);
 	return value > 0;
 }
@@ -103,7 +103,7 @@ static void cmdline_prepare(void)
 #endif
 #endif
 		memset(g_CPcmdlineBuf, 0, MAX_CP_CMDLINE_LEN);
-		printf("g_CPcmdlineBuf = 0x%p\n" , g_CPcmdlineBuf);
+		debugf("g_CPcmdlineBuf = 0x%p\n" , g_CPcmdlineBuf);
 
 	}
 }
@@ -171,7 +171,7 @@ void cp_cmline_fixup(void)
 		cmdline_add_cp_cmdline(RF_BOARD_ID, buf);
 	}
 
-	printf("cp cmdline: %s\n", g_CPcmdlineBuf);
+	debugf("cp cmdline: %s\n", g_CPcmdlineBuf);
 }
 
 char* cp_getcmdline(void)

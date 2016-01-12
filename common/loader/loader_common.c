@@ -220,17 +220,6 @@ static int start_linux_armv8()
 
 void vlx_entry(void)
 {
-#if 0
-	/*down the device if charger disconnect during calibration detect. */
-	if (g_charger_mode && !charger_connected()) {
-		g_charger_mode = 0;
-		power_down_devices(0);
-		while (1) ;
-	}
-
-	MMU_DisableIDCM();
-#endif
-
 #ifdef DFS_ON_ARM7
 	cp_dfs_param_for_arm7();
 #endif

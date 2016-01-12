@@ -40,7 +40,7 @@ int fdt_initrd_norsvmem(void *fdt, ulong initrd_start, ulong initrd_end, int for
 
 	/* If there is no "chosen" node in the blob return */
 	if (nodeoffset < 0) {
-		printf("fdt_initrd: %s\n", fdt_strerror(nodeoffset));
+		errorf("fdt_initrd: %s\n", fdt_strerror(nodeoffset));
 		return nodeoffset;
 	}
 
@@ -57,7 +57,7 @@ int fdt_initrd_norsvmem(void *fdt, ulong initrd_start, ulong initrd_end, int for
 #endif
 		err = fdt_setprop(fdt, nodeoffset, "linux,initrd-start", &tmp, sizeof(tmp));
 		if (err < 0) {
-			printf("WARNING: " "could not set linux,initrd-start %s.\n", fdt_strerror(err));
+			errorf("could not set linux,initrd-start %s.\n", fdt_strerror(err));
 			return err;
 		}
 #ifdef CONFIG_ARM64
@@ -67,7 +67,7 @@ int fdt_initrd_norsvmem(void *fdt, ulong initrd_start, ulong initrd_end, int for
 #endif
 		err = fdt_setprop(fdt, nodeoffset, "linux,initrd-end", &tmp, sizeof(tmp));
 		if (err < 0) {
-			printf("WARNING: could not set linux,initrd-end %s.\n", fdt_strerror(err));
+			errorf("could not set linux,initrd-end %s.\n", fdt_strerror(err));
 
 			return err;
 		}
@@ -88,7 +88,7 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 
 	err = fdt_check_header(fdt);
 	if (err < 0) {
-		printf("fdt_chosen_bootargs_append: %s\n", fdt_strerror(err));
+		errorf("fdt_chosen_bootargs_append: %s\n", fdt_strerror(err));
 		return err;
 	}
 
@@ -101,7 +101,7 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 	 * If there is no "chosen" node in the blob, leave.
 	 */
 	if (nodeoffset < 0) {
-		printf("fdt_chosen_bootargs_append: cann't find chosen");
+		errorf("fdt_chosen_bootargs_append: cann't find chosen");
 		return -1;
 	}
 
@@ -125,7 +125,7 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 		}
 		err = fdt_setprop(fdt, nodeoffset, "bootargs", strargs, strlen(strargs) + 1);
 		if (err < 0)
-			printf("WARNING: could not set bootargs %s.\n", fdt_strerror(err));
+			errorf("could not set bootargs %s.\n", fdt_strerror(err));
 		free(strargs);
 	}
 
@@ -142,11 +142,11 @@ int fdt_chosen_bootargs_replace(void *fdt, char *old_args, char *new_args)
 
 	if (!old_args || !new_args)
 		return -1;
-	printf("fdt_chosen_bootargs_replace start!");
+	debugf("fdt_chosen_bootargs_replace start!");
 
 	err = fdt_check_header(fdt);
 	if (err < 0) {
-		printf("fdt_chosen_bootargs_replace: %s\n", fdt_strerror(err));
+		errorf("fdt_chosen_bootargs_replace: %s\n", fdt_strerror(err));
 		return err;
 	}
 
@@ -159,7 +159,7 @@ int fdt_chosen_bootargs_replace(void *fdt, char *old_args, char *new_args)
 	 * If there is no "chosen" node in the blob, leave.
 	 */
 	if (nodeoffset < 0) {
-		printf("fdt_chosen_bootargs_replace: cann't find chosen");
+		errorf("fdt_chosen_bootargs_replace: cann't find chosen");
 		return -1;
 	}
 
@@ -170,11 +170,10 @@ int fdt_chosen_bootargs_replace(void *fdt, char *old_args, char *new_args)
 	path = fdt_getprop(fdt, nodeoffset, "bootargs", NULL);
 	if (path != NULL ) {
 
-        printf("fdt_chosen_bootargs_replace: old bootargs %s!", path);
+        debugf("fdt_chosen_bootargs_replace: old bootargs %s!", path);
         str = strstr(path, old_args);
-        if(!str)
-        {
-            printf("fdt_chosen_bootargs_replace: cann't find str %s!", old_args);
+        if(!str) {
+            errorf("fdt_chosen_bootargs_replace: cann't find str %s!", old_args);
             return -1;
         }
 		strargs = malloc(1024);
@@ -204,10 +203,10 @@ int fdt_chosen_bootargs_replace(void *fdt, char *old_args, char *new_args)
         }
         *dst = 0;
 
-        printf("fdt_chosen_bootargs_replace: new bootargs %s!", strargs);
+        debugf("fdt_chosen_bootargs_replace: new bootargs %s!", strargs);
 		err = fdt_setprop(fdt, nodeoffset, "bootargs", strargs, strlen(strargs) + 1);
 		if (err < 0)
-			printf("WARNING: could not set bootargs %s.\n", fdt_strerror(err));
+			errorf("could not set bootargs %s.\n", fdt_strerror(err));
 		free(strargs);
 	}
 
@@ -247,10 +246,10 @@ int fdt_fixup_calibration_parameter(void *fdt)
 
 	buf = get_calibration_parameter();
 	if (NULL == buf) {
-		printf("warn:nothing transfer to kernel about calibration\n");
+		debugf("warn:nothing transfer to kernel about calibration\n");
 		return -1;
 	} else {
-		printf("in function fdt_fixup_calibration_parameter buf = %s", buf);
+		debugf("in function fdt_fixup_calibration_parameter buf = %s", buf);
 		ret = fdt_chosen_bootargs_append(fdt, buf, 1);
 		if(0 ==ret)
 		{
@@ -406,7 +405,7 @@ int fdt_fixup_adc_calibration_data(void *fdt)
 		buf[str_len] = '\0';
 		ret = fdt_chosen_bootargs_append(fdt, buf, 1);
 	} else {
-		printf("read_adc_calibration_data failed\n");
+		debugf("read_adc_calibration_data failed\n");
 	}
 	free(adc_data);
 	return ret;
@@ -426,26 +425,26 @@ int fdt_fixup_dram_training(void *fdt)
 	str_len = strlen(buf);
 	buf[str_len] = '\0';
 	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
-	printf(" mem_cs=%d, mem_cs0_sz=%08x", get_dram_cs_number(), get_dram_cs0_size());
+	debugf(" mem_cs=%d, mem_cs0_sz=%08x", get_dram_cs_number(), get_dram_cs0_size());
 
 	/* gerenally, reserved memory should be configured in dts file. Add fixup here to avoid the wide
 	 * range of change for various boards.
 	 * reserved for ddr training data used
 	 */
 	if (ret < 0)
-		printf("failed to append ddr training data args bootargs\n");
+		errorf("failed to append ddr training data args bootargs\n");
 	else {
 		addr = PHYS_SDRAM_1;
 		ret = fdt_add_mem_rsv(fdt, addr, size);
 		if(ret < 0) {
-			printf("failed to reserved cs0 ddr training data space\n");
+			errorf("failed to reserved cs0 ddr training data space\n");
 		}
 		else {
 			if(2 == get_dram_cs_number()) {
 				addr = PHYS_SDRAM_1 + get_dram_cs0_size();
 				ret = fdt_add_mem_rsv(fdt, addr, size);
 				if(ret < 0) {
-					printf("failed to reserved cs1 ddr training data space\n");
+					errorf("failed to reserved cs1 ddr training data space\n");
 				}
 			}
 		}
@@ -540,10 +539,11 @@ void fdt_fixup_secureboot_param(void *fdt_blob)
 			buf[str_len] = '\0';
 		}
 	}
+/*TODO*/
 #ifdef  CONFIG_EMMC_BOOT
 	if (TRUE != Emmc_Read(2 /* PARTITION_BOOT2 */ , PUBKEY_VLR_BLOCK_INDEX,
 					      PUBKEY_READ_BLOCK_NUMS, (uint8_t *) pubk)) {
-				printf("PARTITION_BOOT2 read error \n");
+				errorf("PARTITION_BOOT2 read error \n");
 				return 0;
 			}
 #endif
