@@ -12,6 +12,7 @@
 #include <malloc.h>
 #include <boot_mode.h>
 #include <adi_hal_internal.h>
+#include <sprd_adc.h>
 
 #define SERIAL_DEV PNP_DEV(0x2e, 4)
 
@@ -53,7 +54,7 @@ int board_init(void)
 	/*FPGA forbiden*/
 	//misc_init();
 	//LDO_Init();
-	ADC_Init();
+	pmic_adc_Init();
 	/*FPGA forbiden*/
 //	pin_init();
 	sprd_eic_init();

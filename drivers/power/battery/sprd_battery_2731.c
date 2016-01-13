@@ -34,7 +34,7 @@
 extern chipram_env_t* get_chipram_env(void);
 extern int charger_connected(void);
 extern int read_adc_calibration_data(char *buffer, int size);
-extern int sci_efuse_calibration_get(unsigned int *p_cal_data);
+extern int sprd_get_adc_bat_cal(unsigned int *p_cal_data);
 extern int sprd_eic_request(unsigned offset);
 extern int sprd_eic_get(unsigned offset);
 extern void power_down_devices(unsigned pd_cmd);
@@ -117,7 +117,7 @@ void sprdbat_get_vbatauxadc_caldata(void)
 #endif
 	/* get voltage values from efuse */
 	if (adc_cal_flag == ADC_CAL_TYPE_NO) {
-		ret = sci_efuse_calibration_get(adc_data);
+		ret = sprd_get_adc_bat_cal(adc_data);
 		if (ret > 0) {
 			debugf("adc_para from efuse is 0x%x 0x%x \n",
 			       adc_data[0], adc_data[1]);

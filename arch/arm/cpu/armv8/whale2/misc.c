@@ -4,6 +4,8 @@
 #include <asm/arch/sci_types.h>
 #include "adi_hal_internal.h"
 #include <asm/arch/common.h>
+#include <otp_helper.h>
+
 /*
 	REG_AON_APB_BOND_OPT0  ==> romcode set
 	REG_AON_APB_BOND_OPT1  ==> set it later
@@ -292,6 +294,7 @@ void misc_init()
 
 	smpl_config();
 	sprd_get_chipid();
+	sprd_uid_bin_info();
 }
 
 typedef struct mem_cs_info

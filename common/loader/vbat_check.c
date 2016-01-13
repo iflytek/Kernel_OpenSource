@@ -1,5 +1,5 @@
 #include <common.h>
-#include "adc_drvapi.h"
+#include "sprd_adc.h"
 #include <boot_mode.h>
 
 int charger_connected(void);
@@ -26,6 +26,19 @@ uint32_t get_vbat_value(void)
 	return sum / _BUF_SIZE;
 }
 
+#define ADC_CHANNEL_VBAT 5
+
+int32_t ADC_GetValue(unsigned int id, bool scale)
+{
+	int32_t result;
+
+	if (-1 == pmic_adc_get_values(id, scale, 1, &result)) {
+		return -1;
+	}
+
+	return result;
+}
+
 int is_bat_low(void)
 {
 	int adc_value = 0;
@@ -38,10 +51,11 @@ int is_bat_low(void)
 		comp_vbat = LOW_BAT_VOL;
 	}
 
-	ADC_Init();
+	pmic_adc_Init();
 
 	for (i = 0; i < _BUF_SIZE; i++) {
 retry_adc:
+
 		adc_value = ADC_GetValue(ADC_CHANNEL_VBAT, false);
 		if (adc_value < 0) {
 			printf("ADC read error\n");

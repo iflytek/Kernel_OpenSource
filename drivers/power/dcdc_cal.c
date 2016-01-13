@@ -1,6 +1,6 @@
 #include <common.h>
 #include <asm/io.h>
-#include "adc_drvapi.h"
+#include "sprd_adc.h"
 #include "adi_hal_internal.h"
 #include <asm/arch/sprd_reg.h>
 
@@ -82,7 +82,7 @@ int sci_adc_request(int channel)
 	int i;
 	int results[MEASURE_TIMES];
 
-	if (-1 == ADC_GetValues(channel, ADC_SCALE_3V, MEASURE_TIMES, results)) {
+	if (-1 == pmic_adc_get_values(channel, ADC_SCALE_3V, MEASURE_TIMES, results)) {
 		return 0;
 	}
 

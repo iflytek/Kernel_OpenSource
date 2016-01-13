@@ -10,7 +10,7 @@
 #include <boot_mode.h>
 #include <adi_hal_internal.h>
 #include <chipram_env.h>
-
+#include <sprd_adc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x40000000;
@@ -30,7 +30,7 @@ int board_init(void)
 	/*FPGA forbiden*/
 	misc_init();
 	regulator_init();
-	ADC_Init();
+	pmic_adc_Init();
 	/*FPGA forbiden*/
 	pin_init();
 	sprd_eic_init();

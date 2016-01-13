@@ -1,6 +1,6 @@
 #include <common.h>
 #include <asm/io.h>
-#include "adc_drvapi.h"
+#include "sprd_adc.h"
 #include "adi_hal_internal.h"
 #include <asm/arch/sprd_reg.h>
 #include <chipram_env.h>
@@ -138,7 +138,7 @@ static int sci_adc_request(int channel, int scale)
 {
 	int results[MEASURE_TIMES];
 
-	if (-1 == ADC_GetValues(channel, scale, MEASURE_TIMES, results)) {
+	if (-1 == pmic_adc_get_values(channel, scale, MEASURE_TIMES, results)) {
 		return 0;
 	}
 
@@ -217,7 +217,7 @@ static int sci_adc_ratio(int channel, int scale, int mux)
 
 static u32 bat_numerators, bat_denominators = 0;
 extern uint16_t sprdbat_auxadc2vbatvol (uint16_t adcvalue);
-extern u32 __adie_efuse_read(int blk_index);
+extern u32 sprd_pmic_efuse_read(int blk_index);
 extern chipram_env_t* get_chipram_env(void);
 
 static int sci_adc_vol_request(int channel, int scale, int mux, int* adc)
@@ -655,7 +655,7 @@ int DCDC_Cal_ArmCore(void)
 	u32 chip_id = ANA_GET_CHIP_ID();
 	int vbat_adc = 0;
 	int vbat_vol = sci_adc_vol_request(5, ADC_SCALE_3V, 0, &vbat_adc);
-	u16 otp_ana_flag = (u8)__adie_efuse_read(0) & BIT(7);
+	u16 otp_ana_flag = (u8)sprd_pmic_efuse_read(0) & BIT(7);
 
 	ana_mixed_ctl = ANA_REG_GET(ANA_REG_GLB_MIXED_CTRL0);
 	otp_pwr_sel = ANA_REG_GET(ANA_REG_GLB_PWR_SEL);

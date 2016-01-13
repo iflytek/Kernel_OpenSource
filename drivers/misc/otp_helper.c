@@ -21,105 +21,53 @@
 #include <common.h>
 #include <otp_helper.h>
 
-#define BLK_WIDTH_OTP_EMEMORY			( 8 ) /* bit counts */
-#define BLK_ADC_DETA_ABC_OTP			( 7 ) /* start block for ADC otp delta */
-
-#if defined(CONFIG_ARCH_SCX35L)
 #define BLK_UID_DETA_START			( 0 )
 #define BLK_UID_DETA_END			( 1)
-#endif
+#define UID_BLOCK0 0
+#define UID_BLOCK1  1
+#define BIN_BLOCK13 13
+#define BIN_BLOCK15 15
 
-#define BLK_ADC_DETA                    ( 7 )
-#define BASE_ADC_P0				711	//3.6V
-#define BASE_ADC_P1				830	//4.2V
-#define VOL_P0					3600
-#define VOL_P1					4200
-#define ADC_DATA_OFFSET			128
-
-u32 efuse_read(int id,int blk_index)
-{
-    if(id == DDIE_EFUSE_ID){
-        return __ddie_efuse_read(blk_index);
-	}else if(id == ARM7_EFUSE_ID){
-#if defined(CONFIG_SECURE_EFUSE)
-		return __ddie_arm7_efuse_read( blk_index);
-#else
-		return 0;
-#endif
-    }else{
-#if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
-        return __adie_efuse_read(blk_index);
-#else
-        return 0;
-#endif
-    }
-}
-
-
-int efuse_prog(int id,int blk_index,u32 val)
-{
-	if(id == DDIE_EFUSE_ID){
-	return __ddie_efuse_prog(blk_index,val);
-	}else if(id == ARM7_EFUSE_ID){
-#if defined(CONFIG_SECURE_EFUSE)
-		return __ddie_arm7_efuse_prog( blk_index, val);
-#else
-		return 0;
-#endif
-	}else{
-#if defined(CONFIG_SECURE_EFUSE)
-		return __ddie_arm7_efuse_prog( blk_index, val);
-#else
-		return 0;
-#endif
-	}
-}
-#if defined(CONFIG_ARCH_SCX35L)
 void get_efuse_uid(void)
 {
-	unsigned int block0,block1;
-	block0 = __ddie_efuse_read(BLK_UID_DETA_START);
-	block1 = __ddie_efuse_read(BLK_UID_DETA_END);
-    printf("efuse uid is %08x%08x\n", __func__, block0 ,block1);
+	unsigned int block0, block1;
+	block0 = sprd_ap_efuse_read(BLK_UID_DETA_START);
+	block1 = sprd_ap_efuse_read(BLK_UID_DETA_END);
+	printf("efuse uid is %08x%08x\n", __func__, block0, block1);
 }
-#endif
-int sci_efuse_calibration_get(unsigned int *p_cal_data)
+
+static void efuse_uid(void)
 {
-	unsigned int deta;
-	unsigned short adc_temp;
-
-#if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
-	__adie_efuse_block_dump(); /* dump a-die efuse */
-
-	/* verify the otp data of ememory written or not */
-	adc_temp = (__adie_efuse_read(0) & (1 << 7));
-	if (adc_temp)
-		return 0;
-
-	deta = __adie_efuse_read_bits(BLK_ADC_DETA_ABC_OTP * BLK_WIDTH_OTP_EMEMORY, 16);
-#elif defined(CONFIG_SPX30G) || defined(CONFIG_ARCH_SCX35L)
-    	__ddie_efuse_block_dump(); /* dump d-die efuse */
-
-	deta = __ddie_efuse_read(BLK_ADC_DETA);
-#else
-	#warning "AuxADC CAL DETA need fixing"
-#endif
-
-	printf("%s() get efuse block %u, deta: 0x%08x\n", __func__, BLK_ADC_DETA, deta);
-
-	deta &= 0xFFFFFF;
-
-	if ((!deta) || (p_cal_data == NULL)) {
-		return 0;
-	}
-
-	//adc 3.6V
-	adc_temp = ((deta >> 8) & 0x00FF) + BASE_ADC_P0 - ADC_DATA_OFFSET;
-	p_cal_data[1] = (VOL_P0) | ((adc_temp << 2) << 16);
-
-	//adc 4.2V
-	adc_temp = (deta & 0x00FF) + BASE_ADC_P1 - ADC_DATA_OFFSET;
-	p_cal_data[0] = (VOL_P1) | ((adc_temp << 2) << 16);
-
-	return 1;
+	u32 block0,block1;
+    u32 x,y,wafer_id;
+    u32 LOTID_0,LOTID_1,LOTID_2,LOTID_3,LOTID_4,LOTID_5;
+	char bufallid[20];
+	block0= sprd_ap_efuse_read(UID_BLOCK0);
+	block1= sprd_ap_efuse_read(UID_BLOCK1);
+    y=block1&0x7F;
+    x=(block1>>7)&0x7F;
+    wafer_id=(block1>>14)&0x1F;
+    LOTID_0=(block1>>19)&0x3F;
+    LOTID_1=(block1>>25)&0x3F;
+    LOTID_2=block0&0x3F;
+    LOTID_3=(block0>>6)&0x3F;
+    LOTID_4=(block0>>12)&0x3F;
+    LOTID_5=(block0>>18)&0x3F;
+	printf("the uid = %c%c%c%c%c%c_%d_%d_%d\n",LOTID_5+48,LOTID_4+48,LOTID_3+48,LOTID_2+48,LOTID_1+48,LOTID_0+48,wafer_id,x,y);
 }
+
+static void efuse_binning(void)
+{
+	u32 block13,block15;
+	block13= sprd_ap_efuse_read(BIN_BLOCK13);
+	block15= sprd_ap_efuse_read(BIN_BLOCK15);
+	printf("BIF = 0x%x, 0x%x",BIN_BLOCK13,BIN_BLOCK15);
+}
+
+void sprd_uid_bin_info(void)
+{
+	efuse_uid();
+	efuse_binning();
+}
+
+

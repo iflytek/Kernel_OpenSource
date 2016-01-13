@@ -18,12 +18,13 @@
 #include <boot_mode.h>
 #include <chipram_env.h>
 #include <asm/arch/sprd_reg.h>
+#include <sprd_adc.h>
+
 
 DECLARE_GLOBAL_DATA_PTR;
 
 extern void sprd_gpio_init(void);
 extern void ADI_init (void);
-extern void ADC_Init(void);
 extern void init_ldo_sleep_gr(void);
 
 phys_size_t real_ram_size = 0x40000000;
@@ -64,7 +65,7 @@ int board_init()
 	ADI_init();
 	misc_init();
 	regulator_init();
-	ADC_Init();
+	pmic_adc_Init();
 	pin_init();
 	sprd_eic_init();
 	sprd_intc_enable();

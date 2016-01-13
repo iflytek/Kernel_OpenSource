@@ -18,7 +18,7 @@
 
 extern int charger_connected(void);
 extern int read_adc_calibration_data(char *buffer,int size);
-extern int sci_efuse_calibration_get(unsigned int * p_cal_data);
+extern int sprd_get_adc_bat_cal(unsigned int * p_cal_data);
 uint16_t adc_voltage_table[2][2] = {
 	{3310, 4200},
 	{2832, 3600},
@@ -111,7 +111,7 @@ void sprdbat_get_vbatauxadc_caldata(void)
 #endif
 	/* get voltage values from efuse */
 	if (adc_cal_flag == ADC_CAL_TYPE_NO){
-		ret = sci_efuse_calibration_get(adc_data);
+		ret = sprd_get_adc_bat_cal(adc_data);
 		if (ret > 0) {
 			debugf("adc_para from efuse is 0x%x 0x%x \n",adc_data[0],adc_data[1]);
 			adc_voltage_table[0][1]=adc_data[0] & 0xFFFF;

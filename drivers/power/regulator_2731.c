@@ -127,7 +127,7 @@ static int sci_adc_request(int channel, int scale)
 {
 	int results[MEASURE_TIMES];
 
-	if (-1 == ADC_GetValues(channel, scale, MEASURE_TIMES, results)) {
+	if (-1 == pmic_adc_get_values(channel, scale, MEASURE_TIMES, results)) {
 		return 0;
 	}
 
