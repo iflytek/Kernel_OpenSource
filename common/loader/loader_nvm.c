@@ -544,7 +544,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 		errorf("%s kernel read error!\n", partition);
 		return 0;
 	}
-	debugf("%s kernel read OK,size=0x%x, locate to 0x%x \n", partition, size, (ulong)KERNEL_ADR);
+	debugf("%s kernel read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)KERNEL_ADR);
 	
 	/*read ramdisk image */
 	offset += size;
@@ -557,7 +557,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 		errorf("%s ramdisk read error!\n", partition);
 		return 0;
 	}
-	debugf("%s ramdisk read OK,size=0x%x, locate to 0x%x \n", partition, size, (ulong)RAMDISK_ADR);
+	debugf("%s ramdisk read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)RAMDISK_ADR);
 
 #ifdef CONFIG_OF_LIBFDT
 #ifdef CONFIG_SEPARATE_DT
@@ -581,7 +581,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 		errorf("dt load error!\n");
 		return 0;
 	}
-	debugf("%s dtb read OK,size=0x%x, locate to 0x%x \n", partition, size, (ulong)DT_ADR);
+	debugf("%s dtb read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)DT_ADR);
 #endif
 #endif
 
@@ -671,7 +671,7 @@ int _boot_load_separate_dt(void)
 		goto fail;
 	}
 
-	debugf("load separate DT OK,size=0x%x, locate to 0x%x \n", size, (ulong)DT_ADR);
+	debugf("load separate DT OK,size=0x%llx, locate to 0x%lx \n", size, (ulong)DT_ADR);
 	free(header);
 	return 1;
 
