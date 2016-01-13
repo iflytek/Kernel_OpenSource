@@ -29,7 +29,7 @@ fi
 
 if [ "$1" = "iwhale2" ]
 then
-export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.8/bin
+export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9/bin
 export make CROSS_COMPILE=x86_64-linux-android-
 export KBUILD_OUTPUT=./out
 export UBOOT_DEBUG_FLAG=-DDEBUG
@@ -41,7 +41,7 @@ fi
 
 if [ "$1" = "iwhale2_vp" ]
 then
-export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.8/bin
+export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9/bin
 export make CROSS_COMPILE=x86_64-linux-android-
 export KBUILD_OUTPUT=./out
 export UBOOT_DEBUG_FLAG=-DDEBUG
@@ -49,4 +49,17 @@ export UBOOT_DEBUG_FLAG=-DDEBUG
 make distclean
 make ARCH=x86 iwhale2_vp_defconfig
 make ARCH=x86 -j4
+fi
+
+
+if [ "$1" = "sp9850s_1h10_5m" ]
+then
+export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin
+export make CROSS_COMPILE=aarch64-linux-android-
+export KBUILD_OUTPUT=./out
+export UBOOT_DEBUG_FLAG=-DDEBUG
+
+make distclean
+make ARCH=arm sp9850s_1h10_5m_defconfig
+make ARCH=arm -j4
 fi

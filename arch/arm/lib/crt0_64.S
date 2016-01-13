@@ -96,7 +96,7 @@ zero_gd:
 	ldr	x9, [x18, #GD_RELOC_OFF]	/* x9 <- gd->reloc_off */
 	add	lr, lr, x9	/* new return address after relocation */
 	ldr	x0, [x18, #GD_RELOCADDR]	/* x0 <- gd->relocaddr */
-	b	relocate_code
+	/*b	relocate_code*/ /*no need of relocate here*/
 
 relocation_return:
 

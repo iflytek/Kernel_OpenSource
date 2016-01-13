@@ -1,5 +1,5 @@
 ifeq ($(TARGET_ARCH) , arm64)
-UBOOT_TOOLCHAIN := aarch64-linux-android-
+UBOOT_TOOLCHAIN := $(shell pwd)/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
 SRCARCH := arm
 else ifeq($(TARGET_ARCH), arm)
 UBOOT_TOOLCHAIN := $(shell pwd)/prebuilts/gcc/linux-x86/arm/arm-eabi-4.8/bin/arm-eabi-

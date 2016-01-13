@@ -42,7 +42,7 @@
 #define SPRDFB_SUPPORT_LVDS_PANEL
 #endif
 
-#if defined(CONFIG_SC9001)
+#if defined(CONFIG_SC9001)||defined(CONFIG_SC9860)
 #include "sprdfb_chip_9001.h"
 #endif
 
