@@ -1,65 +1,34 @@
-if [ "$1" = "" ]
+if [ "$1" = "" ] || [ "$2" = "" ]
 then
-	echo "Pleast input command : make 'board_name'"
+	echo "Pleast input command : make 'arch_name' 'board_name'"
+	echo "for examle: make x86 iwhale2"
+	exit
 fi
 
-if [ "$1" = "sp9830a-5h10_ga1" ]
-then
-export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/arm/arm-eabi-4.8/bin
-export make CROSS_COMPILE=arm-eabi-
 export KBUILD_OUTPUT=./out
 export UBOOT_DEBUG_FLAG=-DDEBUG
 
-make distclean
-make ARCH=arm sp9830a-5h10_ga1_defconfig
-make ARCH=arm -j4
+if [ "$1" = "arm" ];then
+	export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/arm/arm-eabi-4.8/bin
+	export make CROSS_COMPILE=arm-eabi-
+	make distclean
+	make ARCH=arm "$2"_defconfig
+	make ARCH=arm -j4
+
+elif [ "$1" = "arm64" ]; then
+	export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin
+	export make CROSS_COMPILE=aarch64-linux-android-
+	make distclean
+	make ARCH=arm "$2"_defconfig
+	make ARCH=arm -j4
+
+elif [ "$1" = "x86" ]; then
+	export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9/bin
+	export make CROSS_COMPILE=x86_64-linux-android-
+	make distclean
+	make ARCH=x86 "$2"_defconfig
+	make ARCH=x86 -j4
+else
+	echo "not suppported arch"
 fi
 
-if [ "$1" = "sp9830a-7h10_ga1" ]
-then
-export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/arm/arm-eabi-4.8/bin
-export make CROSS_COMPILE=arm-eabi-
-export KBUILD_OUTPUT=./out
-export UBOOT_DEBUG_FLAG=-DDEBUG
-
-make distclean
-make ARCH=arm sp9830a-7h10_ga1_defconfig
-make ARCH=arm -j4
-fi
-
-if [ "$1" = "iwhale2" ]
-then
-export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9/bin
-export make CROSS_COMPILE=x86_64-linux-android-
-export KBUILD_OUTPUT=./out
-export UBOOT_DEBUG_FLAG=-DDEBUG
-
-make ARCH=x86 distclean
-make ARCH=x86 iwhale2_defconfig
-make -j4
-fi
-
-if [ "$1" = "iwhale2_vp" ]
-then
-export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9/bin
-export make CROSS_COMPILE=x86_64-linux-android-
-export KBUILD_OUTPUT=./out
-export UBOOT_DEBUG_FLAG=-DDEBUG
-
-make distclean
-make ARCH=x86 iwhale2_vp_defconfig
-make ARCH=x86 -j4
-fi
-
-
-if [ "$1" = "sp9850s_1h10_5m" ]
-then
-export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin
-export make CROSS_COMPILE=aarch64-linux-android-
-export KBUILD_OUTPUT=./out
-export UBOOT_DEBUG_FLAG=-DDEBUG
-
-make distclean
-make ARCH=arm sp9850s_1h10_5m_defconfig
-make ARCH=arm -j4
-fi
