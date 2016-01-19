@@ -32,7 +32,7 @@ obj-$(CONFIG_TWL4030_LED) += twl4030_led.o
 obj-$(CONFIG_FSL_IFC) += fsl_ifc.o
 obj-$(CONFIG_FSL_SEC_MON) += fsl_sec_mon.o
 obj-$(CONFIG_PCA9551_LED) += pca9551_led.o
-obj-$(CONFIG_SPRD_ADI) += adi.o
+obj-$(CONFIG_SPRD_ADI) += adi.o vibrator.o check_reboot.o reset.o
 obj-$(CONFIG_SPRD_ADC) += adc.o
 ifneq ($(CONFIG_ADIE_SC2723)$(CONFIG_ADIE_SC2723S)$(CONFIG_ADIE_SC2731),)
 obj-y += otp_helper.o ana_efuse.o efuse.o

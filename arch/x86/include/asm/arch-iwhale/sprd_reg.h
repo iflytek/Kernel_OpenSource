@@ -10,10 +10,10 @@
 #include "hardware.h"
 #include "sci_types.h"
 #include "sprd_module_config.h""
+#include <power/sprd_pmic/pmic_glb_reg.h>
 
 #include "chip_iwhale2/temp.h"
 #include "chip_iwhale2/__regs_ap_apb.h"
-#include "chip_iwhale2/__regs_ana_apb_if.h"
 #include "chip_iwhale2/__regs_aon_apb.h"
 #include "chip_iwhale2/__regs_aon_clk.h"
 #include "chip_iwhale2/__regs_aon_dbg_apb.h"

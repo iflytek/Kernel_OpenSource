@@ -16,7 +16,7 @@ extern int is_smpl_bootup(void);
 
 static void rtc_domain_reg_write(uint32_t val)
 {
-#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)
+#if defined(CONFIG_ADIE_SC2723)||defined(CONFIG_ADIE_SC2731)
 	sci_adi_write(ANA_REG_GLB_RTC_RST1, (~val),(~0)); //clear status reg
 	sci_adi_write(ANA_REG_GLB_RTC_RST0, (val),(~0));  //set status reg
 #else
@@ -26,7 +26,7 @@ static void rtc_domain_reg_write(uint32_t val)
 
 static uint32_t rtc_domain_reg_read(void)
 {
-#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)
+#if defined(CONFIG_ADIE_SC2723)||defined(CONFIG_ADIE_SC2731)
 	return sci_adi_read(ANA_REG_GLB_RTC_RST2);  //read
 #else
 	return 0;
@@ -47,7 +47,7 @@ unsigned check_reboot_mode(void)
 /*for download mode reboot system ---- end*/
 
 	rst_mode = ANA_REG_GET(ANA_REG_GLB_POR_RST_MONITOR);
-	rst_mode &= 0x7FFF;
+	rst_mode &= 0xFF;
 	ANA_REG_SET(ANA_REG_GLB_POR_RST_MONITOR, 0); //clear flag
 	/* clear the flag which used by modem side in any scenes , prevent some errors */
 	ANA_REG_SET(ANA_REG_GLB_WDG_RST_MONITOR, 0);
@@ -122,7 +122,7 @@ void reset_to_normal(unsigned reboot_mode)
 {
 	unsigned rst_mode = 0;
 
-#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)
+#if defined(CONFIG_ADIE_SC2723)||defined(CONFIG_ADIE_SC2731)
 	if (CMD_NORMAL_MODE == reboot_mode) {
 		rtc_domain_reg_write(HWRST_RTCSTATUS_DOWNLOAD_BOOT);
 		udelay(300);
@@ -161,43 +161,20 @@ void power_down_devices(unsigned pd_cmd)
 
 int power_button_pressed(void)
 {
-#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)
-	sci_glb_set(REG_AON_APB_APB_EB0,BIT_AON_GPIO_EB | BIT_EIC_EB);
-	sci_glb_set(REG_AON_APB_APB_RTC_EB,BIT_EIC_RTC_EB);
-	sci_adi_set(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_EIC_EN);
-#else
-	sci_glb_set(REG_AON_APB_APB_EB0,BIT_GPIO_EB | BIT_EIC_EB);
-	sci_glb_set(REG_AON_APB_APB_RTC_EB,BIT_EIC_RTC_EB);
-	sci_adi_set(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_EIC_EN | BIT_ANA_GPIO_EN);
-#endif
-	sci_adi_set(ANA_REG_GLB_RTC_CLK_EN,BIT_RTC_EIC_EN);
-
-	ANA_REG_SET(ADI_EIC_MASK, 0xff);
-
+//maybe get button status from eic API is batter
+	sprd_eic_request(EIC_PBINT);
 	udelay(3000);
-
-	int status = ANA_REG_GET(ADI_EIC_DATA);
-	status = status & (1 << 2);
-
-	sprd_dbg("power_button_pressed eica status 0x%x\n", status );
-
-	return !status;//low level if pb hold
+	sprd_dbg("power_button_pressed status %x\n", sprd_eic_get(EIC_PBINT));
+	return !sprd_eic_get(EIC_PBINT);
 }
 
 int charger_connected(void)
 {
-	int ret;
 	sprd_eic_request(EIC_CHG_INT);
 	udelay(3000);
 	sprd_dbg("eica status %x\n", sprd_eic_get(EIC_CHG_INT));
-#ifdef  CONFIG_SHARK_PAD_HW_V102
-	sprd_eic_request(EIC_USB_DETECT);
-	udelay(3000);
-	sprd_dbg("eica status %x\n", sprd_eic_get(EIC_USB_DETECT));
-	return (!!sprd_eic_get(EIC_USB_DETECT)) ||(!!sprd_eic_get(EIC_CHG_INT));
-#else
+
 	return !!sprd_eic_get(EIC_CHG_INT);
-#endif
 }
 
 int alarm_triggered(void)

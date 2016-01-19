@@ -10,6 +10,7 @@
 #include "hardware.h"
 #include "sci_types.h"
 #include "sprd_module_config.h"
+#include <power/sprd_pmic/pmic_glb_reg.h>
 
 #if defined(CONFIG_ARCH_SCX35L)
 	#if defined CONFIG_ARCH_SCX20L
@@ -25,7 +26,6 @@
 		#include "chip_x20l/__regs_ana_apb_if.h"
 		#include "chip_x20l/__regs_aon_ckg.h"
 		#include "chip_x20l/__regs_aon_clk.h"
-		#include "chip_x20l/__regs_sc2723_ana_glb.h"
 		#include "chip_x20l/__regs_pmu_apb_rf.h"
 		#include "chip_x20l/__regs_pub_apb.h"
 	#else
@@ -39,7 +39,6 @@
 		#include "chip_x35l/__regs_aon_apb_rf.h"
 		#include "chip_x35l/__regs_aon_ckg.h"
 		#include "chip_x35l/__regs_aon_clk.h"
-		#include "chip_x35l/__regs_sc2723_ana_glb.h"
 		#include "chip_x35l/__regs_pmu_apb_rf.h"
 		#include "chip_x35l/__regs_pub_apb.h"
 	#endif

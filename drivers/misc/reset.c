@@ -42,14 +42,13 @@
  */
 void reset_cpu (ulong ignored)
 {
+	start_watchdog(5);
+	while (1) ;
 }
 
 void rtc_clean_all_int(void);
 void power_down_cpu(ulong ignored)
 {
-#if defined(CONFIG_SPX15)
-	LDO_TurnOffAllLDO();
-#else
 	int v = 0;
 	v = ANA_REG_GET(ANA_REG_GLB_POR_SRC_FLAG);
 	printf("power on src = 0x%.8x\n", v);
@@ -57,13 +56,16 @@ void power_down_cpu(ulong ignored)
 	while (v--); // log delay
 
 	rtc_clean_all_int();
-#if defined(CONFIG_ARCH_SCX35L)
+#if defined(CONFIG_ADIE_SC2723)
 	sci_adi_set(ANA_REG_GLB_DCDC_SLP_CTRL0,  BIT_PWR_OFF_SEQ_EN); //auto poweroff by chip
 #else
-	sci_adi_set(ANA_REG_GLB_MP_PWR_CTRL0,  BIT_PWR_OFF_SEQ_EN); //auto poweroff by chip
+	sci_adi_write(ANA_REG_GLB_PWR_WR_PROT_VALUE,BITS_PWR_WR_PROT_VALUE(0x6e7F),BITS_PWR_WR_PROT_VALUE(~0));
+
+	while (!(sci_adi_read(ANA_REG_GLB_PWR_WR_PROT_VALUE)&BIT_PWR_WR_PROT))printf("powerdown wait key\n");
+
+	sci_adi_set(ANA_REG_GLB_POWER_PD_HW,  BIT_PWR_OFF_SEQ_EN); //auto poweroff by chip
 #endif
 	while(1);
-#endif
 
 
 }

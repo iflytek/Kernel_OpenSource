@@ -7,6 +7,7 @@
 
 #include "hardware.h"
 #include "common.h"
+#include <power/sprd_pmic/pmic_glb_reg.h>
 
 #include "./chip_whale2/__regs_ana_apb.h"
 #include "./chip_whale2/__regs_aon_apb.h"
@@ -17,7 +18,6 @@
 #include "./chip_whale2/__regs_pmu_apb.h"
 #include "./chip_whale2/__regs_pub0_apb.h"
 #include "./chip_whale2/__regs_pub1_apb.h"
-#include "./chip_whale2/__regs_ana_sc2731release_glb.h"
 #include "./chip_whale2/__regs_disp_sys_ahb.h"
 #include "./chip_whale2/__regs_aon_clk.h"
 #endif	/*_SPRD_REG_DEF_H_*/
