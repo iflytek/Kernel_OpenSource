@@ -152,6 +152,7 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 	MODE_REGIST(CMD_IQ_REBOOT_MODE, iq_mode);
 	MODE_REGIST(CMD_ALARM_MODE, alarm_mode);
 	MODE_REGIST(CMD_AUTOTEST_MODE, autotest_mode);
+	MODE_REGIST(CMD_SPRDISK_MODE, sprdisk_mode);
 
 	return ;
 }
