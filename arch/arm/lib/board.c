@@ -578,6 +578,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	mmc_initialize(gd->bd);
 #endif
 
+#ifdef CONFIG_UFS
+	ufs_init();
+#endif
+
 #ifdef CONFIG_CMD_SCSI
 	puts("SCSI:  ");
 	scsi_init();

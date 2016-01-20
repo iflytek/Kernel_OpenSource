@@ -406,6 +406,16 @@ static int initr_mmc(void)
 }
 #endif
 
+#ifdef CONFIG_UFS
+static int initr_ufs(void)
+{
+	puts("UFS:   ");
+	ufs_init();
+	return 0;
+}
+#endif
+
+
 #ifdef CONFIG_HAS_DATAFLASH
 static int initr_dataflash(void)
 {
@@ -785,6 +795,9 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_GENERIC_MMC
 	initr_mmc,
 #endif
+#endif
+#ifdef CONFIG_UFS
+	initr_ufs,
 #endif
 #ifdef CONFIG_HAS_DATAFLASH
 	initr_dataflash,

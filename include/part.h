@@ -111,6 +111,8 @@ block_dev_desc_t* systemace_get_dev(int dev);
 block_dev_desc_t* mg_disk_get_dev(int dev);
 block_dev_desc_t *host_get_dev(int dev);
 int host_get_dev_err(int dev, block_dev_desc_t **blk_devp);
+block_dev_desc_t *ufs_get_dev(int dev);
+
 
 /* disk/part.c */
 int get_partition_info (block_dev_desc_t * dev_desc, int part, disk_partition_t *info);

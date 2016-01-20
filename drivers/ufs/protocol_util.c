@@ -28,11 +28,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
  * ========================================================================== */
-
-#include <stdint.h>
+#include <common.h>
 #include "protocol_util.h"
-#include <stdio.h>
-#include<string.h>
 
 void get_cmnd(uint32_t opcode, lbaint_t lba, lbaint_t size, uint8_t *cmd)
 {

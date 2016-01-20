@@ -28,9 +28,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
  * ========================================================================== */
-
-#include<unistd.h>
-#include"dwc_ufs_drv.h"
+#include <common.h>
+#include"sprd_ufs.h"
 #include "hw_if.h"
 
 extern uint64_t DescMemBase;
@@ -93,19 +92,6 @@ uint16_t to_littleendian16(uint16_t val)
 #endif
 }
 
-void * alloc_dma(uint32_t size, uint32_t align, uint64_t *phy_addr)
-{
-	static void *current_addr;
-
-	*phy_addr = (DescMemBase + size);
-#ifdef HOST_32BIT
-	current_addr = (void *)((uint32_t)(DescMemBase + size));
-#endif
-#ifdef HOST_64BIT
-	current_addr = (void *)((uint64_t)(DescMemBase + size));
-#endif
-	return current_addr;
-}
 
 uint32_t dwc_ufs_read_reg(uint32_t reg_offset)
 {
@@ -129,11 +115,5 @@ void dwc_ufs_write_reg(uint32_t reg_offset, uint32_t value)
 #ifdef HOST_64BIT
 	(*((volatile uint32_t *)((uint64_t)(REG_BASE_ADDRESS + reg_offset)))) = value;
 #endif
-}
-
-void waitus(uint32_t delay)
-{
-  /* TODO Architecture Specific Implementation */
-	udelay(delay);
 }
 

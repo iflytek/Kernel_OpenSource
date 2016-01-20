@@ -1,3 +1,1 @@
-obj-y += sprd_ufs.o
-obj-y += protocol_util.o
-obj-y += hw_if.o
+obj-$(CONFIG_UFS) += sprd_ufs.o protocol_util.o hw_if.o

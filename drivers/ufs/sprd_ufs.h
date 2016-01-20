@@ -1,38 +1,5 @@
-/* ==========================================================================
- * The Synopsys DWC UFS Software Driver and documentation (hereinafter 
- * "Software") is an unsupported proprietary work of Synopsys, Inc. unless
- * otherwise expressly agreed to in writing between Synopsys and you.
- *
- * The Software IS NOT an item of Licensed Software or Licensed Product under
- * any End User Software License Agreement or Agreement for Licensed Product
- * with Synopsys or any supplement thereto.  Permission is hereby granted,
- * free of charge, to any person obtaining a copy of this software annotated
- * with this license and the Software, to deal in the Software without 
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject 
- * to the following conditions: 
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software. 
- * 
- * THIS SOFTWARE IS BEING DISTRIBUTED BY SYNOPSYS SOLELY ON AN "AS IS" BASIS
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE HEREBY DISCLAIMED. IN NO EVENT SHALL SYNOPSYS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- * ========================================================================== */
-
-#ifndef _DWC_UFS_DRV_H
-#define _DWC_UFS_DRV_H
-
-#include<stdint.h>
+#ifndef _SPRD_UFS_H
+#define _SPRD_UFS_H
 
 #define DEBUG_MODE
 //#define USE_SNPS_MPHY_TC               /* Macro to be defined when used with Synopsys MPHY Test Chip */
@@ -72,6 +39,16 @@
 #define RPMB_FRAME_SIZE        512
 #define PHI 0x9e3779b9
 #define CAPCITY_ADJ_FACTOR 1
+
+
+#define UFS_MAX_LU_NUM    8
+#define UFS_MAX_CARD_NUM   0
+#define UFS_MAX_DEV_NUM ((UFS_MAX_LU_NUM) + (UFS_MAX_CARD_NUM))
+#define LU_INFO_DIFF    0
+#define LU_INFO_SAME  1
+#define LU_INFO_ILLEGAL  -1
+
+#define LOCK_CONFIGURATION    1
 
 
 /* Debug Macros */
@@ -170,6 +147,39 @@ struct dummy_ufs_driver_info {
     	uint32_t 		dwc_ufs_version; /* Versions of UFSHCI specification that the controller implementation supports*/
 	block_dev_desc_t  block_dev;
 } ;
+
+enum lu_bootable {
+	NONE_BOOT       = 0x00,
+	MAIN_BOOT   = 0x01,
+	ALTERNATE_BOOT      = 0x02
+};
+
+enum lu_memory_type {
+	NORMAL_MEMORY = 0x00,
+	SYS_CODE_MEMORY = 0x01,
+	NON_PERSISTENT_MEMORY = 0x02,
+	ENHANCED_MEMORY_1 = 0x03,
+	ENHANCED_MEMORY_2 = 0x04,
+	ENHANCED_MEMORY_3 = 0x05,
+	ENHANCED_MEMORY_4 = 0x06
+};
+
+enum lu_provisioning_type {
+	PROVISIONING_DISABLE = 0x00,
+	PROVISIONING_ENABLE = 0x02,
+	PROVISIONING_ENABLE_WITH_TPRZ = 0x03
+};
+
+
+struct lu_info_tbl {
+	int 			lu_index;
+	enum lu_bootable bootable;
+	enum lu_memory_type memory_type;
+	enum lu_provisioning_type provisioning_type;
+	uint32_t               log2blksz;
+	uint64_t               blkcnt;
+};
+
 
 struct ufs_driver_info {
 	void			*base_addr;
@@ -586,17 +596,6 @@ struct desc_params
 };
 
 
-#define UFS_MAX_DEV_NUM ((UFS_MAX_LU_NUM) + (UFS_MAX_CARD_NUM))
-#define UFS_MAX_LU_NUM    8
-#define UFS_MAX_CARD_NUM   0
-
-#define LU_INFO_DIFF    0
-#define LU_INFO_SAME  1
-#define LU_INFO_ILLEGAL  -1
-
-#define LOCK_CONFIGURATION    1
-
-
 struct ufs_dev_desc_tbl {
 	uint8_t	bLength;
 	uint8_t	bDescriptorType;
@@ -625,16 +624,16 @@ struct ufs_dev_desc_tbl {
 	uint8_t	bUDConfigPLength;
 	uint8_t	bDeviceRTTCap;
 	uint16_t	wPeriodicRTCUpdate;
-	uint8_t	Reserved[35];
+	uint8_t	reserved[35];
 } __attribute__ ((packed));
 
 struct ufs_geo_desc_tbl {
 	uint8_t	bLength;
 	uint8_t	bDescriptorType;
 	uint8_t	bMediaTechnology;
-	uint8_t	Reserved;
+	uint8_t	reserved_1;
 	uint64_t	qTotalRawDeviceCapacity;
-	uint8_t	Reserved;
+	uint8_t	reserved_2;
 	uint32_t	dSegmentSize;
 	uint8_t	bAllocationUnitSize;
 	uint8_t	bMinAddrBlockSize;
@@ -643,7 +642,7 @@ struct ufs_geo_desc_tbl {
 	uint8_t	bMaxInBufferSize;
 	uint8_t	bMaxOutBufferSize;
 	uint8_t	bRPMB_ReadWriteSize;
-	uint8_t	Reserved;
+	uint8_t	reserved_3;
 	uint8_t	bDataOrdering;
 	uint8_t	bMaxContexIDNumber;
 	uint8_t	bSysDataTagUnitSize;
@@ -663,7 +662,7 @@ struct ufs_unit_desc_tbl {
 	uint8_t	bBootLunID;
 	uint8_t	bLUWriteProtect;
 	uint8_t	bLUQueueDepth;
-	uint8_t	Reserved;
+	uint8_t	reserved;
 	uint8_t	bMemoryType;
 	uint8_t	bDataReliability;
 	uint8_t	bLogicalBlockSize;
@@ -675,22 +674,6 @@ struct ufs_unit_desc_tbl {
 	uint8_t	bLargeUnitGranularity_M1;
 } __attribute__ ((packed));
 
-struct ufs_cfg_desc_tbl {
-	uint8_t	bLength;
-	uint8_t	bDescriptorType;
-	uint8_t	Reserved;
-	uint8_t	bBootEnable;
-	uint8_t	bDescrAccessEn;
-	uint8_t	bInitPowerMode;
-	uint8_t	bHighPriorityLUN;
-	uint8_t	bSecureRemovalType;
-	uint8_t	bInitActiveICCLevel;
-	uint16_t	wPeriodicRTCUpdate;
-	uint8_t	Reserved[5];
-	struct ufs_unit_cfg_tbl	unit_cfg[UFS_MAX_LU_NUM];
-} __attribute__ ((packed));
-
-
 struct ufs_unit_cfg_tbl {
 	uint8_t	bLUEnable;
 	uint8_t	bBootLunID;
@@ -701,42 +684,23 @@ struct ufs_unit_cfg_tbl {
 	uint8_t	bLogicalBlockSize;
 	uint8_t	bProvisioningType;
 	uint16_t	wContextCapabilities;
-	uint8_t	Reserved[3];
+	uint8_t	reserved[3];
 }  __attribute__ ((packed));
 
-
-enum lu_bootable {
-	NONE_BOOT       = 0x00,
-	MAIN_BOOT   = 0x01,
-	ALTERNATE_BOOT      = 0x02
-};
-
-enum lu_memory_type {
-	NORMAL_MEMORY = 0x00,
-	SYS_CODE_MEMORY = 0x01,
-	NON_PERSISTENT_MEMORY = 0x02,
-	ENHANCED_MEMORY_1 = 0x03,
-	ENHANCED_MEMORY_2 = 0x04,
-	ENHANCED_MEMORY_3 = 0x05,
-	ENHANCED_MEMORY_4 = 0x06
-};
-
-enum lu_provisioning_type {
-	PROVISIONING_DISABLE = 0x00,
-	PROVISIONING_ENABLE = 0x02,
-	PROVISIONING_ENABLE_WITH_TPRZ = 0x03
-}
-
-
-struct lu_info_tbl {
-	int 			lu_index;
-	enum lu_bootable bootable;
-	enum lu_memory_type memory_type;
-	enum lu_provisioning_type provisioning_type;
-	uint32_t               log2blksz;
-	uint64_t               blkcnt;
-} ;
-
+struct ufs_cfg_desc_tbl {
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint8_t	reserved_1;
+	uint8_t	bBootEnable;
+	uint8_t	bDescrAccessEn;
+	uint8_t	bInitPowerMode;
+	uint8_t	bHighPriorityLUN;
+	uint8_t	bSecureRemovalType;
+	uint8_t	bInitActiveICCLevel;
+	uint16_t	wPeriodicRTCUpdate;
+	uint8_t	reserved_2[5];
+	struct ufs_unit_cfg_tbl	unit_cfg[UFS_MAX_LU_NUM];
+} __attribute__ ((packed));
 
 
 #endif

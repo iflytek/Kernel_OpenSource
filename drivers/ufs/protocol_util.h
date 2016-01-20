@@ -63,6 +63,6 @@
 #define SECURITY_PROTOCOL            (0xEC)
 
 /* Function Prototypes */
-void get_cmnd(uint32_t opcode, uint32_t lba, uint32_t size, uint8_t *cmnd);
+void get_cmnd(uint32_t opcode, lbaint_t lba, lbaint_t size, uint8_t *cmd);
 
 #endif
