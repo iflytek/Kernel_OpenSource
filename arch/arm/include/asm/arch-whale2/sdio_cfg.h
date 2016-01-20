@@ -49,8 +49,8 @@ typedef struct
 	uint32_t  ahb_reset_reg;
 	uint32_t  ahb_reset_bit;
 
-	LDO_ID_E  ldo_io;
-	LDO_ID_E  ldo_core;
+	const char *ldo_io;
+	const char *ldo_core;
 }SDIO_BASE_INFO;
 
 SDIO_BASE_INFO*  get_sdcontrol_info(uint32_t device_type);

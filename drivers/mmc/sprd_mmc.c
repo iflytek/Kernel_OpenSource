@@ -1771,8 +1771,8 @@ int sprd_host_init(int sdio_type)
 	SDIO_BASE_INFO *sprd_host_info;
 
 	sprd_host_info = get_sdcontrol_info(sdio_type);
-	LDO_TurnOnLDO(sprd_host_info->ldo_core);
-	LDO_TurnOnLDO(sprd_host_info->ldo_io);
+	regulator_enable(sprd_host_info->ldo_core);
+	regulator_enable(sprd_host_info->ldo_io);
 	#ifndef CONFIG_FPGA
 	CHIP_REG_SET(sprd_host_info->baseclk_reg, sprd_host_info->baseclk_mask);
 	#endif

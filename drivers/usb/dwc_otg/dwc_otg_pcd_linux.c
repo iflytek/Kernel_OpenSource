@@ -540,14 +540,19 @@ static void __raw_bits_or(unsigned int v, unsigned int a)
 	__raw_writel((__raw_readl(a) | v), a);
 }
 
+#if defined(CONFIG_ADIE_SC2731)
+#define LDO_LDO_USB "vddusb33"
+#else
+#define LDO_LDO_USB "vddusb"
+#endif
 
 static inline
 void    usb_ldo_switch(int flag)
 {
         if(flag){
-            LDO_TurnOnLDO(LDO_LDO_USB);
+            regulator_enable(LDO_LDO_USB);
         } else {
-            LDO_TurnOffLDO(LDO_LDO_USB);
+            regulator_disable(LDO_LDO_USB);
         }
 }
 

@@ -42,8 +42,8 @@ const  SDIO_BASE_INFO  sdio_ctrl_info[2] =
 		REG_AP_AHB_AHB_RST,
 		BIT_11,
 
-		LDO_LDO_EMMCIO,
-		LDO_LDO_EMMCCORE,
+		"vddgen",
+		"vddemmccore",
 	},
 	{
 		SD,
@@ -65,8 +65,8 @@ const  SDIO_BASE_INFO  sdio_ctrl_info[2] =
 		REG_AP_AHB_AHB_RST,
 		BIT_8,
 
-		LDO_LDO_SDIO1,
-		LDO_LDO_SDIO0,
+		"vddsdio",
+		"vddsdcore",
 	}
 };
 

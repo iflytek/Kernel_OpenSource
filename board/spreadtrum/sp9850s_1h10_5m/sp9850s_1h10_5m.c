@@ -29,7 +29,7 @@ int board_init(void)
 	ADI_init();
 	/*FPGA forbiden*/
 	misc_init();
-	LDO_Init();
+	regulator_init();
 	ADC_Init();
 	/*FPGA forbiden*/
 	pin_init();

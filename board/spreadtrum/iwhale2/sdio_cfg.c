@@ -46,8 +46,8 @@ const  SDIO_BASE_INFO  sdio_ctrl_info[2] =
 		0XE2210004,
 		BIT_11,
 
-		LDO_LDO_EMMCIO,
-		LDO_LDO_EMMCCORE,
+		"vddgen",
+		"vddemmccore",
 	},
 	{
 		SD,
@@ -71,8 +71,8 @@ const  SDIO_BASE_INFO  sdio_ctrl_info[2] =
 		0X20E00004,
 		BIT_11,
 
-		LDO_LDO_SDIO1,
-		LDO_LDO_SDIO0,
+		"vddsdio",
+		"vddsdcore",
 	}
 };
 

@@ -23,7 +23,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 extern void sprd_gpio_init(void);
 extern void ADI_init (void);
-extern int LDO_Init(void);
 extern void ADC_Init(void);
 extern void init_ldo_sleep_gr(void);
 
@@ -64,7 +63,7 @@ int board_init()
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 	ADI_init();
 	misc_init();
-	LDO_Init();
+	regulator_init();
 	ADC_Init();
 	pin_init();
 	sprd_eic_init();
