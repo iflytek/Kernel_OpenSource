@@ -47,7 +47,7 @@
 //  Note:
 /*****************************************************************************/
 
-#define PUBCP_IRAM_ADDRESS 0x1a000
+#define PUBCP_IRAM_ADDRESS 0xf0000
 
 static u32 g_loader[] = {
 	0xee110f10, 0xe3c00005, 0xe3c00a01, 0xf57ff04f,
