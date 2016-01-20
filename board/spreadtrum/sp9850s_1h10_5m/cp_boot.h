@@ -86,7 +86,7 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) |= BIT_1;   /* reset M3 */
+	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) |= BIT_1;   /* reset M4 */
 }
 
 /*****************************************************************************/
@@ -94,11 +94,11 @@ void pmic_arm7_RAM_active(void)
 //  Author:         Andrew.Yang
 //  Note:
 /*****************************************************************************/
-static inline void pmic_arm_m3_boot(void)
+static inline void pmic_arm_m4_boot(void)
 {
     u32 state;
-	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_23;   /*clear M3 force sleep */
-	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~(BIT_1 | BIT_21);   /* reset M3 */
+	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_23;   /*clear M4 force sleep */
+	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~(BIT_1 | BIT_21);   /* reset M4 */
     msleep(50);
 }
 

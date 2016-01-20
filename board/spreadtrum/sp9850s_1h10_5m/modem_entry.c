@@ -45,7 +45,7 @@ void modem_entry()
 	sipc_addr_reset();
 	agdsp_boot();
 #ifndef CONFIG_KERNEL_BOOT_CP
-	pmic_arm_m3_boot();
+	pmic_arm_m4_boot();
 	pubcp_boot();
 	debugf("boot CP1 OK\n");
 #endif

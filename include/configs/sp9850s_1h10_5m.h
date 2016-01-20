@@ -10,7 +10,7 @@
 
 #define SPRD_DEBUG_LEVEL		2
 
-#define CONFIG_KERNEL_BOOT_CP
+//#define CONFIG_KERNEL_BOOT_CP
 
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
@@ -219,7 +219,7 @@
 #define FIXNV_SIZE     LTE_FIXNV_SIZE
 
 #define CONFIG_DFS_ENABLE
-#define DFS_ADDR    0x20000
+#define DFS_ADDR    0x80000
 #define DFS_SIZE    (64*1024) //64K
 
 
