@@ -13,6 +13,7 @@
 #define   HWRST_STATUS_PANIC			(0x80)
 #define   HWRST_STATUS_AUTODLOADER 		(0xa0)
 #define   HWRST_STATUS_IQMODE           (0xb0)
+#define   HWRST_STATUS_SPRDISK			(0xc0)
 #define   HWRST_STATUS_NORMAL2			(0xf0)
 
 #define   HW_PBINT2_STATUS				(0x8)
@@ -21,8 +22,11 @@
 #define   SW_EXT_RSTN_STATUS			(0x800)
 #define   SW_7SRST_STATUS				(0x1000)
 
+#define   HWRST_RTCSTATUS_DOWNLOAD_BOOT	(0x55)
+#define   HWRST_RTCSTATUS_DEFAULT		(0xA596)
 unsigned check_reboot_mode(void);
-int get_mode_from_gpio();
+int get_mode_from_gpio(void);
+void reset_to_normal(unsigned reboot_mode);
 void reboot_devices(unsigned reboot_mode);
 void power_down_devices(unsigned pd_cmd);
 int power_button_pressed(void);
