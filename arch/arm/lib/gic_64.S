@@ -26,6 +26,8 @@ ENTRY(gic_init_secure)
 	 * Initialize Distributor
 	 * x0: Distributor Base
 	 */
+	switch_el x9, 2f,1f,1f
+2:
 #if defined(CONFIG_GICV3)
 	mov	w9, #0x37		/* EnableGrp0 | EnableGrp1NS */
 					/* EnableGrp1S | ARE_S | ARE_NS */
@@ -67,6 +69,8 @@ ENDPROC(gic_init_secure)
  *
  *************************************************************************/
 ENTRY(gic_init_secure_percpu)
+	switch_el x9 ,0f,4f,4f
+0:
 #if defined(CONFIG_GICV3)
 	/*
 	 * Initialize ReDistributor
@@ -146,6 +150,7 @@ ENTRY(gic_init_secure_percpu)
 	mov	w9, #0x1 << 7		/* Non-Secure access to GICC_PMR */
 	str	w9, [x1, GICC_PMR]
 #endif
+4:
 	ret
 ENDPROC(gic_init_secure_percpu)
 
