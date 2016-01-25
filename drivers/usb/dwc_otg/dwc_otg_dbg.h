@@ -95,7 +95,7 @@ static inline uint32_t SET_DEBUG_LEVEL(const uint32_t new)
  * usb-DWC_otg: dwc_otg_cil_init(ca867000)
  * </code>
  */
-#if 1
+#if 0
 
 # define DWC_DEBUGPL(lvl, x...) do{ if ((lvl)&g_dbg_lvl)__DWC_DEBUG(USB_DWC x ); }while(0)
 # define DWC_DEBUGP(x...)	DWC_DEBUGPL(DBG_ANY, x )
