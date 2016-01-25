@@ -1,6 +1,6 @@
 
-#ifndef IWHALE2_REG_DEF_H_
-#define IWHALE2_REG_DEF_H_
+#ifndef _SPRD_REG_H_
+#define _SPRD_REG_H_
 
 #ifndef BIT
 #define BIT(x) (1<<x)
@@ -9,7 +9,7 @@
 #include <config.h>
 #include "hardware.h"
 #include "sci_types.h"
-#include "sprd_module_config.h""
+#include "sprd_module_config.h"
 #include <power/sprd_pmic/pmic_glb_reg.h>
 
 #include "chip_iwhale2/temp.h"

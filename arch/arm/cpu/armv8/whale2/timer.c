@@ -42,9 +42,10 @@
 #include <linux/types.h>
 #include "asm/arch/common.h"
 #include "asm/arch/sys_timer_reg_v0.h"
+#include "asm/arch/timer_reg_r4p0.h"
 
 #define TIMER_MAX_VALUE 0xFFFFFFFF
-
+static unsigned long mul_value = 26;//default 26Mhz
 
 static unsigned long long timestamp;
 static ulong lastinc;
@@ -83,6 +84,11 @@ int timer_init(void)
 	writel(readl(REG_AON_APB_APB_EB0) | BIT_AP_SYST_EB, REG_AON_APB_APB_EB0);
 	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AP_SYST_RTC_EB, REG_AON_APB_APB_RTC_EB);
 
+	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_TMR_EB, REG_AON_APB_APB_EB0);
+	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_TMR_EB, REG_AON_APB_APB_RTC_EB);
+
+	/* enable aon timer2 26M clk source */
+	writel(readl(REG_AON_APB_CGM_REG1) | BIT_AON_APB_CGM_CM3_TMR2_EN, REG_AON_APB_CGM_REG1);
 	/*init arch timer*/
 	writel(0x1, 0x40610000);
 	return 0;
@@ -91,7 +97,7 @@ int timer_init(void)
 void reset_timer(void)
 {
 	//capture current incrementer value time
-	lastinc = readl(SYS_CNT0);
+	lastinc = readl(SYS_VLAUE_SHDW);
 	timestamp = 0;
 }
 void reset_timer_masked(void)
@@ -100,7 +106,7 @@ void reset_timer_masked(void)
 }
 unsigned long long get_ticks(void)
 {
-	ulong now = readl(SYS_CNT0);
+	ulong now = readl(SYS_VLAUE_SHDW);
 
 	if(now >= lastinc) {
 	/* not roll
@@ -117,7 +123,7 @@ unsigned long long get_ticks(void)
 
 ulong get_timer_masked(void)
 {
-	return tick_to_time(get_ticks());
+	return get_ticks();
 }
 
 ulong get_timer(ulong base)
@@ -132,14 +138,12 @@ void set_timer(ulong t)
 
 void __udelay (unsigned long usec)
 {
-	unsigned long long tmp;
-	ulong tmo;
+	unsigned long delta_usec = usec * mul_value;
 
-	tmo = us_to_tick(usec);
-	tmp = get_ticks() + tmo; // get current timestamp
-
-	while(get_ticks() < tmp) //loop till event
-		/*NOP*/;
+	writel(delta_usec, TM2_LOAD_LO);
+	REG32 (TM2_CTL) |= (BIT_TIMER_RUN);//timer runs
+	while(readl(TM2_SHDW_LO) > 0);//loop
+	REG32 (TM2_CTL) &=~ (BIT_TIMER_RUN);//timer stops
 }
 
 u32 SCI_GetTickCount(void)

@@ -19,11 +19,10 @@
  **                         Dependencies                                      *
  **---------------------------------------------------------------------------*/
 #include <asm/io.h>
-#include "asm/arch/sc_reg.h"
 #include "adi_hal_internal.h"
 //#include "asm/arch/wdg_drvapi.h"
 #include "asm/arch/sprd_reg.h"
-#include "asm/arch/boot_drvapi.h"
+#include "asm/arch/common.h"
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/

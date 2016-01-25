@@ -1,6 +1,6 @@
 
-#ifndef _SC9630_REG_DEF_H_
-#define _SC9630_REG_DEF_H_
+#ifndef _SPRD_REG_H_
+#define _SPRD_REG_H_
 
 #ifndef BIT
 #define BIT(x) (1<<x)
@@ -44,5 +44,5 @@
 	#endif
 #endif
 
-#endif /*_SC9630_REG_DEF_H_*/
+#endif
 

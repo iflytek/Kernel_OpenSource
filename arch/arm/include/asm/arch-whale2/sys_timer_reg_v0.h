@@ -25,6 +25,7 @@
 #define SYS_ALM                         (SYSTIMER_BASE + 0x0000)
 #define SYS_CNT0                        (SYSTIMER_BASE + 0x0004)
 #define SYS_CTL                         (SYSTIMER_BASE + 0x0008)
+#define SYS_VLAUE_SHDW                  (SYSTIMER_BASE + 0x000C)
 
 #define SYSTEM_CURRENT_CLOCK (*((volatile u32 *)SYS_CNT0) & 0xFFFFFFFF)
 

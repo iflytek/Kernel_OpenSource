@@ -1,12 +1,14 @@
-#ifndef _SPRD_REG_DEF_H_
-#define _SPRD_REG_DEF_H_
+#ifndef _SPRD_REG_H_
+#define _SPRD_REG_H_
 
 #ifndef BIT
 #define BIT(x) (1<<x)
 #endif
 
+#include <config.h>
 #include "hardware.h"
-#include "common.h"
+#include "sci_types.h"
+#include "sprd_module_config.h"
 #include <power/sprd_pmic/pmic_glb_reg.h>
 
 #include "./chip_whale2/__regs_ana_apb.h"
@@ -20,5 +22,5 @@
 #include "./chip_whale2/__regs_pub1_apb.h"
 #include "./chip_whale2/__regs_disp_sys_ahb.h"
 #include "./chip_whale2/__regs_aon_clk.h"
-#endif	/*_SPRD_REG_DEF_H_*/
+#endif
 

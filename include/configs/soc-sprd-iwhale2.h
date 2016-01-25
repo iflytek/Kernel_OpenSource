@@ -221,3 +221,7 @@
 #define CONFIG_RTC_SPRD
 
 #define CONFIG_FPGA
+
+/*sprd watchdog*/
+#define CONFIG_HW_WATCHDOG
+#define CONFIG_SPRD_WATCHDOG
