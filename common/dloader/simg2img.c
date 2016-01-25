@@ -243,7 +243,7 @@ int write_simg2emmc(char* interface, int  dev, uchar * partname, u8* buf, unsign
 		}
 
 		preread_chunk((void*)buf, bufferindex, &chunk_header, sizeof(chunk_header));
-		printf("%s:chunk_header.total_sz(%d)\n", __func__, chunk_header.total_sz);
+		//printf("%s:chunk_header.total_sz(%d)\n", __func__, chunk_header.total_sz);
 
 		/*if (gbufindex)
 			printf("i = %d bufferindex = %d chunk_type = 0x%04x chunk_sz = %d total_sz = %d  currentoffset = %d\n", i, gbufindex + bufferindex, chunk_header.chunk_type, chunk_header.chunk_sz, chunk_header.total_sz, g_emmc_handle.offset * EMMC_BLOCK_SIZE);
@@ -301,7 +301,7 @@ int write_simg2emmc(char* interface, int  dev, uchar * partname, u8* buf, unsign
 			}	
 			total_blocks += process_raw_chunk((void*)buf, &g_emmc_handle,
 					 chunk_header.chunk_sz, sparse_header.blk_sz, &crc32);
-			printf("%s:write to flash OK,total blk=%d\n", __func__, total_blocks);
+			//printf("%s:write to flash OK,total blk=%d\n", __func__, total_blocks);
 			break;
 			case CHUNK_TYPE_FILL:
 			if (chunk_header.total_sz != (sparse_header.chunk_hdr_sz + sizeof(u32)) ) {
