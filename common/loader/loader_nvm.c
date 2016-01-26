@@ -27,6 +27,7 @@
 #ifdef CONFIG_OF_LIBFDT
 #include "dev_tree.h"
 #endif
+extern int lcd_line_length;
 
 #define MODEM_MAGIC		"SCI1"
 #define MODEM_HDR_SIZE		(12 * 512) //size of a block
@@ -248,7 +249,7 @@ void _boot_secure_check(void)
 
 int splash_screen_prepare(void)
 {
-	size_t size = SZ_1M;
+	size_t size ;
 	u8 *addr;
 	u8 *s;
 
@@ -258,6 +259,7 @@ int splash_screen_prepare(void)
 		return -1;
 	}
 	addr = (u8 *) simple_strtoul(s, NULL, 16);
+	size = lcd_get_size(&lcd_line_length) >> 1;
 	if (0 != common_raw_read("logo", size, 0, addr)) {
 		errorf("failed to read logo partition\n");
 		return -1;

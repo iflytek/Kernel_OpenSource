@@ -52,7 +52,7 @@
 #define CONFIG_SYS_MEMTEST_END		(PHYS_SDRAM_1 + 0x0800000)
 
 /* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 3 * 1024 * 1024)
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 5 * 1024 * 1024)
 
 
 /*timer*/
@@ -264,10 +264,8 @@
 #define CONFIG_EFI_PARTITION
 
 /*for sysdump*/
-#define CONFIG_PRAM		1024	/* Protect the top 1MB RAM for systemdump*/
 #define CONFIG_SPRD_SYSDUMP
 #define CONFIG_RAMDUMP_NO_SPLIT 1 /* Don't split sysdump file */
-#define SPRD_SYSDUMP_MAGIC     (CONFIG_SYS_SDRAM_END - (CONFIG_PRAM << 10))
 #define REAL_SDRAM_SIZE 0x40000000  /*dump 1G*/
 
 #define PWR_KEY_DETECT_CNT  2

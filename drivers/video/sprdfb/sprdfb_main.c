@@ -135,9 +135,8 @@ void lcd_ctrl_init(void *lcdbase)
 	ulong all_sz;
 
 	printf("sprdfb: %s: lcdbase is 0x%p\n", __FUNCTION__, lcdbase);
-	all_sz = CONFIG_SYS_MALLOC_LEN >> 1;
-	size = lcd_get_size(&lcd_line_length);
-	bmp = malloc(all_sz < SZ_1M ? all_sz : SZ_1M);
+	size = lcd_get_size(&lcd_line_length) >> 1;
+	bmp = malloc(size);
 	if (!bmp) {
 		printf("sprdfb: %s: failed to alloc bmp space\n", __FUNCTION__);
 		return;

@@ -38,6 +38,11 @@ extern  int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
 
 static int display_crashinfo(struct sysdump_info *sinfo, int rst_mode);
+#ifdef CONFIG_SPLASH_SCREEN
+	#define sysdump_lcd_printf(fmt, args...) lcd_printf(fmt, ##args);
+#else
+	#define sysdump_lcd_printf(fmt, args...)
+#endif
 
 void display_writing_sysdump(void)
 {
@@ -45,7 +50,7 @@ void display_writing_sysdump(void)
 #ifdef CONFIG_SPLASH_SCREEN
 	vibrator_hw_init();
 	set_vibrator(1);
-	lcd_printf("   -------------------------------  \n"
+	sysdump_lcd_printf("   -------------------------------  \n"
 		   "   Sysdumpping now, keep power on.  \n"
 		   "   -------------------------------  \n");
 	set_backlight(255);
@@ -58,7 +63,7 @@ void display_special_mode(void)
 #ifdef CONFIG_SPLASH_SCREEN
 	vibrator_hw_init();
 	set_vibrator(1);
-	lcd_printf("   -------------------------------  \n"
+	sysdump_lcd_printf("   -------------------------------  \n"
 		   "   Restart now, keep power on.  \n"
 		   "   -------------------------------  \n");
 	set_backlight(255);
@@ -89,9 +94,7 @@ static void wait_for_keypress()
 			break;
 	} while (1);
 	debugf("Pressed key: %d\n", key_code);
-#ifdef CONFIG_SPLASH_SCREEN
-	lcd_printf("Pressed key: %d\n", key_code);
-#endif
+	sysdump_lcd_printf("Pressed key: %d\n", key_code);
 //	lcd_display();
 }
 
@@ -152,9 +155,7 @@ void write_mem_to_mmc(char *path, char *filename,
 
 	debugf("writing 0x%lx bytes to sd file %s\n",
 		memsize, filename);
-#ifdef CONFIG_SPLASH_SCREEN
-	lcd_printf("writing 0x%lx bytes to sd file %s\n", memsize, filename);
-#endif
+	sysdump_lcd_printf("writing 0x%lx bytes to sd file %s\n", memsize, filename);
 //	lcd_display();
 	unsigned long *actwrite = NULL;
 	ret = file_fat_write(filename, memaddr, 0, memsize, actwrite);
@@ -486,9 +487,7 @@ int read_nand_to_ram( struct mtd_info *mtd, loff_t paddr, unsigned int size, uns
                 if(ret != 0 && retlen != readsize) {
                         printf("%s, read addr: 0x%.8x len: 0x%.8x 's value err, ret: %d, retlen: 0x%.8x\n",\
 			 __func__, (unsigned int)read_addr, readsize, ret, retlen);
-#ifdef CONFIG_SPLASH_SCREEN
-			lcd_printf("\nRead nand flash 0x%.8x error, you can dump it use download tools again!\n", read_addr);
-#endif
+			sysdump_lcd_printf("\nRead nand flash 0x%.8x error, you can dump it use download tools again!\n", read_addr);
 //			lcd_display();
 			break;
                 }
@@ -681,9 +680,7 @@ void write_sysdump_before_boot(int rst_mode)
 		#define CONSOLE_COLOR_RED (0x1f<<11)
 		#define CONSOLE_COLOR_GREEN 0x07e0
 	//	lcd_setfgcolor(CONSOLE_COLOR_GREEN);
-#ifdef CONFIG_SPLASH_SCREEN
-		lcd_printf("\nReset mode: %s\n\n",GET_RST_MODE(rst_mode));
-#endif
+		sysdump_lcd_printf("\nReset mode: %s\n\n",GET_RST_MODE(rst_mode));
 	//	lcd_setfgcolor(CONSOLE_COLOR_RED);
 //		lcd_display();
 
@@ -750,7 +747,7 @@ void write_sysdump_before_boot(int rst_mode)
 
 		if (mod &(FSFATAL | FSNOSPACE)) {
 			if (mod & FSFATAL)
-				lcd_printf("\ndetect sd is demaged");
+				sysdump_lcd_printf("\ndetect sd is demaged");
 			else if (mod & FSNOSPACE) {
 				if(i != 1 ) {
 					sprintf(fnbuf, "%d", --i);
@@ -759,14 +756,14 @@ void write_sysdump_before_boot(int rst_mode)
 					if(ret == -1)
 						debugf("Error: delete files or folder\n");
 
-					lcd_printf("\n SYSDUMP_FOLDER_NUM is big, please change format sd next time!\n");
+					sysdump_lcd_printf("\n SYSDUMP_FOLDER_NUM is big, please change format sd next time!\n");
 					delete_flag = 1;
 				}
 				if (!delete_flag)
-					lcd_printf("\ndetect sd have not enough space");
+					sysdump_lcd_printf("\ndetect sd have not enough space");
 			}
 			if (!delete_flag) {
-				lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
+				sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
 
 				do {
 					udelay(50 * 1000);
@@ -878,16 +875,12 @@ void write_sysdump_before_boot(int rst_mode)
 #endif
 
 #ifdef CONFIG_NAND_BOOT
-#ifdef CONFIG_SPLASH_SCREEN
-		lcd_printf("\nBegin to dump nand flash:\n");
-#endif
+		sysdump_lcd_printf("\nBegin to dump nand flash:\n");
 //		lcd_display();
 		mtd_dump();
 #endif
 		debugf("\nwriting done.\nPress any key to continue...");
-#ifdef CONFIG_SPLASH_SCREEN
-		lcd_printf("\nWriting done.\nPress any key (Exp power key) to continue...");
-#endif
+		sysdump_lcd_printf("\nWriting done.\nPress any key (Exp power key) to continue...");
 //		lcd_display();
 		wait_for_keypress();
 	} else
@@ -907,10 +900,10 @@ static int display_crashinfo(struct sysdump_info *sinfo, int rst_mode)
 	if (!strncmp(cinfo->magic, U_MAGIC, sizeof(U_MAGIC))
 	    || !strncmp(cinfo->magic, K_MAGIC, sizeof(K_MAGIC)))
 	{
-		lcd_printf("\n ==============================================================");
-                lcd_printf("\n  Crash mode: %s ",GET_RST_MODE(rst_mode));
-		lcd_printf("\n  Crash info: %s", cinfo->payload);
-		lcd_printf("\n ==============================================================\n\n\n\n");
+		sysdump_lcd_printf("\n ==============================================================");
+                sysdump_lcd_printf("\n  Crash mode: %s ",GET_RST_MODE(rst_mode));
+		sysdump_lcd_printf("\n  Crash info: %s", cinfo->payload);
+		sysdump_lcd_printf("\n ==============================================================\n\n\n\n");
 		return 0;
 	}
 
