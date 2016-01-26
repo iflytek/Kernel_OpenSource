@@ -39,7 +39,7 @@ extern struct rtc_time get_time_by_sec(void);
 
 static int display_crashinfo(struct sysdump_info *sinfo, int rst_mode);
 #ifdef CONFIG_SPLASH_SCREEN
-	#define sysdump_lcd_printf(fmt, args...) lcd_printf(fmt, ##args);
+	#define sysdump_lcd_printf(fmt, args...)   lcd_printf(fmt, ##args)
 #else
 	#define sysdump_lcd_printf(fmt, args...)
 #endif
