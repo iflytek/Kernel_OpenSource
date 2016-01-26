@@ -51,6 +51,8 @@ int dram_init(void)
 	gd->ram_size = PHYS_SDRAM_1_SIZE;
 	return 0;
 }
+
+#ifdef CONFIG_DUAL_DDR
 void dram_init_banksize(void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
@@ -58,6 +60,7 @@ void dram_init_banksize(void)
 	gd->bd->bi_dram[1].start = PHYS_SDRAM_2;
 	gd->bd->bi_dram[1].size = PHYS_SDRAM_2_SIZE;
 }
+#endif
 
 
 int misc_init_r(void)
