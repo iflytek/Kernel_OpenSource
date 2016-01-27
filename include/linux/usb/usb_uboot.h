@@ -14,7 +14,7 @@
 extern int
 usb_driver_init(void);
 extern void
-usb_driver_cleanup(void);
+usb_driver_exit(void);
 extern int
 usb_gadget_handle_interrupts(void);
 

@@ -45,16 +45,23 @@ static LIST_HEAD(udc_list);
 DEFINE_MUTEX(udc_lock);
 
 /* ------------------------------------------------------------------------- */
+extern void
+invalidate_dcache_range(unsigned long start, unsigned long end );
+extern void
+flush_dcache_range(unsigned long start , unsigned long end);
 
 int usb_gadget_map_request(struct usb_gadget *gadget,
 		struct usb_request *req, int is_in)
 {
+	req->dma = req->buf;
 	if (req->length == 0)
 		return 0;
-
-	req->dma = dma_map_single(req->buf, req->length,
-				  is_in ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
-
+	if (is_in)
+		flush_dcache_range((unsigned long)req->buf,
+			(unsigned long)(req->buf + req->length));
+	else
+		invalidate_dcache_range((unsigned long)req->dma,
+			(unsigned long)(req->dma + req->length));
 	return 0;
 }
 EXPORT_SYMBOL_GPL(usb_gadget_map_request);
@@ -64,9 +71,12 @@ void usb_gadget_unmap_request(struct usb_gadget *gadget,
 {
 	if (req->length == 0)
 		return;
-
-	dma_unmap_single((void *)req->dma, req->length,
-			 is_in ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+	if (is_in)
+		flush_dcache_range((unsigned long)req->buf,
+			(unsigned long)(req->buf + req->length));
+	else
+		invalidate_dcache_range((unsigned long)req->dma,
+			(unsigned long)(req->dma + req->length));
 }
 EXPORT_SYMBOL_GPL(usb_gadget_unmap_request);
 
@@ -82,7 +92,8 @@ EXPORT_SYMBOL_GPL(usb_gadget_unmap_request);
 void usb_gadget_giveback_request(struct usb_ep *ep,
 		struct usb_request *req)
 {
-	req->complete(ep, req);
+	if (req && req->complete)
+		req->complete(ep, req);
 }
 EXPORT_SYMBOL_GPL(usb_gadget_giveback_request);
 
