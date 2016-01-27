@@ -538,7 +538,7 @@ void mtd_dump(void)
 static int check_dts_sysdump_node(void)
 {
 	unsigned char *fdt_blob = (unsigned char*) DT_ADR;
-	int nodeoffset = fdt_path_offset(fdt_blob, "/sprd_sysdump");
+	int nodeoffset = fdt_path_offset(fdt_blob, "/sprd-sysdump");
 	debugf("nodeoffset = %d\n", nodeoffset);
 
 	return nodeoffset;
@@ -550,8 +550,8 @@ static int fill_dump_mem(struct sysdump_mem *sprd_dump_mem, int nodeoffset)
 	unsigned char *fdt_blob = (unsigned char*) DT_ADR;
 	int i = 0;
 
-	ptr = fdt_getprop(fdt_blob, nodeoffset, "ram", &lenp);
-	__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "ram", &size);
+	ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
+	__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &size);
 	__be32 *list_end = list + size / sizeof(*list);
 
 	while (list < list_end) {
@@ -560,7 +560,7 @@ static int fill_dump_mem(struct sysdump_mem *sprd_dump_mem, int nodeoffset)
 
 		ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
 		if (ptr == NULL)
-			debugf("no ram property.\n");
+			debugf("no memory-region property.\n");
 		else {
 			ptr_end = ptr + lenp / (sizeof(unsigned long));
 			while (ptr < ptr_end) {
@@ -614,8 +614,8 @@ static unsigned long get_sprd_dump_size(int nodeoffset)
 	unsigned long size = 0;
 	int lenp, phandle, lookup;
 
-	ptr = fdt_getprop(fdt_blob, nodeoffset, "ram", &lenp);
-	__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "ram", &lenp);
+	ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
+	__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
 	__be32 *list_end = list + lenp / sizeof(*list);
 
 	while (list < list_end) {
@@ -624,7 +624,29 @@ static unsigned long get_sprd_dump_size(int nodeoffset)
 
 		ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
 		if (ptr == NULL)
-			debugf("no ram property.\n");
+			debugf("no memory-region property.\n");
+		else {
+			ptr_end = ptr + lenp / (sizeof(unsigned long));
+			while (ptr < ptr_end) {
+				ptr ++;
+				size += fdt_size_to_cpu(*ptr);
+				ptr ++;
+				debugf("size is %lx\n",size);
+			}
+		}
+	}
+
+	ptr = fdt_getprop(fdt_blob, nodeoffset, "iomem", &lenp);
+	list = fdt_getprop(fdt_blob, nodeoffset, "iomem", &lenp);
+	list_end = list + lenp / sizeof(*list);
+
+	while (list < list_end) {
+		phandle = be32_to_cpup(list++);
+		lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
+
+		ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
+		if (ptr == NULL)
+			debugf("no iomem property.\n");
 		else {
 			ptr_end = ptr + lenp / (sizeof(unsigned long));
 			while (ptr < ptr_end) {
@@ -690,7 +712,7 @@ void write_sysdump_before_boot(int rst_mode)
 
 			nodeoffset = check_dts_sysdump_node();
 			if (nodeoffset < 0) {
-				debugf("ERROR: device tree must have /sprd_sysdump node %s.\n", fdt_strerror(nodeoffset));
+				debugf("ERROR: device tree must have /sprd-sysdump node %s.\n", fdt_strerror(nodeoffset));
 				goto FINISH;
 			}
 		    sprd_dump_mem_num = fill_dump_mem(sprd_dump_mem, nodeoffset);
