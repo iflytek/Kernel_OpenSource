@@ -1326,13 +1326,11 @@ checkdtc:
 checkarmreloc: u-boot
 	@RELOC="`$(CROSS_COMPILE)readelf -r -W $< | cut -d ' ' -f 4 | \
 		grep R_A | sort -u`"; \
-
-#	if test "$$RELOC" != "R_ARM_RELATIVE" -a \
-#		 "$$RELOC" != "R_AARCH64_RELATIVE"; then \
-#		echo "$< contains unexpected relocations: $$RELOC"; \
-#		false; \
-#	fi
-
+	if test "$$RELOC" != "R_ARM_RELATIVE" -a \
+		 "$$RELOC" != "R_AARCH64_RELATIVE"; then \
+		echo "$< contains unexpected relocations: $$RELOC"; \
+		false; \
+	fi
 env: scripts_basic
 	$(Q)$(MAKE) $(build)=tools/$@
 

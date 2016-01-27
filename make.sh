@@ -16,8 +16,8 @@ if [ "$1" = "arm" ];then
 	make ARCH=arm -j4
 
 elif [ "$1" = "arm64" ]; then
-	export PATH=$PATH:$(pwd)/../prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin
-	export make CROSS_COMPILE=aarch64-linux-android-
+	export PATH=$PATH:$(pwd)/../prebuilts/gcc/linaro-x86/aarch64/gcc-linaro-4.8/gcc-linaro-4.8-2015.06-x86_64_aarch64-linux-gnu/bin
+	export make CROSS_COMPILE=aarch64-linux-gnu-
 	make distclean
 	make ARCH=arm "$2"_defconfig
 	make ARCH=arm -j4
