@@ -41,7 +41,7 @@ obj-$(CONFIG_SC9838A) += sprdfb_chip_9630.o
 obj-$(CONFIG_SC9630) += sprdfb_chip_9630.o
 obj-$(CONFIG_SC8830) += sprdfb_chip_8830.o
 obj-$(CONFIG_SC9001) += sprdfb_chip_9001.o
-obj-$(CONFIG_SC9860) += sprdfb_chip_9001.o
+obj-$(CONFIG_SC9860) += sprdfb_chip_9860.o
 endif
 
 ## only related to FPGA

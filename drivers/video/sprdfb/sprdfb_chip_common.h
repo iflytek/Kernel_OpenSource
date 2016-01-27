@@ -42,8 +42,12 @@
 #define SPRDFB_SUPPORT_LVDS_PANEL
 #endif
 
-#if defined(CONFIG_SC9001)||defined(CONFIG_SC9860)
+#ifdef CONFIG_SC9001 
 #include "sprdfb_chip_9001.h"
+#endif
+
+#ifdef CONFIG_SC9860
+#include "sprdfb_chip_9860.h"
 #endif
 
 void __raw_bits_or(unsigned int v, unsigned int a);

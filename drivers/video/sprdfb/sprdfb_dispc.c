@@ -17,7 +17,6 @@
 #include "sprdfb_panel.h"
 
 
-#define SPRDFB_DPI_CLOCK_SRC (384000000)
 
 static uint16_t		is_first_frame = 1;
 
@@ -273,39 +272,21 @@ static void gsp_iommu_workaround(void)
 static int32_t sprdfb_dispc_early_init(struct sprdfb_device *dev)
 {
 	FB_PRINT("sprdfb:[%s]\n", __FUNCTION__);
-#ifdef CONFIG_SC9001
-	disp_domain_power_ctrl(1);
-#endif
 
+	dispc_early_configs();
 
-	__raw_bits_or(BIT_DISPC_CORE_EN, DISPC_CORE_EN);  //core_clock_en
 #ifdef GSP_IOMMU_WORKAROUND1
 	gsp_iommu_workaround();
-#endif
-	__raw_bits_or(BIT_DISPC_EMC_EN, DISPC_EMC_EN);  //matrix clock en
-#ifndef CONFIG_SC9001
-	__raw_bits_or(BIT_DISPC_AHB_EN, DISPC_AHB_EN);//enable DISPC clock
-#else
-	__raw_bits_or(BIT_DISP_AHB_CKG_EB|BIT_DISP_AHB_DISPC1_EB|BIT_DISP_AHB_DISPC0_EB|BIT_DISP_AHB_DISPC_MMU_EB,DISPC_AHB_EN);//enable DISPC clock
-       __raw_bits_or(BIT_DISP_AHB_DISPC_MTX_FORCE_CKG_EN |
-               BIT_DISP_AHB_DISPC_MTX_AUTO_CKG_EN |
-               BIT_DISP_AHB_DISPC_NOC_AUTO_CKG_EN |
-               BIT_DISP_AHB_DISPC_NOC_FORCE_CKG_EN,REG_DISP_AHB_DPHY_CKG_CFG);
 #endif
 	dispc_pll_clk_set(DISPC_PLL_SEL_DEFAULT, 0);
 	dispc_dbi_clk_set(DISPC_DBI_SEL_DEFAULT, 0);
 	dispc_dpi_clk_set(DISPC_DPI_SEL_DEFAULT, 0);
 
-	dev->dpi_clock = SPRDFB_DPI_CLOCK_SRC /(DISPC_DPI_DIV_DEFAULT + 1);
+	dev->dpi_clock = SPRDFB_DPI_CLOCK_SRC / (DISPC_DPI_DIV_DEFAULT + 1);
 
 	FB_PRINT("sprdfb:DISPC_PLL_SEL_CFG:0x%08x \n",__raw_readl(DISPC_PLL_SEL_CFG));
 	FB_PRINT("sprdfb:DISPC_DPI_SEL_CFG:0x%08x \n",__raw_readl(DISPC_DPI_SEL_CFG));
-	FB_PRINT("sprdfb:DISPC_CORE_EN:%x \n",__raw_readl(DISPC_CORE_EN));
-	FB_PRINT("sprdfb:DISPC_EMC_EN:%x \n",__raw_readl(DISPC_EMC_EN));
-	FB_PRINT("sprdfb:DISPC_AHB_EN:%x \n",__raw_readl(DISPC_AHB_EN));
-
-
-
+	FB_PRINT("sprdfb:REG_DISP_AHB_AHB_EB:%x \n",__raw_readl(REG_DISP_AHB_AHB_EB));
 
 	dispc_reset();
 	dispc_module_enable();
@@ -377,9 +358,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 	}
 
 	sprdfb_panel_before_refresh(dev);
-#ifdef CONFIG_SC9001
-	dispc_set_bits((1<<20), DISPC_CTRL);
-#endif
+
 	if(SPRDFB_PANEL_IF_DPI == dev->panel_if_type){
 		/*dpi register update*/
 		dispc_set_bits((1<<5), DISPC_DPI_CTRL);

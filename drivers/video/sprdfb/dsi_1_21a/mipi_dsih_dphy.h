@@ -10,6 +10,17 @@
 
 #include "mipi_dsih_local.h"
 
+#ifdef CONFIG_MIPI_DSIH_SPRD
+#define R_DPHY_LPCLK_CTRL  	(0x74)
+#define R_DPHY_RSTZ     	(0x78)
+#define R_DPHY_MIN_STOP_TIME   	(0xA0)
+#define R_DPHY_IF_CFG   	(0xA4)
+#define R_DPHY_ULPS_CTRL  	(0x78)
+#define R_DPHY_TX_TRIGGERS  	(0x7C)
+#define R_DPHY_STATUS  	   	(0x9C)
+#define R_DPHY_TST_CRTL0 	(0xF0)
+#define R_DPHY_TST_CRTL1  	(0xF4)
+#else
 #define R_DPHY_LPCLK_CTRL  	(0x94)
 #define R_DPHY_RSTZ     	(0xA0)
 #define R_DPHY_IF_CFG   	(0xA4)
@@ -18,6 +29,7 @@
 #define R_DPHY_STATUS  	   	(0xB0)
 #define R_DPHY_TST_CRTL0 	(0xB4)
 #define R_DPHY_TST_CRTL1  	(0xB8)
+#endif
 
 /* obligatory functions - code can be changed for different phys*/
 dsih_error_t mipi_dsih_dphy_open(dphy_t * phy);

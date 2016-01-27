@@ -15,6 +15,17 @@
 #include "sprdfb_chip_common.h"
 #include "sprdfb.h"
 
+void misc_noc_ctrl(unsigned long base, unsigned int mode, unsigned int sel)
+{
+	unsigned int val;
+
+	val = *(volatile unsigned int *)base;
+	val &= ~(INTERLEAVE_MODE_MASK | INTERLEAVE_SEL_MASK);
+	val |= (mode << INTERLEAVE_MODE_OFFSET) |
+		(sel << INTERLEAVE_SEL_OFFSET);
+	*(volatile unsigned int *)base = val;
+}
+
 int disp_domain_power_ctrl(int enable)
 {
 	if (enable) {
@@ -32,10 +43,8 @@ int disp_domain_power_ctrl(int enable)
 
 void dsi_enable(void)
 {
-	__raw_bits_or(DSI_BIT_EB, DSI_REG_EB);
-	__raw_bits_or(BIT_DISP_AHB_DISPC1_SOFT_RST, REG_DISP_AHB_DPHY_CKG_CFG);
-	__raw_bits_or(0x70000000,REG_ANA_APB_MIPI_PHY_CTRL1);
-	__raw_bits_or(0x00f00004,REG_ANA_APB_MIPI_PHY_CTRL2);
+	__raw_bits_or(BIT_DISP_AHB_DSI1_EB, REG_DISP_AHB_AHB_EB);
+	__raw_bits_or(BIT_DISP_AHB_DPHY1_CFG_CKG_EN, REG_DISP_AHB_GEN_CKG_CFG);
 	__raw_bits_and(~BIT_ANA_APB_MIPI_DSI_PS_PD_S_S, REG_ANA_APB_PWR_CTRL1);
 	__raw_bits_and(~BIT_ANA_APB_MIPI_DSI_PS_PD_L_S, REG_ANA_APB_PWR_CTRL1);
 	__raw_bits_or(BIT_AP_AHB_DPHY_REF_CKG_EN, REG_AP_AHB_MISC_CKG_EN);
@@ -52,6 +61,19 @@ void dsi_disable(void)
 	__raw_bits_and(~DSI_BIT_EB, DSI_REG_EB);
 }
 
+void dispc_early_configs(void)
+{
+	misc_noc_ctrl(REG_AON_APB_DISP_NOC_CTRL, NORMAL_MODE, SIZE_64);
+	disp_domain_power_ctrl(1);
+	__raw_bits_or(BIT_DISP_AHB_CKG_EB |
+			BIT_DISP_AHB_DISPC_MTX_EB |
+			BIT_DISP_AHB_DISPC_MMU_EB |
+			BIT_DISP_AHB_DISPC0_EB, REG_DISP_AHB_AHB_EB); 
+	__raw_bits_or(BIT_DISP_AHB_DISPC_MTX_FORCE_CKG_EN |
+			BIT_DISP_AHB_DISPC_MTX_AUTO_CKG_EN |
+			BIT_DISP_AHB_DISPC_NOC_AUTO_CKG_EN |
+			BIT_DISP_AHB_DISPC_NOC_FORCE_CKG_EN, REG_DISP_AHB_GEN_CKG_CFG);
+}
 
 void dispc_print_clk(void)
 {
@@ -64,16 +86,5 @@ void dispc_print_clk(void)
 	FB_PRINT("0x402e0004 = 0x%x\n", __raw_readl(0x402e0004));
 #endif
 }
-void misc_noc_ctrl(unsigned long base, unsigned int mode, unsigned int sel)
-{
-	unsigned int val;
-
-	val = *(volatile unsigned int *)base;
-	val &= ~(INTERLEAVE_MODE_MASK | INTERLEAVE_SEL_MASK);
-	val |= (mode << INTERLEAVE_MODE_OFFSET) |
-		(sel << INTERLEAVE_SEL_OFFSET);
-	*(volatile unsigned int *)base = val;
-}
-
 
 

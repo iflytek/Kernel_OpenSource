@@ -27,7 +27,11 @@ ifdef CONFIG_FB_USE_MEGACORES_MIPI_DPHY
 ifdef CONFIG_SC9001
 obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_megacores_whale.o
 else
+ifdef CONFIG_SC9860
+obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_megacores_whale.o
+else
 obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_megacores.o
+endif
 endif
 else
 obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy.o

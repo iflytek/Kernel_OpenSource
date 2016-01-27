@@ -93,7 +93,11 @@ int mipi_dsih_hal_get_power(dsih_ctrl_t * instance)
  */
 void mipi_dsih_hal_tx_escape_division(dsih_ctrl_t * instance, uint8_t tx_escape_division)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_CLK_MGR, tx_escape_division, 0, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_CLK_MGR, tx_escape_division, 0, 8);
+#endif
 }
 /**
  * Write the DPI video virtual channel destination
@@ -102,7 +106,11 @@ void mipi_dsih_hal_tx_escape_division(dsih_ctrl_t * instance, uint8_t tx_escape_
  */
 void mipi_dsih_hal_dpi_video_vc(dsih_ctrl_t * instance, uint8_t vc)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_DPI_VCID, (uint32_t)(vc), 2, 2);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_DPI_VCID, (uint32_t)(vc), 0, 2);
+#endif
 }
 /**
  * Get the DPI video virtual channel destination
@@ -111,7 +119,11 @@ void mipi_dsih_hal_dpi_video_vc(dsih_ctrl_t * instance, uint8_t vc)
  */
 uint8_t mipi_dsih_hal_dpi_get_video_vc(dsih_ctrl_t * instance)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	return mipi_dsih_read_part(instance, R_DSI_HOST_DPI_VCID, 2, 2);
+#else
 	return mipi_dsih_read_part(instance, R_DSI_HOST_DPI_VCID, 0, 2);
+#endif
 }
 /**
  * Set DPI video color coding
@@ -132,7 +144,11 @@ dsih_error_t mipi_dsih_hal_dpi_color_coding(dsih_ctrl_t * instance, dsih_color_c
 	}
 	else
 	{
+#ifdef CONFIG_MIPI_DSIH_SPRD
+		mipi_dsih_write_part(instance, R_DSI_HOST_DPI_COLOR_CODE, color_coding, 0, 6);
+#else
 		mipi_dsih_write_part(instance, R_DSI_HOST_DPI_COLOR_CODE, color_coding, 0, 4);
+#endif
 	}
 	return err;
 }
@@ -143,7 +159,11 @@ dsih_error_t mipi_dsih_hal_dpi_color_coding(dsih_ctrl_t * instance, dsih_color_c
  */
 dsih_color_coding_t mipi_dsih_hal_dpi_get_color_coding(dsih_ctrl_t * instance)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	return (dsih_color_coding_t)(mipi_dsih_read_part(instance, R_DSI_HOST_DPI_COLOR_CODE, 0, 6));
+#else
 	return (dsih_color_coding_t)(mipi_dsih_read_part(instance, R_DSI_HOST_DPI_COLOR_CODE, 0, 4));
+#endif
 }
 /**
  * Get DPI video color depth
@@ -153,7 +173,11 @@ dsih_color_coding_t mipi_dsih_hal_dpi_get_color_coding(dsih_ctrl_t * instance)
 uint8_t mipi_dsih_hal_dpi_get_color_depth(dsih_ctrl_t * instance)
 {
 	uint8_t color_depth = 0;
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	switch (mipi_dsih_read_part(instance, R_DSI_HOST_DPI_COLOR_CODE, 0, 6))
+#else
 	switch (mipi_dsih_read_part(instance, R_DSI_HOST_DPI_COLOR_CODE, 0, 4))
+#endif
 	{
 	case 0:
 	case 1:
@@ -199,7 +223,11 @@ uint8_t mipi_dsih_hal_dpi_get_color_depth(dsih_ctrl_t * instance)
 uint8_t mipi_dsih_hal_dpi_get_color_config(dsih_ctrl_t * instance)
 {
 	uint8_t color_config = 0;
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	switch (mipi_dsih_read_part(instance, R_DSI_HOST_DPI_COLOR_CODE, 0, 6))
+#else
 	switch (mipi_dsih_read_part(instance, R_DSI_HOST_DPI_COLOR_CODE, 0, 4))
+#endif
 	{
 	case 0:
 		color_config = 1;
@@ -229,7 +257,11 @@ uint8_t mipi_dsih_hal_dpi_get_color_config(dsih_ctrl_t * instance)
  */
 void mipi_dsih_hal_dpi_18_loosely_packet_en(dsih_ctrl_t * instance, int enable)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_DPI_COLOR_CODE, enable, 6, 1);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_DPI_COLOR_CODE, enable, 8, 1);
+#endif
 }
 /**
  * Set DPI color mode pin polarity
@@ -238,7 +270,11 @@ void mipi_dsih_hal_dpi_18_loosely_packet_en(dsih_ctrl_t * instance, int enable)
  */
 void mipi_dsih_hal_dpi_color_mode_pol(dsih_ctrl_t * instance, int active_low)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	/*SPRD DSI HOST does't contain this REG*/
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_DPI_CFG_POL, active_low, 4, 1);
+#endif
 }
 /**
  * Set DPI shut down pin polarity
@@ -247,7 +283,11 @@ void mipi_dsih_hal_dpi_color_mode_pol(dsih_ctrl_t * instance, int active_low)
  */
 void mipi_dsih_hal_dpi_shut_down_pol(dsih_ctrl_t * instance, int active_low)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	/*SPRD DSI HOST does't contain this REG*/
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_DPI_CFG_POL, active_low, 3, 1);
+#endif
 }
 /**
  * Set DPI horizontal sync pin polarity
@@ -256,7 +296,11 @@ void mipi_dsih_hal_dpi_shut_down_pol(dsih_ctrl_t * instance, int active_low)
  */
 void mipi_dsih_hal_dpi_hsync_pol(dsih_ctrl_t * instance, int active_low)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	/*SPRD DSI HOST does't contain this REG*/
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_DPI_CFG_POL, active_low, 2, 1);
+#endif
 }
 /**
  * Set DPI vertical sync pin polarity
@@ -265,7 +309,11 @@ void mipi_dsih_hal_dpi_hsync_pol(dsih_ctrl_t * instance, int active_low)
  */
 void mipi_dsih_hal_dpi_vsync_pol(dsih_ctrl_t * instance, int active_low)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	/*SPRD DSI HOST does't contain this REG*/
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_DPI_CFG_POL, active_low, 1, 1);
+#endif
 }
 /**
  * Set DPI data enable pin polarity
@@ -274,7 +322,11 @@ void mipi_dsih_hal_dpi_vsync_pol(dsih_ctrl_t * instance, int active_low)
  */
 void mipi_dsih_hal_dpi_dataen_pol(dsih_ctrl_t * instance, int active_low)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	/*SPRD DSI HOST does't contain this REG*/
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_DPI_CFG_POL, active_low, 0, 1);
+#endif
 }
 /**
  * Enable FRAME BTA ACK
@@ -431,7 +483,11 @@ dsih_error_t mipi_dsih_hal_dpi_chunks_no(dsih_ctrl_t * instance, uint16_t no)
 {
 	if (no < (1 << 13))
 	{
+#ifdef CONFIG_MIPI_DSIH_SPRD
+		mipi_dsih_write_part(instance, R_DSI_HOST_VID_NUM_CHUNKS, no, 16, 16);
+#else
 		mipi_dsih_write_part(instance, R_DSI_HOST_VID_NUM_CHUNKS, no, 0, 13);
+#endif
 		return OK;
 	}
 	else
@@ -449,7 +505,11 @@ dsih_error_t mipi_dsih_hal_dpi_video_packet_size(dsih_ctrl_t * instance, uint16_
 {
 	if (size < (1 << 14)) /* 14-bit field */
 	{
+#ifdef CONFIG_MIPI_DSIH_SPRD
+		mipi_dsih_write_part(instance, R_DSI_HOST_VID_PKT_SIZE, size, 0, 16);
+#else
 		mipi_dsih_write_part(instance, R_DSI_HOST_VID_PKT_SIZE, size, 0, 14);
+#endif
 		return OK;
 	}
 	else
@@ -646,7 +706,11 @@ int mipi_dsih_hal_gen_is_cmd_mode(dsih_ctrl_t * instance)
  */
 void mipi_dsih_hal_dpi_hline(dsih_ctrl_t * instance, uint16_t time)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_VID_HLINE_TIME, time, 0, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_VID_HLINE_TIME, time, 0, 15);
+#endif
 }
 /**
  * Configure the Horizontal back porch time
@@ -655,7 +719,11 @@ void mipi_dsih_hal_dpi_hline(dsih_ctrl_t * instance, uint16_t time)
  */
 void mipi_dsih_hal_dpi_hbp(dsih_ctrl_t * instance, uint16_t time)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_VID_HBP_TIME, time, 0, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_VID_HBP_TIME, time, 0, 12);
+#endif
 }
 /**
  * Configure the Horizontal sync time
@@ -664,7 +732,11 @@ void mipi_dsih_hal_dpi_hbp(dsih_ctrl_t * instance, uint16_t time)
  */
 void mipi_dsih_hal_dpi_hsa(dsih_ctrl_t * instance, uint16_t time)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_VID_HSA_TIME, time, 16, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_VID_HSA_TIME, time, 0, 12);
+#endif
 }
 /**
  * Configure the vertical active lines of the video stream
@@ -691,7 +763,11 @@ void mipi_dsih_hal_dpi_vfp(dsih_ctrl_t * instance, uint16_t lines)
  */
 void mipi_dsih_hal_dpi_vbp(dsih_ctrl_t * instance, uint16_t lines)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_VID_VBP_LINES, lines, 10, 10);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_VID_VBP_LINES, lines, 0, 10);
+#endif
 }
 /**
  * Configure the vertical sync lines of the video stream
@@ -700,7 +776,11 @@ void mipi_dsih_hal_dpi_vbp(dsih_ctrl_t * instance, uint16_t lines)
  */
 void mipi_dsih_hal_dpi_vsync(dsih_ctrl_t * instance, uint16_t lines)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_VID_VSA_LINES, lines, 20, 10);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_VID_VSA_LINES, lines, 0, 10);
+#endif
 }
 /**
  * configure timeout divisions (so they would have more clock ticks)
@@ -710,7 +790,11 @@ void mipi_dsih_hal_dpi_vsync(dsih_ctrl_t * instance, uint16_t lines)
  */
 void mipi_dsih_hal_timeout_clock_division(dsih_ctrl_t * instance, uint8_t byte_clk_division_factor)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_TIMEOUT_CLK_CONF, byte_clk_division_factor, 0, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_CLK_MGR, byte_clk_division_factor, 8, 8);
+#endif
 }
 /**
  * Configure the Low power receive time out
@@ -719,7 +803,11 @@ void mipi_dsih_hal_timeout_clock_division(dsih_ctrl_t * instance, uint8_t byte_c
  */
 void mipi_dsih_hal_lp_rx_timeout(dsih_ctrl_t * instance, uint16_t count)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_LPX_TO_CNT_CFG, count, 0, 32);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_TO_CNT_CFG, count, 0, 16);
+#endif
 }
 /**
  * Configure a high speed transmission time out7
@@ -728,7 +816,11 @@ void mipi_dsih_hal_lp_rx_timeout(dsih_ctrl_t * instance, uint16_t count)
  */
 void mipi_dsih_hal_hs_tx_timeout(dsih_ctrl_t * instance, uint16_t count)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_TO_CNT_CFG, count, 0, 32);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_TO_CNT_CFG, count, 16, 16);
+#endif
 }
 /**
  * Get the error 0 interrupt register status
@@ -738,7 +830,12 @@ void mipi_dsih_hal_hs_tx_timeout(dsih_ctrl_t * instance, uint16_t count)
  */
 uint32_t mipi_dsih_hal_int_status_0(dsih_ctrl_t * instance, uint32_t mask)
 {
+/*need reconfig here*/
+#ifdef CONFIG_MIPI_DSIH_SPRD
 	return (mipi_dsih_read_word(instance, R_DSI_HOST_INT_ST0) & mask);
+#else
+	return (mipi_dsih_read_word(instance, R_DSI_HOST_INT_ST0) & mask);
+#endif
 }
 /**
  * Get the error 1 interrupt register status
@@ -748,7 +845,12 @@ uint32_t mipi_dsih_hal_int_status_0(dsih_ctrl_t * instance, uint32_t mask)
  */
 uint32_t mipi_dsih_hal_int_status_1(dsih_ctrl_t * instance, uint32_t mask)
 {
+/*need reconfig here*/
+#ifdef CONFIG_MIPI_DSIH_SPRD
 	return (mipi_dsih_read_word(instance, R_DSI_HOST_INT_ST1) & mask);
+#else
+	return (mipi_dsih_read_word(instance, R_DSI_HOST_INT_ST1) & mask);
+#endif
 }
 /**
  * Configure MASK (hiding) of interrupts coming from error 0 source
@@ -883,7 +985,11 @@ void mipi_dsih_hal_gen_eotp_tx_en(dsih_ctrl_t * instance, int enable)
  */
 void mipi_dsih_hal_bta_en(dsih_ctrl_t * instance, int enable)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_BTA_EN, enable, 0, 1);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_PCKHDL_CFG, enable, 2, 1);
+#endif
 }
 /**
  * Enable ECC reception, error correction and reporting
@@ -892,7 +998,11 @@ void mipi_dsih_hal_bta_en(dsih_ctrl_t * instance, int enable)
  */
 void mipi_dsih_hal_gen_ecc_rx_en(dsih_ctrl_t * instance, int enable)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_ECC_CRC_EN, enable, 0, 1);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_PCKHDL_CFG, enable, 3, 1);
+#endif
 }
 /**
  * Enable CRC reception, error reporting
@@ -901,7 +1011,11 @@ void mipi_dsih_hal_gen_ecc_rx_en(dsih_ctrl_t * instance, int enable)
  */
 void mipi_dsih_hal_gen_crc_rx_en(dsih_ctrl_t * instance, int enable)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_ECC_CRC_EN, enable, 1, 1);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_PCKHDL_CFG, enable, 4, 1);
+#endif
 }
 /**
  * Get status of read command
@@ -910,7 +1024,11 @@ void mipi_dsih_hal_gen_crc_rx_en(dsih_ctrl_t * instance, int enable)
  */
 int mipi_dsih_hal_gen_rd_cmd_busy(dsih_ctrl_t * instance)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 0, 1);
+#else
 	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 6, 1);
+#endif
 }
 /**
  * Get the FULL status of generic read payload fifo
@@ -919,7 +1037,11 @@ int mipi_dsih_hal_gen_rd_cmd_busy(dsih_ctrl_t * instance)
  */
 int mipi_dsih_hal_gen_read_fifo_full(dsih_ctrl_t * instance)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 2, 1);
+#else
 	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 5, 1);
+#endif
 }
 /**
  * Get the EMPTY status of generic read payload fifo
@@ -928,7 +1050,11 @@ int mipi_dsih_hal_gen_read_fifo_full(dsih_ctrl_t * instance)
  */
 int mipi_dsih_hal_gen_read_fifo_empty(dsih_ctrl_t * instance)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 1, 1);
+#else
 	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 4, 1);
+#endif
 }
 /**
  * Get the FULL status of generic write payload fifo
@@ -937,7 +1063,11 @@ int mipi_dsih_hal_gen_read_fifo_empty(dsih_ctrl_t * instance)
  */
 int mipi_dsih_hal_gen_write_fifo_full(dsih_ctrl_t * instance)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 4, 1);
+#else
 	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 3, 1);
+#endif
 }
 /**
  * Get the EMPTY status of generic write payload fifo
@@ -946,7 +1076,11 @@ int mipi_dsih_hal_gen_write_fifo_full(dsih_ctrl_t * instance)
  */
 int mipi_dsih_hal_gen_write_fifo_empty(dsih_ctrl_t * instance)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 3, 1);
+#else
 	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 2, 1);
+#endif
 }
 /**
  * Get the FULL status of generic command fifo
@@ -955,7 +1089,11 @@ int mipi_dsih_hal_gen_write_fifo_empty(dsih_ctrl_t * instance)
  */
 int mipi_dsih_hal_gen_cmd_fifo_full(dsih_ctrl_t * instance)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 6, 1);
+#else
 	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 1, 1);
+#endif
 }
 /**
  * Get the EMPTY status of generic command fifo
@@ -964,7 +1102,11 @@ int mipi_dsih_hal_gen_cmd_fifo_full(dsih_ctrl_t * instance)
  */
 int mipi_dsih_hal_gen_cmd_fifo_empty(dsih_ctrl_t * instance)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 5, 1);
+#else
 	return mipi_dsih_read_part(instance, R_DSI_HOST_CMD_PKT_STATUS, 0, 1);
+#endif
 }
 /* only if DPI */
 /**
@@ -976,7 +1118,11 @@ int mipi_dsih_hal_gen_cmd_fifo_empty(dsih_ctrl_t * instance)
  */
 dsih_error_t mipi_dsih_phy_hs2lp_config(dsih_ctrl_t * instance, uint8_t no_of_byte_cycles)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 16, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 24, 8);
+#endif
 	return OK;
 }
 /**
@@ -988,7 +1134,11 @@ dsih_error_t mipi_dsih_phy_hs2lp_config(dsih_ctrl_t * instance, uint8_t no_of_by
  */
 dsih_error_t mipi_dsih_phy_lp2hs_config(dsih_ctrl_t * instance, uint8_t no_of_byte_cycles)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 0, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 16, 8);
+#endif
 	return OK;
 }
 /**
@@ -1000,7 +1150,11 @@ dsih_error_t mipi_dsih_phy_lp2hs_config(dsih_ctrl_t * instance, uint8_t no_of_by
  */
 dsih_error_t mipi_dsih_phy_clk_hs2lp_config(dsih_ctrl_t * instance, uint8_t no_of_byte_cycles)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_LPCLK_CFG, no_of_byte_cycles, 16, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_LPCLK_CFG, no_of_byte_cycles, 16, 10);
+#endif
 	return OK;
 }
 /**
@@ -1012,7 +1166,11 @@ dsih_error_t mipi_dsih_phy_clk_hs2lp_config(dsih_ctrl_t * instance, uint8_t no_o
  */
 dsih_error_t mipi_dsih_phy_clk_lp2hs_config(dsih_ctrl_t * instance, uint8_t no_of_byte_cycles)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_LPCLK_CFG, no_of_byte_cycles, 0, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_LPCLK_CFG, no_of_byte_cycles, 0, 10);
+#endif
 	return OK;
 }
 /**
@@ -1028,7 +1186,11 @@ dsih_error_t mipi_dsih_phy_bta_time(dsih_ctrl_t * instance, uint16_t no_of_byte_
 	if (no_of_byte_cycles < 0x8000) /* 15-bit field */
 	{
         //mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 0, 12);
+#ifdef CONFIG_MIPI_DSIH_SPRD
+		mipi_dsih_write_part(instance, R_DSI_HOST_PHY_MX_RD_TM, no_of_byte_cycles, 0, 16);
+#else
 		mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 0, 15);
+#endif
 	}
 	else
 	{
@@ -1103,7 +1265,11 @@ void mipi_dsih_hal_presp_timeout_high_speed_write(dsih_ctrl_t * instance, uint16
  */
 void mipi_dsih_hal_presp_timeout_high_speed_read(dsih_ctrl_t * instance, uint16_t no_of_byte_cycles)
 {
+#ifdef CONFIG_MIPI_DSIH_SPRD
+	mipi_dsih_write_part(instance, R_DSI_HOST_HS_RD_TO_CNT, no_of_byte_cycles, 16, 16);
+#else
 	mipi_dsih_write_part(instance, R_DSI_HOST_HS_RD_TO_CNT, no_of_byte_cycles, 0, 16);
+#endif
 }
 /**
  * Timeout for peripheral (for controller to stay still) after bus turn around

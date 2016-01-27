@@ -445,26 +445,13 @@ vidinfo_t panel_info = {
 
 static int32_t panel_reset_dispc(struct panel_spec *self)
 {
-	//dispc_write(1, DISPC_RSTN);
-	__raw_writel(1, (SPRD_DISPC0_BASE + DISPC_RSTN));
+	dispc_write(1, DISPC_RSTN);
 	mdelay(20);
-	//dispc_write(0, DISPC_RSTN);
-	__raw_writel(0, (SPRD_DISPC0_BASE + DISPC_RSTN));
+	dispc_write(0, DISPC_RSTN);
 	mdelay(20);
-
-	sprd_gpio_request(NULL, 168);
-	sprd_gpio_direction_output(NULL, 168, 1);
-	sprd_gpio_set(NULL, 168, 1);
-	mdelay(10);
-	sprd_gpio_request(NULL, 169);
-	sprd_gpio_direction_output(NULL, 169, 1);
-	sprd_gpio_set(NULL, 169, 1);
-	mdelay(20);
-
-	//dispc_write(1, DISPC_RSTN);
-	__raw_writel(1, (SPRD_DISPC0_BASE + DISPC_RSTN));
-	/* wait 10ms util the lcd is stable */
+	dispc_write(1, DISPC_RSTN);
 	mdelay(120);
+
 	return 0;
 }
 
@@ -479,7 +466,7 @@ static void panel_reset(struct sprdfb_device *dev)
 	}
 
 	//reset panel
-	panel_reset_dispc(dev->panel);
+	dev->panel->ops->panel_reset(dev->panel);
 }
 
 static int panel_mount(struct sprdfb_device *dev, struct panel_spec *panel)

@@ -692,9 +692,31 @@ static uint32_t nt35596_readid(struct panel_spec *self)
 	return 0x0;
 }
 
+int32_t nt35596_reset(struct panel_spec *self)
+{
+	sprd_gpio_request(NULL, LCM_GPIO_AVDDEN);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_AVDDEN, 1);
+	sprd_gpio_set(NULL, LCM_GPIO_AVDDEN, 1);
+	mdelay(10);
+	sprd_gpio_request(NULL, LCM_GPIO_AVEEEN);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_AVEEEN, 1);
+	sprd_gpio_set(NULL, LCM_GPIO_AVEEEN, 1);
+	mdelay(20);
+
+	dispc_write(1, DISPC_RSTN);
+	mdelay(20);
+	dispc_write(0, DISPC_RSTN);
+	mdelay(20);
+	dispc_write(1, DISPC_RSTN);
+	mdelay(120);
+
+	return 0;
+}
+
 static struct panel_operations lcd_nt35596_mipi_operations = {
 	.panel_init = nt35596_mipi_init,
 	.panel_readid = nt35596_readid,
+	.panel_reset = nt35596_reset,
 };
 
 static struct timing_rgb lcd_nt35596_mipi_timing = {
@@ -727,6 +749,7 @@ struct panel_spec lcd_nt35596_mipi_spec = {
 	.fps = 60,
 	.type = LCD_MODE_DSI,
 	.direction = LCD_DIRECT_NORMAL,
+	.is_need_reset = 1,
 	.info = {
 		.mipi = &lcd_nt35596_mipi_info
 	},

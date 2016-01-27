@@ -91,12 +91,12 @@
 
 static inline u32 dispc_read(unsigned long reg)
 {
-	return __raw_readl(SPRD_DISPC1_BASE + reg);
+	return __raw_readl(SPRD_DISPC0_BASE + reg);
 }
 
 static inline void dispc_write(u32 value, unsigned long reg)
 {
-	__raw_writel(value, (SPRD_DISPC1_BASE + reg));
+	__raw_writel(value, (SPRD_DISPC0_BASE + reg));
 }
 
 static inline void dispc_set_bits(u32 bits, unsigned long reg)
@@ -121,58 +121,58 @@ static inline void dispc_clear_bits(u32 bits, unsigned long reg)
 #define DSI_REG_EB				REG_DISP_AHB_AHB_EB
 #define DSI_BIT_EB				BIT_DISP_AHB_DSI1_EB	
 
-#define DISPC_AHB_SOFT_RST            	REG_DISP_AHB_AHB_RST
-#define BIT_DISPC_SOFT_RST		BIT_DISP_AHB_DISPC1_SOFT_RST
+#define DISPC_AHB_SOFT_RST            		REG_DISP_AHB_AHB_RST
+#define BIT_DISPC_SOFT_RST			BIT_DISP_AHB_DISPC0_SOFT_RST
 
 #define DISPC_AHB_EN				(REG_DISP_AHB_AHB_EB)
-#define BIT_DISPC_AHB_EN			(BIT_DISP_AHB_DISPC1_EB)
+#define BIT_DISPC_AHB_EN			(BIT_DISP_AHB_DISPC0_EB)
 
-#define DISPC_CORE_EN			(REG_DISP_AHB_AHB_EB)
+#define DISPC_CORE_EN				(REG_DISP_AHB_AHB_EB)
 #define BIT_DISPC_CORE_EN			(BIT_DISP_AHB_CKG_EB)
 
 #define DISPC_EMC_EN				(REG_DISP_AHB_AHB_EB)
 #define BIT_DISPC_EMC_EN			(BIT_DISP_AHB_DISPC_MTX_EB)
 
-#define REG_DISP_CLK_CORE_clk_dispc0_cfg                  (CTL_BASE_DISPCKG + 0x2c)/*clk_dispc0_cfg*/
-#define REG_DISP_CLK_CORE_clk_dispc0_dbi_cfg              (CTL_BASE_DISPCKG + 0x30)/*clk_dispc0_dbi_cfg*/
-#define REG_DISP_CLK_CORE_clk_dispc0_dpi_cfg              (CTL_BASE_DISPCKG + 0x34)/*clk_dispc0_dpi_cfg*/
-#define REG_DISP_CLK_CORE_clk_dispc1_cfg                  (CTL_BASE_DISPCKG + 0x38)/*clk_dispc0_cfg*/
-#define REG_DISP_CLK_CORE_clk_dispc1_dbi_cfg              (CTL_BASE_DISPCKG + 0x3c)/*clk_dispc0_dbi_cfg*/
-#define REG_DISP_CLK_CORE_clk_dispc1_dpi_cfg              (CTL_BASE_DISPCKG + 0x40)/*clk_dispc0_dpi_cfg*/
+#define REG_DISP_CLK_CORE_clk_dispc0_cfg                  (SPRD_DISPCKG_BASE + 0x2c)/*clk_dispc0_cfg*/
+#define REG_DISP_CLK_CORE_clk_dispc0_dbi_cfg              (SPRD_DISPCKG_BASE + 0x30)/*clk_dispc0_dbi_cfg*/
+#define REG_DISP_CLK_CORE_clk_dispc0_dpi_cfg              (SPRD_DISPCKG_BASE + 0x34)/*clk_dispc0_dpi_cfg*/
+#define REG_DISP_CLK_CORE_clk_dispc1_cfg                  (SPRD_DISPCKG_BASE + 0x38)/*clk_dispc0_cfg*/
+#define REG_DISP_CLK_CORE_clk_dispc1_dbi_cfg              (SPRD_DISPCKG_BASE + 0x3c)/*clk_dispc0_dbi_cfg*/
+#define REG_DISP_CLK_CORE_clk_dispc1_dpi_cfg              (SPRD_DISPCKG_BASE + 0x40)/*clk_dispc0_dpi_cfg*/
 
-#define DISPC_PLL_SEL_CFG		REG_DISP_CLK_CORE_clk_dispc1_cfg	
+#define DISPC_PLL_SEL_CFG		REG_DISP_CLK_CORE_clk_dispc0_cfg	
 #define BITS_DISPC_PLL_SEL_CFG		0
 #define BIT0_DISPC_PLL_SEL_CFG		BIT(0)
 #define BIT1_DISPC_PLL_SEL_CFG		BIT(1)
 #define BIT_DISPC_PLL_SEL_MSK		BIT1_DISPC_PLL_SEL_CFG | BIT0_DISPC_PLL_SEL_CFG
 
-#define DISPC_PLL_DIV_CFG		REG_DISP_CLK_CORE_clk_dispc1_cfg
+#define DISPC_PLL_DIV_CFG		REG_DISP_CLK_CORE_clk_dispc0_cfg
 #define BITS_DISPC_PLL_DIV_CFG		8
 #define BIT0_DISPC_PLL_DIV_CFG		BIT(8)
 #define BIT1_DISPC_PLL_DIV_CFG		BIT(9)
 #define BIT2_DISPC_PLL_DIV_CFG		BIT(10)
 #define BIT_DISPC_PLL_DIV_MSK		BIT0_DISPC_PLL_DIV_CFG | BIT1_DISPC_PLL_DIV_CFG | BIT2_DISPC_PLL_DIV_CFG
 
-#define DISPC_DBI_SEL_CFG		REG_DISP_CLK_CORE_clk_dispc1_dbi_cfg
+#define DISPC_DBI_SEL_CFG		REG_DISP_CLK_CORE_clk_dispc0_dbi_cfg
 #define BITS_DISPC_DBI_SEL_CFG		0
 #define BIT0_DISPC_DBI_SEL_CFG		BIT(0)
 #define BIT1_DISPC_DBI_SEL_CFG		BIT(1)
 #define BIT_DISPC_DBI_SEL_MSK		BIT0_DISPC_DBI_SEL_CFG | BIT1_DISPC_DBI_SEL_CFG
 
-#define DISPC_DBI_DIV_CFG		REG_DISP_CLK_CORE_clk_dispc1_dbi_cfg
+#define DISPC_DBI_DIV_CFG		REG_DISP_CLK_CORE_clk_dispc0_dbi_cfg
 #define BITS_DISPC_DBI_DIV_CFG		8
 #define BIT0_DISPC_DBI_DIV_CFG		BIT(8)
 #define BIT1_DISPC_DBI_DIV_CFG		BIT(9)
 #define BIT2_DISPC_DBI_DIV_CFG		BIT(10)
 #define BIT_DISPC_DBI_DIV_MSK		BIT0_DISPC_DBI_DIV_CFG | BIT1_DISPC_DBI_DIV_CFG | BIT2_DISPC_DBI_DIV_CFG
 
-#define DISPC_DPI_SEL_CFG		REG_DISP_CLK_CORE_clk_dispc1_dpi_cfg	
+#define DISPC_DPI_SEL_CFG		REG_DISP_CLK_CORE_clk_dispc0_dpi_cfg	
 #define BITS_DISPC_DPI_SEL_CFG		0
 #define BIT0_DISPC_DPI_SEL_CFG		BIT(0)
 #define BIT1_DISPC_DPI_SEL_CFG		BIT(1)
 #define BIT_DISPC_DPI_SEL_MSK		BIT0_DISPC_DPI_SEL_CFG | BIT1_DISPC_DPI_SEL_CFG
 
-#define DISPC_DPI_DIV_CFG		REG_DISP_CLK_CORE_clk_dispc1_dpi_cfg
+#define DISPC_DPI_DIV_CFG		REG_DISP_CLK_CORE_clk_dispc0_dpi_cfg
 #define BITS_DISPC_DPI_DIV_CFG		8
 #define BIT0_DISPC_DPI_DIV_CFG		BIT(8)
 #define BIT1_DISPC_DPI_DIV_CFG		BIT(9)
@@ -216,13 +216,8 @@ enum{
 #define DISPC_DBI_DIV_DEFAULT	0
 #define DISPC_DPI_DIV_DEFAULT	0
 
+#define SPRDFB_DPI_CLOCK_SRC (384000000)
 
-
-void dsi_enable(void);
-void dsi_disable(void);
-
-void dispc_print_clk(void);
-int disp_domain_power_ctrl(int enable);
 
 /*for noc*/
 typedef enum {
@@ -252,5 +247,13 @@ typedef enum {
 
 #define INTERLEAVE_SEL_OFFSET	0
 #define INTERLEAVE_SEL_MASK	(0x1 << INTERLEAVE_SEL_OFFSET)
+
+
 void misc_noc_ctrl(unsigned long base, unsigned int mode, unsigned int sel);
+void dsi_enable(void);
+void dsi_disable(void);
+void dispc_early_configs(void);
+void dispc_print_clk(void);
+int disp_domain_power_ctrl(int enable);
+
 #endif

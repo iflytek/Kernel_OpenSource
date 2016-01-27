@@ -239,17 +239,19 @@ static inline int mipi_dsih_if_dphy_keep_work(dphy_t *phy)
 	return keep_work;
 }
 
-#if 1
-/* pike, whale */
-#define VCO_BAND_LOW	750
-#define VCO_BAND_MID	1100
-#define VCO_BAND_HIGH	1500
-#else
+#ifdef CONFIG_SC9860
 /* whale2 */
 #define VCO_BAND_LOW	1250
 #define VCO_BAND_MID	1800
 #define VCO_BAND_HIGH	2500
+#else
+/* pike, whale */
+#define VCO_BAND_LOW	750
+#define VCO_BAND_MID	1100
+#define VCO_BAND_HIGH	1500
 #endif
+
+extern uint32_t mipi_dsih_current_versions;
 
 static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 {
@@ -283,10 +285,16 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 		/* vco band control */
 		pll->vco_band = 0x0;
 		/* low pass filter control */
-		pll->lpf_sel = 0x7;
+		if(0x100 == mipi_dsih_current_versions)
+			pll->lpf_sel = 1;
+		else
+			pll->lpf_sel = 7;
 	} else if (pll->fvco > VCO_BAND_MID && pll->fvco <= VCO_BAND_HIGH) {
 		pll->vco_band = 0x1;
-		pll->lpf_sel = 0x6;
+		if(0x100 == mipi_dsih_current_versions)
+			pll->lpf_sel = 0;
+		else
+			pll->lpf_sel = 6;
 	} else
 		goto FAIL;
 
@@ -297,7 +305,10 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 	tmp *= BIT(20);
 	do_div(tmp, 100000000);
 	pll->kint = (u32)tmp;
-	pll->refin = 0x3; /* pre-divider bypass */
+	if(0x100 == mipi_dsih_current_versions)
+		pll->refin = 0; /* pre-divider bypass */
+	else
+		pll->refin = 3;
 	pll->sdm_en = TRUE; /* use fraction N PLL */
 	pll->fdk_s = 0x1; /* fraction */
 	pll->cp_s = 0x0;

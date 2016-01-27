@@ -73,9 +73,7 @@ static int sprdfb_probe(void *lcdbase)
 	struct sprdfb_device *dev = &s_sprdfb_dev;
 
 	printf("sprdfb:[%s]\n", __FUNCTION__);
-#ifdef CONFIG_SC9001
-	misc_noc_ctrl(REG_AON_APB_DISP_NOC_CTRL, NORMAL_MODE, SIZE_64);
-#endif
+
 	set_backlight(0);
 
 #ifdef CONFIG_GRANDPRIME3G_VE
@@ -132,7 +130,6 @@ void lcd_ctrl_init(void *lcdbase)
 	void *bmp;
 	char *s;
 	ulong addr;
-	ulong all_sz;
 
 	printf("sprdfb: %s: lcdbase is 0x%p\n", __FUNCTION__, lcdbase);
 	size = lcd_get_size(&lcd_line_length) >> 1;
