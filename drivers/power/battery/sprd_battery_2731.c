@@ -13,6 +13,20 @@
 #else
 #define debugf(fmt, args...)
 #endif
+
+#define CHG_CFG0		(ANA_SWICHG_BASE+ 0x00)
+#define CHG_CFG1		(ANA_SWICHG_BASE+ 0x04)
+#define CHG_CFG2		(ANA_SWICHG_BASE+ 0x08)
+#define CHG_CFG3		(ANA_SWICHG_BASE+ 0x0c)
+#define CHG_CFG4		(ANA_SWICHG_BASE+ 0x10)
+
+#define SWTCHG_APB_EN		BIT(5)
+
+//CHG_CFG0
+#define SPRD2731_CC_EN		BIT(13)
+//CHG_CFG1
+#define BITS_CUR(x)			((x) & 0x3f)
+
 #define ADC_CAL_TYPE_NO			0
 #define ADC_CAL_TYPE_NV			1
 #define ADC_CAL_TYPE_EFUSE		2
@@ -47,53 +61,34 @@ uint16_t sprdbat_auxadc2vbatvol(uint16_t adcvalue)
 	return temp + adc_voltage_table[0][1];
 }
 
-void sprdchg_start_charge(void)	//TODO2731 all file
+static void sprd2731_chg_init(void)
 {
-
+	debugf("sprd2731_init\n");
+	sci_adi_set(ANA_REG_GLB_MODULE_EN1, SWTCHG_APB_EN);
 }
 
-void sprdchg_stop_charge(void)
+static void sprd2731_chg_start_charge(void)
 {
-
+	sci_adi_set(CHG_CFG0, SPRD2731_CC_EN);
+	sci_adi_write(CHG_CFG0, 0, BIT(0));
 }
 
-static void sprdchg_set_recharge(void)
+static void sprd2731_chg_stop_charge(void)
 {
-
+	sci_adi_write(CHG_CFG0, BIT(0), 0);
 }
 
-void sprdchg_set_chg_cur(uint32_t chg_current)
+static void sprd2731_chg_set_chg_cur(uint32_t chg_current)
 {
-
+	BYTE reg_val;
+	reg_val = (chg_current -450) / 50;
+	sci_adi_write(CHG_CFG1, reg_val, BITS_CUR(reg_val));
 }
 
 uint32_t sprdbat_get_vbatauxadc_caltype(void)
 {
 	return adc_cal_flag;
 }
-
-#ifndef CONFIG_FDL2_BUILD
-extern void sprd_ext_charger_init(void);
-extern void sprd_ext_charger_uninit(void);
-void sprdchg_lowbat_charge(void)
-{
-#ifdef CONFIG_SPRD_EXT_IC_POWER
-	sprd_ext_charger_init();
-#else
-	return;
-#endif
-}
-
-void sprdbat_lateinit(void)
-{
-#ifdef CONFIG_SPRD_EXT_IC_POWER
-	sprd_ext_charger_uninit();
-#else
-	return;
-#endif
-}
-
-#endif
 
 #ifndef CONFIG_FDL1
 /* used to get adc calibration data from nv or efuse */
@@ -248,8 +243,9 @@ void sprdbat_init(void)
 #ifdef CONFIG_SPRD_EXT_IC_POWER
 	struct sprd_ext_ic_operations *sprd_ext_ic_op = sprd_get_ext_ic_ops();
 	sprd_ext_ic_op->ic_init();
+#else
+	sprd2731_chg_init();
 #endif
-
 	sprd_eic_request(EIC_BATDET);	//enable battery detect eic
 
 	//set charge current 500mA(USB) or 600mA(AC)
@@ -257,10 +253,10 @@ void sprdbat_init(void)
 		enum sprd_adapter_type adp_type = sprdchg_charger_is_adapter();
 		if (adp_type == ADP_TYPE_CDP || adp_type == ADP_TYPE_DCP) {
 			debugf("uboot adp AC\n");
-			sprdchg_set_chg_cur(700);
+			sprd2731_chg_set_chg_cur(700);
 		} else {
 			debugf("uboot adp USB\n");
-			sprdchg_set_chg_cur(450);
+			sprd2731_chg_set_chg_cur(450);
 		}
 #ifdef CONFIG_SPRD_EXT_IC_POWER
 			sprd_ext_ic_op->charge_start_ext(adp_type);
@@ -272,25 +268,15 @@ void sprdbat_init(void)
 
 	if(boot_role == BOOTLOADER_MODE_DOWNLOAD)		//if it's BOOTLOADER_MODE_DONLOAD, donot check battery is connect or not, return.
 		return;
-//just for tem start
-	if (!sprdbat_is_battery_connected()) {
-		printf("battery unconnected shutdown charge!!!!!\n");
-#ifdef CONFIG_SPRD_EXT_IC_POWER
-		sprd_ext_ic_op->charge_stop_ext();
-#else
-		sprdchg_stop_charge();
-#endif
-	} 
-	return ;
-////just for tem end
-	sprdchg_start_charge();
+
+	sprd2731_chg_start_charge();
 	//if battery do NOT connect, shutdown charge,maybe system poweroff
 	if (!sprdbat_is_battery_connected()) {
 		printf("battery unconnected shutdown charge!!!!!\n");
 #ifdef CONFIG_SPRD_EXT_IC_POWER
 		sprd_ext_ic_op->charge_stop_ext();
 #else
-		sprdchg_stop_charge();
+		sprd2731_chg_stop_charge();
 #endif
 	} else {
 		if (charger_connected()) {
@@ -301,11 +287,6 @@ void sprdbat_init(void)
 				sprdfgu_poweron_type_write(NORMAIL_POWERTON);
 				printf("charge first poweron reset!!!!!\n");
 				mdelay(3);
-#ifdef CONFIG_SPRD_EXT_IC_POWER
-				sprd_ext_ic_op->charge_stop_ext();
-#else
-				sprdchg_stop_charge();
-#endif
 				power_down_devices(0);
 			}
 		}

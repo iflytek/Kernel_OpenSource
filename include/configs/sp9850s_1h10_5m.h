@@ -346,10 +346,10 @@
 #define CONFIG_ARM7_RAM_ACTIVE
 
 
-#define CONFIG_SPRD_EXT_IC_POWER
+//#define CONFIG_SPRD_EXT_IC_POWER
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C
-#define CONFIG_SPRD2701_CHARGE_IC
+//#define CONFIG_SPRD2701_CHARGE_IC
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

@@ -86,30 +86,6 @@ uint32_t sprdbat_get_vbatauxadc_caltype(void)
 	return adc_cal_flag;
 }
 
-#ifndef CONFIG_FDL2_BUILD
-extern void sprd_ext_charger_init(void);
-extern void sprd_ext_charger_uninit(void);
-void sprdchg_lowbat_charge(void)
-{
-#ifdef CONFIG_SPRD_EXT_IC_POWER
-	sprd_ext_charger_init();
-#else
-	return;
-#endif
-}
-
-void sprdbat_lateinit(void)
-{
-#ifdef CONFIG_SPRD_EXT_IC_POWER
-	sprd_ext_charger_uninit();
-#else
-	return;
-#endif
-}
-
-#endif
-
-
 #ifndef CONFIG_FDL1
 /* used to get adc calibration data from nv or efuse */
 void sprdbat_get_vbatauxadc_caldata(void)

@@ -23,7 +23,6 @@ enum sprd_adapter_type {
 void sprdchg_start_charge(void);
 void sprdchg_stop_charge(void);
 void sprdchg_set_chg_cur(uint32_t chg_current);
-void sprdchg_lowbat_charge(void);
 int sprdchg_charger_is_adapter(void);
 uint16_t sprdbat_auxadc2vbatvol(uint16_t adcvalue);
 uint32_t sprdbat_get_vbatauxadc_caltype(void);
