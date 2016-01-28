@@ -118,6 +118,7 @@ enum{
 #define DISPC_DBI_DIV_DEFAULT	0
 #define DISPC_DPI_DIV_DEFAULT	10
 
+#define SPRDFB_DPI_CLOCK_SRC (384000000)
 
 void dsi_enable(void);
 

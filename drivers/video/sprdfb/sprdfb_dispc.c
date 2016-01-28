@@ -286,7 +286,7 @@ static int32_t sprdfb_dispc_early_init(struct sprdfb_device *dev)
 
 	FB_PRINT("sprdfb:DISPC_PLL_SEL_CFG:0x%08x \n",__raw_readl(DISPC_PLL_SEL_CFG));
 	FB_PRINT("sprdfb:DISPC_DPI_SEL_CFG:0x%08x \n",__raw_readl(DISPC_DPI_SEL_CFG));
-	FB_PRINT("sprdfb:REG_DISP_AHB_AHB_EB:%x \n",__raw_readl(REG_DISP_AHB_AHB_EB));
+	//FB_PRINT("sprdfb:REG_DISP_AHB_AHB_EB:%x \n",__raw_readl(REG_DISP_AHB_AHB_EB));
 
 	dispc_reset();
 	dispc_module_enable();

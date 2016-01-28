@@ -48,5 +48,11 @@ void dispc_print_clk(void)
 }
 
 
+void dispc_early_configs(void)
+{
+	__raw_bits_or(BIT_DISPC_CORE_EN, DISPC_CORE_EN);//core_clock_en 
+	__raw_bits_or(BIT_DISPC_EMC_EN, DISPC_EMC_EN);  //matrix clock en 
+	__raw_bits_or(BIT_DISPC_AHB_EN, DISPC_AHB_EN);//enable DISPC clock 
+}
 
 
