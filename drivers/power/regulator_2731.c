@@ -620,16 +620,6 @@ exit:
 	return 0;
 }
 
-
-int regulator_init(void)
-{
-	regulator_set_voltage("vddrf",1800);
-	/*
-	 * FIXME: turn on all DCDC/LDOs if need
-	 */
-	return 0;
-}
-
 struct regulator_desc *regulator_get(void/*struct device*/ *dev, const char *id)
 {
 	struct regulator_desc *desc =

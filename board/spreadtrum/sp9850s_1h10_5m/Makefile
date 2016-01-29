@@ -5,4 +5,4 @@
 # SPDX-License-Identifier:	GPL-2.0+
 #
 
-obj-y	:= sp9850s_1h10_5m.o sdio_cfg.o sprd_kp.o modem_entry.o pinmap-sp9850s_1h10_5m.o ldo_sleep.o sprd_bl.o
+obj-y	:= sp9850s_1h10_5m.o sdio_cfg.o sprd_kp.o modem_entry.o pinmap-sp9850s_1h10_5m.o ldo_sleep.o sprd_bl.o regulator_init.o
