@@ -141,6 +141,9 @@ uint32_t rpmb_read_writecount(void)
 	uint16_t op_result;
 	uint32_t writecount;
 	struct mmc *mmc = find_mmc_device(0);	//0 is emmc
+	if (NULL == mmc)
+		return 1;
+
 	msg_type = RPMB_MSG_TYPE_REQ_WRITE_COUNTER_VAL_READ;
 	data_frame = (uint8_t *) malloc(RPMB_DATA_FRAME_SIZE);
 	memset(data_frame, 0, RPMB_DATA_FRAME_SIZE);
@@ -185,6 +188,9 @@ uint8_t rpmb_blk_read(char *blk_data, uint16_t blk_index, uint8_t block_count)
 	uint16_t msg_type;
 	uint16_t op_result;
 	struct mmc *mmc = find_mmc_device(0);	//0 is emmc
+	if (NULL == mmc)
+		return 1;
+
 	if (blk_data == NULL) {
 		printf("rpmb_blk_read null \n");
 		return 1;
@@ -242,6 +248,9 @@ uint8_t rpmb_blk_write(char *write_data, uint16_t blk_index)
 	uint16_t block_count = 1;
 	uint32_t writecount;
 	struct mmc *mmc = find_mmc_device(0);	//0 is emmc
+	if (NULL == mmc)
+		return 1;
+
 	if (write_data == NULL)	//|| (RPMB_DATA_SIZE != strlen(write_data)))
 		return 1;
 
@@ -306,6 +315,9 @@ uint8_t rpmb_write_key(uint8_t * key, uint8_t len)
 	uint16_t msg_type;
 	uint16_t op_result;
 	struct mmc *mmc = find_mmc_device(0);	//0 is emmc
+	if (NULL == mmc)
+		return 1;
+
 	if (key == NULL || RPMB_KEY_MAC_SIZE != len)
 		return 1;
 

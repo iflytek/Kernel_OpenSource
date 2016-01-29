@@ -11,7 +11,7 @@
 #define __SDHCI_HW_H
 
 #include <asm/io.h>
-#include <mmc_v40.h>
+#include <sprd_mmc.h>
 
 /*
  * Controller registers
