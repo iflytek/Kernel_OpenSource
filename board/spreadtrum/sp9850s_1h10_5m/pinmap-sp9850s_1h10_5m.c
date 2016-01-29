@@ -28,7 +28,7 @@ static pinmap_t pinmap[]={
 {REG_PIN_CTRL1,0x0},
 {REG_PIN_CTRL2,0x00410000}, // uart0->bt'uart;  uart1->ap'uart0; uart2->cp1'uart0; uart3->gps; uart4->agdsp uart0
 {REG_PIN_CTRL3,0x00438000},
-{REG_PIN_CTRL4,0x00000101},
+{REG_PIN_CTRL4,0x00000010}, // I2C0 of CM4
 {REG_PIN_CTRL5,0x03f00000},
 {REG_PIN_CTRL6,0x0},
 {REG_PIN_CTRL7,0x0},
