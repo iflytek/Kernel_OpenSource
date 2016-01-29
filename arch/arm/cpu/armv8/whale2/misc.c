@@ -276,6 +276,25 @@ inline static int smpl_config(void)
 }
 #endif
 
+
+static void sprd_get_chipid(void)
+{
+	unsigned int chip_id0 = 0, chip_id1 = 0, i = 0;
+	char *p;
+	char chip_id_buf[9];
+	chip_id0 = __raw_readl((void *)REG_AON_APB_AON_CHIP_ID0);
+	chip_id1 = __raw_readl((void *)REG_AON_APB_AON_CHIP_ID1);
+	p = (char *)&chip_id1;
+	for(i = 0; i < 4; i++)
+		chip_id_buf[i] = *(p+3-i);
+	p = (char *)&chip_id0;
+	for(i = 0; i < 4; i++)
+		chip_id_buf[i+4] = *(p+3-i);
+	chip_id_buf[8] = 0;
+
+	debugf("chip id = %s, VID = 0x%x\n",chip_id_buf, __raw_readl((void *)REG_AON_APB_AON_VER_ID));
+}
+
 void misc_init()
 {
 	scx35_pmu_reconfig();
@@ -294,6 +313,7 @@ void misc_init()
 			CONFIG_7S_RST_SHORT_MODE);
 
 	smpl_config();
+	sprd_get_chipid();
 }
 
 typedef struct mem_cs_info
