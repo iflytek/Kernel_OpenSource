@@ -56,7 +56,7 @@
 typedef unsigned char			BOOLEAN;
 typedef unsigned char			uint8;
 typedef unsigned short			uint16;
-typedef unsigned long int		uint32;
+typedef unsigned int		    uint32;
 #ifndef _X_64
 typedef unsigned __int64	 	uint64;
 #else
@@ -149,7 +149,7 @@ typedef uint32          BLOCK_ID;
 #else
     #define PACK __packed    /* Byte alignment for communication structures.*/
 #endif
-          
+
 /* some usefule marcos */
 #define Bit(_i)              ((u32) 1<<(_i))
 

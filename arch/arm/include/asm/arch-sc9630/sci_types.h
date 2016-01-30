@@ -56,9 +56,9 @@
 typedef unsigned char			BOOLEAN;
 typedef unsigned char			uint8;
 typedef unsigned short			uint16;
-typedef unsigned long int		uint32;
+typedef unsigned int		    uint32;
 #ifndef _X_64
-typedef unsigned __int64	 	uint64;
+typedef unsigned __int64		uint64;
 #else
 typedef struct _X_UN_64_T {
 	uint32 hiDWORD;
@@ -98,9 +98,9 @@ typedef int64 __int64;
 #define PNULL		0
 
 //Added by Xueliang.Wang on 28/03/2002
-#define PUBLIC 
+#define PUBLIC
 //#define	PRIVATE		static
-#define	SCI_CALLBACK 
+#define	SCI_CALLBACK
 
 // @Xueliang.Wang moved it from os_api.h(2002-12-30)
 // Thread block ID.
@@ -140,7 +140,7 @@ typedef uint32          BLOCK_ID;
 #define BIT_27              0x08000000
 #define BIT_28              0x10000000
 #define BIT_29              0x20000000
-#define BIT_30              0x40000000 
+#define BIT_30              0x40000000
 #define BIT_31              0x80000000
 #endif
 
@@ -149,7 +149,7 @@ typedef uint32          BLOCK_ID;
 #else
     #define PACK __packed    /* Byte alignment for communication structures.*/
 #endif
-          
+
 /* some usefule marcos */
 #define Bit(_i)              ((u32) 1<<(_i))
 
@@ -157,7 +157,7 @@ typedef uint32          BLOCK_ID;
 
 //#define  MIN( _x, _y ) ( ((_x) < (_y)) ? (_x) : (_y) )
 #define  WORD_LO(_xxx)  ((uint8) ((int16)(_xxx)))
-#define  WORD_HI(_xxx)  ((uint8) ((int16)(_xxx) >> 8)) 
+#define  WORD_HI(_xxx)  ((uint8) ((int16)(_xxx) >> 8))
 
 #define RND8( _x )       ((((_x) + 7) / 8 ) * 8 ) /*rounds a number up to the nearest multiple of 8 */
 

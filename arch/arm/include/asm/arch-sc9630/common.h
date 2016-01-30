@@ -74,11 +74,10 @@ extern   "C"
 
 
 
-//#define REG32(ChipReg)        ( *((volatile ChipRegT*) (ChipReg)))
-#define REG32(x)                                    (*((volatile uint32_t *)(x)))
+#define REG32(x)                        (*((volatile u32 *)(x)))
 
 
-#define REG8(ChipReg)  ( *((volatile u8*) (ChipReg)))
+#define REG8(ChipReg)			( *((volatile u8*) (ChipReg)))
 #define CHIP_REG_OR(reg_addr, value)    (*(volatile u32 *)(reg_addr) |= (u32)(value))
 #define CHIP_REG_AND(reg_addr, value)   (*(volatile u32 *)(reg_addr) &= (u32)(value))
 #define CHIP_REG_GET(reg_addr)          (*(volatile u32 *)(reg_addr))
