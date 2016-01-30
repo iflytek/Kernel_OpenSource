@@ -306,7 +306,7 @@ struct regulator_desc {
 
 struct regulator_desc __init0 __init_begin = {0};
 
-#include "__sc2731_regulator_map.h"
+#include "__sc2731r_regulator_map.h"
 struct regulator_desc __init2 __init_end = {0};
 
 
