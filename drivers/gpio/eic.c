@@ -22,7 +22,8 @@
 #define KERN_WARNING ""
 #define WARN(nmu, fmt...) printf(fmt)
 #define WARN_ON(num)
-#define BUG_ON(__cond__) if(__cond__) printf("%s line: %d bug on\n", __FUNCTION__, __LINE__)
+#define BUG_ON(__cond__) if(__cond__) printf("%s line: %d bug on\n",\
+					__FUNCTION__, __LINE__)
 #define pr_err(fmt...) printf(fmt)
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 #define pr_debug(fmt...) printf(fmt)
@@ -67,12 +68,16 @@ enum eic_die {
 #define EIC5_CTL 0x54
 #define EIC6_CTL 0x58
 #define EIC7_CTL 0x5C
-#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)
+#if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723) \
+	|| defined(CONFIG_ADIE_SC2731)
 #define EIC8_CTL 0x60
 #define EIC9_CTL 0x64
 #define EIC10_CTL 0x68
 #endif
-
+#if defined(CONFIG_ADIE_SC2731)
+#define EIC11_CTL 0x6C
+#define EIC12_CTL 0x70
+#endif
 
 static void __get_eic_base_info (u32 eic_id, struct eic_info *info)
 {
@@ -82,8 +87,9 @@ static void __get_eic_base_info (u32 eic_id, struct eic_info *info)
 
 	if (eic_id>=SPRD_ADIE_EIC_START && eic_id<=SPRD_ADIE_EIC_END)
 	{
-	   	info->base_addr= SPRD_ANA_EIC_PHYS;
-		#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)
+		info->base_addr= SPRD_ANA_EIC_PHYS;
+		#if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723) \
+		|| defined(CONFIG_ADIE_SC2731)
 		info->bit_num  = eic_id&0xF;
 		#else
 		info->bit_num  = eic_id&0x7;
@@ -93,7 +99,7 @@ static void __get_eic_base_info (u32 eic_id, struct eic_info *info)
 	}
 	else if (eic_id>=SPRD_DDIE_EIC_START && eic_id<=SPRD_DDIE_EIC_END)
 	{
-	   	info->base_addr= SPRD_EIC_PHYS+0x80;
+		info->base_addr= SPRD_EIC_PHYS;
 		info->bit_num  = eic_id&0x7;
 		info->die	   = D_DIE;
 	}
@@ -170,8 +176,8 @@ static void __eic_set_data_mask (struct eic_info *info, int b_on)
 		if (!(reg_data&(1<<info->bit_num)))
 		{
 			reg_data |= 1<<info->bit_num;
-		   	if (info->die == D_DIE)
-				__raw_writel (reg_addr, reg_data);
+			if (info->die == D_DIE)
+				__raw_writel (reg_data, reg_addr);
 			else
 				ANA_REG_SET (reg_addr, reg_data);
 		}
@@ -181,8 +187,8 @@ static void __eic_set_data_mask (struct eic_info *info, int b_on)
 		if (reg_data&(1<<info->bit_num))
 		{
 			reg_data &= ~(1<<info->bit_num);
-		   	if (info->die == D_DIE)
-				__raw_writel (reg_addr, reg_data);
+			if (info->die == D_DIE)
+				__raw_writel (reg_data, reg_addr);
 			else
 				ANA_REG_SET (reg_addr, reg_data);
 		}
