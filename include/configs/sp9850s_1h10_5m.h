@@ -45,6 +45,7 @@
 #define COUNTER_FREQUENCY		(0x1800000)	/* 24MHz */
 
 /* Generic Interrupt Controller Definitions */
+#define CONFIG_GICV2
 #define GICD_BASE			(0x12001000)
 #define GICC_BASE			(0x12002000)
 
