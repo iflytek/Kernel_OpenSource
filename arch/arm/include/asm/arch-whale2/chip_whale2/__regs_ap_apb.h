@@ -84,11 +84,5 @@
 #define BIT_AP_APB_SIM_CLK_POLARITY                BIT(1)
 #define BIT_AP_APB_FMARK_POLARITY_INV              BIT(0)
 
-#define BIT_I2C6_EB					  BIT_AP_APB_I2C5_EB
-#define BIT_I2C4_EB                                       BIT_AP_APB_I2C4_EB
-#define BIT_I2C3_EB                                       BIT_AP_APB_I2C3_EB
-#define BIT_I2C2_EB                                       BIT_AP_APB_I2C2_EB
-#define BIT_I2C1_EB                                       BIT_AP_APB_I2C1_EB
-#define BIT_I2C0_EB                                       BIT_AP_APB_I2C0_EB
 
 #endif

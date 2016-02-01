@@ -33,6 +33,9 @@
 #include <asm/io.h>
 #endif
 #include <i2c.h>
+#ifdef CONFIG_SPRD_GPIO_I2C
+#include "sprd_gpio_i2c.h"
+#endif
 
 #if defined(CONFIG_SOFT_I2C_GPIO_SCL)
 # include <asm/gpio.h>
