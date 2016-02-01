@@ -325,7 +325,6 @@ if (charger_connected()&&(boot_role != BOOTLOADER_MODE_DOWNLOAD)) {
 		sprdchg_stop_charge();
 #endif
 	} else {
-		return;//bug522671 temp solution
 		if (charger_connected()) {
 			if ((FIRST_POWERTON == sprdfgu_poweron_type_read())
 			    || (sprdfgu_rtc_reg_read() == 0xFFF)) {
