@@ -18,8 +18,8 @@ extern struct p_current *current;
 
 #define dev_dbg(dev, fmt, args...)		\
 	debug(fmt, ##args)
-#define dev_vdbg(dev, fmt, args...)		\
-	debug(fmt, ##args)
+#define dev_vdbg(dev, fmt, args...) do { } while (0) /* \
+	debug(fmt, ##args) */
 #define dev_info(dev, fmt, args...)		\
 	printf(fmt, ##args)
 #define dev_err(dev, fmt, args...)		\
@@ -203,7 +203,7 @@ typedef int	wait_queue_head_t;
 #define spin_lock_init(lock) do {} while (0)
 #define spin_lock(lock) do {} while (0)
 #define spin_unlock(lock) do {} while (0)
-#define spin_lock_irqsave(lock, flags) do { debug("%lu\n", flags); } while (0)
+#define spin_lock_irqsave(lock, flags) do { /* debug("%lu\n", flags); */ } while (0)
 #define spin_unlock_irqrestore(lock, flags) do { flags = 0; } while (0)
 
 #define DEFINE_MUTEX(...)
