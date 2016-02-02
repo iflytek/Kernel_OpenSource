@@ -342,6 +342,11 @@
 #define CONFIG_7S_RST_2KEY_MODE		0	//0:1Key--Normal mode; 1:2KEY
 #define CONFIG_7S_RST_THRESHOLD		7	//7S, hold key down for this time to trigger
 
+ /*Serial Info*/
+#define CONFIG_SPRD_UART
+#define CONFIG_CONS_INDEX	1	/* use UART0 for console */
+#define CONFIG_BAUDRATE		115200	/* Default baud rate */
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 /* Chip Driver Macro Definitions End*/
 /*active arm7 ram before access to it*/
 #define CONFIG_ARM7_RAM_ACTIVE
