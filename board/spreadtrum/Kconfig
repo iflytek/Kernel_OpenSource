@@ -92,6 +92,10 @@ config TARGET_SP9833_1H10
 	select CPU_V7
 	help
 	  This is the Spreadtrum sp9833_1h10 Board
+config TARGET_ISHARKL2_VP
+	bool "Spreadtrum isharkl2_vp"
+	help
+	  This is the Spreadtrum iSharkL2 Board
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
@@ -105,6 +109,7 @@ source "board/spreadtrum/ss_whale2_jigboard/Kconfig"
 source "board/spreadtrum/ss_whale2_j7/Kconfig"
 source "board/spreadtrum/sp9860g_1h10_5m/Kconfig"
 source "board/spreadtrum/sp9860g_1h10_3g/Kconfig"
+source "board/spreadtrum/isharkl2_vp/Kconfig"
 
 source "board/spreadtrum/sp9860g_1h10_al/Kconfig"
 source "board/spreadtrum/sp9860g_2h10_5m/Kconfig"

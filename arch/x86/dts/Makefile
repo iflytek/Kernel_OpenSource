@@ -8,7 +8,8 @@ dtb-y += chromebook_link.dtb \
 	isharkl.dtb \
 	iwhale2.dtb \
 	iwhale2_vmm.dtb \
-	iwhale2_vmm_fpga.dtb
+	iwhale2_vmm_fpga.dtb \
+	isharkl2.dtb
 
 targets += $(dtb-y)
 
