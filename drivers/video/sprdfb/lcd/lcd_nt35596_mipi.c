@@ -48,6 +48,11 @@ typedef struct LCM_force_cmd_code_tag{
 #define LCM_TAG_SLEEP (1 << 1)
 
 static LCM_Init_Code init_data[] = {
+{LCM_SEND(2), {0xFF, 0xEE}},
+{LCM_SEND(2), {0x18, 0x40}},
+{LCM_SLEEP(10)},
+{LCM_SEND(2), {0x18, 0x00}},
+{LCM_SLEEP(20)},
 
 //CMD2_P0                                                                                                 
 {LCM_SEND(2), {0xFF, 0x01}},
@@ -704,11 +709,15 @@ int32_t nt35596_reset(struct panel_spec *self)
 	mdelay(20);
 
 	dispc_write(1, DISPC_RSTN);
-	mdelay(20);
+	mdelay(5);
 	dispc_write(0, DISPC_RSTN);
-	mdelay(20);
+	mdelay(5);
 	dispc_write(1, DISPC_RSTN);
-	mdelay(120);
+	mdelay(5);
+	dispc_write(0, DISPC_RSTN);
+	mdelay(5);
+	dispc_write(1, DISPC_RSTN);
+	mdelay(20);
 
 	return 0;
 }
