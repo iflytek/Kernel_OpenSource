@@ -41,6 +41,18 @@ config TARGET_SP9850S_1H10_5M
 	select ARM64
 	help
 	  This is the Spreadtrum sp9850s_1h10_5m Board
+
+config TARGET_SP9850S_2H10_5M
+	bool "Spreadtrum sp9850s_2h10_5m"
+	select ARM64
+	help
+	  This is the Spreadtrum sp9850s_2h10_5m Board
+
+config TARGET_SP9860G_1H10_5M
+	bool "Spreadtrum sp9860g_1h10_5m"
+	select ARM64
+	help
+	  This is the Spreadtrum sp9860g_1h10_5m Board
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
@@ -49,5 +61,7 @@ source "board/spreadtrum/iwhale2_vp/Kconfig"
 source "board/spreadtrum/sp9830a-5h10_ga1/Kconfig"
 source "board/spreadtrum/sp9830a-7h10_ga1/Kconfig"
 source "board/spreadtrum/sp9850s_1h10_5m/Kconfig"
+source "board/spreadtrum/sp9850s_2h10_5m/Kconfig"
+source "board/spreadtrum/sp9860g_1h10_5m/Kconfig"
 
 endif
