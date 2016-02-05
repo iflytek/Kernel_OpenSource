@@ -19,6 +19,55 @@
 #define PART_SYSTEM						"userdata"
 #define SPRDISK_RAMDISK_PATH	"/sprdisk/ramdisk.img"
 
+
+static int file_read(char *mpart, char *filenm, void *buf, int len)
+{
+#ifdef CONFIG_FS_EXT4
+	disk_partition_t info;
+	block_dev_desc_t *dev_desc;
+
+	loff_t len_read = 0;
+	loff_t file_len = 0;
+	int ret=0;
+
+	dev_desc = get_dev("mmc", 0);
+	if (NULL == dev_desc) {
+		printf("ext4_read_content get dev error\n");
+		return -1;
+	}
+
+	if (get_partition_info_by_name(dev_desc, mpart, &info) == -1) {
+		printf("## Valid EFI partition not found ##\n");
+		return -1;
+	}
+
+	/* set the device as block device */
+	ext4fs_set_blk_dev(dev_desc, &info);
+
+	/* mount the filesystem */
+	if (!ext4fs_mount(info.size)) {
+		printf("Bad ext4 partition:%s\n",  mpart);
+		ext4fs_close();
+		return -1;
+	}
+
+	/* start read */
+	if (ext4_read_file(filenm, buf, 0,len, &len_read) == -1) {
+		printf("** Error ext4_read_file() **\n");
+		ext4fs_close();
+		return -1;
+	}
+
+	ext4fs_open(filenm, &file_len);
+
+	ext4fs_close();
+
+	ret = (int)file_len;
+	return ret;
+
+#endif
+}
+
 int boot_sprdisk(void)
 {
 	int	ret;
@@ -30,10 +79,13 @@ int boot_sprdisk(void)
 		size = TDDSP_ADR - RAMDISK_ADR;
 #endif
 #endif
-	ret = do_fs_file_read(PART_SYSTEM, SPRDISK_RAMDISK_PATH, (void *)RAMDISK_ADR, size);
-	if(ret < 0)
-		errorf("read file %s wrong!\n", SPRDISK_RAMDISK_PATH);
-
+	ret = load_sd_ramdisk( (void *)RAMDISK_ADR, size);
+	if(ret <= 0){
+		ret = file_read(PART_SYSTEM, SPRDISK_RAMDISK_PATH, (void *)RAMDISK_ADR, size);
+		if(ret < 0){
+			errorf("read file %s wrong!\n", SPRDISK_RAMDISK_PATH);
+		}
+	}
 	return ret;
 }
 
