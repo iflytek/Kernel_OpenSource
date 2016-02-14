@@ -41,6 +41,9 @@ void cp_adr_remap(u32 cp_kernel_exec_addr, u32 cp_zero_map_addr)
 
 void modem_entry()
 {
+	/*workaround,change wtlcp axi to 307.2M*/
+	REG32(REG_AON_APB_SUB_SYS_DBG_SIG7) = 0x09;
+
 	/*sipc addr clear*/
 	sipc_addr_reset();
 	agdsp_boot();
