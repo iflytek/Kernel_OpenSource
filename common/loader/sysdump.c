@@ -673,6 +673,12 @@ void write_sysdump_before_boot(int rst_mode)
     int nodeoffset = 0;
     dir_entry *dentptr = NULL;
 
+    nodeoffset = check_dts_sysdump_node();
+	if (nodeoffset < 0) {
+		debugf("ERROR: device tree must have /sprd-sysdump node %s.\n", fdt_strerror(nodeoffset));
+		goto FINISH;
+	}
+
     /*sprd_sysdump_magic = get_sprd_sysdump_info_paddr(nodeoffset);
     if (sprd_sysdump_magic <= 0)
 		goto FINISH;*/
@@ -710,11 +716,6 @@ void write_sysdump_before_boot(int rst_mode)
 			(rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || (rst_mode == CMD_SPECIAL_MODE)) {
 			infop->dump_path[0] = '\0';
 
-			nodeoffset = check_dts_sysdump_node();
-			if (nodeoffset < 0) {
-				debugf("ERROR: device tree must have /sprd-sysdump node %s.\n", fdt_strerror(nodeoffset));
-				goto FINISH;
-			}
 		    sprd_dump_mem_num = fill_dump_mem(sprd_dump_mem, nodeoffset);
 			infop->mem_num = sprd_dump_mem_num;
 			infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
