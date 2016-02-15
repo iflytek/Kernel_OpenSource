@@ -1,6 +1,6 @@
 #include <common.h>
 
-
+#include <asm/arch/common.h>
 //#include "normal_mode.h"
 #include <asm/arch/sprd_reg.h>
 
@@ -12,6 +12,11 @@
 #define CP1_ZERO_MAP_ADR    0x50001000
 #define CP1_EXEC_ADR        0x8ae00000
 
+/*add macro for memset agdsp/tddsp/ldsp share memory*/
+#define LDSP_SHARE_MEM_START 0xF2000//8k
+#define TGDSP_SHARE_MEM_START 0xF4000//4k
+#define AGDSP_SHARE_MEM_START 0xF5000//4k
+#define MULTI_MODE_MEM_START 0xF6000//4k
 
 #define PHYS_OFFSET_ADDR			0x80000000
 //#define TD_CP_OFFSET_ADDR			0x8000000	/*128*/
@@ -39,10 +44,27 @@ void cp_adr_remap(u32 cp_kernel_exec_addr, u32 cp_zero_map_addr)
     memcpy( cp_zero_map_addr, data, sizeof(data));      /* copy cp0 source code */
 }
 
+/*bug:533275  memset tg/l/agdsp share memory
+root cause: In agdsp share IRAM memory ,this area exits command for agdsp,when interunpt happens
+from ap or cp,the agdsp will use this area. While the area exit the dirty binary data ,ap or cp
+do not clean up this area when interrupt happens at the right time,so error command will cause
+unexcepted problems.*/
+
+void memset_dsp_share_memory()
+{
+	memset((void *)LDSP_SHARE_MEM_START,0x0,0x2000);//8k
+	memset((void *)TGDSP_SHARE_MEM_START,0x0,0x1000);//4k
+	memset((void *)AGDSP_SHARE_MEM_START,0x0,0x1000);//4k
+	memset((void *)MULTI_MODE_MEM_START,0x0,0x1000);//4k
+}
+
 void modem_entry()
 {
 	/*workaround,change wtlcp axi to 307.2M*/
 	REG32(REG_AON_APB_SUB_SYS_DBG_SIG7) = 0x09;
+
+	/*memset l/tg/agdsp share memory*/
+	memset_dsp_share_memory();
 
 	/*sipc addr clear*/
 	sipc_addr_reset();
