@@ -48,9 +48,12 @@
 #define SPRD_ANA_GPIO_PHYS		   SPRD_GPIO_PHYS
 #define SPRD_AONCKG_PHYS                    SPRD_AONCKG_BASE
 #define SPRD_ANA_FPU_PHYS       0x00000000
-#define SPRD_USB_BASE           0x00000000
+#define SPRD_USB_BASE           0Xe2500000
 #define SPRD_ANA_EIC_PHYS         0x00000000
 #define ADC_BASE                0x00000000
 #define SPRD_APBCKG_BASE        0x00000000
 #define SPRD_GPTIMER0_BASE      0x00000000
 #define BIT_PWR_WR_PROT 0
+#define SPRD_UART0_PHYS			SPRD_UART0_BASE
+#define SPRD_UART1_PHYS			SPRD_UART1_BASE
+#define BIT_UART1_EB                    BIT_AP_APB_UART1_EB
