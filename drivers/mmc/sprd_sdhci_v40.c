@@ -721,7 +721,7 @@ int sprd_sdhci_init(u32 regbase, u32 max_clk, u32 min_clk, u32 quirks)
 	host->name = SPRD_SDHCI_NAME;
 	host->ioaddr = (void *)regbase;
 	host->quirks = quirks;
-
+	host->set_clock = NULL;
 	host->version = sdhci_readw(host, SDHCI_HOST_VERSION);
 	printf("sprd_sdhci_init :version :%d\n", host->version);
 	return add_sdhci(host, max_clk, min_clk);
