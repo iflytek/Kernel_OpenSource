@@ -276,17 +276,16 @@ int _fb_write_nv_img(uchar * partition_name, uint32_t size)
 
 int _fb_download_image(uchar *partition_name)
 {
-	int32_t retval;
-	int32_t i;
-	unsigned int code_off = 0;
-	uint32_t write_size = 0;
-	uint32_t offset = 0;
-	uint32_t data_left = 0;
-	uint32_t count = 0;
-	uint32_t img_format = IMG_RAW;
+	int retval;
+	int i;
+	uint64_t write_size = 0;
+	uint64_t offset = 0;
+	uint64_t data_left = 0;
+	uint64_t count = 0;
+	uint64_t img_format = IMG_RAW;
 	void *buf = ImageInfo.base_address;
-	uint32_t partition_purpose = PARTITION_PURPOSE_NORMAL;
-	sparse_header_t sparse_header;
+	PARTITION_PURPOSE partition_purpose = PARTITION_PURPOSE_NORMAL;
+	sparse_header_t *sparse_header;
 
 	if (0 == strcmp("splloader", partition_name)) {
 		splFillCheckData(buf);
@@ -304,9 +303,8 @@ int _fb_download_image(uchar *partition_name)
 		}
 	}
 
-	memset(&sparse_header, 0, sizeof(sparse_header_t));
-	memcpy(&sparse_header, ImageInfo.base_address, sizeof(sparse_header));
-	if ((sparse_header.magic == SPARSE_HEADER_MAGIC) && (sparse_header.major_version == SPARSE_HEADER_MAJOR_VER)) {
+	sparse_header = (sparse_header_t *)ImageInfo.base_address;
+	if ((sparse_header->magic == SPARSE_HEADER_MAGIC) && (sparse_header->major_version == SPARSE_HEADER_MAJOR_VER)) {
 		img_format = IMG_WITH_SPARSE;
 		debugf("img_format =FB_IMG_WITH_SPARSE\n");
 	}
@@ -326,8 +324,8 @@ int _fb_download_image(uchar *partition_name)
 			return 0;
 		}
 	} else {
-		data_left = ImageInfo.data_size % EMMC_BUF_SIZE;
-		count = ImageInfo.data_size / EMMC_BUF_SIZE;
+		data_left = write_size % EMMC_BUF_SIZE;
+		count = write_size / EMMC_BUF_SIZE;
 		while (count) {
 			if (0 != common_raw_write(partition_name, (uint64_t)EMMC_BUF_SIZE,
 				0, offset, buf)) {
@@ -338,11 +336,10 @@ int _fb_download_image(uchar *partition_name)
 			offset = offset +EMMC_BUF_SIZE;
 			count--;
 		}
-
 		if (0 != data_left) {
 			if (0 != common_raw_write(partition_name, data_left, 0, offset,
 				ImageInfo.base_address + count * EMMC_BUF_SIZE)) {
-				debugf("cmd_flash: raw data write tail part error!\n");
+				errorf("cmd_flash: raw data write tail part error!\n");
 				return 0;
 			}
 		}
@@ -443,7 +440,8 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 		debugf("No space to store bakup_header!\n");
 		return ;
 	}
-	memcpy(bakup_header, ImageInfo.base_address, EMMC_SECTOR_SIZE);
+
+	bakup_header = (sys_img_header *)ImageInfo.base_address;
 	printf("bakup_header->mMagicNum=0x%x\n", bakup_header->mMagicNum);
 	if(bakup_header->mMagicNum == IMG_BAK_HEADER) {
 		if(!_fb_img_write_with_backup(partition_name)) {
