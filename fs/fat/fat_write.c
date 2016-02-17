@@ -1227,7 +1227,7 @@ unsigned long do_new_folder(char* filename, unsigned long curclust)
 
 		fill_dentry(mydata, empty_dentptr, filename,
 			start_cluster, 0, 0x10);
-		downcase(empty_dentptr->name);
+		/*downcase(empty_dentptr->name);*/
 		set_fatent_value(mydata, start_cluster, 0xfffffff);
 
 		ret = flush_fat_buffer(mydata);/*write FAT table.*/
@@ -1286,7 +1286,7 @@ int rename_folder(const char *scr, const char *dest, unsigned long scr_cluster)
 	retdent = check_folder_flag(scr, scr_cluster, mydata);
 	if(retdent) {
 		set_name(retdent, dest);
-		downcase(retdent->name);
+		/*downcase(retdent->name);*/
 
 		ret = set_cluster(mydata, scr_cluster,
 			get_dentfromdir_block,

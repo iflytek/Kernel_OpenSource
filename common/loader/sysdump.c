@@ -834,7 +834,7 @@ void write_sysdump_before_boot(int rst_mode)
 		debugf("time is %04d.%02d.%02d_%02d:%02d:%02d\n", tm.tm_year, tm.tm_mon, \
 			tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-		sprintf(fnbuf,"slog/sysdump/1/%04d.%02d.%02d_%02d:%02d:%02d.txt", \
+		sprintf(fnbuf,"slog/sysdump/1/%04d_%02d_%02d_%02d_%02d_%02d.txt", \
 			tm.tm_year, tm.tm_mon, tm.tm_mday, \
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
 
