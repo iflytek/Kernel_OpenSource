@@ -1312,6 +1312,17 @@ static int mmc_startup(struct mmc *mmc)
 	}
 	printf("mmc_set_capacity start mmc->part_num=%x\n", mmc->part_num);
 
+#ifdef CONFIG_EMMC_RST_N_FUNCTION
+	if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 0) {
+		printf("The eMMC RST_n signal is will be permanently enabled\n");
+		mmc_set_rst_n_function(mmc, 0x1);
+	} else if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 1)
+		printf("The eMMC RST_n signal(0x%x) has already be permanently enabled\n",
+			ext_csd[EXT_CSD_RST_N_FUNCTION]);
+	else if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 2)
+		printf("The eMMC RST_n signal is permanently disnabled\n");
+#endif
+
 	err = mmc_set_capacity(mmc, mmc->part_num);
 	if (err) {
 		printf("mmc_set_capacityerr=%x\n", err);
@@ -2090,6 +2101,18 @@ uint64_t Emmc_GetCapacity(char part_num)
 	default:
 		return 0;
 	}
+}
+
+/*
+ * Modify EXT_CSD[162] which is RST_n_FUNCTION based on the given value
+ * for enable.  Note that this is a write-once field for non-zero values.
+ *
+ * Returns 0 on success.
+ */
+int mmc_set_rst_n_function(struct mmc *mmc, u8 enable)
+{
+	return mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_RST_N_FUNCTION,
+			  enable);
 }
 
 #endif
