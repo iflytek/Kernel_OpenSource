@@ -183,7 +183,11 @@
 /*7S reset config*/
 #define CONFIG_7S_RST_MODULE_EN		1	
 
-#define CONFIG_7S_RST_SW_MODE		1	
+#ifdef DEBUG
+#define CONFIG_7S_RST_SW_MODE	1	//0:hw reset,1:arm reset,power keep on	//soft for debug version
+#else
+#define CONFIG_7S_RST_SW_MODE	0	//0:hw reset,1:arm reset,power keep on	//hard for user version
+#endif
 #define CONFIG_7S_RST_SHORT_MODE	1	
 #define CONFIG_7S_RST_2KEY_MODE		0	
 #define CONFIG_7S_RST_THRESHOLD		7	

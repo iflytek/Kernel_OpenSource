@@ -267,7 +267,12 @@
 #define CONFIG_PBINT_7S_RESET_V1
 #define CONFIG_7S_RST_MODULE_EN		1	//0:disable module; 1:enable module
 
-#define CONFIG_7S_RST_SW_MODE		1	//0:hw reset,1:arm reset,power keep on
+#ifdef DEBUG
+#define CONFIG_7S_RST_SW_MODE	1	//0:hw reset,1:arm reset,power keep on	//soft for debug version
+#else
+#define CONFIG_7S_RST_SW_MODE	0	//0:hw reset,1:arm reset,power keep on	//hard for user version
+#endif
+
 #define CONFIG_7S_RST_SHORT_MODE	1	//0:long press then release key to trigger;1:press key some time to trigger
 #define CONFIG_7S_RST_2KEY_MODE		0	//0:1Key--Normal mode; 1:2KEY
 #define CONFIG_7S_RST_THRESHOLD		7	//7S, hold key down for this time to trigger
