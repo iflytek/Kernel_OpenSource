@@ -36,15 +36,16 @@
 #include <dl_cmd_proc.h>
 #include "sparse_format.h"
 #include <linux/usb/usb_uboot.h>
+#include <sprd_common_rw.h>
 #ifdef CONFIG_EMMC_BOOT
 #include "dl_emmc_operate.h"
 #include <asm/arch/chip_releted_def.h>
 //#include <mmc.h>
 #include <sprd_mmc.h>
+#include <inttypes.h>
 
-extern unsigned char *g_eMMCBuf;
 extern SPECIAL_PARTITION_CFG const s_special_partition_cfg[];
-
+extern uchar *_get_backup_partition_name(uchar * partition_name);
 #endif
 
 #ifdef CONFIG_SECURE_BOOT
@@ -81,7 +82,6 @@ struct dl_image_inf {
 };
 
 #define ROUND_TO_PAGE(x,y) (((x) + (y)) & (~(y)))
-#define GFP_ATOMIC ((gfp_t) 0)
 
 struct fastboot_cmd {
 	struct fastboot_cmd *next;
@@ -114,12 +114,11 @@ extern int usb_fastboot_init(void);
 extern int fb_usb_write(void *buf, unsigned len);
 extern int fb_usb_read(void *_buf, unsigned len);
 
-uint32_t efi_GetPartBaseSec(uchar * partition_name)
-{
-	return 0;
-}
+extern void power_down_devices(unsigned pd_cmd);
+extern void reboot_devices(unsigned reboot_mode);
+extern void splFillCheckData(uchar * splBuf);
 
-void fastboot_register(const char *prefix, void (*handle) (const char *arg, void *data, unsigned sz))
+void fastboot_register(const char *prefix, void (*handle) (const char *arg, void *data, uint64_t sz))
 {
 	struct fastboot_cmd *cmd;
 	cmd = malloc(sizeof(*cmd));
@@ -188,27 +187,14 @@ static void fb_cmd_getvar(const char *arg, void *data, uint64_t sz)
 	fastboot_okay("");
 }
 
-static void dump_log(char *buf, int len)
-{
-	int i = 0;
-
-	debugf("**dump log_buf ...addr:0x%08x, len:%d\r\n", buf, len);
-
-	for (i = 0; i < len; i++) {
-		debugf("%02x ", *((unsigned char *)buf + i));
-		if (i % 0x20 == 0x1f)
-			debugf("\n");
-	}
-}
-
 static void fb_cmd_download(const char *arg, void *data, uint64_t sz)
 {
 	char response[64];
 	uint64_t len = simple_strtoul(arg, NULL, 16);
 	int total_rcv;
 
-	debugf("Start fastboot download, image len=0x%x \n", len);
-	debugf("buffer base %p, buffer size 0x%x \n", ImageInfo.base_address, ImageInfo.max_size);
+	debugf("Start fastboot download, image len=%" PRIu64 " \n", len);
+	debugf("buffer base %p, buffer size %" PRIu64 "\n", ImageInfo.base_address, ImageInfo.max_size);
 	if (len > ImageInfo.max_size) {
 		debugf("Image size over the max buffer size,can not accept \n");
 		fastboot_fail("data too large");
@@ -231,9 +217,9 @@ static void fb_cmd_download(const char *arg, void *data, uint64_t sz)
 }
 
 #ifdef CONFIG_EMMC_BOOT
-int _fb_write_nv_img(uchar * partition_name, uint32_t size)
+int _fb_write_nv_img(char * partition_name, uint64_t size)
 {
-	uchar *backup_partition_name = NULL;
+	char *backup_partition_name = NULL;
 	uint8_t header_buf[NV_HEAD_LEN];
 	nv_header_t *nv_header_p = NULL;
 	void *buf = ImageInfo.base_address;
@@ -254,12 +240,7 @@ int _fb_write_nv_img(uchar * partition_name, uint32_t size)
 		return 0;
 
 	/*write the backup partition */
-	for (i = 0; NULL != s_special_partition_cfg[i].partition; i++) {
-		if (strcmp(s_special_partition_cfg[i].partition, partition_name) == 0) {
-			backup_partition_name = s_special_partition_cfg[i].bak_partition;
-			break;
-		}
-	}
+	backup_partition_name = _get_backup_partition_name(partition_name);
 	if (NULL == backup_partition_name) {
 		errorf(" get backup partition name fail\n");
 		return 0;
@@ -274,14 +255,11 @@ int _fb_write_nv_img(uchar * partition_name, uint32_t size)
 }
 
 
-int _fb_download_image(uchar *partition_name)
+int _fb_download_image(char *partition_name)
 {
 	int retval;
 	int i;
 	uint64_t write_size = 0;
-	uint64_t offset = 0;
-	uint64_t data_left = 0;
-	uint64_t count = 0;
 	uint64_t img_format = IMG_RAW;
 	void *buf = ImageInfo.base_address;
 	PARTITION_PURPOSE partition_purpose = PARTITION_PURPOSE_NORMAL;
@@ -310,7 +288,7 @@ int _fb_download_image(uchar *partition_name)
 	}
 
 	if (IMG_WITH_SPARSE == img_format) {
-		debugf("Handle the saving of image with sparse,name=%s,buf start at 0x%x,size=0x%x\n",
+		debugf("Handle the saving of image with sparse,name=%s,buf start at 0x%p,size=%" PRIu64 "\n",
 		       partition_name, buf, write_size);
 		retval = write_sparse_img(partition_name, buf, (ulong)write_size);
 		if (-1 == retval) {
@@ -324,34 +302,19 @@ int _fb_download_image(uchar *partition_name)
 			return 0;
 		}
 	} else {
-		data_left = write_size % EMMC_BUF_SIZE;
-		count = write_size / EMMC_BUF_SIZE;
-		while (count) {
-			if (0 != common_raw_write(partition_name, (uint64_t)EMMC_BUF_SIZE,
-				0, offset, buf)) {
-				errorf("write %s size 0x%x offset 0x%x fail\n", partition_name, write_size, offset);
-				return 0;
-			}
-			buf = buf + EMMC_BUF_SIZE;
-			offset = offset +EMMC_BUF_SIZE;
-			count--;
-		}
-		if (0 != data_left) {
-			if (0 != common_raw_write(partition_name, data_left, 0, offset,
-				ImageInfo.base_address + count * EMMC_BUF_SIZE)) {
-				errorf("cmd_flash: raw data write tail part error!\n");
-				return 0;
-			}
+		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf)) {
+			errorf("write %s size %" PRIu64 " fail\n", partition_name, write_size);
+			return 0;
 		}
 	}
 	debugf("cmd_flash: success!\n");
 	return 1;
 }
 
-int _fb_img_write_with_backup(uchar *partition_name)
+int _fb_img_write_with_backup(char *partition_name)
 {
 	uint64_t write_size = ImageInfo.data_size;
-	void *buf = ImageInfo.base_address;
+	char *buf = ImageInfo.base_address;
 	if (0 == strcmp("splloader",  partition_name)) {
 		write_size = max(write_size, SPL_CHECKSUM_LEN);
 		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
@@ -367,8 +330,6 @@ int _fb_img_write_with_backup(uchar *partition_name)
 		strcat(partition_name, "_bak");
 		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
 			return 0;
-	} else {
-		_download_image(0);
 	}
 	debugf("cmd_flash: success!\n");
 	return 1;
@@ -377,9 +338,9 @@ int _fb_img_write_with_backup(uchar *partition_name)
 void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 {
 	int i;
-	uchar partition_name[PARTNAME_SZ];
+	char partition_name[PARTNAME_SZ];
+	char *partition_name_p = NULL;
 	static sys_img_header *bakup_header;
-	uint64_t *code_addr;
 
 	debugf("data = %p,ImageInfo[0].base_address = %p\n", data, ImageInfo.base_address);
 
@@ -388,7 +349,7 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 		if (0 == arg[i])
 			break;
 	}
-
+	partition_name_p = partition_name;
 	/*Check boot&recovery img's magic */
 	if (!strcmp(arg, "boot") || !strcmp(arg, "recovery")) {
 #ifdef CONFIG_SECURE_BOOT
@@ -437,32 +398,32 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 	//for spl uboot bakup
 	bakup_header = malloc(sizeof(sys_img_header));
 	if (NULL == bakup_header) {
-		debugf("No space to store bakup_header!\n");
+		errorf("No space to store bakup_header!\n");
 		return ;
 	}
 
 	bakup_header = (sys_img_header *)ImageInfo.base_address;
-	printf("bakup_header->mMagicNum=0x%x\n", bakup_header->mMagicNum);
+	debugf("bakup_header->mMagicNum=0x%x\n", bakup_header->mMagicNum);
 	if(bakup_header->mMagicNum == IMG_BAK_HEADER) {
-		if(!_fb_img_write_with_backup(partition_name)) {
-			debugf("image write with backup error!\n");
+		if(!_fb_img_write_with_backup(partition_name_p)) {
+			errorf("image write with backup error!\n");
 			return ;
 		}
 	} else {
-		if(!_fb_download_image(partition_name)) {
-			debugf("image write error!\n");
+		if(!_fb_download_image(partition_name_p)) {
+			errorf("image write error!\n");
 			return ;
 		}
 	}
 
-end:
 	fastboot_okay("");
 }
 
 void fb_cmd_erase(const char *arg, void *data, uint64_t size)
 {
 	int i;
-	uchar partition_name[PARTNAME_SZ];
+	char partition_name[PARTNAME_SZ];
+	char *partition_name_p = NULL;
 	uchar *backup_partition_name = NULL;
 
 	for (i = 0; i < PARTNAME_SZ; i++) {
@@ -470,31 +431,25 @@ void fb_cmd_erase(const char *arg, void *data, uint64_t size)
 		if (0 == arg[i])
 			break;
 	}
-
+	partition_name_p = partition_name;
 	if ((0 == strcmp(partition_name, "erase_all")) && (0xffffffff == size)) {
 		debugf("Erase all!\n");
-		if (0 != common_raw_erase(partition_name, 0, 0))
+		if (0 != common_raw_erase(partition_name_p, 0, 0))
 			return ;
 	} else {
-		debugf("erase partition %s!\n", partition_name);
+		debugf("erase partition %s!\n", partition_name_p);
 
-		if (0 != common_raw_erase(partition_name, size, 0)) {
+		if (0 != common_raw_erase(partition_name_p, size, 0)) {
 			return ;
 		}
 
 		/* erase backup partition */
-		for (i = 0; NULL != s_special_partition_cfg[i].partition; i++) {
-			if (strcmp(s_special_partition_cfg[i].partition, partition_name) == 0) {
-				backup_partition_name = s_special_partition_cfg[i].bak_partition;
-				break;
-			}
-		}
+		backup_partition_name = _get_backup_partition_name(partition_name_p);
 
 		if (NULL != backup_partition_name) {
 			if (0 != common_raw_erase(backup_partition_name, size, 0))
 				return ;
 		}
-
 	}
 
 	debugf("Cmd Erase OK\n");
@@ -622,11 +577,9 @@ end:
 }
 #endif
 
-extern void udc_power_off(void);
-
 void boot_linux(unsigned kaddr, unsigned taddr)
 {
-	void (*theKernel) (void *dtb_addr, int zero, int arch, int reserved)=(void*)kaddr;
+	void (*theKernel) (void *dtb_addr, int zero, int arch, int reserved) = (void*)kaddr;
 
 	invalidate_dcache_all();
 
@@ -637,13 +590,11 @@ extern unsigned char raw_header[8192];
 
 void fb_cmd_boot(const char *arg, void *data, uint64_t sz)
 {
-	boot_img_hdr *hdr = raw_header;
+	boot_img_hdr *hdr = (boot_img_hdr *)raw_header;
 	unsigned kernel_actual;
 	unsigned ramdisk_actual;
-	unsigned kernel_addr;
-	unsigned ramdisk_addr;
 
-	debugf("arg: %s, data: %p, sz: 0x%x\n", arg, data, sz);
+	debugf("arg: %s, data: %p, sz: %" PRIu64 "\n", arg, data, sz);
 
 	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 		debugf("boot image headr: %s\n", hdr->magic);
@@ -740,7 +691,7 @@ static int fastboot_handler(void *arg)
 	return 0;
 }
 
-int do_fastboot()
+int do_fastboot(void)
 {
 	int ret = 0;
 	debugf("start fastboot\n");
