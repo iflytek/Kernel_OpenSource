@@ -89,6 +89,7 @@ void fdt_fixup_all(void)
 #ifdef CONFIG_SPLASH_SCREEN
 	fdt_fixup_lcdid(fdt_blob);
 	fdt_fixup_lcdbase(fdt_blob);
+	fdt_fixup_lcdsize(fdt_blob);
 #endif
 	fdt_fixup_adc_calibration_data(fdt_blob);
 	fdt_fixup_dram_training(fdt_blob);

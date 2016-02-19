@@ -617,6 +617,7 @@ uint16_t sprdfb_panel_probe(struct sprdfb_device *dev)
         panel_info.vl_row = panel->height;
         panel_info.vl_col = panel->width;
 #endif
+		save_lcd_size_to_kernel(panel_info.vl_row, panel_info.vl_col);
 		FB_PRINT("sprdfb: [%s] got panel\n", __FUNCTION__);
 		return 0;
 	}

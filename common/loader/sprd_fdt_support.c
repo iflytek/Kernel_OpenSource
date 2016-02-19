@@ -12,6 +12,8 @@
 
 extern void *lcd_get_base_addr(void *lcd_base);
 extern uint32_t load_lcd_id_to_kernel();
+extern uint32_t load_lcd_width_to_kernel();
+extern uint32_t load_lcd_hight_to_kernel();
 extern int get_dram_cs_number(void);
 extern int get_dram_cs0_size(void);
 
@@ -348,6 +350,23 @@ int fdt_fixup_lcdbase(void *fdt)
 	return ret;
 }
 
+int fdt_fixup_lcdsize(void *fdt)
+{
+	char buf[32];
+	int str_len;
+	int ret;
+
+	memset(buf,0,32);
+	sprintf(buf, "lcd_size=");
+	str_len = strlen(buf);
+	sprintf(&buf[str_len], "%dx%d", load_lcd_width_to_kernel(), load_lcd_hight_to_kernel());
+	str_len = strlen(buf);
+
+	buf[str_len] = '\0';
+
+	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
+	return ret;
+}
 int fdt_fixup_serialno(void *fdt)
 {
 	char buf[64];
