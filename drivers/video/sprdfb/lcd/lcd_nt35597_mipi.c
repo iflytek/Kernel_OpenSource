@@ -665,9 +665,10 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0xBB, 0x10}},//video:0x03   cmd:0x10 
 
 {LCM_SEND(1), {0x11}},
-{LCM_SEND(2), {0x58, 0x01}},//start scaling-up
 {LCM_SLEEP(120)},
 {LCM_SEND(1), {0x29}},
+{LCM_SLEEP(120)},
+{LCM_SEND(2), {0x58, 0x01}},//start scaling-up
 
 //{LCM_SEND(2), {0xFF, 0x24}},
 //{LCM_SEND(2), {0xFB, 0x01}},
