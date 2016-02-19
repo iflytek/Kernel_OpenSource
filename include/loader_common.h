@@ -93,14 +93,9 @@ void set_backlight(uint32_t value);
 #define set_backlight
 #endif
 
-int do_fs_file_read(char *mpart, char *filenm, void *buf, int len);
 int autodloader_mainhandler(void);
 
 extern char* get_calibration_parameter(void);
 extern bool is_calibration_by_uart(void);
-
-int do_raw_data_read(char *part, u32 size, u32 off, char *buf);
-int do_raw_data_write(char *part, u32 updsz, u32 size, u32 off, char *buf);
-
 
 #endif /* _LOADER_COMMON_H_ */

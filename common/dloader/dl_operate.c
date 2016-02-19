@@ -199,10 +199,10 @@ int _parser_repartition_cfg_v0(disk_partition_t * partition_info, const uchar * 
 			partition_info[i].size = (lbaint_t) partition_size_m * lbas_per_m;
 		}
 
-		/*in raw data rcv from download tool,partition_name is 38 uint16_t length; 
+		/*in raw data rcv from download tool,partition_name is 38 uint16_t length;
 		 **in part.h ,disk_partition_t.name is 32 uchar length;
-		 **in part_efi.h ,gpt_entry.partition_name is 36 uint16_t length, 
-		 **we convert raw data to disk_partition_t format here , gpt_fill_pte() in part_efi.c will 
+		 **in part_efi.h ,gpt_entry.partition_name is 36 uint16_t length,
+		 **we convert raw data to disk_partition_t format here , gpt_fill_pte() in part_efi.c will
 		 **convert disk_partition_t to gpt_entry*/
 		for (j = 0; j < 32 - 1; j++) {
 			/*transform 64 bytes uint16_t to 32 bytes uchar ,and discard the last 8 bytes */
@@ -237,7 +237,7 @@ int _parser_repartition_cfg_v1(disk_partition_t * partition_info, uchar* partiti
 	blksz = common_get_lba_size();
 	if (-1 == blksz)
 		return -1;
-	
+
 	/*V1 partition table format: Partition Name(72Byte)+SIZE(8Byte)+GAP(8Byte)...*/
 	for (i = 0; i < total_partition_num; i++) {
 		partition_size_raw = *(uint64_t *)(partition_cfg + 88 * (i + 1) - 16);
@@ -469,7 +469,6 @@ static int _emmc_secure_download(uchar * partition_name)
 	unsigned long count = 0;
 	unsigned int saved = 0;
 	unsigned int each;
-	unsigned int base_sector = g_dl_eMMCStatus.base_sector;
 	unsigned int ret = 0;
 
 	debugf("enter secure_image_flag = %d partition:%s \n", secure_image_flag, partition_name);
@@ -506,23 +505,7 @@ static int _emmc_secure_download(uchar * partition_name)
 		return 1;
 	}
 
-	//download the image
-	if (0 == (g_status.unsave_recv_size % EFI_SECTOR_SIZE))
-		count = g_status.unsave_recv_size / EFI_SECTOR_SIZE;
-	else
-		count = g_status.unsave_recv_size / EFI_SECTOR_SIZE + 1;
-
-	//write code
-	while (count) {
-		each = MIN(count, EMMC_MAX_MUTIL_WRITE);
-		if (!Emmc_Write(g_dl_eMMCStatus.curEMMCArea, base_sector, each, (unsigned char *)(g_eMMCBuf + (saved * EFI_SECTOR_SIZE)))) {
-			g_status.unsave_recv_size = 0;
-			return 0;
-		}
-		base_sector += each;
-		saved += each;
-		count -= each;
-	}
+	_download_image(1);
 	g_status.unsave_recv_size = 0;
 	secure_image_flag = UNABLE_SECURE;	// 0;
 	return 1;
@@ -573,7 +556,7 @@ int _nv_img_write(uchar * partition, uint32_t size)
 	debugf("Start to write first block of NV partition(%s)\n", partition);
 	if (0 != common_raw_write(partition, NV_HEADER_SIZE, 0, 0, header_buf))
 		return 0;
-	
+
 	debugf("Start to write remain blocks of NV partition\n");
 	if (0 != common_raw_write(partition, size, 0, NV_HEADER_SIZE, g_eMMCBuf))
 		return 0;
@@ -583,7 +566,7 @@ int _nv_img_write(uchar * partition, uint32_t size)
 
 	if (0 != common_raw_write(backup_partition_name, NV_HEADER_SIZE, 0, 0, header_buf))
 		return 0;
-	
+
 	if (0 != common_raw_write(backup_partition_name, size, 0, NV_HEADER_SIZE, g_eMMCBuf))
 		return 0;
 
@@ -658,7 +641,7 @@ int _download_image(int is_total_recv)
 			g_status.unsave_recv_size = 0;
 			return 0;
 		}
-		
+
 		if (!is_total_recv) {
 			g_dl_eMMCStatus.offset += g_status.unsave_recv_size;
 			g_sram_addr = (unsigned long) g_eMMCBuf;
@@ -740,7 +723,7 @@ int regular_download_process(uint16_t size, char *buf)
 			memcpy((unsigned char *)g_sram_addr, buf, lastSize);
 
 		g_status.unsave_recv_size = EMMC_BUF_SIZE;
- 
+
 		if (!_download_image(0))
 			return OPERATE_WRITE_ERROR;
 
@@ -819,7 +802,7 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 			status |= ORIGIN_NV_DAMAGED;
 			break;
 		}
-	
+
 		/*check crc */
 		if (fdl_check_crc(buf, header_p->len, header_p->checksum)) {
 			debugf("read origin nv image success and crc correct\n");
@@ -833,7 +816,7 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 	backup_partition_name = _get_backup_partition_name(partition_name);
 	if (NULL == backup_partition_name)
 		return 0;
-	
+
 	do {
 		/*read backup header */
 		if (0 != common_raw_read(backup_partition_name, NV_HEADER_SIZE, 0, backup_header_buf)) {

@@ -38,7 +38,7 @@
 #include <linux/usb/usb_uboot.h>
 #include <sprd_common_rw.h>
 #ifdef CONFIG_EMMC_BOOT
-#include "dl_emmc_operate.h"
+#include "dl_operate.h"
 #include <asm/arch/chip_releted_def.h>
 //#include <mmc.h>
 #include <sprd_mmc.h>

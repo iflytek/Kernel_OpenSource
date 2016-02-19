@@ -9,6 +9,7 @@
 #include "loader_common.h"
 #include "sprd_cpcmdline.h"
 #include "sysdump.h"
+#include "sprd_common_rw.h"
 
 extern void *lcd_get_base_addr(void *lcd_base);
 extern uint32_t load_lcd_id_to_kernel();
@@ -560,8 +561,8 @@ void fdt_fixup_secureboot_param(void *fdt_blob)
 	}
 /*TODO*/
 #ifdef  CONFIG_EMMC_BOOT
-	if (TRUE != Emmc_Read(2 /* PARTITION_BOOT2 */ , PUBKEY_VLR_BLOCK_INDEX,
-					      PUBKEY_READ_BLOCK_NUMS, (uint8_t *) pubk)) {
+	if (0 != common_raw_read("uboot" , SEC_HEADER_MAX_SIZE,
+			PUBKEY_VLR_BLOCK_INDEX*EMMC_SECTOR_SIZE, (uint8_t *) pubk)) {
 				errorf("PARTITION_BOOT2 read error \n");
 				return 0;
 			}

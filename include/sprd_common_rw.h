@@ -8,5 +8,7 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 int common_raw_erase(char *part_name, uint64_t size, uint64_t offset);
 int common_repartition(disk_partition_t *partitions, int parts_count);
 int32_t common_get_lba_size(void);
+int do_fs_file_read(char *mpart, char *filenm, void *buf, int len);
+int do_fs_file_write(char *mpart, char *filenm, void *buf, int len);
 
 #endif /* _LOADER_COMMON_H_ */

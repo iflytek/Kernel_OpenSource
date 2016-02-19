@@ -82,7 +82,7 @@ static int receive_caliberation_response(uint8_t *buf,int len)
 
 	if ((buf == NULL) || (len == 0))
         	return 0;
-        
+
         is_not_empty = serial_tstc();
         if (is_not_empty) {
              start_time = get_timer_masked();
@@ -101,7 +101,7 @@ static int receive_caliberation_response(uint8_t *buf,int len)
                   current_time = get_timer_masked();
              } while((current_time - start_time) < 500);
         }
-        
+
         return count;
 }
 
@@ -138,7 +138,7 @@ int pctool_mode_detect_uart(void)
 
 	printf("%s\n", "uart calibrate detecting");
 	send_caliberation_request();
-   
+
 #ifdef CONFIG_MODEM_CALIBERATE
 	for(i = 0; i < 20; i++)
 		buf[i] = i + 'a';
@@ -220,11 +220,11 @@ int check_pctool_cmd(uint8_t* buf, int len)
 	            break;
 	        case CALIBERATE_PROKEY_COMMOND_T:
 	            if(DIAG_AP_CMD_PROGRAM_KEY == *(msg_ptr + sizeof(MSG_HEAD_T))){
-	                msg_enter_prokey =  (TOOLS_DIAG_AP_CMD_T*)(msg_ptr + sizeof(MSG_HEAD_T)); 
+	                msg_enter_prokey =  (TOOLS_DIAG_AP_CMD_T*)(msg_ptr + sizeof(MSG_HEAD_T));
 	                command = msg_enter_prokey->cmd;
 	            }
 	            else if(DIAG_AP_CMD_EXIT_PROGRAM_KEY == *(msg_ptr + sizeof(MSG_HEAD_T))){
-	                msg_exit_prokey = (TOOLS_DIAG_AP_EXIT_CMD_T*)(msg_ptr + sizeof(MSG_HEAD_T)); 
+	                msg_exit_prokey = (TOOLS_DIAG_AP_EXIT_CMD_T*)(msg_ptr + sizeof(MSG_HEAD_T));
 	                command = msg_exit_prokey->para;
 	            }
 			    break;
@@ -251,7 +251,7 @@ int is_timeout(void)
         return 0;
     }
 }
-    
+
 void cali_usb_debug(uint8_t *buf)
 {
 	int i, ret;
@@ -284,7 +284,7 @@ void cali_usb_debug(uint8_t *buf)
 			printf("%c ", buf[i]);
 		printf("\n");
 	}
-	
+
 #endif
 }
 int cali_usb_prepare(void)
@@ -314,12 +314,12 @@ int cali_usb_enum(void)
 			printf("usb calibrate configuration timeout,%lu,%lu,%lu\n",now_time,start_time,count_ms);
 			return 0;
 			}
-		}	
+		}
 	printf("USB SERIAL CONFIGED\n");
-	
+
 	start_time = get_timer_masked();
 	count_ms = get_cal_io_ms();
-	while(!usb_is_port_open()){	
+	while(!usb_is_port_open()){
 		ret = is_timeout();
 		if(ret == 0)
 			continue;
@@ -340,9 +340,9 @@ int cali_get_cmd(uint8_t *buf, int len)
 	int i;
 	start_time = get_timer_masked();
 
- 	while(got < len){
- 		if(usb_is_trans_done(0))	
-		{		
+	while(got < len){
+		if(usb_is_trans_done(0))
+		{
 			if(usb_trans_status)
 				printf("func: %s line %d usb trans with error %d\n", __func__, __LINE__, usb_trans_status);
 			ret = gs_read(buf + got, &count);
@@ -427,7 +427,7 @@ int prepare_reply_buf(uint8_t* buf, int status)
     memcpy(rsp_ptr,msg_head_ptr,sizeof(MSG_HEAD_T));
 
     aprsp->status = status;
-    aprsp->length = CALIBERATE_CNF_LEN; 
+    aprsp->length = CALIBERATE_CNF_LEN;
 
     total_len = translate_packet((char*)pctool_cnf_buf,rsp_ptr,((MSG_HEAD_T*)rsp_ptr)->len);
     free(rsp_ptr);
@@ -436,7 +436,7 @@ int prepare_reply_buf(uint8_t* buf, int status)
 
 int pctool_mode_detect(void)
 {
-	
+
 	int ret , command , bat_info;
 
     printf(" uart cooperating with pc tool\n");
@@ -562,8 +562,8 @@ int cali_file_check(void)
 
 	if((nv_buffer[0] != CALI_MAGIC)||(nv_buffer[1]!=CALI_COMP))
 		return 1;
-	else 
-		return 0;		
+	else
+		return 0;
 }
 
 #define VLX_ADC_ID   2

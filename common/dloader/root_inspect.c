@@ -4,7 +4,7 @@
 
 #include "root_inspect.h"
 #include "loader_common.h"
-
+#include "sprd_common_rw.h"
 #ifdef CONFIG_EMMC_BOOT
 //#include <mmc.h>
 #include <sprd_mmc.h>
@@ -14,8 +14,8 @@ u32 get_rootflag(root_stat_t *stat)
 {
 	u32 result = 0;
 
-	if (do_raw_data_read(PRODUCTINFO_FILE_PATITION, sizeof(root_stat_t), 512, stat)) {
-		debugf("read miscdata error.\n");
+	if (0 != common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(root_stat_t), 512, stat)) {
+		errorf("read miscdata error.\n");
 		return result;
 	}
 
@@ -34,25 +34,16 @@ u32 erase_rootflag(root_stat_t *stat)
 	disk_partition_t info;
 	block_dev_desc_t *dev = NULL;
 
-	dev = get_dev("mmc", 0);
-	if (NULL == dev) {
-		debugf("Block device not supported!,erase rootflag failed.\n");
-		return -1;
-	}
-	if (0 != get_partition_info_by_name(dev, PRODUCTINFO_FILE_PATITION, &info)) {
-		debugf("eMMC get partition ERROR!\n");
-		return -1;
-	}
-
-	curArea = PARTITION_USER;
-	base_sector = info.start + ROOT_OFFSET/EMMC_SECTOR_SIZE;
 	erasesize = sizeof(root_stat_t);
 	char *buf = malloc(erasesize);
 	memset(buf, 0, erasesize);
 
 	debugf("Erase miscdata partition.\n");
 
-	Emmc_Write(curArea, base_sector, 1, buf);
+	if (0 != common_raw_write(PRODUCTINFO_FILE_PATITION, erasesize, 0, ROOT_OFFSET, buf)) {
+		errorf("erase miscdata error.\n");
+		return -1;
+	}
 
 	memset(stat, 0, erasesize);
 

@@ -235,7 +235,7 @@ int get_user_lun(disk_partition_t *part_info, char *part_name)
 	int id = 0;
 	int ret = 0;
 	block_dev_desc_t *dev_desc;
-	
+
 	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
 		if (0 == factory_lu_tbl[id].log2blksz)
 			break;
@@ -294,7 +294,7 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 	offset += part_start;
 
 	return block_dev_read(dev_desc, size, offset, buf);
-	
+
 }
 
 
@@ -338,7 +338,7 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 	offset += part_start;
 
 	return block_dev_write(dev_desc, size, offset, buf);
-	
+
 }
 
 /*TODO*/
@@ -469,7 +469,7 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 	offset += part_start;
 
 	return block_dev_read(dev_desc, size, offset, buf);
-	
+
 }
 
 
@@ -515,7 +515,7 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 	offset += part_start;
 
 	return block_dev_write(dev_desc, size, offset, buf);
-	
+
 }
 
 int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
@@ -678,6 +678,69 @@ int32_t common_get_lba_size(void)
 		return -1;
 
 	return (int32_t)dev_desc->blksz;
+}
+
+int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
+{
+#ifdef CONFIG_FS_EXT4
+	disk_partition_t info;
+	block_dev_desc_t *dev_desc;
+	loff_t len_read = 0;
+
+	dev_desc = get_dev("mmc", 0);
+	if (NULL == dev_desc) {
+		errorf("ext4_read_content get dev error\n");
+		return -1;
+	}
+
+	if (get_partition_info_by_name(dev_desc, mpart, &info) == -1) {
+		errorf("## Valid EFI partition not found ##\n");
+		return -1;
+	}
+
+	/* set the device as block device */
+	ext4fs_set_blk_dev(dev_desc, &info);
+
+	/* mount the filesystem */
+	if (!ext4fs_mount(info.size)) {
+		errorf("Bad ext4 partition:%s\n",  mpart);
+		ext4fs_close();
+		return -1;
+	}
+
+	/* start read */
+	if (ext4_read_file(filenm, buf, 0, len, &len_read) == -1) {
+		errorf("** Error ext4_read_file() **\n");
+		ext4fs_close();
+		return -1;
+	}
+	debugf("read %s ok, len : 0x%llx", filenm, len_read);
+	ext4fs_close();
+	return 0;
+#elif defined(CONFIG_FS_UBIFS)
+	int ret=-1;
+	static int is_ubifs_init = 0;
+	if(is_ubifs_init == 0){
+		ubifs_init();
+		is_ubifs_init = 1;
+	}
+
+	ret = ubifs_mount(mpart);
+	if(ret){
+		errorf("do_fs_file_read:mount %s failed!\n",mpart);
+		return ret;
+	}
+	ret = ubifs_load(filenm, buf, len);
+	if(ret)
+		errorf("do_fs_file_read:file %s not found!\n", filenm);
+	return ret;
+#endif
+}
+
+int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
+{
+	/*do not write in uboot now*/
+	return -1;
 }
 
 #endif

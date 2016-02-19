@@ -214,8 +214,8 @@ int get_spl_hash(void *hash_data)
 		return ret;
 	}
 
-	if (FALSE == Emmc_Read(PARTITION_BOOT1, 0, size / EMMC_SECTOR_SIZE, (uint8_t *) spl_data)) {
-		debugf("PARTITION_BOOT1 read error \n");
+	if (0 != common_raw_read("splloader", size, 0, (char *) spl_data)) {
+		errorf("PARTITION_BOOT1 read error \n");
 		return ret;
 	}
 
@@ -547,7 +547,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 		return 0;
 	}
 	debugf("%s kernel read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)KERNEL_ADR);
-	
+
 	/*read ramdisk image */
 	offset += size;
 	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
@@ -627,7 +627,7 @@ int _boot_load_separate_dt(void)
 
 /*TODO*/
 #ifdef CONFIG_SECURE_BOOT
-	if (do_raw_data_read("dt", EMMC_SECTOR_SIZE, 0, (u8 *) table)) {
+	if (0 != common_raw_read("dt", EMMC_SECTOR_SIZE, 0, &table)) {
 		errorf("dt read error!\n");
 		free(table);
 		return 0;
@@ -647,7 +647,7 @@ int _boot_load_separate_dt(void)
 		errorf("Cannot validate Device Tree Table \n");
 		goto fail;
 	}
-	
+
 	size = sizeof(struct dt_table) + sizeof(struct dt_entry) * table.num_entries;
 	header = (char *)malloc(size);
 	if (NULL == header) {

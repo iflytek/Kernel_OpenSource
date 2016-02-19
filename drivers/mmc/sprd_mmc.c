@@ -1968,33 +1968,6 @@ int mmc_boot_part_access(struct mmc *mmc, u8 ack, u8 part_num, u8 access)
 	return 0;
 }
 
-int emmc_write(char part_num, uint32_t start_block, uint32_t num, uint8_t *buf)
-{
-	struct mmc *mmc = find_mmc_device(EMMC);
-	int ret = 0;
-
-	if (!mmc)
-		return 0;
-
-	if (mmc->part_num != part_num)
-		mmc_switch_part(EMMC, part_num);
-
-	mmc->part_num = part_num;
-
-	ret = mmc_bwrite(EMMC, start_block, num, buf);
-	if (part_num) {
-		mmc->part_num = 0;
-		mmc_switch_part(EMMC, 0);
-	}
-
-	return ret;
-}
-
-int Emmc_Write(char part_num, uint32_t start_block, uint32_t num, uint8_t *buf)
-{
-	return emmc_write(part_num, start_block, num, buf);
-}
-
 int emmc_write_backstage(char part_num, uint32_t start_block,
 			uint32_t num, uint8_t *buf)
 {
@@ -2011,12 +1984,6 @@ int emmc_write_backstage(char part_num, uint32_t start_block,
 	ret = mmc_bwrite_backstage(EMMC, start_block, num, buf);
 
 	return ret;
-}
-
-int Emmc_Write_Backstage(char part_num, uint32_t start_block,
-			uint32_t num, uint8_t *buf)
-{
-	return emmc_write_backstage(part_num, start_block, num, buf);
 }
 
 int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf)
@@ -2039,64 +2006,6 @@ int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf)
 	 }
 
 	return ret;
-}
-
-int Emmc_Query_Backstage(char part_num, uint32_t num, uint8_t *buf)
-{
-	return emmc_query_backstage(part_num, num, buf);
-}
-
-int emmc_erase(char part_num, uint32_t start_block, uint32_t num)
-{
-	struct mmc *mmc = find_mmc_device(EMMC);
-	int ret = 0;
-
-	if (!mmc)
-		return 0;
-
-	if (mmc->part_num != part_num)
-		mmc_switch_part(EMMC, part_num);
-
-	ret = mmc_berase(EMMC, start_block, num);
-	if (part_num) {
-		mmc->part_num = 0;
-		mmc_switch_part(EMMC, 0);
-	}
-
-	return ret;
-}
-
-int Emmc_Erase(char part_num, uint32_t start_block, uint32_t num)
-{
-	return emmc_erase(part_num, start_block, num);
-}
-
-int emmc_read(char part_num, uint32_t start_block, uint32_t num, uint8_t *buf)
-{
-	struct mmc *mmc = find_mmc_device(EMMC);
-	int ret = 0;
-
-	if (!mmc)
-		return 0;
-
-	if (mmc->part_num != part_num)
-		mmc_switch_part(EMMC, part_num);
-
-	mmc->part_num = part_num;
-	debugf("%s partnum=%d, start_block=%x, num=%d, buf=%p\n",
-		__func__, part_num, start_block, num, buf);
-	ret = mmc_bread(EMMC, start_block, num, buf);
-	if (part_num) {
-		mmc->part_num = 0;
-		mmc_switch_part(EMMC, 0);
-	}
-
-	return ret;
-}
-
-int Emmc_Read(char  part_num, uint32_t start_block, uint32_t num, uint8_t *buf)
-{
-	return emmc_read(part_num, start_block, num, buf);
 }
 
 uint64_t emmc_get_capacity(char part_num)

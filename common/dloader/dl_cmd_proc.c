@@ -1,9 +1,8 @@
 
 #include <common.h>
 #include "dl_cmd_proc.h"
-
 #ifdef CONFIG_EMMC_BOOT
-#include "dl_emmc_operate.h"
+#include "dl_operate.h"
 #endif
 #ifdef CONFIG_NAND_BOOT
 #include "dl_nand_operate.h"
@@ -196,7 +195,7 @@ int dl_cmd_read_midst(dl_packet_t *packet, void *arg)
 int dl_cmd_read_end(dl_packet_t *packet, void *arg)
 {
 	int32_t op_res =0;
-	
+
 	op_res = dl_read_end();
 	_send_reply(op_res);
 	return 0;

@@ -1,5 +1,6 @@
 #include <common.h>
 #include <boot_mode.h>
+#include "sprd_common_rw.h"
 
 #define msleep(a) udelay(a * 1000)
 #define PROD_PART "prodnv"

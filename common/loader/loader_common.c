@@ -5,6 +5,7 @@
 #include <libfdt.h>
 #include <fdt_support.h>
 #endif
+#include "sprd_common_rw.h"
 
 #ifdef CONFIG_MINI_TRUSTZONE
 #include "trustzone_def.h"
@@ -57,8 +58,8 @@ char *get_product_sn(void)
 	memset(serial_number_to_transfer, 0x0, SP09_MAX_SN_LEN);
 
 	strcpy(serial_number_to_transfer, "0123456789ABCDEF");
-	if (do_raw_data_read(PRODUCTINFO_FILE_PATITION, sizeof(phase_check), 0, (char *)&phase_check)) {
-		debugf("read miscdata error.\n");
+	if (0 != common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(phase_check), 0, (char *)&phase_check)) {
+		errorf("read miscdata error.\n");
 		return serial_number_to_transfer;
 	}
 
