@@ -353,7 +353,7 @@ uchar *_get_backup_partition_name(uchar * partition_name)
 void prepare_alternative_buffers(void)
 {
 
-	alter_buffer1.addr = g_eMMCBuf + EMMC_BUF_SIZE;
+	alter_buffer1.addr = g_eMMCBuf + EMMC_BUF_SIZE+ALTERNATIVE_BUFFER_SIZE;
 	alter_buffer1.pointer = alter_buffer1.addr;
 	alter_buffer1.size = ALTERNATIVE_BUFFER_SIZE;
 	alter_buffer1.used = 0;
@@ -361,7 +361,7 @@ void prepare_alternative_buffers(void)
 	alter_buffer1.status = BUFFER_CLEAN;
 	alter_buffer1.next = &alter_buffer2;
 
-	alter_buffer2.addr = alter_buffer1.addr + EMMC_BUF_SIZE;
+	alter_buffer2.addr = alter_buffer1.addr + 2*ALTERNATIVE_BUFFER_SIZE;
 	alter_buffer2.pointer = alter_buffer2.addr;
 	alter_buffer2.size = ALTERNATIVE_BUFFER_SIZE;
 	alter_buffer2.used = 0;
