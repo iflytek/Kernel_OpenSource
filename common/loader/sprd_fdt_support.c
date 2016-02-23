@@ -341,9 +341,13 @@ int fdt_fixup_lcdbase(void *fdt)
 
 	//add lcd frame buffer base, length should be lcd w*h*2(RGB565)
 	lcd_base = lcd_get_base_addr(NULL);
+#ifdef CONFIG_DUAL_DDR
+    lcd_base += (4UL << 32);
+#endif
+    printf("%s(lcd_base=%p)\n",__func__,lcd_base);
 	sprintf(buf, "lcd_base=");
 	str_len = strlen(buf);
-	sprintf(&buf[str_len], "%x", lcd_base);
+	sprintf(&buf[str_len], "%llx", lcd_base);
 	str_len = strlen(buf);
 	buf[str_len] = '\0';
 
