@@ -7,7 +7,7 @@ SRCARCH := arm
 endif
 
 ifeq ($(strip $(CONFIG_64KERNEL_32FRAMEWORK)),true)
-UBOOT_TOOLCHAIN := $(FIX_CROSS_COMPILE)
+UBOOT_TOOLCHAIN := $(shell pwd)/prebuilts/gcc/linaro-x86/aarch64/gcc-linaro-4.8/gcc-linaro-4.8-2015.06-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
 endif
 
 UBOOT_OUT := $(TARGET_OUT_INTERMEDIATES)/u-boot15
