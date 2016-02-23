@@ -24,7 +24,7 @@
 #define BIT_PIN_SLP_ALL_CP  (BIT_PIN_SLP_PUBCP|BIT_PIN_SLP_TGLDSP|BIT_PIN_SLP_AGDSP)
 
 static pinmap_t pinmap[]={
-{REG_PIN_CTRL0,0x00000020},
+{REG_PIN_CTRL0,0x00000024},
 {REG_PIN_CTRL1,0x0},
 {REG_PIN_CTRL2,0x00410000}, // uart0->bt'uart;  uart1->ap'uart0; uart2->cp1'uart0; uart3->gps; uart4->agdsp uart0
 {REG_PIN_CTRL3,0x00438000},
