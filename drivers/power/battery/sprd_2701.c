@@ -102,6 +102,8 @@ typedef unsigned char BYTE;
 #define I2C_SPEED			(100000)
 #ifdef CONFIG_SC9001
 #define BUS_NUM		(5)
+#elif defined (CONFIG_SC9860)
+#define BUS_NUM		(4)
 #else
 #define BUS_NUM		(1)
 #endif
@@ -158,7 +160,7 @@ void sprd_2701_limit_usb_cur()
 }
 void sprd_2701_usb_start_charging(void)
 {
-	sprd_2701_set_value(INPUT_SRC_CTL,IN_CUR_LIMIT_BIT ,IN_CUR_LIMIT_SHIFT ,1 );
+	//sprd_2701_set_value(INPUT_SRC_CTL,IN_CUR_LIMIT_BIT ,IN_CUR_LIMIT_SHIFT ,1 );
 	sprd_2701_set_value(CHG_CUR_CTL,CHG_CUR_BIT ,CHG_CUR_SHIFT , CHG_CUR_USB_VAL);
 }
 
@@ -170,8 +172,11 @@ void sprd_2701_ta_start_charging(void)
 void sprdchg_2701_start_chg(int type)
 {
 	printf("sprdchg_2701_start_chg\n type=%d\n",type);
+	sprd_2701_set_value(POWER_ON_CTL, CHG_EN_BIT , CHG_EN_SHIFT, 1);
 	if(type == ADP_TYPE_CDP || type == ADP_TYPE_DCP){
 		printf("charge start with AC\n");
+		sprd_2701_set_value(INPUT_SRC_CTL,
+				    IN_CUR_LIMIT_BIT, IN_CUR_LIMIT_SHIFT, 6);
 		sprd_2701_ta_start_charging();
 	}else{
 		printf("charge start with USB\n");
