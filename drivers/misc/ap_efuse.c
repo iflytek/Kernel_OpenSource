@@ -229,7 +229,7 @@ static __inline int ap_efuse_wait_clear(u32 bits)
 	int ret = 0;
 	unsigned long timeout;
 
-	printf("wait %x\n", __raw_readl((void *)REG_EFUSE_STATUS));
+	printf("ap efuse wait %x\n", __raw_readl((void *)REG_EFUSE_STATUS));
 
 	/* wait for maximum of 300 msec */
 	timeout = jiffies + msecs_to_jiffies(300);
@@ -266,10 +266,11 @@ out:
 u32 sprd_ap_efuse_read(int blk_index)
 {
 	u32 val;
-	printf("efuse read %d\n", blk_index);
+
 	ap_efuse_power_on();
 	val = ap_efuse_read(blk_index);
 	ap_efuse_power_off();
+	printf("ap efuse read block =%d,val = 0x%x\n", blk_index,val);
 	return val;
 }
 
@@ -306,7 +307,7 @@ static int ap_efuse_prog(int blk, u32 val)
 		     (void *)REG_EFUSE_READ_WRITE_INDEX);
 	printf("cfg0 %x\n", __raw_readl((void *)REG_EFUSE_CFG0));
 	__raw_writel(BIT_PG_START, (void *)REG_EFUSE_MODE_CTRL);
-	if (IS_ERR_VALUE(pmic_efuse_wait_clear(BIT_PGM_BUSY)))
+	if (IS_ERR_VALUE(ap_efuse_wait_clear(BIT_PGM_BUSY)))
 		goto out;
 
 out:

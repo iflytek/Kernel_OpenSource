@@ -23,11 +23,6 @@
 
 #define ADC_BIG_SCALE     1
 #define ADC_SMALL_SCALE   0
-
-//#define ADC_CHANNEL_VBAT 5
-//#define ADC_CHANNEL_PROG 4
-//#define ADC_CHANNEL_VCHG 6
-
 #define ADC_MESURE_NUMBER       15
 
 struct sprd_adc_cal {
@@ -54,14 +49,14 @@ struct pmic_adc_para {
 	int blk_width;
 	int adc_data_off;
 };
-#if 0
-static enum adc_channel {
-	ADC_CHANNEL_0 = 0,  //ADCI0
-	ADC_CHANNEL_1 = 1,  //ADCI1
-	ADC_CHANNEL_2 = 2,  //ADCI2
-	ADC_CHANNEL_3 = 3,  //ADCI3
-	ADC_CHANNEL_2723_PROG = 4,
-	ADC_CHANNEL_2723_VBAT = 5,
+
+enum adc_channel {
+	ADC_CHANNEL_0 = 0,
+	ADC_CHANNEL_1 = 1,
+	ADC_CHANNEL_2 = 2,
+	ADC_CHANNEL_3 = 3,
+	ADC_CHANNEL_4 = 4,
+	ADC_CHANNEL_VBAT_SENSE = 5,
 	ADC_CHANNEL_VCHGSEN = 6,
 	ADC_CHANNEL_VCHGBG = 7,
 	ADC_CHANNEL_ISENSE = 8,
@@ -82,31 +77,30 @@ static enum adc_channel {
 	ADC_CHANNEL_LDO2 = 23,
 	ADC_CHANNEL_WHTLED = 24,
 	ADC_CHANNEL_OTP = 25,
-	ADC_CHANNEL_LPLDO0 = 26,	/*SIM0/SIM1/SIM2/EMMCCORE/VDD28/VDD25/USB, Low power mode reference*/
-	ADC_CHANNEL_LPLDO1 = 27,	/*CAMD/EMMCIO/VDD18/AVDD18/CAMIO/CLSG, Low power mode reference*/
-	ADC_CHANNEL_LPLDO2 = 28,	/*RF0/RF1/RF2/CAMA/SD/CAMMOT, Low power mode reference*/
+	ADC_CHANNEL_LPLDO0 = 26,
+	ADC_CHANNEL_LPLDO1 = 27,
+	ADC_CHANNEL_LPLDO2 = 28,
 	ADC_CHANNEL_WHTLED_VFB  = 29,
 	ADC_CHANNEL_USBDP = 30,
 	ADC_CHANNEL_USBDM = 31,
-	ADC_2723_MAX = 31,
+	ADC_CHANNEL_MAX = 31,
 };
-#endif
 
 void pmic_adc_Init(void);
 
-int32_t pmic_adc_get_values(unsigned int channel, bool scale, uint8_t num,
+int32_t pmic_adc_get_values(uint16_t channel, bool scale, uint8_t num,
 			    int32_t * p_buf);
 
-int32_t pmic_adc_get_value_by_isen(unsigned int channel, int scale, uint8_t num,
+int32_t pmic_adc_get_value_by_isen(uint16_t channel, int scale, uint8_t num,
 				   int isen);
 
-uint32_t sprd_chan_bat_adc_to_vol(uint16_t channel, int scale, int mux,
-				  uint16_t adcvalue);
+int32_t sprd_chan_bat_adc_to_vol(uint16_t channel, int scale, int mux,
+				  int32_t adcvalue);
 
-uint32_t sprd_chan_small_adc_to_vol(uint16_t channel, int scale, int mux,
-				    uint16_t adcvalue);
+int32_t sprd_chan_small_adc_to_vol(uint16_t channel, int scale, int mux,
+				    int32_t adcvalue);
 
-uint32_t sprd_chan_adc_to_vol(uint16_t channel, int scale, uint8_t num,
+int32_t sprd_chan_adc_to_vol(uint16_t channel, int scale, int mux,
 			      int cal_type);
 
 #endif

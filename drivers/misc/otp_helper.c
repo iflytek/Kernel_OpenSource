@@ -33,7 +33,7 @@ void get_efuse_uid(void)
 	unsigned int block0, block1;
 	block0 = sprd_ap_efuse_read(BLK_UID_DETA_START);
 	block1 = sprd_ap_efuse_read(BLK_UID_DETA_END);
-	printf("efuse uid is %08x%08x\n", __func__, block0, block1);
+	printf("efuse uid is %08x%08x\n", block0, block1);
 }
 
 static void efuse_uid(void)
@@ -41,7 +41,6 @@ static void efuse_uid(void)
 	u32 block0,block1;
     u32 x,y,wafer_id;
     u32 LOTID_0,LOTID_1,LOTID_2,LOTID_3,LOTID_4,LOTID_5;
-	char bufallid[20];
 	block0= sprd_ap_efuse_read(UID_BLOCK0);
 	block1= sprd_ap_efuse_read(UID_BLOCK1);
     y=block1&0x7F;
@@ -61,7 +60,7 @@ static void efuse_binning(void)
 	u32 block13,block15;
 	block13= sprd_ap_efuse_read(BIN_BLOCK13);
 	block15= sprd_ap_efuse_read(BIN_BLOCK15);
-	printf("BIF = 0x%x, 0x%x",BIN_BLOCK13,BIN_BLOCK15);
+	printf("BIF = 0x%x, 0x%x",block13,block15);
 }
 
 void sprd_uid_bin_info(void)

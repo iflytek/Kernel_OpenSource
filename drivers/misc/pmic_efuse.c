@@ -143,7 +143,7 @@ static __inline int pmic_efuse_wait_clear(u32 bits)
 	unsigned long timeout;
 	u32 bit_status = 1;
 	u32 val;
-	printf("wait %x\n", sci_adi_read(ANA_REG_EFUSE_STATUS));
+	printf("pmic efuse wait %x\n", sci_adi_read(ANA_REG_EFUSE_STATUS));
 
 	/* wait for maximum of 3000 msec */
 	timeout = jiffies + msecs_to_jiffies(3000);
@@ -168,7 +168,6 @@ u32 sprd_pmic_efuse_read(int blk_index)
 {
 	u32 val = 0;
 
-	printf("adie efuse read %d\n", blk_index);
 	pmic_efuse_power_on();
 #ifdef CONFIG_ADIE_SC2731
 	if (IS_ERR_VALUE(pmic_efuse_wait_clear(BIT_STANDBY_BUSY)))
@@ -194,27 +193,24 @@ u32 sprd_pmic_efuse_read(int blk_index)
 #endif
 out:
 	pmic_efuse_power_off();
+
+	printf("pmic efuse read %d,val=0x%x\n", blk_index,val);
 	return val;
 }
 
-u32 pmic_efuse_read_bits(int bit_index, int length)
+u32 sprd_pmic_efuse_read_bits(int bit_index, int length)
 {
 	int i, blk_index = (int)bit_index / EFUSE_BLOCK_WIDTH;
 	int blk_max = DIV_ROUND_UP(bit_index + length, EFUSE_BLOCK_WIDTH);
 	u32 val = 0;
 
-	/* verify the otp data of ememory written or not */
-	val = (sprd_pmic_efuse_read(0) & (1 << 7));
-	if (val)
-		return 0;
-	printf("otp read blk %d - %d\n", blk_index, blk_max);
 	for (i = blk_index; i < blk_max; i++) {
 		val |= sprd_pmic_efuse_read(i)
 		    << ((i - blk_index) * EFUSE_BLOCK_WIDTH);
 	}
 	val >>= (bit_index & (EFUSE_BLOCK_WIDTH - 1));
 	val &= BIT(length) - 1;
-	printf("otp read bits %d ++ %d 0x%08x\n\n", bit_index, length, val);
+	printf("pmic efuse read bits %d ++ %d 0x%08x\n\n", bit_index, length, val);
 	return val;
 }
 

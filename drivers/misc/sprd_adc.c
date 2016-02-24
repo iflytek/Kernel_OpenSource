@@ -15,8 +15,10 @@
 
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_reg.h>
+#include <asm/errno.h>
 #include <asm/io.h>
-#include <common.h>
+#include <linux/kernel.h>
+#include <linux/compat.h>
 #include <otp_helper.h>
 #include <sprd_adc.h>
 #include "adi_hal_internal.h"
@@ -24,7 +26,7 @@
 typedef unsigned int u32;
 #define ADC_REG_BASE                        ADC_BASE
 #define ADC_CTRL                            (ADC_REG_BASE + 0x0000)
-#define ADC_SW_CH_CFG                             (ADC_REG_BASE + 0x0004)
+#define ADC_SW_CH_CFG                       (ADC_REG_BASE + 0x0004)
 #define ADC_HW_CH_CFG_SLOW(x)               (ADC_REG_BASE + 0x0008 + ((x)-1)*0x04)
 #define ADC_HW_CH_CFG_FAST(x)               (ADC_REG_BASE + 0x0028 + ((x)-1)*0x04)
 #define ADC_HW_CH_DELAY                     (ADC_REG_BASE + 0x0048)
@@ -62,42 +64,6 @@ typedef unsigned int u32;
 
 static u32 ana_chip_id;
 
-static enum adc_channel {
-	ADC_CHANNEL_0 = 0,
-	ADC_CHANNEL_1 = 1,
-	ADC_CHANNEL_2 = 2,
-	ADC_CHANNEL_3 = 3,
-	ADC_CHANNEL_2723_PROG = 4,
-	ADC_CHANNEL_2723_VBAT = 5,
-	ADC_CHANNEL_VCHGSEN = 6,
-	ADC_CHANNEL_VCHGBG = 7,
-	ADC_CHANNEL_ISENSE = 8,
-	ADC_CHANNEL_TPYD = 9,
-	ADC_CHANNEL_TPYU = 10,
-	ADC_CHANNEL_TPXR = 11,
-	ADC_CHANNEL_TPXL = 12,
-	ADC_CHANNEL_DCDCCORE = 13,
-	ADC_CHANNEL_DCDCARM = 14,
-	ADC_CHANNEL_DCDCMEM = 15,
-	ADC_CHANNEL_DCDCLDO = 16,
-	ADC_CHANNEL_DCDCGPU = 17,
-	ADC_CHANNEL_DCDCWRF = 18,
-	ADC_CHANNEL_VBATBK = 19,
-	ADC_CHANNEL_HEADMIC = 20,
-	ADC_CHANNEL_LDO0 = 21,
-	ADC_CHANNEL_LDO1 = 22,
-	ADC_CHANNEL_LDO2 = 23,
-	ADC_CHANNEL_WHTLED = 24,
-	ADC_CHANNEL_OTP = 25,
-	ADC_CHANNEL_LPLDO0 = 26,
-	ADC_CHANNEL_LPLDO1 = 27,
-	ADC_CHANNEL_LPLDO2 = 28,
-	ADC_CHANNEL_WHTLED_VFB  = 29,
-	ADC_CHANNEL_USBDP = 30,
-	ADC_CHANNEL_USBDM = 31,
-	ADC_CHANNEL_MAX = 31,
-};
-
 struct sprd_adc_cal big_scale_cal = {
 	4200, 3310,
 	3600, 2832,
@@ -128,15 +94,14 @@ static struct pmic_adc_para para = {
 	.blk_width = 8,
 	.adc_data_off = 128,
 };
-
 #elif defined(CONFIG_ADIE_SC2731)
 
 static struct pmic_adc_para para = {
-	.small_adc_p0 = 819,
-	.small_adc_p1 = 82,
+	.small_adc_p0 = 838,
+	.small_adc_p1 = 84,
 	.small_vol_p0 = 1000,
 	.small_vol_p1 = 100,
-	.small_cal_efuse_blk = 9,
+	.small_cal_efuse_blk = 19,
 	.small_cal_efuse_bit = 16,
 	.big_adc_p0 = 728,
 	.big_adc_p1 = 850,
@@ -157,28 +122,7 @@ static int pmic_adc_data_average(int a[], int N)
 	return DIV_ROUND_CLOSEST(sum, N);
 }
 
-void pmic_adc_Init(void)
-{
-	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_ADC_EN);	//ADC enable
-	ANA_REG_OR(ANA_REG_GLB_ARM_CLK_EN, BIT_CLK_AUXAD_EN | BIT_CLK_AUXADC_EN);	//enable auxad clock
-	ANA_REG_OR(ANA_REG_GLB_XTL_WAIT_CTRL, BIT_XTL_EN);	//enable clk
-#if !(defined(CONFIG_SC9001) || defined(CONFIG_SC9860))
-		__raw_writel(__raw_readl(REG_AON_APB_SINDRV_CTRL) |BIT_SINDRV_ENA, REG_AON_APB_SINDRV_CTRL);	//enable ddie to adie clk
-#endif
-	ANA_REG_OR(ADC_CTRL, ADC_EN_BIT);
-	ANA_REG_OR(ADC_CTRL, ADC_MODE_12B);
-	ana_chip_id =
-	    ((u32) ANA_REG_GET(ANA_REG_GLB_CHIP_ID_HIGH) << 16) | ((u32)
-								   ANA_REG_GET
-								   (ANA_REG_GLB_CHIP_ID_LOW)
-								   & 0xFFFF);
-	if (0 == sprd_small_scale_adc_efuse_get())
-		sprd_info("sprd small scale efuse have cal\n");
-	if (0 == sprd_bat_scale_adc_efuse_get())
-		sprd_info("sprd big scale efuse have cal\n");
-}
-
-static void pmic_adc_set_channel(unsigned int channel)
+static void pmic_adc_set_channel(uint16_t channel)
 {
 	if (channel >= ADC_CHANNEL_MAX) {
 		sprd_err("adc limits to 0~%d\n", ADC_CHANNEL_MAX);
@@ -199,7 +143,7 @@ static void pmic_adc_set_scale(bool scale)
 	}
 }
 
-int32_t pmic_adc_get_values(unsigned int channel, bool scale, uint8_t num,
+int32_t pmic_adc_get_values(uint16_t channel, bool scale, uint8_t num,
 			    int32_t * p_buf)
 {
 	int32_t count, i;
@@ -228,11 +172,39 @@ int32_t pmic_adc_get_values(unsigned int channel, bool scale, uint8_t num,
 	/* turn off adc soft channel */
 	ANA_REG_AND(ADC_CTRL, ~SW_CH_ON_BIT);
 	ANA_REG_MSK_OR(ADC_CTRL, BIT_SW_CH_RUN_NUM(1), SW_CH_NUM_MSK);
-	//pmic_adc_set_channel(TPC_CHANNEL_X);	// set tpc channel x back
 	ANA_REG_OR(ADC_INT_CLR, ADC_IRQ_CLR_BIT);
 
 	return 0;
 }
+
+static int sprd_get_efuse_ib_trim(unsigned int *p_cal_data)
+{
+	unsigned int data,blk0;
+
+	blk0 = sprd_pmic_efuse_read(0);
+	if (blk0 & (1 << 7)) {
+		return 0;
+	}
+	data = sprd_pmic_efuse_read_bits(BITSINDEX(15, 0), 7);
+	*p_cal_data = data;
+	return 1;
+}
+
+static void sprd_current_source_cal(void)
+{
+	unsigned int ib_trim_cal_data = 0;
+#if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
+     if (sprd_get_efuse_ib_trim(&ib_trim_cal_data)) {
+      sci_adi_write(ANA_REG_GLB_WHTLED_CTRL, BITS_IB_TRIM(ib_trim_cal_data),BITS_IB_TRIM(~0));
+      sci_adi_clr(ANA_REG_GLB_RGB_CTRL, BIT_IB_TRIM_EM_SEL);
+      sprd_info("ib_trim_cal_data:%d\n",ib_trim_cal_data);
+    }
+#else
+	sprd_info("ib_trim_cal_data:%d\n",ib_trim_cal_data);
+#endif
+}
+
+#if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
 
 /* BITS_AUXAD_CURRENT_IBS = (isen * 100 / 250 -1) */
 static int pmic_adc_set_current(u8 enable, int isen)
@@ -253,16 +225,62 @@ static int pmic_adc_set_current(u8 enable, int isen)
 	return 0;
 }
 
-int32_t pmic_adc_get_value_by_isen(unsigned int channel, int scale, uint8_t num,
+#elif defined(CONFIG_ADIE_SC2731)
+
+#define BITS_BATDET_CUR_I(x)     (((x) & 0x7) << 1)
+
+/*for sc2731 because the current have decimal ,if set 1.25uA, parameter isen need is 125uA */
+static int sc2731_adc_isen_set(int isen)
+{
+	int isen_set = 0;
+	switch (isen) {
+	case 125:
+		isen_set = 0x0;
+	case 250:
+		isen_set = 0x1;
+	case 500:
+		isen_set = 0x2;
+	case 1000:
+		isen_set = 0x3;
+	case 2000:
+		isen_set = 0x4;
+	case 4000:
+		isen_set = 0x5;
+	case 8000:
+		isen_set = 0x6;
+	case 16000:
+		isen_set = 0x7;
+	default:
+		isen_set = 0x0;
+	}
+	return isen_set;
+}
+static int pmic_adc_set_current(u8 enable, int isen)
+{
+	int isen_bit;
+	if (enable) {
+		isen_bit = sc2731_adc_isen_set(isen);
+		sci_adi_set(ANA_REG_GLB_BATDET_CUR_CTRL,BIT_BATDET_CUR_EN);
+		sci_adi_set(ANA_REG_GLB_AUXAD_CTL,BIT_AUXAD_CURRENTSEN_EN);
+		sci_adi_set(ANA_REG_GLB_BATDET_CUR_CTRL,BITS_BATDET_CUR_I(isen_bit));
+	}else {
+		sci_adi_clr(ANA_REG_GLB_BATDET_CUR_CTRL,BITS_BATDET_CUR_I(0));
+		sci_adi_clr(ANA_REG_GLB_AUXAD_CTL, BIT_AUXAD_CURRENTSEN_EN);
+		sci_adi_clr(ANA_REG_GLB_BATDET_CUR_CTRL,BIT_BATDET_CUR_EN);
+	}
+	printf("ANA_REG_GLB_BATDET_CUR_CTRL =0x%x\n",sci_adi_read(ANA_REG_GLB_BATDET_CUR_CTRL));
+	return 0;
+}
+
+#endif
+
+int32_t pmic_adc_get_value_by_isen(uint16_t channel, int scale, uint8_t num,
 				   int isen)
 {
 	int32_t results[ADC_MESURE_NUMBER + 1] = { 0 };
-	int32_t values;
+	int32_t values = 0;
 	int ret = 0, i = 0;
-	int adc;
 
-	WARN_ON(channel > 3);
-	WARN_ON(isen > 80);
 	pmic_adc_set_current(1, isen);
 
 	if (0 == pmic_adc_get_values(channel, scale, num, results)) {
@@ -282,7 +300,7 @@ int32_t pmic_adc_get_value_by_isen(unsigned int channel, int scale, uint8_t num,
 
 #if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
 
-static int pmic_adc_get_ratio(int channel, int scale, int mux)
+static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 {
 	switch (channel) {
 	case ADC_CHANNEL_0:
@@ -291,7 +309,7 @@ static int pmic_adc_get_ratio(int channel, int scale, int mux)
 	case ADC_CHANNEL_2:
 	case ADC_CHANNEL_3:
 		return (scale ? RATIO(400, 1025) : RATIO(1, 1));
-	case ADC_CHANNEL_VBAT:
+	case ADC_CHANNEL_VBAT_SENSE:
 	case ADC_CHANNEL_ISENSE:
 		return RATIO(7, 29);
 	case ADC_CHANNEL_VCHGSEN:
@@ -337,7 +355,7 @@ static int pmic_adc_get_ratio(int channel, int scale, int mux)
 }
 
 #elif defined(CONFIG_ADIE_SC2731)
-static int pmic_adc_get_ratio(int channel, int scale, int mux)
+static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 {
 	switch (channel) {
 	case ADC_CHANNEL_0:
@@ -345,9 +363,9 @@ static int pmic_adc_get_ratio(int channel, int scale, int mux)
 	case ADC_CHANNEL_1:
 	case ADC_CHANNEL_2:
 	case ADC_CHANNEL_3:
-	case ADC_CHANNEL_PROG:
+	case ADC_CHANNEL_4:
 		return (scale ? RATIO(400, 1025) : RATIO(1, 1));
-	case ADC_CHANNEL_VBAT:
+	case ADC_CHANNEL_VBAT_SENSE:
 	case ADC_CHANNEL_ISENSE:
 		return RATIO(7, 29);
 	case ADC_CHANNEL_VCHGSEN:
@@ -412,74 +430,14 @@ static int pmic_adc_get_ratio(int channel, int scale, int mux)
 }
 
 #endif
-int sprd_bat_scale_adc_efuse_get(void)
+
+static int sprd_get_adc_small_scale_cal(uint32_t *p_cal_data)
 {
-	unsigned int efuse_cal_data[2] = { 0 };
-
-	if (!sprd_get_adc_bat_cal(efuse_cal_data)) {
-		big_scale_cal.p0_vol = efuse_cal_data[0] & 0xffff;
-		big_scale_cal.p0_adc = (efuse_cal_data[0] >> 16) & 0xffff;
-		big_scale_cal.p1_vol = efuse_cal_data[1] & 0xffff;
-		big_scale_cal.p1_adc = (efuse_cal_data[1] >> 16) & 0xffff;
-		big_scale_cal.cal_type = SPRDBIG_AUXADC_CAL_CHIP;
-		printf("adc efuse big cal %d,%d,%d,%d,cal_type:%d\n",
-			big_scale_cal.p0_vol, big_scale_cal.p0_adc,
-			big_scale_cal.p1_vol, big_scale_cal.p1_adc,
-			big_scale_cal.cal_type);
-		return 0;
-	}
-	return -1;
-}
-
-int sprd_small_scale_adc_efuse_get(void)
-{
-	unsigned int efuse_cal_data[2] = { 0 };
-
-	if (!sprd_get_adc_small_scale_cal(efuse_cal_data)) {
-		small_sclae_cal.p0_vol = efuse_cal_data[0] & 0xffff;
-		small_sclae_cal.p0_adc = (efuse_cal_data[0] >> 16) & 0xffff;
-		small_sclae_cal.p1_vol = efuse_cal_data[1] & 0xffff;
-		small_sclae_cal.p1_adc = (efuse_cal_data[1] >> 16) & 0xffff;
-		small_sclae_cal.cal_type = SPRDLIT_AUXADC_CAL_CHIP;
-		printf("adc efuse small cal %d,%d,%d,%d,cal_type:%d\n",
-			small_sclae_cal.p0_vol, small_sclae_cal.p0_adc,
-			small_sclae_cal.p1_vol, small_sclae_cal.p1_adc,
-			small_sclae_cal.cal_type);
-		return 0;
-	}
-	return -1;
-}
-
-uint32_t sprd_small_scale_to_vol(uint16_t adcvalue)
-{
-	int32_t vol;
-	vol = small_sclae_cal.p0_vol - small_sclae_cal.p1_vol;
-	vol = vol * (adcvalue - small_sclae_cal.p0_adc);
-	vol = vol / (small_sclae_cal.p0_adc - small_sclae_cal.p1_adc);
-	vol = vol + small_sclae_cal.p0_vol;
-
-	return vol;
-}
-
-static uint32_t sprd_bat_scale_adc_to_vol(uint16_t adcvalue)
-{
-	int32_t vol;
-
-	vol = big_scale_cal.p0_vol - big_scale_cal.p1_vol;
-	vol = vol * (adcvalue - big_scale_cal.p0_adc);
-	vol = vol / (big_scale_cal.p0_adc - big_scale_cal.p1_adc);
-	vol = vol + big_scale_cal.p0_vol;
-
-	return vol;
-}
-
-int sprd_get_adc_small_scale_cal(unsigned int *p_cal_data)
-{
-	unsigned int deta = 0;
-	unsigned short adc_data = 0;
+	uint32_t deta = 0;
+	uint32_t adc_data = 0;
 
 	deta =
-	    pmic_efuse_read_bits(BITSINDEX(para.small_cal_efuse_blk, 0),
+	    sprd_pmic_efuse_read_bits(BITSINDEX(para.small_cal_efuse_blk, 0),
 				 para.small_cal_efuse_bit);
 	printf("get pmic efuse block %u, deta: 0x%08x\n",
 		para.small_cal_efuse_blk, deta);
@@ -487,6 +445,7 @@ int sprd_get_adc_small_scale_cal(unsigned int *p_cal_data)
 	if ((!deta) || (p_cal_data == NULL)) {
 		return -1;
 	}
+#if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
 	/* adc 0.1V */
 	adc_data =
 	    ((deta & 0x00FF) + para.small_adc_p1 - para.adc_data_off) * 4;
@@ -495,20 +454,32 @@ int sprd_get_adc_small_scale_cal(unsigned int *p_cal_data)
 
 	/* adc 1.0V */
 	adc_data =
-	    (((deta >> 8) & 0x00FF) + para.small_adc_p0 -
-	     para.adc_data_off) * 4;
+	    (((deta >> 8) & 0x00FF) + para.small_adc_p0 - para.adc_data_off) * 4;
 	printf("1.0V adc data 0x%x\n", adc_data);
 	p_cal_data[0] = (para.small_vol_p0) | (adc_data << 16);
+#elif defined(CONFIG_ADIE_SC2731)
+	/* adc 0.1V */
+	adc_data =
+		 (((deta >> 8) & 0x00FF) + para.small_adc_p1 - para.adc_data_off) * 4;
+	printf("0.1V adc data 0x%x\n", adc_data);
+	p_cal_data[1] = (para.small_vol_p1) | (adc_data << 16);
+
+	/* adc 1.0V */
+	adc_data =
+		 ((deta & 0x00FF) + para.small_adc_p0 - para.adc_data_off) * 4;
+	printf("1.0V adc data 0x%x\n", adc_data);
+	p_cal_data[0] = (para.small_vol_p0) | (adc_data << 16);
+#endif
 
 	return 0;
 }
 
-int sprd_get_adc_bat_cal(unsigned int *p_cal_data)
+int sprd_get_adc_bat_cal(uint32_t *p_cal_data)
 {
-	unsigned int deta = 0;
-	unsigned int cal_data = 0;
+	uint32_t deta = 0;
+	uint32_t cal_data = 0;
 
-	deta = pmic_efuse_read_bits(BITSINDEX(para.big_cal_efuse_blk, 0), 16);
+	deta = sprd_pmic_efuse_read_bits(BITSINDEX(para.big_cal_efuse_blk, 0), 16);
 	deta &= 0xFFFFFF;
 	if ((!deta) || (p_cal_data == NULL)) {
 		return -1;
@@ -526,17 +497,102 @@ int sprd_get_adc_bat_cal(unsigned int *p_cal_data)
 	return 0;
 }
 
-uint32_t sprd_chan_bat_adc_to_vol(uint16_t channel, int scale, int mux,
-				  uint16_t adcvalue)
-{
-	uint32_t result;
-	uint32_t vol;
-	unsigned int ratio;
-	uint32_t m, n;
-	uint32_t bat_numerators, bat_denominators;
-	uint32_t numerators, denominators;
 
-	vol = sprd_big_scale_adc_to_vol(adcvalue);
+static int sprd_bat_scale_adc_efuse_get(void)
+{
+	uint32_t efuse_cal_data[2] = { 0 };
+
+	if (!sprd_get_adc_bat_cal(efuse_cal_data)) {
+		big_scale_cal.p0_vol = efuse_cal_data[0] & 0xffff;
+		big_scale_cal.p0_adc = (efuse_cal_data[0] >> 16) & 0xffff;
+		big_scale_cal.p1_vol = efuse_cal_data[1] & 0xffff;
+		big_scale_cal.p1_adc = (efuse_cal_data[1] >> 16) & 0xffff;
+		big_scale_cal.cal_type = SPRDBIG_AUXADC_CAL_CHIP;
+		printf("adc efuse big cal %d,%d,%d,%d,cal_type:%d\n",
+			big_scale_cal.p0_vol, big_scale_cal.p0_adc,
+			big_scale_cal.p1_vol, big_scale_cal.p1_adc,
+			big_scale_cal.cal_type);
+		return 0;
+	}
+	return -1;
+}
+
+static int sprd_small_scale_adc_efuse_get(void)
+{
+	uint32_t efuse_cal_data[2] = { 0 };
+
+	if (!sprd_get_adc_small_scale_cal(efuse_cal_data)) {
+		small_sclae_cal.p0_vol = efuse_cal_data[0] & 0xffff;
+		small_sclae_cal.p0_adc = (efuse_cal_data[0] >> 16) & 0xffff;
+		small_sclae_cal.p1_vol = efuse_cal_data[1] & 0xffff;
+		small_sclae_cal.p1_adc = (efuse_cal_data[1] >> 16) & 0xffff;
+		small_sclae_cal.cal_type = SPRDLIT_AUXADC_CAL_CHIP;
+		printf("adc efuse small cal %d,%d,%d,%d,cal_type:%d\n",
+			small_sclae_cal.p0_vol, small_sclae_cal.p0_adc,
+			small_sclae_cal.p1_vol, small_sclae_cal.p1_adc,
+			small_sclae_cal.cal_type);
+		return 0;
+	}
+	return -1;
+}
+
+void pmic_adc_Init(void)
+{
+	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_ADC_EN);	//ADC enable
+	ANA_REG_OR(ANA_REG_GLB_ARM_CLK_EN, BIT_CLK_AUXAD_EN | BIT_CLK_AUXADC_EN);	//enable auxad clock
+	ANA_REG_OR(ANA_REG_GLB_XTL_WAIT_CTRL, BIT_XTL_EN);	//enable clk
+#if !(defined(CONFIG_SC9001) || defined(CONFIG_SC9860))
+		__raw_writel(__raw_readl(REG_AON_APB_SINDRV_CTRL) |BIT_SINDRV_ENA, REG_AON_APB_SINDRV_CTRL);	//enable ddie to adie clk
+#endif
+	ANA_REG_OR(ADC_CTRL, ADC_EN_BIT);
+	ANA_REG_OR(ADC_CTRL, ADC_MODE_12B);
+	ana_chip_id =
+	    ((u32) ANA_REG_GET(ANA_REG_GLB_CHIP_ID_HIGH) << 16) | ((u32)
+								   ANA_REG_GET
+								   (ANA_REG_GLB_CHIP_ID_LOW)
+								   & 0xFFFF);
+	if (0 == sprd_small_scale_adc_efuse_get())
+		printf("sprd small scale efuse have cal\n");
+	if (0 == sprd_bat_scale_adc_efuse_get())
+		printf("sprd big scale efuse have cal\n");
+	sprd_current_source_cal();
+}
+
+
+static int32_t sprd_small_scale_to_vol(int32_t adcvalue)
+{
+	int32_t vol;
+	vol = small_sclae_cal.p0_vol - small_sclae_cal.p1_vol;
+	vol = vol * (adcvalue - small_sclae_cal.p0_adc);
+	vol = vol / (small_sclae_cal.p0_adc - small_sclae_cal.p1_adc);
+	vol = vol + small_sclae_cal.p0_vol;
+
+	return vol;
+}
+
+static int32_t sprd_bat_scale_adc_to_vol(int32_t adcvalue)
+{
+	int32_t vol;
+
+	vol = big_scale_cal.p0_vol - big_scale_cal.p1_vol;
+	vol = vol * (adcvalue - big_scale_cal.p0_adc);
+	vol = vol / (big_scale_cal.p0_adc - big_scale_cal.p1_adc);
+	vol = vol + big_scale_cal.p0_vol;
+
+	return vol;
+}
+
+int32_t sprd_chan_bat_adc_to_vol(uint16_t channel, int scale, int mux,
+				  int32_t adcvalue)
+{
+	int32_t result;
+	int32_t vol;
+	int32_t ratio;
+	int32_t m, n;
+	int32_t bat_numerators, bat_denominators;
+	int32_t numerators, denominators;
+
+	vol = sprd_bat_scale_adc_to_vol(adcvalue);
 	ratio = pmic_adc_get_ratio(ADC_CHANNEL_VBATSENSE, scale, mux);
 	bat_numerators = ratio >> 16;
 	bat_denominators = ratio << 16 >> 16;
@@ -545,24 +601,22 @@ uint32_t sprd_chan_bat_adc_to_vol(uint16_t channel, int scale, int mux,
 	denominators = ratio << 16 >> 16;
 	/* v1 = vbat_vol*0.268 = vol_bat_m * r2 /(r1+r2) */
 
-	printf("bat_num =%d,bat_den =%d, num =%d, den =%d\n", bat_numerators,
-		bat_denominators, numerators, denominators);
 	n = bat_denominators * numerators;
 	m = vol * bat_numerators * (denominators);
 	result = (m + n / 2) / n;
-	printf("big scal adc %d vol %d\n", adcvalue, result);
+	printf("big scale adc %d vol %d\n", adcvalue, result);
 	return result;
 }
 
-uint32_t sprd_chan_small_adc_to_vol(uint16_t channel, int scale, int mux,
-				    uint16_t adcvalue)
+int32_t sprd_chan_small_adc_to_vol(uint16_t channel, int scale, int mux,
+				    int32_t adcvalue)
 {
-	uint32_t result;
-	uint32_t vol;
-	unsigned int ratio;
-	uint32_t m, n;
-	uint32_t bat_numerators, bat_denominators;
-	uint32_t numerators, denominators;
+	int32_t result;
+	int32_t vol;
+	int32_t ratio;
+	int32_t m, n;
+	int32_t bat_numerators, bat_denominators;
+	int32_t numerators, denominators;
 	vol = sprd_small_scale_to_vol(adcvalue);
 	bat_numerators = 1;
 	bat_denominators = 1;
@@ -575,22 +629,27 @@ uint32_t sprd_chan_small_adc_to_vol(uint16_t channel, int scale, int mux,
 	n = bat_denominators * numerators;
 	m = vol * bat_numerators * (denominators);
 	result = (m + n / 2) / n;
+	printf("small scale adc %d vol %d\n", adcvalue, result);
 	return result;
 }
 
-uint32_t sprd_chan_adc_to_vol(uint16_t channel, int scale, uint8_t num,
+int32_t sprd_chan_adc_to_vol(uint16_t channel, int scale, int mux,
 			      int cal_type)
 {
-	int32_t *p_buf;
-	int32_t adc_value;
-	uint32_t vol;
+	int32_t adc_value[ADC_MESURE_NUMBER + 1] = { 0 };
+	int32_t adc_average = 0;
+	int32_t vol = 0;
+	uint8_t num = ADC_MESURE_NUMBER;
 
+	if (0 == pmic_adc_get_values(channel, scale, num, adc_value)) {
+		adc_average =
+		    pmic_adc_data_average(&adc_value[num / 5],
+					  (num - num * 2 / 5));
+	}
 	if (cal_type == ADC_SMALL_SCALE) {
-		pmic_adc_get_values(channel, scale, num, &adc_value);
-		vol = sprd_chan_small_adc_to_vol(channel, scale, 0, adc_value);
+		vol = sprd_chan_small_adc_to_vol(channel, scale, mux, adc_average);
 	} else if (cal_type == ADC_BIG_SCALE) {
-		pmic_adc_get_values(channel, scale, num, &adc_value);
-		vol = sprd_chan_bat_adc_to_vol(channel, scale, 0, adc_value);
+		vol = sprd_chan_bat_adc_to_vol(channel, scale, mux, adc_average);
 	} else {
 		sprd_err("cal is error\n");
 	}
