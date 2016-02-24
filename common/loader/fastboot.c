@@ -350,6 +350,13 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 			break;
 	}
 	partition_name_p = partition_name;
+#if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
+	if (0 == strcmp(partition_name, "splloader")) {
+		dl_secure_verify("splloader0", data, 0);
+	} else if (0 == strcmp(partition_name, "uboot")) {
+		dl_secure_verify("splloader", data, 0);
+	}
+#endif
 	/*Check boot&recovery img's magic */
 	if (!strcmp(arg, "boot") || !strcmp(arg, "recovery")) {
 #ifdef CONFIG_SECURE_BOOT
@@ -363,8 +370,11 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 			fastboot_fail("image is not a boot image");
 			return;
 		}
-		secure_verify("uboot", data, 0);
+		dl_secure_verify("uboot", data, 0);
 #else
+#ifdef CONFIG_SECBOOT
+		dl_secure_verify("uboot",data,0);
+#endif
 		if (memcmp((void *)data, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 			fastboot_fail("image is not a boot image");
 			return;
