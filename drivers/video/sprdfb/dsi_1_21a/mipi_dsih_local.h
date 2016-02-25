@@ -122,6 +122,7 @@ typedef enum
 	COLOR_CODE_30BIT 				=  9,
 	COLOR_CODE_36BIT 				= 10,
 	COLOR_CODE_12BIT_YCC420 		= 11,
+	COLOR_CODE_COMPRESSTION			= 12,
 	COLOR_CODE_MAX
 }
 dsih_color_coding_t;

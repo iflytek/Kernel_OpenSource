@@ -63,7 +63,7 @@ static LCM_Init_Code init_data[] = {
 
 {LCM_SEND(2), {0x05, 0x40}},//2xAVDD  2xAVEE
 
-//VGH VGL 7 -8 
+//VGH VGL 7 -8
 {LCM_SEND(2), {0x06, 0x9a}},
 {LCM_SEND(2), {0x07, 0x9E}},
 
@@ -109,7 +109,7 @@ static LCM_Init_Code init_data[] = {
 //page selection cmd start
 {LCM_SEND(2), {0xFF, 0x20}},
 {LCM_SEND(2), {0xFB, 0x01}},
-//R(+) MCR cmd        
+//R(+) MCR cmd
 {LCM_SEND(2), {0x75, 0x00}},
 {LCM_SEND(2), {0x76, 0x00}},
 {LCM_SEND(2), {0x77, 0x00}},
@@ -170,7 +170,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0xB0, 0xC4}},
 {LCM_SEND(2), {0xB1, 0x03}},
 {LCM_SEND(2), {0xB2, 0xD1}},
-//R(-) MCR cmd        
+//R(-) MCR cmd
 {LCM_SEND(2), {0xB3, 0x00}},
 {LCM_SEND(2), {0xB4, 0x00}},
 {LCM_SEND(2), {0xB5, 0x00}},
@@ -231,7 +231,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0xEC, 0xC4}},
 {LCM_SEND(2), {0xED, 0x03}},
 {LCM_SEND(2), {0xEE, 0xD1}},
-//G(+) MCR cmd        
+//G(+) MCR cmd
 {LCM_SEND(2), {0xEF, 0x00}},
 {LCM_SEND(2), {0xF0, 0x00}},
 {LCM_SEND(2), {0xF1, 0x00}},
@@ -244,10 +244,10 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0xF8, 0xD5}},
 {LCM_SEND(2), {0xF9, 0x00}},
 {LCM_SEND(2), {0xFA, 0xEE}},
-//page selection cmd  
+//page selection cmd
 {LCM_SEND(2), {0xFF, 0x21}},
 {LCM_SEND(2), {0xFB, 0x01}},
-//page selection cmd  
+//page selection cmd
 {LCM_SEND(2), {0x00, 0x01}},
 {LCM_SEND(2), {0x01, 0x03}},
 {LCM_SEND(2), {0x02, 0x01}},
@@ -296,7 +296,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x2F, 0xC4}},
 {LCM_SEND(2), {0x30, 0x03}},
 {LCM_SEND(2), {0x31, 0xD1}},
-//G(-) MCR cmd        
+//G(-) MCR cmd
 {LCM_SEND(2), {0x32, 0x00}},
 {LCM_SEND(2), {0x33, 0x00}},
 {LCM_SEND(2), {0x34, 0x00}},
@@ -357,7 +357,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x6E, 0xC4}},
 {LCM_SEND(2), {0x6F, 0x03}},
 {LCM_SEND(2), {0x70, 0xD1}},
-//B(+) MCR cmd        
+//B(+) MCR cmd
 {LCM_SEND(2), {0x71, 0x00}},
 {LCM_SEND(2), {0x72, 0x00}},
 {LCM_SEND(2), {0x73, 0x00}},
@@ -418,7 +418,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0xAC, 0xC4}},
 {LCM_SEND(2), {0xAD, 0x03}},
 {LCM_SEND(2), {0xAE, 0xD1}},
-//B(-) MCR cmd  cmd   
+//B(-) MCR cmd  cmd
 {LCM_SEND(2), {0xAF, 0x00}},
 {LCM_SEND(2), {0xB0, 0x00}},
 {LCM_SEND(2), {0xB1, 0x00}},
@@ -479,11 +479,23 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0xE8, 0xC4}},
 {LCM_SEND(2), {0xE9, 0x03}},
 {LCM_SEND(2), {0xEA, 0xD1}},
-  
+
 // Enable VCOM Compensation
 {LCM_SEND(2), {0xff, 0xE0}},
 {LCM_SEND(2), {0xfb, 0x01}},
 {LCM_SEND(2), {0x3f, 0x08}},
+
+// SRAM-related parameter optimization
+{LCM_SEND(2), {0x6B, 0x3D}},
+{LCM_SEND(2), {0x6C, 0x3D}},
+{LCM_SEND(2), {0x6D, 0x3D}},
+{LCM_SEND(2), {0x6E, 0x3D}},
+{LCM_SEND(2), {0x6F, 0x3D}},
+
+// SRAM-related power optimization
+{LCM_SEND(2), {0x35, 0x02}},
+{LCM_SEND(2), {0x36, 0x72}},
+{LCM_SEND(2), {0x37, 0x10}},
 
 //CMD2_P4   (COM2_Page4)
 {LCM_SEND(2), {0xFF, 0x24}},
@@ -539,7 +551,7 @@ static LCM_Init_Code init_data[] = {
 //UD//
 {LCM_SEND(2), {0x29, 0x38}},
 {LCM_SEND(2), {0x2A, 0x2B}},
- 
+
 //GCKS//
 //{LCM_SEND(2), {0x2F, 0x03}},
 //{LCM_SEND(2), {0x30, 0x01}},
@@ -592,12 +604,12 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x67, 0x70}},
 {LCM_SEND(2), {0xb5, 0x15}},
 
- 
+
 
 //Resolution:1440x2560
 {LCM_SEND(2), {0x72, 0x02}},
 
-//MUX//   
+//MUX//
 {LCM_SEND(2), {0x7A, 0x00}},
 {LCM_SEND(2), {0x7B, 0xA2}},
 {LCM_SEND(2), {0x7C, 0xD8}},
@@ -624,11 +636,11 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x79, 0x00}},
 {LCM_SEND(2), {0x80, 0x00}},
 {LCM_SEND(2), {0x83, 0x00}},
- 
+
 //FP, BP//
 {LCM_SEND(2), {0x93, 0x10}},
 {LCM_SEND(2), {0x94, 0x10}},
- 
+
 //Inversion Type
 {LCM_SEND(2), {0x8A, 0x33}},
 {LCM_SEND(2), {0x8B, 0xF4}},
@@ -645,30 +657,39 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0xFF, 0x22}},
 {LCM_SEND(2), {0xFb, 0x01}},
 {LCM_SEND(2), {0xA2, 0x20}},
- 
+
 
 {LCM_SEND(2), {0xFF, 0x28}},
 {LCM_SEND(2), {0xFb, 0x01}},
 {LCM_SEND(2), {0x7A, 0x02}},
 
-//CMD1 (COM1)           
+//CMD1 (COM1)
 {LCM_SEND(2), {0xFF, 0x10}},
 {LCM_SEND(2), {0xFb, 0x01}},
-{LCM_SEND(6), {0x3B, 0x03, 0x05, 0x05, 0x40, 0x40}},
-{LCM_SEND(2), {0x35, 0x00}},
-//vesa
-{LCM_SEND(17), {0xC1, 0x09, 0x20, 0x00, 0x10, 0x02, 0x00, 0x02, 0x68, 0x01, 0xbb, 0x00, 0x0A, 0x06, 0x67, 0x04, 0xc5}},//16
-{LCM_SEND(3), {0xC2, 0x10, 0xF0}},
-{LCM_SEND(2), {0xC0, 0x00}},
+
+//VBP=8 & VFP =8
+{LCM_SEND(8), {6, 0, 0x3B, 0x03, 0x08, 0x08, 0x40, 0x40}},
 {LCM_SEND(2), {0x35, 0x00}},
 
-{LCM_SEND(2), {0xBB, 0x10}},//video:0x03   cmd:0x10 
+//vesa 16H
+//{LCM_SEND(19), {17, 0, 0xC1, 0x09, 0x20, 0x00, 0x10, 0x02, 0x00, 0x02, 0x68, 0x01, 0xbb, 0x00, 0x0A, 0x06, 0x67, 0x04, 0xc5}},
+//{LCM_SEND(5), {3, 0, 0xC2, 0x10, 0xF0}},
+
+//vesa 2560H
+{LCM_SEND(19), {17, 0 ,0xC1, 0x09, 0x20, 0x0A, 0x00, 0x01, 0xDB, 0x02, 0x68, 0xE4, 0xBD, 0x00, 0x0A, 0x00, 0x0A, 0x00, 0x08}},
+{LCM_SEND(5), {3, 0, 0xC2, 0x12, 0x18}},
+
+//enable VESA
+{LCM_SEND(2), {0xC0, 0x03}},
+
+{LCM_SEND(2), {0x35, 0x00}},
+{LCM_SEND(2), {0xBB, 0x03}},//video:0x03   cmd:0x10
 
 {LCM_SEND(1), {0x11}},
 {LCM_SLEEP(120)},
 {LCM_SEND(1), {0x29}},
-{LCM_SLEEP(120)},
-{LCM_SEND(2), {0x58, 0x01}},//start scaling-up
+//{LCM_SLEEP(120)},
+//{LCM_SEND(2), {0x58, 0x01}},//start scaling-up
 
 //{LCM_SEND(2), {0xFF, 0x24}},
 //{LCM_SEND(2), {0xFB, 0x01}},
@@ -782,15 +803,15 @@ static struct timing_rgb lcd_nt35597_mipi_timing = {
 	.hbp = 64,
 	.hsync = 20,//4,
 	.vfp = 10, /*unit: line*/
-	.vbp = 50,
-	.vsync = 5,
+	.vbp = 6,
+	.vsync = 2,
 };
 
 static struct info_mipi lcd_nt35597_mipi_info = {
 	.work_mode  = SPRDFB_MIPI_MODE_VIDEO,
 	.video_bus_width = 24, /*18,16*/
 	.lan_number = 4,
-	.phy_feq = 1000*1000,
+	.phy_feq = 600*1000,
 	.h_sync_pol = SPRDFB_POLARITY_POS,
 	.v_sync_pol = SPRDFB_POLARITY_POS,
 	.de_pol = SPRDFB_POLARITY_POS,
@@ -802,12 +823,13 @@ static struct info_mipi lcd_nt35597_mipi_info = {
 };
 
 struct panel_spec lcd_nt35597_mipi_spec = {
-	.width = 720,//use scaling-up to expand HD to QHD
-	.height = 1280,
+	.width = 1440,
+	.height = 2560,
 	.fps = 60,
 	.type = LCD_MODE_DSI,
 	.direction = LCD_DIRECT_NORMAL,
 	.is_need_reset = 1,
+	.is_need_dsc = 1,
 	.info = {
 		.mipi = &lcd_nt35597_mipi_info
 	},

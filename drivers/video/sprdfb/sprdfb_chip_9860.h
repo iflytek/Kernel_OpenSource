@@ -120,6 +120,8 @@
 #define SHDW_DPI_H_TIMING		(0x02c4)
 #define SHDW_DPI_V_TIMING		(0x02c8)
 
+#define DSC_CTRL			(0x0400)
+
 #define	SPRD_MIPI_DPHY_GEN2
 
 #define DSI_CTL_BEGIN			SPRD_DSI0_BASE	

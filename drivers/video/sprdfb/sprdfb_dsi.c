@@ -146,7 +146,10 @@ static int32_t dsi_dpi_init(struct sprdfb_device *dev)
 		dpi_param.color_coding = COLOR_CODE_18BIT_CONFIG1;
 		break;
 	case 24:
-		dpi_param.color_coding = COLOR_CODE_24BIT;
+		if(panel->is_need_dsc)
+			dpi_param.color_coding = COLOR_CODE_COMPRESSTION;
+		else
+			dpi_param.color_coding = COLOR_CODE_24BIT;
 		break;
 	default:
 		printf("sprdfb:[%s] fail, invalid video_bus_width\n", __FUNCTION__);

@@ -506,6 +506,10 @@ dsih_error_t mipi_dsih_dpi_video(dsih_ctrl_t * instance, dsih_dpi_video_t * vide
         bytes_per_pixel_x100 = 300;
         video_size_step = 1;
         break;
+    case COLOR_CODE_COMPRESSTION:
+        bytes_per_pixel_x100 = 100;
+        video_size_step = 1;
+        break;
     case COLOR_CODE_20BIT_YCC422_LOOSELY:
         bytes_per_pixel_x100 = 250;
         video_size_step = 2;

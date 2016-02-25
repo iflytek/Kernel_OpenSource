@@ -272,6 +272,7 @@ struct panel_spec {
 	uint16_t type; /*mcu, rgb, mipi*/
 	uint16_t direction;
 	uint16_t is_need_reset;
+	uint16_t is_need_dsc;
 	union {
 		struct info_mcu *mcu;
 		struct info_rgb *rgb;

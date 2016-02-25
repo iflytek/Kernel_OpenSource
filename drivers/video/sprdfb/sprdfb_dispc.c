@@ -269,6 +269,52 @@ static void gsp_iommu_workaround(void)
 }
 
 #endif
+static int32_t dispc_config_dsc_param(struct sprdfb_device *dev)
+{
+	uint32_t i;
+	uint32_t dsc_regs_data[] = {
+		/**
+		* panel width is configured to 1440,
+		* xmit delay is set to 475 and output bit is 8bit
+		* slice width adn height:720,16
+		* h/v porch > 0x20
+		* */
+		/*0x2000000b,
+		0x0a0005a0,
+		0x000000f0,
+		0x07000f00,
+		0x04604014,
+		0x00a03205,
+		0x306c81db, 0x000a0170, 0x04c50667, 0x12181800,
+		0x003316b6, 0x382a1c0e, 0x69625446, 0x7b797770,
+		0x00007e7d, 0x01000102, 0x09be0940, 0x19fa19fc,
+		0x1a3819f8, 0x1ab61a78, 0x2b342af6, 0x3b742b74,
+		0x00006bf4*/
+		/**
+		* panel width is configured to 1440,
+		* xmit delay is set to 475 and output bit is 8bit
+		* slice width adn height:720,16
+		* h/v porch > 0x20
+		* */
+		0x2000000b,
+		0x0a0005a0,
+		0x000000f0,
+		0x04096000,
+		0x04604014,
+		0x00a00602,
+		0x306c81db, 0x000ae4bd, 0x0008000a, 0x12181800,
+		0x003316b6, 0x382a1c0e, 0x69625446, 0x7b797770,
+		0x00007e7d, 0x01000102, 0x09be0940, 0x19fa19fc,
+		0x1a3819f8, 0x1ab61a78, 0x2b342af6, 0x3b742b74,
+		0x00006bf4
+	};
+	FB_PRINT("sprdfb:[%s] enter\n", __FUNCTION__);
+
+	for(i=0; i < sizeof(dsc_regs_data)/sizeof(uint32_t); i++)
+		dispc_write(dsc_regs_data[i], (DSC_CTRL + i*4));
+
+	return 0;
+}
 static int32_t sprdfb_dispc_early_init(struct sprdfb_device *dev)
 {
 	FB_PRINT("sprdfb:[%s]\n", __FUNCTION__);
@@ -298,7 +344,18 @@ static int32_t sprdfb_dispc_early_init(struct sprdfb_device *dev)
 
 static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 {
+	int32_t ret;
+	struct panel_spec* panel = dev->panel;
+
 	FB_PRINT("sprdfb:[%s]\n",__FUNCTION__);
+
+	if (panel->is_need_dsc){
+		ret = dispc_config_dsc_param(dev);
+		if(ret) {
+			FB_PRINT("sprdfb:dispc_config_dsc_param fail!\n");
+			return -1;
+		}
+	}
 
 	/*set bg color*/
 //	dispc_set_bg_color(0xFFFFFFFF);
