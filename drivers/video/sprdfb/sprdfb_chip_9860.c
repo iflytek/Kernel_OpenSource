@@ -54,7 +54,6 @@ void dsi_disable(void)
 
 void dispc_early_configs(void)
 {
-	misc_noc_ctrl(REG_AON_APB_DISP_NOC_CTRL, NORMAL_MODE, SIZE_64);
 	disp_domain_power_ctrl(1);
 	__raw_bits_or(BIT_DISP_AHB_CKG_EB |
 			BIT_DISP_AHB_DISPC_MTX_EB |
