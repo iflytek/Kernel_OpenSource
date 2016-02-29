@@ -15,3 +15,4 @@ obj-$(CONFIG_SPRD_SYSDUMP) += sysdump.o
 obj-y += sd_operate.o
 obj-y += sprd_cpcmdline.o
 obj-y += sprdisk.o
+obj-$(CONFIG_MEMORY_DEFRAGMENT) += sprd_fdt_memory.o

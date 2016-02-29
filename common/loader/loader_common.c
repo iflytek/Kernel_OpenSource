@@ -117,6 +117,9 @@ void fdt_fixup_all(void)
 
 	fdt_fixup_chosen_bootargs_board_private(fdt_blob);
 
+#ifdef CONFIG_MEMORY_DEFRAGMENT
+	fdt_fixup_memory_region(fdt_blob);
+#endif
 	return;
 }
 
