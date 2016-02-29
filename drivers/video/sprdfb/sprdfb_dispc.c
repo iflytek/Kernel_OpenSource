@@ -272,6 +272,7 @@ static void gsp_iommu_workaround(void)
 static int32_t dispc_config_dsc_param(struct sprdfb_device *dev)
 {
 	uint32_t i;
+	uint32_t dsc_ctrl = 0x0400;
 	uint32_t dsc_regs_data[] = {
 		/**
 		* panel width is configured to 1440,
@@ -311,7 +312,7 @@ static int32_t dispc_config_dsc_param(struct sprdfb_device *dev)
 	FB_PRINT("sprdfb:[%s] enter\n", __FUNCTION__);
 
 	for(i=0; i < sizeof(dsc_regs_data)/sizeof(uint32_t); i++)
-		dispc_write(dsc_regs_data[i], (DSC_CTRL + i*4));
+		dispc_write(dsc_regs_data[i], (dsc_ctrl + i*4));
 
 	return 0;
 }
