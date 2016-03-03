@@ -48,6 +48,12 @@ config TARGET_SP9850S_2H10_5M
 	help
 	  This is the Spreadtrum sp9850s_2h10_5m Board
 
+config TARGET_SS_WHALE2_J7
+	bool "Spreadtrum ss_whale2_j7"
+	select ARM64
+	help
+	  This is the Spreadtrum ss_whale2_j7 Board
+
 config TARGET_SP9860G_1H10_5M
 	bool "Spreadtrum sp9860g_1h10_5m"
 	select ARM64
@@ -68,6 +74,7 @@ source "board/spreadtrum/sp9830a-5h10_ga1/Kconfig"
 source "board/spreadtrum/sp9830a-7h10_ga1/Kconfig"
 source "board/spreadtrum/sp9850s_1h10_5m/Kconfig"
 source "board/spreadtrum/sp9850s_2h10_5m/Kconfig"
+source "board/spreadtrum/ss_whale2_j7/Kconfig"
 source "board/spreadtrum/sp9860g_1h10_5m/Kconfig"
 source "board/spreadtrum/sp9860g_1h10_3g/Kconfig"
 
