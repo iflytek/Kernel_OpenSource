@@ -44,6 +44,9 @@
 #include <sprd_mmc.h>
 #include <inttypes.h>
 
+#include <secureboot/sec_common.h>
+
+
 extern SPECIAL_PARTITION_CFG const s_special_partition_cfg[];
 extern uchar *_get_backup_partition_name(uchar * partition_name);
 #endif
@@ -412,7 +415,7 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 		return ;
 	}
 
-	bakup_header = (sys_img_header *)ImageInfo.base_address;
+	bakup_header = (sys_img_header *)(ImageInfo.base_address);
 	debugf("bakup_header->mMagicNum=0x%x\n", bakup_header->mMagicNum);
 	if(bakup_header->mMagicNum == IMG_BAK_HEADER) {
 		if(!_fb_img_write_with_backup(partition_name_p)) {

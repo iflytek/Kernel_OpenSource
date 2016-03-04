@@ -80,7 +80,7 @@ typedef enum _ALTERNATIVE_BUFFER_STATUS {
 	BUFFER_CLEAN,
 	BUFFER_DIRTY
 } ALTERNATIVE_BUFFER_STATUS;
-
+#if 0
 typedef  struct {
     unsigned int mMagicNum; // "BTHD" == "0x42544844" == "boothead"
     unsigned int mVersion; // 1
@@ -89,7 +89,7 @@ typedef  struct {
     unsigned int mImgSize; //image size
     unsigned char reserved[512-(13*4)]; // reserved\uff0c make sure total size is 512B.
 }sys_img_header;
-
+#endif
 
 OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t nv_checksum);
 OPERATE_STATUS dl_download_midst(uint16_t size, char *buf);

@@ -679,6 +679,10 @@ libs-y += drivers/usb/musb-new/
 libs-y += drivers/usb/phy/
 libs-y += drivers/usb/ulpi/
 libs-y += common/
+
+libs-$(CONFIG_SECBOOT) += lib/trustzone/
+libs-$(CONFIG_SECBOOT) += lib/secureboot/
+
 libs-$(CONFIG_API) += api/
 libs-$(CONFIG_HAS_POST) += post/
 libs-y += common/loader/
@@ -708,6 +712,13 @@ else
 PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(c_flags) -print-libgcc-file-name`) -lgcc
 endif
 PLATFORM_LIBS += $(PLATFORM_LIBGCC)
+ifeq ($(CONFIG_SANSA_SECBOOT),y)
+# Add DX lib
+PLATFORM_LIBDX = -L$(srctree)/lib/secureboot/sansa/lib -ldx_sbrom
+else
+PLATFORM_LIBDX =
+endif
+PLATFORM_LIBS += $(PLATFORM_LIBDX)
 export PLATFORM_LIBS
 export PLATFORM_LIBGCC
 

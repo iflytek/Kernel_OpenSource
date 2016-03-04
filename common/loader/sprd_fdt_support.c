@@ -637,4 +637,31 @@ int fdt_fixup_ddr_size(void *fdt)
 #endif
 }
 
+#ifdef CONFIG_SANSA_SECBOOT
+int fdt_fixup_socid(void *fdt)
+{
+	char buf[128];
+	char *tmp = NULL;
+	uint8_t soc_id[32] = {0};
+	int str_len;
+	int ret;
+	int i;
 
+	ret = sansa_compute_socid(soc_id);
+	if (ret != 0) {
+		printf("ERROR: compute socid fail!\n");
+		return ret;
+	}
+	memset(buf, 0, sizeof(buf));
+
+	str_len = sprintf(buf, "soc_id=");
+	tmp = buf + str_len;
+	for (i=0; i<32; i++,tmp+=2) {
+		str_len += sprintf(tmp,"%02X",soc_id[i]);
+	}
+	buf[str_len] = '\0';
+
+	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
+	return ret;
+}
+#endif

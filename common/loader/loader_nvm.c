@@ -7,8 +7,8 @@
 #include "dl_operate.h"
 #include "sprd_common_rw.h"
 
-//#include <secureboot/sprdsec_header.h>
-//#include <secureboot/sec_common.h>
+#include <secureboot/sprdsec_header.h>
+#include <secureboot/sec_common.h>
 
 #ifdef CONFIG_ARM7_RAM_ACTIVE
     extern void pmic_arm7_RAM_active(void);
@@ -201,6 +201,46 @@ static boot_image_required_t *const s_boot_image_table[] = {
 
 #ifdef CONFIG_SECURE_BOOT
 uint8_t header_buf[SEC_HEADER_MAX_SIZE];
+#endif
+static void efuse_power_on(void)
+{
+  unsigned int i;
+  printf("Efuse_power_on\n");
+  *(volatile unsigned int *)(0x402E0000) |= (1<<13);
+  *(volatile unsigned int *)(0x40240010) = 0xc0000140;
+  for(i=0;i<0xFFFF;i++);
+  *(volatile unsigned int *)(0x40240010) = 0xd0000140;
+}
+
+static void efuse_power_off(void)
+{
+  unsigned int i;
+  printf("Efuse_power_off\n");
+  if((*(volatile unsigned int *)(0x40240010))&(1<<28))
+  {
+    *(volatile unsigned int *)(0x40240010) = 0xc0000140;
+	for(i=0;i<0xFFFF;i++);
+  }
+  *(volatile unsigned int *)(0x40240010) = 0xa0000140;
+  *(volatile unsigned int *)(0x402E0000) &= ~(1<<13);
+}
+#if 0
+static void enable_cc63_module(void)
+{
+  printf("Enable_cc63_module\n");
+  efuse_power_on();
+  *(volatile unsigned int *)(0x40240040) = 0x8810;
+  *(volatile unsigned int *)(0x40240008) = 0x02;
+  *(volatile unsigned int *)(0x40240004) = 0x401;
+  *(volatile unsigned int *)(0x4024000c) = 0x01;
+  while(((*(volatile unsigned int *)(0x40240020))&0x01) != 0);
+  efuse_power_off();
+  printf("Enable_cc63_module end\n");
+  __asm__("b .");
+}
+
+#endif
+#ifdef CONFIG_SECURE_BOOT
 
 int get_spl_hash(void *hash_data)
 {
@@ -470,7 +510,7 @@ int _boot_load_required_image(boot_image_required_t img_info)
 		debugf("load %s with backup img %s\n", img_info.partition, img_info.bak_partition);
 		_boot_read_partition_with_backup(img_info);
 	} else {
-#ifdef CONFIG_SECURE_BOOT
+#if defined (CONFIG_SECURE_BOOT)
 		if (!_boot_partition_read(dev, img_info.partition, 0, SEC_HEADER_MAX_SIZE, header_buf)) {
 			debugf("%s:%s read error!\n", img_info.partition);
 			return 0;
@@ -485,6 +525,13 @@ int _boot_load_required_image(boot_image_required_t img_info)
 		/*secure_verify("uboot", header_buf, img_info.mem_addr);*/
 		secure_verify("uboot", header_buf, (u8 *)FREE_RAM_SPACE_ADDR);
 		memcpy((u8 *)img_info.mem_addr, (u8 *)FREE_RAM_SPACE_ADDR + (normal_boot_offset * EMMC_SECTOR_SIZE), img_info.size);
+#elif defined (CONFIG_SECBOOT)
+		//_boot_partition_read(dev,img_info.partition,0,(img_info.size + CERT_SIZE),(u8*)VERIFY_ADDR);
+        common_raw_read(img_info.partition,(img_info.size + CERT_SIZE), 0, (u8*)VERIFY_ADDR);
+		secboot_param_set((u8*)VERIFY_ADDR,&img_verify_info);
+		uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+
+		memcpy(img_info.mem_addr,(VERIFY_ADDR + SYS_HEADER_SIZE),img_info.size);
 #else
 		normal_boot_offset = get_boot_offset(img_info, 0);
 		if (0 != common_raw_read(img_info.partition, img_info.size, normal_boot_offset, (char *)img_info.mem_addr))
@@ -523,6 +570,10 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 	secure_boot_offset = get_code_offset(hdr);
 	offset += secure_boot_offset;
 #endif
+#ifdef CONFIG_SECBOOT
+		offset = 512;/**header of image size is 512B**/
+#endif
+
 	if (0 != common_raw_read(partition, KERNL_PAGE_SIZE, offset, (char *)hdr)) {
 		errorf("read %s header error!\n", partition);
 		return 0;
@@ -703,6 +754,15 @@ int secure_verify_partition(block_dev_desc_t * dev, uchar * partition_name, void
 	return ret;
 }
 #endif
+#ifdef CONFIG_SECBOOT
+int secure_load_partition(uchar * partition_name,void *ram_addr)
+{
+	int ret = 0;
+	int size = 0;
+	common_raw_read(partition_name,size, 0, (uint8_t *) ram_addr);
+	return ret;
+}
+#endif
 void vlx_nand_boot(char *kernel_pname, int backlight_set)
 {
 	boot_img_hdr *hdr = (void *)raw_header;
@@ -715,14 +775,23 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 #ifdef CONFIG_SPLASH_SCREEN
 	set_backlight(backlight_set);
 #endif
-#ifdef CONFIG_SECURE_BOOT
 
+#if defined(CONFIG_SECURE_BOOT)||defined(CONFIG_SECBOOT)
 	if (0 == memcmp(kernel_pname, RECOVERY_PART, strlen(RECOVERY_PART))) {
 		partition = "recovery";
 	} else {
 		partition = "boot";
 	}
+#if defined (CONFIG_SECURE_BOOT)
 	secure_verify_partition(dev, partition, KERNEL_ADR);
+#endif
+#if defined (CONFIG_SECBOOT)
+	enable_efuse();
+	secure_load_partition(partition,VERIFY_ADDR);
+	secboot_param_set(VERIFY_ADDR,&img_verify_info);
+	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
+	uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+#endif
 #endif
 #ifdef OTA_BACKUP_MISC_RECOVERY
 	ret = memcmp(kernel_pname, RECOVERY_PART, strlen(RECOVERY_PART));
@@ -754,5 +823,21 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 		i++;
 	}
 
+#if defined (CONFIG_SECBOOT)
+	uint32_t flag;
+#ifdef CONFIG_SPRD_SECBOOT
+	flag = SPRD_FLAG;
+#endif
+#ifdef CONFIG_SANSA_SECBOOT
+	flag = SANSA_FLAG;
+#endif
+	//efuse_power_on();
+	//uboot_update_swVersion(&flag,sizeof(flag));
+	//efuse_power_off();
+#endif
+
+#if 0
+enable_cc63_module();
+#endif
 	vlx_entry();
 }

@@ -16,6 +16,14 @@
 #define SHA1_ERR   -1
 #define AES256_ERR -2
 #define SHA256_ERR -3
+/***96K***/
+#define SPL_IMAGE_SIZE (96*1024)
+#define SECTION_SIZE   (512)
+/**
+SPL_EMMC_SECTOR_NUM=SPL_IMAGE_SIZE / SECTOR_SIZE
+**/
+#define SPL_EMMC_SECTOR_NUM  (SPL_IMAGE_SIZE/SECTION_SIZE)
+#define SAVE_SPL_IMAGE  0x9d000000
 
 
 #include <common.h>

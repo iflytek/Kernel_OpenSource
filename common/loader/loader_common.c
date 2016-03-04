@@ -120,6 +120,9 @@ void fdt_fixup_all(void)
 #ifdef CONFIG_MEMORY_DEFRAGMENT
 	fdt_fixup_memory_region(fdt_blob);
 #endif
+#ifdef CONFIG_SANSA_SECBOOT
+	//fdt_fixup_socid(fdt_blob);
+#endif
 	return;
 }
 

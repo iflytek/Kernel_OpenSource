@@ -9,6 +9,11 @@
 #include <sprd_mmc.h>
 #endif
 
+#include <secureboot/sec_common.h>
+
+#include "secure_verify.h"
+#include "secure_boot.h"
+
 static disk_partition_t local_part_info;
 
 int block_dev_read(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, char *buf)
@@ -291,6 +296,9 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 	if (NULL == dev_desc)
 		return -1;
 
+	if (0 == size)
+		size = total_part_size;
+
 	offset += part_start;
 
 	return block_dev_read(dev_desc, size, offset, buf);
@@ -465,6 +473,9 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 
 	if (-1 == ret || NULL == dev_desc)
 		return -1;
+
+	if (0 == size)
+		size = total_part_size;
 
 	offset += part_start;
 
