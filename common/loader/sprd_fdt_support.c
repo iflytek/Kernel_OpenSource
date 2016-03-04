@@ -216,6 +216,26 @@ int fdt_chosen_bootargs_replace(void *fdt, char *old_args, char *new_args)
 	return err;
 }
 
+int fdt_fixup_reserved_mem(void *fdt)
+{
+	int offset;
+	int ret = 0;
+	char *mode;
+
+	mode = getenv("bootmode");
+	if (!mode || strcmp("iq", mode)) {
+		offset = fdt_node_offset_by_prop_value(fdt, 0, "compatible", "sprd,iq-mem", strlen("sprd,iq-mem") + 1);
+		if (offset < 0) {
+			return 0;
+		}
+		ret = fdt_del_node(fdt, offset);
+		if (ret < 0)
+			errorf("del iq reserved mem failed\n");
+	}
+
+	return ret;
+}
+
 #if defined( CONFIG_KERNEL_BOOT_CP )
 int fdt_fixup_cp_boot(void *fdt)
 {

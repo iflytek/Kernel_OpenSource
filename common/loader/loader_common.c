@@ -123,6 +123,10 @@ void fdt_fixup_all(void)
 #ifdef CONFIG_SANSA_SECBOOT
 	//fdt_fixup_socid(fdt_blob);
 #endif
+
+	/* for non iq mode, remove reserved iq memory from dtb */
+	fdt_fixup_reserved_mem(fdt_blob);
+
 	return;
 }
 
