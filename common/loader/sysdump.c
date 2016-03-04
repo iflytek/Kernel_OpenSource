@@ -37,7 +37,6 @@ extern void lcd_printf(const char *fmt, ...);
 extern  int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
 
-static int display_crashinfo(struct sysdump_info *sinfo, int rst_mode);
 #ifdef CONFIG_SPLASH_SCREEN
 	#define sysdump_lcd_printf(fmt, args...)   lcd_printf(fmt, ##args)
 #else
@@ -701,8 +700,6 @@ void write_sysdump_before_boot(int rst_mode)
 		if (init_mmc_fat())
 			goto FINISH;
 
-		display_crashinfo(infop, rst_mode);
-
 		/* display on screen */
 		display_writing_sysdump();
 		#define CONSOLE_COLOR_RED (0x1f<<11)
@@ -911,24 +908,4 @@ void write_sysdump_before_boot(int rst_mode)
 
 FINISH:
 	return;
-}
-
-
-
-static int display_crashinfo(struct sysdump_info *sinfo, int rst_mode)
-{
-	struct crash_info *cinfo;
-        cinfo = &sinfo->crash;
-
-	if (!strncmp(cinfo->magic, U_MAGIC, sizeof(U_MAGIC))
-	    || !strncmp(cinfo->magic, K_MAGIC, sizeof(K_MAGIC)))
-	{
-		sysdump_lcd_printf("\n ==============================================================");
-                sysdump_lcd_printf("\n  Crash mode: %s ",GET_RST_MODE(rst_mode));
-		sysdump_lcd_printf("\n  Crash info: %s", cinfo->payload);
-		sysdump_lcd_printf("\n ==============================================================\n\n\n\n");
-		return 0;
-	}
-
-	return 1;
 }

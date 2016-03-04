@@ -37,17 +37,6 @@
 #endif
 #define SYSDUMP_FOLDER_NUM 3
 
-#define U_MAGIC "sprd_framework"
-#define K_MAGIC "sprd_kernel"
-
-struct crash_info {
-        char magic[16];
-        char time[32];
-        int size;
-        unsigned char *payload;
-};
-
-
 struct sysdump_mem {
 	unsigned long paddr;
 	unsigned long vaddr;
@@ -64,7 +53,6 @@ struct sysdump_info {
 	int mem_num;
 	unsigned long dump_mem_paddr;
 	int crash_key;
-	struct crash_info crash;
 };
 
 
