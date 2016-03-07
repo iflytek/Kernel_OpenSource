@@ -182,11 +182,15 @@ static int sprd_set_bus_speed(struct i2c_adapter *adap, int speed)
 	i2c_div = apb_clk / (4 * speed) - 1;/*i2c freq*/
 
 	sprd_i2c_ctl_disable(i2c_base);
-	writel((((i2c_div+2) & 0xffff)<<16|((i2c_div-2) & 0xffff)),
-						i2c_base + I2C_CLKD0);
-	writel(0X10, i2c_base + I2C_STA_STO_DVD);
-	writel(((i2c_div+2) >> 16|((i2c_div-2)& 0xffff0000)),
-						i2c_base + I2C_CLKD1);
+
+	if (400000 == speed) {/*400K*/
+		writel(0x0012000c,i2c_base + I2C_CLKD0);
+		writel(0X10, i2c_base + I2C_STA_STO_DVD);
+	} else {
+		writel(((i2c_div & 0xffff) <<16 | (i2c_div & 0xffff)), i2c_base + I2C_CLKD0);
+		writel(0X75, i2c_base + I2C_STA_STO_DVD);
+	}
+	writel((i2c_div >> 16 | (i2c_div & 0xffff0000)), i2c_base + I2C_CLKD1);
 	sprd_i2c_ctl_enable(i2c_base);
 }
 
