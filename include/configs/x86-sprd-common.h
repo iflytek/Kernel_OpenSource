@@ -94,4 +94,7 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS "setup_dtb_addr=0x00080000"
 
+/* S3 resume */
+#define AON_APB_DAT_1 0xe42e307c
+
 #endif /* __CONFIG_H */

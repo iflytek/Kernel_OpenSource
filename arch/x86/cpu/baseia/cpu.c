@@ -17,6 +17,11 @@
 #include <asm/bootparam.h>
 #include <asm/microcode.h>
 
+#ifdef CONFIG_BASEIA_S3
+#define RESERVED_RAM_SIZE 0x10000
+extern char _resume_start[], _resume_end[];
+#endif
+
 #ifdef CONFIG_SMP
 static int enable_smis(struct udevice *cpu, void *unused)
 {
@@ -102,6 +107,29 @@ int x86_init_cpus(void)
 #ifdef CONFIG_SMP
 	debug("Init additional CPUs class %d\n", UCLASS_CPU);
 	baseia_init_cpus();
+#endif
+
+#ifdef CONFIG_BASEIA_S3
+	/* Copy S3 resume code into SRAM */
+	memcpy((void *) CONFIG_BASEIA_SRAM, (const void *) _resume_start,
+			_resume_end - _resume_start);
+
+	/*
+	 *  Write resume entry point address to the DAT1 register
+	 *  On CPU reset, the boot ROM will jump there if DAT0 [0] = 1
+	 */
+	writel(CONFIG_BASEIA_SRAM, AON_APB_DAT_1);
+
+	/* Copy CPU microcode data into the reserved DRAM area */
+	if (gd->arch.microcode_size <= RESERVED_RAM_SIZE) {
+		memcpy((void *) CONFIG_RESERVED_RAM_START,
+			gd->arch.microcode_data,
+			gd->arch.microcode_size);
+	} else {
+		printf("Microcode data does not fit"
+			" into reserved DRAM area\n");
+	}
+
 #endif
 
 	return 0;
