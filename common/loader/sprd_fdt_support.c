@@ -391,7 +391,7 @@ int fdt_fixup_sysdump_magic(void *fdt)
 	void* magic = (void *)SPRD_SYSDUMP_MAGIC;
 	memset(buf, 0, 64);
 
-	sprintf(buf, " sysdump_magic=%x", magic);
+	sprintf(buf, " sysdump_magic=%lx", magic);
 	str_len = strlen(buf);
 	buf[str_len] = '\0';
 	//debugf("sysdump flag in fdt:%s\n", buf);
