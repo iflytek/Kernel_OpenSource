@@ -70,8 +70,8 @@ void lcd_sync(void)
 	int line_length;
 
 	if (lcd_flush_dcache)
-		flush_dcache_range((u32)lcd_base,
-			(u32)(lcd_base + lcd_get_size(&line_length)));
+		flush_dcache_range(lcd_base,
+			(lcd_base + lcd_get_size(&line_length)));
 #elif defined(CONFIG_SANDBOX) && defined(CONFIG_VIDEO_SANDBOX_SDL)
 	static ulong last_sync;
 
