@@ -12,7 +12,8 @@
  * GNU General Public License for more details.
  *
  */
-
+#ifndef __SPRD_GLB_H__
+#define __SPRD_GLB_H__
 /**
  * sci_glb_read - read value from d-die global register
  * @reg: global register address
@@ -60,8 +61,4 @@ int sci_glb_set(u32 reg, u32 bit);
  */
 int sci_glb_clr(u32 reg, u32 bit);
 
-#define sci_glb_raw_read(reg)           sci_glb_read(reg, -1UL)
-#define sci_glb_raw_write(reg, val)     sci_glb_write(reg, val, -1UL)
-
-#define sci_assert(condition)	do { WARN_ON(!(condition)); }while(0)
-
+#endif

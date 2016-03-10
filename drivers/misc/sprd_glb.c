@@ -16,19 +16,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/errno.h>
-#include <ubi_uboot.h>
-#include <linux/sizes.h>
 
-#define rounddown(x, y) (				\
-{							\
-	typeof(x) __x = (x);				\
-	__x - (__x % (y));				\
-}							\
-)
-
-/* vars definitions for controller REGS_GLB */
-#define REG_GLB_SET(A)                  ( A + 0x1000 )
-#define REG_GLB_CLR(A)                  ( A + 0x2000 )
 
 u32 sci_glb_read(u32 reg, u32 msk)
 {
@@ -51,7 +39,7 @@ static int __is_glb(u32 reg)
 int sci_glb_set(u32 reg, u32 bit)
 {
 	if (__is_glb(reg))
-		__raw_writel(bit, REG_GLB_SET(reg));
+		__raw_writel(__raw_readl(reg) | bit, reg);
 	else
 		WARN_ON(1);
 	return 0;
@@ -60,7 +48,7 @@ int sci_glb_set(u32 reg, u32 bit)
 int sci_glb_clr(u32 reg, u32 bit)
 {
 	if (__is_glb(reg))
-		__raw_writel(bit, REG_GLB_CLR(reg));
+		__raw_writel((__raw_readl(reg) & ~bit), reg);
 	else
 		WARN_ON(1);
 	return 0;

@@ -41,7 +41,7 @@
  */
 
 #include <asm/io.h>
-#include <asm/arch/sci.h>
+#include <sprd_glb.h>
 #include <asm/arch/sprd_reg.h>
 #include <common.h>
 #include <linux/types.h>
