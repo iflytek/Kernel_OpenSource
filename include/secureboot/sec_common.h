@@ -47,7 +47,4 @@ void secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo);
 
 void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo);
 
-void enable_efuse(void);
-
-
 #endif

@@ -74,6 +74,8 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 #define FUNCTYPE_PROGRAM_EFUSE            0x02
 #define FUNCTYPE_GET_SOCID                0x03
 #define FUNCTYPE_UPDATE_VERSION           0x04
+#define FUNCTYPE_GET_SANSA_LCS            0x05
+#define FUNCTYPE_SET_SANSA_RMA            0x06
 
 struct smc_param64 {
   uint64_t a0;

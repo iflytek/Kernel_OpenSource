@@ -16,8 +16,12 @@
 #define SHA1_ERR   -1
 #define AES256_ERR -2
 #define SHA256_ERR -3
+#define SANSA_EFUSE_PRO_ERR -4
+#define SANSA_GET_LCS_ERR   -5
+#define SANSA_SET_RMA_ERR   -6
+
 /***96K***/
-#define SPL_IMAGE_SIZE (96*1024)
+#define SPL_IMAGE_SIZE (108*1024)
 #define SECTION_SIZE   (512)
 /**
 SPL_EMMC_SECTOR_NUM=SPL_IMAGE_SIZE / SECTOR_SIZE
@@ -31,4 +35,8 @@ SPL_EMMC_SECTOR_NUM=SPL_IMAGE_SIZE / SECTOR_SIZE
 
 int secure_efuse_program(void);
 int read_master_key(void);
+
+int sansa_get_lcs_cmd(void);
+int sansa_set_rma_cmd(void);
+
 

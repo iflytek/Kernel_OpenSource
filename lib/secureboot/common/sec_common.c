@@ -93,8 +93,4 @@ void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo)
 #endif
 }
 
-void enable_efuse(void)
-{
-  *(volatile unsigned int *)(SPRD_AON_APB_EFUSE) |= (1<<13);
-}
 

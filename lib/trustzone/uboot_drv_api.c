@@ -29,6 +29,7 @@
  */
 
 #include "uboot_sec_drv.h"
+#include <otp_helper.h>
 
 int uboot_verify_img(uint64_t start_addr, uint64_t lenth){
 
@@ -53,41 +54,18 @@ int uboot_verify_img(uint64_t start_addr, uint64_t lenth){
   ret = param.a0;
   return ret;
 }
-static void efuse_power_on(void)
-{
-  unsigned int i;
-  printf("Efuse_power_on\n");
-  *(volatile unsigned int *)(SPRD_AON_APB_APB_EB0) |= (1<<13);
-  *(volatile unsigned int *)(SPRD_REG_EFUSE_CFG0) = 0xc0000140;
-  for(i=0;i<0xFFFF;i++);
-  *(volatile unsigned int *)(SPRD_REG_EFUSE_CFG0) = 0xd0000140;
-}
 
-static void efuse_power_off(void)
-{
-  unsigned int i;
-  printf("Efuse_power_off\n");
-  if((*(volatile unsigned int *)(SPRD_REG_EFUSE_CFG0))&(1<<28))
-  {
-    *(volatile unsigned int *)(SPRD_REG_EFUSE_CFG0) = 0xc0000140;
-	for(i=0;i<0xFFFF;i++);
-  }
-  *(volatile unsigned int *)(SPRD_REG_EFUSE_CFG0) = 0xa0000140;
-  *(volatile unsigned int *)(SPRD_AON_APB_APB_EB0) &= ~(1<<13);
-}
-
-//int uboot_program_efuse(uint64_t start_addr, unsigned char* hbk, uint64_t hbkLenth){
-  int uboot_program_efuse(uint64_t start_addr, uint64_t lenth){
+int uboot_program_efuse(uint64_t start_addr, uint64_t lenth){
 
   uint32_t ret;
   uint32_t smcid;
   uint32_t funcid;
+  struct smc_param64 param;
   
-  efuse_power_on();
+  ap_sansa_efuse_prog_power_on();
   smcid  = TEESMC64_SIPCALL_WITH_ARG;
   funcid = FUNCTYPE_PROGRAM_EFUSE;
   printf("###### uboot_program_efuse ######\n");
-  struct smc_param64 param;
   param.a0 = smcid;
   param.a1 = funcid;
   param.a2 = start_addr;
@@ -96,8 +74,8 @@ static void efuse_power_off(void)
   tee_smc_call64(&param);
 
   ret = param.a0;
-  efuse_power_off();
-  printf("smcid=%x\n",param.a0);
+  ap_sansa_efuse_power_off();
+  printf("pro_ret=%x\n",param.a0);
   return ret;
 }
 
@@ -142,3 +120,55 @@ int uboot_update_swVersion(uint64_t start_addr, uint64_t lenth){
   ret = param.a0;
   return ret;
 }
+
+int uboot_sansa_get_lcs(uint32_t *p_lcs){
+
+   uint32_t ret;
+   uint32_t smcid;
+   uint32_t funcid;
+   struct smc_param64 param;
+
+   ap_sansa_efuse_prog_power_on();
+
+   smcid  = TEESMC64_SIPCALL_WITH_ARG;
+   funcid = FUNCTYPE_GET_SANSA_LCS;
+   printf("###### uboot_sansa_get_lcs ######\n");
+   param.a0 = smcid;
+   param.a1 = funcid;
+   printf("a0=%x,a1=%x\n",param.a0,param.a1);
+
+   tee_smc_call64(&param);
+
+   ret = param.a0;
+   *p_lcs = param.a2;
+
+   ap_sansa_efuse_power_off();
+   printf("lcsval=%d\n",param.a2);
+   return ret;
+}
+
+int uboot_sansa_set_rma(uint32_t *p_rmaret){
+   uint32_t ret;
+   uint32_t smcid;
+   uint32_t funcid;
+   struct smc_param64 param;
+
+   ap_sansa_efuse_prog_power_on();
+
+   smcid  = TEESMC64_SIPCALL_WITH_ARG;
+   funcid = FUNCTYPE_SET_SANSA_RMA;
+   printf("###### uboot_sansa_set_rma ######\n");
+   param.a0 = smcid;
+   param.a1 = funcid;
+   printf("a0=%x,a1=%x\n",param.a0,param.a1);
+
+   tee_smc_call64(&param);
+
+   ret = param.a0;
+   *p_rmaret = param.a2;
+
+   ap_sansa_efuse_power_off();
+   printf("setrma=%d\n",param.a2);
+   return ret;
+}
+

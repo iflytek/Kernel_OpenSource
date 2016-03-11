@@ -337,3 +337,43 @@ void ap_efuse_block_dump(void)
 		printf("[%02d] %08x\n", idx, sprd_ap_efuse_read(idx));
 	}
 }
+/*******only for sansa ********/
+void ap_sansa_efuse_prog_power_on(void)
+{
+	u32 cfg0;
+	sci_glb_set(REG_AON_APB_APB_EB0, BIT_EFUSE_EB);
+	cfg0 = __raw_readl((void *)REG_EFUSE_CFG0);
+	cfg0 &= ~(BIT_EFS_VDDQ_K2_ON | BIT_EFS_VDDQ_K1_ON);
+	cfg0 |= BIT_EFS_VDD_ON;
+	__raw_writel(cfg0, (void *)REG_EFUSE_CFG0);
+	msleep(1);
+
+	cfg0 |= BIT_EFS_VDDQ_K1_ON;
+	__raw_writel(cfg0, (void *)REG_EFUSE_CFG0);
+	msleep(1);
+}
+/*******only for sansa ********/
+void ap_sansa_efuse_power_off(void)
+{
+	u32 cfg0 = __raw_readl((void *)REG_EFUSE_CFG0);
+	if (cfg0 & BIT_EFS_VDDQ_K1_ON) {
+		cfg0 &= ~BIT_EFS_VDDQ_K1_ON;
+		__raw_writel(cfg0, (void *)REG_EFUSE_CFG0);
+		msleep(1);
+	}
+
+	cfg0 |= BIT_EFS_VDDQ_K2_ON;
+	cfg0 &= ~BIT_EFS_VDD_ON;
+	__raw_writel(cfg0, (void *)REG_EFUSE_CFG0);
+	msleep(1);
+
+	sci_glb_clr(REG_AON_APB_APB_EB0, BIT_EFUSE_EB);
+}
+/*******only for sansa ********/
+void sansa_enable_efuse_EB(void)
+{
+	sci_glb_set(REG_AON_APB_APB_EB0, BIT_EFUSE_EB);
+}
+
+
+

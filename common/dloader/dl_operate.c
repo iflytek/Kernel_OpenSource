@@ -11,6 +11,7 @@
 #include <secureboot/sec_common.h>
 #include "secure_verify.h"
 #include "secure_boot.h"
+#include <otp_helper.h>
 
 static DL_EMMC_FILE_STATUS g_status;
 static DL_EMMC_STATUS g_dl_eMMCStatus;
@@ -1033,7 +1034,7 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 
 //#ifdef CONFIG_SECURE_BOOT
 #if defined (CONFIG_SECURE_BOOT)||defined (CONFIG_SECBOOT)
-    enable_efuse();
+    sansa_enable_efuse_EB();
 	if (_check_secure_part(partition_name)) {
 		check_secure_flag = ENABLE_SECURE;	//1;
 		secure_image_flag = ENABLE_SECURE;	//1;

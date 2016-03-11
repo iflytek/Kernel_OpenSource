@@ -9,6 +9,7 @@
 
 #include <secureboot/sprdsec_header.h>
 #include <secureboot/sec_common.h>
+#include <otp_helper.h>
 
 #ifdef CONFIG_ARM7_RAM_ACTIVE
     extern void pmic_arm7_RAM_active(void);
@@ -202,39 +203,17 @@ static boot_image_required_t *const s_boot_image_table[] = {
 #ifdef CONFIG_SECURE_BOOT
 uint8_t header_buf[SEC_HEADER_MAX_SIZE];
 #endif
-static void efuse_power_on(void)
-{
-  unsigned int i;
-  printf("Efuse_power_on\n");
-  *(volatile unsigned int *)(0x402E0000) |= (1<<13);
-  *(volatile unsigned int *)(0x40240010) = 0xc0000140;
-  for(i=0;i<0xFFFF;i++);
-  *(volatile unsigned int *)(0x40240010) = 0xd0000140;
-}
-
-static void efuse_power_off(void)
-{
-  unsigned int i;
-  printf("Efuse_power_off\n");
-  if((*(volatile unsigned int *)(0x40240010))&(1<<28))
-  {
-    *(volatile unsigned int *)(0x40240010) = 0xc0000140;
-	for(i=0;i<0xFFFF;i++);
-  }
-  *(volatile unsigned int *)(0x40240010) = 0xa0000140;
-  *(volatile unsigned int *)(0x402E0000) &= ~(1<<13);
-}
 #if 0
 static void enable_cc63_module(void)
 {
   printf("Enable_cc63_module\n");
-  efuse_power_on();
+  ap_sansa_efuse_prog_power_on();
   *(volatile unsigned int *)(0x40240040) = 0x8810;
   *(volatile unsigned int *)(0x40240008) = 0x02;
   *(volatile unsigned int *)(0x40240004) = 0x401;
   *(volatile unsigned int *)(0x4024000c) = 0x01;
   while(((*(volatile unsigned int *)(0x40240020))&0x01) != 0);
-  efuse_power_off();
+  ap_sansa_efuse_power_off();
   printf("Enable_cc63_module end\n");
   __asm__("b .");
 }
@@ -786,7 +765,7 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 	secure_verify_partition(dev, partition, KERNEL_ADR);
 #endif
 #if defined (CONFIG_SECBOOT)
-	enable_efuse();
+	sansa_enable_efuse_EB();
 	secure_load_partition(partition,VERIFY_ADDR);
 	secboot_param_set(VERIFY_ADDR,&img_verify_info);
 	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
@@ -831,9 +810,9 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 #ifdef CONFIG_SANSA_SECBOOT
 	flag = SANSA_FLAG;
 #endif
-	//efuse_power_on();
+	//ap_sansa_efuse_prog_power_on();
 	//uboot_update_swVersion(&flag,sizeof(flag));
-	//efuse_power_off();
+	//ap_sansa_efuse_power_off();
 #endif
 
 #if 0

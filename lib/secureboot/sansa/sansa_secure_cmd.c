@@ -25,19 +25,23 @@ imgToVerifyInfo g_imgToVerInfo = {0};
 
 int secure_efuse_program(void)
 {
-  //unsigned char t_splImageBuf[SPL_IMAGE_SIZE];
-  printf("###### Emmc_Read ######\n"); 
+  int ret=0;
+  printf("###### read_spl_image ######\n");
   /**read spl image**/
-  //Emmc_Read(PARTITION_BOOT1, 0, SPL_EMMC_SECTOR_NUM, (unsigned char *)SAVE_SPL_IMAGE);
-  common_raw_read(1,SPL_IMAGE_SIZE, 0, (unsigned char *)SAVE_SPL_IMAGE);
+  common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)SAVE_SPL_IMAGE);
 
   g_imgToVerInfo.img_addr = SAVE_SPL_IMAGE;
   g_imgToVerInfo.img_len = SPL_IMAGE_SIZE;
+  g_imgToVerInfo.flag = SANSA_FLAG;
 
   printf("addr = %x,len = %x \n",g_imgToVerInfo.img_addr,g_imgToVerInfo.img_len);
 
-  uboot_program_efuse(&g_imgToVerInfo,sizeof(imgToVerifyInfo));
+  ret = uboot_program_efuse(&g_imgToVerInfo,sizeof(imgToVerifyInfo));
 
+  if(ret)
+  {
+    return SANSA_EFUSE_PRO_ERR;
+  }
   return PROG_OK;
   
 }
@@ -55,3 +59,36 @@ unsigned int sansa_compute_socid(void *socid)
 
 	return ret;
 }
+
+int sansa_get_lcs_cmd(void)
+{
+  unsigned int t_lcs = 0;
+  int ret = 0;
+
+  ret = uboot_sansa_get_lcs(&t_lcs);
+  printf("lcs = %d\n",t_lcs);
+
+  if(ret)
+  {
+    return SANSA_GET_LCS_ERR;
+  }
+
+  return PROG_OK;
+}
+
+int sansa_set_rma_cmd(void)
+{
+  unsigned int t_result=0;
+  int ret = 0;
+
+  ret = uboot_sansa_set_rma(&t_result);
+  printf("rma_result = %d\n",t_result);
+
+  if(ret)
+  {
+    return SANSA_SET_RMA_ERR;
+  }
+
+  return PROG_OK;
+}
+

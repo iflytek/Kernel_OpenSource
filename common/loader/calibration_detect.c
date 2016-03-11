@@ -489,8 +489,13 @@ int pctool_mode_detect(void)
 		else if(DIAG_AP_CMD_PROGRAM_KEY == command)
 		{
 #if defined(CONFIG_SECURE_BOOT)
-			ret = secure_efuse_program();//jiekou_from_beijing;
+			ret = secure_efuse_program();
 #endif
+#if defined(CONFIG_SANSA_SECBOOT)
+		    printf("###### secure_efuse_program ######\n");
+			ret = secure_efuse_program();
+#endif
+
 		}
 		if(!ret)
 		    ret = prepare_reply_buf(pctool_cmd_buf ,CALIBERATE_CNF_SCS);
