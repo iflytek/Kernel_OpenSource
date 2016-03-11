@@ -177,9 +177,6 @@
 
 #define PHYS_OFFSET_ADDR			0x80000000
 
-
-
-#define CONFIG_PBINT_7S_RESET_V1
 /*7S reset config*/
 #define CONFIG_7S_RST_MODULE_EN		1	
 
@@ -192,7 +189,9 @@
 #define CONFIG_7S_RST_2KEY_MODE		0	
 #define CONFIG_7S_RST_THRESHOLD		7	
 
-
+ /*SMPL config*/
+//#define CONFIG_SMPL_EN
+#define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
 
 #define VLX_TAG_ADDR    0x82000100
 #define DT_ADR 	    0x15400000

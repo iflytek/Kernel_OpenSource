@@ -2610,7 +2610,8 @@
 //Register Description   :     
 -----------------------------------------------------------*/
 
-#define BITS_SMPL_MODE(x)                                           (((x) & 0xFFFF) << 0)
+#define BITS_SMPL_MODE(x)                                           (((x) & 0x7) << 13)
+#define BITS_SMPL_ENABLE(x)                                           (((x) & 0x1FFF) << 0)
 
 
 /*-----------------------------------------------------------

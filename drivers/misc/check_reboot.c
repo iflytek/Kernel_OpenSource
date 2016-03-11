@@ -5,14 +5,9 @@
 #include "adi_hal_internal.h"
 #include <asm/arch/check_reboot.h>
 #include <asm/arch/sprd_debug.h>
-
-
+#include <sprd_pmic_misc.h>
 
 extern int hw_watchdog_rst_pending(void);
-extern int is_7s_reset(void);
-extern int is_7s_reset_for_systemdump(void);
-extern int is_hw_smpl_enable(void);
-extern int is_smpl_bootup(void);
 
 static void rtc_domain_reg_write(uint32_t val)
 {

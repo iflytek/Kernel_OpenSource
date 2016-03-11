@@ -814,7 +814,8 @@
 #define BIT_PBINT2_FLAG_CLR             ( BIT(12) )
 #define BIT_PBINT_FLAG_CLR              ( BIT(11) )
 #define BIT_PBINT_7S_RST_SWMODE         ( BIT(8) )
-#define BITS_PBINT_7S_RST_THRESHOLD(_x_)( (_x_) << 4 & (BIT(4)|BIT(5)|BIT(6)|BIT(7)) )
+#define BITS_PBINT_7S_RST_THRESHOLD(x)       (((x) & 0x7) << 5)
+#define BIT_EXT_RSTN_MODE                    BIT(4)
 #define BIT_PBINT_7S_AUTO_ON_EN         ( BIT(2) )
 #define BIT_PBINT_7S_RST_DISABLE        ( BIT(1) )
 #define BIT_PBINT_7S_RST_MODE           ( BIT(0) )
@@ -844,7 +845,8 @@
 #define BITS_PWR_WR_PROT_VALUE(_x_)     ( (_x_) << 0 & (BIT(0)|BIT(1)|BIT(2)|BIT(3)|BIT(4)|BIT(5)|BIT(6)|BIT(7)|BIT(8)|BIT(9)|BIT(10)|BIT(11)|BIT(12)|BIT(13)|BIT(14)) )
 
 /* bits definitions for register ANA_REG_GLB_SMPL_CTRL0 */
-#define BITS_SMPL_ENABLE(_X_)                         ( (_X_) & (BIT(0)|BIT(1)|BIT(2)|BIT(3)|BIT(4)|BIT(5)|BIT(6)|BIT(7)|BIT(8)|BIT(9)|BIT(10)|BIT(11)|BIT(12)) )
+#define BITS_SMPL_MODE(x)                                           (((x) & 0x7) << 13)
+#define BITS_SMPL_ENABLE(x)                                           (((x) & 0x1FFF) << 0)
 
 /* bits definitions for register ANA_REG_GLB_SMPL_CTRL1 */
 #define BIT_SMPL_PWR_ON_FLAG            ( BIT(15) )

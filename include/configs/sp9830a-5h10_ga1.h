@@ -264,7 +264,6 @@
 #define CALIBRATION_FLAG_CP1        (0x8AA41800)
 
 /*7S reset config*/
-#define CONFIG_PBINT_7S_RESET_V1
 #define CONFIG_7S_RST_MODULE_EN		1	//0:disable module; 1:enable module
 
 #ifdef DEBUG
@@ -276,6 +275,10 @@
 #define CONFIG_7S_RST_SHORT_MODE	1	//0:long press then release key to trigger;1:press key some time to trigger
 #define CONFIG_7S_RST_2KEY_MODE		0	//0:1Key--Normal mode; 1:2KEY
 #define CONFIG_7S_RST_THRESHOLD		7	//7S, hold key down for this time to trigger
+
+ /*SMPL config*/
+//#define CONFIG_SMPL_EN
+#define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
 
 #define DT_ADR          0x85400000
 #define KERNEL_ADR      0x80008000

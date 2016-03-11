@@ -346,6 +346,10 @@
 #define CONFIG_7S_RST_2KEY_MODE		0	//0:1Key--Normal mode; 1:2KEY
 #define CONFIG_7S_RST_THRESHOLD		7	//7S, hold key down for this time to trigger
 
+ /*SMPL config*/
+//#define CONFIG_SMPL_EN
+#define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
+
 /* Chip Driver Macro Definitions End*/
 /*active arm7 ram before access to it*/
 #define CONFIG_ARM7_RAM_ACTIVE

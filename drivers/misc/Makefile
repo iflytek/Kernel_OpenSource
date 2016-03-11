@@ -40,3 +40,4 @@ obj-y += otp_helper.o pmic_efuse.o ap_efuse.o
 else
 obj-y += otp_helper.o ap_efuse.o
 endif
+obj-y += pmic27xx_misc.o
