@@ -25,3 +25,4 @@ obj-y += input/
 obj-y += soc/
 obj-y += thermal/
 obj-y += ufs/
+obj-y += hwtracing/coresight/

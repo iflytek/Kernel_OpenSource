@@ -20,6 +20,7 @@
 #include <linux/input.h>
 #include "sysdump.h"
 #include <linux/mtd/mtd.h>
+#include <linux/sizes.h>
 #include <asm/arch/check_reboot.h>
 #include <sprd_mmc.h>
 #include <fat.h>
@@ -36,6 +37,12 @@ extern void set_backlight(uint32_t value);
 extern void lcd_printf(const char *fmt, ...);
 extern  int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
+
+#ifdef CONFIG_ETB_DUMP
+extern unsigned char etb_dump_mem[SZ_32K];
+extern void sprd_etb_hw_dis(void);
+extern void sprd_etb_dump (void);
+#endif
 
 #ifdef CONFIG_SPLASH_SCREEN
 	#define sysdump_lcd_printf(fmt, args...)   lcd_printf(fmt, ##args)
@@ -892,6 +899,14 @@ void write_sysdump_before_boot(int rst_mode)
 			sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT, /*infop->time,*/ i + 1);
 			write_mem_to_mmc(path, fnbuf, mem[i].paddr, mem[i].size);
 		}
+#endif
+
+#ifdef CONFIG_ETB_DUMP
+		debugf ("\n Start to dump ETB trace data.\n");
+		sprd_etb_hw_dis();
+		sprd_etb_dump();
+		write_mem_to_mmc(0, "etbdata_uboot.bin", &etb_dump_mem[0], SZ_32K);
+		debugf ("\n Dump ETB data finished.\n");
 #endif
 
 #ifdef CONFIG_NAND_BOOT

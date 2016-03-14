@@ -364,4 +364,7 @@
  */
 #define CONFIG_SYS_CACHELINE_SIZE	64
 
+/* coresight dump ETB data */
+#define CONFIG_ETB_DUMP
+
 #endif /* __TSHARK_L_H */
