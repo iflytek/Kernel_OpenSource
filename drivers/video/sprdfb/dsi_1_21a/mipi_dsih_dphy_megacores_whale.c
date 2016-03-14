@@ -424,84 +424,72 @@ static int mipi_dsih_dphy_set_timing_regs(dphy_t *phy, int type, u8 val[])
 {
 	switch (type) {
 	case REQUEST_TIME:
-		if (!mipi_dsih_if_dphy_keep_work(phy)) {
 			mipi_dsih_dphy_write(phy, 0x31, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x41, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x51, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x61, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x71, &val[DATA], 1);
-		} else {
+
 			mipi_dsih_dphy_write(phy, 0x90, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xa0, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xb0, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xc0, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xd0, &val[DATA], 1);
-		}
 		break;
 	case PREPARE_TIME:
-		if (!mipi_dsih_if_dphy_keep_work(phy)) {
 			mipi_dsih_dphy_write(phy, 0x32, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x42, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x52, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x62, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x72, &val[DATA], 1);
-		} else {
+
 			mipi_dsih_dphy_write(phy, 0x91, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xa1, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xb1, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xc1, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xd1, &val[DATA], 1);
-		}
 		break;
 	case ZERO_TIME:
-		if (!mipi_dsih_if_dphy_keep_work(phy)) {
 			mipi_dsih_dphy_write(phy, 0x33, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x43, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x53, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x63, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x73, &val[DATA], 1);
-		} else {
+
 			mipi_dsih_dphy_write(phy, 0x92, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xa2, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xb2, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xc2, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xd2, &val[DATA], 1);
-		}
 		break;
 	case TRAIL_TIME:
-		if (!mipi_dsih_if_dphy_keep_work(phy)) {
 			mipi_dsih_dphy_write(phy, 0x34, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x44, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x54, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x64, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x74, &val[DATA], 1);
-		} else {
+
 			mipi_dsih_dphy_write(phy, 0x93, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xa3, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xb3, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xc3, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xd3, &val[DATA], 1);
-		}
 		break;
 	case EXIT_TIME:
-		if (!mipi_dsih_if_dphy_keep_work(phy)) {
 			mipi_dsih_dphy_write(phy, 0x36, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0x46, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x56, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x66, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0x76, &val[DATA], 1);
-		} else {
+
 			mipi_dsih_dphy_write(phy, 0x95, &val[CLK], 1);
 			mipi_dsih_dphy_write(phy, 0xA5, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xB5, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xc5, &val[DATA], 1);
 			mipi_dsih_dphy_write(phy, 0xd5, &val[DATA], 1);
-		}
 		break;
 	case CLKPOST_TIME:
-		if (!mipi_dsih_if_dphy_keep_work(phy))
 			mipi_dsih_dphy_write(phy, 0x35, &val[CLK], 1);
-		else
 			mipi_dsih_dphy_write(phy, 0x94, &val[CLK], 1);
 		break;
 
