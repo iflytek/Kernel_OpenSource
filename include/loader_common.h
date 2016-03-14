@@ -86,7 +86,7 @@ typedef struct _NV_HEADER {
 
 void set_vibrator(int on);
 void vibrator_hw_init(void);
-void vlx_entry(void);
+void vlx_entry(uchar *dt_adr);
 #ifdef CONFIG_SPLASH_SCREEN
 void set_backlight(uint32_t value);
 #else

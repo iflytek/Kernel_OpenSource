@@ -69,9 +69,8 @@ char *get_product_sn(void)
 	return serial_number_to_transfer;
 }
 
-void fdt_fixup_all(void)
+void fdt_fixup_all(u8 *fdt_blob)
 {
-	u8 *fdt_blob = (u8 *) DT_ADR;
 	uint32_t fdt_size;
 	boot_img_hdr *hdr = raw_header;
 	int err;
@@ -85,8 +84,12 @@ void fdt_fixup_all(void)
 	if (err != 0) {
 		printf("libfdt fdt_open_into(): %s\n", fdt_strerror(err));
 	}
-
+#ifndef CONFIG_MEMORY_DEFRAGMENT
+	/* for memory defragment,ramdisk_adr is allocated dynamically,
+	so put fdt_initrd_norsvmem after caculate the ramdisk_adr */
 	fdt_initrd_norsvmem(fdt_blob, RAMDISK_ADR, RAMDISK_ADR + hdr->ramdisk_size, 1);
+#endif
+
 #ifdef CONFIG_SPLASH_SCREEN
 	fdt_fixup_lcdid(fdt_blob);
 	fdt_fixup_lcdbase(fdt_blob);
@@ -117,16 +120,12 @@ void fdt_fixup_all(void)
 
 	fdt_fixup_chosen_bootargs_board_private(fdt_blob);
 
-#ifdef CONFIG_MEMORY_DEFRAGMENT
-	fdt_fixup_memory_region(fdt_blob);
-#endif
 #ifdef CONFIG_SANSA_SECBOOT
 	//fdt_fixup_socid(fdt_blob);
 #endif
 
 	/* for non iq mode, remove reserved iq memory from dtb */
 	fdt_fixup_reserved_mem(fdt_blob);
-
 	return;
 }
 
@@ -163,14 +162,15 @@ static int start_linux_x86()
 	return boot_linux_kernel((ulong)base_ptr, load_address, false);
 }
 #ifdef CONFIG_ARM
-static int start_linux()
+static int start_linux(uchar *dt_addr)
 {
 #ifdef CONFIG_OF_LIBFDT
 	void (*theKernel) (int zero, int arch, u32 params);
 	theKernel = (void (*)(void *, int, int, int))KERNEL_ADR;
 
-	fdt_fixup_all();
-
+#ifndef CONFIG_MEMORY_DEFRAGMENT
+	fdt_fixup_all(dt_addr);
+#endif
 	/*start modem CP */
 	modem_entry();
 
@@ -180,7 +180,7 @@ static int start_linux()
 	trustzone_entry(TRUSTZONE_ADR + 0x200);
 #endif
 	/* jump to kernel with register set */
-	theKernel(0, machine_arch_type, (u32)DT_ADR);
+	theKernel(0, machine_arch_type, (u32)dt_addr);
 #else
 	void (*theKernel) (int zero, int arch, u32 params);
 	u32 machine_type = 0;
@@ -199,12 +199,14 @@ static int start_linux()
 	return 0;
 }
 #endif
-static int start_linux_armv8()
+static int start_linux_armv8(uchar *dt_addr)
 {
 	void (*theKernel) (void *dtb_addr, int zero, int arch, int reserved);
 	theKernel = (void (*)(void *, int, int, int))KERNEL_ADR;
 
-	fdt_fixup_all();
+#ifndef CONFIG_MEMORY_DEFRAGMENT
+	fdt_fixup_all(dt_addr);
+#endif
 
 	/*start modem CP */
 	modem_entry();
@@ -222,7 +224,7 @@ static int start_linux_armv8()
 
 	/*kernel must run in el2, so here switch to el2 */
 	armv8_switch_to_el2();
-	theKernel(DT_ADR, 0, 0, 0);
+	theKernel(dt_addr, 0, 0, 0);
 
 	/*never enter here*/
 	while (1) ;
@@ -230,7 +232,7 @@ static int start_linux_armv8()
 }
 
 
-void vlx_entry(void)
+void vlx_entry(uchar *dt_addr)
 {
 #ifdef DFS_ON_ARM7
 	cp_dfs_param_for_arm7();
@@ -240,10 +242,10 @@ void vlx_entry(void)
 
 #ifdef CONFIG_ARM64
 	smp_kick_all_cpus();
-	start_linux_armv8();
+	start_linux_armv8(dt_addr);
 #endif
 #ifdef CONFIG_ARM
-	start_linux();
+	start_linux(dt_addr);
 #endif
 #ifdef CONFIG_X86
 	start_linux_x86();

@@ -26,6 +26,7 @@
 #endif
 
 #ifdef CONFIG_OF_LIBFDT
+#include <libfdt.h>
 #include "dev_tree.h"
 #endif
 extern int lcd_line_length;
@@ -44,6 +45,13 @@ typedef struct {
 	uint32_t offset;
 	uint32_t length;
 } data_block_header_t;
+
+typedef struct _BOOT_IMG_OFFSET {
+	uint64_t kernel_offset;
+	uint64_t ramdisk_offset;
+	uint64_t dt_offset;
+}BOOT_IMG_OFFSET;
+static BOOT_IMG_OFFSET boot_img_offset;
 
 #ifdef CONFIG_SUPPORT_TDLTE
 static boot_image_required_t const s_boot_image_tl_table[] = {
@@ -516,27 +524,14 @@ int _boot_load_required_image(boot_image_required_t img_info)
 	return 1;
 }
 
-/**
-	Function for checking and loading kernel/ramdisk image.
-*/
-int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
+uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 {
-	uchar *partition = NULL;
 	uint64_t size;
 	uint64_t offset = 0;
-	char * dt_img_adr;
 	uint32_t secure_boot_offset = 0;
-	char  *boot_mode_type_str;
-	if (0 == memcmp(bootmode, RECOVERY_PART, strlen(RECOVERY_PART))) {
-		partition = "recovery";
-		debugf("enter recovery mode!\n");
-	} else {
-		partition = "boot";
-		debugf("enter boot mode!\n");
-	}
-/*TODO*/
+
 #ifdef CONFIG_SECURE_BOOT
-	if (!_boot_partition_read(dev, partition, 0, 512, (u8 *) hdr)) {
+	if (0 != common_raw_read(partition, 512, 0,  (u8 *) hdr)) {
 		errorf("%s read error!\n", partition);
 		return 0;
 	}
@@ -544,9 +539,8 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 	offset += secure_boot_offset;
 #endif
 #ifdef CONFIG_SECBOOT
-		offset = 512;/**header of image size is 512B**/
+	offset = 512;/**header of image size is 512B**/
 #endif
-
 	if (0 != common_raw_read(partition, KERNL_PAGE_SIZE, offset, (char *)hdr)) {
 		errorf("read %s header error!\n", partition);
 		return 0;
@@ -557,48 +551,173 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 		errorf("bad boot image header, give up boot!!!!\n");
 		return 0;
 	}
-
-	/*read kernel image */
-	offset += KERNL_PAGE_SIZE;
+	/*kernel image */
+	boot_img_offset.kernel_offset = offset + KERNL_PAGE_SIZE;
 	size = PAD_SIZE(hdr->kernel_size, KERNL_PAGE_SIZE);
 	if (0 == size) {
 		errorf("kernel image should not be zero!\n");
 		return 0;
 	}
 
-	if (0 != common_raw_read(partition, size, offset, (char *)KERNEL_ADR)) {
-		errorf("%s kernel read error!\n", partition);
-		return 0;
-	}
-	debugf("%s kernel read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)KERNEL_ADR);
-
-	/*read ramdisk image */
-	offset += size;
+	/* ramdisk image */
+	boot_img_offset.ramdisk_offset = boot_img_offset.kernel_offset + size;
 	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
 	if (0 == size) {
 		errorf("ramdisk image size should not be zero\n");
 		return 0;
 	}
-	if (0 != common_raw_read(partition, size, offset, (char *)RAMDISK_ADR)) {
-		errorf("%s ramdisk read error!\n", partition);
+
+	/* dt image */
+	boot_img_offset.dt_offset = boot_img_offset.ramdisk_offset + size;
+	return 1;
+}
+
+/**
+	Function for do memory defragment and load dtb
+*/
+#ifdef CONFIG_MEMORY_DEFRAGMENT
+void load_fixup_dt_img(boot_img_hdr * hdr, uchar *partition, uchar **dt_start_addr) {
+	u8 *fdt_blob = NULL;
+	struct dt_table table;
+	char * header = NULL;
+	struct dt_entry *dt_entry_ptr;
+	uint64_t size = 0;
+	uint64_t fdt_size = 0;
+	int err;
+	uchar *dt_end_addr;
+	uchar *ramdisk_adr;
+
+	size = sizeof(struct dt_table);
+	if (0 != common_raw_read(partition, size, boot_img_offset.dt_offset, &table)) {
+		errorf("read dt image table header fail\n");
+		goto fail;
+	}
+
+	/* Validate the device tree table header */
+	if((table.magic != DEV_TREE_MAGIC) || (table.version != DEV_TREE_VERSION)) {
+		errorf("Cannot validate Device Tree Table \n");
+		goto fail;
+	}
+
+	size = sizeof(struct dt_table) + sizeof(struct dt_entry) * table.num_entries;
+	header = (char *)malloc(size);
+	if (NULL == header) {
+		errorf("malloc size %d for dt header fail\n", size);
+		goto fail;
+	}
+	if (0 != common_raw_read(partition, size,  boot_img_offset.dt_offset, header)) {
+		errorf("read dt image table and entries header fail\n");
+		goto fail;
+	}
+
+	/* Calculate the offset of device tree within device tree table */
+	dt_entry_ptr = dev_tree_get_entry_ptr((struct dt_table *)header);
+	if(NULL == dt_entry_ptr) {
+		errorf("Getting device tree address failed\n");
+		goto fail;
+	}
+
+	size = dt_entry_ptr->size;
+	fdt_blob = malloc(size + FDT_ADD_SIZE);
+	if (0 != common_raw_read(partition, size, (boot_img_offset.dt_offset + dt_entry_ptr->offset), (char *)fdt_blob)) {
+		errorf("dt entry size read error!\n");
+		goto fail;
+	}
+
+	if (fdt_check_header(fdt_blob) != 0) {
+		errorf("image is not a fdt\n");
+		goto fail;
+	}
+	fdt_size = fdt_totalsize(fdt_blob);
+	err = fdt_open_into(fdt_blob, fdt_blob, fdt_size + FDT_ADD_SIZE);
+	if (err != 0) {
+		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(err));
+		goto fail;
+	}
+
+	fdt_fixup_all(fdt_blob);
+	if(0 != fdt_fixup_memory_region(fdt_blob))
+		goto fail;
+
+	if(0 != get_dt_end_addr(fdt_blob , &dt_end_addr))
+		goto fail;
+
+	fdt_size = fdt_totalsize(fdt_blob);
+	size = PAD_SIZE(fdt_size, KERNL_PAGE_SIZE);
+	*dt_start_addr = dt_end_addr -size;
+	memcpy(*dt_start_addr, fdt_blob, size);
+
+	/*get ramdisk size */
+	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+	ramdisk_adr = *dt_start_addr - size;
+	fdt_initrd_norsvmem(*dt_start_addr, ramdisk_adr, ramdisk_adr + hdr->ramdisk_size, 1);
+fail:
+	if (NULL != header)
+		free(header);
+	if (NULL != fdt_blob)
+		free(fdt_blob);
+	return 0;
+}
+#endif
+
+int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **dt_addr )
+{
+	uchar *partition = NULL;
+	uint64_t size;
+	uchar *dt_img_adr;
+	char  *boot_mode_type_str;
+	uchar *ramdisk_addr = 0;
+
+	if (0 == memcmp(bootmode, RECOVERY_PART, strlen(RECOVERY_PART))) {
+		partition = "recovery";
+		debugf("enter recovery mode!\n");
+	} else {
+		partition = "boot";
+		debugf("enter boot mode!\n");
+	}
+
+	if(0 == _get_kernel_ramdisk_dt_offset(hdr, partition))
+		return 0;
+	/* get kernel image size */
+	size = PAD_SIZE(hdr->kernel_size, KERNL_PAGE_SIZE);
+	if (0 == size) {
+		errorf("kernel image should not be zero!\n");
 		return 0;
 	}
-	debugf("%s ramdisk read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)RAMDISK_ADR);
 
+	/* read kernel image */
+	if (0 != common_raw_read(partition, size, boot_img_offset.kernel_offset , (char *)KERNEL_ADR)) {
+		errorf("%s kernel read error!\n", partition);
+		return 0;
+	}
+	debugf("%s kernel read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)KERNEL_ADR);
+
+	ramdisk_addr = RAMDISK_ADR;
+/*read dt image*/
 #ifdef CONFIG_OF_LIBFDT
 #ifdef CONFIG_SEPARATE_DT
 	if (!_boot_load_separate_dt())
 		return 0;
 #else
-	/*read dt image*/
-	offset += size;
+#ifdef CONFIG_MEMORY_DEFRAGMENT
+	/* for memory defragment, dr_addr and ramdisk_adr is allocated dynamically*/
+	load_fixup_dt_img(hdr,  partition, dt_addr);
+	debugf("dt_addr:%lx \n", *dt_addr);
+	/* get ramdisk image size */
+	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+	if (0 == size) {
+		errorf("ramdisk image size should not be zero\n");
+		return 0;
+	}
+	ramdisk_addr = *dt_addr - size;
+#else
 	size = PAD_SIZE(hdr->dt_size, KERNL_PAGE_SIZE);
 	dt_img_adr = (uchar *)(RAMDISK_ADR - size - KERNL_PAGE_SIZE);
 	if (0 == size) {
 		errorf("dt image size should not be zero\n");
 		return 0;
 	}
-	if (0 != common_raw_read(partition, size, offset, dt_img_adr)) {
+	if (0 != common_raw_read(partition, size, boot_img_offset.dt_offset, dt_img_adr)) {
 		errorf("%s ramdisk read error!\n", partition);
 		return 0;
 	}
@@ -610,6 +729,20 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 	debugf("%s dtb read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)DT_ADR);
 #endif
 #endif
+#endif
+
+	/* get ramdisk image size */
+	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+	if (0 == size) {
+		errorf("ramdisk image size should not be zero\n");
+		return 0;
+	}
+	/*read ramdisk image */
+	if (0 != common_raw_read(partition, size, boot_img_offset.ramdisk_offset, ramdisk_addr)) {
+		errorf("%s ramdisk read error!\n", partition);
+		return 0;
+	}
+	debugf("%s ramdisk read OK,size=0x%llx, locate to 0x%lx \n", partition, size, ramdisk_addr);
 
 	boot_mode_type_str = getenv("bootmode");
 	if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
@@ -639,6 +772,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr)
 	return 1;
 }
 
+
 #ifdef CONFIG_SEPARATE_DT
 int _boot_load_separate_dt(void)
 {
@@ -649,7 +783,6 @@ int _boot_load_separate_dt(void)
 	uint64_t offset = 0;
 	uint64_t size = 0;
 
-/*TODO*/
 #ifdef CONFIG_SECURE_BOOT
 	if (0 != common_raw_read("dt", EMMC_SECTOR_SIZE, 0, &table)) {
 		errorf("dt read error!\n");
@@ -658,6 +791,9 @@ int _boot_load_separate_dt(void)
 	}
 	secure_boot_offset = get_code_offset(table);
 	offset += secure_boot_offset;
+#endif
+#ifdef CONFIG_SECBOOT
+	offset = 512;/**header of image size is 512B**/
 #endif
 
 	size = sizeof(struct dt_table);
@@ -744,6 +880,7 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 	int i = 0;
 	int j = 0;
 	int ret = 0;
+	uchar *dt_adr = DT_ADR;
 
 #ifdef CONFIG_SPLASH_SCREEN
 	set_backlight(backlight_set);
@@ -769,11 +906,11 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 #ifdef OTA_BACKUP_MISC_RECOVERY
 	ret = memcmp(kernel_pname, RECOVERY_PART, strlen(RECOVERY_PART));
 	if ((ret != 0) || (boot_load_recovery_in_sd(hdr) != 0))
-		if (!_boot_load_kernel_ramdisk_image(kernel_pname, hdr))
+		if (!_boot_load_kernel_ramdisk_image(kernel_pname, hdr &dt_adr))
 			ret = -1;
 #else
 	/*loader kernel and ramdisk*/
-	if (!_boot_load_kernel_ramdisk_image(kernel_pname, hdr))
+	if (!_boot_load_kernel_ramdisk_image(kernel_pname, hdr, &dt_adr))
 		ret = -1;
 #endif
 
@@ -812,5 +949,5 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 #if 0
 enable_cc63_module();
 #endif
-	vlx_entry();
+	vlx_entry(dt_adr);
 }
