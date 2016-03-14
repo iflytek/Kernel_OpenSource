@@ -13,6 +13,6 @@ config SYS_CONFIG_NAME
 	default "sp9860g_1h10_3g"
 
 config SYS_TEXT_BASE
-	default 0x49f000000
+	default 0x9f000000
 
 endif

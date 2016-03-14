@@ -126,7 +126,7 @@
 /* Physical Memory Map */
 #define  CONFIG_DUAL_DDR
 
-#define PHYS_SDRAM_1			0x480000000	/* SDRAM Bank #1 */
+#define PHYS_SDRAM_1			0x80000000	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE		0x20000000	/* 512 MB */
 
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
@@ -138,7 +138,7 @@
 #define CONFIG_NR_DRAM_BANKS		1
 #else
 #define CONFIG_NR_DRAM_BANKS		2
-#define PHYS_SDRAM_2			0x580000000	/* SDRAM Bank #1 */
+#define PHYS_SDRAM_2			0x180000000	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_2_SIZE		0x20000000	/* 256 MB */
 #define CONFIG_SYS_SDRAM_BASE2    PHYS_SDRAM_2
 #define CONFIG_SYS_SDRAM_SIZE2     PHYS_SDRAM_2_SIZE
@@ -284,15 +284,9 @@
 
 #define SIMLOCK_ADR      (0x891FE800+0x4)   //0x4 just for data header
 
-#ifndef  CONFIG_DUAL_DDR
 #define KERNEL_ADR      0x80080000
 #define DT_ADR          0x85400000
 #define RAMDISK_ADR     0x85500000
-#else
-#define KERNEL_ADR      0x480080000
-#define DT_ADR          0x485400000
-#define RAMDISK_ADR     0x485500000
-#endif
 
 #define VLX_TAG_ADDR    0x82000100
 
