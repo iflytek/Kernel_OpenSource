@@ -207,13 +207,7 @@ uint8_t header_buf[SEC_HEADER_MAX_SIZE];
 static void enable_cc63_module(void)
 {
   printf("Enable_cc63_module\n");
-  ap_sansa_efuse_prog_power_on();
-  *(volatile unsigned int *)(0x40240040) = 0x8810;
-  *(volatile unsigned int *)(0x40240008) = 0x02;
-  *(volatile unsigned int *)(0x40240004) = 0x401;
-  *(volatile unsigned int *)(0x4024000c) = 0x01;
-  while(((*(volatile unsigned int *)(0x40240020))&0x01) != 0);
-  ap_sansa_efuse_power_off();
+  sprd_ap_efuse_prog(0x02,0x401);
   printf("Enable_cc63_module end\n");
   __asm__("b .");
 }
