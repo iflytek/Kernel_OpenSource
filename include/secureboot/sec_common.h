@@ -27,6 +27,10 @@ extern imgToVerifyInfo img_verify_info;
 #define SIMG_BUF     0x1500000
 #define CERT_SIZE    0x1000
 #define SYS_HEADER_SIZE 0x200
+
+#define SEC_TRUE    0
+#define SEC_FALSE   1
+
 typedef struct{
 	uint32_t mMagicNum; //0x42544844
 	uint32_t mVersion; // 1
@@ -36,15 +40,25 @@ typedef struct{
 	uint8_t reserved[460]; // 460 + 13*4 = 512
 }sys_img_header;
 
+typedef enum VERIFY_RESULT {
+	VERIFY_NO_NEED = 1,
+	VERIFY_OK,
+	VERIFY_FAIL,
+	VERIFY_STOP_WRITE,
+	VERIFY_SPECIAL
+} VERIFY_RESULT;
+
 
 void secboot_verify(void *ptr,void *m,void *n,uint32_t data_len);
 
 int dl_secure_verify(void *partition_name,void *header,void *code);
 
-int secboot_enable_check(void);
-
 void secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo);
 
 void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo);
+
+VERIFY_RESULT secure_process_flow(ulong * strip, unsigned char * part_name, 
+				uint32_t rcv_size, uint32_t total_size, unsigned char * buf);
+
 
 #endif

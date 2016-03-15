@@ -9,8 +9,6 @@
 #include <sprd_common_rw.h>
 
 #include <secureboot/sec_common.h>
-#include "secure_verify.h"
-#include "secure_boot.h"
 #include <otp_helper.h>
 
 static DL_EMMC_FILE_STATUS g_status;
@@ -21,44 +19,6 @@ static unsigned long g_sram_addr;
 static unsigned int img_backup_flag = 0;
 
 unsigned char *g_eMMCBuf = (unsigned char *)0x82000000;
-
-//#ifdef CONFIG_SECURE_BOOT
-#if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
-static int check_secure_flag = 0;
-static int secure_image_flag = 0;
-typedef enum SECURE_IMAGE {
-	NORMALE_IMAGE = 1,
-	SPL_IMAGE,
-	SYSTEM_IMAGE
-} SIGNED_IMAGE;
-static uchar *const s_force_secure_check[] = {
-	"boot",
-	"recovery",
-	"uboot",
-	"wl_modem",
-	"wl_ldsp",
-	"wmodem",
-	"wl_gdsp",
-	"wl_warm",
-	"pm_sys",
-	"sml",
-	"tl_ldsp",
-	"tl_tgdsp",
-	"tl_modem",
-	"l_modem",
-	"l_ldsp",
-	"l_gdsp",
-	"l_warm",
-	"l_tgdsp",
-	"l_agdsp",
-	"trustos",
-	"wdsp",
-	#ifdef CONFIG_SUPPORT_WIFI
-	"wcnmodem",
-	#endif
-	NULL
-};
-#endif
 
 /**
 	partitions not for raw data or normal usage(e.g. nv and prodinfo) should config here.
@@ -453,123 +413,6 @@ int speedup_download_process(uint16_t size, char *buf)
 }
 
 
-
-//#ifdef CONFIG_SECURE_BOOT
-#if defined (CONFIG_SECURE_BOOT)||defined (CONFIG_SECBOOT)
-int _check_secure_part(uchar * partition_name)
-{
-	int i = 0;
-	do {
-		if (0 == strcmp(s_force_secure_check[i], partition_name))
-			return 1;
-		i++;
-	}
-	while (s_force_secure_check[i] != 0);
-
-	return 0;
-}
-
-/*TODO*/
-static int _emmc_secure_download(uchar * partition_name)
-{
-	int32_t retval;
-	unsigned int code_off = 0;
-	uint32_t write_size = 0;
-
-	if (0 == strcmp("splloader", g_dl_eMMCStatus.curUserPartitionName)) {
-		//splFillCheckData(g_eMMCBuf);
-		write_size = max(g_status.unsave_recv_size, SPL_CHECKSUM_LEN);
-	} else {
-		write_size = g_status.unsave_recv_size;
-	}
-
-	debugf("enter secure_image_flag = %d partition:%s \n", secure_image_flag, partition_name);
-	switch (secure_image_flag) {
-	case NORMALE_IMAGE:	// 1 boot image,uboot image, etc...
-		if (strcmp("uboot", partition_name) == 0 || strcmp("uboot_bak",partition_name) == 0) {
-			dl_secure_verify("splloader",g_eMMCBuf,0);
-		}
-#ifdef CONFIG_SECBOOT
-		else if(strcmp("sml",partition_name) == 0 || strcmp("trustos",partition_name) == 0 || strcmp("sml_bak",partition_name) == 0 ||
-			strcmp("trustos_bak",partition_name) == 0){
-			dl_secure_verify("fdl1",g_eMMCBuf,0);
-		}
-#endif
-		else {
-			dl_secure_verify("fdl2",g_eMMCBuf,0);
-		}
-		break;
-	case SPL_IMAGE:	//  2 spl image
-		dl_secure_verify("splloader0",g_eMMCBuf,0);
-		break;
-	case SYSTEM_IMAGE:	//  3 system image
-#ifdef CONFIG_SYSTEM_VERIFY
-		debugf("Check system image \n");
-		Sec_SHA1_Finish();
-		ret = secure_verify_system_end("fdl2", g_eMMCBuf, 0);
-		debugf("secure_verify_system  ret = %d \n", ret);
-		if (ret == 0) {
-			debugf("verify system failed! Erase it! \n", ret);
-			ret = dl_erase("system", 0);
-			debugf("fdl2_erase ret = %d \n", ret);
-			return 0;
-		} else {
-			debugf("secure_verify_system success. \n", ret);
-			return 1;
-		}
-#endif
-		return 1;
-	default:
-		// do nothing
-		return 1;
-	}
-
-	//_download_image(1);
-	if(img_backup_flag==1)
-	{
-		if(!_img_write_with_backup(g_dl_eMMCStatus.curUserPartitionName)){
-			g_status.unsave_recv_size = 0;
-			return 0;
-			}
-	}
-	else
-	{
-	 if (IMG_WITH_SPARSE == g_dl_eMMCStatus.curImgType) {
-			debugf("Handle the saving of image with sparse,name=%s,buf start at 0x%x,size=0x%x\n",
-				   g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, write_size);
-			retval = write_sparse_img(g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, (ulong)write_size);
-			if (-1 == retval) {
-				g_status.unsave_recv_size = 0;
-				errorf("Write sparse img fail\n");
-				return 0;
-			}
-			debugf("Write packed img success,return value=%d\n", retval);
-			if (retval > 0) {
-				memmove(g_eMMCBuf, g_eMMCBuf + retval, g_status.unsave_recv_size - retval);
-				g_status.unsave_recv_size -= retval;
-				g_sram_addr = (unsigned long) (g_eMMCBuf + g_status.unsave_recv_size);
-				debugf("After simg , unsave_recv_size=%d, saved value=%d\n", g_status.unsave_recv_size, retval);
-			} else {
-				g_status.unsave_recv_size = 0;
-				g_sram_addr = (unsigned long) g_eMMCBuf;
-			}
-		} else {
-			if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName, (uint64_t)write_size, 0,
-				g_dl_eMMCStatus.offset, (uchar *)(g_eMMCBuf + code_off))) {
-				errorf("write %s size 0x%x offset 0x%x fail\n", g_dl_eMMCStatus.curUserPartitionName, write_size, g_dl_eMMCStatus.offset);
-				g_status.unsave_recv_size = 0;
-				return 0;
-			}
-
-			g_status.unsave_recv_size = 0;
-		}
-	}
-
-	secure_image_flag = UNABLE_SECURE;
-	return 1;
-}
-#endif
-
 void _get_partition_attribute(uchar * partition_name)
 {
 	int i;
@@ -593,7 +436,7 @@ void _get_partition_attribute(uchar * partition_name)
 }
 
 
-int _nv_img_write(uchar * partition, uint32_t size)
+OPERATE_STATUS _nv_img_write(uchar * partition, uint32_t size)
 {
 	uint32_t nSectorCount;
 	uint32_t nSectorBase;
@@ -613,150 +456,149 @@ int _nv_img_write(uchar * partition, uint32_t size)
 
 	debugf("Start to write first block of NV partition(%s)\n", partition);
 	if (0 != common_raw_write(partition, NV_HEADER_SIZE, 0, 0, header_buf))
-		return 0;
+		return OPERATE_WRITE_ERROR;
 
 	debugf("Start to write remain blocks of NV partition\n");
 	if (0 != common_raw_write(partition, size, 0, NV_HEADER_SIZE, g_eMMCBuf))
-		return 0;
+		return OPERATE_WRITE_ERROR;
 
 	/*write the backup partition */
 	backup_partition_name = _get_backup_partition_name(partition);
 
 	if (0 != common_raw_write(backup_partition_name, NV_HEADER_SIZE, 0, 0, header_buf))
-		return 0;
+		return OPERATE_WRITE_ERROR;
 
 	if (0 != common_raw_write(backup_partition_name, size, 0, NV_HEADER_SIZE, g_eMMCBuf))
-		return 0;
+		return OPERATE_WRITE_ERROR;
 
 	g_status.unsave_recv_size = 0;
-	return 1;
+	return OPERATE_SUCCESS;
 }
 
-int _download_image(int is_total_recv)
-{
-	int32_t retval;
-	unsigned int code_off = 0;
-	uint32_t write_size = 0;
-
-	if (0 == strcmp("splloader", g_dl_eMMCStatus.curUserPartitionName)) {
-		splFillCheckData(g_eMMCBuf);
-		write_size = max(g_status.unsave_recv_size, SPL_CHECKSUM_LEN);
-	} else {
-		write_size = g_status.unsave_recv_size;
-	}
-
-/*TODO*/
-//#ifdef CONFIG_SECURE_BOOT
-#if defined (CONFIG_SECURE_BOOT)||defined (CONFIG_SECBOOT)
-
-	unsigned char is_header = FALSE;
-
-	debugf("enter secure_image_flag = %d \n", secure_image_flag);
-	switch (secure_image_flag) {
-	case NORMALE_IMAGE:	// 1 boot image,uboot image, etc...
-		// no break here
-	case SPL_IMAGE:	// 2 spl image
-		return 1;
-	case SYSTEM_IMAGE:	//  3 system image
-#ifdef CONFIG_SYSTEM_VERIFY
-		debugf("Calculate SHA \n");
-		is_header = secure_verify_system_start("fdl2", g_eMMCBuf, g_status.unsave_recv_size);
-
-		debugf("is_header = %d \n", is_header);
-		if (is_header) {
-			code_off = VLR_CODE_OFF;
-			g_status.unsave_recv_size -= VLR_CODE_OFF;
-		}
-#endif
-		break;
-	default:
-		// do nothing
-		break;
-	}
-#endif
-
-	if (IMG_WITH_SPARSE == g_dl_eMMCStatus.curImgType) {
-		debugf("Handle the saving of image with sparse,name=%s,buf start at 0x%x,size=0x%x\n",
-		       g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, write_size);
-		retval = write_sparse_img(g_dl_eMMCStatus.curUserPartitionName, g_eMMCBuf, (ulong)write_size);
-		if (-1 == retval) {
-			g_status.unsave_recv_size = 0;
-			errorf("Write sparse img fail\n");
-			return 0;
-		}
-		debugf("Write packed img success,return value=%d\n", retval);
-		if (retval > 0) {
-			memmove(g_eMMCBuf, g_eMMCBuf + retval, g_status.unsave_recv_size - retval);
-			g_status.unsave_recv_size -= retval;
-			g_sram_addr = (unsigned long) (g_eMMCBuf + g_status.unsave_recv_size);
-			debugf("After simg , unsave_recv_size=%d, saved value=%d\n", g_status.unsave_recv_size, retval);
-		} else {
-			g_status.unsave_recv_size = 0;
-			g_sram_addr = (unsigned long) g_eMMCBuf;
-		}
-	} else {
-		if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName, (uint64_t)write_size, 0,
-			g_dl_eMMCStatus.offset, (uchar *)(g_eMMCBuf + code_off))) {
-			errorf("write %s size 0x%x offset 0x%x fail\n", g_dl_eMMCStatus.curUserPartitionName, write_size, g_dl_eMMCStatus.offset);
-			g_status.unsave_recv_size = 0;
-			return 0;
-		}
-
-		if (!is_total_recv) {
-			g_dl_eMMCStatus.offset += g_status.unsave_recv_size;
-			g_sram_addr = (unsigned long) g_eMMCBuf;
-		}
-		g_status.unsave_recv_size = 0;
-	}
-
-	return 1;
-}
-
-
-int _img_write_with_backup(uchar *partition)
+OPERATE_STATUS _img_write_with_backup(uchar *partition)
 {
 	uint64_t write_size = 0;
-   if(img_backup_flag==0){
-#if defined CONFIG_SECBOOT
-		img_backup_flag=1;
-		return 1;
-#endif
-	}
-	img_backup_flag=0;
+
 	if (0 == strcmp("splloader",  partition)) {
 		write_size = max(g_status.total_recv_size, SPL_CHECKSUM_LEN);
 		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
-			return 0;
+			return OPERATE_WRITE_ERROR;
 		strcat(partition, "_bak");
 		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
-			return 0;
+			return OPERATE_WRITE_ERROR;
 	} else if (0 == strcmp("uboot",  partition)
 		|| 0 == strcmp("trustos",partition)
 		|| 0 == strcmp("sml",partition)) {
 		write_size = g_status.total_recv_size;
 		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
-			return 0;
+			return OPERATE_WRITE_ERROR;
 		strcat(partition, "_bak");
 		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
-			return 0;
-	} 
-    /*
-	else {
-		_download_image(0);
+			return OPERATE_WRITE_ERROR;
+	} else {
+		return OPERATE_IGNORE;
 	}
-	*/
+
 	g_status.unsave_recv_size = 0;
-	return 1;
+	return OPERATE_SUCCESS;
 }
 
 
-
-int regular_download_process(uint16_t size, char *buf)
+OPERATE_STATUS _download_image(void)
 {
-	uint32_t lastSize;
-	uint32_t nSectorCount;
+	int32_t retval = 0;
+	OPERATE_STATUS status = 0;
+	ulong strip_header = 0;
+	uint32_t write_size = 0;
+	uchar * write_start = NULL;
 	uint32_t fix_nv_checksum;
 	sys_img_header *bakup_header = NULL;
+
+#if defined (CONFIG_SECURE_BOOT) ||defined (CONFIG_SECBOOT)
+	VERIFY_RESULT verify_res;
+	verify_res = secure_process_flow(&strip_header, g_dl_eMMCStatus.curUserPartitionName,
+		g_status.unsave_recv_size, g_status.total_size, g_eMMCBuf);
+	switch (verify_res) {
+	case VERIFY_FAIL:
+		if (0 == strcmp("system", g_dl_eMMCStatus.curUserPartitionName))
+			common_raw_erase(g_dl_eMMCStatus.curUserPartitionName, 0, 0);
+		return OPERATE_SYSTEM_ERROR;
+	/*for future extension*/
+	case VERIFY_STOP_WRITE:
+	case VERIFY_NO_NEED:
+	case VERIFY_OK:
+	default:
+		break;
+	}
+#endif
+
+	/*nv image*/
+	if (PARTITION_PURPOSE_NV == g_dl_eMMCStatus.partitionpurpose) {
+		debugf("Get all data of partition<%s>,start write to flash\n", g_dl_eMMCStatus.curUserPartitionName);
+		fix_nv_checksum = Get_CheckSum((uchar *) g_eMMCBuf, g_status.total_recv_size);
+		if (fix_nv_checksum != g_checksum) {
+			/*may data transfer error */
+			debugf("nv data transfer error,checksum error!\n");
+			return OPERATE_CHECKSUM_DIFF;
+		}
+		status = _nv_img_write(g_dl_eMMCStatus.curUserPartitionName, FIXNV_SIZE);
+		return status;
+	}
+
+	/*image with backup partition*/
+	bakup_header = (sys_img_header *) g_eMMCBuf;
+	if (IMG_BAK_HEADER == bakup_header->mMagicNum) {
+		status = _img_write_with_backup(g_dl_eMMCStatus.curUserPartitionName);
+		if (OPERATE_IGNORE != status)
+			return status;
+	}
+
+	/*special operation for SPL with no backup*/
+	if (0 == strcmp("splloader", g_dl_eMMCStatus.curUserPartitionName)) {
+		splFillCheckData(g_eMMCBuf);
+		write_size = max(g_status.unsave_recv_size, SPL_CHECKSUM_LEN);
+	} else {
+		write_size = g_status.unsave_recv_size - strip_header;
+	}
+	write_start = g_eMMCBuf + strip_header;
+
+	/*sparse image*/
+	if (IMG_WITH_SPARSE == g_dl_eMMCStatus.curImgType) {
+		debugf("Handle the saving of image with sparse,name=%s,buf start at %p,size=0x%x\n",
+		       g_dl_eMMCStatus.curUserPartitionName, write_start, write_size);
+		retval = write_sparse_img(g_dl_eMMCStatus.curUserPartitionName, write_start, (ulong)write_size);
+		if (-1 == retval) {
+			g_status.unsave_recv_size = 0;
+			errorf("Write sparse img fail\n");
+			return OPERATE_WRITE_ERROR;
+		}
+		debugf("Write packed img success,return value=%d\n", retval);
+		if (retval > 0) {
+			memmove(g_eMMCBuf, write_start + retval, write_size - retval);
+			g_status.unsave_recv_size = write_size - retval;
+			debugf("After simg , unsave_recv_size=%d, saved value=%d\n", g_status.unsave_recv_size, retval);
+		} else {
+			g_status.unsave_recv_size = 0;
+		}
+	} else {
+		if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName, (uint64_t)write_size, 0,
+			g_dl_eMMCStatus.offset, write_start)) {
+			errorf("write %s size 0x%x offset 0x%x fail\n", g_dl_eMMCStatus.curUserPartitionName, write_size, g_dl_eMMCStatus.offset);
+			g_status.unsave_recv_size = 0;
+			return OPERATE_WRITE_ERROR;
+		}
+
+		g_dl_eMMCStatus.offset += write_size;
+		g_status.unsave_recv_size = 0;
+	}
+
+	return OPERATE_SUCCESS;
+}
+
+OPERATE_STATUS regular_download_process(uint16_t size, char *buf)
+{
+	uint32_t lastSize;
+	OPERATE_STATUS ret;
 
 	if (EMMC_BUF_SIZE >= (g_status.unsave_recv_size + size)) {
 		memcpy((uchar *) g_sram_addr, buf, size);
@@ -764,33 +606,8 @@ int regular_download_process(uint16_t size, char *buf)
 		g_status.unsave_recv_size += size;
 
 		if (g_status.total_recv_size == g_status.total_size) {
-			if (PARTITION_PURPOSE_NV == g_dl_eMMCStatus.partitionpurpose) {
-				debugf("Get all data of partition<%s>,start write to flash\n", g_dl_eMMCStatus.curUserPartitionName);
-				fix_nv_checksum = Get_CheckSum((uchar *) g_eMMCBuf, g_status.total_recv_size);
-				if (fix_nv_checksum != g_checksum) {
-					/*may data transfer error */
-					debugf("nv data transfer error,checksum error!\n");
-					return OPERATE_CHECKSUM_DIFF;
-				}
-				if (!_nv_img_write(g_dl_eMMCStatus.curUserPartitionName, FIXNV_SIZE))
-					return OPERATE_WRITE_ERROR;
-			} else {
-				bakup_header = (sys_img_header *) g_eMMCBuf;
-				//if (bakup_header->mMagicNum == IMG_BAK_HEADER) {
-				if((bakup_header->mMagicNum==IMG_BAK_HEADER)
-					&&((0 == strcmp("splloader",g_dl_eMMCStatus.curUserPartitionName))
-				            ||(0 == strcmp("sml",g_dl_eMMCStatus.curUserPartitionName))
-					    ||(0 == strcmp("trustos",g_dl_eMMCStatus.curUserPartitionName))
-					    ||(0 == strcmp("uboot",  g_dl_eMMCStatus.curUserPartitionName)))){
-
-					if(!_img_write_with_backup(g_dl_eMMCStatus.curUserPartitionName))
-						return OPERATE_WRITE_ERROR;
-				} else {
-					if(!_download_image(1))
-						return OPERATE_WRITE_ERROR;
-				}
-			}
-
+			ret = _download_image();
+			return ret;
 		}
 	} else {
 		lastSize = EMMC_BUF_SIZE - g_status.unsave_recv_size;
@@ -800,8 +617,9 @@ int regular_download_process(uint16_t size, char *buf)
 
 		g_status.unsave_recv_size = EMMC_BUF_SIZE;
 
-		if (!_download_image(0))
-			return OPERATE_WRITE_ERROR;
+		ret = _download_image();
+		if (OPERATE_SUCCESS != ret)
+			return ret;
 
 		g_sram_addr = (unsigned long) (g_eMMCBuf + g_status.unsave_recv_size);
 		memcpy((uchar *) g_sram_addr, (char *)(&buf[lastSize]), size - lastSize);
@@ -809,9 +627,10 @@ int regular_download_process(uint16_t size, char *buf)
 		g_sram_addr = (unsigned long) (g_eMMCBuf + g_status.unsave_recv_size);
 		debugf("After write,unsaved recv size=%d\n", g_status.unsave_recv_size);
 
-		if (g_status.total_recv_size == g_status.total_size)
-			if (!_download_image(1))
-				return OPERATE_WRITE_ERROR;
+		if (g_status.total_recv_size == g_status.total_size) {
+			ret = _download_image();
+			return ret;
+		}
 
 	}
 	return OPERATE_SUCCESS;
@@ -1031,18 +850,6 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 	uint32_t size_in_lba = 0;
 
 	g_status.total_size = size;
-
-//#ifdef CONFIG_SECURE_BOOT
-#if defined (CONFIG_SECURE_BOOT)||defined (CONFIG_SECBOOT)
-    sansa_enable_efuse_EB();
-	if (_check_secure_part(partition_name)) {
-		check_secure_flag = ENABLE_SECURE;	//1;
-		secure_image_flag = ENABLE_SECURE;	//1;
-	} else {
-		check_secure_flag = UNABLE_SECURE;	//0;
-		secure_image_flag = UNABLE_SECURE;	//0;
-	}
-#endif
 	strcpy(g_dl_eMMCStatus.curUserPartitionName, partition_name);
 	g_dl_eMMCStatus.offset = 0;
 
@@ -1059,20 +866,6 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 		g_checksum = nv_checksum;
 	} else if (0 == strcmp("splloader", partition_name)) {
 		memset(g_eMMCBuf, 0xff, SPL_CHECKSUM_LEN);
-//#ifdef CONFIG_SECURE_BOOT
-#if defined (CONFIG_SECURE_BOOT)||defined (CONFIG_SECBOOT)
-
-		secure_image_flag = SPL_CHECK;	//2;
-#endif
-	} else if (0 == strcmp("system", partition_name)) {
-		debugf("partition purpose is normal\n");
-#ifdef CONFIG_SECURE_BOOT
-		debugf("Downloading system: Set secure_image_flag to 3. \n");
-		secure_image_flag = SYSTEM_CHECK;	//3;
-#ifdef CONFIG_SYSTEM_VERIFY
-			Sec_SHA1_Start();
-#endif
-#endif
 	}
 
 	g_status.total_recv_size = 0;
@@ -1106,28 +899,12 @@ OPERATE_STATUS dl_download_midst(uint16_t size, char *buf)
 
 	g_status.total_recv_size += size;
 
-#ifdef CONFIG_SECURE_BOOT
-	if (check_secure_flag == ENABLE_SECURE) {
-		check_secure_flag = UNABLE_SECURE;
-		if (secure_header_parser(buf) != 1) {
-			debugf("check secure image failed!! \n");
-			secure_image_flag = UNABLE_SECURE;
-			return OPERATE_WRITE_ERROR;
-		}
-	}
-#endif
-
-#ifdef CONFIG_SECBOOT
-	if(check_secure_flag == ENABLE_SECURE)
-		check_secure_flag = UNABLE_SECURE;
-#endif
-
-#if defined (CONFIG_SECURE_BOOT)||defined (CONFIG_SECBOOT)
+#if defined (CONFIG_SECURE_BOOT) ||defined (CONFIG_SECBOOT)
 
 #ifdef CONFIG_SYSTEM_VERIFY
 	ret = regular_download_process(size, buf);
 #else
-	if (SYSTEM_CHECK == secure_image_flag)
+	if ((IMG_RAW == g_dl_eMMCStatus.curImgType) && (0 == strcmp("system", g_dl_eMMCStatus.curUserPartitionName)))
 		ret = speedup_download_process(size, buf);
 	else
 		ret = regular_download_process(size, buf);
@@ -1146,13 +923,6 @@ OPERATE_STATUS dl_download_midst(uint16_t size, char *buf)
 
 OPERATE_STATUS dl_download_end(void)
 {
-//#ifdef CONFIG_SECURE_BOOT
-#if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
-	if (_emmc_secure_download(g_dl_eMMCStatus.curUserPartitionName) != 1) {
-		debugf("%s:_emmc_secure_download error!\n");
-		return OPERATE_WRITE_ERROR;
-	}
-#endif
 	if (g_status.unsave_recv_size != 0) {
 		debugf("unsaved size is not zero!\n");
 		return OPERATE_SYSTEM_ERROR;

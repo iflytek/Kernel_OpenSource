@@ -14,6 +14,38 @@ extern u32 __ddie_efuse_read(int blk_index);
  imgToVerifyInfo img_verify_info = {0};
 uint8_t pubkhash[32];
 
+static uchar *const s_force_secure_check[] = {
+	"boot",
+	"recovery",
+	"uboot",
+	"wl_modem",
+	"wl_ldsp",
+	"wmodem",
+	"wl_gdsp",
+	"wl_warm",
+	"pm_sys",
+	"sml",
+	"tl_ldsp",
+	"tl_tgdsp",
+	"tl_modem",
+	"l_modem",
+	"l_ldsp",
+	"l_gdsp",
+	"l_warm",
+	"l_tgdsp",
+	"l_agdsp",
+	"trustos",
+	"wdsp",
+	#ifdef CONFIG_SUPPORT_WIFI
+	"wcnmodem",
+	#endif
+	#ifdef CONFIG_SYSTEM_VERIFY
+	"system",
+	#endif
+	NULL
+};
+
+
 void secboot_verify(void *ptr,void *m,void *n,uint32_t data_len)
 {
 	uint32_t jflag;
@@ -29,18 +61,6 @@ void secboot_verify(void *ptr,void *m,void *n,uint32_t data_len)
 		default:
 			break;
 	}
-#if 0
-#ifdef CONFIG_SPRD_SECBOOT
-	sprd_secure_check((uint8_t *)ptr,(uint8_t *)m);
-#endif
-#ifdef CONFIG_SANSA_SECBOOT
-	sansa_secure_check(m,ptr);
-#endif
-#ifdef CONFIG_NORMAL_SECBOOT
-	/*pls add thark progtamme interface*/
-#endif
-#endif
-
 }
 
 int dl_secure_verify(void *partition_name,void *header,void *code)
@@ -52,21 +72,6 @@ int dl_secure_verify(void *partition_name,void *header,void *code)
 #else
 	secure_verify(partition_name,header,code);
 #endif
-}
-
-int secboot_enable_check(void)
-{
-//#if defined (CONFIG_SECBOOT) 
-	uint32_t reg = 0;
-	uint32_t bonding = REG32(REG_AON_APB_BOND_OPT0);
-	 // uint32_t bonding = (*((volatile uint32_t *)(REG_AON_APB_BOND_OPT0)));
-	if(bonding & BIT_2){
-		reg = sprd_ap_efuse_read(EFUSE_HASH_STARTID);
-		if ((reg >> 31) & 0x1)
-			return 1;
-	}
-//#endif
-	return 0;
 }
 
 void  secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo)
@@ -91,6 +96,75 @@ void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo)
 #if defined (CONFIG_SANSA_SECBOOT)
 	sansa_get_hash_key((uint8_t *)img_buf,(uint8_t *)imginfo);
 #endif
+}
+
+int _check_secure_part(uchar * partition_name)
+{
+	int i = 0;
+	do {
+		if (SEC_TRUE == strcmp(s_force_secure_check[i], partition_name))
+			return SEC_TRUE;
+		i++;
+	}
+	while (s_force_secure_check[i] != 0);
+
+	return SEC_FALSE;
+}
+
+
+VERIFY_RESULT secure_process_flow(ulong * strip, unsigned char * part_name,
+			uint32_t rcv_size, uint32_t total_size, unsigned char * buf)
+{
+	static uint32_t rcv_already = 0;
+	int ret = 0;
+
+	sansa_enable_efuse_EB();
+	if (SEC_FALSE == _check_secure_part(part_name))
+		return VERIFY_NO_NEED;
+
+#ifdef CONFIG_SECURE_BOOT
+	if (1 != secure_header_parser(buf)) {
+		errorf("check secure image failed!! \n");
+		return VERIFY_FAIL;
+	}
+#endif
+
+	if (SEC_TRUE == strcmp("uboot", part_name)) {
+		dl_secure_verify("splloader", buf, 0);
+	} else if (SEC_TRUE == strcmp("splloader", part_name)) {
+		dl_secure_verify("splloader0", buf, 0);
+	}
+#ifdef CONFIG_SECBOOT
+	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))
+		||(SEC_TRUE == strcmp("sml_bak",part_name))||(SEC_TRUE == strcmp("trustos_bak",part_name))) {
+			dl_secure_verify("fdl1",buf,0);
+	}
+#endif
+#ifdef CONFIG_SECURE_BOOT
+	else if (0 == strcmp("system", part_name)) {
+		if (0 == rcv_already) {
+			Sec_SHA1_Start();
+			*strip = VLR_CODE_OFF;
+		}
+		secure_verify_system_start("fdl2", buf, rcv_size);
+		rcv_already += rcv_size;
+		if (total_size == rcv_already) {
+			debugf("Check system image \n");
+			Sec_SHA1_Finish();
+			ret = secure_verify_system_end("fdl2", buf, 0);
+			debugf("secure_verify_system  ret = %d \n", ret);
+			if (0 == ret)
+				return VERIFY_FAIL;
+			else
+				return VERIFY_OK;
+		}
+	}
+#endif
+	else {
+		dl_secure_verify("fdl2",buf,0);
+	}
+
+	return VERIFY_OK;
 }
 
 
