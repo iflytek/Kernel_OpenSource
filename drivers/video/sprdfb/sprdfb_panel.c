@@ -60,6 +60,8 @@ extern struct panel_spec lcd_s6d7aa0x62_mipi_spec;
 extern struct panel_spec lcd_ams549hq01_mipi_spec;
 extern struct panel_spec lcd_nt35596_mipi_spec;
 extern struct panel_spec lcd_nt35597_mipi_spec;
+extern struct panel_spec lcd_s6e3fa3_mipi_spec;
+
 
 void sprdfb_panel_remove(struct sprdfb_device *dev);
 
@@ -405,6 +407,14 @@ static struct panel_cfg panel_cfg[] = {
 	.panel = &lcd_ams549hq01_mipi_spec,
 },
 #endif
+
+#ifdef CONFIG_FB_LCD_S6E3FA3_MIPI
+{
+	.lcd_id = 0x400001,
+	.panel = &lcd_s6e3fa3_mipi_spec,
+},
+#endif
+
 };
 
 vidinfo_t panel_info = {
