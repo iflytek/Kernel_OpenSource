@@ -367,4 +367,7 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+#define CONFIG_MEMORY_DEFRAGMENT
+#define RSVMEM_START_ADDR 0x85400000
+
 #endif /* __TSHARK_L_H */
