@@ -798,55 +798,39 @@ void write_sysdump_before_boot(int rst_mode)
 					ret = delete_folder(fnbuf, startcluster);
 					if(ret == -1)
 						debugf("Error: delete files or folder\n");
-
-					sysdump_lcd_printf("\n SYSDUMP_FOLDER_NUM is big, please change format sd next time!\n");
-					delete_flag = 1;
+					mod = fat_checksys(max_size);
+					if (mod & FSNOSPACE)
+						delete_flag = 1;
 				}
-				if (!delete_flag)
+				if (delete_flag) {
 					sysdump_lcd_printf("\ndetect sd have not enough space");
-			}
-			if (!delete_flag) {
-				sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
+					sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
 
-				do {
-					udelay(50 * 1000);
-					key_code = board_key_scan();
-					if (key_code == KEY_VOLUMEDOWN) {
-						fat_format();
-						break;
-					} else if(key_code == KEY_VOLUMEUP) {
-						goto FINISH;
-					}
-				} while (1);
+					do {
+						udelay(50 * 1000);
+						key_code = board_key_scan();
+						if (key_code == KEY_VOLUMEDOWN) {
+							fat_format();
+							break;
+						} else if(key_code == KEY_VOLUMEUP)
+							goto FINISH;
+					} while (1);
+				}
 			}
 		}
 
-		if(i > SYSDUMP_FOLDER_NUM) {
-			for(j = SYSDUMP_FOLDER_NUM - 1; j > 0 && i != 1;) {
+		for(j = i - 1; j > 0 && i != 1; j = j - 2) {
 				sprintf(fnbuf, "%d", j++);
 				fnbuf[1] = 0;
 				sprintf(fnbuf_rename, "%d", j);
 				fnbuf[1] = 0;
 				ret = rename_folder(fnbuf, fnbuf_rename, startcluster);
-				if (ret == -1) {
-					debugf("Error: rename folder !\n");
-					break;
-				}
-			j = j - 2;
-			}
-		} else {
-			for(j = 1; j < i && i != 1;) {
-				sprintf(fnbuf, "%d", j++);
-				fnbuf[1] = 0;
-				sprintf(fnbuf_rename, "%d", j);
-				fnbuf[1] = 0;
-				ret = rename_folder(fnbuf, fnbuf_rename, startcluster);
+				//debugf("rename folder from %s to %s.\n", fnbuf, fnbuf_rename);
 				if (ret == -1) {
 					debugf("Error: rename folder !\n");
 					break;
 				}
 			}
-		}
 		startcluster = do_new_folder("1", startcluster);
 
 		tm = get_time_by_sec();
