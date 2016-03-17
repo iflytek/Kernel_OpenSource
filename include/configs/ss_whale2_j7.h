@@ -364,4 +364,5 @@
  */
 #define CONFIG_SYS_CACHELINE_SIZE	64
 
+#define CONFIG_ETB_DUMP
 #endif /* __TSHARK_L_H */

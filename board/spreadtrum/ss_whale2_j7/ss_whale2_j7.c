@@ -114,7 +114,7 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 	/*5 get mode from keypad*/
 	get_mode_from_keypad,
 	/*6 get mode from gpio*/
-	//get_mode_from_gpio_extend,
+	get_mode_from_gpio_extend,
 
 	/*shutdown device*/
 	//get_mode_from_shutdown,
