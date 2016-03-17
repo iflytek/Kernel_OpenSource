@@ -168,9 +168,6 @@ static int start_linux(uchar *dt_addr)
 	void (*theKernel) (int zero, int arch, u32 params);
 	theKernel = (void (*)(void *, int, int, int))KERNEL_ADR;
 
-#ifndef CONFIG_MEMORY_DEFRAGMENT
-	fdt_fixup_all(dt_addr);
-#endif
 	/*start modem CP */
 	modem_entry();
 
@@ -203,10 +200,6 @@ static int start_linux_armv8(uchar *dt_addr)
 {
 	void (*theKernel) (void *dtb_addr, int zero, int arch, int reserved);
 	theKernel = (void (*)(void *, int, int, int))KERNEL_ADR;
-
-#ifndef CONFIG_MEMORY_DEFRAGMENT
-	fdt_fixup_all(dt_addr);
-#endif
 
 	/*start modem CP */
 	modem_entry();

@@ -170,7 +170,8 @@ next:;
 	return 0;
 }
 
-mem_addr_t get_dt_end_addr(void *fdt, mem_addr_t *addr) {
+int get_dt_end_addr(void *fdt, uchar **addr)
+{
 	int parentoffset;
 	int offset;
 

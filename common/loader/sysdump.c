@@ -49,6 +49,10 @@ extern void sprd_etb_dump (void);
 #else
 	#define sysdump_lcd_printf(fmt, args...)
 #endif
+#ifdef CONFIG_MEMORY_DEFRAGMENT
+extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
+extern void load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
+#endif
 
 void display_writing_sysdump(void)
 {
@@ -541,19 +545,30 @@ void mtd_dump(void)
 }
 #endif
 
-static int check_dts_sysdump_node(void)
+unsigned char *get_dt_addr(void)
 {
-	unsigned char *fdt_blob = (unsigned char*) DT_ADR;
+	unsigned char *dt_addr = DT_ADR;
+
+#ifdef CONFIG_MEMORY_DEFRAGMENT
+	boot_img_hdr *hdr = (void *)raw_header;
+	if (0 == _get_kernel_ramdisk_dt_offset(hdr, "boot"))
+		return 0;
+	load_fixup_dt_img("boot", &dt_addr);
+#endif
+	return dt_addr;
+}
+
+static int check_dts_sysdump_node(unsigned char *fdt_blob)
+{
 	int nodeoffset = fdt_path_offset(fdt_blob, "/sprd-sysdump");
 	debugf("nodeoffset = %d\n", nodeoffset);
 
 	return nodeoffset;
 }
-static int fill_dump_mem(struct sysdump_mem *sprd_dump_mem, int nodeoffset)
+static int fill_dump_mem(unsigned char *fdt_blob, struct sysdump_mem *sprd_dump_mem, int nodeoffset)
 {
 	int sprd_dump_mem_num, lenp, offset, size, phandle, lookup;
 	unsigned long *ptr = NULL, *ptr_end = NULL;
-	unsigned char *fdt_blob = (unsigned char*) DT_ADR;
 	int i = 0;
 
 	ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
@@ -613,9 +628,8 @@ static unsigned long get_sprd_sysdump_info_paddr(int nodeoffset)
 
 #endif
 
-static unsigned long get_sprd_dump_size(int nodeoffset)
+static unsigned long get_sprd_dump_size(unsigned char *fdt_blob, int nodeoffset)
 {
-	unsigned char *fdt_blob = (unsigned char *) DT_ADR;
 	unsigned long *ptr = NULL, *ptr_end = NULL;
 	unsigned long size = 0;
 	int lenp, phandle, lookup;
@@ -678,8 +692,10 @@ void write_sysdump_before_boot(int rst_mode)
     unsigned long sprd_sysdump_magic = 0;
     int nodeoffset = 0;
     dir_entry *dentptr = NULL;
+	unsigned char *dt_addr = NULL;
 
-    nodeoffset = check_dts_sysdump_node();
+	dt_addr = get_dt_addr();
+    nodeoffset = check_dts_sysdump_node(dt_addr);
 	if (nodeoffset < 0) {
 		debugf("ERROR: device tree must have /sprd-sysdump node %s.\n", fdt_strerror(nodeoffset));
 		goto FINISH;
@@ -720,7 +736,7 @@ void write_sysdump_before_boot(int rst_mode)
 			(rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || (rst_mode == CMD_SPECIAL_MODE)) {
 			infop->dump_path[0] = '\0';
 
-		    sprd_dump_mem_num = fill_dump_mem(sprd_dump_mem, nodeoffset);
+		    sprd_dump_mem_num = fill_dump_mem(dt_addr, sprd_dump_mem, nodeoffset);
 			infop->mem_num = sprd_dump_mem_num;
 			infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
 			strcpy(infop->time, "hw_watchdog");
@@ -756,7 +772,7 @@ void write_sysdump_before_boot(int rst_mode)
 		}
 		int mod, key_code;
 		unsigned long max_size = 0;
-		max_size = get_sprd_dump_size(nodeoffset);
+		max_size = get_sprd_dump_size(dt_addr, nodeoffset);
 		/*mod = fat_checksys(max_size);*/
 		if (i > SYSDUMP_FOLDER_NUM) {
 			debugf("there exited %d history log !!!\n", SYSDUMP_FOLDER_NUM);

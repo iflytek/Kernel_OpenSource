@@ -31,6 +31,11 @@
 #endif
 extern int lcd_line_length;
 
+#ifdef CONFIG_MEMORY_DEFRAGMENT
+extern int fdt_fixup_memory_region(void *fdt);
+extern int get_dt_end_addr(void *fdt, uchar **addr);
+#endif
+
 #define MODEM_MAGIC		"SCI1"
 #define MODEM_HDR_SIZE		(12 * 512) //size of a block
 #define MODEM_IMG_HDR		0x1
@@ -576,7 +581,7 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 	Function for do memory defragment and load dtb
 */
 #ifdef CONFIG_MEMORY_DEFRAGMENT
-void load_fixup_dt_img(boot_img_hdr * hdr, uchar *partition, uchar **dt_start_addr) {
+void load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	u8 *fdt_blob = NULL;
 	struct dt_table table;
 	char * header = NULL;
@@ -647,10 +652,6 @@ void load_fixup_dt_img(boot_img_hdr * hdr, uchar *partition, uchar **dt_start_ad
 	*dt_start_addr = dt_end_addr -size;
 	memcpy(*dt_start_addr, fdt_blob, size);
 
-	/*get ramdisk size */
-	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
-	ramdisk_adr = *dt_start_addr - size;
-	fdt_initrd_norsvmem(*dt_start_addr, ramdisk_adr, ramdisk_adr + hdr->ramdisk_size, 1);
 fail:
 	if (NULL != header)
 		free(header);
@@ -694,14 +695,13 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 
 	ramdisk_addr = RAMDISK_ADR;
 /*read dt image*/
-#ifdef CONFIG_OF_LIBFDT
-#ifdef CONFIG_SEPARATE_DT
+#if defined(CONFIG_SEPARATE_DT)
 	if (!_boot_load_separate_dt())
 		return 0;
-#else
-#ifdef CONFIG_MEMORY_DEFRAGMENT
+	fdt_fixup_all((uchar *)DT_ADR);
+#elif defined(CONFIG_MEMORY_DEFRAGMENT)
 	/* for memory defragment, dr_addr and ramdisk_adr is allocated dynamically*/
-	load_fixup_dt_img(hdr,  partition, dt_addr);
+	load_fixup_dt_img(partition, dt_addr);
 	debugf("dt_addr:%lx \n", *dt_addr);
 	/* get ramdisk image size */
 	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
@@ -710,6 +710,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		return 0;
 	}
 	ramdisk_addr = *dt_addr - size;
+	fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr + hdr->ramdisk_size, 1);
 #else
 	size = PAD_SIZE(hdr->dt_size, KERNL_PAGE_SIZE);
 	dt_img_adr = (uchar *)(RAMDISK_ADR - size - KERNL_PAGE_SIZE);
@@ -727,8 +728,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		return 0;
 	}
 	debugf("%s dtb read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)DT_ADR);
-#endif
-#endif
+	fdt_fixup_all((uchar *)DT_ADR);
 #endif
 
 	/* get ramdisk image size */
@@ -906,7 +906,7 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 #ifdef OTA_BACKUP_MISC_RECOVERY
 	ret = memcmp(kernel_pname, RECOVERY_PART, strlen(RECOVERY_PART));
 	if ((ret != 0) || (boot_load_recovery_in_sd(hdr) != 0))
-		if (!_boot_load_kernel_ramdisk_image(kernel_pname, hdr &dt_adr))
+		if (!_boot_load_kernel_ramdisk_image(kernel_pname, hdr, &dt_adr))
 			ret = -1;
 #else
 	/*loader kernel and ramdisk*/
