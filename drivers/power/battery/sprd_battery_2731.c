@@ -238,8 +238,10 @@ int sprdbat_is_battery_connected(void)
 void sprdbat_init(void)
 {
 	boot_mode_t boot_role;
+	unsigned int keep_charge;
 	chipram_env_t* cr_env = get_chipram_env();
 	boot_role = cr_env->mode;
+	keep_charge = cr_env->keep_charge;
 #ifdef CONFIG_SPRD_EXT_IC_POWER
 	struct sprd_ext_ic_operations *sprd_ext_ic_op = sprd_get_ext_ic_ops();
 	sprd_ext_ic_op->ic_init();
@@ -266,8 +268,15 @@ void sprdbat_init(void)
 	sprdbat_get_vbatauxadc_caldata();
 	sprdfgu_init();
 
-	if(boot_role == BOOTLOADER_MODE_DOWNLOAD)		//if it's BOOTLOADER_MODE_DONLOAD, donot check battery is connect or not, return.
+	if(boot_role == BOOTLOADER_MODE_DOWNLOAD){		//if it's BOOTLOADER_MODE_DONLOAD, donot check battery is connect or not, return.
+		if(!keep_charge)
+#ifdef CONFIG_SPRD_EXT_IC_POWER
+			sprd_ext_ic_op->charge_stop_ext();
+#else
+			sprd2731_chg_stop_charge();
+#endif
 		return;
+}
 
 	sprd2731_chg_start_charge();
 	//if battery do NOT connect, shutdown charge,maybe system poweroff
