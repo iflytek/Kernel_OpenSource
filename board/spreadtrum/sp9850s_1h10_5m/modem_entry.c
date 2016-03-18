@@ -37,6 +37,70 @@
 #define SIPC_LTE_APCP_START_ADDR        (PHYS_OFFSET_ADDR + LTE_CP_OFFSET_ADDR + LTE_CP_SDRAM_SIZE - SIPC_APCP_RESET_SIZE)         /*0x8d5ff000*/
 //#define SIPC_PMIC_APCP_START_ADDR        (PMIC_IRAM_ADDR+ PMIC_IRAM_SIZE+ - SIPC_APCP_RESET_ADDR_SIZE)         /*0x50807400*/
 
+#define MAX_DYNAMIC_BIN_NAME_LEN 8
+#define MAX_NAME_LEN 4
+#define MAX_REGION_NUM 0x10
+#define MAX_DYNAMIC_BIN_NUM 0x10
+#define INVALID_FLAG 0x5a5a5a5a
+#define MAGIC_NUMBER1 0x474D494D
+#define MAGIC_NUMBER2 0x44414548
+
+#define JUMP_ADDRESS 35
+#define JUMP_VALUE   0x8b800800
+
+struct bin_info {
+       u32 names[MAX_DYNAMIC_BIN_NAME_LEN];
+       u32 tcm_load_base;
+       u32 tcm_run_base;
+       u32 ddr_load_base;
+       u32 ddr_run_base;
+       u32 offset1; /* tcm bin offset */
+       u32 offset2; /* ddr bin offset */
+       u32 size;
+       u32 size2;
+       u16 id;
+       u16 status;
+       u32 rw_base;
+       u32 rw_length;
+};
+
+struct region_info{
+       u32 names[MAX_NAME_LEN];
+       u32 base;
+       u32 size;
+};
+
+struct modem_image_head {
+       u32 MAGIC1; /* MIMG */
+       u32 MAGIC2; /* HEAD */
+       u32 Version; /* V100 */
+       u32 Count; /* region count */
+       u32 Dbin_Count;
+       struct region_info regions[MAX_REGION_NUM];
+       struct bin_info bin_info[MAX_DYNAMIC_BIN_NUM];
+       u32 reversed[1];
+};
+
+int cp_dynamic_loader(void)
+{
+       int i;
+       u32 baseaddress = LTE_MODEM_ADDR;
+       struct modem_image_head *pmInfo = (struct modem_image_head*)LTE_MODEM_ADDR;
+       if((pmInfo->MAGIC1 != MAGIC_NUMBER1) || (pmInfo->MAGIC2 != MAGIC_NUMBER2))
+               return -1;
+
+       for(i = 0; i < pmInfo->Dbin_Count; i++) {
+               struct bin_info *pBinInfo = &(pmInfo->bin_info[i]);
+               if(pBinInfo->tcm_load_base != 0x5a5a5a5a)
+                       memcpy((void*)pBinInfo->tcm_load_base, (void*)(baseaddress +
+                              pBinInfo->offset1), pBinInfo->size);
+               if(pBinInfo->ddr_load_base != 0x5a5a5a5a)
+                       memcpy((void*)pBinInfo->ddr_load_base, (void*)(baseaddress +
+                              pBinInfo->offset2), pBinInfo->size2);
+       }
+       g_loader[JUMP_ADDRESS] = JUMP_VALUE;
+       return 0;
+}
 
 void cp_adr_remap(u32 cp_kernel_exec_addr, u32 cp_zero_map_addr)
 {
@@ -71,6 +135,7 @@ void modem_entry()
 	agdsp_boot();
 #ifndef CONFIG_KERNEL_BOOT_CP
 	pmic_arm_m4_boot();
+	cp_dynamic_loader();
 	pubcp_boot();
 	debugf("boot CP1 OK\n");
 #endif
