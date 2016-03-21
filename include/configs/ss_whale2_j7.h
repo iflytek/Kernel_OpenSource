@@ -347,7 +347,7 @@
 #endif
 
 #define CONFIG_7S_RST_SHORT_MODE	1	//0:long press then release key to trigger;1:press key some time to trigger
-#define CONFIG_7S_RST_2KEY_MODE		0	//0:1Key--Normal mode; 1:2KEY
+#define CONFIG_7S_RST_2KEY_MODE		1	//0:1Key--Normal mode; 1:2KEY
 #define CONFIG_7S_RST_THRESHOLD		7	//7S, hold key down for this time to trigger
 
 /* Chip Driver Macro Definitions End*/
