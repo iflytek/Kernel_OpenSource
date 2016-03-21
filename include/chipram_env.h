@@ -19,5 +19,7 @@ typedef struct chipram_env {
 }chipram_env_t;
 
 chipram_env_t* get_chipram_env(void);
+boot_mode_t get_boot_role(void);
+
 #endif
 

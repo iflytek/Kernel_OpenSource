@@ -23,6 +23,7 @@
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SYS_I2C)
 #include <i2c.h>
 #endif
+#include <chipram_env.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -245,6 +246,8 @@ int stdio_init_tables(void)
 
 int stdio_add_devices(void)
 {
+	boot_mode_t boot_role = get_boot_role();
+
 #ifdef CONFIG_SYS_I2C
 	i2c_init_all();
 #else
@@ -253,6 +256,7 @@ int stdio_add_devices(void)
 #endif
 #endif
 #ifdef CONFIG_LCD
+if(boot_role == BOOTLOADER_MODE_LOAD)
 	drv_lcd_init ();
 #endif
 #if defined(CONFIG_VIDEO) || defined(CONFIG_CFB_CONSOLE)
