@@ -51,7 +51,6 @@ config LIB_RAND
 	  This library provides pseudo-random number generator functions.
 
 source lib/rsa/Kconfig
-source lib/secureboot/Kconfig
 
 menu "Hashing Support"
 
