@@ -8,6 +8,7 @@
 #include <sparse_format.h>
 #include <sprd_common_rw.h>
 
+#include <secure_boot.h>
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>
 
@@ -882,14 +883,23 @@ OPERATE_STATUS dl_download_midst(uint16_t size, char *buf)
 	uint32_t nSectorCount;
 	uint32_t fix_nv_checksum;
 	int ret = 0;
+	ulong sec_offset = 0;
 
 	int local_buf_index;
 	sparse_header_t sparse_header_test_head;
 
 	/*adjust the image type via the header magic*/
 	if (0 == g_status.total_recv_size ) {
+#ifdef CONFIG_SECURE_BOOT
+		if (0 == strcmp(buf, HEADER_NAME))
+			sec_offset = KEY_INFO_SIZ + VLR_INFO_SIZ;
+#endif
+#ifdef CONFIG_SECBOOT
+		if (IMG_BAK_HEADER == ((sys_img_header *)buf)->mMagicNum)
+			sec_offset = SYS_HEADER_SIZE;
+#endif
 		memset(&sparse_header_test_head, 0, sizeof(sparse_header_t));
-		memcpy(&sparse_header_test_head, buf, sizeof(sparse_header_test_head));
+		memcpy(&sparse_header_test_head, buf + sec_offset, sizeof(sparse_header_test_head));
 
 		if (sparse_header_test_head.magic != SPARSE_HEADER_MAGIC)
 			g_dl_eMMCStatus.curImgType = IMG_RAW;
