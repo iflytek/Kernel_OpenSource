@@ -141,14 +141,27 @@ void modem_entry()
 #endif
 }
 
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+extern int get_ring_info(u64 *addr, u64 *size);
+#else
+int get_ring_info(u64 *addr, u64 *size)
+{
+	return -1;
+}
+#endif
 
 void sipc_addr_reset()
 {
-	//memset((void *)SIPC_GGE_APCP_START_ADDR, 0x0, SIPC_APCP_RESET_ADDR_SIZE);
-	memset((void *)SIPC_LTE_APCP_START_ADDR, 0x0, SIPC_APCP_RESET_ADDR_SIZE);
-	//memset((void *)SIPC_PMIC_APCP_START_ADDR, 0x0,SIPC_APCP_RESET_ADDR_SIZE );
+	uint64_t addr;
+	uint64_t size;
+
+	if(get_ring_info(&addr, &size) == 0) {
+		printf("%s: ring addr = 0x%p, size = 0x%x\n", __func__, addr, size);
+		memset((void *)addr, 0x0, size);
+	} else {
+		memset((void *)SIPC_LTE_APCP_START_ADDR, 0x0, SIPC_APCP_RESET_ADDR_SIZE);
+	}
+
 	return;
 }
-
-
 

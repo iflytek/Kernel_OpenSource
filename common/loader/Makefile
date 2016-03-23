@@ -16,3 +16,4 @@ obj-y += sd_operate.o
 obj-y += sprd_cpcmdline.o
 obj-y += sprdisk.o
 obj-$(CONFIG_MEMORY_DEFRAGMENT) += sprd_fdt_memory.o
+obj-$(CONFIG_MEM_LAYOUT_DECOUPLING) += process_cp_coupling_info.o

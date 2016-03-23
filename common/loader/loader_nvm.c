@@ -100,13 +100,15 @@ static boot_image_required_t const s_boot_image_gsm_table[] = {
 #ifdef CONFIG_SUPPORT_LTE
 static boot_image_required_t const s_boot_image_lte_table[] = {
 #if !defined( CONFIG_KERNEL_BOOT_CP )
-#ifdef  CONFIG_ADVANCED_LTE
+#ifdef CONFIG_ADVANCED_LTE
+#ifndef CONFIG_MEM_LAYOUT_DECOUPLING
 	{"l_fixnv1","l_fixnv2",LTE_FIXNV_SIZE,LTE_FIXNV_ADDR},
 	{"l_runtimenv1","l_runtimenv2",LTE_RUNNV_SIZE,LTE_RUNNV_ADDR},
 	{"l_modem",NULL,LTE_MODEM_SIZE,LTE_MODEM_ADDR},
 	{"l_wgdsp",NULL,LTE_WGDSP_SIZE,LTE_WGDSP_ADDR},//wgdsp
 	{"l_tgdsp",NULL,LTE_TGDSP_SIZE ,LTE_TGDSP_ADDR}, //tddsp
 	{"l_ldsp",NULL,LTE_LDSP_SIZE ,LTE_LDSP_ADDR},
+#endif
 #else
 	{"l_fixnv1", "l_fixnv2", LTE_FIXNV_SIZE, LTE_FIXNV_ADDR},
 	{"l_runtimenv1", "l_runtimenv2", LTE_RUNNV_SIZE, LTE_RUNNV_ADDR},
@@ -932,6 +934,20 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 		}
 		i++;
 	}
+
+#if !defined(CONFIG_KERNEL_BOOT_CP) && defined(CONFIG_MEM_LAYOUT_DECOUPLING)
+extern boot_image_required_t *get_cp_load_table(void);
+	do {
+		boot_image_required_t *cp_load_table = NULL;
+		cp_load_table = get_cp_load_table();
+		printf("cp_load_table = 0x%p\n", cp_load_table);
+		if (NULL != cp_load_table) {
+			for(i = 0; cp_load_table[i].size > 0; i++) {
+				_boot_load_required_image(cp_load_table[i]);
+			}
+		}
+	} while(0);
+#endif
 
 #if defined (CONFIG_SECBOOT)
 	uint32_t flag;
