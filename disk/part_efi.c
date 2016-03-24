@@ -321,6 +321,7 @@ int get_partition_info_by_name_efi(block_dev_desc_t * dev_desc, uchar *partition
 		printf("%s: Invalid Argument(s)\n", __func__);
 		return -1;
 	}
+
 	/* This function validates AND fills in the GPT header and PTE */
 	if (is_gpt_valid(dev_desc, GPT_PRIMARY_PARTITION_TABLE_LBA,
 			gpt_head, &pgpt_pte) != 1) {
@@ -330,6 +331,9 @@ int get_partition_info_by_name_efi(block_dev_desc_t * dev_desc, uchar *partition
 			printf("%s: *** ERROR: Invalid alternate GPT ***\n",
 			       __func__);
 			return -1;
+		} else {
+			/* Rewrite Primary GPT partition table with the value of Backup GPT */
+			write_primary_gpt_table(dev_desc, gpt_head, pgpt_pte);
 		}
 	}
 	/*Get the partition info*/
@@ -408,6 +412,53 @@ static int set_protective_mbr(block_dev_desc_t *dev_desc)
 	}
 
 	return 0;
+}
+
+int write_primary_gpt_table(block_dev_desc_t *dev_desc,
+		gpt_header *gpt_h, gpt_entry *gpt_e)
+{
+	const int pte_blk_cnt = BLOCK_CNT((gpt_h->num_partition_entries
+					   * sizeof(gpt_entry)), dev_desc);
+	u32 calc_crc32;
+	uint64_t val;
+
+	debug("max lba: %x\n", (u32) dev_desc->lba);
+	/* Setup the Protective MBR */
+	if (set_protective_mbr(dev_desc) < 0)
+		goto err;
+
+	/* recalculate the values for the Primary GPT Header */
+	val = le64_to_cpu(gpt_h->my_lba);
+	gpt_h->my_lba = gpt_h->alternate_lba;
+	gpt_h->alternate_lba = cpu_to_le64(val);
+	gpt_h->partition_entry_lba = 2;
+	gpt_h->header_crc32 = 0;
+	gpt_h->partition_entry_array_crc32 = 0;
+
+	/* Generate CRC for the Primary GPT Header */
+	calc_crc32 = efi_crc32((const unsigned char *)gpt_e,
+			      le32_to_cpu(gpt_h->num_partition_entries) *
+			      le32_to_cpu(gpt_h->sizeof_partition_entry));
+	gpt_h->partition_entry_array_crc32 = cpu_to_le32(calc_crc32);
+
+	calc_crc32 = efi_crc32((const unsigned char *)gpt_h,
+			      le32_to_cpu(gpt_h->header_size));
+	gpt_h->header_crc32 = cpu_to_le32(calc_crc32);
+
+	/* Write the First GPT to the block right after the Legacy MBR */
+	if (dev_desc->block_write(dev_desc->dev, 1, 1, gpt_h) != 1)
+		goto err;
+
+	if (dev_desc->block_write(dev_desc->dev, 2, pte_blk_cnt, gpt_e)
+	    != pte_blk_cnt)
+		goto err;
+
+	debug("Primary GPT successfully written to block device!\n");
+	return 0;
+
+ err:
+	printf("** Can't write to device %d **\n", dev_desc->dev);
+	return -1;
 }
 
 int write_gpt_table(block_dev_desc_t *dev_desc,
