@@ -15,7 +15,9 @@
 #include "sprdfb_chip_common.h"
 #include "sprdfb.h"
 #include <malloc.h>
+#include <fdtdec.h>
 
+DECLARE_GLOBAL_DATA_PTR;
 
 #define BMP_RESERVED_ADDR(p, sz) ((p) + ALIGN((sz), PAGE_SIZE))
 
@@ -89,6 +91,11 @@ static int real_refresh(struct sprdfb_device *dev)
 static int sprdfb_probe(void *lcdbase)
 {
 	struct sprdfb_device *dev = &s_sprdfb_dev;
+	const void *fdt_blob = gd->fdt_blob;
+	int nodeoffset = fdt_path_offset(fdt_blob, "/ion");
+	int phandle = 0;
+	unsigned long base, size;
+
 
 	printf("sprdfb:[%s]\n", __FUNCTION__);
 
@@ -122,8 +129,29 @@ static int sprdfb_probe(void *lcdbase)
 #endif
 #endif
 
-	lcd_get_base_addr(lcdbase);
-	dev->smem_start = lcdbase;
+	//lcd_get_base_addr(lcdbase);
+
+	debugf("ion node offset = %d\n", nodeoffset);
+	if (nodeoffset == -FDT_ERR_NOTFOUND)
+		return -1;
+
+	nodeoffset = fdt_subnode_offset(fdt_blob, nodeoffset, "heap@3");
+	debugf("heap3 node offset = %d\n", nodeoffset);
+	if (nodeoffset == -FDT_ERR_NOTFOUND)
+		return -1;
+
+	phandle = fdtdec_lookup_phandle(fdt_blob, nodeoffset, "memory-region");
+	debugf("memory-region phandle = %d\n", phandle);
+	if (phandle == -FDT_ERR_NOTFOUND)
+		return -1;
+
+	if (fdtdec_decode_region(fdt_blob, phandle, "reg", &base, &size)) {
+		printf("%s: Failed to decode reg property \n", __func__);
+		return -EINVAL;
+	}
+
+	gd->fb_base = base + (size / 3) * 2;
+	dev->smem_start = gd->fb_base;
 	dev->ctrl->init(dev);
 	printf("sprdfb:[%s]---\n", __FUNCTION__);
 	return 0;
