@@ -658,8 +658,6 @@ boot_image_required_t * get_cp_load_table(void)
 						s_boot_image_cp_table[j].size, s_boot_image_cp_table[j].mem_addr);
 				j++;
 
-			} else if(region->flag == re_clear) {
-				memset((char *)region->res.base, 0, region->res.size);
 			}
 		}
 	}
