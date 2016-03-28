@@ -730,7 +730,9 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		return 0;
 	}
 	debugf("%s dtb read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)DT_ADR);
+#ifndef CONFIG_X86
 	fdt_fixup_all((uchar *)DT_ADR);
+#endif
 #endif
 
 	/* get ramdisk image size */

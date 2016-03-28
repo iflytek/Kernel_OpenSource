@@ -207,7 +207,6 @@
 #define CONFIG_ARCH_SHARK
 #define CONFIG_PREBOOT "role"
 #define CONFIG_BOARD_LATE_INIT
-#define CONFIG_SEPARATE_DT
 
 
 /* Chip Driver Macro Definitions Start*/
