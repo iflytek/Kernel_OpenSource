@@ -784,13 +784,18 @@ static struct platform_driver dwc_otg_driver = {
  * @return
  */
 
-int usb_driver_init(void)
+int usb_driver_init(unsigned int max_speed)
 {
 	int retval = 0;
 	int error;
 	dwc_debug("%s: version %s\n", dwc_driver_name,
 	       DWC_DRIVER_VERSION);
 	dwc_debug("Working version %s\n", "No 007 - 10/24/2007");
+
+	if (max_speed == USB_SPEED_HIGH)
+		dwc_otg_module_params.speed = DWC_SPEED_PARAM_HIGH;
+	else if (max_speed == USB_SPEED_FULL)
+		dwc_otg_module_params.speed = DWC_SPEED_PARAM_FULL;
 
 	udc_power_on();
 

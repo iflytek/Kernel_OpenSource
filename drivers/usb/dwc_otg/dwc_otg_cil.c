@@ -412,9 +412,6 @@ static void init_devspd(dwc_otg_core_if_t * core_if)
 		val = 0x0;
 	}
 
-	if(in_calibration) //force full speed in calibration
-		val = 0x1;
-
 	DWC_DEBUGPL(DBG_CIL, "Initializing DCFG.DevSpd to 0x%1x\n", val);
 
 	dcfg.d32 = dwc_read_reg32(&core_if->dev_if->dev_global_regs->dcfg);

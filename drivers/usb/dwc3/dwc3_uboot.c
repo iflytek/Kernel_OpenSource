@@ -33,10 +33,14 @@ static void usb_clk_enable(u32 is_on) {}
 static void usb_phy_enable(u32 is_on) {}
 #endif
 
-int usb_driver_init(void)
+int usb_driver_init(unsigned int max_speed)
 {
 	usb_clk_enable(1);
 	usb_phy_enable(1);
+
+	if (max_speed <= USB_SPEED_HIGH &&
+		max_speed >= USB_SPEED_FULL)
+		dwc3_dev.maximum_speed = max_speed;
 
 	return dwc3_uboot_init(&dwc3_dev);
 

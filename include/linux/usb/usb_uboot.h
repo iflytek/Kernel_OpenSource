@@ -12,7 +12,7 @@
 #define __USB_UBOOT_H__
 
 extern int
-usb_driver_init(void);
+usb_driver_init(unsigned int max_speed);
 extern void
 usb_driver_exit(void);
 extern int

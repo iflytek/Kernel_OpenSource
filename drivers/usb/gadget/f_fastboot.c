@@ -1007,7 +1007,7 @@ int usb_fastboot_init(void)
 {
 	int status = 0;
 
-	usb_driver_init();
+	usb_driver_init(USB_SPEED_HIGH);
 
 	status = usb_gadget_register_driver(&fastboot_driver);
 	if (status < 0)

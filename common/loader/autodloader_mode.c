@@ -7,6 +7,7 @@
 #include <dl_channel.h>
 #include "asm/arch/check_reboot.h"
 #include <malloc.h>
+#include <linux/usb/ch9.h>
 #include <linux/usb/usb_uboot.h>
 
 #define USB_ENUM_MS 15000
@@ -87,7 +88,7 @@ int autodloader_initusb(void)
 {
 	ulong now;
 
-	usb_driver_init();
+	usb_driver_init(USB_SPEED_HIGH);
 	usb_serial_init();
 
 	now = 0;

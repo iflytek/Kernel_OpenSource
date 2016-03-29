@@ -3,6 +3,7 @@
 #include "loader_common.h"
 #include <asm/arch/check_reboot.h>
 #include <chipram_env.h>
+#include <linux/usb/ch9.h>
 #include <linux/usb/usb_uboot.h>
 #include <sprd_common_rw.h>
 
@@ -289,7 +290,7 @@ void cali_usb_debug(uint8_t *buf)
 }
 int cali_usb_prepare(void)
 {
-	if(usb_driver_init() < 0)
+	if(usb_driver_init(USB_SPEED_FULL) < 0)
 	{
 		printf("%s\n", "usb_driver_init error");
 		return 0;
