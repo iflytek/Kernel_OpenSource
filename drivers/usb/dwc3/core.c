@@ -117,7 +117,11 @@ static struct dwc3_event_buffer *dwc3_alloc_one_event_buffer(struct dwc3 *dwc,
 
 	evt->dwc	= dwc;
 	evt->length	= length;
+#ifdef CONFIG_X86
+	evt->buf	= 0xE6002000;
+#else
 	evt->buf	= 0x1E000; //memalign(length, length);
+#endif
 	evt->dma	= evt->buf;
 	if (!evt->buf)
 		return ERR_PTR(-ENOMEM);

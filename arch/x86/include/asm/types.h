@@ -2,7 +2,7 @@
 #define __ASM_I386_TYPES_H
 
 typedef unsigned short umode_t;
-
+typedef unsigned long resource_size_t;
 /*
  * __xx is ok: it doesn't pollute the POSIX namespace. Use these in the
  * header files exported to user space
