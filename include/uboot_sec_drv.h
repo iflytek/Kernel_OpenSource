@@ -93,8 +93,9 @@ int uboot_get_socid(uint64_t start_addr, uint64_t lenth);
 int uboot_program_efuse(uint64_t start_addr, uint64_t lenth);
 int uboot_update_swVersion(uint64_t start_addr, uint64_t lenth);
 
-#define SPRD_AON_APB_APB_EB0 0x402E0000
-#define SPRD_REG_EFUSE_CFG0  0x40240010
+int uboot_sansa_get_lcs(uint32_t *p_lcs);
+
+int uboot_sansa_set_rma(uint32_t *p_rmaret);
 
 
 #endif

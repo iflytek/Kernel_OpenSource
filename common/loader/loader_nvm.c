@@ -900,7 +900,6 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 	secure_verify_partition(dev, partition, KERNEL_ADR);
 #endif
 #if defined (CONFIG_SECBOOT)
-	sansa_enable_efuse_EB();
 	secure_load_partition(partition,VERIFY_ADDR);
 	secboot_param_set(VERIFY_ADDR,&img_verify_info);
 	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);

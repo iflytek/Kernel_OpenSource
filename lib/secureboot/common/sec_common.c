@@ -7,6 +7,8 @@
 #include <asm/arch/sci_types.h>
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_common.h>
+#include <otp_helper.h>
+
 
 extern u32 __ddie_efuse_read(int blk_index);
 
@@ -15,16 +17,18 @@ extern u32 __ddie_efuse_read(int blk_index);
 uint8_t pubkhash[32];
 
 static uchar *const s_force_secure_check[] = {
+    "splloader",
+	"sml",
+	"trustos",
+	"uboot",
 	"boot",
 	"recovery",
-	"uboot",
 	"wl_modem",
 	"wl_ldsp",
 	"wmodem",
 	"wl_gdsp",
 	"wl_warm",
 	"pm_sys",
-	"sml",
 	"tl_ldsp",
 	"tl_tgdsp",
 	"tl_modem",
@@ -34,7 +38,6 @@ static uchar *const s_force_secure_check[] = {
 	"l_warm",
 	"l_tgdsp",
 	"l_agdsp",
-	"trustos",
 	"wdsp",
 	#ifdef CONFIG_SUPPORT_WIFI
 	"wcnmodem",
@@ -68,6 +71,7 @@ int dl_secure_verify(void *partition_name,void *header,void *code)
 #ifdef CONFIG_SPRD_SECBOOT
 		sprd_dl_verify(partition_name, header, code);
 #elif defined CONFIG_SANSA_SECBOOT
+    sansa_enable_efuse_EB();
 	sansa_dl_secure_verify(partition_name,header,code);
 #else
 	secure_verify(partition_name,header,code);
@@ -84,6 +88,7 @@ void  secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo)
 	imginfo->flag = SPRD_FLAG;
 #endif
 #ifdef CONFIG_SANSA_SECBOOT
+    sansa_enable_efuse_EB();
 	imginfo->flag = SANSA_FLAG;
 #endif
 }
@@ -112,16 +117,16 @@ int _check_secure_part(uchar * partition_name)
 }
 
 
-VERIFY_RESULT secure_process_flow(ulong * strip, unsigned char * part_name,
+VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
 			uint32_t rcv_size, uint32_t total_size, unsigned char * buf)
 {
 	static uint32_t rcv_already = 0;
 	int ret = 0;
 
-	sansa_enable_efuse_EB();
-	if (SEC_FALSE == _check_secure_part(part_name))
+	if (SEC_FALSE == _check_secure_part(part_name))	{
+	    errorf("no secure image to need verify \n");
 		return VERIFY_NO_NEED;
-
+	}
 #ifdef CONFIG_SECURE_BOOT
 	if (1 != secure_header_parser(buf)) {
 		errorf("check secure image failed!! \n");
@@ -135,8 +140,7 @@ VERIFY_RESULT secure_process_flow(ulong * strip, unsigned char * part_name,
 		dl_secure_verify("splloader0", buf, 0);
 	}
 #ifdef CONFIG_SECBOOT
-	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))
-		||(SEC_TRUE == strcmp("sml_bak",part_name))||(SEC_TRUE == strcmp("trustos_bak",part_name))) {
+	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))){
 			dl_secure_verify("fdl1",buf,0);
 	}
 #endif
@@ -166,5 +170,71 @@ VERIFY_RESULT secure_process_flow(ulong * strip, unsigned char * part_name,
 
 	return VERIFY_OK;
 }
+
+void fb_secure_verify(void *partition_name,void *header,void *code)
+{
+#ifdef CONFIG_SPRD_SECBOOT
+	//sprd_fb__secure_verify(partition_name, header, code);
+#elif defined CONFIG_SANSA_SECBOOT
+	sansa_fb_secure_verify(partition_name,header,code);
+#else
+	secure_verify(partition_name,header,code);
+#endif
+}
+
+VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
+			uint32_t rcv_size, uint32_t total_size, unsigned char * buf)
+{
+	static uint32_t rcv_already = 0;
+	int ret = 0;
+
+	if (SEC_FALSE == _check_secure_part(part_name)){
+		errorf("no secure image to need verify \n");
+		return VERIFY_NO_NEED;
+		}
+#ifdef CONFIG_SECURE_BOOT
+	if (1 != secure_header_parser(buf)) {
+		errorf("check secure image failed!! \n");
+		return VERIFY_FAIL;
+	}
+#endif
+
+	if (SEC_TRUE == strcmp("uboot", part_name)) {
+		fb_secure_verify("splloader", buf, 0);
+	} else if (SEC_TRUE == strcmp("splloader", part_name)) {
+		fb_secure_verify("splloader0", buf, 0);
+	}
+#ifdef CONFIG_SECBOOT
+	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))) {
+			fb_secure_verify("splloader",buf,0);
+	}
+#endif
+#ifdef CONFIG_SECURE_BOOT
+	else if (0 == strcmp("system", part_name)) {
+		if (0 == rcv_already) {
+			Sec_SHA1_Start();
+			*strip = VLR_CODE_OFF;
+		}
+		secure_verify_system_start("fdl2", buf, rcv_size);
+		rcv_already += rcv_size;
+		if (total_size == rcv_already) {
+			debugf("Check system image \n");
+			Sec_SHA1_Finish();
+			ret = secure_verify_system_end("fdl2", buf, 0);
+			debugf("secure_verify_system  ret = %d \n", ret);
+			if (0 == ret)
+				return VERIFY_FAIL;
+			else
+				return VERIFY_OK;
+		}
+	}
+#endif
+	else {
+		fb_secure_verify("uboot",buf,0);
+	}
+
+	return VERIFY_OK;
+}
+
 
 

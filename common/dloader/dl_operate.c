@@ -517,7 +517,7 @@ OPERATE_STATUS _download_image(void)
 
 #if defined (CONFIG_SECURE_BOOT) ||defined (CONFIG_SECBOOT)
 	VERIFY_RESULT verify_res;
-	verify_res = secure_process_flow(&strip_header, g_dl_eMMCStatus.curUserPartitionName,
+	verify_res = dl_secure_process_flow(&strip_header, g_dl_eMMCStatus.curUserPartitionName,
 		g_status.unsave_recv_size, g_status.total_size, g_eMMCBuf);
 	switch (verify_res) {
 	case VERIFY_FAIL:

@@ -17,8 +17,6 @@ typedef struct{
 #define SPRD_FLAG 1
 #define SANSA_FLAG 2
 
-#define SPRD_AON_APB_EFUSE 0x402E0000
-
 extern imgToVerifyInfo img_verify_info;
 /*this two marco is diffent among products, pls check it!*/
 #define IRAM_BEGIN 0x0000ce00
@@ -30,6 +28,16 @@ extern imgToVerifyInfo img_verify_info;
 
 #define SEC_TRUE    0
 #define SEC_FALSE   1
+
+/***108K***/
+#define SPL_IMAGE_SIZE (108*1024)
+#define SECTION_SIZE   (512)
+/**
+SPL_EMMC_SECTOR_NUM=SPL_IMAGE_SIZE / SECTOR_SIZE
+**/
+#define SPL_EMMC_SECTOR_NUM  (SPL_IMAGE_SIZE/SECTION_SIZE)
+#define SAVE_SPL_IMAGE  0x9d000000
+
 
 typedef struct{
 	uint32_t mMagicNum; //0x42544844
@@ -57,8 +65,13 @@ void secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo);
 
 void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo);
 
-VERIFY_RESULT secure_process_flow(ulong * strip, unsigned char * part_name, 
+VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name, 
 				uint32_t rcv_size, uint32_t total_size, unsigned char * buf);
+
+void fb_secure_verify(void *partition_name,void *header,void *code);
+
+VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
+			    uint32_t rcv_size, uint32_t total_size, unsigned char * buf);
 
 
 #endif

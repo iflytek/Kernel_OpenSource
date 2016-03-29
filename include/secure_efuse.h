@@ -12,6 +12,8 @@
  * GNU General Public License for more details.
  *
  */
+#include <common.h>
+
 #define PROG_OK     0
 #define SHA1_ERR   -1
 #define AES256_ERR -2
@@ -19,19 +21,6 @@
 #define SANSA_EFUSE_PRO_ERR -4
 #define SANSA_GET_LCS_ERR   -5
 #define SANSA_SET_RMA_ERR   -6
-
-/***96K***/
-#define SPL_IMAGE_SIZE (108*1024)
-#define SECTION_SIZE   (512)
-/**
-SPL_EMMC_SECTOR_NUM=SPL_IMAGE_SIZE / SECTOR_SIZE
-**/
-#define SPL_EMMC_SECTOR_NUM  (SPL_IMAGE_SIZE/SECTION_SIZE)
-#define SAVE_SPL_IMAGE  0x9d000000
-
-
-#include <common.h>
-
 
 int secure_efuse_program(void);
 int read_master_key(void);

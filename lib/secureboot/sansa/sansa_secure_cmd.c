@@ -73,7 +73,7 @@ int sansa_get_lcs_cmd(void)
     return SANSA_GET_LCS_ERR;
   }
 
-  return PROG_OK;
+  return t_lcs;
 }
 
 int sansa_set_rma_cmd(void)
@@ -89,6 +89,6 @@ int sansa_set_rma_cmd(void)
     return SANSA_SET_RMA_ERR;
   }
 
-  return PROG_OK;
+  return t_result;
 }
 

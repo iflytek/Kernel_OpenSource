@@ -231,17 +231,43 @@ void sansa_cpy_spl_to_iram(void *rootaddr, void *imgaddr)
 
 void sansa_dl_secure_verify(uint8_t *name, uint8_t *header, uint8_t *code)
 {
+    printf("%s, name: %s\n",__FUNCTION__,name);
 	if (name) {
+		/*verify sml,trustos,uboot*/
 		if ((strcmp("splloader",name) == 0) || (strcmp("fdl1",name) == 0)) {
 			sansa_secure_check(IRAM_BEGIN, header);
-		} else if (strcmp("fdl2",name) == 0) {
+		}
+        /*verify boot,recovery,modem ..*/
+		else if ((strcmp("uboot",name) == 0) || (strcmp("fdl2",name) == 0)) {
 			sansa_secure_check((CONFIG_SYS_TEXT_BASE - 0x200), header);
-		} else if (strcmp("splloader0",name) == 0) {
-			//sansa_dl_check(IRAM_BEGIN, header);
+		}
+		/*verify spl*/
+		else if (strcmp("splloader0",name) == 0) {
 			sansa_secure_check(NULL, header);
-			sansa_cpy_spl_to_iram(IRAM_BEGIN, header);
-		} else if (strcmp("uboot",name) == 0) {
-			sansa_secure_check((CONFIG_SYS_TEXT_BASE - 0x200), header);
 		}
 	}
 }
+
+void sansa_fb_secure_verify(uint8_t *name, uint8_t *header, uint8_t *code)
+{
+	printf("%s, name: %s\n",__FUNCTION__,name);
+	if (name) {
+		memset(&img_verify_info, 0, sizeof(imgToVerifyInfo));
+		secboot_param_set((uint8_t *)header,&img_verify_info);
+        /*verify sml,trustos,uboot*/
+		if (strcmp("splloader",name) == 0) {
+			common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)SAVE_SPL_IMAGE);
+			sansa_get_hash_key(SAVE_SPL_IMAGE,img_verify_info.pubkeyhash);
+		}
+        /*verify boot,recovery,modem ..*/
+		else if (strcmp("uboot",name) == 0) {
+			sansa_get_hash_key(UBOOT_START,img_verify_info.pubkeyhash);
+		}
+        /*verify spl*/
+		else if (strcmp("splloader0",name) == 0) {
+			//do nothing,read hash from efuse
+		}
+		uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+	}
+}
+

@@ -88,5 +88,6 @@ void sansa_get_hash_key(uint8_t *root_addr,uint8_t *hash_key);
 void sansa_secure_check(void *rootaddr, void *imgaddr);
 unsigned int DX_SecureBootVerify(void *imgaddr, void *pubkeyhash);
 void sansa_dl_secure_verify(uint8_t *name, uint8_t *header, uint8_t *code);
+void sansa_fb_secure_verify(uint8_t *name, uint8_t *header, uint8_t *code);
 
 #endif

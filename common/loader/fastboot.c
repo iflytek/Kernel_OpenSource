@@ -343,6 +343,7 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 	int i;
 	char partition_name[PARTNAME_SZ];
 	char *partition_name_p = NULL;
+	ulong strip_header = 0;
 	static sys_img_header *bakup_header;
 
 	debugf("data = %p,ImageInfo[0].base_address = %p\n", data, ImageInfo.base_address);
@@ -353,61 +354,22 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 			break;
 	}
 	partition_name_p = partition_name;
-#if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
-	if (0 == strcmp(partition_name, "splloader")) {
-		dl_secure_verify("splloader0", data, 0);
-	} else if (0 == strcmp(partition_name, "uboot")) {
-		dl_secure_verify("splloader", data, 0);
+#if defined (CONFIG_SECURE_BOOT) ||defined (CONFIG_SECBOOT)
+	VERIFY_RESULT verify_res;
+	verify_res = fb_secure_process_flow(&strip_header, partition_name,NULL, NULL, data);
+	switch (verify_res) {
+	case VERIFY_FAIL:
+		if (0 == strcmp("system", partition_name))
+			common_raw_erase(partition_name, 0, 0);
+		return OPERATE_SYSTEM_ERROR;
+	/*for future extension*/
+	case VERIFY_STOP_WRITE:
+	case VERIFY_NO_NEED:
+	case VERIFY_OK:
+	default:
+		break;
 	}
 #endif
-	/*Check boot&recovery img's magic */
-	if (!strcmp(arg, "boot") || !strcmp(arg, "recovery")) {
-#ifdef CONFIG_SECURE_BOOT
-#ifdef CONFIG_ROM_VERIFY_SPL
-		code_addr = (uint64_t *) get_code_addr("uboot", data);
-#else
-		code_addr = (uint64_t *) get_code_addr(NULL, data);
-#endif
-
-		if (memcmp((void *)code_addr, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-			fastboot_fail("image is not a boot image");
-			return;
-		}
-		dl_secure_verify("uboot", data, 0);
-#else
-#ifdef CONFIG_SECBOOT
-		dl_secure_verify("uboot",data,0);
-#endif
-		if (memcmp((void *)data, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-			fastboot_fail("image is not a boot image");
-			return;
-		}
-#endif
-	}
-
-#ifdef CONFIG_SECURE_BOOT
-#ifdef CONFIG_ROM_VERIFY_SPL
-	if (!strcmp(arg, "system")) {
-#ifdef CONFIG_SYSTEM_VERIFY
-		Sec_SHA1_Start();
-		do {
-			secure_verify_system_start("uboot", ImageInfo[index].base_address, ImageInfo[index].data_size);
-			index++;
-
-		} while (index < 2);
-		Sec_SHA1_Finish();
-		if (secure_verify_system_end("uboot", ImageInfo[0].base_address, 0) == 0) {
-			fastboot_fail("system.image secuer verify failed\n");
-			return;
-		}
-
-		ImageInfo[0].base_address += VLR_CODE_OFF;
-		ImageInfo[0].data_size -= VLR_CODE_OFF;
-#endif
-	}
-#endif
-#endif
-
 	//for spl uboot bakup
 	bakup_header = malloc(sizeof(sys_img_header));
 	if (NULL == bakup_header) {
