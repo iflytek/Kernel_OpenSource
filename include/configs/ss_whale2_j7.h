@@ -12,6 +12,10 @@
 
 //#define CONFIG_KERNEL_BOOT_CP
 
+
+#define CONFIG_MEM_LAYOUT_DECOUPLING
+#define CONFIG_DECOUPLING_NO_SURPPORT_RSVMEM
+
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
 

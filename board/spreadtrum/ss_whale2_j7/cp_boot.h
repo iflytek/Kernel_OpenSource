@@ -61,11 +61,28 @@ static u32 g_loader[] = {
 	0xee010f10, 0xf57ff06f, 0xe51ff004, 0x8b800000
 };
 
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+extern int get_cp_loader(u32 *count, u32 *loader);
+#else
+int get_cp_loader(u32 *count, u32 *loader)
+{
+	return -1;
+}
+#endif
+
 static inline void pubcp_boot(void)
 {
+	u32 state;
+	u32 loader[0x32] = {0};
+	u32 count = sizeof(loader)/sizeof(u32);
 
-    u32 state;
-	memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
+	if(get_cp_loader(&count, loader) == 0)
+	{
+		memcpy((void *)PUBCP_IRAM_ADDRESS, loader, count * sizeof(u32));
+	} else {
+		printf("%s: get cp boot code failed, use default g_loader boot cp\n", __func__);
+		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
+	}
 	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) |= BIT_10; /*cr5 core soft reset*/
 	msleep(50);
 	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) &= ~BIT_10; /*cr5 core soft reset*/
