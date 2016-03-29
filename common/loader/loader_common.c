@@ -125,7 +125,7 @@ void fdt_fixup_all(u8 *fdt_blob)
 #endif
 
 	/* for non iq mode, remove reserved iq memory from dtb */
-	fdt_fixup_reserved_mem(fdt_blob);
+	fdt_fixup_iq_reserved_mem(fdt_blob);
 
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
 extern int fdt_fixup_cp_coupling_info(void *blob);

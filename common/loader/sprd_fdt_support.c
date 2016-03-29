@@ -216,7 +216,7 @@ int fdt_chosen_bootargs_replace(void *fdt, char *old_args, char *new_args)
 	return err;
 }
 
-int fdt_fixup_reserved_mem(void *fdt)
+int fdt_fixup_iq_reserved_mem(void *fdt)
 {
 	int offset;
 	int ret = 0;

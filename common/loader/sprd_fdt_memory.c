@@ -20,7 +20,7 @@ typedef uint32_t mem_size_t;
 #define MAX_MEM_REGION_NUM 32
 static char *auto_mem_region_list[MAX_MEM_REGION_NUM];
 
-static int fdt_get_addr_size(const void *fdt, int node, const char *propname,
+ int fdt_get_addr_size(const void *fdt, int node, const char *propname,
 			mem_addr_t *addrp, mem_size_t *sizep)
 {
 	const mem_addr_t *addr;
@@ -40,27 +40,24 @@ static int fdt_get_addr_size(const void *fdt, int node, const char *propname,
 }
 
 static int fdt_set_addr_size(const void *fdt, int node, const char *propname,
-			mem_addr_t *addrp, mem_size_t *sizep)
+			mem_addr_t addr, mem_size_t size)
 {
 	int err;
-	mem_addr_t addr;
-	mem_size_t size;
 
-	if (addrp) {
-		addr = cpu_to_fdt(*addrp);
-		err =  fdt_setprop(fdt, node, propname, &addr, sizeof(addr));
-		if (err < 0) {
-			errorf("cannot set node's reg property(addr)!\n");
-			return err;
-		}
+	addr = cpu_to_fdt(addr);
+	err =  fdt_setprop(fdt, node, propname, &addr, sizeof(addr));
+	if (err < 0) {
+		errorf("cannot set node's reg property(addr)!\n");
+		return err;
 	}
-	if (sizep) {
-		size = cpu_to_fdt(*sizep);
-		err = fdt_appendprop(fdt, node, propname, &size, sizeof(size));
-		if (err < 0)
-			errorf("cannot set node's reg property(size)!\n");
+
+	size = cpu_to_fdt(size);
+	err = fdt_appendprop(fdt, node, propname, &size, sizeof(size));
+	if (err < 0) {
+		errorf("cannot set node's reg property(size)!\n");
+		return err;
 	}
-	return err;
+	return 0;
 }
 
 static int fdt_node_offset_by_name(const void *fdt,  const char *nodename)
@@ -91,7 +88,7 @@ int check_mem_region_auto(void *fdt, char *name)
 }
 
 int fixup_memory_addr(void *fdt, int offset,
-				mem_addr_t *addr, mem_size_t *size)
+				mem_addr_t addr, mem_size_t *size)
 {
 	mem_addr_t prev_ddr;
 	if(fdt_get_addr_size(fdt, offset, "reg", &prev_ddr, size) < 0) {
@@ -99,7 +96,7 @@ int fixup_memory_addr(void *fdt, int offset,
 		return -1;
 	}
 
-	if(fdt_set_addr_size(fdt, offset, "reg", addr, size) < 0)
+	if(fdt_set_addr_size(fdt, offset, "reg", addr, *size) < 0)
 		return -1;
 
 	return 0;
@@ -110,20 +107,18 @@ int move_prev_memory(void *fdt,  int i, mem_addr_t offset, char *name)
 	mem_addr_t addr;
 	mem_size_t size;
 	int nodeoffset;
-
 	nodeoffset = fdt_node_offset_by_name(fdt, name);
 	if(fdt_get_addr_size(fdt, nodeoffset, "reg", &addr, &size) < 0) {
 		errorf("cannot find reg addr and size.\n" );
 		return -1;
 	}
 	addr +=  offset;
-	if(fdt_set_addr_size(fdt, nodeoffset, "reg", &addr, &size) <0)
+	if(fdt_set_addr_size(fdt, nodeoffset, "reg", addr, size) <0)
 		return -1;
-
 	return 0;
 }
 
-int scan_memory_region(void *fdt)
+int scan_memory_region(void *fdt, int *auto_mem_num)
 {
 	const uint32_t *phandle = NULL;
 	mem_addr_t addr;
@@ -147,7 +142,7 @@ int scan_memory_region(void *fdt)
 				nodeoffset = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(*phandle));
 				if (nodeoffset < 0) {
 					errorf("get nodeoffset error\n");
-					return -1;
+					goto next;
 				}
 				if(fdt_get_addr_size(fdt, nodeoffset, "reg", &addr, &size) < 0) {
 					errorf("cannot find reg addr and size.\n" );
@@ -167,6 +162,7 @@ int scan_memory_region(void *fdt)
 		}
 next:;
 	}
+	*auto_mem_num = i+1;
 	return 0;
 }
 
@@ -196,11 +192,18 @@ int fdt_fixup_memory_region(void *fdt)
 	char *auto_mem_name;
 	char *tmp_auto_mem_region_list[MAX_MEM_REGION_NUM];
 	int num = -1;
+	int auto_mem_num = 0;
+	int ret = 0;
 
 	rsvmem_p = RSVMEM_START_ADDR;
 	memset(tmp_auto_mem_region_list, '\0', sizeof(tmp_auto_mem_region_list));
-	if (scan_memory_region(fdt) < 0)
-		goto fail;
+	ret = scan_memory_region(fdt, &auto_mem_num);
+	if (ret < 0)
+		goto end;
+	if(0 == auto_mem_num) {
+		debugf("no auto memory region, no need fixup memory region\n");
+		goto end;
+	}
 	parentoffset =  fdt_path_offset(fdt, "/reserved-memory");
 	for (offset = fdt_first_subnode(fdt, parentoffset);
 	      offset >= 0; offset = fdt_next_subnode(fdt, offset)) {
@@ -215,12 +218,14 @@ int fdt_fixup_memory_region(void *fdt)
 		if(check_mem_region_auto(fdt, nodename) < 0) {
 			debugf("%s: stable node \n", fdt_get_name(fdt, offset, NULL));
 			while (num>= 0) {
-				if((addr - rsvmem_p) < 0) {
+				if(addr < rsvmem_p) {
 					errorf("prev end addr exceed the current start addr\n");
-					goto fail;
+					ret = -1;
+					goto end;
 				}
-				if(move_prev_memory(fdt,  num, (addr - rsvmem_p), tmp_auto_mem_region_list[num]) < 0)
-					goto fail;
+				ret = move_prev_memory(fdt,  num, (addr - rsvmem_p), tmp_auto_mem_region_list[num]);
+				if(ret < 0)
+					goto end;
 				num--;
 			}
 			rsvmem_p = addr + size;
@@ -229,7 +234,7 @@ int fdt_fixup_memory_region(void *fdt)
 			/* the current node is auto */
 			addr = rsvmem_p;
 			debugf("%s: auto node \n", fdt_get_name(fdt, offset, NULL));
-			if (0 == fixup_memory_addr(fdt, offset, &addr, &size) ) {
+			if (0 == fixup_memory_addr(fdt, offset, addr, &size) ) {
 				rsvmem_p += size;
 				auto_mem_name = malloc(str_len+1);
 				strcpy(auto_mem_name, nodename);
@@ -239,7 +244,7 @@ int fdt_fixup_memory_region(void *fdt)
 next:
 		offset = fdt_node_offset_by_name(fdt, nodename);
 	}
-fail:
+end:
 	num = 0;
 	while(auto_mem_region_list[num] && (num <=  (MAX_MEM_REGION_NUM -1)) )
 	{
@@ -253,6 +258,6 @@ fail:
 		free(tmp_auto_mem_region_list[num]);
 		num++;
 	}
-	return 0;
+	return ret;
 }
 

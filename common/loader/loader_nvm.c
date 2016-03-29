@@ -583,83 +583,85 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 	Function for do memory defragment and load dtb
 */
 #ifdef CONFIG_MEMORY_DEFRAGMENT
-void load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
+int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	u8 *fdt_blob = NULL;
 	struct dt_table table;
 	char * header = NULL;
 	struct dt_entry *dt_entry_ptr;
 	uint64_t size = 0;
 	uint64_t fdt_size = 0;
-	int err;
+	int ret = -1;
 	uchar *dt_end_addr;
 	uchar *ramdisk_adr;
 
 	size = sizeof(struct dt_table);
 	if (0 != common_raw_read(partition, size, boot_img_offset.dt_offset, &table)) {
 		errorf("read dt image table header fail\n");
-		goto fail;
+		goto end;
 	}
 
 	/* Validate the device tree table header */
 	if((table.magic != DEV_TREE_MAGIC) || (table.version != DEV_TREE_VERSION)) {
 		errorf("Cannot validate Device Tree Table \n");
-		goto fail;
+		goto end;
 	}
 
 	size = sizeof(struct dt_table) + sizeof(struct dt_entry) * table.num_entries;
 	header = (char *)malloc(size);
 	if (NULL == header) {
 		errorf("malloc size %d for dt header fail\n", size);
-		goto fail;
+		goto end;
 	}
 	if (0 != common_raw_read(partition, size,  boot_img_offset.dt_offset, header)) {
 		errorf("read dt image table and entries header fail\n");
-		goto fail;
+		goto end;
 	}
 
 	/* Calculate the offset of device tree within device tree table */
 	dt_entry_ptr = dev_tree_get_entry_ptr((struct dt_table *)header);
 	if(NULL == dt_entry_ptr) {
 		errorf("Getting device tree address failed\n");
-		goto fail;
+		goto end;
 	}
 
 	size = dt_entry_ptr->size;
 	fdt_blob = malloc(size + FDT_ADD_SIZE);
 	if (0 != common_raw_read(partition, size, (boot_img_offset.dt_offset + dt_entry_ptr->offset), (char *)fdt_blob)) {
 		errorf("dt entry size read error!\n");
-		goto fail;
+		goto end;
 	}
 
 	if (fdt_check_header(fdt_blob) != 0) {
 		errorf("image is not a fdt\n");
-		goto fail;
+		goto end;
 	}
 	fdt_size = fdt_totalsize(fdt_blob);
-	err = fdt_open_into(fdt_blob, fdt_blob, fdt_size + FDT_ADD_SIZE);
-	if (err != 0) {
-		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(err));
-		goto fail;
+	ret = fdt_open_into(fdt_blob, fdt_blob, fdt_size + FDT_ADD_SIZE);
+	if (0 != ret) {
+		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
+		goto end;
 	}
 
 	fdt_fixup_all(fdt_blob);
-	if(0 != fdt_fixup_memory_region(fdt_blob))
-		goto fail;
+	ret = fdt_fixup_memory_region(fdt_blob);
+	if(0 != ret)
+		goto end;
 
-	if(0 != get_dt_end_addr(fdt_blob , &dt_end_addr))
-		goto fail;
+	ret = get_dt_end_addr(fdt_blob , &dt_end_addr);
+	if(0 != ret)
+		goto end;
 
 	fdt_size = fdt_totalsize(fdt_blob);
 	size = PAD_SIZE(fdt_size, KERNL_PAGE_SIZE);
 	*dt_start_addr = dt_end_addr -size;
 	memcpy(*dt_start_addr, fdt_blob, size);
-
-fail:
+	ret = 0;
+end:
 	if (NULL != header)
 		free(header);
 	if (NULL != fdt_blob)
 		free(fdt_blob);
-	return 0;
+	return ret;
 }
 #endif
 
@@ -703,7 +705,8 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 	fdt_fixup_all((uchar *)DT_ADR);
 #elif defined(CONFIG_MEMORY_DEFRAGMENT)
 	/* for memory defragment, dr_addr and ramdisk_adr is allocated dynamically*/
-	load_fixup_dt_img(partition, dt_addr);
+	if (0 != load_fixup_dt_img(partition, dt_addr))
+		return 0;
 	debugf("dt_addr:%lx \n", *dt_addr);
 	/* get ramdisk image size */
 	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);

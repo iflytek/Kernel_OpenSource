@@ -51,7 +51,7 @@ extern void sprd_etb_dump (void);
 #endif
 #ifdef CONFIG_MEMORY_DEFRAGMENT
 extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
-extern void load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
+extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
 #endif
 
 void display_writing_sysdump(void)

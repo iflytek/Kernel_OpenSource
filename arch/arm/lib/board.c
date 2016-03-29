@@ -602,6 +602,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	arm_pci_init();
 #endif
 
+#if defined(CONFIG_MEMORY_DEFRAGMENT) && defined(CONFIG_OF_CONTROL)
+	extern int fdt_fixup_memory_region(void *fdt);
+	fdt_fixup_memory_region(gd->fdt_blob);
+#endif
 	stdio_init();	/* get the devices list going. */
 
 	jumptable_init();
