@@ -145,3 +145,22 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 	return ;
 }
 
+void fdt_fixup_chosen_bootargs_board(char *buf, int calibration_mode)
+{
+	char *p = buf;
+	/*
+	 * Because of in u-boot, we can't find FDT chosen remove function
+	 * and samsung only uses uart to do calibration,
+	 * so in samsung board .dts, we remove the "console=ttyS1,115200n8" in chosen node by default.
+	 * so in normal mode, we need to append console
+	 */
+#ifdef NORMAL_UART_MODE
+	if (!calibration_mode) {
+		p += sprintf(p, " eng_device=0 console=null no_console_suspend ");
+	}
+#else
+	if (!calibration_mode) {
+		p += sprintf(p, " console=ttyS1,115200n8 no_console_suspend ");
+	}
+#endif
+}
