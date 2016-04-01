@@ -799,10 +799,10 @@ static struct panel_operations lcd_nt35597_mipi_operations = {
 };
 
 static struct timing_rgb lcd_nt35597_mipi_timing = {
-	.hfp = 70,  /* unit: pixel */
+	.hfp = 130,  /* unit: pixel */
 	.hbp = 64,
 	.hsync = 20,//4,
-	.vfp = 10, /*unit: line*/
+	.vfp = 8, /*unit: line*/
 	.vbp = 6,
 	.vsync = 2,
 };
