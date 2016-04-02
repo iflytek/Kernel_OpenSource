@@ -103,10 +103,11 @@ int do_elf_reloc_fixups(void)
 					*offset_ptr_ram,
 					CONFIG_SYS_TEXT_BASE + size);
 			}
-		} else {
+		} 
+		/*else {
 			debug("   %p: rom reloc %x, last %p\n", re_src,
 			       re_src->r_offset, last_offset);
-		}
+		}*/
 		last_offset = offset_ptr_rom;
 
 	} while (++re_src < re_end);

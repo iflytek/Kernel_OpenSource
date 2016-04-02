@@ -29,42 +29,32 @@
 #define CHIP_ENDIAN_LITTLE
 #define _LITTLE_ENDIAN 1
 
-
-
-#define CONFIG_EMMC_BOOT
 #define CONFIG_ARCH_SCX35L
+
+/*eMMC config*/
+#define CONFIG_MMC
+#define CONFIG_MMC_SDMA
 #define CONFIG_EMMC_VERSION_V40
-#define CONFIG_SUPPORT_EMMC_BOOT
 
-#ifdef  CONFIG_EMMC_BOOT
-#define EMMC_SECTOR_SIZE 512
+/*eMMC boot*/
+#define CONFIG_EMMC_BOOT
+#define CONFIG_GENERIC_MMC
+#define CONFIG_EMMC_RST_N_FUNCTION
 
+/*UFS boot
+#define CONFIG_UFS
+#define CONFIG_UFS_BOOT
+*/
+
+/*file system config*/
+#define CONFIG_FAT_WRITE
 #define CONFIG_FS_EXT4
-#define CONFIG_EXT4_WRITE
 #define CONFIG_CMD_EXT4
-#define CONFIG_CMD_EXT4_WRITE
+#define CONFIG_CMD_FAT
 
-
-#define CONFIG_UEFI_PARTITION
-#define CONFIG_EXT4_SPARSE_DOWNLOAD
-#endif
-
-/*
- * MMC definition
- */
-#define CONFIG_CMD_FAT			1
-#define CONFIG_FAT_WRITE		1
-#define CONFIG_MMC			1
-#define CONFIG_GENERIC_MMC		1
-#define CONFIG_SDHCI			1
-#define CONFIG_SDHCI_CTRL_NO_HISPD 	1 /* disable high speed control */
-#define CONFIG_SYS_MMC_MAX_BLK_COUNT	0x1000
-#define CONFIG_MMC_SDMA			1
-#define CONFIG_MV_SDHCI			1
-#define CONFIG_DOS_PARTITION		1
-#define CONFIG_EFI_PARTITION		1
-#define CONFIG_SYS_MMC_NUM		1
-
+/*partition type*/
+#define CONFIG_DOS_PARTITION
+#define CONFIG_EFI_PARTITION	
 
 
 #define CONFIG_SYS_HZ			1000
