@@ -1857,7 +1857,7 @@ int mmc_select_hwpart(int dev_num, int hwpart)
 	return 0;
 }
 
-#ifdef CONFIG_SUPPORT_EMMC_BOOT
+#ifdef CONFIG_EMMC_BOOT
 /*
  * This function changes the size of boot partition and the size of rpmb
  * partition present on EMMC devices.

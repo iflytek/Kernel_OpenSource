@@ -27,36 +27,25 @@
  */
 
 #include <common.h>
-#include <asm/errno.h>
 #include <malloc.h>
-#include <command.h>
 #include <android_bootimg.h>
 #include <boot_mode.h>
 #include <dl_common.h>
-#include <dl_cmd_proc.h>
 #include "sparse_format.h"
 #include <linux/usb/usb_uboot.h>
 #include <sprd_common_rw.h>
-#ifdef CONFIG_EMMC_BOOT
+
 #include "dl_operate.h"
 #include <asm/arch/chip_releted_def.h>
-//#include <mmc.h>
-#include <sprd_mmc.h>
-#include <inttypes.h>
 
 #include <secureboot/sec_common.h>
 
 
 extern SPECIAL_PARTITION_CFG const s_special_partition_cfg[];
 extern uchar *_get_backup_partition_name(uchar * partition_name);
-#endif
 
 #ifdef CONFIG_SECURE_BOOT
 #include "secure_verify.h"
-#endif
-
-#ifdef CONFIG_ROM_VERIFY_SPL
-#define SPL_CHECKSUM_LEN	0x8000
 #endif
 
 #ifdef CONFIG_NAND_BOOT
@@ -196,8 +185,8 @@ static void fb_cmd_download(const char *arg, void *data, uint64_t sz)
 	uint64_t len = simple_strtoul(arg, NULL, 16);
 	int total_rcv;
 
-	debugf("Start fastboot download, image len=%" PRIu64 " \n", len);
-	debugf("buffer base %p, buffer size %" PRIu64 "\n", ImageInfo.base_address, ImageInfo.max_size);
+	debugf("Start fastboot download, image len=0x%llx \n", len);
+	debugf("buffer base %p, buffer size 0x%llx \n", ImageInfo.base_address, ImageInfo.max_size);
 	if (len > ImageInfo.max_size) {
 		debugf("Image size over the max buffer size,can not accept \n");
 		fastboot_fail("data too large");
@@ -219,7 +208,6 @@ static void fb_cmd_download(const char *arg, void *data, uint64_t sz)
 	fastboot_okay("");
 }
 
-#ifdef CONFIG_EMMC_BOOT
 int _fb_write_nv_img(char * partition_name, uint64_t size)
 {
 	char *backup_partition_name = NULL;
@@ -291,7 +279,7 @@ int _fb_download_image(char *partition_name)
 	}
 
 	if (IMG_WITH_SPARSE == img_format) {
-		debugf("Handle the saving of image with sparse,name=%s,buf start at 0x%p,size=%" PRIu64 "\n",
+		debugf("Handle the saving of image with sparse,name=%s,buf start at 0x%p,size=0x%llx\n",
 		       partition_name, buf, write_size);
 		retval = write_sparse_img(partition_name, buf, (ulong)write_size);
 		if (-1 == retval) {
@@ -306,7 +294,7 @@ int _fb_download_image(char *partition_name)
 		}
 	} else {
 		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf)) {
-			errorf("write %s size %" PRIu64 " fail\n", partition_name, write_size);
+			errorf("write %s size 0x%llx fail\n", partition_name, write_size);
 			return 0;
 		}
 	}
@@ -431,7 +419,6 @@ void fb_cmd_erase(const char *arg, void *data, uint64_t size)
 	fastboot_okay("");
 	return;
 }
-#endif
 
 /*for nand this can not work,TODO*/
 #ifdef CONFIG_NAND_BOOT
@@ -568,8 +555,6 @@ void fb_cmd_boot(const char *arg, void *data, uint64_t sz)
 	boot_img_hdr *hdr = (boot_img_hdr *)raw_header;
 	unsigned kernel_actual;
 	unsigned ramdisk_actual;
-
-	debugf("arg: %s, data: %p, sz: %" PRIu64 "\n", arg, data, sz);
 
 	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 		debugf("boot image headr: %s\n", hdr->magic);

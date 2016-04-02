@@ -228,21 +228,19 @@
 
 
 /*eMMC config*/
-#define CONFIG_FAT_WRITE		1
-#define CONFIG_EMMC_BOOT
 #define CONFIG_MMC
-#define CONFIG_SUPPORT_EMMC_BOOT
+#define CONFIG_MMC_SDMA
+#define CONFIG_EMMC_VERSION_V40
+
+/*eMMC boot*/
+#define CONFIG_EMMC_BOOT
+#define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
 
-#define CONFIG_GENERIC_MMC
-#define CONFIG_MMC_SDMA
-#define CONFIG_SDHCI			1
-#define CONFIG_MV_SDHCI    1
-#define EMMC_SECTOR_SIZE 512
-#define CONFIG_EXT4_SPARSE_DOWNLOAD
+/*file system config*/
+#define CONFIG_FAT_WRITE
 #define CONFIG_FS_EXT4
-#define CONFIG_EMMC_VERSION_V40
-#define CONFIG_SPL_NOCHECK
+
 
 /*used in usb drv*/
 #define CHIP_ENDIAN_LITTLE
