@@ -51,7 +51,8 @@
 	defined(CONFIG_CMD_GPT) || \
 	defined(CONFIG_MMC) || \
 	defined(CONFIG_SYSTEMACE) || \
-	defined(CONFIG_SANDBOX)
+	defined(CONFIG_SANDBOX) || \
+	defined(CONFIG_UFS)
 #define HAVE_BLOCK_DEVICE
 #endif
 

@@ -1,6 +1,6 @@
 #include <common.h>
 #include <linux/sizes.h>
-#include "sprd_ufs.h"
+#include <sprd_ufs.h>
 #include "protocol_util.h"
 #include "hw_if.h"
 

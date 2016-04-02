@@ -8,11 +8,9 @@
 #ifdef  CONFIG_EMMC_BOOT
 #include <sprd_mmc.h>
 #endif
-
-#include <secureboot/sec_common.h>
-
-#include "secure_verify.h"
-#include "secure_boot.h"
+#ifdef CONFIG_UFS_BOOT
+#include <sprd_ufs.h>
+#endif
 
 static disk_partition_t local_part_info;
 
@@ -68,6 +66,8 @@ int block_dev_read(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, c
 		memcpy(buf, temp, size);
 	}
 
+	if (NULL != temp)
+		free(temp);
 	return 0;
 
 fail:
@@ -137,6 +137,8 @@ int block_dev_write(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, 
 		}
 	}
 
+	if (NULL != temp)
+		free(temp);
 	return 0;
 
 fail:
@@ -203,6 +205,8 @@ int block_dev_erase(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset)
 		}
 	}
 
+	if (NULL != temp)
+		free(temp);
 	return 0;
 
 fail:
@@ -229,6 +233,7 @@ int get_lun_by_bootable(enum lu_bootable target)
 	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
 		if (0 == factory_lu_tbl[id].log2blksz)
 			break;
+		/*TODO, only support single user lu now*/
 		if (factory_lu_tbl[id].bootable == target)
 			return factory_lu_tbl[id].lu_index;
 	}
@@ -278,15 +283,19 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 		} else {
 			part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
 			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-			if (size + offset > total_part_size)
+			if (size + offset > total_part_size) {
+				errorf("uboot read size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
 				return -1;
+			}
 		}
 	} else {
 		dev_id = get_user_lun(&part_info, part_name);
 		part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-		if (size + offset > total_part_size)
+		if (size + offset > total_part_size) {
+			errorf("read size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
 			return -1;
+		}
 	}
 
 	if (-1 == dev_id)
@@ -295,7 +304,7 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 	dev_desc = get_dev("ufs", dev_id);
 	if (NULL == dev_desc)
 		return -1;
-
+	/*TODO, can not support spl and uboot whole partition reading*/
 	if (0 == size)
 		size = total_part_size;
 
@@ -325,15 +334,19 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 		} else {
 			part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
 			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-			if (size + offset > total_part_size)
+			if (size + offset > total_part_size) {
+				errorf("uboot write size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
 				return -1;
+			}
 		}
 	} else {
 		dev_id = get_user_lun(&part_info, part_name);
 		part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-		if (size + offset > total_part_size)
+		if (size + offset > total_part_size) {
+			errorf("write size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
 			return -1;
+		}
 	}
 
 	if (-1 == dev_id)
@@ -384,6 +397,19 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 
 }
 
+/*TODO*/
+int common_write_Backstage(char *part_name, uint32_t size, uint32_t offset, char *buf)
+{
+	return 0;
+}
+
+/*TODO*/
+int common_query_backstage(char *part_name, uint64_t size, char *buf)
+{
+	return 0;
+}
+
+
 
 int common_repartition(disk_partition_t *partitions, int parts_count)
 {
@@ -432,9 +458,15 @@ int32_t common_get_lba_size(void)
 	return (int32_t)dev_desc->blksz;
 }
 
+/*TODO*/
+int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
+{
+	return 0;
+}
+
+
 #endif
 
-/*TODO*/
 #ifdef CONFIG_EMMC_BOOT
 int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 {
@@ -457,8 +489,10 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 		} else {
 			part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-			if (size + offset > total_part_size)
+			if (size + offset > total_part_size) {
+				errorf("uboot read size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
 				ret = -1;
+			}
 		}
 	} else {
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);

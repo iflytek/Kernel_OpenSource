@@ -33,7 +33,7 @@
 #define _HW_IF_H_
 
 
-#define REG_BASE_ADDRESS 0x0
+#define REG_BASE_ADDRESS 0xE2200000
 #define MAX_ALLOCATIONS 30
 //#define HOST_32BIT
 #define HOST_64BIT
