@@ -18,7 +18,7 @@
 #include <asm/io.h>
 #include <asm/arch/sdio_cfg.h>
 #include <asm/arch/sdio_reg.h>
-#include <asm/arch/chip_drv_common_io.h>
+#include <asm/arch/common.h>
 
 
 const  SDIO_BASE_INFO  sdio_ctrl_info[2] =
@@ -46,8 +46,8 @@ const  SDIO_BASE_INFO  sdio_ctrl_info[2] =
 		0XE2210004,
 		BIT_11,
 
-		LDO_LDO_EMMCIO,
-		LDO_LDO_EMMCCORE,
+		"vddgen",
+		"vddemmccore",
 	},
 	{
 		SD,
@@ -71,8 +71,8 @@ const  SDIO_BASE_INFO  sdio_ctrl_info[2] =
 		0X20E00004,
 		BIT_11,
 
-		LDO_LDO_SDIO1,
-		LDO_LDO_SDIO0,
+		"vddsdio",
+		"vddsdcore",
 	}
 };
 

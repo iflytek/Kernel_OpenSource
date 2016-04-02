@@ -11,7 +11,8 @@
 #include <smsc_lpc47m.h>
 #include <malloc.h>
 #include <boot_mode.h>
-#include <asm/arch/adi_hal_internal.h>
+#include <adi_hal_internal.h>
+#include <sprd_adc.h>
 
 #define SERIAL_DEV PNP_DEV(0x2e, 4)
 
@@ -51,9 +52,9 @@ int board_init(void)
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 	ADI_init();
 	/*FPGA forbiden*/
-	misc_init();
-	LDO_Init();
-	ADC_Init();
+	//misc_init();
+	//LDO_Init();
+	pmic_adc_Init();
 	/*FPGA forbiden*/
 //	pin_init();
 	sprd_eic_init();
