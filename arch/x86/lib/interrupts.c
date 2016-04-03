@@ -43,6 +43,18 @@ static struct irq_action irq_handlers[CONFIG_SYS_NUM_IRQS] = { {0} };
 static int spurious_irq_cnt;
 static int spurious_irq;
 
+__weak void mask_irq(int irq)
+{
+}
+
+__weak void unmask_irq(int irq)
+{
+}
+
+__weak void specific_eoi(int irq)
+{
+}
+
 void irq_install_handler(int irq, interrupt_handler_t *handler, void *arg)
 {
 	int status;
