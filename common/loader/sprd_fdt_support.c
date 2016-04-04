@@ -17,6 +17,7 @@ extern uint32_t load_lcd_width_to_kernel();
 extern uint32_t load_lcd_hight_to_kernel();
 extern int get_dram_cs_number(void);
 extern int get_dram_cs0_size(void);
+extern char *get_product_sn(void);
 
 #ifdef CONFIG_SECURE_BOOT
 #define CMDLINE_BUF_SIZE	(1024)
