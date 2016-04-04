@@ -15,9 +15,13 @@
 #define LTE_MODE         "ltemode"
 #define AP_VERSION       "apv"
 #define RF_BOARD_ID      "rfboard.id"
+#define RF_HW_INFO       "hardware.version"
+#define K32_LESS         "32k.less"
+#define AUTO_TEST        "autotest"
 
-void cmdline_add_cp_cmdline(char *cmd, char* value);
-void cp_cmline_fixup(void);
-char* cp_getcmdline(void);
+#define INVALID_BOARD_ID 0xFF
+
+void cp_cmdline_fixup(void);
+char *cp_getcmdline(void);
 
 #endif // _MODEM_COMMON_H_

@@ -237,17 +237,18 @@ int fdt_fixup_iq_reserved_mem(void *fdt)
 	return ret;
 }
 
-#if defined( CONFIG_KERNEL_BOOT_CP )
 int fdt_fixup_cp_boot(void *fdt)
 {
+	int ret = 0;
+#if defined( CONFIG_KERNEL_BOOT_CP )
 	char buf[64];
 	int str_len;
-	int ret = 0;
 	memset(buf, 0, 64);
 	sprintf(buf,"modem=shutdown");
 	str_len = strlen(buf);
 	buf[str_len] = '\0';
 	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
+#endif
 
 	ret += fdt_chosen_bootargs_append(fdt, cp_getcmdline(), 1);
 
@@ -262,55 +263,6 @@ int fdt_fixup_cp_boot(void *fdt)
 	return 0;
 }
 
-#else
-int fdt_fixup_calibration_parameter(void *fdt)
-{
-	char *buf;
-	int ret;
-
-	buf = get_calibration_parameter();
-	if (NULL == buf) {
-		debugf("warn:nothing transfer to kernel about calibration\n");
-		return -1;
-	} else {
-		debugf("in function fdt_fixup_calibration_parameter buf = %s", buf);
-		ret = fdt_chosen_bootargs_append(fdt, buf, 1);
-		if(0 ==ret)
-		{
-			/* if is uart calibraton, remove ttys1 console */
-			if(is_calibration_by_uart())
-			{
-				//__raw_writel(0x285480, CTL_PIN_BASE + REG_PIN_CTRL2);
-				//ret = fdt_chosen_bootargs_replace(fdt,"console=ttyS1", "console=ttyS3");
-				ret = fdt_chosen_bootargs_replace(fdt,"console=ttyS1", "console=null");
-			}
-		}
-		return ret;
-	}
-}
-
-int fdt_fixup_boot_mode(void *fdt)
-{
-	char buf[128];
-	int str_len;
-	int ret;
-	char *boot_mode;
-
-	memset(buf, 0, 128);
-	boot_mode = getenv("bootmode");
-	if (NULL != boot_mode) {
-		sprintf(buf, "androidboot.mode=%s", boot_mode);
-		str_len = strlen(buf);
-		buf[str_len] = '\0';
-		debugf("Fixed bootmode:%s\n", buf);
-	} else {
-		debugf("Normal mode been set\n");
-	}
-
-	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
-	return ret;
-}
-#endif
 
 #ifdef CONFIG_NAND_BOOT
 int fdt_fixup_mtd(void *fdt)

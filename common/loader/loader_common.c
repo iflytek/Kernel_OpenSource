@@ -106,15 +106,10 @@ void fdt_fixup_all(u8 *fdt_blob)
 	fdt_fixup_mtd(fdt_blob);
 #endif
 
-	/*max let cp_cmline_fixup befor fdt_fixup_cp_boot*/
-	cp_cmline_fixup();
+	/*max let cp_cmdline_fixup befor fdt_fixup_cp_boot*/
+	cp_cmdline_fixup();
 
-#if defined( CONFIG_KERNEL_BOOT_CP )
 	fdt_fixup_cp_boot(fdt_blob);
-#else
-	fdt_fixup_calibration_parameter(fdt_blob);
-	fdt_fixup_boot_mode(fdt_blob);
-#endif
 
 	fdt_fixup_serialno(fdt_blob);
 
@@ -192,7 +187,7 @@ static int start_linux(uchar *dt_addr)
 	theKernel = (void (*)(int, int, u32))KERNEL_ADR;	/* set the kernel address */
 
 	/*start modem CP */
-	cp_cmline_fixup();
+	cp_cmdline_fixup();
 	modem_entry();
 
 	/* jump to kernel with register set */
