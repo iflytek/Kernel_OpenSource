@@ -63,6 +63,7 @@ void display_writing_sysdump(void)
 	sysdump_lcd_printf("   -------------------------------  \n"
 		   "   Sysdumpping now, keep power on.  \n"
 		   "   -------------------------------  \n");
+	lcd_enable();
 	set_backlight(255);
 	set_vibrator(0);
 #endif
@@ -76,6 +77,7 @@ void display_special_mode(void)
 	sysdump_lcd_printf("   -------------------------------  \n"
 		   "   Restart now, keep power on.  \n"
 		   "   -------------------------------  \n");
+	lcd_enable();
 	set_backlight(255);
 	set_vibrator(0);
 #endif
@@ -105,6 +107,7 @@ static void wait_for_keypress()
 	} while (1);
 	debugf("Pressed key: %d\n", key_code);
 	sysdump_lcd_printf("Pressed key: %d\n", key_code);
+	lcd_enable();
 //	lcd_display();
 }
 
@@ -166,6 +169,7 @@ void write_mem_to_mmc(char *path, char *filename,
 	debugf("writing 0x%lx bytes to sd file %s\n",
 		memsize, filename);
 	sysdump_lcd_printf("writing 0x%lx bytes to sd file %s\n", memsize, filename);
+	lcd_enable();
 //	lcd_display();
 	unsigned long *actwrite = NULL;
 	ret = file_fat_write(filename, memaddr, 0, memsize, actwrite);
@@ -498,6 +502,7 @@ int read_nand_to_ram( struct mtd_info *mtd, loff_t paddr, unsigned int size, uns
                         printf("%s, read addr: 0x%.8x len: 0x%.8x 's value err, ret: %d, retlen: 0x%.8x\n",\
 			 __func__, (unsigned int)read_addr, readsize, ret, retlen);
 			sysdump_lcd_printf("\nRead nand flash 0x%.8x error, you can dump it use download tools again!\n", read_addr);
+			lcd_enable();
 //			lcd_display();
 			break;
                 }
@@ -729,6 +734,7 @@ void write_sysdump_before_boot(int rst_mode)
 		#define CONSOLE_COLOR_GREEN 0x07e0
 	//	lcd_setfgcolor(CONSOLE_COLOR_GREEN);
 		sysdump_lcd_printf("\nReset mode: %s\n\n",GET_RST_MODE(rst_mode));
+		lcd_enable();
 	//	lcd_setfgcolor(CONSOLE_COLOR_RED);
 //		lcd_display();
 
@@ -790,7 +796,10 @@ void write_sysdump_before_boot(int rst_mode)
 
 		if (mod &(FSFATAL | FSNOSPACE)) {
 			if (mod & FSFATAL)
+			{
 				sysdump_lcd_printf("\ndetect sd is demaged");
+				lcd_enable();
+			}
 			else if (mod & FSNOSPACE) {
 				if(i != 1 ) {
 					sprintf(fnbuf, "%d", --i);
@@ -805,6 +814,7 @@ void write_sysdump_before_boot(int rst_mode)
 				if (delete_flag) {
 					sysdump_lcd_printf("\ndetect sd have not enough space");
 					sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
+					lcd_enable();
 
 					do {
 						udelay(50 * 1000);
@@ -911,11 +921,13 @@ void write_sysdump_before_boot(int rst_mode)
 
 #ifdef CONFIG_NAND_BOOT
 		sysdump_lcd_printf("\nBegin to dump nand flash:\n");
+		lcd_enable();
 //		lcd_display();
 		mtd_dump();
 #endif
 		debugf("\nwriting done.\nPress any key to continue...");
 		sysdump_lcd_printf("\nWriting done.\nPress any key (Exp power key) to continue...");
+		lcd_enable();
 //		lcd_display();
 		wait_for_keypress();
 	} else
