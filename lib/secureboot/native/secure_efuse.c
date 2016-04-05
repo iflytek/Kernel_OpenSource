@@ -43,7 +43,7 @@ static int get_rand(void){
 }
 
 
-int secure_efuse_program(void){
+int secure_efuse_program_native(void){
 
   unsigned int aes256[8];
   int ret = 0;

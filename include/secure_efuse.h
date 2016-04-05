@@ -23,7 +23,9 @@
 #define SANSA_SET_RMA_ERR   -6
 #define SANSA_KCE_PRO_ERR   -7
 
-int secure_efuse_program(void);
+int secure_efuse_program_native(void);
+int secure_efuse_program_sansa(void);
+
 int read_master_key(void);
 
 int sansa_compute_socid(void *socid);

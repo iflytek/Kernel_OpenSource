@@ -488,11 +488,7 @@ int pctool_mode_detect(void)
 			return -1;
 		else if(DIAG_AP_CMD_PROGRAM_KEY == command)
 		{
-#if defined(CONFIG_SECURE_BOOT)
-			ret = secure_efuse_program();
-#endif
-#if defined(CONFIG_SANSA_SECBOOT)
-		    printf("###### secure_efuse_program ######\n");
+#if defined(CONFIG_SECURE_BOOT)||defined (CONFIG_SECBOOT)
 			ret = secure_efuse_program();
 #endif
 

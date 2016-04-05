@@ -24,7 +24,7 @@
 
 imgToVerifyInfo g_imgToVerInfo = {0};
 
-int secure_efuse_program(void)
+int secure_efuse_program_sansa(void)
 {
   int ret=0;
   printf("###### read_spl_image ######\n");

@@ -66,6 +66,23 @@ void secboot_verify(void *ptr,void *m,void *n,uint32_t data_len)
 	}
 }
 
+int secure_efuse_program()
+{
+	int ret = 0;
+
+	#if defined(CONFIG_SANSA_SECBOOT)
+		    printf("###### secure_efuse_program ######\n");
+			ret = secure_efuse_program_sansa();
+	#endif
+
+	#if defined(CONFIG_SPRD_SECBOOT)
+			ret = secure_efuse_program_sprd();
+	#endif
+
+	#if defined(CONFIG_SECURE_BOOT)
+			ret = secure_efuse_program_native();
+	#endif
+}
 int dl_secure_verify(void *partition_name,void *header,void *code)
 {
 #ifdef CONFIG_SPRD_SECBOOT

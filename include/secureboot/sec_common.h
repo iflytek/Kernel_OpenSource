@@ -73,5 +73,6 @@ void fb_secure_verify(void *partition_name,void *header,void *code);
 VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 			    uint32_t rcv_size, uint32_t total_size, unsigned char * buf);
 
+int secure_efuse_program();
 
 #endif

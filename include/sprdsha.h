@@ -98,7 +98,7 @@ int sha256_done(hash_state * md, unsigned char *hash);
 #endif
 
 #define LTC_ARGCHK(x) if (!(x)) { printf("assert %s at %s , %d\n", #x,  __FILE__,__LINE__);  }
-//#define MIN(x, y) ( ((x)<(y))?(x):(y) )
+#define MIN(x, y) ( ((x)<(y))?(x):(y) )
 /* a simple macro for making hash "process" functions */
 #define HASH_PROCESS(func_name, compress_name, state_var, block_size)                       \
 int func_name (hash_state * md, const unsigned char *in, uint64_t inlen)               \
