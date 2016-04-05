@@ -353,7 +353,7 @@
 #define CONFIG_7S_RST_THRESHOLD		7	//7S, hold key down for this time to trigger
 
  /*SMPL config*/
-//#define CONFIG_SMPL_EN
+#define CONFIG_SMPL_EN
 #define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
 
 /* Chip Driver Macro Definitions End*/
