@@ -65,6 +65,9 @@ config TARGET_SP9860G_1H10_3G
 	select ARM64
 	help
 	  This is the Spreadtrum sp9860g_1h10_3g Board
+config TARGET_SP9860G_1H10_AL
+	bool "Spreadtrum sp9860g_1h10_al"
+	select ARM64
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
@@ -78,4 +81,5 @@ source "board/spreadtrum/ss_whale2_j7/Kconfig"
 source "board/spreadtrum/sp9860g_1h10_5m/Kconfig"
 source "board/spreadtrum/sp9860g_1h10_3g/Kconfig"
 
+source "board/spreadtrum/sp9860g_1h10_al/Kconfig"
 endif

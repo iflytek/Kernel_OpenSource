@@ -141,6 +141,7 @@ dtb-$(CONFIG_TARGET_SP9850S_1H10_5M) += sp9850s-1h10-native.dtb
 dtb-$(CONFIG_TARGET_SP9850S_2H10_5M) += sp9850s-2h10-native.dtb
 dtb-$(CONFIG_TARGET_SP9860G_1H10_5M) += sp9860g-1h10-native.dtb
 dtb-$(CONFIG_TARGET_SP9860G_1H10_3G) += sp9860g-1h10-3g.dtb
+dtb-$(CONFIG_TARGET_SP9860G_1H10_AL) += sp9860g-1h10-al.dtb
 dtb-$(CONFIG_TARGET_SS_WHALE2_J7) += ss_whale2_j7-native.dtb
 
 targets += $(dtb-y)
