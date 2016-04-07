@@ -77,6 +77,9 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 #define FUNCTYPE_GET_SANSA_LCS            0x05
 #define FUNCTYPE_SET_SANSA_RMA            0x06
 
+#define BLOCK_NUM_3                      (0x03)
+#define DISABLE_DX_DEBUG_CONTROL         (0x20000000)
+
 struct smc_param64 {
   uint64_t a0;
   uint64_t a1;

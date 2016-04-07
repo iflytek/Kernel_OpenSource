@@ -55,12 +55,24 @@ int uboot_verify_img(uint64_t start_addr, uint64_t lenth){
   return ret;
 }
 
+static void disable_debug_control_signal(void)
+{
+#if defined (CONFIG_SPRD_SECBOOT)
+	//sprd_ap_efuse_prog(BLOCK_NUM_3,DISABLE_SPRD_DEBUG_CONTROL);
+#endif
+#if defined (CONFIG_SANSA_SECBOOT)
+    sprd_ap_efuse_prog(BLOCK_NUM_3,DISABLE_DX_DEBUG_CONTROL);
+#endif
+}
+
 int uboot_program_efuse(uint64_t start_addr, uint64_t lenth){
 
   uint32_t ret;
   uint32_t smcid;
   uint32_t funcid;
   struct smc_param64 param;
+
+  disable_debug_control_signal();
   
   ap_sansa_efuse_prog_power_on();
   smcid  = TEESMC64_SIPCALL_WITH_ARG;
@@ -84,11 +96,12 @@ int uboot_get_socid(uint64_t start_addr, uint64_t lenth){
   uint32_t ret;
   uint32_t smcid;
   uint32_t funcid;
+  struct smc_param64 param;
 
+  ap_sansa_efuse_prog_power_on();
   smcid  = TEESMC64_SIPCALL_WITH_ARG;
   funcid = FUNCTYPE_GET_SOCID;
 
-  struct smc_param64 param;
   param.a0 = smcid;
   param.a1 = funcid;
   param.a2 = start_addr;
@@ -97,6 +110,7 @@ int uboot_get_socid(uint64_t start_addr, uint64_t lenth){
   tee_smc_call64(&param);
 
   ret = param.a0;
+  ap_sansa_efuse_power_off();
   return ret;
 }
 
