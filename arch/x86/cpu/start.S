@@ -53,14 +53,6 @@ _start:
 	/* Save BIST */
 	movl	%eax, %ebp
 
-	/* Load the segement registes to match the gdt loaded in start16.S */
-	movl	$(X86_GDT_ENTRY_32BIT_DS * X86_GDT_ENTRY_SIZE), %eax
-	movw	%ax, %fs
-	movw	%ax, %ds
-	movw	%ax, %gs
-	movw	%ax, %es
-	movw	%ax, %ss
-
 	/* Clear the interrupt vectors */
 	lidt	blank_idt_ptr
 

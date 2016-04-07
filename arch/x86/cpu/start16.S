@@ -49,6 +49,15 @@ o32 cs	lgdt	gdt_ptr
 	jmp	ff
 ff:
 
+	/* Load the data segment descriptors */
+	movl	$0x18, %eax
+	movw	%ax, %ds
+	movw	%ax, %es
+	movw	%ax, %ss
+	nop
+	movw	%ax, %fs
+	movw	%ax, %gs
+
 	/* Finally restore BIST and jump to the 32-bit initialization code */
 	movw	$code32start, %ax
 	movw	%ax, %bp
