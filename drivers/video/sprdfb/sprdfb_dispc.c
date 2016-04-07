@@ -16,6 +16,7 @@
 #include "sprdfb.h"
 #include "sprdfb_panel.h"
 
+#define WIDTH_ALIGN( value, base ) (((value) + ((base) - 1)) & ~((base) - 1))
 
 
 static uint16_t		is_first_frame = 1;
@@ -89,10 +90,12 @@ static void dispc_module_enable(void)
 static inline int32_t  dispc_set_disp_size(struct sprdfb_device *dev)
 {
 	uint32_t reg_val;
+	int width_strike;
 
 	FB_PRINT("sprdfb:[%s]\n",__FUNCTION__);
-
-	reg_val = (dev->panel->width& 0xfff) | ((dev->panel->height & 0xfff ) << 16);
+	width_strike = WIDTH_ALIGN(dev->panel->width, 16);
+	FB_PRINT("width_strike = %d\n", width_strike);
+	reg_val = (width_strike & 0xfff) | ((dev->panel->height & 0xfff ) << 16);
 	dispc_write(reg_val, DISPC_SIZE_XY);
 
 	return 0;
@@ -138,7 +141,7 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 		reg_val = ( dev->display_width& 0xfff) | ((dev->display_height & 0xfff ) << 16);
 #endif
 	}else
- #endif	
+ #endif
 	reg_val = ( dev->panel->width& 0xfff) | ((dev->panel->height & 0xfff ) << 16);
 	dispc_write(reg_val, DISPC_OSD_SIZE_XY);
 
