@@ -1,3 +1,4 @@
+obj-y += lcd_dummy_mipi.o
 obj-$(CONFIG_FB_LCD_HX8363_RGB_SPI) += lcd_hx8363_rgb_spi.o
 obj-$(CONFIG_FB_LCD_HX8363_MCU) += lcd_hx8363_mcu.o
 obj-$(CONFIG_FB_LCD_S6D0139) += lcd_s6d0139.o
