@@ -779,7 +779,7 @@ void write_sysdump_before_boot(int rst_mode)
 		int mod, key_code;
 		unsigned long max_size = 0;
 		max_size = get_sprd_dump_size(dt_addr, nodeoffset);
-		/*mod = fat_checksys(max_size);*/
+
 		if (i > SYSDUMP_FOLDER_NUM) {
 			debugf("there exited %d history log !!!\n", SYSDUMP_FOLDER_NUM);
 			i --;
@@ -792,7 +792,6 @@ void write_sysdump_before_boot(int rst_mode)
 
 		mod = fat_checksys(max_size);
 		debugf("max space size is %lx\n",max_size);
-		int delete_flag = 0;
 
 		if (mod &(FSFATAL | FSNOSPACE)) {
 			if (mod & FSFATAL)
@@ -801,6 +800,7 @@ void write_sysdump_before_boot(int rst_mode)
 				lcd_enable();
 			}
 			else if (mod & FSNOSPACE) {
+				int nospace_flag = 1;
 				if(i != 1 ) {
 					sprintf(fnbuf, "%d", --i);
 					fnbuf[1] = '\0';
@@ -808,10 +808,10 @@ void write_sysdump_before_boot(int rst_mode)
 					if(ret == -1)
 						debugf("Error: delete files or folder\n");
 					mod = fat_checksys(max_size);
-					if (mod & FSNOSPACE)
-						delete_flag = 1;
+					if (!(mod & FSNOSPACE))
+						nospace_flag = 0;
 				}
-				if (delete_flag) {
+				if (nospace_flag) {
 					sysdump_lcd_printf("\ndetect sd have not enough space");
 					sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
 					lcd_enable();
