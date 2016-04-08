@@ -572,12 +572,16 @@ static int check_dts_sysdump_node(unsigned char *fdt_blob)
 }
 static int fill_dump_mem(unsigned char *fdt_blob, struct sysdump_mem *sprd_dump_mem, int nodeoffset)
 {
-	int sprd_dump_mem_num, lenp, offset, size, phandle, lookup;
+	int sprd_dump_mem_num, lenp, size, offset, phandle, lookup;
 	unsigned long *ptr = NULL, *ptr_end = NULL;
 	int i = 0;
 
 	ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
 	__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &size);
+	if (list == NULL) {
+		debugf("no memory-region property.\n");
+		return 0;
+	}
 	__be32 *list_end = list + size / sizeof(*list);
 
 	while (list < list_end) {
@@ -596,7 +600,7 @@ static int fill_dump_mem(unsigned char *fdt_blob, struct sysdump_mem *sprd_dump_
 				sprd_dump_mem[i].type  = SYSDUMP_RAM;
 				debugf("sprd_dump_mem[%d].paddr is %lx\n", i, sprd_dump_mem[i].paddr);
 				debugf("sprd_dump_mem[%d].size  is %lx\n", i, sprd_dump_mem[i].size);
-			i ++;
+				i ++;
 			}
 		}
 	}
@@ -636,53 +640,60 @@ static unsigned long get_sprd_sysdump_info_paddr(int nodeoffset)
 static unsigned long get_sprd_dump_size(unsigned char *fdt_blob, int nodeoffset)
 {
 	unsigned long *ptr = NULL, *ptr_end = NULL;
+	__be32 *list = NULL, *list_end = NULL;
 	unsigned long size = 0;
 	int lenp, phandle, lookup;
 
-	ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
-	__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
-	__be32 *list_end = list + lenp / sizeof(*list);
+	list = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
+	if (list == NULL)
+		debugf("no memory-region property.\n");
+	else {
+		list_end = list + lenp / sizeof(*list);
+		while (list < list_end) {
+			phandle = be32_to_cpup(list++);
+			lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
 
-	while (list < list_end) {
-		phandle = be32_to_cpup(list++);
-		lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
-
-		ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
-		if (ptr == NULL)
-			debugf("no memory-region property.\n");
-		else {
-			ptr_end = ptr + lenp / (sizeof(unsigned long));
-			while (ptr < ptr_end) {
-				ptr ++;
-				size += fdt_size_to_cpu(*ptr);
-				ptr ++;
-				debugf("size is %lx\n",size);
+			ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
+			if (ptr == NULL) {
+				debugf("no memory-region reg property.\n");
+				break;
+			}
+			else {
+				ptr_end = ptr + lenp / (sizeof(unsigned long));
+				while (ptr < ptr_end) {
+					ptr ++;
+					size += fdt_size_to_cpu(*ptr);
+					ptr ++;
+					debugf("size is %lx\n",size);
+				}
 			}
 		}
 	}
-
-	ptr = fdt_getprop(fdt_blob, nodeoffset, "iomem", &lenp);
 	list = fdt_getprop(fdt_blob, nodeoffset, "iomem", &lenp);
-	list_end = list + lenp / sizeof(*list);
+	if (list == NULL)
+		debugf("no iomem property.\n");
+	else {
+		list_end = list + lenp / sizeof(*list);
+		while (list < list_end) {
+			phandle = be32_to_cpup(list++);
+			lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
 
-	while (list < list_end) {
-		phandle = be32_to_cpup(list++);
-		lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
-
-		ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
-		if (ptr == NULL)
-			debugf("no iomem property.\n");
-		else {
-			ptr_end = ptr + lenp / (sizeof(unsigned long));
-			while (ptr < ptr_end) {
-				ptr ++;
-				size += fdt_size_to_cpu(*ptr);
-				ptr ++;
-				debugf("size is %lx\n",size);
+			ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
+			if (ptr == NULL) {
+				debugf("no iomem reg property.\n");
+				break;
+			}
+			else {
+				ptr_end = ptr + lenp / (sizeof(unsigned long));
+				while (ptr < ptr_end) {
+					ptr ++;
+					size += fdt_size_to_cpu(*ptr);
+					ptr ++;
+					debugf("size is %lx\n",size);
+				}
 			}
 		}
 	}
-
 	return size;
 }
 
