@@ -21,11 +21,14 @@
 #define SANSA_EFUSE_PRO_ERR -4
 #define SANSA_GET_LCS_ERR   -5
 #define SANSA_SET_RMA_ERR   -6
+#define SANSA_KCE_PRO_ERR   -7
 
 int secure_efuse_program(void);
 int read_master_key(void);
 
+int sansa_compute_socid(void *socid);
 int sansa_get_lcs_cmd(void);
 int sansa_set_rma_cmd(void);
+int sansa_kce_program(uint32_t *kcePtr);
 
 

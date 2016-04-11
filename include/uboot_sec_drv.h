@@ -76,6 +76,7 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 #define FUNCTYPE_UPDATE_VERSION           0x04
 #define FUNCTYPE_GET_SANSA_LCS            0x05
 #define FUNCTYPE_SET_SANSA_RMA            0x06
+#define FUNCTYPE_KCE_PROGRAM              0x07
 
 #define BLOCK_NUM_3                      (0x03)
 #define DISABLE_DX_DEBUG_CONTROL         (0x20000000)
@@ -99,6 +100,8 @@ int uboot_update_swVersion(uint64_t start_addr, uint64_t lenth);
 int uboot_sansa_get_lcs(uint32_t *p_lcs);
 
 int uboot_sansa_set_rma(uint32_t *p_rmaret);
+
+int uboot_kce_program(uint64_t start_addr, uint64_t lenth);
 
 
 #endif

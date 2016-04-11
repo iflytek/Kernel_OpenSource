@@ -19,7 +19,8 @@
 #include <secureboot/sec_common.h>
 #include "uboot_sec_drv.h"
 
-#define  SOCID_SIZE_IN_WORDS 8 
+#define  SOCID_SIZE_IN_WORDS 8
+#define  KCE_SIZE_IN_BYTES   16
 
 imgToVerifyInfo g_imgToVerInfo = {0};
 
@@ -46,7 +47,7 @@ int secure_efuse_program(void)
   
 }
 
-unsigned int sansa_compute_socid(void *socid)
+int sansa_compute_socid(void *socid)
 {
 	int ret = 0;
 	int i;
@@ -92,3 +93,19 @@ int sansa_set_rma_cmd(void)
   return t_result;
 }
 
+int sansa_kce_program(uint32_t *kcePtr)
+{
+  int ret = 0;
+
+  g_imgToVerInfo.img_addr = kcePtr;
+  g_imgToVerInfo.img_len = KCE_SIZE_IN_BYTES;
+  g_imgToVerInfo.flag = SANSA_FLAG;
+
+  ret = uboot_kce_program(&g_imgToVerInfo,sizeof(imgToVerifyInfo));
+
+  if(ret)
+  {
+    return SANSA_KCE_PRO_ERR;
+  }
+  return PROG_OK;
+}
