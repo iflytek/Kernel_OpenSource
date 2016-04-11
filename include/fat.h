@@ -105,6 +105,7 @@
 #define FSDIRTY		32		/* File system is dirty */
 #define FSFIXFAT	64		/* Fix file system FAT */
 #define FSNOSPACE	128		/* SD have no space for sysdump */
+#define FSSMSIZE     256        /*  SD card volume size is smaller than sysdump size */
 
 typedef struct boot_sector {
 	__u8	ignored[3];	/* Bootstrap code */

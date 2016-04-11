@@ -8,6 +8,7 @@
 
 ifdef CONFIG_SPL_BUILD
 obj-$(CONFIG_SPL_FAT_SUPPORT) += fat/
+obj-$(CONFIG_SPL_EXFAT_SUPPORT) += exfat/
 obj-$(CONFIG_SPL_EXT_SUPPORT) += ext4/
 else
 obj-y				+= fs.o
@@ -16,6 +17,7 @@ obj-$(CONFIG_CMD_CBFS) += cbfs/
 obj-$(CONFIG_CMD_CRAMFS) += cramfs/
 obj-$(CONFIG_FS_EXT4) += ext4/
 obj-y += fat/
+obj-y += exfat/
 obj-$(CONFIG_CMD_JFFS2) += jffs2/
 obj-$(CONFIG_CMD_REISER) += reiserfs/
 obj-$(CONFIG_SANDBOX) += sandbox/

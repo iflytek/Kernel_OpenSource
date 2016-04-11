@@ -24,12 +24,19 @@
 #include <asm/arch/check_reboot.h>
 #include <sprd_mmc.h>
 #include <fat.h>
+#include <exfat.h>
 #include "loader_common.h"
 
 #include <libfdt.h>
 #include <fdt.h>
 #include <linux/ctype.h>
 #include <fdtdec.h>
+
+enum {
+	FS_FAT32,
+	FS_EXFAT,
+	FS_INVALID
+};
 
 //extern lcd_display(void);
 extern void set_backlight(uint32_t value);
@@ -113,11 +120,12 @@ static void wait_for_keypress()
 
 
 
-int init_mmc_fat(void)
+int init_mmc_fat(int *fs_type)
 {
 	struct mmc *mmc;
 	block_dev_desc_t *dev_desc = NULL;
 	int ret;
+	*fs_type = FS_INVALID;
 	debugf("init_mmc_fat\n");
 	sprd_host_init(1);
 	mmc = find_mmc_device(1);// 1 is  sd, 0 is emmc
@@ -143,21 +151,33 @@ int init_mmc_fat(void)
 		return -1;
 	}
 	ret = fat_register_device(dev_desc, 1);
+	if (ret == 0) {
+		ret = file_fat_detectfs();
+		if(ret) {
+			debugf("detect fs fat failed\n");
+			return -1;
+		}
+		*fs_type = FS_FAT32;
+		return 0;
+	}
+	debugf("Fat register fail. Try exFat. \n");
+
+	ret = exfat_register_device(dev_desc, 1);
 	if(ret < 0) {
-		debugf("fat regist fail %d\n", ret);
+		debugf("exFat register fail %d.\n", ret);
 		return -1;
 	}
 
-	ret = file_fat_detectfs();
+	ret = file_exfat_detectfs();
 	if(ret) {
-		debugf("detect fs failed\n");
+		debugf("Detect fs exfat failed\n");
 		return -1;
 	}
-
+	*fs_type = FS_EXFAT;
 	return 0;
 }
 
-void write_mem_to_mmc(char *path, char *filename,
+void write_mem_to_mmc(char *path, char *filename, int fs_type,
 	void *memaddr, unsigned long memsize)
 {
 	int ret;
@@ -172,7 +192,13 @@ void write_mem_to_mmc(char *path, char *filename,
 	lcd_enable();
 //	lcd_display();
 	unsigned long *actwrite = NULL;
-	ret = file_fat_write(filename, memaddr, 0, memsize, actwrite);
+	if (fs_type==FS_FAT32)
+		ret = file_fat_write(filename, memaddr, 0, memsize, actwrite);
+	else if (fs_type==FS_EXFAT)
+		ret = file_exfat_write(filename, memaddr, memsize);
+	else
+		ret = -1;
+
 	if (ret <= 0) {
 		debugf("sd file write error %d\n", ret);
 	}
@@ -511,7 +537,7 @@ int read_nand_to_ram( struct mtd_info *mtd, loff_t paddr, unsigned int size, uns
 }
 
 /*dump the data saved in nand flash to sdcard when needed*/
-void mtd_dump(void)
+void mtd_dump(int fs_type)
 {
 	int ret = 0;
 	unsigned int write_len = 0, write_addr = 0;
@@ -543,7 +569,7 @@ void mtd_dump(void)
 
 		memset(fname, 0, 72);
 		sprintf(fname, "ubipac%d", loop);
-		write_mem_to_mmc(NULL, fname, buf, write_len);
+		write_mem_to_mmc(NULL, fname, fs_type, buf, write_len);
 		debugf("write ubipac%d end\n", loop);
 	}
 	put_mtd_device(mtd);
@@ -699,7 +725,7 @@ static unsigned long get_sprd_dump_size(unsigned char *fdt_blob, int nodeoffset)
 
 void write_sysdump_before_boot(int rst_mode)
 {
-	int i, j, sprd_dump_mem_num, ret;
+	int i, j, sprd_dump_mem_num, ret, fs_type;
 	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr;
 	struct rtc_time tm;
 	struct sysdump_mem *mem;
@@ -736,7 +762,7 @@ void write_sysdump_before_boot(int rst_mode)
 			goto FINISH;
 		}
 		//MMU_DisableIDCM();
-		if (init_mmc_fat())
+		if (init_mmc_fat(&fs_type))
 			goto FINISH;
 
 		/* display on screen */
@@ -773,6 +799,7 @@ void write_sysdump_before_boot(int rst_mode)
 		else
 			path = NULL;
 
+	if (fs_type == FS_FAT32) {
 		sprintf(fnbuf, "%s", "slog");
 		unsigned long  startcluster = 0;
 		startcluster = do_new_folder(fnbuf, startcluster);
@@ -852,7 +879,55 @@ void write_sysdump_before_boot(int rst_mode)
 					break;
 				}
 			}
+
 		startcluster = do_new_folder("1", startcluster);
+	}
+	else if (fs_type == FS_EXFAT) {
+		int mod, key_code;
+		unsigned long max_size = get_sprd_dump_size(dt_addr, nodeoffset);
+		debugf("max space size is %lx\n",max_size);
+		mod = exfat_checksys(max_size);
+		if (mod & FSSMSIZE) {
+			debugf("SD card volume size is smaller then dumped size. Skip sysdump.\n");
+			goto FINISH;
+		}
+
+		if (mod &(FSFATAL | FSNOSPACE)) {
+			if (mod & FSFATAL)
+				sysdump_lcd_printf("\ndetect sd is demaged");
+			else if (mod & FSNOSPACE)
+				sysdump_lcd_printf("\ndetect sd have not enough space");
+
+			sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
+			lcd_enable();
+			do {
+				udelay(50 * 1000);
+				key_code = board_key_scan();
+				if (key_code == KEY_VOLUMEDOWN) {
+					int ret;
+					sysdump_lcd_printf("\nvolumedown key is pressed.\nSD Card format starts........\n");
+					lcd_enable();
+					ret = exfat_format();
+					if (ret != 0) {
+						sysdump_lcd_printf("\nSD Card format failed. Skip sysdump.\n");
+						lcd_enable();
+						goto FINISH;
+					}
+					debugf("SD Card formatting done.\n");
+					break;
+				} else if(key_code == KEY_VOLUMEUP) {
+					sysdump_lcd_printf("\nvolumedup key is pressed. sysdump will be skipped.\n");
+					lcd_enable();
+					goto FINISH;
+				}
+			} while (1);
+		}
+	}
+	else {
+		sysdump_lcd_printf("Invalid file system.  Sysdump will be skipped.  \n");
+		lcd_enable();
+		goto FINISH;
+	}
 
 		tm = get_time_by_sec();
 
@@ -877,10 +952,10 @@ void write_sysdump_before_boot(int rst_mode)
 			infop->dump_mem_paddr,
 			"crash_key is ",
 			infop->crash_key);
-		write_mem_to_mmc(path, fnbuf, (char *)(info), strlen(info));
+		write_mem_to_mmc(path, fnbuf, fs_type, (char *)(info), strlen(info));
 
 		sprintf(fnbuf, "slog/sysdump/1/"SYSDUMP_CORE_NAME_FMT, 0);
-		write_mem_to_mmc(path, fnbuf,
+		write_mem_to_mmc(path, fnbuf, fs_type,
 			(char *)infop + sizeof(*infop), infop->elfhdr_size);
 
 #if 1 /* TODO: jianjun.he */
@@ -894,22 +969,22 @@ void write_sysdump_before_boot(int rst_mode)
 
 		#ifdef CONFIG_RAMDUMP_NO_SPLIT
 				sprintf(fnbuf, "slog/sysdump/1/"SYSDUMP_CORE_NAME_FMT"_0x%08lx-0x%08lx_dump.lst", i + 1, mem[i].paddr, mem[i].paddr + mem[i].size -1);
-				write_mem_to_mmc(path, fnbuf, waddr, mem[i].size);
+				write_mem_to_mmc(path, fnbuf, fs_type, waddr, mem[i].size);
 		#else
 			if (mem[i].size <= SZ_8M) {
 				sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT, i + 1);
-				write_mem_to_mmc(path, fnbuf, waddr, mem[i].size);
+				write_mem_to_mmc(path, fnbuf, fs_type, waddr, mem[i].size);
 			} else {
 				for (j = 0; j < mem[i].size / SZ_8M; j++) {
 					sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT"_%03d",
 						i + 1, j);
-					write_mem_to_mmc(path, fnbuf, waddr + j * SZ_8M, SZ_8M);
+					write_mem_to_mmc(path, fnbuf, fs_type, waddr + j * SZ_8M, SZ_8M);
 				}
 
 				if (mem[i].size % SZ_8M) {
 					sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT"_%03d",
 						i + 1, j);
-					write_mem_to_mmc(path, fnbuf, waddr + j * SZ_8M,
+					write_mem_to_mmc(path, fnbuf, fs_type, waddr + j * SZ_8M,
 									(mem[i].size % SZ_8M));
 				}
 			}
@@ -918,7 +993,7 @@ void write_sysdump_before_boot(int rst_mode)
 #else
 		for (i = 0; i < infop->mem_num; i++) {
 			sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT, /*infop->time,*/ i + 1);
-			write_mem_to_mmc(path, fnbuf, mem[i].paddr, mem[i].size);
+			write_mem_to_mmc(path, fnbuf, fs_type, mem[i].paddr, mem[i].size);
 		}
 #endif
 
@@ -926,7 +1001,7 @@ void write_sysdump_before_boot(int rst_mode)
 		debugf ("\n Start to dump ETB trace data.\n");
 		sprd_etb_hw_dis();
 		sprd_etb_dump();
-		write_mem_to_mmc(0, "etbdata_uboot.bin", &etb_dump_mem[0], SZ_32K);
+		write_mem_to_mmc(0, "etbdata_uboot.bin", fs_type, &etb_dump_mem[0], SZ_32K);
 		debugf ("\n Dump ETB data finished.\n");
 #endif
 
@@ -934,7 +1009,7 @@ void write_sysdump_before_boot(int rst_mode)
 		sysdump_lcd_printf("\nBegin to dump nand flash:\n");
 		lcd_enable();
 //		lcd_display();
-		mtd_dump();
+		mtd_dump(fs_type);
 #endif
 		debugf("\nwriting done.\nPress any key to continue...");
 		sysdump_lcd_printf("\nWriting done.\nPress any key (Exp power key) to continue...");
