@@ -176,17 +176,16 @@ int32_t s6e3fa3_reset(struct panel_spec *self)
 {
 	sprd_gpio_request(NULL, LCM_GPIO_2V8);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_2V8, 1);
-	sprd_gpio_set(NULL, LCM_GPIO_2V8, 1);
 	
 	sprd_gpio_request(NULL, LCM_GPIO_1V8);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_1V8, 1);
-	sprd_gpio_set(NULL, LCM_GPIO_1V8, 1);
 
-	dispc_write(1, DISPC_RSTN);
+	sprd_gpio_request(NULL, LCM_GPIO_RSTN);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
 	mdelay(5);
-	dispc_write(0, DISPC_RSTN);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 0);
 	mdelay(5);
-	dispc_write(1, DISPC_RSTN);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
 	mdelay(20);
 
 	return 0;
