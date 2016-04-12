@@ -22,7 +22,7 @@ extern imgToVerifyInfo img_verify_info;
 #define IRAM_BEGIN 0x0000ce00
 #define UBOOT_START  0x9efffe00
 #define VERIFY_ADDR 0x9d000000 //for 32bit TOS verification
-#define SIMG_BUF     0x1500000
+#define SIMG_BUF     0x1E00000
 #define CERT_SIZE    0x1000
 #define SYS_HEADER_SIZE 0x200
 
