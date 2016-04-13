@@ -419,7 +419,7 @@ int32_t _boot_read_partition_with_backup(boot_image_required_t info)
 	return ret;
 }
 
-static uint32_t get_boot_offset(boot_image_required_t img_info, uint32_t secure_offset)
+uint32_t get_boot_offset(boot_image_required_t img_info, uint32_t secure_offset)
 {
 	uint32_t offset = 0;
 	uint32_t hdr_offset = 0;

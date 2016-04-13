@@ -3,6 +3,7 @@
 #include <libfdt.h>
 #include "cp_mem_decoupling.h"
 #include "loader_common.h"
+#include <secureboot/sec_common.h>
 
 //#define CP_MEM_DECOUP_DEBUG
 
@@ -433,13 +434,16 @@ err0:
 static int do_parse_add_rsvmem_info(struct keyinfo *key,
 	struct cp_mem_coupling_info *info, struct fdt_header *fdt)
 {
-	int i, err;
-	int poffs, offs;
+	int i, j, err;
+	int len;
+	int node, offs;
 	int na, ns;
-	uint64_t base;
+	int na_t;
+	fdt32_t cells[4];
+	uint64_t base, r;
 	char name[64];
+	char *p;
 	struct region_info *rsvmem;
-	struct property reg;
 
 	if(NULL == info || NULL == fdt)	{
 		printf("%s: param error\n", __func__);
@@ -448,13 +452,12 @@ static int do_parse_add_rsvmem_info(struct keyinfo *key,
 
 	printf("start add cp rsvmem to fdt\n");
 
-	poffs = fdt_path_offset(fdt, "/reserved-memory");
-	if (poffs < 0) {
+	node = fdt_path_offset(fdt, "/reserved-memory");
+	if (node < 0) {
 		printf("/reserved-memory node not exist\n");
-		print_fdt_rsvmem(fdt);
-	} else {
-		print_fdt_node(fdt, poffs);
+		return -1;
 	}
+	print_fdt_node(fdt, node);
 
 	for(rsvmem = info->rsvmem_info.rsvmem, i = 0; i < MAX_RSVMEM_NUM; i++, rsvmem++) {
 		if(rsvmem->res.size == 0) {
@@ -463,38 +466,51 @@ static int do_parse_add_rsvmem_info(struct keyinfo *key,
 
 		printf("%s: rsvbase = 0x%p, rsvsize = 0x%p\n", __func__, rsvmem->res.base, rsvmem->res.size);
 		base = rsvmem->res.base;
-#ifdef CONFIG_DUAL_DDR
-		//base |= (0x4 << 32);
-#endif
-		if (poffs < 0) {
-			err = fdt_add_mem_rsv(fdt, base, rsvmem->res.size);
-			if (err < 0) {
-				printf("%s: add rsv mem error(%s)\n", __func__, fdt_strerror(err));
-				continue;
-			}
-		} else {
-			sprintf(name, "%s@%x", rsvmem->res.name, base);
-			offs = fdt_add_subnode(fdt, poffs, name);
-			if (offs < 0)
-				continue;
+		offs = node;
+		of_bus_default_count_cells(fdt, node, &na, &ns);
+		for (offs = fdt_first_subnode(fdt, node); offs > 0; offs = fdt_next_subnode(fdt, offs)) {
+			p = fdt_get_name(fdt, offs, &len);
+			printf("node name: %s\n", p);
+			if (p && strstr(p, rsvmem->res.name)) {
+				p = fdt_getprop(fdt, offs, "reg", &len);
+				if (p) {
+					r = 0;
+					na_t = na;
+					while (na_t--)
+						r = (r << 32) | fdt32_to_cpu(*((fdt32_t *)p++));
+					if (r) {
+						printf("%s info already exist\n", rsvmem->res.name);
+						break;
+					}
 
-			of_bus_default_count_cells(fdt, poffs, &na, &ns);
-			prop_init("reg", offs, &reg);
-			fill_reg_prop_value(base, rsvmem->res.size, na, ns, &reg);
-			if (do_add_prop_to_fdt(fdt, 0, &reg) < 0) {
-				printf("%s: add reg property failed, in %s node\n", __func__, name);
-				fdt_del_node(fdt, offs);
-				continue;
+					sprintf(name, "%s@%x", rsvmem->res.name, base);
+					err = fdt_set_name(fdt, offs, name);
+					if (err < 0) {
+						printf("%s: set node name error(%s)\n", __func__, fdt_strerror(err));
+						break;
+					}
+
+					j = 0;
+					if (na == 2)
+						cells[j++] = cpu_to_fdt32(base >> 32);
+					cells[j++] = cpu_to_fdt32(base);
+					if (ns == 2)
+						cells[j++] = 0;
+					cells[j++] = cpu_to_fdt32(rsvmem->res.size);
+					err = fdt_setprop(fdt, offs, "reg", cells, sizeof(cells[0]) * j);
+					if (err < 0) {
+						printf("%s: set reg prop error(%s)\n", __func__, fdt_strerror(err));
+					}
+
+					printf("%s: update %s reg info done\n", __func__, name);
+					break;
+				}
 			}
 		}
-
 	}
 
 	printf("add cp rsvmem to fdt done\n");
-	if (poffs < 0)
-		print_fdt_rsvmem(fdt);
-	else
-		print_fdt_node(fdt, poffs);
+	print_fdt_node(fdt, node);
 
 	return 0;
 }
@@ -544,6 +560,31 @@ static int fixup_image_partition_name(const char *rname, struct partition_name_i
 	return 0;
 }
 
+int read_cp_required_image(boot_image_required_t img_info)
+{
+	uint32_t secure_boot_offset = 0;
+	uint32_t normal_boot_offset = 0;
+
+	debugf("load %s to addr 0x%08x\n", img_info.partition, img_info.mem_addr);
+
+	if (NULL != img_info.bak_partition) {
+		debugf("load %s with backup img %s\n", img_info.partition, img_info.bak_partition);
+		_boot_read_partition_with_backup(img_info);
+	} else {
+#if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
+		secure_boot_offset = SYS_HEADER_SIZE;
+		if (0 != common_raw_read(img_info.partition, img_info.size, secure_boot_offset, (char *)img_info.mem_addr))
+			errorf("read %s partition fail\n", img_info.partition);
+#else
+		normal_boot_offset = get_boot_offset(img_info, 0);
+		if (0 != common_raw_read(img_info.partition, img_info.size, normal_boot_offset, (char *)img_info.mem_addr))
+			errorf("read %s partition fail\n", img_info.partition);
+#endif
+	}
+
+	return 1;
+}
+
 int get_coupling_info(const char *partition, struct cp_mem_coupling_info *info)
 {
 	boot_image_required_t img_info;
@@ -557,7 +598,7 @@ int get_coupling_info(const char *partition, struct cp_mem_coupling_info *info)
 	img_info.partition = partition;
 	img_info.mem_addr = (unsigned long)info;
 	img_info.size = sizeof(struct cp_mem_coupling_info);
-	_boot_load_required_image(img_info);
+	read_cp_required_image(img_info);
 
 	return 0;
 }
