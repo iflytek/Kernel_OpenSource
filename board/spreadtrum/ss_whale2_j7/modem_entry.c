@@ -44,9 +44,8 @@
 #define INVALID_FLAG 0x5a5a5a5a
 #define MAGIC_NUMBER1 0x474D494D
 #define MAGIC_NUMBER2 0x44414548
-
-#define JUMP_ADDRESS 35
-#define JUMP_VALUE   0x8b800800
+#define MAX_HEAD_LENGTH 0x800
+#define MAX_SEARCH_LENGTH 0x4000
 
 struct bin_info {
        u32 names[MAX_DYNAMIC_BIN_NAME_LEN];
@@ -83,23 +82,40 @@ struct modem_image_head {
 
 int cp_dynamic_loader(void)
 {
-       int i;
-       u32 baseaddress = LTE_MODEM_ADDR;
-       struct modem_image_head *pmInfo = (struct modem_image_head*)LTE_MODEM_ADDR;
-       if((pmInfo->MAGIC1 != MAGIC_NUMBER1) || (pmInfo->MAGIC2 != MAGIC_NUMBER2))
-               return -1;
+        int i;
+        u32 *magic1, *magic2;
+        u32 baseaddress = LTE_MODEM_ADDR;
+        struct modem_image_head *pmInfo;
+        u32 jump_address;
 
-       for(i = 0; i < pmInfo->Dbin_Count; i++) {
-               struct bin_info *pBinInfo = &(pmInfo->bin_info[i]);
-               if(pBinInfo->tcm_load_base != 0x5a5a5a5a)
-                       memcpy((void*)pBinInfo->tcm_load_base, (void*)(baseaddress +
+        for(i=0; i<MAX_SEARCH_LENGTH/sizeof(u32); i++) {
+                magic1 = (u32 *)(LTE_MODEM_ADDR+i*sizeof(u32));
+                if(*magic1 == MAGIC_NUMBER1) {
+                        magic2 = magic1+1;
+                        if(*magic2 == MAGIC_NUMBER2)
+                                break;
+                }
+        }
+        if(i == MAX_SEARCH_LENGTH/sizeof(u32)) {
+                debugf("dynamic load is not supported!\n");
+                return -1;
+        }
+
+        pmInfo = (struct modem_image_head *)(LTE_MODEM_ADDR+i*sizeof(u32));
+        jump_address = (u32)pmInfo + MAX_HEAD_LENGTH;
+        g_loader[sizeof(g_loader)/sizeof(u32)-1] = jump_address;
+
+        for(i = 0; i < pmInfo->Dbin_Count; i++) {
+                struct bin_info *pBinInfo = &(pmInfo->bin_info[i]);
+                if(pBinInfo->tcm_load_base != 0x5a5a5a5a)
+                        memcpy((void*)pBinInfo->tcm_load_base, (void*)(baseaddress +
                               pBinInfo->offset1), pBinInfo->size);
-               if(pBinInfo->ddr_load_base != 0x5a5a5a5a)
-                       memcpy((void*)pBinInfo->ddr_load_base, (void*)(baseaddress +
+                if(pBinInfo->ddr_load_base != 0x5a5a5a5a)
+                        memcpy((void*)pBinInfo->ddr_load_base, (void*)(baseaddress +
                               pBinInfo->offset2), pBinInfo->size2);
-       }
-       g_loader[JUMP_ADDRESS] = JUMP_VALUE;
-       return 0;
+        }
+
+        return 0;
 }
 
 void cp_adr_remap(u32 cp_kernel_exec_addr, u32 cp_zero_map_addr)
