@@ -17,6 +17,7 @@
 #define VFAT_MAXLEN_BYTES	256 /* Maximum LFN buffer in bytes */
 #define VFAT_MAXSEQ		9   /* Up to 9 of 13 2-byte UTF-16 entries */
 #define PREFETCH_BLOCKS		2
+#define FILENAME_LEN_BYTES 72
 
 #ifndef CONFIG_FS_FAT_MAX_CLUSTSIZE
 #define CONFIG_FS_FAT_MAX_CLUSTSIZE 65536
@@ -224,8 +225,8 @@ int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 void fat_close(void);
 int fat_format(void);
 int fat_checksys(__u64 ram_size);
-unsigned long do_new_folder(char* filename, unsigned long startcluster);
-int rename_folder(const char *scr, const char *dest, unsigned long scr_cluster);
-int delete_folder(const char *filename, unsigned long cur_clust);
-struct dir_entry* check_folder_flag(const char *filename, unsigned long curclust, fsdata *mydata);
+int do_new_folder(const char *path_name);
+int rename_folder(const char *scr, const char *dest);
+int delete_folder(const char *filename);
+struct dir_entry* check_folder_flag(const char *filename);
 #endif /* _FAT_H_ */

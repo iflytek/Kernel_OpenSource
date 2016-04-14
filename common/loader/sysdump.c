@@ -726,6 +726,7 @@ static unsigned long get_sprd_dump_size(unsigned char *fdt_blob, int nodeoffset)
 void write_sysdump_before_boot(int rst_mode)
 {
 	int i, j, sprd_dump_mem_num, ret, fs_type;
+	int auto_test_flag = 0;
 	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr;
 	struct rtc_time tm;
 	struct sysdump_mem *mem;
@@ -800,87 +801,115 @@ void write_sysdump_before_boot(int rst_mode)
 			path = NULL;
 
 	if (fs_type == FS_FAT32) {
-		sprintf(fnbuf, "%s", "slog");
-		unsigned long  startcluster = 0;
-		startcluster = do_new_folder(fnbuf, startcluster);
-
-		sprintf(fnbuf, "%s", "sysdump");
-		startcluster = do_new_folder(fnbuf, startcluster);
-
-		for (i = 1; i <= SYSDUMP_FOLDER_NUM; i++) {
-			sprintf(fnbuf, "%d", i);
-			fnbuf[1] = '\0';
-			dentptr = check_folder_flag(fnbuf, startcluster, NULL);
-			if(dentptr == NULL)
-				break;
-		}
 		int mod, key_code;
 		unsigned long max_size = 0;
+
 		max_size = get_sprd_dump_size(dt_addr, nodeoffset);
-
-		if (i > SYSDUMP_FOLDER_NUM) {
-			debugf("there exited %d history log !!!\n", SYSDUMP_FOLDER_NUM);
-			i --;
-			sprintf(fnbuf, "%d", i);
-			fnbuf[1] = '\0';
-			ret = delete_folder(fnbuf, startcluster);
-			if(ret == -1)
-				debugf("Error: delete files or folder\n");
-		}
-
 		mod = fat_checksys(max_size);
-		debugf("max space size is %lx\n",max_size);
+		//debugf("max space size is %lx\n",max_size);
 
 		if (mod &(FSFATAL | FSNOSPACE)) {
-			if (mod & FSFATAL)
-			{
+			int nospace_flag = 1;
+			if (mod & FSFATAL) {
 				sysdump_lcd_printf("\ndetect sd is demaged");
 				lcd_enable();
 			}
 			else if (mod & FSNOSPACE) {
-				int nospace_flag = 1;
-				if(i != 1 ) {
-					sprintf(fnbuf, "%d", --i);
-					fnbuf[1] = '\0';
-					ret = delete_folder(fnbuf, startcluster);
-					if(ret == -1)
-						debugf("Error: delete files or folder\n");
-					mod = fat_checksys(max_size);
-					if (!(mod & FSNOSPACE))
-						nospace_flag = 0;
+				for (i = 1; i <= SYSDUMP_FOLDER_NUM; i++) {
+					sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", i);
+					fnbuf[strlen(fnbuf)] = '\0';
+					//debugf("fnbuf is %s\n",fnbuf);
+					dentptr = check_folder_flag(fnbuf);
+					if(dentptr == NULL)
+						break;
+				}
+				if (i != 1) {
+					for(j = i; j != 1;) {
+						sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", --j);
+						fnbuf[strlen(fnbuf)] = '\0';
+						ret = delete_folder(fnbuf);
+						if(ret == -1) {
+							debugf("Error: delete files or folder\n");
+							goto FINISH;
+						}
+						mod = fat_checksys(max_size);
+						if (!(mod & FSNOSPACE)) {
+							nospace_flag = 0;
+							break;
+						}
+					}
 				}
 				if (nospace_flag) {
 					sysdump_lcd_printf("\ndetect sd have not enough space");
-					sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
 					lcd_enable();
-
-					do {
-						udelay(50 * 1000);
-						key_code = board_key_scan();
-						if (key_code == KEY_VOLUMEDOWN) {
-							fat_format();
-							break;
-						} else if(key_code == KEY_VOLUMEUP)
-							goto FINISH;
-					} while (1);
 				}
+			}
+			if (nospace_flag) {
+				sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
+				lcd_enable();
+
+				do {
+					udelay(50 * 1000);
+					key_code = board_key_scan();
+					if (key_code == KEY_VOLUMEDOWN) {
+						fat_format();
+						break;
+					} else if(key_code == KEY_VOLUMEUP)
+						goto FINISH;
+				} while (1);
+			}
+		}
+
+		if(do_new_folder(SYSDUMP_FOLDER_NAME)) {
+			debugf("Error: creat %s folder failed\n", SYSDUMP_FOLDER_NAME);
+			goto FINISH;
+		}
+
+		if(check_folder_flag(SYSDUMP_AUTO_TEST)) {
+			auto_test_flag = 1;
+			debugf("there existed sysdump_auto_test.txt, so jump wait_for_keypress.\n");
+		}
+
+		for (i = 1; i <= SYSDUMP_FOLDER_NUM; i++) {
+			sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", i);
+			fnbuf[strlen(fnbuf)] = '\0';
+			//debugf("fnbuf is %s\n",fnbuf);
+			dentptr = check_folder_flag(fnbuf);
+			if(dentptr == NULL)
+				break;
+		}
+
+		if (i > SYSDUMP_FOLDER_NUM) {
+			debugf("there existed %d history log.\n", SYSDUMP_FOLDER_NUM);
+			i --;
+			sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", i);
+			fnbuf[strlen(fnbuf)] = '\0';
+			ret = delete_folder(fnbuf);
+			if(ret == -1) {
+				debugf("Error: delete files or folder.\n");
+				goto FINISH;
 			}
 		}
 
 		for(j = i - 1; j > 0 && i != 1; j = j - 2) {
-				sprintf(fnbuf, "%d", j++);
-				fnbuf[1] = 0;
-				sprintf(fnbuf_rename, "%d", j);
-				fnbuf[1] = 0;
-				ret = rename_folder(fnbuf, fnbuf_rename, startcluster);
-				//debugf("rename folder from %s to %s.\n", fnbuf, fnbuf_rename);
+				sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", j++);
+				fnbuf[strlen(fnbuf)] = '\0';
+				sprintf(fnbuf_rename, SYSDUMP_FOLDER_NAME"/%d", j);
+				fnbuf_rename[strlen(fnbuf_rename)] ='\0';
+				debugf("rename folder from %s to %s.\n", fnbuf, fnbuf_rename);
+				ret = rename_folder(fnbuf, fnbuf_rename);
 				if (ret == -1) {
 					debugf("Error: rename folder !\n");
 					break;
 				}
 			}
 
-		startcluster = do_new_folder("1", startcluster);
+		sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", 1);
+
+		if(do_new_folder(fnbuf)) {
+			debugf("Error: creat %s folder failed\n", fnbuf);
+			goto FINISH;
+		}
 	}
 	else if (fs_type == FS_EXFAT) {
 		int mod, key_code;
@@ -934,7 +963,7 @@ void write_sysdump_before_boot(int rst_mode)
 		debugf("time is %04d.%02d.%02d_%02d:%02d:%02d\n", tm.tm_year, tm.tm_mon, \
 			tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-		sprintf(fnbuf,"slog/sysdump/1/%04d_%02d_%02d_%02d_%02d_%02d.txt", \
+		sprintf(fnbuf,SYSDUMP_FOLDER_NAME"/1/%04d_%02d_%02d_%02d_%02d_%02d.txt", \
 			tm.tm_year, tm.tm_mon, tm.tm_mday, \
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
 
@@ -954,7 +983,7 @@ void write_sysdump_before_boot(int rst_mode)
 			infop->crash_key);
 		write_mem_to_mmc(path, fnbuf, fs_type, (char *)(info), strlen(info));
 
-		sprintf(fnbuf, "slog/sysdump/1/"SYSDUMP_CORE_NAME_FMT, 0);
+		sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT, 0);
 		write_mem_to_mmc(path, fnbuf, fs_type,
 			(char *)infop + sizeof(*infop), infop->elfhdr_size);
 
@@ -968,21 +997,21 @@ void write_sysdump_before_boot(int rst_mode)
 				waddr = mem[i].paddr;
 
 		#ifdef CONFIG_RAMDUMP_NO_SPLIT
-				sprintf(fnbuf, "slog/sysdump/1/"SYSDUMP_CORE_NAME_FMT"_0x%08lx-0x%08lx_dump.lst", i + 1, mem[i].paddr, mem[i].paddr + mem[i].size -1);
+				sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT"_0x%08lx-0x%08lx_dump.lst", i + 1, mem[i].paddr, mem[i].paddr + mem[i].size -1);
 				write_mem_to_mmc(path, fnbuf, fs_type, waddr, mem[i].size);
 		#else
 			if (mem[i].size <= SZ_8M) {
-				sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT, i + 1);
+				sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT, i + 1);
 				write_mem_to_mmc(path, fnbuf, fs_type, waddr, mem[i].size);
 			} else {
 				for (j = 0; j < mem[i].size / SZ_8M; j++) {
-					sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT"_%03d",
+					sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT"_%03d",
 						i + 1, j);
 					write_mem_to_mmc(path, fnbuf, fs_type, waddr + j * SZ_8M, SZ_8M);
 				}
 
 				if (mem[i].size % SZ_8M) {
-					sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT"_%03d",
+					sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT"_%03d",
 						i + 1, j);
 					write_mem_to_mmc(path, fnbuf, fs_type, waddr + j * SZ_8M,
 									(mem[i].size % SZ_8M));
@@ -1015,7 +1044,8 @@ void write_sysdump_before_boot(int rst_mode)
 		sysdump_lcd_printf("\nWriting done.\nPress any key (Exp power key) to continue...");
 		lcd_enable();
 //		lcd_display();
-		wait_for_keypress();
+		if(!auto_test_flag)
+			wait_for_keypress();
 	} else
 		debugf("no need.\n");
 

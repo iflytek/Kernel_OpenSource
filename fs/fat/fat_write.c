@@ -930,7 +930,6 @@ static int read_fat_dbr(fsdata *mydata)
 {
 	boot_sector bs;
 	volume_info volinfo;
-	int cursect;
 
 	if (read_bootsectandvi(&bs, &volinfo, &mydata->fatsize)) {
 		debug("error: reading boot sector\n");
@@ -947,7 +946,7 @@ static int read_fat_dbr(fsdata *mydata)
 
 	mydata->fat_sect = bs.reserved;
 
-	cursect = mydata->rootdir_sect
+	mydata->rootdir_sect
 		= mydata->fat_sect + mydata->fatlength * bs.fats;
 	num_of_fats = bs.fats;
 
@@ -975,50 +974,119 @@ static int read_fat_dbr(fsdata *mydata)
 		debug("Error: allocating memory\n");
 		return -1;
 	}
-	return cursect;
+	return 0;
 }
 
+/*This function is used for finding current folder located in start_curclust.*/
+static __u32 find_files_curclust(const char *file_name)
+{
+	__u32 startsect, start_cluster = 0;
+	fsdata datablock;
+	fsdata *mydata = &datablock;
+	dir_entry *dentptr, *retdent;
+	const char *cur, *start, *end;
+	int name_len;
+	char filename[FILENAME_LEN_BYTES] = {0};
+
+	if (read_fat_dbr(mydata))
+		return 0;
+
+	cur = start = file_name;
+
+	while(*cur != '\0') {
+		while(*cur == '/')
+			cur ++;
+		start = cur;
+		while(*cur != '/' && *cur != '\0')
+			cur ++;
+
+		end = cur;
+		name_len = end - start;
+		memcpy(filename, start, name_len);
+		filename[name_len] = '\0';
+
+		if (start_cluster == 0)
+			startsect = mydata->rootdir_sect;
+		else
+			startsect = mydata->data_begin + start_cluster * mydata->clust_size;
+
+		if (disk_read(startsect,
+			(mydata->fatsize == 32) ?
+			(mydata->clust_size) :
+			PREFETCH_BLOCKS, do_fat_read_at_block) < 0) {
+				debug("Error: reading rootdir block\n");
+				return 0;
+			}
+
+		dentptr = (dir_entry *) do_fat_read_at_block;
+		retdent = find_directory_entry(mydata, startsect,
+					filename, dentptr, 0);
+		if (*cur != '\0') {
+			if(retdent) {
+				start_cluster = START(dentptr);
+				startsect = mydata->data_begin +
+					start_cluster * mydata->clust_size;
+				//debugf("start_cluster is %lu\t%lu\n",start_cluster,startsect);
+			}
+			else {
+				debugf("Error: pre-directory %s doesn't exist\n", filename);
+				free(mydata->fatbuf);
+				return 0;
+			}
+		}
+
+		debugf("start_cluster is %u\n",start_cluster);
+		}
+
+	return start_cluster;
+}
+
+/*
+ *This function supports writing files in multi-directories.
+ *
+ *For example, file name is "a.txt"
+ *	path_name: "a.txt" ,    			file is located in root directory.
+ *	path_name: "ylog/a.txt", 			file is located in ylog folder.
+ *	path_name: "ylog/sysdump/a.txt",	file is located in ylog/sysdump folder.
+ *
+ */
 static int do_fat_write(const char *path_name, void *buffer, loff_t size,
 			loff_t *actwrite)
 {
+	__u32 startsect = 0, start_cluster = 0;
+	char l_filename[VFAT_MAXLEN_BYTES] = {0};
+	char filename[FILENAME_LEN_BYTES] = {0};
 	dir_entry *dentptr, *retdent;
-	__u32 startsect = 0;
-	__u32 start_cluster = 0;
 	fsdata datablock;
 	fsdata *mydata = &datablock;
+	const char *start, *end, *cur;
 	int ret = -1, name_len;
-	char l_filename[VFAT_MAXLEN_BYTES];
 
+	if (read_fat_dbr(mydata))
+		goto exit;
 	*actwrite = size;
 	dir_curclust = 0;
+	while(*cur != '\0') {
+		while(*cur == '/')
+			cur ++;
+		start = cur;
+		while(*cur != '/' && *cur != '\0')
+			cur ++;
+		end = cur;
+		name_len = end - start;
+		memcpy(filename, start, name_len);
+		filename[name_len] = '\0';
+		//debugf("filename is %s\n", filename);
+	}
 
-	if (read_fat_dbr(mydata) == -1)
-		goto exit;
-
-	char filename[72] = {0};
-	char file_name[72] = {0};
-	memcpy(filename, path_name, strlen(path_name)+1);
-	char* parent_dir = strchr(filename, '/');
-	int len = 0, parent_location = 0;
-
-	if(parent_dir == NULL) {
+	start_cluster = find_files_curclust(path_name);
+	if (start_cluster == 0)
 		startsect = mydata->rootdir_sect;
-		memcpy(filename, path_name, strlen(path_name));
-	}
+	else
+		startsect = mydata->data_begin + start_cluster * mydata->clust_size;
 
-	while(parent_dir != NULL) {
-		parent_location = parent_dir - filename;
-		memcpy(file_name, filename, parent_location);
-		file_name[parent_location] = '\0';
-		start_cluster = do_new_folder(file_name,start_cluster);
-		len = sizeof(filename)-parent_location;
-		memcpy(filename, filename+parent_location+1, len);
-		filename[len] = '\0';
-		parent_dir = strchr(filename,'/');
-		startsect = mydata->data_begin +
-				start_cluster * mydata->clust_size;
-		dir_curclust = start_cluster;
-	}
+	dir_curclust = start_cluster;
+
 	if (disk_read(startsect,
 		(mydata->fatsize == 32) ?
 		(mydata->clust_size) :
@@ -1036,13 +1104,12 @@ static int do_fat_write(const char *path_name, void *buffer, loff_t size,
 	l_filename[name_len] = 0; /* terminate the string */
 	downcase(l_filename);
 
-	/*startsect = mydata->rootdir_sect;*/
 	retdent = find_directory_entry(mydata, startsect,
 				l_filename, dentptr, 0);
 	if (retdent) {
 		/* Update file size and start_cluster in a directory entry */
 		retdent->size = cpu_to_le32(size);
-		start_cluster = FAT2CPU16(retdent->start);
+		start_cluster = START(dentptr);
 		if (mydata->fatsize == 32)
 			start_cluster |=
 				(FAT2CPU16(retdent->starthi) << 16);
@@ -1160,85 +1227,162 @@ static void fill_dentry_folder(fsdata *mydata, dir_entry *dentptr,
 	for (i=0;i<3;i++)
 		(dentptr->ext)[i] = ' ';
 }
+/*
+ *This function supports checking arbitrary level directory whether exists.
 
-struct dir_entry* check_folder_flag(const char *filename, unsigned long curclust, fsdata *mydata)
+ *For example, folder name is "a"
+ *	path_name: "a" ,    			folder is located in root directory.
+ *	path_name: "ylog/a", 			folder is located in ylog folder.
+ *	path_name: "ylog/sysdump/a",	folder is located in ylog/sysdump folder.
+ *
+ */
+struct dir_entry* check_folder_flag(const char *path_name)
 {
-	dir_entry *dentptr, *retdent;
-	unsigned long startsect = 0;
+	dir_entry *dentptr = NULL, *retdent = NULL;
+	char filename[FILENAME_LEN_BYTES] = {0};
+	__u32 startsect = 0, curclust = 0;
+	fsdata datablock;
+	fsdata *mydata = &datablock;
+	const char *start, *end, *cur;
+	int name_len = 0;
 
-	if(mydata == NULL) {
-		fsdata datablock;
-		mydata = &datablock;
-	}
-
-	read_fat_dbr(mydata);
-
-	if (curclust == 0) {
-		startsect = mydata->rootdir_sect;
-	}
-	else
-		startsect = mydata->data_begin +
-				curclust * mydata->clust_size;
-
-	if (disk_read(startsect,
-		(mydata->fatsize == 32) ?
-		(mydata->clust_size) :
-		PREFETCH_BLOCKS, do_fat_read_at_block) < 0) {
-		debug("Error: reading rootdir block\n");
+	if(read_fat_dbr(mydata))
 		return NULL;
-	}
-	dentptr = (dir_entry *) do_fat_read_at_block;
-	retdent = find_directory_entry(mydata, startsect,
+
+	start = cur = path_name;
+	while(*cur != '\0') {
+		while(*cur == '/')
+			cur ++;
+		start = cur;
+		while(*cur != '/' && *cur != '\0')
+			cur ++;
+		end = cur;
+		name_len = end - start;
+		memcpy(filename, start, name_len);
+		filename[name_len] = '\0';
+		//debugf("filename is %s\n", filename);
+		if (curclust == 0)
+			startsect = mydata->rootdir_sect;
+		else
+			startsect = mydata->data_begin + curclust * mydata->clust_size;
+
+		if (disk_read(startsect,
+			(mydata->fatsize == 32) ?
+			(mydata->clust_size) :
+			PREFETCH_BLOCKS, do_fat_read_at_block) < 0) {
+				debugf("Error: reading rootdir block\n");
+				return NULL;
+			}
+
+		dentptr = (dir_entry *) do_fat_read_at_block;
+		retdent = find_directory_entry(mydata, startsect,
 				filename, dentptr, 0);
 
+		if (retdent) {
+			debugf("%s folder already exist!\n", filename);
+			curclust = START(dentptr);
+		}
+		else if (*cur != '\0') {
+			debugf("Error: pre-directory %s doesn't exist\n", filename);
+			free(mydata->fatbuf);
+			return NULL;
+		}
+	}
+
+	free(mydata->fatbuf);
 	return retdent;
 }
 
-/*this function only supports shortname folder*/
-unsigned long do_new_folder(char* filename, unsigned long curclust)
+/*
+ * This function supports to create arbitrary level folder, but only shortname.
+ *
+ *For example, folder name is "a"
+ *	path_name: "a" ,    			folder is located in root directory.
+ *	path_name: "ylog/a", 			folder is located in ylog folder.
+ *	path_name: "ylog/sysdump/a",	folder is located in ylog/sysdump folder.
+ *
+ */
+int do_new_folder(const char* path_name)
 {
-	dir_entry *retdent;
-	unsigned long start_cluster = 0;
-	unsigned long size= 0;
+	dir_entry *retdent = NULL, *dentptr = NULL;
+	__u32 start_cluster = 0, curclust = 0, startsect = 0;
 	fsdata datablock;
 	fsdata *mydata = &datablock;
-	int ret = -1;
-	retdent = check_folder_flag(filename, curclust, mydata);
+	char filename[FILENAME_LEN_BYTES] = {0};
+	int ret = -1, name_len;
+	unsigned long size= 0;
+	const char *start, *end, *cur;
 
-	if (retdent) {
-		debug("%s folder already exit!\n", filename);
-		free(mydata->fatbuf);
-		return START(retdent);
-	}
-	else {
-		set_name(empty_dentptr, filename);
-		/*fill_dir_slot(mydata, &empty_dentptr, filename);*/
-		ret = start_cluster = find_empty_cluster(mydata);
-		if (ret < 0) {
-			printf("Error: finding empty cluster\n");
+	if(read_fat_dbr(mydata))
+		goto exit;
+
+	cur = path_name;
+	start = path_name;
+
+	while(*cur != '\0') {
+		while(*cur == '/')
+			cur ++;
+		start = cur;
+		while(*cur != '/' && *cur != '\0')
+			cur ++;
+		end = cur;
+		name_len = end - start;
+		memcpy(filename, start, name_len);
+		filename[name_len] = '\0';
+		if (curclust == 0)
+			startsect = mydata->rootdir_sect;
+		else
+			startsect = mydata->data_begin + curclust * mydata->clust_size;
+
+		if (disk_read(startsect,
+			(mydata->fatsize == 32) ?
+			(mydata->clust_size) :
+			PREFETCH_BLOCKS, do_fat_read_at_block) < 0) {
+			debug("Error: reading rootdir block\n");
 			goto exit;
 		}
 
-		ret = check_overflow(mydata, start_cluster, size);
-		if (ret) {
-			printf("Error: %ld overflow\n", size);
-			goto exit;
+		dentptr = (dir_entry *) do_fat_read_at_block;
+		retdent = find_directory_entry(mydata, startsect,
+				filename, dentptr, 0);
+		if (retdent) {
+			debugf("%s folder already exit!\n", filename);
+			if (*cur == '\0') {
+				free(mydata->fatbuf);
+				return 0;
+			}
+			curclust = START(dentptr);
 		}
+		else {
+			set_name(empty_dentptr, filename);
+			/*fill_dir_slot(mydata, &empty_dentptr, filename);*/
+			ret = start_cluster = find_empty_cluster(mydata);
+			if (ret < 0) {
+				debugf("Error: finding empty cluster\n");
+				goto exit;
+			}
 
-		fill_dentry(mydata, empty_dentptr, filename,
-			start_cluster, 0, 0x10);
-		/*downcase(empty_dentptr->name);*/
-		set_fatent_value(mydata, start_cluster, 0xfffffff);
+			ret = check_overflow(mydata, start_cluster, size);
+			if (ret) {
+				debugf("Error: %ld overflow\n", size);
+				goto exit;
+			}
 
-		ret = flush_fat_buffer(mydata);/*write FAT table.*/
-		if (ret) {
-			printf("Error: flush fat buffer\n");
-			goto exit;
-		}
-		if (curclust != 0) {
+			fill_dentry(mydata, empty_dentptr, filename,
+				start_cluster, 0, 0x10);
+			/*downcase(empty_dentptr->name);*/
+			ret = set_fatent_value(mydata, start_cluster, 0xfffffff);
+			if (ret) {
+				debugf("Error: setting fatent value failed.\n");
+				goto exit;
+			}
+
+			ret = flush_fat_buffer(mydata);/*write FAT table.*/
+			if (ret) {
+				debugf("Error: flush fat buffer\n");
+				goto exit;
+			}
 			dir_curclust = curclust;
-		} else
-			dir_curclust = 0;
 
 		ret = set_cluster(mydata, dir_curclust,
 			get_dentfromdir_block,
@@ -1254,154 +1398,231 @@ unsigned long do_new_folder(char* filename, unsigned long curclust)
 			goto exit;
 		}
 
-		memset(get_dentfromdir_block,0x00,mydata->clust_size * mydata->sect_size);
-		dir_entry * current_adr= (dir_entry *)get_dentfromdir_block;
-		fill_dentry_folder(mydata, current_adr++, ".", start_cluster);
-		if (curclust == 0)
-			fill_dentry_folder(mydata, current_adr, "..", 0);
-		else
+			memset(get_dentfromdir_block,0x00,mydata->clust_size * mydata->sect_size);
+			dir_entry * current_adr= (dir_entry *)get_dentfromdir_block;
+			fill_dentry_folder(mydata, current_adr++, ".", start_cluster);
 			fill_dentry_folder(mydata, current_adr, "..", curclust);
-		ret = set_cluster(mydata, start_cluster,
-			    get_dentfromdir_block, mydata->clust_size * mydata->sect_size);
-		if (ret) {
-			printf("Error: writing directory entry\n");
-			goto exit;
+			ret = set_cluster(mydata, start_cluster,
+				    get_dentfromdir_block, mydata->clust_size * mydata->sect_size);
+			if (ret) {
+				printf("Error: writing directory entry\n");
+				goto exit;
+			}
+			curclust = start_cluster;
+			debugf("curclust is %u\n",curclust);
 		}
 	}
-	exit:
+
+exit:
 	free(mydata->fatbuf);
-	if (ret==0) {
-		return start_cluster;
-	}
-	else
-		return 0;
+	return ret;
 }
 
-int rename_folder(const char *scr, const char *dest, unsigned long scr_cluster)
+/*
+ * This function supports to rename arbitrary level folder.
+ * scr is path, dest is new path.
+ *
+ * For example, source folder name is "a"
+ *		path_name: "a" ,    			folder is located in root directory.
+ *		path_name: "ylog/a", 			folder is located in ylog folder.
+ *		path_name: "ylog/sysdump/a",	folder is located in ylog/sysdump folder.
+ *
+ * It's same as dest folder.
+ *
+ */
+
+int rename_folder(const char *scr, const char *dest)
 {
 	dir_entry *retdent;
 	fsdata datablock;
 	fsdata *mydata = &datablock;
-	int ret =0;
-	retdent = check_folder_flag(scr, scr_cluster, mydata);
-	if(retdent) {
-		set_name(retdent, dest);
-		/*downcase(retdent->name);*/
+	const char *cur, *start, *end;
+	char filename[FILENAME_LEN_BYTES] = {0};
+	__u32 start_cluster = 0;
+	int ret =0, name_len = 0;
 
-		ret = set_cluster(mydata, scr_cluster,
+	start_cluster = find_files_curclust(scr);
+	cur = start = dest;
+	retdent = check_folder_flag(scr);
+
+	if(read_fat_dbr(mydata))
+		goto exit;
+
+	while(*cur != '\0') {
+		while(*cur == '/')
+			cur ++;
+		start = cur;
+		while(*cur != '/' && *cur != '\0')
+			cur ++;
+		end = cur;
+		name_len = end - start;
+		memcpy(filename, start, name_len);
+		filename[name_len] = '\0';
+		//debugf("filename is %s\n", filename);
+	}
+
+	if(retdent) {
+		set_name(retdent, filename);
+		/*downcase(retdent->name);*/
+		ret = set_cluster(mydata, start_cluster,
 			get_dentfromdir_block,
 			mydata->clust_size * mydata->sect_size);
 		if (ret) {
-			debug("Error: writing directory entry\n");
-			return -1;
+			debug("Error: writing directory entry.\n");
+			goto exit;
 			}
 		}
 	else {
-		debug("Error: source folder doesn't exit\n");
-		return -1;
+		debug("Error: source folder doesn't exist.\n");
+		goto exit;
 		}
+exit:
+	free(mydata->fatbuf);
 	return ret;
 }
 
-int delete_files(const char *filename, unsigned long scr_cluster)
+int delete_files(const char *filename)
 {
 	int ret =0;
-	unsigned long curclust = 0;
+	__u32 curclust, start_cluster;
 	dir_entry *retdent = NULL;
 	fsdata datablock;
 	fsdata *mydata = &datablock;
 
-	retdent = check_folder_flag(filename, scr_cluster, mydata);
+	if(read_fat_dbr(mydata))
+		goto exit;
+
+	start_cluster = find_files_curclust(filename);
+	retdent = check_folder_flag(filename);
+	if(!retdent) {
+		debugf("Error: %s file doesn't exist.\n", filename);
+		goto exit;
+	}
 	curclust = START(retdent);
 	retdent -> name[0] = DELETED_FLAG;
 	retdent -> starthi = 0;
-	ret = clear_fatent(mydata, curclust);
 
+	ret = clear_fatent(mydata, curclust);
 	if (ret) {
-		debug("Error: clearing FAT entries\n");
-		return -1;
+		debugf("Error: clearing FAT entries.\n");
+		goto exit;
 		}
 	ret = flush_fat_buffer(mydata);
 		if (ret) {
-			printf("Error: flush fat buffer\n");
-			return -1;
+			debugf("Error: flush fat buffer.\n");
+			goto exit;
 		}
-	ret = set_cluster(mydata, scr_cluster,
+	ret = set_cluster(mydata, start_cluster,
 			get_dentfromdir_block,
 			mydata->clust_size * mydata->sect_size);
 		if (ret) {
 			debug("Error: writing directory entry\n");
-			return -1;
+			goto exit;
 	}
 
-	return 0;
+exit:
+	free(mydata->fatbuf);
+	return ret;
 }
 
-int delete_folder(const char *filename, unsigned long cur_clust)
+/*
+ * This function supports to delete arbitrary level folder.
+ *
+ * For example, path name is "a"
+ *		path_name: "a",    			folder is located in root directory.
+ *		path_name: "ylog/a", 			folder is located in ylog folder.
+ *		path_name: "ylog/sysdump/a",	folder is located in ylog/sysdump folder.
+ *
+ * The function is combined with "delete_files", this function checks out
+ * specific files in the folder, and "delete_files" is used for deleting.
+ *
+ */
+
+int delete_folder(const char *path_name)
 {
 	dir_entry *retdent = NULL, *dentptr = NULL;
 	fsdata datablock;
 	fsdata *mydata = &datablock;
-	unsigned long curclust = 0;
-	int ret =0, i;
+	__u32 curclust = 0;
+	int ret =0, i, name_len;
+	char filename[FILENAME_LEN_BYTES] = {0};
+	char file_name[FILENAME_LEN_BYTES] = {0};
 
-	retdent = check_folder_flag(filename, cur_clust, mydata);
+	name_len = strlen(path_name);
+	memcpy(filename, path_name, name_len);
+	filename[name_len] = '/';
+	filename[name_len + 1] = '\0';
+
+	if(read_fat_dbr(mydata))
+		goto exit;
+	retdent = check_folder_flag(path_name);
+
+	if(!retdent) {
+		debugf("Error: %s folder doesn't exist.\n", path_name);
+		goto exit;
+	}
 	curclust = START(retdent);
 
 	if (get_cluster(mydata, curclust, do_fat_read_at_block,
 			    mydata->clust_size * mydata->sect_size) != 0) {
-			debug("Error: reading directory block\n");
-			return -1;
+			debug("Error: reading directory block.\n");
+			goto exit;
+	}
+
+	dentptr = (dir_entry *)do_fat_read_at_block;
+
+	for (i = 0; i < DIRENTSPERCLUST; i++) {
+		char l_name[VFAT_MAXLEN_BYTES];
+
+		l_name[0] = '\0';
+		if (dentptr->name[0] == DELETED_FLAG) {
+			dentptr++;
+			if (is_next_clust(mydata, dentptr))
+				break;
+			continue;
 		}
-
-		dentptr = (dir_entry *)do_fat_read_at_block;
-
-		for (i = 0; i < DIRENTSPERCLUST; i++) {
-			char l_name[VFAT_MAXLEN_BYTES];
-
-			l_name[0] = '\0';
-			if (dentptr->name[0] == DELETED_FLAG) {
+		if ((dentptr->attr & ATTR_VOLUME)) {
+			if (vfat_enabled &&
+			    (dentptr->attr & ATTR_VFAT) &&
+			    (dentptr->name[0] & LAST_LONG_ENTRY_MASK)) {
+				get_long_file_name(mydata, curclust,
+					     do_fat_read_at_block,
+					     &dentptr, l_name);
+				debug("vfatname: |%s|\n", l_name);
+				//debug("dentptr->size is %x\n", dentptr->size);
+				if(dentptr->size == 0)
+					continue;
+				strcat(file_name,filename);
+				strcat(file_name,l_name);
+				//debugf("file_name is %s\n", file_name);
+				ret = delete_files(file_name);
+				memset(file_name, 0, strlen(file_name));
+				if (ret) {
+					debug("Error: delete_files.\n");
+					goto exit;
+				}
+			} else {
+				/* Volume label or VFAT entry */
 				dentptr++;
 				if (is_next_clust(mydata, dentptr))
 					break;
 				continue;
 			}
-			if ((dentptr->attr & ATTR_VOLUME)) {
-				if (vfat_enabled &&
-				    (dentptr->attr & ATTR_VFAT) &&
-				    (dentptr->name[0] & LAST_LONG_ENTRY_MASK)) {
-					get_long_file_name(mydata, curclust,
-						     do_fat_read_at_block,
-						     &dentptr, l_name);
-					debug("vfatname: |%s|\n", l_name);
-					debug("dentptr->size is %lx\n", dentptr->size);
-					if(dentptr->size == 0)
-						continue;
-					ret = delete_files(l_name, curclust);
-					if (ret) {
-						debug("Error: delete_files\n");
-						return -1;
-					}
-
-				} else {
-					/* Volume label or VFAT entry */
-					dentptr++;
-					if (is_next_clust(mydata, dentptr))
-						break;
-					continue;
-				}
-			}
-			if (dentptr->name[0] == 0) {
-				debug("Dentname == NULL - %d\n", i);
-				break;
-			}
-
-			dentptr ++;
 		}
-
-		ret = delete_files(filename, cur_clust);
-		if (ret) {
-			debug("Error: delete_folder\n");
-			return -1;
+		if (dentptr->name[0] == 0) {
+			debugf("Dentname == NULL - %d\n", i);
+			break;
 		}
+		dentptr ++;
+	}
+
+	ret = delete_files(path_name);
+	if (ret) {
+		debug("Error: delete_folder.\n");
+		goto exit;
+	}
+
+exit:
+	free(mydata->fatbuf);
+	return ret;
 }

@@ -17,7 +17,9 @@
 #include <config.h>
 #include <linux/types.h>
 
-#define SYSDUMP_CORE_NAME_FMT 	"sysdump.core.%02d" /* time, number */
+#define SYSDUMP_CORE_NAME_FMT 	"sysdump.core.%02d"
+#define SYSDUMP_FOLDER_NAME "slog/sysdump"
+#define SYSDUMP_AUTO_TEST "slog/sysdump/sysdump_auto_test.txt"
 #define NR_KCORE_MEM		80
 #define SYSDUMP_MAGIC		"SPRD_SYSDUMP_119"
 #define MAX_NUM_DUMP_MEM 20
