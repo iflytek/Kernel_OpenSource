@@ -223,12 +223,18 @@ int _parser_repartition_cfg_v1(disk_partition_t * partition_info, uchar* partiti
 		/*unit is KB*/
 		case 2:
 			partition_size_lba = PAD_SIZE(partition_size_raw * SZ_1K, blksz) / blksz;
-			gap_lba = PAD_SIZE(gap_raw * SZ_1K, blksz) / blksz;
+			if (0 == gap_raw)
+				gap_lba = 0;
+			else
+				gap_lba = PAD_SIZE(gap_raw * SZ_1K, blksz) / blksz;
 			break;
 		/*unit is bytes, min partition unit supported is lba(512byte), so we pad it if neccessary*/
 		case 3:
 			partition_size_lba = PAD_SIZE(partition_size_raw, blksz) / blksz;
-			gap_lba = PAD_SIZE(gap_raw, blksz) / blksz;
+			if (0 == gap_raw)
+				gap_lba = 0;
+			else
+				gap_lba = PAD_SIZE(gap_raw, blksz) / blksz;
 			break;
 		/*unit is sector*/
 		case 4:
