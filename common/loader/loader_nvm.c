@@ -754,11 +754,24 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 	boot_mode_type_str = getenv("bootmode");
 	if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
 		int ramdisk_size;
-		ramdisk_size = boot_sprdisk();
-		if (ramdisk_size > 0)
+	#ifdef CONFIG_MEMORY_DEFRAGMENT
+		ramdisk_size = boot_sprdisk(size, ramdisk_addr, 0);
+		if (ramdisk_size > 0){
+			/* get ramdisk size , calculate addr, so we can have enough room for sprdisk ramdisk */
 			hdr->ramdisk_size = ramdisk_size;
-		else
+			size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+			ramdisk_addr = *dt_addr - size;
+			boot_sprdisk(ramdisk_size, ramdisk_addr, 1);
+			hdr->ramdisk_addr = ramdisk_addr;
+			fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+ramdisk_size, 1);
+	#else
+		ramdisk_size = boot_sprdisk(size, RAMDISK_ADR, 1);
+		if( ramdisk_size > 0){
+			hdr->ramdisk_size = ramdisk_size;
+	#endif
+		}else{
 			errorf("%s, sprdisk mode failure!\n", __FUNCTION__);
+		}
 		return 1;
 	}
 

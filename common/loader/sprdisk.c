@@ -20,7 +20,7 @@
 #define SPRDISK_RAMDISK_PATH	"/sprdisk/ramdisk.img"
 
 
-static int file_read(char *mpart, char *filenm, void *buf, int len)
+static int file_read(char *mpart, char *filenm, void *buf, int len, int flag)
 {
 #ifdef CONFIG_FS_EXT4
 	disk_partition_t info;
@@ -51,11 +51,13 @@ static int file_read(char *mpart, char *filenm, void *buf, int len)
 		return -1;
 	}
 
-	/* start read */
-	if (ext4_read_file(filenm, buf, 0,len, &len_read) == -1) {
-		printf("** Error ext4_read_file() **\n");
-		ext4fs_close();
-		return -1;
+    if(flag){
+	    /* start read */
+	    if (ext4_read_file(filenm, buf, 0,len, &len_read) == -1) {
+		    printf("** Error ext4_read_file() **\n");
+		    ext4fs_close();
+		    return -1;
+	    }
 	}
 
 	ext4fs_open(filenm, &file_len);
@@ -68,20 +70,14 @@ static int file_read(char *mpart, char *filenm, void *buf, int len)
 #endif
 }
 
-int boot_sprdisk(void)
+int boot_sprdisk(uint64_t offset, char *ramdisk_addr, int flag)
 {
 	int	ret;
 	int size;
-#ifndef CONFIG_SUPPORT_LTE
-#ifdef WDSP_ADR
-		size = WDSP_ADR - RAMDISK_ADR;
-#else
-		size = TDDSP_ADR - RAMDISK_ADR;
-#endif
-#endif
-	ret = load_sd_ramdisk( (void *)RAMDISK_ADR, size);
+
+	ret = load_sd_ramdisk( (void *)ramdisk_addr, offset);
 	if(ret <= 0){
-		ret = file_read(PART_SYSTEM, SPRDISK_RAMDISK_PATH, (void *)RAMDISK_ADR, size);
+		ret = file_read(PART_SYSTEM, SPRDISK_RAMDISK_PATH, (void *)ramdisk_addr, offset, flag);
 		if(ret < 0){
 			errorf("read file %s wrong!\n", SPRDISK_RAMDISK_PATH);
 		}
