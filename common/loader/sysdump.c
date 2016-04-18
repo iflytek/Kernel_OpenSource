@@ -737,12 +737,6 @@ void write_sysdump_before_boot(int rst_mode)
     dir_entry *dentptr = NULL;
 	unsigned char *dt_addr = NULL;
 
-	dt_addr = get_dt_addr();
-    nodeoffset = check_dts_sysdump_node(dt_addr);
-	if (nodeoffset < 0) {
-		debugf("ERROR: device tree must have /sprd-sysdump node %s.\n", fdt_strerror(nodeoffset));
-		goto FINISH;
-	}
 
     /*sprd_sysdump_magic = get_sprd_sysdump_info_paddr(nodeoffset);
     if (sprd_sysdump_magic <= 0)
@@ -756,6 +750,13 @@ void write_sysdump_before_boot(int rst_mode)
 	if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_UNKNOW_REBOOT_MODE) || (rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || \
 		((rst_mode == CMD_PANIC_REBOOT) && !memcmp(infop->magic, SYSDUMP_MAGIC, sizeof(infop->magic)))|| (rst_mode == CMD_SPECIAL_MODE) ) {
 		debugf("\n");
+
+		dt_addr = get_dt_addr();
+		nodeoffset = check_dts_sysdump_node(dt_addr);
+		if (nodeoffset < 0) {
+			debugf("ERROR: device tree must have /sprd-sysdump node %s.\n", fdt_strerror(nodeoffset));
+			goto FINISH;
+		}
 		memset(infop->magic, 0, sizeof(infop->magic));
 
 		if(-1 == sysdump_flag_check()) {
