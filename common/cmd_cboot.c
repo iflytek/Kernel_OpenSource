@@ -232,7 +232,10 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 		return CMD_RET_USAGE;
 
 #if defined CONFIG_AUTOBOOT || defined CONFIG_FPGA
-	normal_mode();
+	if (reboot_mode_check() == CMD_AUTODLOADER_REBOOT)
+		autodloader_mode();
+	else
+		normal_mode();
 #endif
 	boot_pwr_check();
 	if (2 == argc) {
