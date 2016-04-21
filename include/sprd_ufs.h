@@ -17,12 +17,12 @@
 #define BIT(n)                 (1L     << (n))
 #define LOWER_32_BITS(x)       ((uint32_t)((x)    &  0xFFFFFFFFUL))
 #define UPPER_32_BITS(x)       ((uint32_t)((x)    >> 32))
+#define UIC_ENDPOINT_RESET_CMD   0x15
 #define UIC_LINK_STARTUP_CMD   0x16
 #define MAX_PRDT_ENTRIES       128
 #define PRDT_BUFFER_SIZE       4096
 #define TOTAL_PRDT_CAP		((MAX_PRDT_ENTRIES) * (PRDT_BUFFER_SIZE))
 #define LOGICAL_BLK_SIZE       4096 
-#define UIC_LINK_STARTUP_CMD   0x16
 #define NUM_OF_DESC            1
 #define ALIGN_SIZE             1024
 #define LOOPBACK_DEFAULT       0xb01
@@ -54,8 +54,8 @@
 /* Debug Macros */
 #ifdef DEBUG_MODE
 	#define POS()        printf("%s:%d: HERE \n", __FILE__, __LINE__)
-	#define FUNC_ENTER() printf("\n%s:%d - %s>", __FILE__, __LINE__, __FUNCTION__)
-	#define FUNC_EXIT()  printf("\n%s:%d - <%s", __FILE__, __LINE__, __FUNCTION__)
+	#define FUNC_ENTER() printf("-->%s\n", __FUNCTION__)
+	#define FUNC_EXIT()  printf("<--%s\n", __FUNCTION__)
 	#define PRINTF printf
 	
 #else 
@@ -132,21 +132,6 @@ enum {
 	UFS_MAC_MISMATCH             = -0x3a
 
 };
-
-/* Driver's Private Data Structure */
-struct dummy_ufs_driver_info {
-	void			*base_addr;
-	struct dwc_ufs_tcd      *cmd_desc;
-	struct dwc_ufs_utrd     *utrd_desc;
-	struct dwc_ufs_utmrd    *utm_desc;
-	uint8_t			active_lun;   /* Active Lun to be used for transfer      */
-	uint8_t                 unit_offset;  /* Offset of first Unit Configuration Desc */
-	uint8_t                 unit_length;  /* Length Of Configuration Unit Descriptor */
-	uint8_t                 pad_1;        /* Pad Byte to align it to u32 */
-	uint16_t 		wSpecVersion; /* Device Specification version */
-    	uint32_t 		dwc_ufs_version; /* Versions of UFSHCI specification that the controller implementation supports*/
-	block_dev_desc_t  block_dev;
-} ;
 
 enum lu_bootable {
 	NONE_BOOT       = 0x00,

@@ -418,6 +418,10 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 	int counter = 0;
 	int ret = 0;
 
+	ret = ufs_lu_reconstruct(factory_lu_tbl);
+	if (UFS_SUCCESS != ret)
+		return -1;
+
 	/*future extention, now we only have one none boot lu*/
 	dev_id = get_lun_by_bootable(NONE_BOOT);
 	if (-1 == dev_id)

@@ -28,19 +28,18 @@ int dwc_reset_hc()
 	 * DME_RESET and DME_ENABLE commands are sent automatically on DW_UFS_HCE write
 	 */
 	dwc_ufs_write_reg(DW_UFS_HCE, 0);
-
 	udelay(1000); /* Platform Specific Implementation */
-
 	dwc_ufs_write_reg(DW_UFS_HCE, HCE_RESET);
-	
 
 	/*
 	 * poll untill (DW_UFS_HCE == 1) i'e initialization sequence has completed
 	 */
-	while (retry != 0)
-	{
-		if(1 == dwc_ufs_read_reg(DW_UFS_HCE))
+	while (retry != 0) {
+		if(1 == dwc_ufs_read_reg(DW_UFS_HCE)) {
+			debugf("Reset UFS host controller success\n");
 			return UFS_SUCCESS;
+		}
+
 		retry--;
 		udelay(1); /* Platform Specific Implementation */
 	}
@@ -346,8 +345,7 @@ static int wait_for_cmd_completion()
 	dwc_ufs_write_reg(DW_UFS_UTRLDBR, BIT(0));
 
 	/* Wait for the DoorBell to clear */
-	while(1)
-	{
+	while(1) {
 		if((dwc_ufs_read_reg(DW_UFS_UTRLDBR) & BIT(0)) == 0)
 			break;
 		retry--;
@@ -358,7 +356,7 @@ static int wait_for_cmd_completion()
 		udelay(100); /* Platform Specific Implementation */
 	}
 
-	debugf("\n DoorBell Cleared");
+	debugf("DoorBell Cleared\n");
 
 	FUNC_EXIT();
 	return UFS_SUCCESS;
@@ -573,8 +571,10 @@ static int read_nop_rsp()
 	tmp_ptr = drv_info.cmd_desc->response_upiu;
 	resp_upiu = (struct dwc_ufs_nop_resp_upiu *)tmp_ptr;
 
-	if((resp_upiu->response != UFS_SUCCESS) || (resp_upiu->trans_type != NOP_TRANS_TYPE))
+	if((resp_upiu->response != UFS_SUCCESS) || (resp_upiu->trans_type != NOP_TRANS_TYPE)) {
+		errorf("NOP OUT response fail\n");
 		return UFS_INVALID_RESPONSE;
+	}
 
 	return UFS_SUCCESS;
 }
@@ -603,6 +603,7 @@ int send_nop_out_cmd()
 		}
 
 		ret = read_nop_rsp();
+		debugf("NOP OUT response ret = 0x%x\n", ret);
 	} while(ret != UFS_SUCCESS && retry > 0);
 
 	FUNC_EXIT();
@@ -700,7 +701,7 @@ int write_read_descriptor(void *req_upiu)
 	uint8_t *ptr;
 
 
-	FUNC_ENTER();
+	//FUNC_ENTER();
 
 	/* UTRD Descriptor Programming for processing command */
 	if (drv_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
@@ -721,12 +722,13 @@ int write_read_descriptor(void *req_upiu)
 
 	ptr = drv_info.cmd_desc->response_upiu;
 
+	/*
 	debugf("\n\n The data segment of length %ld is",ALIGNED_UPIU_SIZE - sizeof(struct dwc_ufs_query_upiu));
 	for(i=32; i < ALIGNED_UPIU_SIZE; i = i+4)
 		debugf("\n %x %x %x %x",ptr[i],ptr[1+i],ptr[i+2],ptr[i+3]);
-
+	*/
 	ret = handle_query_response(NULL);
-	FUNC_EXIT();
+	//FUNC_EXIT();
 	return ret;
 }
 
@@ -808,7 +810,6 @@ int init_ufs_hostc()
 
 	/* Update the DWC UFSHCI specification that the controller implementation supports*/	
 	drv_info.dwc_ufs_version = dwc_ufs_read_reg(DW_UFS_VER);
-
 	/* Set the CLK Divider Register */
 	dwc_ufs_write_reg(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
 
@@ -818,38 +819,40 @@ int init_ufs_hostc()
 #else
 
 	/*
-	 * Send locally created DME_LINKSTARTUP UIC command to the start the
+	 * Send locally created DME_LINKSTARTUP UIC command to start the
 	 * Link Startup Procedure
 	 * keep sending the DME_LINKSTARTUP command until the device is detected
 	 */
 	while(retry1 > 0) {
-		if((dwc_ufs_read_reg(DW_UFS_HCS) & DW_UFS_HCS_DP))
+		if(dwc_ufs_read_reg(DW_UFS_HCS) & DW_UFS_HCS_DP) {
+			debugf("Connection been established with UFS device!\n");
 			break;
-
+		}
 		/* Do the HCE reset before sending next link startup command */
 		dwc_reset_hc();
-		
+
 		/* Set the CLK Divider Register since it has been reset */
 		dwc_ufs_write_reg(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
 		/* If working with Synopsys Mphy; this function is required */
 #ifdef USE_SNPS_MPHY_TC
 		setup_snps_mphy_tc();
 #endif
-		if(dwc_ufs_read_reg(DW_UFS_HCS) & DW_UFS_HCS_UCRDY)
+		if(dwc_ufs_read_reg(DW_UFS_HCS) & DW_UFS_HCS_UCRDY) {
+			debugf("Send link startup UIC command\n");
 			send_dme_link_startup();
-		else
+		} else {
 			continue;
+		}
 
 		udelay(200000); /* Wait for 200ms before checking the Link status */
 
-		/*
-		 * wait for the UIC Command to complete by checking UCCS field
-		 */
+		/*wait for the UIC Command to complete by checking UCCS field*/
 		retry2 = RETRY_CNT;
-		while(retry2 > 0)
-		{
-			if((dwc_ufs_read_reg(DW_UFS_IS) & DW_UFS_IS_UCCS))
+		while(retry2 > 0) {
+			if(dwc_ufs_read_reg(DW_UFS_IS) & DW_UFS_IS_UCCS) {
+				debugf("Link startup UIC Command complete.\n");
 				break;
+			}
 			udelay(100000); /* Total of 100ms delay before next LINK STARTUP */
 
 			retry2--;
@@ -921,8 +924,10 @@ int init_ufs_device()
 	FUNC_ENTER();
 	/* Send continuos NOP OUT Command unless Response is Valid */
 	ret = send_nop_out_cmd();
-	if(ret != UFS_SUCCESS)
+	if(ret != UFS_SUCCESS) {
+		errorf("Send nop out command fail, ret = 0x%x\n", ret);
 		return ret;
+	}
 
 	/* Set the Device Init Flag */
 	ret = SetFlag(FDEVICE_INIT, &flags_ret_val);
@@ -931,16 +936,18 @@ int init_ufs_device()
 	do {
 		retry--;
 		ret = ReadFlag(FDEVICE_INIT, &flags_ret_val);
-		PRINTF("\n Flags val %d",flags_ret_val);
-		if((ret == UFS_SUCCESS) && (flags_ret_val == 0))
+		if ((ret == UFS_SUCCESS) && (flags_ret_val == 0)) {
+			debugf("fDeviceInit flag==0, UFS device init complete\n");
 			break;
-		else {
+		} else {
 			dwc_ufs_write_reg(DW_UFS_UTRLCLR,0xfffffffe);
 		}
-	}while(retry > 0);
+	} while (retry > 0);
 
-	if(flags_ret_val != 0)
+	if(flags_ret_val != 0) {
+		errorf("UFS device init fail!\n");
 		ret = UFS_FDEVICE_INIT_FAIL;
+	}
 
 	FUNC_EXIT();
 	return ret;
@@ -951,7 +958,6 @@ void ufs_init()
 	init_ufs_hostc();
 	init_ufs_device();
 	ufs_update_native();
-	//ufs_register_blk_device();
 }
 
 void update_native_lu_info(struct ufs_cfg_desc_tbl *cfg_desc)
@@ -1153,45 +1159,6 @@ int verify_lu_cfg(struct lu_info_tbl *lu_cfg)
 }
 
 
-int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
-{
-	int ret = 0;
-	struct ufs_cfg_desc_tbl *cfg_desc;
-
-	ret = verify_lu_cfg(lu_cfg);
-	if (LU_INFO_ILLEGAL == ret)
-		return UFS_INVALID_PARTITIONING;
-	ret = get_descriptor_data((void **)(&cfg_desc), CONFIGURATION_DESC, 0);
-	/*maybe not necessary*/
-	//update_native_lu_info(cfg_desc);
-
-	ret = compare_cfg_lu_table(lu_cfg);
-	if (LU_INFO_SAME == ret)
-		return UFS_SUCCESS;
-
-	if (UFS_SUCCESS != check_config_desclock())
-		return UFS_CONFIG_DESC_LOCKED;
-
-	ret = set_descriptor_data(cfg_desc, lu_cfg);
-	if (UFS_SUCCESS != ret)
-		return ret;
-	
-	ret = WriteAttribute(B_CONFIG_DESC_LOCK, LOCK_CONFIGURATION, 0);
-	if (UFS_SUCCESS != ret)
-		return ret;
-	
-	/*TODO*/
-	reset_ufs_device();
-
-	ufs_init();
-
-	ret = compare_cfg_lu_table(lu_cfg);
-	if (LU_INFO_SAME == ret)
-		return UFS_SUCCESS;
-	else
-		return UFS_FATAL_ERROR;
-}
-
 static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction, 
 							struct lu_info_tbl *lu_info, void *buf_addr,
 							lbaint_t start, lbaint_t blkcnt, uint8_t cmd_set_type)
@@ -1314,6 +1281,86 @@ struct lu_info_tbl *find_lu_info(int lun)
 	}
 
 	return NULL;
+}
+
+int endpoint_reset(void)
+{
+	int retry = RETRY_CNT;
+
+	send_uic_command(UIC_ENDPOINT_RESET_CMD, 0, 0, 0);
+
+	/*wait for the UIC Command to complete by checking UCCS field*/
+	while (retry > 0) {
+		udelay(100000);
+		if(dwc_ufs_read_reg(DW_UFS_IS) & DW_UFS_IS_UCCS)
+			break;
+		retry--;
+	}
+
+	if (0 == retry)
+		return UFS_TIMEOUT;
+
+	return UFS_SUCCESS;
+
+}
+
+int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
+{
+	int ret = 0;
+
+	struct ufs_cfg_desc_tbl *cfg_desc;
+
+	ret = verify_lu_cfg(lu_cfg);
+	if (LU_INFO_ILLEGAL == ret) {
+		errorf("UFS LU configuration table illegal!\n");
+		return UFS_INVALID_PARTITIONING;
+	}
+	ret = get_descriptor_data((void **)(&cfg_desc), CONFIGURATION_DESC, 0);
+	/*maybe not necessary*/
+	//update_native_lu_info(cfg_desc);
+
+	ret = compare_cfg_lu_table(lu_cfg);
+	if (LU_INFO_SAME == ret) {
+		debugf("UFS LU configuration table same with device, no need of reconstruction\n");
+		return UFS_SUCCESS;
+	}
+
+	if (UFS_SUCCESS != check_config_desclock()) {
+		errorf("UFS config desc been locked, can not accept new config!\n");
+		return UFS_CONFIG_DESC_LOCKED;
+	}
+
+	ret = set_descriptor_data(cfg_desc, lu_cfg);
+	if (UFS_SUCCESS != ret) {
+		errorf("UFS set config desc fail!ret=%d\n", ret);
+		return ret;
+	}
+
+	ret = WriteAttribute(B_CONFIG_DESC_LOCK, LOCK_CONFIGURATION, 0);
+	if (UFS_SUCCESS != ret) {
+		errorf("UFS lock config desc fail!ret=%d\n",ret);
+		return ret;
+	}
+
+	/*TODO for option*/
+	//ret = poweron_reset();
+	ret = endpoint_reset();
+	if (UFS_SUCCESS != ret) {
+		errorf("UFS rreset device fail!ret=%d\n",ret);
+		return ret;
+	}
+
+	/*init ufs host controller and device again after lu reconstruct*/
+	ufs_init();
+
+	ret = compare_cfg_lu_table(lu_cfg);
+	if (LU_INFO_SAME == ret) {
+		debugf("LU reconstruct OK!!\n");
+		return UFS_SUCCESS;
+	} else {
+		errorf("LU reconstruct fail, fatal error!!!\n");
+		return UFS_FATAL_ERROR;
+	}
 }
 
 
@@ -1483,32 +1530,34 @@ void ufs_update_native(void)
 	int id = 0;
 	uint64_t block_count = 0;
 	uint32_t segment_size = 0;
-	struct ufs_dev_desc_tbl *dev_desc;
+	struct ufs_dev_desc_tbl *main_desc;
 	struct ufs_geo_desc_tbl *geo_desc;
 	struct ufs_unit_desc_tbl *unit_desc;
 
 	drv_info.prdt_entry_size = PRDT_BUFFER_SIZE;
 	drv_info.max_prdt_cap =  TOTAL_PRDT_CAP;
-	ret = get_descriptor_data((void **)(&dev_desc), DEVICE_DESC, 0);
+	ret = get_descriptor_data((void **)(&main_desc), DEVICE_DESC, 0);
 	if (UFS_SUCCESS != ret) {
 		errorf("get device descriptor data fail!\n");
 		return;
 	}
-	drv_info.unit_offset = dev_desc->bUD0BaseOffset;
-	drv_info.unit_length = dev_desc->bUDConfigPLength;
-	drv_info.lu_num = dev_desc->bNumberLU;
-	drv_info.wlu_num = dev_desc->bNumberWLU;
-	drv_info.boot_enable = dev_desc->bBootEnable;
-	drv_info.wSpecVersion = be16_to_cpu(dev_desc->wSpecVersion);
+	drv_info.unit_offset = main_desc->bUD0BaseOffset;
+	drv_info.unit_length = main_desc->bUDConfigPLength;
+	drv_info.lu_num = main_desc->bNumberLU;
+	drv_info.wlu_num = main_desc->bNumberWLU;
+	drv_info.boot_enable = main_desc->bBootEnable;
+	drv_info.wSpecVersion = be16_to_cpu(main_desc->wSpecVersion);
 
 	ret = get_descriptor_data((void **)(&geo_desc), GEOMETRY_DESC, 0);
 	if (UFS_SUCCESS != ret) {
 		errorf("get geometry descriptor data fail!\n");
 		return;
 	}
+
 	segment_size = be32_to_cpu(geo_desc->dSegmentSize);
 	drv_info.alloc_unit_sz = geo_desc->bAllocationUnitSize * segment_size;
-	drv_info.dev_total_cap = geo_desc->qTotalRawDeviceCapacity;
+	drv_info.dev_total_cap = be64_to_cpu(geo_desc->qTotalRawDeviceCapacity);
+	debugf("UFS device total cap=0x%llx,allocation unit size=0x%x\n", drv_info.dev_total_cap, drv_info.alloc_unit_sz);
 	
 	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++)	{
 		memset(&drv_info.block_dev[lun_index], 0 ,sizeof(block_dev_desc_t));
