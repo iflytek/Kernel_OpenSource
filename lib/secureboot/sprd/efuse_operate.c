@@ -37,7 +37,7 @@
 #endif
 
 #endif
-#ifdef CONFIG_WHALE
+#ifdef CONFIG_WHALE2
 #define SEC_ROLLBACK_BLOCK	88
 #define NOSEC_ROLLBACK_BLOCK_START 89
 #define NOSEC_ROLLBACK_BLOCK_END 95
@@ -101,12 +101,12 @@ unsigned long strtoul(const char *cp,char  **endp, unsigned int base)
 }
 void efuse_secure_enable(void)
 {
-	sprd_ap_efuse_prog(DDIE_EFUSE,SECURE_BOOT_BLOCK, (1 << SECURE_BOOT_BIT));
+	sprd_ap_efuse_prog(SECURE_BOOT_BLOCK, (1 << SECURE_BOOT_BIT));
 }
 
 int efuse_secure_is_enabled(void)
 {
-	u32 ret = sprd_ap_efuse_read(DDIE_EFUSE, SECURE_BOOT_BLOCK);
+	u32 ret = sprd_ap_efuse_read(SECURE_BOOT_BLOCK);
 	return (ret & (1 << SECURE_BOOT_BIT)) ? 1 : 0;
 }
 int efuse_convert_version(int efuse_val)
@@ -132,7 +132,7 @@ int efuse_rollback_version_read(int type)
 	{	
 		do
 		{
-		ret = sprd_ap_efuse_read(DDIE_EFUSE, read_block);
+		ret = sprd_ap_efuse_read(read_block);
 		version+=efuse_convert_version(ret&NOSEC_ROLL_BIT);
 		read_block--;
 		}
@@ -140,7 +140,7 @@ int efuse_rollback_version_read(int type)
 	}
 	else
 	{
-		ret = sprd_ap_efuse_read(DDIE_EFUSE, SEC_ROLLBACK_BLOCK);
+		ret = sprd_ap_efuse_read(SEC_ROLLBACK_BLOCK);
 		version+=efuse_convert_version(ret&SEC_ROLL_BIT);
 	}
 	return version;
@@ -174,7 +174,7 @@ int efuse_rollback_version_write(int type,int value)
 		do
 		{
 		version = version_convert_efuse(value&NOSEC_ROLL_BIT);
-		ret= sprd_ap_efuse_prog(DDIE_EFUSE, write_block, version);
+		ret= sprd_ap_efuse_prog(write_block, version);
 		printf("efuse_unsec_prog ret =%x,version=%x\n",ret,version);
 		value-=31;
 		write_block--;
@@ -185,7 +185,7 @@ int efuse_rollback_version_write(int type,int value)
 	else
 	{
 		version = version_convert_efuse(value&SEC_ROLL_BIT);
-		ret= sprd_ap_efuse_prog(DDIE_EFUSE, SEC_ROLLBACK_BLOCK, version);
+		ret= sprd_ap_efuse_prog(SEC_ROLLBACK_BLOCK, version);
 		printf("efuse_sec_prog ret=%x,version=%x\n",ret,value);
 	}
 	
@@ -208,16 +208,16 @@ int arm7_key_write( char *key, u32 count)
 		value = (u32)(strtoul(buf, 0, 16));
 		value &= 0x7fffffff;
 		UBOOT_EFUSE_LOG("%s()->Line :%d value=%8x\n",__FUNCTION__, __LINE__,value);
-		sprd_ap_efuse_prog(ARM7_EFUSE, j, value);
-		read_hash = sprd_ap_efuse_read(ARM7_EFUSE, j);
+		sprd_ap_efuse_prog(j, value);
+		read_hash = sprd_ap_efuse_read(j);
 		UBOOT_EFUSE_LOG("%s()->Line :%d read_hash=%8x\n",__FUNCTION__, __LINE__,read_hash);
 		if(read_hash != value){
 			UBOOT_EFUSE_LOG("%s()->Line:%d READ HASH != WRITE HASH\n", __FUNCTION__, __LINE__);
 			return -2;
 		}
 		value  |= PROTECT__BIT;
-		sprd_ap_efuse_prog(ARM7_EFUSE, j,  PROTECT__BIT );
-		read_hash = sprd_ap_efuse_read(ARM7_EFUSE, j);
+		sprd_ap_efuse_prog(j,  PROTECT__BIT );
+		read_hash = sprd_ap_efuse_read(j);
 		if(read_hash != value){
 			UBOOT_EFUSE_LOG("%s()->Line:%d READ HASH !=  value\n", __FUNCTION__, __LINE__);
 			return -2;
@@ -241,7 +241,7 @@ int arm7_key_read( char *key, u32 count)
 
 	len = MIN(count, ARM7_KEY_BLOCK_LEN*BLOCK_CHAR_COUNT);
 	for (i = ARM7_KEY_START; i <= ARM7_KEY_END; i++) {
-		read_hash = sprd_ap_efuse_read(ARM7_EFUSE , i );
+		read_hash = sprd_ap_efuse_read(i);
 		sprintf(tmp_hash,"%02x%02x%02x%02x",p[3],p[2],p[1],p[0]);
 		tmp_hash[BLOCK_CHAR_COUNT] = '\0';
 		UBOOT_EFUSE_LOG("%s()->Line:%d; block_id=%d,tmp_hash=%s\n", __FUNCTION__, __LINE__,i, tmp_hash);
@@ -272,16 +272,16 @@ int efuse_hash_write( char *hash, u32 count)
 		value = (u32)(strtoul(buf, 0, 16));
 		value &= 0x7fffffff;
 		UBOOT_EFUSE_LOG("%s()->Line :%d value=%8x\n",__FUNCTION__, __LINE__,value);
-		sprd_ap_efuse_prog(DDIE_EFUSE, j, value);
-		read_hash = sprd_ap_efuse_read(DDIE_EFUSE, j);
+		sprd_ap_efuse_prog(j, value);
+		read_hash = sprd_ap_efuse_read(j);
 		UBOOT_EFUSE_LOG("%s()->Line :%d read_hash=%8x\n",__FUNCTION__, __LINE__,read_hash);
 		if(read_hash != value){
 			UBOOT_EFUSE_LOG("%s()->Line:%d READ HASH != WRITE HASH\n", __FUNCTION__, __LINE__);
 			return -2;
 		}
 		value  |= PROTECT__BIT;
-		sprd_ap_efuse_prog(DDIE_EFUSE, j,  PROTECT__BIT );
-		read_hash = sprd_ap_efuse_read(DDIE_EFUSE, j);
+		sprd_ap_efuse_prog(j,  PROTECT__BIT );
+		read_hash = sprd_ap_efuse_read(j);
 		if(read_hash != value){
 			UBOOT_EFUSE_LOG("%s()->Line:%d READ HASH !=  value\n", __FUNCTION__, __LINE__);
 			return -2;
@@ -305,7 +305,7 @@ int efuse_hash_read(char *hash, u32 count)
 
 	len = MIN(count, HASH_BLOCK_LEN*BLOCK_CHAR_COUNT);
 	for (i = HASH_BLOCK_START; i <= HASH_BLOCK_END; i++) {
-		read_hash = sprd_ap_efuse_read(DDIE_EFUSE , i );
+		read_hash = sprd_ap_efuse_read( i );
 		sprintf(tmp_hash,"%02x%02x%02x%02x",p[3],p[2],p[1],p[0]);
 		tmp_hash[BLOCK_CHAR_COUNT] = '\0';
 		UBOOT_EFUSE_LOG("%s()->Line:%d; block_id=%d,tmp_hash=%s\n", __FUNCTION__, __LINE__,i, tmp_hash);
@@ -332,7 +332,7 @@ int efuse_uid_read(char *uid, int count)
 
 	len = MIN(count, UID_BLOCK_LEN*BLOCK_CHAR_COUNT);
 	for (i = UID_BLOCK_START; i <= UID_BLOCK_END; i++) {
-		read_uid = sprd_ap_efuse_read(DDIE_EFUSE , i );
+		read_uid = sprd_ap_efuse_read(i);
 		sprintf(tmp_uid,"%02x%02x%02x%02x",p[3],p[2],p[1],p[0]);
 		tmp_uid[BLOCK_CHAR_COUNT] = '\0';
 		UBOOT_EFUSE_LOG("%s()->Line:%d; block_id=%d,tmp_uid=%s\n", __FUNCTION__, __LINE__,i, tmp_uid);
