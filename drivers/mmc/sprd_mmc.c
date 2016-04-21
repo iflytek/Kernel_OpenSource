@@ -196,7 +196,7 @@ struct mmc *find_mmc_device(int dev_num)
 	return NULL;
 }
 
- static ulong mmc_erase_t(struct mmc *mmc, ulong start, lbaint_t blkcnt)
+ static ulong mmc_erase_t(struct mmc *mmc, ulong start, lbaint_t blkcnt, uint erase_type)
  {
 	 struct mmc_cmd cmd;
 	 ulong end;
@@ -233,7 +233,7 @@ struct mmc *find_mmc_device(int dev_num)
 		 goto err_out;
 
 	 cmd.cmdidx = MMC_CMD_ERASE;
-	 cmd.cmdarg = 0;//SECURE_ERASE;
+	 cmd.cmdarg = erase_type;
 	 cmd.resp_type = MMC_RSP_R1b;
 
 	 err = mmc_send_cmd(mmc, &cmd, NULL);
@@ -257,27 +257,32 @@ struct mmc *find_mmc_device(int dev_num)
 	 if (!mmc)
 		 return 0;
 
-	 if ((start % mmc->erase_grp_size) || (blkcnt % mmc->erase_grp_size))
-		 debugf("\n\nCaution! Your devices Erase group is 0x%x\n"
-				"The erase range would be change to "
-				"0x" LBAF "~0x" LBAF "\n\n",
-				mmc->erase_grp_size, start & ~(mmc->erase_grp_size - 1),
-				((start + blkcnt + mmc->erase_grp_size)
-				& ~(mmc->erase_grp_size - 1)) - 1);
+	if (start % mmc->erase_grp_size) {
+		blk_r = (blkcnt < (mmc->erase_grp_size - start % mmc->erase_grp_size)) ?
+			blkcnt : (mmc->erase_grp_size - start % mmc->erase_grp_size);
+		err = mmc_erase_t(mmc, start, blk_r, 1);
+		if (err)
+			return -1;
+		blk += blk_r;
+		/* Waiting for the ready status */
+		if (mmc_send_status(mmc, timeout))
+			return 0;
+	}
 
-	 while (blk < blkcnt) {
-		 blk_r = ((blkcnt - blk) > mmc->erase_grp_size) ?
-			 mmc->erase_grp_size : (blkcnt - blk);
-		 err = mmc_erase_t(mmc, start + blk, blk_r);
-		 if (err)
-			 break;
+	while (blk < blkcnt) {
+		blk_r = ((blkcnt - blk) >= mmc->erase_grp_size) ? mmc->erase_grp_size : (blkcnt - blk);
+		if((blkcnt - blk) >= mmc->erase_grp_size)
+			err = mmc_erase_t(mmc, start + blk, blk_r, 0);
+		else
+			err = mmc_erase_t(mmc, start + blk, blk_r, 1);
+		if (err)
+			break;
+		blk += blk_r;
 
-		 blk += blk_r;
-
-		 /* Waiting for the ready status */
-		 if (mmc_send_status(mmc, timeout))
-			 return 0;
-	 }
+		/* Waiting for the ready status */
+		if (mmc_send_status(mmc, timeout))
+			return 0;
+	}
 
 	 return blk;
  }
