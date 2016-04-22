@@ -37,11 +37,11 @@ static struct panel_operations lcd_dummy_mipi_operations = {
 };
 
 static struct timing_rgb lcd_dummy_mipi_timing = {
-	.hfp = 80,  /* unit: pixel */
-	.hbp = 60,
-	.hsync = 60,
-	.vfp = 38, /*unit: line*/
-	.vbp = 12,
+	.hfp = 40,  /* unit: pixel */
+	.hbp = 30,
+	.hsync = 30,
+	.vfp = 20, /*unit: line*/
+	.vbp = 6,
 	.vsync = 4,
 };
 
@@ -64,7 +64,7 @@ static struct info_mipi lcd_dummy_mipi_info = {
 struct panel_spec lcd_dummy_mipi_spec = {
 	.width = 720,
 	.height = 1280,
-	.fps = 61,
+	.fps = 60,
 	.type = LCD_MODE_DSI,
 	.direction = LCD_DIRECT_NORMAL,
 	.info = {
