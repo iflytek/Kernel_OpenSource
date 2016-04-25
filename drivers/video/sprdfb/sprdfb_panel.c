@@ -423,37 +423,6 @@ static struct panel_cfg panel_cfg[] = {
 };
 
 vidinfo_t panel_info = {
-#if defined(CONFIG_LCD_QVGA)
-	.vl_col = 240,
-	.vl_row = 320,
-#elif defined(CONFIG_LCD_HVGA)
-	.vl_col = 320,
-	.vl_row = 480,
-#elif defined(CONFIG_LCD_WVGA)
-	.vl_col = 480,
-	.vl_row = 800,
-#elif defined(CONFIG_LCD_FWVGA)
-	.vl_col = 480,
-	.vl_row = 854,
-#elif defined(CONFIG_LCD_QHD)
-	.vl_col = 540,
-	.vl_row = 960,
-#elif defined(CONFIG_LCD_WSVGA)
-	.vl_col = 1024,
-	.vl_row = 600,
-#elif defined(CONFIG_LCD_XGA)
-	.vl_col = 768,
-	.vl_row = 1024,
-#elif defined(CONFIG_LCD_720P)
-	.vl_col = 720,
-	.vl_row = 1280,
-#elif defined(CONFIG_LCD_1080P)
-	.vl_col = 1080,
-	.vl_row = 1920,
-#elif defined(CONFIG_LCD_1440P)
-	.vl_col = 1440,
-	.vl_row = 2560,
-#endif
 	.vl_bpix = 4,
 	.cmap = colormap,
 };
@@ -626,12 +595,11 @@ uint16_t sprdfb_panel_probe(struct sprdfb_device *dev)
 	panel = adapt_panel_from_readid(dev);
 
 	if (panel) {
-#if defined(CONFIG_LCD_MULTI_RESOLUTION ) || defined (CONFIG_LCD_720P)
         /*To support different resolution in a u-boot.bin,change vl_row && vl_col for lcd_line_length
          * in common/lcd.c after reading panel id*/
-        panel_info.vl_row = panel->height;
-        panel_info.vl_col = panel->width;
-#endif
+        	panel_info.vl_row = panel->height;
+        	panel_info.vl_col = panel->width;
+
 		save_lcd_size_to_kernel(panel_info.vl_row, panel_info.vl_col);
 		FB_PRINT("sprdfb: [%s] got panel\n", __FUNCTION__);
 		return 0;

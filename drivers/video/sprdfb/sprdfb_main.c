@@ -101,14 +101,6 @@ static int sprdfb_probe(void *lcdbase)
 
 	set_backlight(0);
 
-#ifdef CONFIG_GRANDPRIME3G_VE
-	sprd_gpio_request(NULL, 214);
-	sprd_gpio_direction_output(NULL, 214, 0);
-	sprd_gpio_set(NULL, 214, 1);
-	sprd_gpio_request(NULL, 167);
-	sprd_gpio_direction_output(NULL, 167, 0);
-	sprd_gpio_set(NULL, 167, 1);
-#endif
 	dev->ctrl = &sprdfb_dispc_ctrl;
 	dev->ctrl->early_init(dev);
 
@@ -128,8 +120,6 @@ static int sprdfb_probe(void *lcdbase)
 	dev->display_height = dev->panel->height;
 #endif
 #endif
-
-	//lcd_get_base_addr(lcdbase);
 
 	debugf("ion node offset = %d\n", nodeoffset);
 	if (nodeoffset == -FDT_ERR_NOTFOUND)
@@ -177,7 +167,7 @@ void lcd_ctrl_init(void *lcdbase)
 	char *s;
 	ulong addr;
 
-	printf("sprdfb: %s: lcdbase is 0x%p\n", __FUNCTION__, lcdbase);
+	sprdfb_probe(lcdbase);
 	size = lcd_get_size(&lcd_line_length) >> 1;
 	bmp = malloc(size);
 	if (!bmp) {
@@ -190,7 +180,6 @@ void lcd_ctrl_init(void *lcdbase)
 	printf("sprdfb: splashimage addr is 0x%p, fb size is 0x%x\n",
 			(void *)addr, size);
 	lcd_set_flush_dcache(TRUE);
-	sprdfb_probe(lcdbase);
 	printf("sprdfb:[%s]---\n", __FUNCTION__);
 }
 
