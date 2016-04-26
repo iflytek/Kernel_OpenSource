@@ -56,10 +56,8 @@ extern void sprd_etb_dump (void);
 #else
 	#define sysdump_lcd_printf(fmt, args...)
 #endif
-#ifdef CONFIG_MEMORY_DEFRAGMENT
 extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
 extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
-#endif
 
 void display_writing_sysdump(void)
 {
@@ -579,13 +577,9 @@ void mtd_dump(int fs_type)
 unsigned char *get_dt_addr(void)
 {
 	unsigned char *dt_addr = DT_ADR;
-
-#ifdef CONFIG_MEMORY_DEFRAGMENT
 	boot_img_hdr *hdr = (void *)raw_header;
-	if (0 == _get_kernel_ramdisk_dt_offset(hdr, "boot"))
-		return 0;
-	load_fixup_dt_img("boot", &dt_addr);
-#endif
+	if (1 == _get_kernel_ramdisk_dt_offset(hdr, "boot"))
+		load_fixup_dt_img("boot", &dt_addr);
 	return dt_addr;
 }
 

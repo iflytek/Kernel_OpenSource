@@ -84,11 +84,6 @@ void fdt_fixup_all(u8 *fdt_blob)
 	if (err != 0) {
 		printf("libfdt fdt_open_into(): %s\n", fdt_strerror(err));
 	}
-#ifndef CONFIG_MEMORY_DEFRAGMENT
-	/* for memory defragment,ramdisk_adr is allocated dynamically,
-	so put fdt_initrd_norsvmem after caculate the ramdisk_adr */
-	fdt_initrd_norsvmem(fdt_blob, RAMDISK_ADR, RAMDISK_ADR + hdr->ramdisk_size, 1);
-#endif
 
 #ifdef CONFIG_SPLASH_SCREEN
 	fdt_fixup_lcdid(fdt_blob);

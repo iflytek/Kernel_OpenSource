@@ -180,7 +180,7 @@ int get_dt_end_addr(void *fdt, uchar **addr)
 	return 0;
 }
 
-int fdt_fixup_memory_region(void *fdt)
+int fdt_fixup_memory_region(void *fdt, int *auto_mem_num_p)
 {
 	int offset;
 	mem_addr_t addr;
@@ -195,7 +195,7 @@ int fdt_fixup_memory_region(void *fdt)
 	int auto_mem_num = 0;
 	int ret = 0;
 
-	rsvmem_p = RSVMEM_START_ADDR;
+	rsvmem_p = DT_ADR;
 	memset(tmp_auto_mem_region_list, '\0', sizeof(tmp_auto_mem_region_list));
 	ret = scan_memory_region(fdt, &auto_mem_num);
 	if (ret < 0)
@@ -204,6 +204,8 @@ int fdt_fixup_memory_region(void *fdt)
 		debugf("no auto memory region, no need fixup memory region\n");
 		goto end;
 	}
+	if(NULL != auto_mem_num_p)
+		*auto_mem_num_p = auto_mem_num;
 	parentoffset =  fdt_path_offset(fdt, "/reserved-memory");
 	for (offset = fdt_first_subnode(fdt, parentoffset);
 	      offset >= 0; offset = fdt_next_subnode(fdt, offset)) {
@@ -212,11 +214,11 @@ int fdt_fixup_memory_region(void *fdt)
 		nodename[str_len] = '\0';
 		if(fdt_get_addr_size(fdt, offset, "reg", &addr, &size) < 0)
 		{
-			debugf("cannot find reg prop, go to next node.\n" );
+			//debugf("cannot find reg prop, go to next node.\n" );
 			goto next;
 		}
 		if(check_mem_region_auto(fdt, nodename) < 0) {
-			debugf("%s: stable node \n", fdt_get_name(fdt, offset, NULL));
+			//debugf("%s: stable node \n", fdt_get_name(fdt, offset, NULL));
 			while (num>= 0) {
 				if(addr < rsvmem_p) {
 					errorf("prev end addr exceed the current start addr\n");
@@ -233,7 +235,7 @@ int fdt_fixup_memory_region(void *fdt)
 		} else {
 			/* the current node is auto */
 			addr = rsvmem_p;
-			debugf("%s: auto node \n", fdt_get_name(fdt, offset, NULL));
+			//debugf("%s: auto node \n", fdt_get_name(fdt, offset, NULL));
 			if (0 == fixup_memory_addr(fdt, offset, addr, &size) ) {
 				rsvmem_p += size;
 				auto_mem_name = malloc(str_len+1);

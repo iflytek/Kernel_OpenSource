@@ -31,10 +31,8 @@
 #endif
 extern int lcd_line_length;
 
-#ifdef CONFIG_MEMORY_DEFRAGMENT
-extern int fdt_fixup_memory_region(void *fdt);
+extern int fdt_fixup_memory_region(void *fdt, int *auto_mem_num_p);
 extern int get_dt_end_addr(void *fdt, uchar **addr);
-#endif
 
 #define MODEM_MAGIC		"SCI1"
 #define MODEM_HDR_SIZE		(12 * 512) //size of a block
@@ -582,7 +580,6 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 /**
 	Function for do memory defragment and load dtb
 */
-#ifdef CONFIG_MEMORY_DEFRAGMENT
 int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	u8 *fdt_blob = NULL;
 	struct dt_table table;
@@ -593,77 +590,78 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	int ret = -1;
 	uchar *dt_end_addr;
 	uchar *ramdisk_adr;
+	uint32_t auto_mem_num;
 
 	size = sizeof(struct dt_table);
 	if (0 != common_raw_read(partition, size, boot_img_offset.dt_offset, &table)) {
 		errorf("read dt image table header fail\n");
-		goto end;
+		goto error;
 	}
 
 	/* Validate the device tree table header */
 	if((table.magic != DEV_TREE_MAGIC) || (table.version != DEV_TREE_VERSION)) {
 		errorf("Cannot validate Device Tree Table \n");
-		goto end;
+		goto error;
 	}
 
 	size = sizeof(struct dt_table) + sizeof(struct dt_entry) * table.num_entries;
 	header = (char *)malloc(size);
 	if (NULL == header) {
 		errorf("malloc size %d for dt header fail\n", size);
-		goto end;
+		goto error;
 	}
 	if (0 != common_raw_read(partition, size,  boot_img_offset.dt_offset, header)) {
 		errorf("read dt image table and entries header fail\n");
-		goto end;
+		goto error;
 	}
 
 	/* Calculate the offset of device tree within device tree table */
 	dt_entry_ptr = dev_tree_get_entry_ptr((struct dt_table *)header);
 	if(NULL == dt_entry_ptr) {
 		errorf("Getting device tree address failed\n");
-		goto end;
+		goto error;
 	}
 
 	size = dt_entry_ptr->size;
 	fdt_blob = malloc(size + FDT_ADD_SIZE);
 	if (0 != common_raw_read(partition, size, (boot_img_offset.dt_offset + dt_entry_ptr->offset), (char *)fdt_blob)) {
 		errorf("dt entry size read error!\n");
-		goto end;
+		goto error;
 	}
 
 	if (fdt_check_header(fdt_blob) != 0) {
 		errorf("image is not a fdt\n");
-		goto end;
+		goto error;
 	}
 	fdt_size = fdt_totalsize(fdt_blob);
 	ret = fdt_open_into(fdt_blob, fdt_blob, fdt_size + FDT_ADD_SIZE);
 	if (0 != ret) {
 		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
-		goto end;
+		goto error;
 	}
-
+#ifndef CONFIG_X86
 	fdt_fixup_all(fdt_blob);
-	ret = fdt_fixup_memory_region(fdt_blob);
-	if(0 != ret)
-		goto end;
-
-	ret = get_dt_end_addr(fdt_blob , &dt_end_addr);
-	if(0 != ret)
-		goto end;
-
+#endif
+	ret = fdt_fixup_memory_region(fdt_blob, &auto_mem_num);
+	if(ret < 0)
+		goto error;
 	fdt_size = fdt_totalsize(fdt_blob);
 	size = PAD_SIZE(fdt_size, KERNL_PAGE_SIZE);
-	*dt_start_addr = dt_end_addr -size;
+	if (0 == ret && 0 != auto_mem_num) {
+		if(0 != get_dt_end_addr(fdt_blob , &dt_end_addr))
+			goto end;
+		*dt_start_addr = dt_end_addr - size;
+	}
+end:
 	memcpy(*dt_start_addr, fdt_blob, size);
 	ret = 0;
-end:
+error:
 	if (NULL != header)
 		free(header);
 	if (NULL != fdt_blob)
 		free(fdt_blob);
 	return ret;
 }
-#endif
 
 int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **dt_addr )
 {
@@ -698,48 +696,33 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 	debugf("%s kernel read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)KERNEL_ADR);
 
 	ramdisk_addr = RAMDISK_ADR;
-/*read dt image*/
-#if defined(CONFIG_SEPARATE_DT)
-	if (!_boot_load_separate_dt())
-		return 0;
-	fdt_fixup_all((uchar *)DT_ADR);
-#elif defined(CONFIG_MEMORY_DEFRAGMENT)
-	/* for memory defragment, dr_addr and ramdisk_adr is allocated dynamically*/
-	if (0 != load_fixup_dt_img(partition, dt_addr))
-		return 0;
-	debugf("dt_addr:%lx \n", *dt_addr);
 	/* get ramdisk image size */
 	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
 	if (0 == size) {
 		errorf("ramdisk image size should not be zero\n");
 		return 0;
 	}
-	ramdisk_addr = *dt_addr - size;
-	fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr + hdr->ramdisk_size, 1);
-#else
-	size = PAD_SIZE(hdr->dt_size, KERNL_PAGE_SIZE);
-	dt_img_adr = (uchar *)(RAMDISK_ADR - size - KERNL_PAGE_SIZE);
-	if (0 == size) {
-		errorf("dt image size should not be zero\n");
+/*read dt image*/
+#if defined(CONFIG_SEPARATE_DT)
+	if (!_boot_load_separate_dt())
 		return 0;
-	}
-	if (0 != common_raw_read(partition, size, boot_img_offset.dt_offset, dt_img_adr)) {
-		errorf("%s ramdisk read error!\n", partition);
-		return 0;
-	}
-
-	if (load_dtb((void*) DT_ADR, (void *)dt_img_adr)) {
-		errorf("dt load error!\n");
-		return 0;
-	}
-	debugf("%s dtb read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)DT_ADR);
-#ifndef CONFIG_X86
 	fdt_fixup_all((uchar *)DT_ADR);
+#else
+	/* for memory defragment, dr_addr and ramdisk_adr is allocated dynamically*/
+	if (0 == load_fixup_dt_img(partition, dt_addr)) {
+		if (DT_ADR != *dt_addr) {
+			debugf("allocate dt_addr:%lx \n", *dt_addr);
+			/*allocate  ramdisk addr */
+			ramdisk_addr = *dt_addr - size;
+		} else {
+			debugf(" use default value : DT_ADDR & RAMDISK_ADR\n");
+		}
+	} else {
+		errorf("load dt error!\n");
+		return 0;
+	}
 #endif
-#endif
-
-	/* get ramdisk image size */
-	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+	fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr + hdr->ramdisk_size, 1);
 	if (0 == size) {
 		errorf("ramdisk image size should not be zero\n");
 		return 0;
@@ -754,22 +737,18 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 	boot_mode_type_str = getenv("bootmode");
 	if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
 		int ramdisk_size;
-	#ifdef CONFIG_MEMORY_DEFRAGMENT
 		ramdisk_size = boot_sprdisk(size, ramdisk_addr, 0);
-		if (ramdisk_size > 0){
-			/* get ramdisk size , calculate addr, so we can have enough room for sprdisk ramdisk */
+		if (ramdisk_size > 0) {
 			hdr->ramdisk_size = ramdisk_size;
-			size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
-			ramdisk_addr = *dt_addr - size;
+			if (RAMDISK_ADR != ramdisk_addr) {
+				/* get ramdisk size , calculate addr, so we can have enough room for sprdisk ramdisk */
+				size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+				ramdisk_addr = *dt_addr - size;
+				hdr->ramdisk_addr = ramdisk_addr;
+				fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+ramdisk_size, 1);
+			}
 			boot_sprdisk(ramdisk_size, ramdisk_addr, 1);
-			hdr->ramdisk_addr = ramdisk_addr;
-			fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+ramdisk_size, 1);
-	#else
-		ramdisk_size = boot_sprdisk(size, RAMDISK_ADR, 1);
-		if( ramdisk_size > 0){
-			hdr->ramdisk_size = ramdisk_size;
-	#endif
-		}else{
+		} else {
 			errorf("%s, sprdisk mode failure!\n", __FUNCTION__);
 		}
 		return 1;
