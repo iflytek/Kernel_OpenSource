@@ -10,6 +10,10 @@ void invalidate_dcache_area(void *va,size_t len)
 	invalidate_dcache_range(va, (char *)va + len -1);
 }
 
+void flush_dcache_all_area(void)
+{
+    flush_dcache_all();
+}
 static unsigned int SB_MemoryRead(uint64_t offset,uint8_t *memDst,uint32_t sizeToRead,void *context)
 {
 	uint8_t *load_addr = NULL;
