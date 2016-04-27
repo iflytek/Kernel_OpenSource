@@ -1,7 +1,6 @@
 #ifndef _SPRD_UFS_H
 #define _SPRD_UFS_H
 
-#define DEBUG_MODE
 //#define USE_SNPS_MPHY_TC               /* Macro to be defined when used with Synopsys MPHY Test Chip */
 
 
@@ -49,20 +48,6 @@
 #define LU_INFO_ILLEGAL  -1
 
 #define LOCK_CONFIGURATION    1
-
-
-/* Debug Macros */
-#ifdef DEBUG_MODE
-	#define POS()        printf("%s:%d: HERE \n", __FILE__, __LINE__)
-	#define FUNC_ENTER() printf("-->%s\n", __FUNCTION__)
-	#define FUNC_EXIT()  printf("<--%s\n", __FUNCTION__)
-	#define PRINTF printf
-	
-#else 
-	#define POS() 
-	#define FUNC_ENTER() 
-	#define FUNC_EXIT() 
-#endif
 
 /*
  * UFSStatus/Error Macros used as return values for all functions
@@ -150,9 +135,9 @@ enum lu_memory_type {
 };
 
 enum lu_provisioning_type {
-	PROVISIONING_DISABLE = 0x00,
-	PROVISIONING_ENABLE = 0x02,
-	PROVISIONING_ENABLE_WITH_TPRZ = 0x03
+	PROV_DISABLE = 0x00,
+	PROV_ENABLE = 0x02,
+	PROV_ENABLE_WITH_TPRZ = 0x03
 };
 
 

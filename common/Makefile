@@ -287,5 +287,6 @@ obj-y += xyzModem.o
 obj-y += cmd_disk.o
 
 obj-y += sprd_common_rw.o
+obj-$(CONFIG_UFS) += cmd_ufs.o
 
 CFLAGS_env_embedded.o := -Wa,--no-warn -DENV_CRC=$(shell tools/envcrc 2>/dev/null)

@@ -3,6 +3,7 @@
 #include <sprd_ufs.h>
 #include "protocol_util.h"
 #include "hw_if.h"
+#include <malloc.h>
 
 /*
  * Global Variables shared across Driver
@@ -22,7 +23,6 @@ int dwc_reset_hc()
 {
 	int retry = RETRY_CNT;
 
-	FUNC_ENTER();
 	/*
 	 * Enable the Host Controller.
 	 * DME_RESET and DME_ENABLE commands are sent automatically on DW_UFS_HCE write
@@ -43,7 +43,7 @@ int dwc_reset_hc()
 		retry--;
 		udelay(1); /* Platform Specific Implementation */
 	}
-	FUNC_EXIT();
+
 	return UFS_TIMEOUT;
 }
 
@@ -173,7 +173,6 @@ static void create_nop_out_upiu()
 	int i;
 	void *tmp_ptr;
 
-	FUNC_ENTER();
 	tmp_ptr = drv_info.cmd_desc->command_upiu;
 	cmd_upiu_ptr = (struct dwc_ufs_nop_req_upiu*)tmp_ptr;
 
@@ -198,7 +197,7 @@ static void create_nop_out_upiu()
 		cmd_upiu_ptr->reserved_4[i] = 0x00;
 	}
 
-	FUNC_EXIT();
+	return;
 }
 
 /***************************************************************
@@ -214,8 +213,6 @@ static int handle_query_response(uint8_t *ret)
 	struct dwc_ufs_query_upiu *resp_upiu;
 	void *tmp_ptr;
 
-	FUNC_ENTER();
-
 	tmp_ptr = drv_info.cmd_desc->response_upiu;
 	resp_upiu = (struct dwc_ufs_query_upiu *)tmp_ptr;
 
@@ -227,8 +224,6 @@ static int handle_query_response(uint8_t *ret)
 		ret[2] = resp_upiu->tsf[10];
 		ret[3] = resp_upiu->tsf[11];
 	}
-	
-	FUNC_EXIT();
 
 	if(resp_upiu->query_resp == UFS_SUCCESS)
 		return UFS_SUCCESS;
@@ -248,7 +243,6 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
 	void *tmp_ptr;
 	int i;
 
-	FUNC_ENTER();
 	tmp_ptr = drv_info.cmd_desc->command_upiu;
 	cmd_upiu_ptr = (struct dwc_ufs_query_upiu *)tmp_ptr;
 
@@ -293,7 +287,6 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
 	for(i=0; i < 3 ;i++)
 		cmd_upiu_ptr->reserved_5[i] = 0x00;
 
-	FUNC_EXIT();
 }
 
 
@@ -307,7 +300,6 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
  ***************************************************************/
 static void create_desc_upiu(void *req_upiu)
 {
-	FUNC_ENTER();
 
 	if (drv_info.cmd_desc->command_upiu != req_upiu) {
 		/* swap done since data_seg_len is in big endian format */
@@ -325,7 +317,7 @@ static void create_desc_upiu(void *req_upiu)
 			(uint32_t)sizeof(struct dwc_ufs_query_upiu) + swap_16(((struct dwc_ufs_query_upiu *)req_upiu)->data_seg_len));
 #endif
 	}
-	FUNC_EXIT();
+
 }
 
 /***************************************************************
@@ -340,7 +332,6 @@ static int wait_for_cmd_completion()
 {
 	int retry = RETRY_CNT;
 
-	FUNC_ENTER();
 	/* Set the doorbell for processing the request */
 	dwc_ufs_write_reg(DW_UFS_UTRLDBR, BIT(0));
 
@@ -358,7 +349,6 @@ static int wait_for_cmd_completion()
 
 	debugf("DoorBell Cleared\n");
 
-	FUNC_EXIT();
 	return UFS_SUCCESS;
 }
 
@@ -375,7 +365,6 @@ static int do_flag_operation(int opcode, int query_func, enum flags_id idn, uint
 	int ret, i;
 	uint8_t val[4];
 
-	FUNC_ENTER();
 	for(i=0;i < 3;i++)
 		val[i] = 0x00;
 
@@ -386,7 +375,7 @@ static int do_flag_operation(int opcode, int query_func, enum flags_id idn, uint
 
 	ret = handle_query_response(val);
 	*flags_ret = val[3];
-	FUNC_EXIT();
+
 	return ret;
 }
 
@@ -400,9 +389,7 @@ int SetFlag(enum flags_id idn, uint8_t *flags_ret)
 {
 	int ret;
 
-	FUNC_ENTER();
 	ret = do_flag_operation(SET_FLAG_OPCODE, STANDARD_WR_REQ, idn, flags_ret);
-	FUNC_EXIT();
 	return ret;
 }
 
@@ -417,9 +404,7 @@ int ToggleFlag(enum flags_id idn, uint8_t *flags_ret)
 {
 	int ret;
 
-	FUNC_ENTER();
 	ret = do_flag_operation(TOGGLE_FLAG_OPCODE, STANDARD_WR_REQ, idn, flags_ret);
-	FUNC_EXIT();
 	return ret;
 }
 
@@ -434,9 +419,7 @@ int ReadFlag(enum flags_id idn, uint8_t *flags_ret)
 {
 	int ret;
 
-	FUNC_ENTER();
 	ret = do_flag_operation(READ_FLAG_OPCODE, STANDARD_RD_REQ, idn, flags_ret);
-	FUNC_EXIT();
 	return ret;
 }
 
@@ -453,9 +436,7 @@ int ClearFlag(enum flags_id idn, uint8_t *flags_ret)
 {
 	int ret;
 
-	FUNC_ENTER();
 	ret = do_flag_operation(CLEAR_FLAG_OPCODE, STANDARD_WR_REQ, idn, flags_ret);
-	FUNC_EXIT();
 	return ret;
 }
 
@@ -471,9 +452,7 @@ int ReadAttribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector)
 {
 	int ret,i;
 
-	FUNC_ENTER();
-
-	for(i=0;i < 3;i++)
+	for(i=0;i < 4;i++)
 		ret_value[i] = 0x00;
 
 	create_query_upiu(READ_ATTR_OPCODE, STANDARD_RD_REQ, selector, idn, ret_value);
@@ -482,7 +461,6 @@ int ReadAttribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector)
 		return ret;
 
 	ret = handle_query_response(ret_value);
-	FUNC_EXIT();
 	return ret;
 }
 
@@ -498,14 +476,12 @@ int WriteAttribute(enum attr_id idn, uint8_t *value, uint8_t selector)
 {
 	int ret;
 
-	FUNC_ENTER();
 	create_query_upiu(WRITE_ATTR_OPCODE, STANDARD_WR_REQ, selector, idn, value);
 	ret = wait_for_cmd_completion();
 	if(ret != UFS_SUCCESS)
 		return ret;
 
 	ret = handle_query_response(value);
-	FUNC_EXIT();
 	return ret;
 }
 
@@ -522,20 +498,17 @@ static int handle_scsi_completion()
 	struct dwc_ufs_xfer_resp_upiu *resp_upiu;
 	uint8_t status;
 	void *tmp_ptr;
-#ifdef DEBUG_MODE
-	int i;
-	uint8_t *ptr;
-#endif
 
-	FUNC_ENTER();
 	tmp_ptr = drv_info.cmd_desc->response_upiu;
 	resp_upiu = (struct dwc_ufs_xfer_resp_upiu *)tmp_ptr;
 
-#ifdef DEBUG_MODE
+#ifdef UFS_DEBUG_MODE
+	int i;
+	uint8_t *ptr;
 	ptr = drv_info.cmd_desc->response_upiu;
-	PRINTF("\n\n The SCSI Command Response is");
+	printf("\n\n The SCSI Command Response is");
 	for(i=0;(i < (sizeof(struct dwc_ufs_xfer_resp_upiu))); i+=4)
-		PRINTF("\n0x%x 0x%x 0x%x 0x%x",ptr[i],ptr[i+1],ptr[i+2],ptr[i+3]);
+		printf("\n0x%x 0x%x 0x%x 0x%x",ptr[i],ptr[i+1],ptr[i+2],ptr[i+3]);
 #endif
 
 	/* read the OCS value */
@@ -547,12 +520,10 @@ static int handle_scsi_completion()
 		if(status == SAM_STAT_CHECK_CONDITION)
 			return -(0x20 + (drv_info.cmd_desc->response_upiu[SENSE_KEY_INDEX] & 0xf));
 	} else {
-#ifdef DEBUG_MODE
-		PRINTF("\nThe OCS val returned is %x",drv_info.utrd_desc->ocs);
-#endif
+		errorf("The OCS val returned is 0x%x",drv_info.utrd_desc->ocs);
 		return -(drv_info.utrd_desc->ocs);
 	}
-	FUNC_EXIT();
+
 	return UFS_SUCCESS;
 }
 
@@ -591,7 +562,6 @@ int send_nop_out_cmd()
 	int retry = RETRY_CNT;
 	int ret;
 
-	FUNC_ENTER();
 	do {
 		create_nop_out_upiu();
 		udelay(100);
@@ -606,8 +576,6 @@ int send_nop_out_cmd()
 		debugf("NOP OUT response ret = 0x%x\n", ret);
 	} while(ret != UFS_SUCCESS && retry > 0);
 
-	FUNC_EXIT();
-
 	return ret;
 }
 
@@ -621,11 +589,19 @@ int send_nop_out_cmd()
 int check_config_desclock()
 {
 	uint8_t attr[4];
+	int ret = 0;
 
 	/* read bConfigDescLock */
-	ReadAttribute(B_CONFIG_DESC_LOCK,attr,0);
-	if(attr[3] != 0)
+	ret = ReadAttribute(B_CONFIG_DESC_LOCK,attr,0);
+	if (ret != UFS_SUCCESS) {
+		errorf("Read attribute(bConfigDescrLock) fail, fail code=0x%x\n", ret);
+		return ret;
+	}
+
+	if(attr[3] != 0) {
+		debugf("Attribute(bConfigDescrLock) been locked!\n");
 		return UFS_CONFIG_DESC_LOCKED;
+	}
 	return UFS_SUCCESS;
 }
 
@@ -648,8 +624,6 @@ int SetConfigDescLock(void)
 void prepare_read_desc_upiu(struct dwc_ufs_query_upiu *req_upiu, uint8_t idn, uint8_t index)
 {
 	int     i;
-
-	FUNC_ENTER();
 
 	/* Command Descriptor Programming */
 	req_upiu->trans_type        = 0x16;
@@ -684,7 +658,7 @@ void prepare_read_desc_upiu(struct dwc_ufs_query_upiu *req_upiu, uint8_t idn, ui
 	for(i=0; i < 3 ;i++)
 		req_upiu->reserved_5[i] = 0x00;
 
-	FUNC_EXIT();
+	return;
 }
 
 /***************************************************************
@@ -699,9 +673,6 @@ int write_read_descriptor(void *req_upiu)
 	int ret;
 	int     i;
 	uint8_t *ptr;
-
-
-	//FUNC_ENTER();
 
 	/* UTRD Descriptor Programming for processing command */
 	if (drv_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
@@ -728,7 +699,6 @@ int write_read_descriptor(void *req_upiu)
 		debugf("\n %x %x %x %x",ptr[i],ptr[1+i],ptr[i+2],ptr[i+3]);
 	*/
 	ret = handle_query_response(NULL);
-	//FUNC_EXIT();
 	return ret;
 }
 
@@ -801,8 +771,6 @@ int init_ufs_hostc()
 	int      retry1 = RETRY_CNT;
 	int      retry2 = RETRY_CNT;
 
-	FUNC_ENTER();
-
 	/* The function resets the UFS Host Controller */
 	ret = dwc_reset_hc();
 	if(ret != 0)
@@ -844,7 +812,7 @@ int init_ufs_hostc()
 			continue;
 		}
 
-		udelay(200000); /* Wait for 200ms before checking the Link status */
+		udelay(20000); /* Wait for 20ms before checking the Link status */
 
 		/*wait for the UIC Command to complete by checking UCCS field*/
 		retry2 = RETRY_CNT;
@@ -853,7 +821,7 @@ int init_ufs_hostc()
 				debugf("Link startup UIC Command complete.\n");
 				break;
 			}
-			udelay(100000); /* Total of 100ms delay before next LINK STARTUP */
+			udelay(10000); /* Total of 10ms delay before next LINK STARTUP */
 
 			retry2--;
 		}
@@ -901,7 +869,6 @@ int init_ufs_hostc()
 	 * Enable UFS Task Managament List by writing to DW_UFS_UTMRLRSR
 	 */
 	dwc_ufs_write_reg(DW_UFS_UTMRLRSR, 0x1);
-	FUNC_EXIT();
 
 	return UFS_SUCCESS;
 }
@@ -921,7 +888,6 @@ int init_ufs_device()
 	uint8_t flags_ret_val;
 	int retry = RETRY_CNT;
 
-	FUNC_ENTER();
 	/* Send continuos NOP OUT Command unless Response is Valid */
 	ret = send_nop_out_cmd();
 	if(ret != UFS_SUCCESS) {
@@ -949,7 +915,6 @@ int init_ufs_device()
 		ret = UFS_FDEVICE_INIT_FAIL;
 	}
 
-	FUNC_EXIT();
 	return ret;
 }
 
@@ -986,18 +951,18 @@ void update_native_lu_info(struct ufs_cfg_desc_tbl *cfg_desc)
 
 uint32_t align_to_alloc_unit(uint64_t blk_cnt, uint32_t log2_blk_sz)
 {
-	uint32_t blks_per_alloc_unit = 0;
 	uint32_t au_num = 0;
-	blks_per_alloc_unit = (drv_info.alloc_unit_sz * SZ_512) >> log2_blk_sz;
-	au_num = blk_cnt / blks_per_alloc_unit;
-	if (0 != blk_cnt % blks_per_alloc_unit)
-			au_num++;
+	uint64_t multi = 0;
+
+	multi = (1 << log2_blk_sz) /SZ_512;
+	au_num = (uint32_t)PAD_COUNT(blk_cnt * multi, drv_info.alloc_unit_sz);
+
 	return au_num;
 }
 
 int compare_cfg_lu_table(struct lu_info_tbl * new_lu_cfg)
 {
-	int ret = LU_INFO_SAME;
+	int ret = LU_INFO_DIFF;
 	uint32_t aligned_au_new = 0;
 	uint32_t aligned_au_old = 0;
 	int lun_index = 0;
@@ -1040,8 +1005,8 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 	int lu_index = 0;
 	uint32_t au_num = 0;
 	uint32_t id = 0;
+	uint64_t assigned_au = 0;
 	struct ufs_cfg_desc_tbl *req_cfg_desc;
-	FUNC_ENTER();
 
 	/* Command Descriptor Programming */
 	req_upiu->trans_type        = 0x16;
@@ -1076,24 +1041,36 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 
 	for(id = 0; id < 3 ;id++)
 		req_upiu->reserved_5[id] = 0x00;
-	req_cfg_desc = req_upiu + sizeof(struct dwc_ufs_query_upiu);
+	req_cfg_desc = (struct ufs_cfg_desc_tbl *)((uchar *)req_upiu + sizeof(struct dwc_ufs_query_upiu));
 	if (req_cfg_desc != default_desc)
 		memcpy(req_cfg_desc, default_desc, sizeof(struct ufs_cfg_desc_tbl));
 	req_cfg_desc->bBootEnable = 0x01;
 	id = 0;
+	assigned_au = 0;
 	for (lu_index = 0; lu_index < UFS_MAX_LU_NUM; lu_index++) {
+		if (0 == id && 0 != lu_index)
+			break;
 		if (lu_index == new_cfg[id].lu_index) {
 			req_cfg_desc->unit_cfg[lu_index].bLUEnable = 0x01;
 			req_cfg_desc->unit_cfg[lu_index].bBootLunID = new_cfg[id].bootable;
 			req_cfg_desc->unit_cfg[lu_index].bMemoryType = new_cfg[id].memory_type;
 			req_cfg_desc->unit_cfg[lu_index].bLogicalBlockSize = new_cfg[id].log2blksz;
-			au_num = align_to_alloc_unit(new_cfg[id].blkcnt, new_cfg[id].log2blksz);
-			req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
-			id++;
+			if (0 == new_cfg[id].blkcnt) {
+				au_num = (drv_info.dev_total_cap / drv_info.alloc_unit_sz) - assigned_au;
+				req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
+				debugf("Use all remain space, alloc unit=0x%x, big endian=0x%x\n", au_num, req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits);
+				break;
+			} else {
+				au_num = align_to_alloc_unit(new_cfg[id].blkcnt, new_cfg[id].log2blksz);
+				req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
+				debugf("Assign space, alloc unit=0x%x, big endian=0x%x\n", au_num, req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits);
+				id++;
+				assigned_au += au_num;
+			}
 		}
 	}
 
-	FUNC_EXIT();
+	return;
 }
 
 
@@ -1173,7 +1150,6 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	uint8_t  *ptr = NULL;
 	lbaint_t size = 0;
 
-	FUNC_ENTER();
 	tmp_ptr = drv_info.cmd_desc->command_upiu;
 	cmd_upiu_ptr = (struct dwc_ufs_cmd_upiu *)(tmp_ptr);
 
@@ -1254,7 +1230,7 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	for(i=0;(i < (sizeof(struct dwc_ufs_cmd_upiu))); i+=4)
 		debugf("\n0x%x 0x%x 0x%x 0x%x", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
 
-	FUNC_EXIT();
+	return;
 }
 
 
@@ -1264,11 +1240,9 @@ int send_scsi_cmd (uint32_t opcode, enum dma_data_direction direction,
 {
 	int ret;
 
-	FUNC_ENTER();
 	create_cmd_upiu(opcode, direction, lu_info, buf_addr, start, blkcnt, cmd_set_type);
 
 	ret = wait_for_cmd_completion();
-	FUNC_EXIT();
 	return ret;
 }
 
@@ -1291,7 +1265,7 @@ int endpoint_reset(void)
 
 	/*wait for the UIC Command to complete by checking UCCS field*/
 	while (retry > 0) {
-		udelay(100000);
+		udelay(10000);
 		if(dwc_ufs_read_reg(DW_UFS_IS) & DW_UFS_IS_UCCS)
 			break;
 		retry--;
@@ -1307,6 +1281,7 @@ int endpoint_reset(void)
 int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
 {
 	int ret = 0;
+	uint8_t val[4] = {0, 0, 0, LOCK_CONFIGURATION};
 
 	struct ufs_cfg_desc_tbl *cfg_desc;
 
@@ -1315,7 +1290,12 @@ int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
 		errorf("UFS LU configuration table illegal!\n");
 		return UFS_INVALID_PARTITIONING;
 	}
+
 	ret = get_descriptor_data((void **)(&cfg_desc), CONFIGURATION_DESC, 0);
+	if (UFS_SUCCESS != ret) {
+		errorf("UFS get config desc fail!ret=%d\n", ret);
+		return ret;
+	}
 	/*maybe not necessary*/
 	//update_native_lu_info(cfg_desc);
 
@@ -1325,10 +1305,8 @@ int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
 		return UFS_SUCCESS;
 	}
 
-	if (UFS_SUCCESS != check_config_desclock()) {
-		errorf("UFS config desc been locked, can not accept new config!\n");
+	if (UFS_SUCCESS != check_config_desclock())
 		return UFS_CONFIG_DESC_LOCKED;
-	}
 
 	ret = set_descriptor_data(cfg_desc, lu_cfg);
 	if (UFS_SUCCESS != ret) {
@@ -1336,7 +1314,7 @@ int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
 		return ret;
 	}
 
-	ret = WriteAttribute(B_CONFIG_DESC_LOCK, LOCK_CONFIGURATION, 0);
+	ret = WriteAttribute(B_CONFIG_DESC_LOCK, val, 0);
 	if (UFS_SUCCESS != ret) {
 		errorf("UFS lock config desc fail!ret=%d\n",ret);
 		return ret;
@@ -1372,7 +1350,6 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 	uint32_t max_read_size = 0;
 	lbaint_t max_read_blk = 0;
 	void * temp_buff;
-	FUNC_ENTER();
 
 	struct lu_info_tbl *lu_info = find_lu_info(dev_num);
 	if ( NULL == lu_info)
@@ -1418,9 +1395,8 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 			dst += cur << lu_info->log2blksz;
 		} while (blocks_todo > 0);
 	}
-	FUNC_EXIT();
-	return blkcnt;
 
+	return blkcnt;
 }
 
 static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void *src)
@@ -1431,7 +1407,6 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 	uint32_t max_write_size = 0;
 	lbaint_t max_write_blk = 0;
 	void * temp_buff;
-	FUNC_ENTER();
 
 	struct lu_info_tbl *lu_info = find_lu_info(dev_num);
 	if ( NULL == lu_info)
@@ -1477,9 +1452,8 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 			src += cur << lu_info->log2blksz;
 		} while (blocks_todo > 0);
 	}
-	FUNC_EXIT();
-	return blkcnt;
 
+	return blkcnt;
 }
 
 /*TODO*/
@@ -1489,15 +1463,13 @@ static ulong ufs_erase(int dev_num, lbaint_t start, lbaint_t blkcnt)
 	lbaint_t blocks_todo = blkcnt;
 	lbaint_t cur = blkcnt;
 	lbaint_t max_write_blk = 0;
-	FUNC_ENTER();
 
 	struct lu_info_tbl *lu_info = find_lu_info(dev_num);
 	if ( NULL == lu_info)
 		return 0;
 
 
-	
-	FUNC_EXIT();
+
 	return blkcnt;
 
 }
@@ -1577,20 +1549,24 @@ void ufs_update_native(void)
 			ufs_register_blk_device(lun_index, unit_desc->bLogicalBlockSize, block_count, unit_desc->bBootLunID);
 		}
 
-		
 	}
-	
+	return;
 }
 
 
 block_dev_desc_t *ufs_get_dev(int dev)
 {
-	if (dev >= UFS_MAX_DEV_NUM)
+	if (dev >= UFS_MAX_DEV_NUM) {
+		errorf("Required UFS device id exceed the max ufs device number(%d)\n", UFS_MAX_DEV_NUM);
 		return NULL;
+	}
 
-	if (IF_TYPE_UFS == drv_info.block_dev[dev].type)
+	if (IF_TYPE_UFS == drv_info.block_dev[dev].if_type) {
+		debugf("Find the UFS device %d\n", dev);
 		return &drv_info.block_dev[dev];
+	}
 
+	errorf("CANNOT find UFS device %d\n", dev);
 	return NULL;
 }
 

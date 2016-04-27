@@ -967,7 +967,7 @@ OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_nu
 		return OPERATE_SYSTEM_ERROR;
 	}
 
-	res = common_repartition(partition_info, total_partition_num);
+	res = common_repartition(partition_info, (int)total_partition_num);
 	free(partition_info);
 
 	if (0 == res)

@@ -219,10 +219,11 @@ fail:
 #ifdef CONFIG_UFS_BOOT
 
 struct lu_info_tbl factory_lu_tbl[] = {
-	{0x00, MAIN_BOOT, 		NORMAL_MEMORY, PROVISIONING_ENABLE_WITH_TPRZ, 0x0C, 1024},
-	{0x01, ALTERNATE_BOOT, NORMAL_MEMORY, PROVISIONING_ENABLE_WITH_TPRZ, 0x0C, 1024},
-	{0x02, NONE_BOOT, 		NORMAL_MEMORY, PROVISIONING_ENABLE_WITH_TPRZ, 0x0C, 0},
-	{0	  , 0			   , 		0				  , 0								     , 0	, 0}
+	/*lu_index, bootable,               memory_type,      provisioning_type,              log2blksz,   blkcnt*/
+	{0x00,              MAIN_BOOT, 		    NORMAL_MEMORY, PROV_ENABLE_WITH_TPRZ,    0x0C,          1024},
+	{0x01,              ALTERNATE_BOOT, NORMAL_MEMORY, PROV_ENABLE_WITH_TPRZ,    0x0C,           1024},
+	{0x02,              NONE_BOOT, 	    NORMAL_MEMORY, PROV_ENABLE_WITH_TPRZ,    0x0C,           0},
+	{0	  ,              0		       ,              0				      , 0						,    0	,                 0}
 };
 
 
@@ -448,18 +449,15 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 
 int32_t common_get_lba_size(void)
 {
-	int dev_id = 0;
-	block_dev_desc_t *dev_desc;
-
-	dev_id = get_lun_by_bootable(NONE_BOOT);
-	if (-1 == dev_id)
-		return -1;
-
-	dev_desc = get_dev("ufs", dev_id);
-	if (NULL == dev_desc)
-		return -1;
-
-	return (int32_t)dev_desc->blksz;
+	int id = 0;
+	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
+		if (0 == factory_lu_tbl[id].log2blksz)
+			break;
+		if (NONE_BOOT == factory_lu_tbl[id].bootable)
+			return (1 << factory_lu_tbl[id].log2blksz);
+	}
+	errorf("No NONE_BOOT LU in factory lu table, can not get lba size\n");
+	return -1;
 }
 
 /*TODO*/
