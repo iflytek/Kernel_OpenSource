@@ -250,7 +250,8 @@ U_BOOT_CMD(cls,	1, 1, do_lcd_clear, "clear screen", "");
 
 static int lcd_init(void *lcdbase)
 {
-	debug("[LCD] Initializing LCD frambuffer at %p\n", lcdbase);
+	//lcdbase will be probed from dts in lcd_ctrl_init, the value here is not correct
+	//debug("[LCD] Initializing LCD frambuffer at %p\n", lcdbase);
 	lcd_ctrl_init(lcdbase);
 
 	/*

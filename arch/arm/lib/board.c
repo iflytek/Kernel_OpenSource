@@ -345,8 +345,8 @@ void board_init_f(ulong bootflag)
 	gd->fb_base = CONFIG_FB_ADDR;
 #else
 	/* reserve memory for LCD display (always full pages) */
-	addr = lcd_setmem(addr);
-	gd->fb_base = addr;
+	/* addr = lcd_setmem(addr);
+	gd->fb_base = addr; */  //fb_base is probed from dts in sprdfb_probe function
 #endif /* CONFIG_FB_ADDR */
 #endif /* CONFIG_LCD */
 
