@@ -212,7 +212,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 		BIT_LDO_XTL_EN |
 		BIT_SLP_BG_LP_EN |
 		BIT_SLP_IO_EN |
-		//BIT_SLP_LDO_PD_EN |
+		BIT_SLP_LDO_PD_EN |
 		0
 	);
 
@@ -249,10 +249,10 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
-		//BIT_SLP_LDOCON_PD_EN |	/*control by marlin*/
+		BIT_SLP_LDOCON_PD_EN |	/*control by marlin*/
 		//BIT_SLP_LDOSIM0_PD_EN |	/*control by the drv*/
 		BIT_SLP_LDOAVDD18_PD_EN | 	/*use by the pll/mipi/lvds/usb phy*/
-		//BIT_SLP_LDOSRAM_PD_EN |	/*use by iwhale l2 sram control by ap psci*/
+		BIT_SLP_LDOSRAM_PD_EN |	/*use by iwhale l2 sram control by ap psci*/
 		0
 	);
 
@@ -345,7 +345,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN0,
-		BIT_LDO_DCXO_EXT_XTL0_EN |
+		//BIT_LDO_DCXO_EXT_XTL0_EN |
 		BIT_LDO_DCXO_EXT_XTL1_EN |
 		BIT_LDO_DCXO_EXT_XTL2_EN |
 		BIT_LDO_DCXO_EXT_XTL3_EN |
@@ -357,7 +357,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN1,
-		BIT_LDO_RF0_EXT_XTL0_EN |
+		//BIT_LDO_RF0_EXT_XTL0_EN |
 		BIT_LDO_RF0_EXT_XTL1_EN |
 		BIT_LDO_RF0_EXT_XTL2_EN |
 		BIT_LDO_RF0_EXT_XTL3_EN |
@@ -466,9 +466,9 @@ void pmic_lowpower_config(uint32_t gen_para)
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN10,
 		//BIT_LDO_CON_EXT_XTL0_EN |
-		//BIT_LDO_CON_EXT_XTL1_EN |
-		//BIT_LDO_CON_EXT_XTL2_EN |
-		//BIT_LDO_CON_EXT_XTL3_EN |
+		BIT_LDO_CON_EXT_XTL1_EN |
+		BIT_LDO_CON_EXT_XTL2_EN |
+		BIT_LDO_CON_EXT_XTL3_EN |
 		BIT_LDO_AVDD18_EXT_XTL0_EN |
 		BIT_LDO_AVDD18_EXT_XTL1_EN |
 		BIT_LDO_AVDD18_EXT_XTL2_EN |
