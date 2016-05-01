@@ -230,15 +230,6 @@ struct ufs_driver_info {
 
 #define STANDARD_RD_REQ 0x01
 #define STANDARD_WR_REQ 0x81
-/*
- * Function Prototypes of functions defined in hw_if.c
- */
-uint32_t to_littleendian32(uint32_t val);
-uint16_t to_bigendian16(uint16_t val);
-uint16_t to_littleendian16(uint16_t val);
-uint32_t to_bigendian32(uint32_t val);
-uint32_t to_bigendian32(uint32_t val);
-uint16_t swap_16(uint16_t val);
 
 /* UTP Transfer Request Data Direction (DD) */
 enum {

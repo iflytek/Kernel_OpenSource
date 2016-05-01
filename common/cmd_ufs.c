@@ -6,6 +6,7 @@
 #include <sprd_common_rw.h>
 #include <linux/sizes.h>
 #include <malloc.h>
+#include <sprd_ufs.h>
 
 int test_ufs_repart(int argc, char * argv[])
 {
@@ -67,15 +68,129 @@ int test_ufs_repart(int argc, char * argv[])
 		return CMD_RET_FAILURE;
 }
 
+extern int write_attribute(enum attr_id idn, uint8_t *value, uint8_t selector);
+extern int read_attribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector);
+
+
+int test_ufs_setattr(int argc, char * argv[])
+{
+	int idn = 0;
+	uint32_t val = 0;
+	int ret =0;
+
+	idn = (int) simple_strtoul(argv[0], NULL, 16);
+	val = (uint32_t)simple_strtoul(argv[1], NULL, 16);
+	val = cpu_to_be32(val);
+	ret = write_attribute((enum attr_id)idn, (uint8_t *)&val, 0);
+	if (UFS_SUCCESS != ret) {
+		errorf("UFS write_attribute(0x%x) fail!ret=%d\n", idn, ret);
+		return CMD_RET_FAILURE;
+	}
+	debugf("UFS write_attribute(0x%x) OK\n", idn);
+	return 0;
+}
+
+int test_ufs_getattr(int argc, char * argv[])
+{
+	int idn = 0;
+	uint32_t val = 0;
+	int ret =0;
+
+	idn = (int) simple_strtoul(argv[0], NULL, 16);
+
+	ret = read_attribute((enum attr_id)idn, (uint8_t *)&val, 0);
+	if (UFS_SUCCESS != ret) {
+		errorf("UFS read_attribute(0x%x) fail!ret=%d\n", idn, ret);
+		return CMD_RET_FAILURE;
+	}
+
+	val = cpu_to_be32(val);
+	debugf("read attribute value=0x%x\n", val);
+	return 0;
+}
+
+
+
 /*TODO*/
 int test_ufs_read(int argc, char * argv[])
 {
+	int ret = 0;
+	uint64_t size = 0;
+	uint64_t offset = 0;
+	int i =0;
+	char* buf = malloc(SZ_32K);
+	if (NULL == buf) {
+		errorf("Malloc for read buf fail\n");
+		return CMD_RET_FAILURE;
+	}
+
+	size = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+	if (size > SZ_32K) {
+		errorf("Read size cannot over 32KB!\n");
+		goto fail;
+	}
+	offset = (uint64_t)simple_strtoul(argv[2], NULL, 16);
+
+	debugf("read part(%s), size=0x%x, offset=0x%x\n", argv[0], size, offset);
+	ret = common_raw_read(argv[0], size, offset, buf);
+	if (-1 == ret) {
+		errorf("common_raw_read fail!\n");
+		goto fail;
+	}
+
+	debugf("Read result:");
+	for (i = 0; i < size; i++) {
+		if (0 == i % 16)
+			printf("\n");
+		printf("%x ", buf[i]);
+	}
+	printf("\n");
+
+	free(buf);
 	return 0;
+fail:
+	free(buf);
+	return CMD_RET_FAILURE;
 }
 
 int test_ufs_write(int argc, char * argv[])
 {
+	int ret = 0;
+	uint64_t size = 0;
+	uint64_t offset = 0;
+	int i =0;
+	int value = 0;
+	char* buf = malloc(SZ_32K);
+	if (NULL == buf) {
+		errorf("Malloc for write buf fail\n");
+		return CMD_RET_FAILURE;
+	}
+
+	size = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+	if (size > SZ_32K) {
+		errorf("Write size cannot over 32KB!\n");
+		goto fail;
+	}
+	offset = (uint64_t)simple_strtoul(argv[2], NULL, 16);
+
+	value = (int)simple_strtoul(argv[3], NULL, 16);
+	memset(buf, value, size);
+
+	debugf("write part(%s), size=0x%x, offset=0x%x, value=0x%x\n", argv[0], size, offset, value);
+	ret = common_raw_write(argv[0], size, 0, offset, buf);
+	if (-1 == ret) {
+		errorf("common_raw_write fail!\n");
+		goto fail;
+	}
+	debugf("Write OK\n");
+
+	memset(buf, 0, SZ_32K);
+	free(buf);
 	return 0;
+fail:
+	free(buf);
+	return CMD_RET_FAILURE;
+
 }
 
 int test_ufs_erase(int argc, char * argv[])
@@ -83,30 +198,147 @@ int test_ufs_erase(int argc, char * argv[])
 	return 0;
 }
 
+int test_ufs_raw_read(int argc, char * argv[])
+{
+	int ret = 0;
+	int id = 0;
+	uint64_t size = 0;
+	uint64_t offset = 0;
+	int i =0;
+	block_dev_desc_t *dev_desc;
+	char* buf = malloc(SZ_32K);
+	if (NULL == buf) {
+		errorf("Malloc for raw read buf fail\n");
+		return CMD_RET_FAILURE;
+	}
+	memset(buf, 1, SZ_32K);
+
+	id = (uint64_t) simple_strtoul(argv[0], NULL, 16);
+
+	dev_desc = get_dev("ufs", id);
+	if (NULL == dev_desc)
+		goto fail;
+
+	size = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+	if (size > 8) {
+		errorf("Raw read size cannot over 8!\n");
+		goto fail;
+	}
+
+	offset = (uint64_t)simple_strtoul(argv[2], NULL, 16);
+
+	ret = dev_desc->block_read(dev_desc->dev, offset, size, buf);
+	if (size != ret) {
+		errorf("ufs raw read fail, size=0x%x, offset=0x%x!\n", size, offset);
+		goto fail;
+	}
+
+	debugf("Raw read result:");
+	size = size << dev_desc->log2blksz;
+
+	for (i = 0; i < size; i += 4) {
+		if (0 == i % 16)
+			printf("\n");
+		printf("%08x ", *(uint32_t *)(buf + i));
+	}
+	printf("\n");
+
+	free(buf);
+	return 0;
+fail:
+	free(buf);
+	return CMD_RET_FAILURE;
+
+}
+
+int test_ufs_raw_write(int argc, char * argv[])
+{
+	int ret = 0;
+	int id = 0;
+	uint64_t size = 0;
+	uint64_t offset = 0;
+	int value = 0;
+	int i =0;
+	block_dev_desc_t *dev_desc;
+	char* buf = malloc(SZ_32K);
+	if (NULL == buf) {
+		errorf("Malloc for raw write buf fail\n");
+		return CMD_RET_FAILURE;
+	}
+
+	id = (uint64_t) simple_strtoul(argv[0], NULL, 16);
+
+	dev_desc = get_dev("ufs", id);
+	if (NULL == dev_desc)
+		goto fail;
+
+	size = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+	if (size > 8) {
+		errorf("Raw read size cannot over 8!\n");
+		goto fail;
+	}
+
+	offset = (uint64_t)simple_strtoul(argv[2], NULL, 16);
+
+	value = (int)simple_strtoul(argv[3], NULL, 16);
+	memset(buf, value, size << dev_desc->log2blksz);
+
+	debugf("raw write lun(%d), offset=0x%x, size=0x%x\n", dev_desc->dev, offset, size);
+	ret = dev_desc->block_write(dev_desc->dev, offset, size, buf);
+	if (size != ret) {
+		errorf("ufs raw write fail, size=0x%x, offset=0x%x!\n", size, offset);
+		return CMD_RET_FAILURE;
+	}
+	debugf("Raw write OK\n");
+
+	memset(buf, 0, SZ_32K);
+	free(buf);
+	return 0;
+fail:
+	free(buf);
+	return CMD_RET_FAILURE;
+
+}
+
+int test_ufs_raw_erase(int argc, char * argv[])
+{
+	return 0;
+}
+
+
 int do_ufs(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
 
+	argc -= 2;
 
 	if (0 == strcmp(argv[1], "repart")) {
 		debugf("enter repart command\n");
-		argc -= 2;
 		return test_ufs_repart(argc, &argv[2]);
 	}
 
-	if (0 == strcmp(argv[1], "read")) {
-		argc -= 2;
+	if (0 == strcmp(argv[1], "read"))
 		return test_ufs_read(argc, &argv[2]);
-	}
 
-	if (0 == strcmp(argv[1], "write")) {
-		argc -= 2;
+	if (0 == strcmp(argv[1], "write"))
 		return test_ufs_write(argc, &argv[2]);
-	}
 
-	if (0 == strcmp(argv[1], "erase")) {
-		argc -= 2;
+	if (0 == strcmp(argv[1], "erase"))
 		return test_ufs_erase(argc, &argv[2]);
-	}
+
+	if (0 == strcmp(argv[1], "rawread"))
+		return test_ufs_raw_read(argc, &argv[2]);
+
+	if (0 == strcmp(argv[1], "rawwrite"))
+		return test_ufs_raw_write(argc, &argv[2]);
+
+	if (0 == strcmp(argv[1], "rawerase"))
+		return test_ufs_raw_erase(argc, &argv[2]);
+
+	if (0 == strcmp(argv[1], "setattr"))
+		return test_ufs_setattr(argc, &argv[2]);
+
+	if (0 == strcmp(argv[1], "getattr"))
+		return test_ufs_getattr(argc, &argv[2]);
 
 	return CMD_RET_USAGE;
 }
@@ -117,11 +349,21 @@ U_BOOT_CMD(
 	"ufs test commands\n",
 	"ufs repart [part] [size(in mega)]..."
 		" - Repartition UFS device, support no more than 7 partitions\n"
-	"ufs read"
-		" - 1\n"
-	"ufs write"
-		" - 2\n"
+	"ufs read [part] [size(byte)] [offset(byte)]"
+		" - Read content in a specific partition\n"
+	"ufs write  [part] [size(byte)] [offset(byte)] [value]"
+		" - Fill a specific part in a partition with same value\n"
 	"ufs erase"
-		" - 3\n"
+		" - Coming soon...\n"
+	"ufs rawread [lun] [size(block)] [offset(block)]"
+		" - Directly read few blocks in a specific LU\n"
+	"ufs rawwrite [lun] [size(block)] [offset(block)] [value]"
+		" - Directly fill few blocks with same value in a specific LU\n"
+	"ufs rawerase"
+		" - Coming soon...\n"
+	"ufs setattr [attr_idn] [value]"
+		" - Set a specific UFS attribute\n"
+	"ufs getattr [attr_idn]"
+		" - Get a specific UFS attribute value\n"
 );
 

@@ -32,67 +32,6 @@
 #include"sprd_ufs.h"
 #include "hw_if.h"
 
-extern uint64_t DescMemBase;
-
-
-struct hwif_info
-{
-	uint32_t id;
-	void *va;
-	short used;
-}info_list[MAX_ALLOCATIONS];
-
-/* Byte swap u16*/
-uint16_t swap_16(uint16_t val) 
-{
-	return (uint16_t)((val << 8) | (val >> 8));
-}
-
-/* Byte swap unsigned int */
-uint32_t swap_32(uint32_t val)
-{
-
-	val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF); 
-	return (val << 16) | (val >> 16);
-}
-
-uint32_t to_bigendian32(uint32_t val)
-{
-#ifdef HOST_BIG_ENDIAN
-	return val;
-#else
-	return swap_32(val);
-#endif
-}
-
-uint32_t to_littleendian32(uint32_t val)
-{
-#ifdef HOST_BIG_ENDIAN
-	return swap_32(val);
-#else
-	return val;
-#endif
-}
-
-uint16_t to_bigendian16(uint16_t val)
-{
-#ifdef HOST_BIG_ENDIAN
-	return val;
-#else
-	return swap_16(val);
-#endif
-}
-
-uint16_t to_littleendian16(uint16_t val)
-{
-#ifdef HOST_BIG_ENDIAN
-	return swap_16(val);
-#else
-	return val;
-#endif
-}
-
-
 uint32_t dwc_ufs_read_reg(uint32_t reg_offset)
 {
 

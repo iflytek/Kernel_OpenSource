@@ -34,15 +34,10 @@
 
 
 #define REG_BASE_ADDRESS 0xE2200000
-#define MAX_ALLOCATIONS 30
 //#define HOST_32BIT
 #define HOST_64BIT
 
-void * alloc_dma(uint32_t size, uint32_t align, uint64_t *phy_addr);
 uint32_t dwc_ufs_read_reg(uint32_t reg_offset);
 void dwc_ufs_write_reg(uint32_t reg_offset, uint32_t value);
-void init_hwif(int *);
-void exit_hwif(void);
-void waitus(uint32_t delay);
 
 #endif

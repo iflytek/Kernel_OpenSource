@@ -8,7 +8,6 @@
 /*
  * Global Variables shared across Driver
  */
-uint32_t DescMemBase;
 struct   ufs_driver_info drv_info;
 
 /***************************************************************
@@ -180,7 +179,7 @@ static void create_nop_out_upiu()
 		drv_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
 	else
 		drv_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
-	drv_info.utrd_desc->resp_upiu_length = to_littleendian16(sizeof(struct dwc_ufs_nop_resp_upiu) >> 2);
+	drv_info.utrd_desc->resp_upiu_length = cpu_to_le16(sizeof(struct dwc_ufs_nop_resp_upiu) >> 2);
 	drv_info.utrd_desc->prdt_length = 0;
 
 	cmd_upiu_ptr->trans_type        = 0x00;
@@ -251,7 +250,7 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
 		drv_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
 	else
 		drv_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
-	drv_info.utrd_desc->resp_upiu_length = to_littleendian16(sizeof(struct dwc_ufs_query_upiu) >> 2);
+	drv_info.utrd_desc->resp_upiu_length = cpu_to_le16(sizeof(struct dwc_ufs_query_upiu) >> 2);
 	drv_info.utrd_desc->prdt_length = 0;
 
 
@@ -292,36 +291,6 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
 
 /***************************************************************
  *
- * create_desc_upiu
- * Description: The function does a simple memcpy of the req_upiu
- *              content passed to UPIU memory for Read/Write 
- *              descriptor Operation 
- *
- ***************************************************************/
-static void create_desc_upiu(void *req_upiu)
-{
-
-	if (drv_info.cmd_desc->command_upiu != req_upiu) {
-		/* swap done since data_seg_len is in big endian format */
-#ifdef HOST_BIG_ENDIAN
-		memcpy(drv_info.cmd_desc->command_upiu, req_upiu,
-			sizeof(struct dwc_ufs_query_upiu) + (((struct dwc_ufs_query_upiu *)req_upiu)->data_seg_len));
-
-		SYNC_MEM(drv_info.cmd_desc, (offsetof(struct dwc_ufs_tcd, command_upiu)),
-			sizeof(struct dwc_ufs_query_upiu) + (((struct dwc_ufs_query_upiu *)req_upiu)->data_seg_len));
-#else
-		memcpy(drv_info.cmd_desc->command_upiu, req_upiu,
-			sizeof(struct dwc_ufs_query_upiu) + swap_16(((struct dwc_ufs_query_upiu *)req_upiu)->data_seg_len));
-
-		SYNC_MEM(drv_info.cmd_desc, (offsetof(struct dwc_ufs_tcd, command_upiu)),
-			(uint32_t)sizeof(struct dwc_ufs_query_upiu) + swap_16(((struct dwc_ufs_query_upiu *)req_upiu)->data_seg_len));
-#endif
-	}
-
-}
-
-/***************************************************************
- *
  * wait_for_cmd_completion
  * Description: Sets the DoorBell Register and waits for the 
  *              Doorbell to Clear. Returns Zero on Success or
@@ -346,8 +315,6 @@ static int wait_for_cmd_completion()
 		}
 		udelay(100); /* Platform Specific Implementation */
 	}
-
-	debugf("DoorBell Cleared\n");
 
 	return UFS_SUCCESS;
 }
@@ -442,19 +409,19 @@ int ClearFlag(enum flags_id idn, uint8_t *flags_ret)
 
 /***************************************************************
  *
- * ReadAttribute
+ * read_attribute
  * Description: The functon sends the query command to read an
  *              attribute and updates the ret_value with the 
  *              content of the attribute
  *
  ***************************************************************/
-int ReadAttribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector)
+int read_attribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector)
 {
 	int ret,i;
 
 	for(i=0;i < 4;i++)
 		ret_value[i] = 0x00;
-
+	debugf("read idn=0x%x\n", idn);
 	create_query_upiu(READ_ATTR_OPCODE, STANDARD_RD_REQ, selector, idn, ret_value);
 	ret = wait_for_cmd_completion();
 	if(ret != UFS_SUCCESS)
@@ -467,15 +434,15 @@ int ReadAttribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector)
 
 /***************************************************************
  *
- * WriteAttribute
+ * write_attribute
  * Description: The functon sends the query command to write an
  *              attribute with the value passed as second argument
  *
  ***************************************************************/
-int WriteAttribute(enum attr_id idn, uint8_t *value, uint8_t selector)
+int write_attribute(enum attr_id idn, uint8_t *value, uint8_t selector)
 {
 	int ret;
-
+	debugf("write idn=0x%x\n", idn);
 	create_query_upiu(WRITE_ATTR_OPCODE, STANDARD_WR_REQ, selector, idn, value);
 	ret = wait_for_cmd_completion();
 	if(ret != UFS_SUCCESS)
@@ -592,7 +559,7 @@ int check_config_desclock()
 	int ret = 0;
 
 	/* read bConfigDescLock */
-	ret = ReadAttribute(B_CONFIG_DESC_LOCK,attr,0);
+	ret = read_attribute(B_CONFIG_DESC_LOCK,attr,0);
 	if (ret != UFS_SUCCESS) {
 		errorf("Read attribute(bConfigDescrLock) fail, fail code=0x%x\n", ret);
 		return ret;
@@ -617,7 +584,7 @@ int SetConfigDescLock(void)
 {
 	int      ret;
 	uint8_t  desc_lock_val[4] = {0x00,0x00,0x00,0x01};
-	ret = WriteAttribute(B_CONFIG_DESC_LOCK, desc_lock_val, 0);
+	ret = write_attribute(B_CONFIG_DESC_LOCK, desc_lock_val, 0);
 	return ret;
 }
 
@@ -962,27 +929,32 @@ uint32_t align_to_alloc_unit(uint64_t blk_cnt, uint32_t log2_blk_sz)
 
 int compare_cfg_lu_table(struct lu_info_tbl * new_lu_cfg)
 {
-	int ret = LU_INFO_DIFF;
+	int ret = LU_INFO_SAME;
 	uint32_t aligned_au_new = 0;
 	uint32_t aligned_au_old = 0;
 	int lun_index = 0;
-	if (0 == drv_info.lu_num)
-		return ret;
+	if (0 == drv_info.lu_num) {
+		debugf("No lu config in old table,diff\n");
+		return LU_INFO_DIFF;
+	}
 
 	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++) {
 		if (new_lu_cfg[lun_index].lu_index != drv_info.lu_info[lun_index].lu_index
 				||new_lu_cfg[lun_index].bootable != drv_info.lu_info[lun_index].bootable
 				||new_lu_cfg[lun_index].memory_type != drv_info.lu_info[lun_index].memory_type
 				||new_lu_cfg[lun_index].log2blksz != drv_info.lu_info[lun_index].log2blksz) {
+			debugf("lun_index(%d) different...\n ", lun_index);
 			ret = LU_INFO_DIFF;
 			break;
 		}
 		/*meet the end of the table or this lu extend to the maximum blk*/
 		if (0 == new_lu_cfg[lun_index].blkcnt) {
-			if (UFS_MAX_LU_NUM - 1 == lun_index)
+			if (UFS_MAX_LU_NUM - 1 == lun_index) {
+				debugf("All %d lu same with old one\n", UFS_MAX_LU_NUM);
 				break;
-			if (drv_info.lu_info[lun_index + 1].log2blksz != 0 && drv_info.lu_info[lun_index + 1].blkcnt != 0) {
-				ret = LU_INFO_DIFF;
+			}
+			if (0 == drv_info.lu_info[lun_index].log2blksz || 0 == drv_info.lu_info[lun_index + 1].log2blksz) {
+				debugf("meet the table end, lu config same\n");
 				break;
 			}
 		}
@@ -990,6 +962,7 @@ int compare_cfg_lu_table(struct lu_info_tbl * new_lu_cfg)
 		aligned_au_new = align_to_alloc_unit(new_lu_cfg[lun_index].blkcnt, new_lu_cfg[lun_index].log2blksz);
 		aligned_au_old = align_to_alloc_unit(drv_info.lu_info[lun_index].blkcnt, drv_info.lu_info[lun_index].log2blksz);
 		if (aligned_au_new != aligned_au_old) {
+			debugf("lun_index(%d) blkcnt diff with old one\n", lun_index);
 			ret = LU_INFO_DIFF;
 			break;
 		}
@@ -1169,7 +1142,7 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 		drv_info.utrd_desc->ct_and_flags = (uint8_t)(data_direction | UTP_UFS_STORAGE_COMMAND);
 	else
 		drv_info.utrd_desc->ct_and_flags = (uint8_t)(data_direction | UTP_SCSI_COMMAND);
-	drv_info.utrd_desc->resp_upiu_length = to_littleendian16((uint16_t)(sizeof(struct dwc_ufs_xfer_resp_upiu) >> 2));
+	drv_info.utrd_desc->resp_upiu_length = cpu_to_le16((uint16_t)(sizeof(struct dwc_ufs_xfer_resp_upiu) >> 2));
 
 	cmd_upiu_ptr->trans_type        = 0x01;
 	cmd_upiu_ptr->flags             = upiu_flags;
@@ -1221,14 +1194,14 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	}
 
 	ptr = (uint8_t *)drv_info.utrd_desc;
-	debugf("\n The byte array dump of  UTRD is");
+	debugf("The byte array dump of  UTRD is\n");
 	for(i=0;(i < (sizeof(struct dwc_ufs_utrd))); i+=4)
-		debugf("\n0x%x 0x%x 0x%x 0x%x", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
+		debugf("0x%x 0x%x 0x%x 0x%x\n", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
 
 	ptr = (uint8_t *)drv_info.cmd_desc->command_upiu;
-	debugf("\n\n The byte array dump of cmd upiu is");
+	debugf("The byte array dump of cmd upiu is\n");
 	for(i=0;(i < (sizeof(struct dwc_ufs_cmd_upiu))); i+=4)
-		debugf("\n0x%x 0x%x 0x%x 0x%x", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
+		debugf("0x%x 0x%x 0x%x 0x%x\n", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
 
 	return;
 }
@@ -1314,7 +1287,7 @@ int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
 		return ret;
 	}
 
-	ret = WriteAttribute(B_CONFIG_DESC_LOCK, val, 0);
+	ret = write_attribute(B_CONFIG_DESC_LOCK, val, 0);
 	if (UFS_SUCCESS != ret) {
 		errorf("UFS lock config desc fail!ret=%d\n",ret);
 		return ret;
@@ -1441,6 +1414,7 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 		do {
 			cur = (blocks_todo > max_write_blk) ? max_write_blk : blocks_todo;
 			/* Send Write 10 Command and handle its completion */
+			debugf("write lun(%d), start(0x%x), write_block(0x%x)\n", lu_info->lu_index, start, cur);
 			ret = send_scsi_cmd(UFS_OP_WRITE_10, DMA_TO_DEVICE, lu_info, src, start, cur, 0);
 			if (UFS_SUCCESS == ret)
 				ret = handle_scsi_completion();
