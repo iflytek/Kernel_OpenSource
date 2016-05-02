@@ -311,6 +311,7 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 
 	offset += part_start;
 
+	debugf("UFS read in byte, size=0x%llx, offset=0x%llx\n", size, offset);
 	return block_dev_read(dev_desc, size, offset, buf);
 
 }
@@ -432,7 +433,7 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 	if (NULL == dev_desc)
 		return -1;
 
-	while (3 < counter) {
+	while (counter < 3) {
 		ret = gpt_restore(dev_desc, SPRD_DISK_GUID_STR, partitions, parts_count);
 		if (0 == ret)
 			break;

@@ -8,6 +8,10 @@
 #include <malloc.h>
 #include <sprd_ufs.h>
 
+extern int write_attribute(enum attr_id idn, uint8_t *value, uint8_t selector);
+extern int read_attribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector);
+
+
 int test_ufs_repart(int argc, char * argv[])
 {
 	disk_partition_t *partition_info = NULL;
@@ -68,9 +72,6 @@ int test_ufs_repart(int argc, char * argv[])
 		return CMD_RET_FAILURE;
 }
 
-extern int write_attribute(enum attr_id idn, uint8_t *value, uint8_t selector);
-extern int read_attribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector);
-
 
 int test_ufs_setattr(int argc, char * argv[])
 {
@@ -110,8 +111,6 @@ int test_ufs_getattr(int argc, char * argv[])
 }
 
 
-
-/*TODO*/
 int test_ufs_read(int argc, char * argv[])
 {
 	int ret = 0;
@@ -123,6 +122,7 @@ int test_ufs_read(int argc, char * argv[])
 		errorf("Malloc for read buf fail\n");
 		return CMD_RET_FAILURE;
 	}
+	memset(buf, 0, SZ_32K);
 
 	size = (uint64_t) simple_strtoul(argv[1], NULL, 16);
 	if (size > SZ_32K) {
@@ -131,7 +131,7 @@ int test_ufs_read(int argc, char * argv[])
 	}
 	offset = (uint64_t)simple_strtoul(argv[2], NULL, 16);
 
-	debugf("read part(%s), size=0x%x, offset=0x%x\n", argv[0], size, offset);
+	debugf("read part(%s), size=0x%llx, offset=0x%llx\n", argv[0], size, offset);
 	ret = common_raw_read(argv[0], size, offset, buf);
 	if (-1 == ret) {
 		errorf("common_raw_read fail!\n");
@@ -139,10 +139,10 @@ int test_ufs_read(int argc, char * argv[])
 	}
 
 	debugf("Read result:");
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i += 4) {
 		if (0 == i % 16)
 			printf("\n");
-		printf("%x ", buf[i]);
+		printf("%08x ", *(uint32_t *)(buf + i));
 	}
 	printf("\n");
 
@@ -193,6 +193,7 @@ fail:
 
 }
 
+/*TODO*/
 int test_ufs_erase(int argc, char * argv[])
 {
 	return 0;
@@ -300,6 +301,8 @@ fail:
 
 }
 
+
+/*TODO*/
 int test_ufs_raw_erase(int argc, char * argv[])
 {
 	return 0;

@@ -33,7 +33,7 @@
 
 void get_cmnd(uint32_t opcode, lbaint_t lba, lbaint_t size, uint8_t *cmd)
 {
-	debugf("\n Logical blk addr ,nr prdt   %d %d ",lba, size);
+	debugf("Logical blk addr 0x%llx, size 0x%llx \n",lba, size);
 	memset(cmd,0x0,16);
 	
 	switch (opcode)
@@ -43,7 +43,7 @@ void get_cmnd(uint32_t opcode, lbaint_t lba, lbaint_t size, uint8_t *cmd)
 			cmd[1] = 0;
 			cmd[2] = (uint8_t)((lba & 0xff000000) >> 24); /* MSB Byte */
 			cmd[3] = (uint8_t)((lba & 0x00ff0000) >> 16);
-			cmd[4] = (uint8_t)(lba & 0x0000ff00) >> 8;
+			cmd[4] = (uint8_t)((lba & 0x0000ff00) >> 8);
 			cmd[5] = (uint8_t)(lba & 0x000000ff); /* LSB byte */
 			cmd[6] = 0;
 			cmd[7] = (uint8_t)((size >> 8) & 0xff);
