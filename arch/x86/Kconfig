@@ -426,4 +426,26 @@ config PCIE_ECAM_BASE
 	  assigned to PCI devices - i.e. the memory and prefetch regions, as
 	  passed to pci_set_region().
 
+config LOAD_ADDRESS_OVERRIDE
+	bool "Override kernel load address"
+	help
+
+config LOAD_ADDRESS
+	hex "Physical address to load the kernel"
+	default 0x01000000
+	depends on LOAD_ADDRESS_OVERRIDE
+
+config LOAD_VIRT_ADDR
+	hex "32-bit virtual address to map the kernel load address"
+	default 0x80000000
+	help
+	  Linear address in 32-bit address space to map the kernel.
+
+config IMAGE_VIRT_ADDR
+	hex "32-bit virtual address to map the kernel image before moving"
+	default 0xa0000000
+	help
+	  Linear address in 32-bit address space to map bzImage preloaded
+	  above 4 GB.
+
 endmenu

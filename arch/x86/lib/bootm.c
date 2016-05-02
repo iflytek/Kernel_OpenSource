@@ -111,10 +111,10 @@ static int boot_prep_linux(bootm_headers_t *images)
 	}
 
 	if (is_zimage) {
-		ulong load_address;
+		uint64_t load_address;
 		char *base_ptr;
 
-		base_ptr = (char *)load_zimage(data, len, &load_address);
+		base_ptr = (char *)load_zimage((ulong) data, len, &load_address);
 		images->os.load = load_address;
 		cmd_line_dest = base_ptr + COMMAND_LINE_OFFSET;
 		images->ep = (ulong)base_ptr;
@@ -141,20 +141,25 @@ error:
 	return 1;
 }
 
-int boot_linux_kernel(ulong setup_base, ulong load_address, bool image_64bit)
+int boot_linux_kernel(ulong setup_base, uint64_t load_address, bool image_64bit)
 {
 	bootm_announce_and_cleanup();
 
 #ifdef CONFIG_SYS_COREBOOT
 	timestamp_add_now(TS_U_BOOT_START_KERNEL);
 #endif
-	if (image_64bit) {
+	if (load_address > 0xffffffff) {
+		if (!image_64bit) {
+			puts("32-bit kernel loaded above 4 GB\n");
+			return -EFAULT;
+		}
 		if (!cpu_has_64bit()) {
 			puts("Cannot boot 64-bit kernel on 32-bit machine\n");
 			return -EFAULT;
 		}
-		return cpu_jump_to_64bit(setup_base, load_address);
+		return cpu_jump_to_64bit(setup_base, load_address + 0x200);
 	} else {
+		ulong address = (ulong) load_address;
 		/*
 		* Set %ebx, %ebp, and %edi to 0, %esi to point to the
 		* boot_params structure, and then jump to the kernel. We
@@ -167,7 +172,7 @@ int boot_linux_kernel(ulong setup_base, ulong load_address, bool image_64bit)
 		"movl $0, %%ebp\n"
 		"cli\n"
 		"jmp *%[kernel_entry]\n"
-		:: [kernel_entry]"a"(load_address),
+		:: [kernel_entry]"a"(address),
 		[boot_params] "S"(setup_base),
 		"b"(0), "D"(0)
 		);

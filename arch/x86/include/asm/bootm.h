@@ -23,6 +23,6 @@ void bootm_announce_and_cleanup(void);
  * @return -ve error code. This function does not return if the kernel was
  * booted successfully.
  */
-int boot_linux_kernel(ulong setup_base, ulong load_address, bool image_64bit);
+int boot_linux_kernel(ulong setup_base, uint64_t load_address, bool image_64bit);
 
 #endif

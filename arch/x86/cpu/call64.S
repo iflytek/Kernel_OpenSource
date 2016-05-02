@@ -11,45 +11,34 @@
 #include <asm/msr-index.h>
 #include <asm/processor-flags.h>
 
-.code32
-.globl cpu_call64
+	.globl cpu_call64
+
+	.code32
 cpu_call64:
 	/*
-	 * cpu_call64(ulong pgtable, ulong setup_base, ulong target)
+	 * cpu_call64(ulong target, ulong setup_base)
 	 *
-	 * eax - pgtable
-	 * edx - setup_base
-	 * ecx - target
+	 * edx:eax - target
+	 * ecx - setup_base
 	 */
-	cli
-	push	%ecx		/* arg2 = target */
-	push	%edx		/* arg1 = setup_base */
-	mov	%eax, %ebx
+	push	%ebp
+	movl	%esp, %ebp
+	andl	$0xfffffff8, %esp
+
+	/* Push target address */
+	push	%edx
+	push	%eax
+
+	/* Copy setup_base */
+	movl	%ecx, %esi
 
 	/* Load new GDT with the 64bit segments using 32bit descriptor */
-	leal	gdt, %eax
-	movl	%eax, gdt+2
-	lgdt	gdt
+	lgdt	gdtr_data
 
-	/* Enable PAE mode */
-	movl	$(X86_CR4_PAE), %eax
-	movl	%eax, %cr4
-
-	/* Enable the boot page tables */
-	leal	(%ebx), %eax
-	movl	%eax, %cr3
-
-	/* Enable Long mode in EFER (Extended Feature Enable Register) */
-	movl	$MSR_EFER, %ecx
-	rdmsr
-	btsl	$_EFER_LME, %eax
-	wrmsr
 
 	/* After gdt is loaded */
 	xorl	%eax, %eax
 	lldt	%ax
-	movl    $0x20, %eax
-	ltr	%ax
 
 	/*
 	 * Setup for the jump to 64bit mode
@@ -61,31 +50,31 @@ cpu_call64:
 	 * We place all of the values on our mini stack so lret can
 	 * used to perform that far jump. See the gdt below.
 	 */
-	pop	%esi			/* setup_base */
 
-	pushl	$0x10
-	leal	lret_target, %eax
-	pushl	%eax
-
-	/* Enter paged protected Mode, activating Long Mode */
-	movl	$(X86_CR0_PG | X86_CR0_PE), %eax
-	movl	%eax, %cr0
+	cli
 
 	/* Jump from 32bit compatibility mode into 64bit mode. */
-	lret
+	ljmp	$0x10, $lret_target
 
-code64:
+	.code64
+
 lret_target:
-	pop	%eax			/* target */
-	mov	%eax, %eax		/* Clear bits 63:32 */
-	jmp	*%eax			/* Jump to the 64-bit target */
+
+	movq	$0xffffffff, %rax
+	andq	%rax, %rsp
+	andq	%rax, %rbp
+	pop	%rax			/* target */
+	jmp	*%rax			/* Jump to the 64-bit target */
 
 	.data
-gdt:
-	.word	gdt_end - gdt
-	.long	gdt
+	.align	16
 	.word	0
+gdtr_data:
+	.word	gdt_end - gdt_start - 1
+	.long	gdt_start
+gdt_start:
 	.quad	0x0000000000000000	/* NULL descriptor */
+	.quad	0x0000000000000000	/* Zero descriptor */
 	.quad	0x00af9a000000ffff	/* __KERNEL_CS */
 	.quad	0x00cf92000000ffff	/* __KERNEL_DS */
 	.quad	0x0080890000000000	/* TS descriptor */

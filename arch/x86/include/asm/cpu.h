@@ -216,14 +216,15 @@ int x86_cpu_get_desc(struct udevice *dev, char *buf, int size);
  * The kernel is uncompressed and the 64-bit entry point is expected to be
  * at @target.
  *
+ * Paging must be enabled by cpu_paging_enable().
+ *
  * This function is used internally - see cpu_jump_to_64bit() for a more
  * useful function.
  *
- * @pgtable:	Address of 24KB area containing the page table
  * @setup_base:	Pointer to the setup.bin information for the kernel
  * @target:	Pointer to the start of the kernel image
  */
-void cpu_call64(ulong pgtable, ulong setup_base, ulong target);
+void cpu_call64(uint64_t target, ulong setup_base);
 
 /**
  * cpu_jump_to_64bit() - Jump to a 64-bit Linux kernel
@@ -234,6 +235,20 @@ void cpu_call64(ulong pgtable, ulong setup_base, ulong target);
  * @setup_base:	Pointer to the setup.bin information for the kernel
  * @target:	Pointer to the start of the kernel image
  */
-int cpu_jump_to_64bit(ulong setup_base, ulong target);
+int cpu_jump_to_64bit(ulong setup_base, uint64_t target);
+
+/**
+ * cpu_set_paging() - Enable 64-bit paging
+ *
+ * Assuming U-Boot area is identically mapped.
+ *
+ * @pgtable:	Address of PML4 table
+ */
+int cpu_set_paging(uint64_t *pgtable);
+
+int cpu_paging_enable(void);
+int cpu_paging_disable(void);
+
+unsigned long cpu_page_remap(unsigned long start, unsigned long size, uint64_t phys_addr);
 
 #endif

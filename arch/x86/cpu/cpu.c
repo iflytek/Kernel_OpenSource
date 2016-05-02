@@ -32,6 +32,7 @@
 #include <asm/processor-flags.h>
 #include <asm/interrupt.h>
 #include <asm/tables.h>
+#include <asm/paging.h>
 #include <linux/compiler.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -63,6 +64,8 @@ struct cpuinfo_x86 {
 	uint8_t x86_model;
 	uint8_t x86_mask;
 };
+
+static uint64_t *page_tables = NULL;
 
 /*
  * List of cpu vendor strings along with their normalized
@@ -574,44 +577,108 @@ int default_print_cpuinfo(void)
 	return 0;
 }
 
-#define PAGETABLE_SIZE		(6 * 4096)
+#define MAPPED_GB 16
+#define PAGETABLE_SIZE ((2 + MAPPED_GB) * 4096)
 
 /**
- * build_pagetable() - build a flat 4GiB page table structure for 64-bti mode
+ * build_pagetable() - build a flat page table structure for 64-bti mode
  *
- * @pgtable: Pointer to a 24iKB block of memory
+ * @pgtable: Pointer to a PAGETABLE_SIZE block of memory
  */
-static void build_pagetable(uint32_t *pgtable)
+static void build_pagetable(uint64_t *pgtable)
 {
+	uint64_t entry;
 	uint i;
 
-	memset(pgtable, '\0', PAGETABLE_SIZE);
+	/* Clear table levels 4, 3 */
+	memset(pgtable, 0, PAGETABLE_SIZE);
 
 	/* Level 4 needs a single entry */
-	pgtable[0] = (uint32_t)&pgtable[1024] + 7;
+	entry = (ulong) &pgtable[512];
+	entry |= (PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
+	pgtable[0] = entry;
 
 	/* Level 3 has one 64-bit entry for each GiB of memory */
-	for (i = 0; i < 4; i++) {
-		pgtable[1024 + i * 2] = (uint32_t)&pgtable[2048] +
-							0x1000 * i + 7;
+	entry = (ulong) &pgtable[1024];
+	entry |= (PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
+	for (i = 0; i < MAPPED_GB; i += 1) {
+		pgtable[512 + i] = entry;
+		entry += 0x1000;
 	}
 
-	/* Level 2 has 2048 64-bit entries, each repesenting 2MiB */
-	for (i = 0; i < 2048; i++)
-		pgtable[2048 + i * 2] = 0x183 + (i << 21UL);
+	/* Level 2 has 512 64-bit entries for each 1GiB of memory */
+	entry = PAGEDIR_PS | PAGE_GLOBAL |
+		PAGE_PRESENT | PAGE_WRITE | PAGE_USER;
+
+	for (i = 0; i < MAPPED_GB * 512; i++) {
+		pgtable[1024 + i] = entry;
+		entry += 0x200000;
+	}
 }
 
-int cpu_jump_to_64bit(ulong setup_base, ulong target)
+/**
+ * cpu_page_remap() - remap a virtual address range in existing page table
+ *
+ * @start: Start virtual address (bits [20:0] are ignored)
+ * @size:  Size of physical memory, bytes
+ * @paddr: Start physical address (may be not aligned)
+ *
+ * Returns virtual address mapped exactly to @paddr
+ * (bits [20:0] copied from @paddr, the other bits from @start)
+ */
+unsigned long cpu_page_remap(unsigned long start, unsigned long size, uint64_t paddr)
 {
-	uint32_t *pgtable;
+	uint64_t *page_dir;
+	unsigned long end;
+	unsigned long offset;
+	uint64_t entry;
+	uint first_page, last_page, i;
 
-	pgtable = memalign(4096, PAGETABLE_SIZE);
-	if (!pgtable)
-		return -ENOMEM;
+	if (!page_tables) {
+		return 0;
+	}
+	page_dir  = (uint64_t *) page_tables + 1024;
 
-	build_pagetable(pgtable);
-	cpu_call64((ulong)pgtable, setup_base, target);
-	free(pgtable);
+	offset = paddr & 0x1fffff;
+	start &= ~(0x1ffffful);
+	start += offset;
+	end = start + size - 1;
+
+	if (end >= MAPPED_GB * 0x40000000ull) {
+		return 0;
+	}
+
+	first_page = start >> 21;
+	last_page = end >> 21;
+
+	paddr &= ~(0x1fffffull);
+	entry = paddr | PAGEDIR_PS | PAGE_GLOBAL |
+		PAGE_PRESENT | PAGE_WRITE | PAGE_USER;
+
+	for (i = first_page; i <= last_page; i += 1) {
+		page_dir[i] = entry;
+		entry += 0x200000;
+	}
+
+	return start;
+}
+
+/**
+ * cpu_paging_enable() - enable paging
+ */
+int cpu_paging_enable(void)
+{
+	return cpu_set_paging(page_tables);
+}
+
+int cpu_jump_to_64bit(ulong setup_base, uint64_t target)
+{
+	/* Restore identity mapping */
+	build_pagetable(page_tables);
+
+	cpu_paging_enable();
+	cpu_call64(target, setup_base);
+	cpu_paging_disable();
 
 	return -EFAULT;
 }
@@ -660,6 +727,11 @@ __weak int x86_init_cpus(void)
 
 int cpu_init_r(void)
 {
+	page_tables = memalign(4096, PAGETABLE_SIZE);
+	if (page_tables) {
+		build_pagetable(page_tables);
+	}
+
 	return x86_init_cpus();
 }
 

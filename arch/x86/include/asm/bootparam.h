@@ -57,13 +57,22 @@ struct setup_header {
 	__u32	initrd_addr_max;
 	__u32	kernel_alignment;
 	__u8	relocatable_kernel;
-	__u8	_pad2[3];
+	__u8	min_alignment;
+	__u16	xloadflags;
+#define XLF_KERNEL_64			0x0001
+#define XLF_CAN_BE_LOADED_ABOVE_4G	0x0002
+#define XLF_EFI_HANDOVER_32		0x0004
+#define XLF_EFI_HANDOVER_64		0x0008
+#define XLF_EFI_KEXEC			0x0010
 	__u32	cmdline_size;
 	__u32	hardware_subarch;
 	__u64	hardware_subarch_data;
 	__u32	payload_offset;
 	__u32	payload_length;
 	__u64	setup_data;
+	__u64	pref_address;
+	__u32	init_size;
+	__u32	handover_offset;
 } __attribute__((packed));
 
 struct sys_desc_table {

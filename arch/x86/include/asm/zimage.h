@@ -34,8 +34,8 @@
 /* Implementation defined function to install an e820 map. */
 unsigned install_e820_map(unsigned max_entries, struct e820entry *);
 
-struct boot_params *load_zimage(char *image, unsigned long kernel_size,
-				ulong *load_addressp);
+struct boot_params *load_zimage(uint32_t image_addr, unsigned long kernel_size,
+				uint64_t *load_addressp);
 int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 		 unsigned long initrd_addr, unsigned long initrd_size);
 
