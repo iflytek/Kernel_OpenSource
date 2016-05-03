@@ -23,7 +23,7 @@ config BASEIA_SRAM
 
 config RESERVED_RAM_START
 	hex "Start of reserved RAM area for S3 resume"
-	default 0x000C0000
+	default 0x000A0000
 	help
 	  Start address of the DRAM area reserved for microcode data
 	  used on S3 resume for updating CPU microcode.
