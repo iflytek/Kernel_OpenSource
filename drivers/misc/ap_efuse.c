@@ -144,7 +144,7 @@ typedef unsigned int u32;
 #define EFUSE_MAGIC 0x8810
 #define REGS_EFUSE_BASE                 SPRD_UIDEFUSE_PHYS
 
-#if defined(CONFIG_ARCH_WHALE) || defined(CONFIG_ARCH_WHALE2)
+#if defined(CONFIG_SC9860)
 #define EFUSE_BLOCK_MAX                 ( 256)
 #else
 #define EFUSE_BLOCK_MAX                 ( 16 )
@@ -250,8 +250,7 @@ static u32 ap_efuse_read(int blk)
 
 	/* enable efuse module clk and power before */
 
-	__raw_writel(BITS_READ_WRITE_INDEX(blk),
-		     (void *)REG_EFUSE_READ_WRITE_INDEX);
+	__raw_writel(blk,(void *)REG_EFUSE_READ_WRITE_INDEX);
 	__raw_writel(BIT_RD_START, (void *)REG_EFUSE_MODE_CTRL);
 
 	if (IS_ERR_VALUE(ap_efuse_wait_clear(BIT_READ_BUSY)))

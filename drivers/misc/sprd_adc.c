@@ -236,22 +236,31 @@ static int sc2731_adc_isen_set(int isen)
 	switch (isen) {
 	case 125:
 		isen_set = 0x0;
+		break;
 	case 250:
 		isen_set = 0x1;
+		break;
 	case 500:
 		isen_set = 0x2;
+		break;
 	case 1000:
 		isen_set = 0x3;
+		break;
 	case 2000:
 		isen_set = 0x4;
+		break;
 	case 4000:
 		isen_set = 0x5;
+		break;
 	case 8000:
 		isen_set = 0x6;
+		break;
 	case 16000:
 		isen_set = 0x7;
+		break;
 	default:
 		isen_set = 0x0;
+		break;
 	}
 	return isen_set;
 }
@@ -295,7 +304,7 @@ int32_t pmic_adc_get_value_by_isen(uint16_t channel, int scale, uint8_t num,
 	}
 	printf("adc[%d] isen: %d, value: %d\n", channel, isen, values);
 
-	return ret;
+	return values;
 }
 
 #if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
