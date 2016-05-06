@@ -328,10 +328,10 @@
 /*rf board id */
 #define RF_BAND_INFO
 #ifdef RF_BAND_INFO
-#define LB_GPIO_NUM   174
-#define MB_GPIO_NUM   175
-//#define HB_GPIO_NUM  0
-//#define ADC_CHANNEL_FOR_NV   3
+#define LB_GPIO_NUM   175
+#define MB_GPIO_NUM   174
+#define HB_GPIO_NUM   166
+#define ADC_CHANNEL_FOR_NV   1
 #endif
 
 /*fastboot*/

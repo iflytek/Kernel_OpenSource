@@ -49,7 +49,7 @@ static unsigned int gpio_state(unsigned int GPIO_NUM){
 
 static int get_adc_value_board(int channel){
 	extern uint16_t sprdbat_auxadc2vbatvol(uint16_t adcvalue);
-	int vol = 0;
+	int adc_value=0,vol = 0;
 	uint32_t result;
 	uint32_t res;
 	//uint32_t channel_vol = sprd_adc_to_vol(adcvalue);
@@ -57,20 +57,11 @@ static int get_adc_value_board(int channel){
 	uint32_t bat_numerators, bat_denominators;
 	uint32_t adc_channel_numerators, adc_channel_denominators;
 
-	vol = sci_adc_get_value_by_isen(channel,1,20);
-	vol = sprdbat_auxadc2vbatvol(vol);
-	//res = (u32) sci_adc_ratio(5, 0, 0);
-	bat_numerators = 7;//res >> 16;
-	bat_denominators = 29;//res & 0xffff;
-	//res = (u32) sci_adc_ratio(channel, 1, 0);
-	adc_channel_numerators = 1;//res >> 16;
-	adc_channel_denominators = 1;//res & 0xffff;
-
-	vol = vol * bat_numerators * (adc_channel_denominators)/
-		( bat_denominators * adc_channel_numerators);
+	adc_value = pmic_adc_get_value_by_isen(channel,0,15,2000);
+	vol = sprd_chan_small_adc_to_vol(channel, 0 , 0 ,adc_value);
 	printf("result = %d\n",vol);
 
-#ifdef CONFIG_SP9830I
+
 	if (vol <= 0 || vol >= 1200) {
 		printf("vol is out of ranger [0~1200]\n");
 		return -1;
@@ -90,29 +81,27 @@ static int get_adc_value_board(int channel){
 		vol = 5;
 	if (vol > 1000 && vol < 1200)
 		vol = 6;
-#endif
 
 	return vol;
 }
-
 
 static int Sprd_getHWRFboardID(void){
 
 #ifdef RF_BAND_INFO
 	unsigned int gpio_val = 0;
 	unsigned int adc_val = 0;
-	unsigned char shift_bit = 0;
-#ifdef LB_GPIO_NUM
-#if defined(CONFIG_32K_LESS_COMPATIBLE)
-	gpio_val |= 0;
-	shift_bit++;
-	printf("gpio_val0: %d\n", gpio_val);
-#else
+	unsigned char shift_bit = 2;
 
+#ifdef ADC_CHANNEL_FOR_NV
+	adc_val = get_adc_value_board(ADC_CHANNEL_FOR_NV);
+#endif
+	shift_bit++;
+	printf("adc_val: %d\n", adc_val);
+
+#ifdef LB_GPIO_NUM
 	gpio_val |= gpio_state(LB_GPIO_NUM) << shift_bit;
 	shift_bit++;
 	printf("gpio_val0: %d\n", gpio_val);
-#endif
 #endif
 
 #ifdef MB_GPIO_NUM
@@ -122,17 +111,14 @@ static int Sprd_getHWRFboardID(void){
 #endif
 
 #ifdef HB_GPIO_NUM
+	#ifdef GPIO_LOW
+	gpio_val |= 0 << shift_bit;
+	printf("gpio_val2: %d\n", gpio_val);
+	#else
 	gpio_val |= gpio_state(HB_GPIO_NUM) << shift_bit;
-	shift_bit++;
+	printf("gpio_val2: %d\n", gpio_val);
+	#endif
 #endif
-
-#ifdef ADC_CHANNEL_FOR_NV
-	adc_val = get_adc_value_board(ADC_CHANNEL_FOR_NV);
-	if(adc_val >=0){
-		adc_val = adc_val << shift_bit;
-	}
-#endif
-	printf("adc_val: %d\n", adc_val);
 	return gpio_val + adc_val;
 #endif
 	return INVALID_BOARD_ID;
@@ -153,14 +139,6 @@ static char *cpcmdline_get_hw_info(unsigned char id, unsigned char *ptr_b32k)
 	return NULL;
 }
 
-#if defined(CONFIG_32K_LESS_COMPATIBLE)
-int sprd_get32_less(void){
-	unsigned int value_less= 0;
-	value_less = gpio_state(LB_GPIO_NUM);
-	printf("value_less: %d\n", value_less);
-	return value_less;
-}
-#endif
 
 static bool is_invalid_cmd(const char *cmd)
 {
