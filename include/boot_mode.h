@@ -2,7 +2,7 @@
 #define _BOOT_MODE_H_
 
 
-#define BACKLIGHT_ON 255
+#define BACKLIGHT_ON 25
 #define BACKLIGHT_OFF 0
 
 typedef enum {
