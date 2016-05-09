@@ -1,8 +1,6 @@
 #ifndef _SPRD_UFS_H
 #define _SPRD_UFS_H
 
-//#define USE_SNPS_MPHY_TC               /* Macro to be defined when used with Synopsys MPHY Test Chip */
-
 
 /* UFS DEVICE Spec Versions */
 #define UFS_DEVICE_SPEC_1_1	0x0110
@@ -12,10 +10,14 @@
 #define DWC_UFS_HC_VERSION_1_1 0x00010100
 #define DWC_UFS_HC_VERSION_2_0 0x00000200
 
+/*use synopsys mphy in FPGA bringup*/
+#define USE_SNPS_MPHY_TC
+
 /* General Macros Used in Driver */
 #define BIT(n)                 (1L     << (n))
 #define LOWER_32_BITS(x)       ((uint32_t)((x)    &  0xFFFFFFFFUL))
 #define UPPER_32_BITS(x)       ((uint32_t)((x)    >> 32))
+#define UIC_SET_CMD                                0x2
 #define UIC_ENDPOINT_RESET_CMD   0x15
 #define UIC_LINK_STARTUP_CMD   0x16
 #define MAX_PRDT_ENTRIES       128
@@ -156,13 +158,12 @@ struct ufs_driver_info {
 	struct dwc_ufs_tcd      *cmd_desc;
 	struct dwc_ufs_utrd     *utrd_desc;
 	struct dwc_ufs_utmrd    *utm_desc;
-	uint8_t			active_lun;   /* Active Lun to be used for transfer      */
 	uint8_t                 unit_offset;  /* Offset of first Unit Configuration Desc */
 	uint8_t                 unit_length;  /* Length Of Configuration Unit Descriptor */
 	uint8_t		   lu_num;
 	uint8_t		   wlu_num;
 	uint8_t		   boot_enable;
-	//uint16_t                 pad_1;        /* Pad Byte to align it to u32 */
+	uint8_t		   pad_1;
 	uint16_t 		wSpecVersion; /* Device Specification version */
     	uint32_t 		dwc_ufs_version; /* Versions of UFSHCI specification that the controller implementation supports*/
 	uint32_t		   alloc_unit_sz;  /*in unit of 512 bytes*/
@@ -174,8 +175,9 @@ struct ufs_driver_info {
 	struct lu_info_tbl       lu_info[UFS_MAX_LU_NUM];
 } ;
 
-#define MASK(n) (((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
 
+/*Put it here temporarily*/
+#define REG_BASE_ADDRESS 0xE2200000
 
 /* UFSHCD Registers Offsets */
 #define DW_UFS_CAP        0x00

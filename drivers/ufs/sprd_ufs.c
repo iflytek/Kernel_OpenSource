@@ -2,13 +2,21 @@
 #include <linux/sizes.h>
 #include <sprd_ufs.h>
 #include "protocol_util.h"
-#include "hw_if.h"
 #include <malloc.h>
+#include <linux/io.h>
 
-/*
- * Global Variables shared across Driver
- */
-struct   ufs_driver_info drv_info;
+struct   ufs_driver_info ufs_info;
+
+static inline uint32_t ufs_readl(int reg)
+{
+	return readl((void *)REG_BASE_ADDRESS + reg);
+}
+
+static inline void ufs_writel(int reg, uint32_t val)
+{
+	writel(val, (void *)REG_BASE_ADDRESS + reg);
+}
+
 
 /***************************************************************
  *
@@ -26,15 +34,15 @@ int dwc_reset_hc()
 	 * Enable the Host Controller.
 	 * DME_RESET and DME_ENABLE commands are sent automatically on DW_UFS_HCE write
 	 */
-	dwc_ufs_write_reg(DW_UFS_HCE, 0);
+	ufs_writel(DW_UFS_HCE, 0);
 	udelay(1000); /* Platform Specific Implementation */
-	dwc_ufs_write_reg(DW_UFS_HCE, HCE_RESET);
+	ufs_writel(DW_UFS_HCE, HCE_RESET);
 
 	/*
 	 * poll untill (DW_UFS_HCE == 1) i'e initialization sequence has completed
 	 */
 	while (retry != 0) {
-		if(1 == dwc_ufs_read_reg(DW_UFS_HCE)) {
+		if(1 == ufs_readl(DW_UFS_HCE)) {
 			debugf("Reset UFS host controller success\n");
 			return UFS_SUCCESS;
 		}
@@ -57,11 +65,11 @@ int dwc_reset_hc()
 void send_uic_command(uint32_t command, uint32_t arg1, uint32_t arg2, uint32_t arg3)
 {
 
-	dwc_ufs_write_reg(DW_UFS_UICCMDARG1,arg1);
-	dwc_ufs_write_reg(DW_UFS_UICCMDARG2,arg2);
-	dwc_ufs_write_reg(DW_UFS_UICCMDARG3,arg3);
+	ufs_writel(DW_UFS_UICCMDARG1,arg1);
+	ufs_writel(DW_UFS_UICCMDARG2,arg2);
+	ufs_writel(DW_UFS_UICCMDARG3,arg3);
 
-	dwc_ufs_write_reg(DW_UFS_UICCMD,(command & 0xFF));
+	ufs_writel(DW_UFS_UICCMD,(command & 0xFF));
 }
 
 /***************************************************************
@@ -75,11 +83,28 @@ void send_uic_command(uint32_t command, uint32_t arg1, uint32_t arg2, uint32_t a
 void send_dme_link_startup(void)
 {
 
-	dwc_ufs_write_reg(DW_UFS_UICCMDARG1,0);
-	dwc_ufs_write_reg(DW_UFS_UICCMDARG2,0);
-	dwc_ufs_write_reg(DW_UFS_UICCMDARG3,0);
+	ufs_writel(DW_UFS_UICCMDARG1,0);
+	ufs_writel(DW_UFS_UICCMDARG2,0);
+	ufs_writel(DW_UFS_UICCMDARG3,0);
 
-	dwc_ufs_write_reg(DW_UFS_UICCMD,(UIC_LINK_STARTUP_CMD & 0xFF));
+	ufs_writel(DW_UFS_UICCMD,(UIC_LINK_STARTUP_CMD & 0xFF));
+}
+
+void set_mphy(uint32_t code, uint32_t value)
+{
+	int retry = 100;
+
+	send_uic_command(UIC_SET_CMD, code, 0, value);
+
+	/*wait for the UIC Command to complete by checking UCCS field*/
+	while(retry > 0) {
+		udelay(10000);
+		if (ufs_readl(DW_UFS_IS) & DW_UFS_IS_UCCS)
+			break;
+		retry--;
+	}
+	/*return with no error*/
+	return;
 }
 
 /***************************************************************
@@ -90,64 +115,84 @@ void send_dme_link_startup(void)
  ***************************************************************/
 void setup_snps_mphy_tc()
 {
-	send_uic_command(0x00000002, 0x802b0000,0x00000000, 0x00000000);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x80bf0000,0x00000000, 0x00000001);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x80ea0000,0x00000000, 0x000000c0);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x80f10000,0x00000000, 0x00000044);
-	udelay(100000);
+	set_mphy(0x0000d0a0, 0x10);
 
-	send_uic_command(0x00000002, 0x00eb0000,0x00000000, 0x0000000d);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00eb0001,0x00000000, 0x0000000d);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00eb0004,0x00000000, 0x00000001);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00eb0005,0x00000000, 0x00000000);
-	udelay(100000);
+	set_mphy(0x0000802b, 0x00);
+	set_mphy(0x000080bf, 0x01);
+	set_mphy(0x000080ea, 0x80);
+	set_mphy(0x000080cd, 0x02);
+	set_mphy(0x000080e6, 0x04);
+	set_mphy(0x000080f1, 0x44);
 
-	send_uic_command(0x00000002, 0x00ec0000,0x00000000, 0x0000001b);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00ec0001,0x00000000, 0x0000001b);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00ec0004,0x00000000, 0x0000001b);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00ec0005,0x00000000, 0x0000001b);
-	udelay(100000);
+	set_mphy(0x000000eb, 0x0d);
+	set_mphy(0x000100eb, 0x0d);
+	set_mphy(0x000400eb, 0x01);
+	set_mphy(0x000500eb, 0x01);
 
-	send_uic_command(0x00000002, 0x00f00000,0x00000000, 0x00000012);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00f00001,0x00000000, 0x00000012);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00f00004,0x00000000, 0x00000002);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00f00005,0x00000000, 0x00000002);
-	udelay(100000);
+	set_mphy(0x000000ec, 0x19);
+	set_mphy(0x000100ec, 0x19);
+	set_mphy(0x000400ec, 0x19);
+	set_mphy(0x000500ec, 0x19);
 
-	send_uic_command(0x00000002, 0x00ba0004,0x00000000, 0x00000080);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00ba0005,0x00000000, 0x00000080);
-	udelay(100000);
+	set_mphy(0x000000f0, 0x12);
+	set_mphy(0x000100f0, 0x12);
+	set_mphy(0x000400f0, 0x02);
+	set_mphy(0x000500f0, 0x02);
 
-	send_uic_command(0x00000002, 0x80f30000,0x00000000, 0x00000064);
-	udelay(100000);
+	set_mphy(0x000400ba, 0x80);
+	set_mphy(0x000500ba, 0x80);
 
-	send_uic_command(0x00000002, 0x00f10000,0x00000000, 0x000000d6);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x00f10001,0x00000000, 0x000000d6);
-	udelay(100000);
+	set_mphy(0x000080f3, 0x64);
+	set_mphy(0x000000f1, 0xd6);
+	set_mphy(0x000100f1, 0xd6);
 
-	send_uic_command(0x00000002, 0x80fb0000,0x00000000, 0x00000009);
-	udelay(100000);
-	send_uic_command(0x00000002, 0x80f00000,0x00000000, 0x00000000);
-	udelay(100000);
+	set_mphy(0x000080fb, 0x09);
+	set_mphy(0x000080f0, 0x00);
 
-	send_uic_command(0x00000002, 0xd0850000,0x00000000, 0x00000001);
-	udelay(100000);
+	set_mphy(0x000400f2, 0x03);
+	set_mphy(0x000500f2, 0x03);
+	set_mphy(0x000400bd, 0x16);
+	set_mphy(0x000500bd, 0x16);
+	set_mphy(0x000400c7, 0x22);
+	set_mphy(0x000500c7, 0x22);
+	set_mphy(0x000080f8, 0x00);
 
+	set_mphy(0x000400f3, 0xa4);
+	set_mphy(0x000500f3, 0xa4);
+	set_mphy(0x000400b4, 0x01);
+	set_mphy(0x000500b4, 0x01);
+	set_mphy(0x000400f4, 0x01);
+	set_mphy(0x000500f4, 0x01);
+	set_mphy(0x000400e9, 0x28);
+	set_mphy(0x000500e9, 0x28);
+	set_mphy(0x000400bf, 0x2f);
+	set_mphy(0x000500bf, 0x2f);
+	set_mphy(0x000400b5, 0x1e);
+	set_mphy(0x000500b5, 0x1e);
+
+	set_mphy(0x0000d085, 0x01);
+	set_mphy(0x0000d000, 0x01);
+
+	set_mphy(0x000015aa, 0x02);
+	set_mphy(0x000015a8, 0x40);
+	set_mphy(0x000015a7, 0x10);
+	set_mphy(0x0000d084, 0x0a);
+	set_mphy(0x0000d0af, 0x00);
+	set_mphy(0x000015a4, 0xfa);
+	set_mphy(0x0000d09e, 0x01);
+
+	return;
 }
+
+
+void setup_mphy_tc()
+{
+#ifdef USE_SNPS_MPHY_TC
+	setup_snps_mphy_tc();
+#endif
+	return;
+}
+
 /****************************************************************
  *
  * check_uic_link_startup_result
@@ -157,7 +202,7 @@ void setup_snps_mphy_tc()
  ***************************************************************/
 static int check_uic_link_startup_result()
 {
-	return ((0xFF & dwc_ufs_read_reg(DW_UFS_UICCMDARG2)));
+	return ((0xFF & ufs_readl(DW_UFS_UICCMDARG2)));
 }
 
 
@@ -172,15 +217,15 @@ static void create_nop_out_upiu()
 	int i;
 	void *tmp_ptr;
 
-	tmp_ptr = drv_info.cmd_desc->command_upiu;
+	tmp_ptr = ufs_info.cmd_desc->command_upiu;
 	cmd_upiu_ptr = (struct dwc_ufs_nop_req_upiu*)tmp_ptr;
 
-	if (drv_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
-		drv_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
+	if (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
+		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
 	else
-		drv_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
-	drv_info.utrd_desc->resp_upiu_length = cpu_to_le16(sizeof(struct dwc_ufs_nop_resp_upiu) >> 2);
-	drv_info.utrd_desc->prdt_length = 0;
+		ufs_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
+	ufs_info.utrd_desc->resp_upiu_length = cpu_to_le16(sizeof(struct dwc_ufs_nop_resp_upiu) >> 2);
+	ufs_info.utrd_desc->prdt_length = 0;
 
 	cmd_upiu_ptr->trans_type        = 0x00;
 	cmd_upiu_ptr->flags             = 0x00;
@@ -212,7 +257,7 @@ static int handle_query_response(uint8_t *ret)
 	struct dwc_ufs_query_upiu *resp_upiu;
 	void *tmp_ptr;
 
-	tmp_ptr = drv_info.cmd_desc->response_upiu;
+	tmp_ptr = ufs_info.cmd_desc->response_upiu;
 	resp_upiu = (struct dwc_ufs_query_upiu *)tmp_ptr;
 
 
@@ -242,16 +287,16 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
 	void *tmp_ptr;
 	int i;
 
-	tmp_ptr = drv_info.cmd_desc->command_upiu;
+	tmp_ptr = ufs_info.cmd_desc->command_upiu;
 	cmd_upiu_ptr = (struct dwc_ufs_query_upiu *)tmp_ptr;
 
 	/* UTRD Descriptor Programming for processing command */
-	if (drv_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
-		drv_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
+	if (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
+		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
 	else
-		drv_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
-	drv_info.utrd_desc->resp_upiu_length = cpu_to_le16(sizeof(struct dwc_ufs_query_upiu) >> 2);
-	drv_info.utrd_desc->prdt_length = 0;
+		ufs_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
+	ufs_info.utrd_desc->resp_upiu_length = cpu_to_le16(sizeof(struct dwc_ufs_query_upiu) >> 2);
+	ufs_info.utrd_desc->prdt_length = 0;
 
 
 	/* Command Descriptor Programming */
@@ -302,11 +347,11 @@ static int wait_for_cmd_completion()
 	int retry = RETRY_CNT;
 
 	/* Set the doorbell for processing the request */
-	dwc_ufs_write_reg(DW_UFS_UTRLDBR, BIT(0));
+	ufs_writel(DW_UFS_UTRLDBR, BIT(0));
 
 	/* Wait for the DoorBell to clear */
 	while(1) {
-		if((dwc_ufs_read_reg(DW_UFS_UTRLDBR) & BIT(0)) == 0)
+		if((ufs_readl(DW_UFS_UTRLDBR) & BIT(0)) == 0)
 			break;
 		retry--;
 		if(retry == 0) {
@@ -466,29 +511,29 @@ static int handle_scsi_completion()
 	uint8_t status;
 	void *tmp_ptr;
 
-	tmp_ptr = drv_info.cmd_desc->response_upiu;
+	tmp_ptr = ufs_info.cmd_desc->response_upiu;
 	resp_upiu = (struct dwc_ufs_xfer_resp_upiu *)tmp_ptr;
 
 #ifdef UFS_DEBUG_MODE
 	int i;
 	uint8_t *ptr;
-	ptr = drv_info.cmd_desc->response_upiu;
+	ptr = ufs_info.cmd_desc->response_upiu;
 	printf("\n\n The SCSI Command Response is");
 	for(i=0;(i < (sizeof(struct dwc_ufs_xfer_resp_upiu))); i+=4)
 		printf("\n0x%x 0x%x 0x%x 0x%x",ptr[i],ptr[i+1],ptr[i+2],ptr[i+3]);
 #endif
 
 	/* read the OCS value */
-	if(drv_info.utrd_desc->ocs == UFS_SUCCESS) {
+	if(ufs_info.utrd_desc->ocs == UFS_SUCCESS) {
 		status = resp_upiu->status;
 		if(status == SAM_STAT_GOOD)
 			return UFS_SUCCESS;
 		/* 0x20 is added to sense key to return unique error code */
 		if(status == SAM_STAT_CHECK_CONDITION)
-			return -(0x20 + (drv_info.cmd_desc->response_upiu[SENSE_KEY_INDEX] & 0xf));
+			return -(0x20 + (ufs_info.cmd_desc->response_upiu[SENSE_KEY_INDEX] & 0xf));
 	} else {
-		errorf("The OCS val returned is 0x%x",drv_info.utrd_desc->ocs);
-		return -(drv_info.utrd_desc->ocs);
+		errorf("The OCS val returned is 0x%x",ufs_info.utrd_desc->ocs);
+		return -(ufs_info.utrd_desc->ocs);
 	}
 
 	return UFS_SUCCESS;
@@ -506,7 +551,7 @@ static int read_nop_rsp()
 	struct dwc_ufs_nop_resp_upiu *resp_upiu;
 	void   *tmp_ptr;
 
-	tmp_ptr = drv_info.cmd_desc->response_upiu;
+	tmp_ptr = ufs_info.cmd_desc->response_upiu;
 	resp_upiu = (struct dwc_ufs_nop_resp_upiu *)tmp_ptr;
 
 	if((resp_upiu->response != UFS_SUCCESS) || (resp_upiu->trans_type != NOP_TRANS_TYPE)) {
@@ -535,7 +580,7 @@ int send_nop_out_cmd()
 		retry--;
 		ret = wait_for_cmd_completion();
 		if(ret != UFS_SUCCESS) {
-			dwc_ufs_write_reg(DW_UFS_UTRLCLR,0xfffffffe);
+			ufs_writel(DW_UFS_UTRLCLR,0xfffffffe);
 			continue;
 		}
 
@@ -642,14 +687,14 @@ int write_read_descriptor(void *req_upiu)
 	uint8_t *ptr;
 
 	/* UTRD Descriptor Programming for processing command */
-	if (drv_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
-		drv_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
+	if (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
+		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
 	else
-		drv_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
+		ufs_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
 
 	/*why use dwc_ufs_query_upiu size? there are always attached data follow the response upiu*/
-	drv_info.utrd_desc->resp_upiu_length = ALIGNED_UPIU_SIZE;
-	drv_info.utrd_desc->prdt_length = 0;
+	ufs_info.utrd_desc->resp_upiu_length = ALIGNED_UPIU_SIZE;
+	ufs_info.utrd_desc->prdt_length = 0;
 
 	/*maybe not necessary*/
 	//create_desc_upiu(req_upiu);
@@ -658,7 +703,7 @@ int write_read_descriptor(void *req_upiu)
 	if(ret != UFS_SUCCESS)
 		return ret;
 
-	ptr = drv_info.cmd_desc->response_upiu;
+	ptr = ufs_info.cmd_desc->response_upiu;
 
 	/*
 	debugf("\n\n The data segment of length %ld is",ALIGNED_UPIU_SIZE - sizeof(struct dwc_ufs_query_upiu));
@@ -677,9 +722,9 @@ int get_descriptor_data(void ** desc_ptr, uint8_t idn, uint8_t index)
 	int      ret;
 	struct   dwc_ufs_query_upiu *req_upiu;
 	void *   tmp_ptr;
-	void     *resp_upiu = drv_info.cmd_desc->response_upiu; 
+	void     *resp_upiu = ufs_info.cmd_desc->response_upiu;
 
- 	tmp_ptr = drv_info.cmd_desc->command_upiu;
+	tmp_ptr = ufs_info.cmd_desc->command_upiu;
 	req_upiu = (struct dwc_ufs_query_upiu *)tmp_ptr;
 
 	prepare_read_desc_upiu(req_upiu, idn, index);
@@ -694,11 +739,11 @@ int get_descriptor_data(void ** desc_ptr, uint8_t idn, uint8_t index)
 
 void preconfig_utrd_descriptor(void)
 {
-	drv_info.utrd_desc->ucdba            = cpu_to_le32(LOWER_32_BITS((ulong)drv_info.cmd_desc));
-	drv_info.utrd_desc->ucdbau           = cpu_to_le32(UPPER_32_BITS((ulong)drv_info.cmd_desc));
-	drv_info.utrd_desc->resp_upiu_offset = cpu_to_le16(offsetof(struct dwc_ufs_tcd, response_upiu) >> 2);
-	drv_info.utrd_desc->prdt_offset      = cpu_to_le16(offsetof(struct dwc_ufs_tcd, prdt_table) >> 2);
-	drv_info.utrd_desc->ocs = 0xf;
+	ufs_info.utrd_desc->ucdba            = cpu_to_le32(LOWER_32_BITS((ulong)ufs_info.cmd_desc));
+	ufs_info.utrd_desc->ucdbau           = cpu_to_le32(UPPER_32_BITS((ulong)ufs_info.cmd_desc));
+	ufs_info.utrd_desc->resp_upiu_offset = cpu_to_le16(offsetof(struct dwc_ufs_tcd, response_upiu) >> 2);
+	ufs_info.utrd_desc->prdt_offset      = cpu_to_le16(offsetof(struct dwc_ufs_tcd, prdt_table) >> 2);
+	ufs_info.utrd_desc->ocs = 0xf;
 }
 
 
@@ -707,16 +752,16 @@ void preconfig_utm_descriptor()
 	int i;
 	
 	for(i = 0; i < 3; i++)
-		drv_info.utm_desc->reserved_1[i] = 0x0;
+		ufs_info.utm_desc->reserved_1[i] = 0x0;
 		
-	drv_info.utm_desc->intr_flag  = 0x0;
-	drv_info.utm_desc->reserved_2 = 0x0;
-	drv_info.utm_desc->ocs = 0xf;
+	ufs_info.utm_desc->intr_flag  = 0x0;
+	ufs_info.utm_desc->reserved_2 = 0x0;
+	ufs_info.utm_desc->ocs = 0xf;
 
 	for(i = 0; i < 3; i++)
-		drv_info.utm_desc->reserved_3[i] = 0x0;
+		ufs_info.utm_desc->reserved_3[i] = 0x0;
 
-	drv_info.utm_desc->reserved_4 = 0x0;
+	ufs_info.utm_desc->reserved_4 = 0x0;
 	return;
 }
 
@@ -744,13 +789,13 @@ int init_ufs_hostc()
 		return ret;
 
 	/* Update the DWC UFSHCI specification that the controller implementation supports*/	
-	drv_info.dwc_ufs_version = dwc_ufs_read_reg(DW_UFS_VER);
+	ufs_info.dwc_ufs_version = ufs_readl(DW_UFS_VER);
 	/* Set the CLK Divider Register */
-	dwc_ufs_write_reg(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
+	ufs_writel(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
 
 #ifdef DWC_UFS_LOOPBACK_MODE /* For Debug Purpose Only */
 	/* LOOP Back Configuration */
-	dwc_ufs_write_reg(DW_UFS_LBMCFG, LOOPBACK_DEFAULT);
+	ufs_writel(DW_UFS_LBMCFG, LOOPBACK_DEFAULT);
 #else
 
 	/*
@@ -759,7 +804,7 @@ int init_ufs_hostc()
 	 * keep sending the DME_LINKSTARTUP command until the device is detected
 	 */
 	while(retry1 > 0) {
-		if(dwc_ufs_read_reg(DW_UFS_HCS) & DW_UFS_HCS_DP) {
+		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_DP) {
 			debugf("Connection been established with UFS device!\n");
 			break;
 		}
@@ -767,12 +812,11 @@ int init_ufs_hostc()
 		dwc_reset_hc();
 
 		/* Set the CLK Divider Register since it has been reset */
-		dwc_ufs_write_reg(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
-		/* If working with Synopsys Mphy; this function is required */
-#ifdef USE_SNPS_MPHY_TC
-		setup_snps_mphy_tc();
-#endif
-		if(dwc_ufs_read_reg(DW_UFS_HCS) & DW_UFS_HCS_UCRDY) {
+		ufs_writel(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
+
+		setup_mphy_tc();
+
+		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_UCRDY) {
 			debugf("Send link startup UIC command\n");
 			send_dme_link_startup();
 		} else {
@@ -784,7 +828,7 @@ int init_ufs_hostc()
 		/*wait for the UIC Command to complete by checking UCCS field*/
 		retry2 = RETRY_CNT;
 		while(retry2 > 0) {
-			if(dwc_ufs_read_reg(DW_UFS_IS) & DW_UFS_IS_UCCS) {
+			if(ufs_readl(DW_UFS_IS) & DW_UFS_IS_UCCS) {
 				debugf("Link startup UIC Command complete.\n");
 				break;
 			}
@@ -803,9 +847,9 @@ int init_ufs_hostc()
 		return UFS_INVALID_RESPONSE;
 #endif
 
-	drv_info.cmd_desc = (struct dwc_ufs_tcd *) memalign(SZ_128, sizeof(struct dwc_ufs_tcd));
-	drv_info.utrd_desc = (struct dwc_ufs_utrd *) memalign(SZ_1K, sizeof(struct dwc_ufs_utrd));
-	drv_info.utm_desc = (struct dwc_ufs_utmrd *) memalign(SZ_1K, sizeof(struct dwc_ufs_utmrd));
+	ufs_info.cmd_desc = (struct dwc_ufs_tcd *) memalign(SZ_128, sizeof(struct dwc_ufs_tcd));
+	ufs_info.utrd_desc = (struct dwc_ufs_utrd *) memalign(SZ_1K, sizeof(struct dwc_ufs_utrd));
+	ufs_info.utm_desc = (struct dwc_ufs_utmrd *) memalign(SZ_1K, sizeof(struct dwc_ufs_utmrd));
 
 	/* Initialize the transfer request descriptor */
 	preconfig_utrd_descriptor();
@@ -814,8 +858,8 @@ int init_ufs_hostc()
 	 * Write the descriptor base address in the UTRLBA register
 	 * for the Transfer Requests
 	 */
-	dwc_ufs_write_reg(DW_UFS_UTRLBA,  LOWER_32_BITS((ulong)drv_info.utrd_desc));
-	dwc_ufs_write_reg(DW_UFS_UTRLBAU, UPPER_32_BITS((ulong)drv_info.utrd_desc));
+	ufs_writel(DW_UFS_UTRLBA,  LOWER_32_BITS((ulong)ufs_info.utrd_desc));
+	ufs_writel(DW_UFS_UTRLBAU, UPPER_32_BITS((ulong)ufs_info.utrd_desc));
 
 	/* Initialize the task management descriptor */
 	preconfig_utm_descriptor();
@@ -824,18 +868,18 @@ int init_ufs_hostc()
 	 * Write the descriptor base address in the UTRLBA register
 	 * for the Transfer Requests
 	 */
-	dwc_ufs_write_reg(DW_UFS_UTMRLBA,  LOWER_32_BITS((ulong)drv_info.utm_desc));
-	dwc_ufs_write_reg(DW_UFS_UTMRLBAU, UPPER_32_BITS((ulong)drv_info.utm_desc));
+	ufs_writel(DW_UFS_UTMRLBA,  LOWER_32_BITS((ulong)ufs_info.utm_desc));
+	ufs_writel(DW_UFS_UTMRLBAU, UPPER_32_BITS((ulong)ufs_info.utm_desc));
 
 	/*
 	 * Enable UTP Transfer request List by writing to UTRLRSR
 	 */
-	dwc_ufs_write_reg(DW_UFS_UTRLRSR, 0x1);
+	ufs_writel(DW_UFS_UTRLRSR, 0x1);
 
 	/*
 	 * Enable UFS Task Managament List by writing to DW_UFS_UTMRLRSR
 	 */
-	dwc_ufs_write_reg(DW_UFS_UTMRLRSR, 0x1);
+	ufs_writel(DW_UFS_UTMRLRSR, 0x1);
 
 	return UFS_SUCCESS;
 }
@@ -873,7 +917,7 @@ int init_ufs_device()
 			debugf("fDeviceInit flag==0, UFS device init complete\n");
 			break;
 		} else {
-			dwc_ufs_write_reg(DW_UFS_UTRLCLR,0xfffffffe);
+			ufs_writel(DW_UFS_UTRLCLR,0xfffffffe);
 		}
 	} while (retry > 0);
 
@@ -900,15 +944,15 @@ void update_native_lu_info(struct ufs_cfg_desc_tbl *cfg_desc)
 	uint32_t blks_per_alloc_unit = 0;
 
 	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++)	{
-		memset(&drv_info.lu_info[lun_index], 0 ,sizeof(struct lu_info_tbl));
+		memset(&ufs_info.lu_info[lun_index], 0 ,sizeof(struct lu_info_tbl));
 		alloc_unit_num = be32_to_cpu(cfg_desc->unit_cfg[lun_index].dNumAllocUnits);
 		if (0 != alloc_unit_num) {
-			drv_info.lu_info[id].lu_index = lun_index;
-			drv_info.lu_info[id].log2blksz = cfg_desc->unit_cfg[lun_index].bLogicalBlockSize;
-			blks_per_alloc_unit = (drv_info.alloc_unit_sz * SZ_512) >> drv_info.lu_info[lun_index].log2blksz;
-			drv_info.lu_info[id].blkcnt = alloc_unit_num * blks_per_alloc_unit;
-			drv_info.lu_info[id].memory_type = cfg_desc->unit_cfg[lun_index].bMemoryType;
-			drv_info.lu_info[id].bootable = cfg_desc->unit_cfg[lun_index].bBootLunID;
+			ufs_info.lu_info[id].lu_index = lun_index;
+			ufs_info.lu_info[id].log2blksz = cfg_desc->unit_cfg[lun_index].bLogicalBlockSize;
+			blks_per_alloc_unit = (ufs_info.alloc_unit_sz * SZ_512) >> ufs_info.lu_info[lun_index].log2blksz;
+			ufs_info.lu_info[id].blkcnt = alloc_unit_num * blks_per_alloc_unit;
+			ufs_info.lu_info[id].memory_type = cfg_desc->unit_cfg[lun_index].bMemoryType;
+			ufs_info.lu_info[id].bootable = cfg_desc->unit_cfg[lun_index].bBootLunID;
 			id++;
 		}
 	}
@@ -922,7 +966,7 @@ uint32_t align_to_alloc_unit(uint64_t blk_cnt, uint32_t log2_blk_sz)
 	uint64_t multi = 0;
 
 	multi = (1 << log2_blk_sz) /SZ_512;
-	au_num = (uint32_t)PAD_COUNT(blk_cnt * multi, drv_info.alloc_unit_sz);
+	au_num = (uint32_t)PAD_COUNT(blk_cnt * multi, ufs_info.alloc_unit_sz);
 
 	return au_num;
 }
@@ -933,16 +977,16 @@ int compare_cfg_lu_table(struct lu_info_tbl * new_lu_cfg)
 	uint32_t aligned_au_new = 0;
 	uint32_t aligned_au_old = 0;
 	int lun_index = 0;
-	if (0 == drv_info.lu_num) {
+	if (0 == ufs_info.lu_num) {
 		debugf("No lu config in old table,diff\n");
 		return LU_INFO_DIFF;
 	}
 
 	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++) {
-		if (new_lu_cfg[lun_index].lu_index != drv_info.lu_info[lun_index].lu_index
-				||new_lu_cfg[lun_index].bootable != drv_info.lu_info[lun_index].bootable
-				||new_lu_cfg[lun_index].memory_type != drv_info.lu_info[lun_index].memory_type
-				||new_lu_cfg[lun_index].log2blksz != drv_info.lu_info[lun_index].log2blksz) {
+		if (new_lu_cfg[lun_index].lu_index != ufs_info.lu_info[lun_index].lu_index
+				||new_lu_cfg[lun_index].bootable != ufs_info.lu_info[lun_index].bootable
+				||new_lu_cfg[lun_index].memory_type != ufs_info.lu_info[lun_index].memory_type
+				||new_lu_cfg[lun_index].log2blksz != ufs_info.lu_info[lun_index].log2blksz) {
 			debugf("lun_index(%d) different...\n ", lun_index);
 			ret = LU_INFO_DIFF;
 			break;
@@ -953,14 +997,14 @@ int compare_cfg_lu_table(struct lu_info_tbl * new_lu_cfg)
 				debugf("All %d lu same with old one\n", UFS_MAX_LU_NUM);
 				break;
 			}
-			if (0 == drv_info.lu_info[lun_index].log2blksz || 0 == drv_info.lu_info[lun_index + 1].log2blksz) {
+			if (0 == ufs_info.lu_info[lun_index].log2blksz || 0 == ufs_info.lu_info[lun_index + 1].log2blksz) {
 				debugf("meet the table end, lu config same\n");
 				break;
 			}
 		}
 		
 		aligned_au_new = align_to_alloc_unit(new_lu_cfg[lun_index].blkcnt, new_lu_cfg[lun_index].log2blksz);
-		aligned_au_old = align_to_alloc_unit(drv_info.lu_info[lun_index].blkcnt, drv_info.lu_info[lun_index].log2blksz);
+		aligned_au_old = align_to_alloc_unit(ufs_info.lu_info[lun_index].blkcnt, ufs_info.lu_info[lun_index].log2blksz);
 		if (aligned_au_new != aligned_au_old) {
 			debugf("lun_index(%d) blkcnt diff with old one\n", lun_index);
 			ret = LU_INFO_DIFF;
@@ -1029,7 +1073,7 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 			req_cfg_desc->unit_cfg[lu_index].bMemoryType = new_cfg[id].memory_type;
 			req_cfg_desc->unit_cfg[lu_index].bLogicalBlockSize = new_cfg[id].log2blksz;
 			if (0 == new_cfg[id].blkcnt) {
-				au_num = (drv_info.dev_total_cap / drv_info.alloc_unit_sz) - assigned_au;
+				au_num = (ufs_info.dev_total_cap / ufs_info.alloc_unit_sz) - assigned_au;
 				req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
 				debugf("Use all remain space, alloc unit=0x%x, big endian=0x%x\n", au_num, req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits);
 				break;
@@ -1053,7 +1097,7 @@ int set_descriptor_data(struct ufs_cfg_desc_tbl *default_desc, struct lu_info_tb
 	struct   dwc_ufs_query_upiu *req_upiu;
 	void *   tmp_ptr;
 
- 	tmp_ptr = drv_info.cmd_desc->command_upiu;
+	tmp_ptr = ufs_info.cmd_desc->command_upiu;
 	req_upiu = (struct dwc_ufs_query_upiu *)tmp_ptr;
 
 	prepare_write_desc_upiu(req_upiu, default_desc, new_cfg);
@@ -1102,7 +1146,7 @@ int verify_lu_cfg(struct lu_info_tbl *lu_cfg)
 		assigned_size += lu_cfg[loop].blkcnt * multi;
 	}
 
-	if (assigned_size > drv_info.dev_total_cap)
+	if (assigned_size > ufs_info.dev_total_cap)
 		return LU_INFO_ILLEGAL;
 	
 	return 0;
@@ -1116,14 +1160,14 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	struct   dwc_ufs_cmd_upiu *cmd_upiu_ptr = NULL;
 	uint32_t data_direction = 0;
 	uint8_t  upiu_flags = 0;
-	uint32_t prdt_buf_size = drv_info.prdt_entry_size;
+	uint32_t prdt_buf_size = ufs_info.prdt_entry_size;
 	void     *tmp_ptr = NULL;
 	uint32_t i = 0;
 	uint32_t transfer_size = 0;
 	uint8_t  *ptr = NULL;
 	lbaint_t size = 0;
 
-	tmp_ptr = drv_info.cmd_desc->command_upiu;
+	tmp_ptr = ufs_info.cmd_desc->command_upiu;
 	cmd_upiu_ptr = (struct dwc_ufs_cmd_upiu *)(tmp_ptr);
 
 	if (direction == DMA_FROM_DEVICE) {
@@ -1138,11 +1182,11 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	}
 
 	/* Update cmd_type, flags and response upiu length for transfer requests */
-	if (drv_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
-		drv_info.utrd_desc->ct_and_flags = (uint8_t)(data_direction | UTP_UFS_STORAGE_COMMAND);
+	if (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
+		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(data_direction | UTP_UFS_STORAGE_COMMAND);
 	else
-		drv_info.utrd_desc->ct_and_flags = (uint8_t)(data_direction | UTP_SCSI_COMMAND);
-	drv_info.utrd_desc->resp_upiu_length = cpu_to_le16((uint16_t)(sizeof(struct dwc_ufs_xfer_resp_upiu) >> 2));
+		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(data_direction | UTP_SCSI_COMMAND);
+	ufs_info.utrd_desc->resp_upiu_length = cpu_to_le16((uint16_t)(sizeof(struct dwc_ufs_xfer_resp_upiu) >> 2));
 
 	cmd_upiu_ptr->trans_type        = 0x01;
 	cmd_upiu_ptr->flags             = upiu_flags;
@@ -1170,35 +1214,35 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 
 	/* Update PRDT Length */ 
 	/*the caller must guarantee the transfer_size no more than max prdt capability*/
-	drv_info.utrd_desc->prdt_length = (uint16_t)((0 == transfer_size % prdt_buf_size) ?
+	ufs_info.utrd_desc->prdt_length = (uint16_t)((0 == transfer_size % prdt_buf_size) ?
 					(transfer_size /prdt_buf_size) : (transfer_size /prdt_buf_size + 1));
 
 
 	/* Fill PRD Table Info */
 	if (direction != DMA_NONE) {
 		for (i = 0; transfer_size > 0; i++) {
-			drv_info.cmd_desc->prdt_table[i].base_addr
+			ufs_info.cmd_desc->prdt_table[i].base_addr
 				 = LOWER_32_BITS((ulong)(buf_addr + i * prdt_buf_size));
-			drv_info.cmd_desc->prdt_table[i].upper_addr
+			ufs_info.cmd_desc->prdt_table[i].upper_addr
 				 = UPPER_32_BITS((ulong)(buf_addr + i * prdt_buf_size));
 
-			drv_info.cmd_desc->prdt_table[i].reserved1  = 0x0;
+			ufs_info.cmd_desc->prdt_table[i].reserved1  = 0x0;
 			if (transfer_size > prdt_buf_size) {
-				drv_info.cmd_desc->prdt_table[i].size = prdt_buf_size - 1;
+				ufs_info.cmd_desc->prdt_table[i].size = prdt_buf_size - 1;
 				transfer_size -= prdt_buf_size;
 			} else {
-				drv_info.cmd_desc->prdt_table[i].size = transfer_size - 1;
+				ufs_info.cmd_desc->prdt_table[i].size = transfer_size - 1;
 				transfer_size = 0;
 			}
 		}
 	}
 
-	ptr = (uint8_t *)drv_info.utrd_desc;
+	ptr = (uint8_t *)ufs_info.utrd_desc;
 	debugf("The byte array dump of  UTRD is\n");
 	for(i=0;(i < (sizeof(struct dwc_ufs_utrd))); i+=4)
 		debugf("0x%x 0x%x 0x%x 0x%x\n", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
 
-	ptr = (uint8_t *)drv_info.cmd_desc->command_upiu;
+	ptr = (uint8_t *)ufs_info.cmd_desc->command_upiu;
 	debugf("The byte array dump of cmd upiu is\n");
 	for(i=0;(i < (sizeof(struct dwc_ufs_cmd_upiu))); i+=4)
 		debugf("0x%x 0x%x 0x%x 0x%x\n", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
@@ -1223,8 +1267,8 @@ struct lu_info_tbl *find_lu_info(int lun)
 {
 	int id = 0;
 	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
-		if (lun == drv_info.lu_info[id].lu_index)
-			return &drv_info.lu_info[id];
+		if (lun == ufs_info.lu_info[id].lu_index)
+			return &ufs_info.lu_info[id];
 	}
 
 	return NULL;
@@ -1239,7 +1283,7 @@ int endpoint_reset(void)
 	/*wait for the UIC Command to complete by checking UCCS field*/
 	while (retry > 0) {
 		udelay(10000);
-		if(dwc_ufs_read_reg(DW_UFS_IS) & DW_UFS_IS_UCCS)
+		if(ufs_readl(DW_UFS_IS) & DW_UFS_IS_UCCS)
 			break;
 		retry--;
 	}
@@ -1330,7 +1374,7 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 
 	if (0 != (ulong)dst % 4) {
 		errorf("UFS read destination addr not aligned to 4 bytes, it will harm the read efficiency!\n");
-		max_read_size = drv_info.max_prdt_cap > SZ_1M ? SZ_1M : drv_info.max_prdt_cap;
+		max_read_size = ufs_info.max_prdt_cap > SZ_1M ? SZ_1M : ufs_info.max_prdt_cap;
 		max_read_blk = max_read_size >> lu_info->log2blksz;
 		/*malloc can guarantee 8 bytes aligned*/
 		temp_buff = malloc(max_read_size);
@@ -1353,7 +1397,7 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 			dst += cur << lu_info->log2blksz;
 		} while (blocks_todo > 0);
 	} else {
-		max_read_blk = drv_info.max_prdt_cap >> lu_info->log2blksz;
+		max_read_blk = ufs_info.max_prdt_cap >> lu_info->log2blksz;
 		do {
 			cur = (blocks_todo > max_read_blk) ? max_read_blk : blocks_todo;
 			/* Send Read 10 Command and handle its completion */
@@ -1387,7 +1431,7 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 	
 	if (0 != (ulong)src % 4) {
 		errorf("UFS write source addr not aligned to 4 bytes, it will harm the write efficiency!\n");
-		max_write_size = drv_info.max_prdt_cap > SZ_1M ? SZ_1M : drv_info.max_prdt_cap;
+		max_write_size = ufs_info.max_prdt_cap > SZ_1M ? SZ_1M : ufs_info.max_prdt_cap;
 		max_write_blk = max_write_size >> lu_info->log2blksz;
 		/*malloc can guarantee 8 bytes aligned*/
 		temp_buff = malloc(max_write_size);
@@ -1410,7 +1454,7 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 			src += cur << lu_info->log2blksz;
 		} while (blocks_todo > 0);
 	} else {
-		max_write_blk = drv_info.max_prdt_cap >> lu_info->log2blksz;
+		max_write_blk = ufs_info.max_prdt_cap >> lu_info->log2blksz;
 		do {
 			cur = (blocks_todo > max_write_blk) ? max_write_blk : blocks_todo;
 			/* Send Write 10 Command and handle its completion */
@@ -1450,22 +1494,22 @@ static ulong ufs_erase(int dev_num, lbaint_t start, lbaint_t blkcnt)
 
 void ufs_register_blk_device(int lun_index, uint32_t log2_blk_sz, uint64_t blk_count, enum lu_bootable type)
 {
-	drv_info.block_dev[lun_index].if_type = IF_TYPE_UFS;
-	drv_info.block_dev[lun_index].dev = lun_index;  /*consider each lun as one block device*/
+	ufs_info.block_dev[lun_index].if_type = IF_TYPE_UFS;
+	ufs_info.block_dev[lun_index].dev = lun_index;  /*consider each lun as one block device*/
 	if (NONE_BOOT == type)
-		drv_info.block_dev[lun_index].part_type = PART_TYPE_EFI;
+		ufs_info.block_dev[lun_index].part_type = PART_TYPE_EFI;
 	else
-		drv_info.block_dev[lun_index].part_type = PART_TYPE_UNKNOWN;
-	drv_info.block_dev[lun_index].target = 0xFF;
-	drv_info.block_dev[lun_index].lun = lun_index;
-	drv_info.block_dev[lun_index].type = DEV_TYPE_UNKNOWN;
-	drv_info.block_dev[lun_index].removable = 1;
-	drv_info.block_dev[lun_index].lba = blk_count;
-	drv_info.block_dev[lun_index].blksz = 1 << log2_blk_sz;
-	drv_info.block_dev[lun_index].log2blksz = log2_blk_sz;
-	drv_info.block_dev[lun_index].block_read = ufs_bread;
-	drv_info.block_dev[lun_index].block_write = ufs_bwrite;
-	drv_info.block_dev[lun_index].block_erase = ufs_erase;
+		ufs_info.block_dev[lun_index].part_type = PART_TYPE_UNKNOWN;
+	ufs_info.block_dev[lun_index].target = 0xFF;
+	ufs_info.block_dev[lun_index].lun = lun_index;
+	ufs_info.block_dev[lun_index].type = DEV_TYPE_UNKNOWN;
+	ufs_info.block_dev[lun_index].removable = 1;
+	ufs_info.block_dev[lun_index].lba = blk_count;
+	ufs_info.block_dev[lun_index].blksz = 1 << log2_blk_sz;
+	ufs_info.block_dev[lun_index].log2blksz = log2_blk_sz;
+	ufs_info.block_dev[lun_index].block_read = ufs_bread;
+	ufs_info.block_dev[lun_index].block_write = ufs_bwrite;
+	ufs_info.block_dev[lun_index].block_erase = ufs_erase;
 	return;
 }
 
@@ -1480,19 +1524,19 @@ void ufs_update_native(void)
 	struct ufs_geo_desc_tbl *geo_desc;
 	struct ufs_unit_desc_tbl *unit_desc;
 
-	drv_info.prdt_entry_size = PRDT_BUFFER_SIZE;
-	drv_info.max_prdt_cap =  TOTAL_PRDT_CAP;
+	ufs_info.prdt_entry_size = PRDT_BUFFER_SIZE;
+	ufs_info.max_prdt_cap =  TOTAL_PRDT_CAP;
 	ret = get_descriptor_data((void **)(&main_desc), DEVICE_DESC, 0);
 	if (UFS_SUCCESS != ret) {
 		errorf("get device descriptor data fail!\n");
 		return;
 	}
-	drv_info.unit_offset = main_desc->bUD0BaseOffset;
-	drv_info.unit_length = main_desc->bUDConfigPLength;
-	drv_info.lu_num = main_desc->bNumberLU;
-	drv_info.wlu_num = main_desc->bNumberWLU;
-	drv_info.boot_enable = main_desc->bBootEnable;
-	drv_info.wSpecVersion = be16_to_cpu(main_desc->wSpecVersion);
+	ufs_info.unit_offset = main_desc->bUD0BaseOffset;
+	ufs_info.unit_length = main_desc->bUDConfigPLength;
+	ufs_info.lu_num = main_desc->bNumberLU;
+	ufs_info.wlu_num = main_desc->bNumberWLU;
+	ufs_info.boot_enable = main_desc->bBootEnable;
+	ufs_info.wSpecVersion = be16_to_cpu(main_desc->wSpecVersion);
 
 	ret = get_descriptor_data((void **)(&geo_desc), GEOMETRY_DESC, 0);
 	if (UFS_SUCCESS != ret) {
@@ -1501,24 +1545,24 @@ void ufs_update_native(void)
 	}
 
 	segment_size = be32_to_cpu(geo_desc->dSegmentSize);
-	drv_info.alloc_unit_sz = geo_desc->bAllocationUnitSize * segment_size;
-	drv_info.dev_total_cap = be64_to_cpu(geo_desc->qTotalRawDeviceCapacity);
-	debugf("UFS device total cap=0x%llx,allocation unit size=0x%x\n", drv_info.dev_total_cap, drv_info.alloc_unit_sz);
+	ufs_info.alloc_unit_sz = geo_desc->bAllocationUnitSize * segment_size;
+	ufs_info.dev_total_cap = be64_to_cpu(geo_desc->qTotalRawDeviceCapacity);
+	debugf("UFS device total cap=0x%llx,allocation unit size=0x%x\n", ufs_info.dev_total_cap, ufs_info.alloc_unit_sz);
 	
 	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++)	{
-		memset(&drv_info.block_dev[lun_index], 0 ,sizeof(block_dev_desc_t));
-		memset(&drv_info.lu_info[lun_index], 0 ,sizeof(struct lu_info_tbl));
+		memset(&ufs_info.block_dev[lun_index], 0 ,sizeof(block_dev_desc_t));
+		memset(&ufs_info.lu_info[lun_index], 0 ,sizeof(struct lu_info_tbl));
 		ret = get_descriptor_data((void **)(&unit_desc), UNIT_DESC, lun_index);
 		if (UFS_SUCCESS != ret)
 			continue;
 
 		block_count = be64_to_cpu(unit_desc->qLogicalBlockCount);
 		if (0 != block_count) {
-			drv_info.lu_info[id].lu_index = lun_index;
-			drv_info.lu_info[id].blkcnt = block_count;
-			drv_info.lu_info[id].log2blksz = unit_desc->bLogicalBlockSize;
-			drv_info.lu_info[id].memory_type = unit_desc->bMemoryType;
-			drv_info.lu_info[id].bootable = unit_desc->bBootLunID;
+			ufs_info.lu_info[id].lu_index = lun_index;
+			ufs_info.lu_info[id].blkcnt = block_count;
+			ufs_info.lu_info[id].log2blksz = unit_desc->bLogicalBlockSize;
+			ufs_info.lu_info[id].memory_type = unit_desc->bMemoryType;
+			ufs_info.lu_info[id].bootable = unit_desc->bBootLunID;
 			id++;
 			ufs_register_blk_device(lun_index, unit_desc->bLogicalBlockSize, block_count, unit_desc->bBootLunID);
 		}
@@ -1535,23 +1579,11 @@ block_dev_desc_t *ufs_get_dev(int dev)
 		return NULL;
 	}
 
-	if (IF_TYPE_UFS == drv_info.block_dev[dev].if_type) {
+	if (IF_TYPE_UFS == ufs_info.block_dev[dev].if_type) {
 		debugf("Find the UFS device %d\n", dev);
-		return &drv_info.block_dev[dev];
+		return &ufs_info.block_dev[dev];
 	}
 
 	errorf("CANNOT find UFS device %d\n", dev);
 	return NULL;
 }
-
-int ufs_select_hwpart(int dev_num, int hwpart)
-{
-	if (0 == dev_num)
-		drv_info.active_lun = hwpart;
-	else
-		drv_info.active_lun = 2;
-	return 0;
-
-}
-
-
