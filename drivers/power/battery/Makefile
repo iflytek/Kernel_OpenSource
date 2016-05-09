@@ -19,4 +19,5 @@ endif
 obj-$(CONFIG_SPRD_EXT_IC_POWER)	+= sprd_chg_helper.o
 obj-$(CONFIG_FAN54015_CHARGE_IC)+= fan54015.o
 obj-$(CONFIG_SPRD2701_CHARGE_IC)+= sprd_2701.o
+obj-$(CONFIG_BQ25896_CHARGE_IC)+= bq25896.o
 

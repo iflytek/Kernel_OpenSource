@@ -365,7 +365,8 @@
 #define CONFIG_SPRD_EXT_IC_POWER
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C
-#define CONFIG_SPRD2701_CHARGE_IC
+//#define CONFIG_SPRD2701_CHARGE_IC
+#define CONFIG_BQ25896_CHARGE_IC
 
 /*-----------------------------------------------------------------------
  * Cache Configuration
