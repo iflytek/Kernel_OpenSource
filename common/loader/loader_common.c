@@ -16,7 +16,7 @@
 unsigned char raw_header[8192];
 
 unsigned int g_charger_mode = 0;
-char serial_number_to_transfer[SP09_MAX_SN_LEN];
+char serial_number_to_transfer[SP15_MAX_SN_LEN];
 
 extern int charger_connected(void);
 extern void modem_entry(void);
@@ -51,20 +51,36 @@ unsigned char _chkNVEcc(uint8_t * buf, uint32_t size, uint32_t checksum)
 	return (crc == (uint16_t) checksum);
 }
 
+/*modif to support the sp15 64 bit sn NO */
 char *get_product_sn(void)
 {
-	SP09_PHASE_CHECK_T phase_check;
+	SP09_PHASE_CHECK_T phase_check_sp09;
+	SP15_PHASE_CHECK_T phase_check_sp15;
+	uint32_t magic;
 
-	memset(serial_number_to_transfer, 0x0, SP09_MAX_SN_LEN);
+	memset(serial_number_to_transfer, 0x0, SP15_MAX_SN_LEN);
 
 	strcpy(serial_number_to_transfer, "0123456789ABCDEF");
-	if (0 != common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(phase_check), 0, (char *)&phase_check)) {
+	if (0 != common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(magic), 0, (char *)&magic)) {
 		errorf("read miscdata error.\n");
 		return serial_number_to_transfer;
 	}
-
-	if ((phase_check.Magic == SP09_SPPH_MAGIC_NUMBER) && strlen(phase_check.SN1)) {
-		memcpy(serial_number_to_transfer, phase_check.SN1, SP09_MAX_SN_LEN);
+	if(magic == SP09_SPPH_MAGIC_NUMBER){
+		if(common_raw_read(PRODUCTINFO_FILE_PATITION,sizeof(phase_check_sp09), 0, (char *)&phase_check_sp09)){
+			debugf("sp09 read miscdata error.\n");
+			return serial_number_to_transfer;
+		}
+		if(strlen(phase_check_sp09.SN1)){
+			memcpy(serial_number_to_transfer, phase_check_sp09.SN1, SP09_MAX_SN_LEN);
+		}
+	}else if(magic == SP15_SPPH_MAGIC_NUMBER){
+		if(common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(phase_check_sp15), 0 ,(char *)&phase_check_sp15)){
+			debugf("sp15 read miscdata error.\n");
+			return serial_number_to_transfer;
+		}
+		if(strlen(phase_check_sp15.SN1)){
+			memcpy(serial_number_to_transfer, phase_check_sp15.SN1, SP15_MAX_SN_LEN);
+		}
 	}
 	return serial_number_to_transfer;
 }

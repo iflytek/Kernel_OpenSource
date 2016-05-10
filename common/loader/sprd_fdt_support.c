@@ -344,10 +344,10 @@ int fdt_fixup_lcdsize(void *fdt)
 }
 int fdt_fixup_serialno(void *fdt)
 {
-	char buf[64];
+	char buf[255];
 	int str_len;
 	int ret;
-	memset(buf, 0, 64);
+	memset(buf, 0, 255);
 
 	sprintf(buf, " androidboot.serialno=%s", get_product_sn());
 	str_len = strlen(buf);
