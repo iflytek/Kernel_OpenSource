@@ -20,6 +20,14 @@
 		#size-cells = <2>;
 		ranges;
 
+		pub1_mpu_reserved: mpu1-dump@180000000 {
+			reg = <0x1 0x80000000 0x0 0x1000>;
+		};
+
+		pub0_mpu_reserved: mpu0-dump@874ff000 {
+			reg = <0x0 0x874ff000 0x0 0x1000>;
+		};
+
 		audio_reserved: audio-mem@87500000 {
 			reg = <0x0 0x87500000 0x0 0x300000>;
 		};
@@ -37,20 +45,27 @@
 		};
 
 		camera_reserved: camera-mem@4,c5400000{
-			reg = <0x4 0xc5400000 0x0 0x3880000>;
+			reg = <0x4 0xc5400000 0x0 0x80000>;
 		};
 
 		fb_reserved: framebuffer@4,c8c80000{
-			reg = <0x4 0xc8c80000 0x0 0x2a30000>;
+			reg = <0x4 0xc5480000 0x0 0x2a30000>;
 		};
 
 		overlay_reserved: overlaybuffer@4,cb6b0000{
-			reg = <0x4 0xcb6b0000 0x0 0x7080000>;
+			reg = <0x4 0xc7eb0000 0x0 0x7080000>;
 		};
 
 		/* For cma 4M align, enlarge its size from 0xd840000 to 0xd8d0000 */
 		mm_reserved: multimediabuffer@4,d2730000{
-			reg = <0x4 0xd2730000 0x0 0xd8d0000>;
+			reg = <0x4 0xcef30000 0x0 0x10000000>;
+		};
+
+		iq_reserved: iq-mem{
+			compatible = "sprd,iq-mem";
+			alignment = <0x0 0x1000>;
+			alloc-ranges = <0x0 0x80000000 0 0x45400000>;
+			size = <0x0 0x8000000>;
 		};
 
 		/* Must 4M align */
@@ -61,6 +76,7 @@
 			linux,cma-default;
 		};
 	};
+
 
 	ion {
 		compatible = "sprd,ion";
