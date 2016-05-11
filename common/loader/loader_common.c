@@ -90,6 +90,7 @@ void fdt_fixup_all(u8 *fdt_blob)
 	uint32_t fdt_size;
 	boot_img_hdr *hdr = raw_header;
 	int err;
+	char  *boot_mode_type_str;
 
 	if (fdt_check_header(fdt_blob) != 0) {
 		printf("image is not a fdt\n");
@@ -122,8 +123,12 @@ void fdt_fixup_all(u8 *fdt_blob)
 
 	fdt_fixup_cp_boot(fdt_blob);
 
-	fdt_fixup_serialno(fdt_blob);
+	boot_mode_type_str = getenv("bootmode");
+	if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
+		fdt_fixup_memleakon(fdt_blob);
+	}
 
+	fdt_fixup_serialno(fdt_blob);
 	fdt_fixup_chosen_bootargs_board_private(fdt_blob);
 
 #ifdef CONFIG_SANSA_SECBOOT

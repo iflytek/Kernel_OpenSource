@@ -356,6 +356,21 @@ int fdt_fixup_serialno(void *fdt)
 	return ret;
 }
 
+int fdt_fixup_memleakon(void *fdt)
+{
+	char buf[32];
+	int str_len;
+	int ret;
+	memset(buf, 0, 32);
+
+
+	sprintf(buf, "kmemleak=on");
+	str_len = strlen(buf);
+	buf[str_len] = '\0';
+	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
+	return ret;
+}
+
 int fdt_fixup_sysdump_magic(void *fdt)
 {
 	char buf[64];
