@@ -27,8 +27,6 @@
 #define SPRD_SYSDUMP_MAGIC    RAMDISK_ADR
 
 
-#define CONFIG_PHYS_OFFSET 0x80000000
-#define PAGE_OFFSET 0xC0000000
 
 #define PAGE_SHIFT 12
 #ifndef PAGE_SIZE
@@ -189,10 +187,18 @@ struct elf_prpsinfo
  * These are used to set parameters in the core dumps.
  */
 
+#define PHYS_OFFSET    CONFIG_SYS_SDRAM_BASE
 #ifdef CONFIG_ARM64
 #define ELF_CLASS      ELFCLASS64
+#define Elf_Off	       Elf64_Off
+#define VA_BITS        39
+#define PAGE_OFFSET    ((unsigned long)(0xffffffffffffffffUL) << (VA_BITS - 1))
+#define __va(x)        ((unsigned long)((x) - PHYS_OFFSET + PAGE_OFFSET))
 #else
 #define ELF_CLASS       ELFCLASS32
+#define Elf_Off	       Elf32_Off
+#define PAGE_OFFSET    (0xC0000000UL)
+#define __va(x)        ((unsigned long)((x) - PHYS_OFFSET + PAGE_OFFSET))
 #endif
 
 #ifdef __ARMEB__

@@ -274,6 +274,7 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 	struct elfhdr *elf;
 	struct memelfnote notes[3];
 	off_t offset = 0;
+	Elf_Off f_offset = dataoff;
 	int i;
 
 	/* setup ELF header */
@@ -321,12 +322,12 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 
 		phdr->p_type	= PT_LOAD;
 		phdr->p_flags	= PF_R|PF_W|PF_X;
-		phdr->p_offset	= dataoff;
+		phdr->p_offset	= f_offset;
 		phdr->p_vaddr	= sysmem[i].vaddr;
 		phdr->p_paddr	= sysmem[i].paddr;
 		phdr->p_filesz	= phdr->p_memsz	= sysmem[i].size;
 		phdr->p_align	= 0;//PAGE_SIZE;
-		dataoff += sysmem[i].size;
+		f_offset += sysmem[i].size;
 	}
 #if SETUP_NOTE
 	/*
@@ -615,6 +616,7 @@ static int fill_dump_mem(unsigned char *fdt_blob, struct sysdump_mem *sprd_dump_
 			ptr_end = ptr + lenp / (sizeof(unsigned long));
 			while (ptr < ptr_end) {
 				sprd_dump_mem[i].paddr = fdt_addr_to_cpu (*ptr ++);
+				sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
 				sprd_dump_mem[i].size  = fdt_size_to_cpu (*ptr ++);
 				sprd_dump_mem[i].soff  = 0xffffffff;
 				sprd_dump_mem[i].type  = SYSDUMP_RAM;
