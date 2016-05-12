@@ -335,8 +335,8 @@ static pinmap_t pinmap[]={
 {REG_PIN_GPIO30_MISC,            BIT_PIN_NULL|BITS_PIN_DS(1)|BIT_PIN_WPU|BIT_PIN_SLP_WPU},//PCD_INT        CM4 Pin  Detecting for OCTA Pannel damage  low active
 {REG_PIN_GPIO31,                 BIT_PIN_SLP_NONE|BITS_PIN_AF(3)|BIT_PIN_SLP_Z},
 {REG_PIN_GPIO31_MISC,            BIT_PIN_NULL|BITS_PIN_DS(1)|BIT_PIN_WPU|BIT_PIN_SLP_WPU},//GRIP_INT       CM4 Pin
-{REG_PIN_GPIO32,                 BIT_PIN_SLP_NONE|BITS_PIN_AF(3)|BIT_PIN_SLP_IE},
-{REG_PIN_GPIO32_MISC,            BIT_PIN_NULL|BITS_PIN_DS(1)|BIT_PIN_WPU|BIT_PIN_SLP_WPU},//EL_ON1         CM4 Pin  Detecting for ESD damage   low active
+{REG_PIN_GPIO32,                 BIT_PIN_SLP_AP|BITS_PIN_AF(3)|BIT_PIN_SLP_Z},
+{REG_PIN_GPIO32_MISC,            BIT_PIN_NULL|BITS_PIN_DS(1)|BIT_PIN_NUL|BIT_PIN_SLP_WPD},//EL_ON1         CM4 Pin  Detecting for ESD damage   low active
 {REG_PIN_GPIO33,                 BIT_PIN_SLP_AP|BITS_PIN_AF(3)|BIT_PIN_SLP_IE},
 {REG_PIN_GPIO33_MISC,            BIT_PIN_NULL|BITS_PIN_DS(1)|BIT_PIN_WPU|BIT_PIN_SLP_WPU},//NFC_IRQ         Connect to Host external IRQ or GPIO for NFC interrupt
 {REG_PIN_GPIO34,                 BIT_PIN_SLP_AP|BITS_PIN_AF(3)|BIT_PIN_SLP_IE},
