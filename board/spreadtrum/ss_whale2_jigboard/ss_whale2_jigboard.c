@@ -85,8 +85,7 @@ int board_late_init(void)
 	nand_ubi_dev_init();
 	debugf("nand ubi init OK!\n");
 #endif
-	if(boot_role == BOOTLOADER_MODE_LOAD)           //if it's BOOTLOADER_MODE_LOAD, goto sprdbat_init.	
-		sprdbat_init();
+	sprdbat_init();
 	debugf("CHG init OK!\n");
 	if (sprdbat_get_vbatauxadc_caltype() != 0) {
 		/*fix me*/
