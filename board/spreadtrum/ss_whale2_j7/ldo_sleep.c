@@ -232,7 +232,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 		BIT_SLP_LDORF0_PD_EN |	/*?*/
 		//BIT_SLP_LDOEMMCCORE_PD_EN |	/*control by emmc drv*/
 		BIT_SLP_LDODCXO_PD_EN |	/*use by the dcxo 32k*/
-		//BIT_SLP_LDOWIFIPA_PD_EN |	/*control by wifi drv*/
+		BIT_SLP_LDOWIFIPA_PD_EN |	/*control by wifi drv*/
 		//BIT_SLP_LDOVDD28_PD_EN |	/*use by IO no pd*/
 		//BIT_SLP_LDOSDCORE_PD_EN |	/*control by sd drv*/
 		//BIT_SLP_LDOSDIO_PD_EN |	/*control by sd drv*/
@@ -363,8 +363,8 @@ void pmic_lowpower_config(uint32_t gen_para)
 		BIT_LDO_RF0_EXT_XTL3_EN |
 		//BIT_LDO_WIFIPA_EXT_XTL0_EN |
 		//BIT_LDO_WIFIPA_EXT_XTL1_EN |
-		//sBIT_LDO_WIFIPA_EXT_XTL2_EN |
-		BIT_LDO_WIFIPA_EXT_XTL3_EN |
+		BIT_LDO_WIFIPA_EXT_XTL2_EN |
+		//BIT_LDO_WIFIPA_EXT_XTL3_EN |
 		0
 	);
 
