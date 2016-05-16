@@ -111,13 +111,8 @@ static int Sprd_getHWRFboardID(void){
 #endif
 
 #ifdef HB_GPIO_NUM
-	#ifdef GPIO_LOW
-	gpio_val |= 0 << shift_bit;
-	printf("gpio_val2: %d\n", gpio_val);
-	#else
 	gpio_val |= gpio_state(HB_GPIO_NUM) << shift_bit;
 	printf("gpio_val2: %d\n", gpio_val);
-	#endif
 #endif
 	return gpio_val + adc_val;
 #endif

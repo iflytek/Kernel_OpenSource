@@ -332,7 +332,6 @@
 
 /*rf board id */
 #define RF_BAND_INFO
-#define GPIO_LOW
 #ifdef RF_BAND_INFO
 #define LB_GPIO_NUM   175
 #define MB_GPIO_NUM   174
