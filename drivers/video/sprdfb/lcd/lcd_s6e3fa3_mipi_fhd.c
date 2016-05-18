@@ -75,7 +75,7 @@ static LCM_Init_Code init_data[] = {
 //------------
 {LCM_SEND(5), {3,0,0xb6, 0xbc,0x04}},
 {LCM_SEND(2), {0xb5, 0x50}},
-{LCM_SEND(2), {0x53, 0xc0}},
+{LCM_SEND(2), {0x53, 0x00}},
 	
 //------------
 {LCM_SEND(5), {3,0,0xb6, 0xbc,0x04}},
