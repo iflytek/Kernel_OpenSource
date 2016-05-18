@@ -12,6 +12,7 @@
 
 /*use synopsys mphy in FPGA bringup*/
 #define USE_SNPS_MPHY_TC
+#define USE_SNPS_UFS_HC
 
 /* General Macros Used in Driver */
 #define BIT(n)                 (1L     << (n))
@@ -27,7 +28,8 @@
 #define NUM_OF_DESC            1
 #define ALIGN_SIZE             1024
 #define LOOPBACK_DEFAULT       0xb01
-#define CLK_DIV_DEFAULT        0x3e
+#define CLK_DIV_DEFAULT        0x100
+#define DISABLE_CLK_GATE     0x101B6000
 #define RETRY_CNT              2000
 #define HCE_RESET              0x1
 #define SENSE_KEY_INDEX        36
@@ -141,15 +143,46 @@ enum lu_provisioning_type {
 	PROV_ENABLE = 0x02,
 	PROV_ENABLE_WITH_TPRZ = 0x03
 };
+#if 1
+enum lu_write_protect {
+	WRITE_NO_PROTECT = 0x0,
+	WRITE_PROTECT_POWERON = 0x1,
+	WRITE_PROTECT_PERMANENT = 0x2,
+	WRITE_PROTECT_EXTENSION = 0x3
+};
 
+enum lu_data_reliability {
+	DATA_PROTECTED,
+	DATA_NO_PROTECTED
+};
+
+struct lu_specific_cfg_tbl {
+	int 			lu_index;
+	enum lu_bootable bootable;
+	uint32_t               log2blksz;
+	uint64_t               blkcnt;
+	uint16_t 		   lu_context;
+};
+
+struct lu_common_cfg_tbl {
+	enum lu_write_protect write_protect;
+	enum lu_memory_type memory_type;
+	enum lu_provisioning_type provisioning_type;
+	enum lu_data_reliability data_reliability;
+};
+#endif
 
 struct lu_info_tbl {
 	int 			lu_index;
 	enum lu_bootable bootable;
+	enum lu_write_protect write_protect;
 	enum lu_memory_type memory_type;
 	enum lu_provisioning_type provisioning_type;
+	enum lu_data_reliability data_reliability;
 	uint32_t               log2blksz;
 	uint64_t               blkcnt;
+	uint32_t		   erase_block_sz;
+	uint16_t 		   lu_context;
 };
 
 
@@ -163,7 +196,7 @@ struct ufs_driver_info {
 	uint8_t		   lu_num;
 	uint8_t		   wlu_num;
 	uint8_t		   boot_enable;
-	uint8_t		   pad_1;
+	uint8_t		   max_context;
 	uint16_t 		wSpecVersion; /* Device Specification version */
     	uint32_t 		dwc_ufs_version; /* Versions of UFSHCI specification that the controller implementation supports*/
 	uint32_t		   alloc_unit_sz;  /*in unit of 512 bytes*/
@@ -198,6 +231,7 @@ struct ufs_driver_info {
 #define DW_UFS_UICCMDARG1 0x94
 #define DW_UFS_UICCMDARG2 0x98
 #define DW_UFS_UICCMDARG3 0x9C
+#define DW_UFS_OCPTHRTL  0xC0
 #define DW_UFS_LBMCFG     0xF0
 #define DW_UFS_HCLKDIV    0xFC
 

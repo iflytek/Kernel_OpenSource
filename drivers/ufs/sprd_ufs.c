@@ -4,6 +4,7 @@
 #include "protocol_util.h"
 #include <malloc.h>
 #include <linux/io.h>
+#include <asm/arch/sprd_reg.h>
 
 struct   ufs_driver_info ufs_info;
 
@@ -44,6 +45,11 @@ int dwc_reset_hc()
 	while (retry != 0) {
 		if(1 == ufs_readl(DW_UFS_HCE)) {
 			debugf("Reset UFS host controller success\n");
+#ifdef USE_SNPS_UFS_HC
+			/* Set the CLK Divider Register */
+			ufs_writel(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
+			ufs_writel(DW_UFS_OCPTHRTL, DISABLE_CLK_GATE);
+#endif
 			return UFS_SUCCESS;
 		}
 
@@ -94,11 +100,12 @@ void set_mphy(uint32_t code, uint32_t value)
 {
 	int retry = 100;
 
+	code = (code << 16) | ((code >> 16) & 0x0000FFFF);
 	send_uic_command(UIC_SET_CMD, code, 0, value);
 
 	/*wait for the UIC Command to complete by checking UCCS field*/
 	while(retry > 0) {
-		udelay(10000);
+		udelay(1000);
 		if (ufs_readl(DW_UFS_IS) & DW_UFS_IS_UCCS)
 			break;
 		retry--;
@@ -554,6 +561,12 @@ static int read_nop_rsp()
 	tmp_ptr = ufs_info.cmd_desc->response_upiu;
 	resp_upiu = (struct dwc_ufs_nop_resp_upiu *)tmp_ptr;
 
+	/* read the OCS value */
+	if(ufs_info.utrd_desc->ocs != UFS_SUCCESS) {
+		errorf("NOP OUT No response\n");
+		return UFS_INVALID_RESPONSE;
+	}
+
 	if((resp_upiu->response != UFS_SUCCESS) || (resp_upiu->trans_type != NOP_TRANS_TYPE)) {
 		errorf("NOP OUT response fail\n");
 		return UFS_INVALID_RESPONSE;
@@ -765,6 +778,16 @@ void preconfig_utm_descriptor()
 	return;
 }
 
+void enable_ahb_ufs(void)
+{
+	uint32_t temp = 0;
+
+	temp = readl((void *)SPRD_AHB_BASE);
+	temp |= BIT(23);
+	writel(temp, (void *)SPRD_AHB_BASE);
+
+	return;
+}
 
 /****************************************************************
  *
@@ -783,6 +806,12 @@ int init_ufs_hostc()
 	int      retry1 = RETRY_CNT;
 	int      retry2 = RETRY_CNT;
 
+	enable_ahb_ufs();
+
+#ifdef USE_SNPS_MPHY_TC
+	writel(0x10, (void *)0xE43F0000);
+#endif
+
 	/* The function resets the UFS Host Controller */
 	ret = dwc_reset_hc();
 	if(ret != 0)
@@ -790,8 +819,6 @@ int init_ufs_hostc()
 
 	/* Update the DWC UFSHCI specification that the controller implementation supports*/	
 	ufs_info.dwc_ufs_version = ufs_readl(DW_UFS_VER);
-	/* Set the CLK Divider Register */
-	ufs_writel(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
 
 #ifdef DWC_UFS_LOOPBACK_MODE /* For Debug Purpose Only */
 	/* LOOP Back Configuration */
@@ -811,12 +838,8 @@ int init_ufs_hostc()
 		/* Do the HCE reset before sending next link startup command */
 		dwc_reset_hc();
 
-		/* Set the CLK Divider Register since it has been reset */
-		ufs_writel(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
-
-		setup_mphy_tc();
-
 		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_UCRDY) {
+			setup_mphy_tc();
 			debugf("Send link startup UIC command\n");
 			send_dme_link_startup();
 		} else {
@@ -836,7 +859,6 @@ int init_ufs_hostc()
 
 			retry2--;
 		}
-
 		retry1--;
 
 	}
@@ -936,30 +958,6 @@ void ufs_init()
 	ufs_update_native();
 }
 
-void update_native_lu_info(struct ufs_cfg_desc_tbl *cfg_desc)
-{
-	int lun_index = 0;
-	int id = 0;
-	uint32_t alloc_unit_num = 0;
-	uint32_t blks_per_alloc_unit = 0;
-
-	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++)	{
-		memset(&ufs_info.lu_info[lun_index], 0 ,sizeof(struct lu_info_tbl));
-		alloc_unit_num = be32_to_cpu(cfg_desc->unit_cfg[lun_index].dNumAllocUnits);
-		if (0 != alloc_unit_num) {
-			ufs_info.lu_info[id].lu_index = lun_index;
-			ufs_info.lu_info[id].log2blksz = cfg_desc->unit_cfg[lun_index].bLogicalBlockSize;
-			blks_per_alloc_unit = (ufs_info.alloc_unit_sz * SZ_512) >> ufs_info.lu_info[lun_index].log2blksz;
-			ufs_info.lu_info[id].blkcnt = alloc_unit_num * blks_per_alloc_unit;
-			ufs_info.lu_info[id].memory_type = cfg_desc->unit_cfg[lun_index].bMemoryType;
-			ufs_info.lu_info[id].bootable = cfg_desc->unit_cfg[lun_index].bBootLunID;
-			id++;
-		}
-	}
-	return;
-}
-
-
 uint32_t align_to_alloc_unit(uint64_t blk_cnt, uint32_t log2_blk_sz)
 {
 	uint32_t au_num = 0;
@@ -971,39 +969,60 @@ uint32_t align_to_alloc_unit(uint64_t blk_cnt, uint32_t log2_blk_sz)
 	return au_num;
 }
 
-int compare_cfg_lu_table(struct lu_info_tbl * new_lu_cfg)
+int compare_cfg_lu_table(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_tbl *common_cfg)
 {
 	int ret = LU_INFO_SAME;
 	uint32_t aligned_au_new = 0;
 	uint32_t aligned_au_old = 0;
 	int lun_index = 0;
+	int last_lu = 0;
 	if (0 == ufs_info.lu_num) {
 		debugf("No lu config in old table,diff\n");
 		return LU_INFO_DIFF;
 	}
 
 	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++) {
-		if (new_lu_cfg[lun_index].lu_index != ufs_info.lu_info[lun_index].lu_index
-				||new_lu_cfg[lun_index].bootable != ufs_info.lu_info[lun_index].bootable
-				||new_lu_cfg[lun_index].memory_type != ufs_info.lu_info[lun_index].memory_type
-				||new_lu_cfg[lun_index].log2blksz != ufs_info.lu_info[lun_index].log2blksz) {
-			debugf("lun_index(%d) different...\n ", lun_index);
+		if (lu_cfg[lun_index].lu_index != ufs_info.lu_info[lun_index].lu_index
+				|| lu_cfg[lun_index].bootable != ufs_info.lu_info[lun_index].bootable
+				|| lu_cfg[lun_index].log2blksz != ufs_info.lu_info[lun_index].log2blksz) {
+			debugf("lun_index(%d) different...\n ", ufs_info.lu_info[lun_index].lu_index);
 			ret = LU_INFO_DIFF;
 			break;
 		}
+
+		if (lu_cfg[lun_index].lu_context != ufs_info.lu_info[lun_index].lu_context
+				&& 0xFF != lu_cfg[lun_index].lu_context) {
+			debugf("lun_index(%d) different in lu_context...\n ", ufs_info.lu_info[lun_index].lu_index);
+			ret = LU_INFO_DIFF;
+			break;
+		}
+
 		/*meet the end of the table or this lu extend to the maximum blk*/
-		if (0 == new_lu_cfg[lun_index].blkcnt) {
-			if (UFS_MAX_LU_NUM - 1 == lun_index) {
-				debugf("All %d lu same with old one\n", UFS_MAX_LU_NUM);
-				break;
+		if (0 == lu_cfg[lun_index].blkcnt) {
+			if (UFS_MAX_LU_NUM - 1 == lun_index || 0 == ufs_info.lu_info[lun_index + 1].log2blksz) {
+				debugf("Meet the last lu(%d)\n", ufs_info.lu_info[lun_index].lu_index);
+				last_lu = 1;
 			}
-			if (0 == ufs_info.lu_info[lun_index].log2blksz || 0 == ufs_info.lu_info[lun_index + 1].log2blksz) {
+			if (0 == ufs_info.lu_info[lun_index].log2blksz) {
 				debugf("meet the table end, lu config same\n");
 				break;
 			}
 		}
-		
-		aligned_au_new = align_to_alloc_unit(new_lu_cfg[lun_index].blkcnt, new_lu_cfg[lun_index].log2blksz);
+
+		if (1 == last_lu) {
+			if (common_cfg->write_protect != ufs_info.lu_info[lun_index].write_protect
+					|| common_cfg->memory_type != ufs_info.lu_info[lun_index].memory_type
+					|| common_cfg->provisioning_type != ufs_info.lu_info[lun_index].provisioning_type
+					|| common_cfg->data_reliability != ufs_info.lu_info[lun_index].data_reliability) {
+				debugf("lun_index(%d) different in common config...\n ", ufs_info.lu_info[lun_index].lu_index);
+				ret = LU_INFO_DIFF;
+				break;
+			} else {
+				break;
+			}
+		}
+
+		aligned_au_new = align_to_alloc_unit(lu_cfg[lun_index].blkcnt, lu_cfg[lun_index].log2blksz);
 		aligned_au_old = align_to_alloc_unit(ufs_info.lu_info[lun_index].blkcnt, ufs_info.lu_info[lun_index].log2blksz);
 		if (aligned_au_new != aligned_au_old) {
 			debugf("lun_index(%d) blkcnt diff with old one\n", lun_index);
@@ -1016,7 +1035,8 @@ int compare_cfg_lu_table(struct lu_info_tbl * new_lu_cfg)
 }
 
 void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu, 
-			struct ufs_cfg_desc_tbl *default_desc, struct lu_info_tbl *new_cfg)
+			struct ufs_cfg_desc_tbl *default_desc, struct lu_specific_cfg_tbl *new_cfg,
+			struct lu_common_cfg_tbl *common_cfg)
 {
 	uint16_t data_len = 0;
 	int lu_index = 0;
@@ -1024,6 +1044,8 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 	uint32_t id = 0;
 	uint64_t assigned_au = 0;
 	struct ufs_cfg_desc_tbl *req_cfg_desc;
+	uint16_t assigned_context = 0;
+	uint16_t context = 0;
 
 	/* Command Descriptor Programming */
 	req_upiu->trans_type        = 0x16;
@@ -1070,8 +1092,22 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 		if (lu_index == new_cfg[id].lu_index) {
 			req_cfg_desc->unit_cfg[lu_index].bLUEnable = 0x01;
 			req_cfg_desc->unit_cfg[lu_index].bBootLunID = new_cfg[id].bootable;
-			req_cfg_desc->unit_cfg[lu_index].bMemoryType = new_cfg[id].memory_type;
 			req_cfg_desc->unit_cfg[lu_index].bLogicalBlockSize = new_cfg[id].log2blksz;
+
+			if (0xFF == new_cfg[id].lu_context) {
+				context = (uint16_t)ufs_info.max_context - assigned_context;
+			} else {
+				context = new_cfg[id].lu_context;
+				assigned_context += context;
+			}
+			context = cpu_to_be16(context & 0xF);
+			req_cfg_desc->unit_cfg[lu_index].wContextCapabilities = context;
+
+			req_cfg_desc->unit_cfg[lu_index].bLUWriteProtect = common_cfg->write_protect;
+			req_cfg_desc->unit_cfg[lu_index].bMemoryType = common_cfg->memory_type;
+			req_cfg_desc->unit_cfg[lu_index].bProvisioningType = common_cfg->provisioning_type;
+			req_cfg_desc->unit_cfg[lu_index].bDataReliability = common_cfg->data_reliability;
+
 			if (0 == new_cfg[id].blkcnt) {
 				au_num = (ufs_info.dev_total_cap / ufs_info.alloc_unit_sz) - assigned_au;
 				req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
@@ -1084,6 +1120,7 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 				id++;
 				assigned_au += au_num;
 			}
+
 		}
 	}
 
@@ -1091,7 +1128,8 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 }
 
 
-int set_descriptor_data(struct ufs_cfg_desc_tbl *default_desc, struct lu_info_tbl *new_cfg)
+int set_descriptor_data(struct ufs_cfg_desc_tbl *default_desc, struct lu_specific_cfg_tbl *new_cfg,
+		struct lu_common_cfg_tbl *common_cfg)
 {
 	int      ret;
 	struct   dwc_ufs_query_upiu *req_upiu;
@@ -1100,14 +1138,14 @@ int set_descriptor_data(struct ufs_cfg_desc_tbl *default_desc, struct lu_info_tb
 	tmp_ptr = ufs_info.cmd_desc->command_upiu;
 	req_upiu = (struct dwc_ufs_query_upiu *)tmp_ptr;
 
-	prepare_write_desc_upiu(req_upiu, default_desc, new_cfg);
+	prepare_write_desc_upiu(req_upiu, default_desc, new_cfg, common_cfg);
 
 	ret = write_read_descriptor(req_upiu);
 
 	return ret;
 }
 
-int verify_lu_cfg(struct lu_info_tbl *lu_cfg)
+int verify_lu_cfg(struct lu_specific_cfg_tbl *lu_cfg)
 {
 	int ret = 0;
 	int loop = 0;
@@ -1115,6 +1153,8 @@ int verify_lu_cfg(struct lu_info_tbl *lu_cfg)
 	int boota_occupied = 0;
 	int bootb_occupied = 0;
 	uint64_t assigned_size = 0;
+	uint16_t assigned_context = 0;
+	int context_exhaust = 0;
 
 	if (0 == lu_cfg[0].log2blksz)
 		return LU_INFO_ILLEGAL;
@@ -1134,8 +1174,11 @@ int verify_lu_cfg(struct lu_info_tbl *lu_cfg)
 				bootb_occupied = 1;
 		}
 		
-		if (0 == lu_cfg[loop].blkcnt)
+		if (0 == lu_cfg[loop].blkcnt) {
+			if (0xFF != lu_cfg[loop].lu_context)
+				assigned_context += lu_cfg[loop].lu_context;
 			break;
+		}
 		
 		if (loop != 0 && lu_cfg[loop].lu_index <= lu_cfg[loop-1].lu_index)
 			return LU_INFO_ILLEGAL;
@@ -1144,9 +1187,20 @@ int verify_lu_cfg(struct lu_info_tbl *lu_cfg)
 			return LU_INFO_ILLEGAL;
 		multi = (1 << lu_cfg[loop].log2blksz) / SZ_512;
 		assigned_size += lu_cfg[loop].blkcnt * multi;
+
+		if (0xFF != lu_cfg[loop].lu_context)
+			assigned_context += lu_cfg[loop].lu_context;
+		else
+			context_exhaust = 1;
+
+		if (1 == context_exhaust && 0 != lu_cfg[loop].lu_context)
+			return LU_INFO_ILLEGAL;
 	}
 
 	if (assigned_size > ufs_info.dev_total_cap)
+		return LU_INFO_ILLEGAL;
+
+	if (assigned_context > (uint16_t)ufs_info.max_context)
 		return LU_INFO_ILLEGAL;
 	
 	return 0;
@@ -1295,7 +1349,7 @@ int endpoint_reset(void)
 
 }
 
-int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
+int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_tbl *common_cfg)
 {
 	int ret = 0;
 	uint8_t val[4] = {0, 0, 0, LOCK_CONFIGURATION};
@@ -1316,7 +1370,7 @@ int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
 	/*maybe not necessary*/
 	//update_native_lu_info(cfg_desc);
 
-	ret = compare_cfg_lu_table(lu_cfg);
+	ret = compare_cfg_lu_table(lu_cfg, common_cfg);
 	if (LU_INFO_SAME == ret) {
 		debugf("UFS LU configuration table same with device, no need of reconstruction\n");
 		return UFS_SUCCESS;
@@ -1325,7 +1379,7 @@ int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
 	if (UFS_SUCCESS != check_config_desclock())
 		return UFS_CONFIG_DESC_LOCKED;
 
-	ret = set_descriptor_data(cfg_desc, lu_cfg);
+	ret = set_descriptor_data(cfg_desc, lu_cfg, common_cfg);
 	if (UFS_SUCCESS != ret) {
 		errorf("UFS set config desc fail!ret=%d\n", ret);
 		return ret;
@@ -1348,7 +1402,7 @@ int ufs_lu_reconstruct(struct lu_info_tbl *lu_cfg)
 	/*init ufs host controller and device again after lu reconstruct*/
 	ufs_init();
 
-	ret = compare_cfg_lu_table(lu_cfg);
+	ret = compare_cfg_lu_table(lu_cfg, common_cfg);
 	if (LU_INFO_SAME == ret) {
 		debugf("LU reconstruct OK!!\n");
 		return UFS_SUCCESS;
@@ -1547,6 +1601,7 @@ void ufs_update_native(void)
 	segment_size = be32_to_cpu(geo_desc->dSegmentSize);
 	ufs_info.alloc_unit_sz = geo_desc->bAllocationUnitSize * segment_size;
 	ufs_info.dev_total_cap = be64_to_cpu(geo_desc->qTotalRawDeviceCapacity);
+	ufs_info.max_context = geo_desc->bMaxContexIDNumber;
 	debugf("UFS device total cap=0x%llx,allocation unit size=0x%x\n", ufs_info.dev_total_cap, ufs_info.alloc_unit_sz);
 	
 	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++)	{
@@ -1563,6 +1618,11 @@ void ufs_update_native(void)
 			ufs_info.lu_info[id].log2blksz = unit_desc->bLogicalBlockSize;
 			ufs_info.lu_info[id].memory_type = unit_desc->bMemoryType;
 			ufs_info.lu_info[id].bootable = unit_desc->bBootLunID;
+			ufs_info.lu_info[id].write_protect = unit_desc->bLUWriteProtect;
+			ufs_info.lu_info[id].provisioning_type = unit_desc->bProvisioningType;
+			ufs_info.lu_info[id].data_reliability = unit_desc->bDataReliability;
+			ufs_info.lu_info[id].erase_block_sz = be32_to_cpu(unit_desc->dEraseBlockSize);
+			ufs_info.lu_info[id].lu_context = be16_to_cpu(unit_desc->wContextCapabilities) & 0xF;
 			id++;
 			ufs_register_blk_device(lun_index, unit_desc->bLogicalBlockSize, block_count, unit_desc->bBootLunID);
 		}

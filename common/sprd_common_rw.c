@@ -218,14 +218,18 @@ fail:
 
 #ifdef CONFIG_UFS_BOOT
 
-struct lu_info_tbl factory_lu_tbl[] = {
-	/*lu_index, bootable,               memory_type,      provisioning_type,              log2blksz,   blkcnt*/
-	{0x00,              MAIN_BOOT, 		    NORMAL_MEMORY, PROV_ENABLE_WITH_TPRZ,    0x0C,          1024},
-	{0x01,              ALTERNATE_BOOT, NORMAL_MEMORY, PROV_ENABLE_WITH_TPRZ,    0x0C,           1024},
-	{0x02,              NONE_BOOT, 	    NORMAL_MEMORY, PROV_ENABLE_WITH_TPRZ,    0x0C,           0},
-	{0	  ,              0		       ,              0				      , 0						,    0	,                 0}
+struct lu_specific_cfg_tbl factory_lu_tbl[] = {
+	/*lu_index, bootable,               log2blksz,  blkcnt,  lu_context*/
+	{0x00,              MAIN_BOOT, 		    0x0C, 		1024,    	0x0},
+	{0x01,              ALTERNATE_BOOT, 0x0C, 		1024,    	0x0},
+	{0x02,              NONE_BOOT, 	    0x0C, 		0        ,    	0xFF},
+	{0	  ,              0		       ,              0	     ,            0	 ,       0}
 };
 
+struct lu_common_cfg_tbl lu_common_tbl = {
+	/*write_protect, 		      memory_type,      provisioning_type,              data_reliability*/
+	WRITE_PROTECT_POWERON,  NORMAL_MEMORY, PROV_ENABLE_WITH_TPRZ, DATA_PROTECTED
+};
 
 
 int get_lun_by_bootable(enum lu_bootable target)
@@ -420,7 +424,7 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 	int counter = 0;
 	int ret = 0;
 
-	ret = ufs_lu_reconstruct(factory_lu_tbl);
+	ret = ufs_lu_reconstruct(factory_lu_tbl, &lu_common_tbl);
 	if (UFS_SUCCESS != ret)
 		return -1;
 
