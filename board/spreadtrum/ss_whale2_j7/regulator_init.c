@@ -5,6 +5,10 @@
 static int regulator_mode_init()
 {
 	ANA_REG_OR(ANA_REG_GLB_KPLED_CTRL, BIT_KPLED_PULLDOWN_EN);
+	/*
+	 *switch dcdc rf to PWM mode
+	 * */
+	ANA_REG_OR(ANA_REG_GLB_DCDC_RF_REG0, BIT_DCDC_RF_PFM|BIT_DCDC_RF_DCM);
 	return 0;
 }
 
