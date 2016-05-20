@@ -192,7 +192,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 	ANA_REG_SET(ANA_REG_GLB_POWER_PD_SW,
 		//BIT_LDO_DCXO_PD |
 		BIT_LDO_SRAM_PD_SW |
-		//BIT_DCDC_RF_PD |
+		BIT_DCDC_RF_PD |
 		//BIT_LDO_EMM_PD |
 		BIT_DCDC_TOPCLK6M_PD |
 		//BIT_DCDC_GEN_PD |
