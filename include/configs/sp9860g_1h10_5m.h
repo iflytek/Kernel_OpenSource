@@ -13,7 +13,6 @@
 #define CONFIG_KERNEL_BOOT_CP
 
 #define CONFIG_MEM_LAYOUT_DECOUPLING
-#define CONFIG_DECOUPLING_NO_SURPPORT_RSVMEM
 
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
@@ -285,15 +284,9 @@
 
 #define SIMLOCK_ADR      (0x891FE800+0x4)   //0x4 just for data header
 
-#ifndef  CONFIG_DUAL_DDR
 #define KERNEL_ADR      0x80080000
 #define DT_ADR          0x85400000
 #define RAMDISK_ADR     0x85500000
-#else
-#define KERNEL_ADR      0x480080000
-#define DT_ADR          0x485400000
-#define RAMDISK_ADR     0x485500000
-#endif
 
 #define VLX_TAG_ADDR    0x82000100
 
@@ -377,8 +370,5 @@
  * Cache Configuration
  */
 #define CONFIG_SYS_CACHELINE_SIZE	64
-
-/* coresight dump ETB data */
-#define CONFIG_ETB_DUMP
 
 #endif /* __TSHARK_L_H */
