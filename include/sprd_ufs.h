@@ -32,7 +32,7 @@
 #define DISABLE_CLK_GATE     0x101B6000
 #define RETRY_CNT              2000
 #define HCE_RESET              0x1
-#define SENSE_KEY_INDEX        36
+#define SENSE_KEY_INDEX        2
 #define CMD_DESC_ALIGNMENT     128
 #define ALIGNED_UPIU_SIZE      512 
 #define SCSI_TRANS_TYPE        0x21

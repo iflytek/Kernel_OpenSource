@@ -11,6 +11,9 @@
 extern int write_attribute(enum attr_id idn, uint8_t *value, uint8_t selector);
 extern int read_attribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector);
 
+extern int read_flag(enum flags_id idn, uint8_t *flags_ret);
+extern int set_flag(enum flags_id idn, uint8_t *flags_ret);
+
 
 int test_ufs_repart(int argc, char * argv[])
 {
@@ -107,6 +110,42 @@ int test_ufs_getattr(int argc, char * argv[])
 
 	val = cpu_to_be32(val);
 	debugf("read attribute value=0x%x\n", val);
+	return 0;
+}
+
+int test_ufs_setflag(int argc, char * argv[])
+{
+	int idn = 0;
+	int ret =0;
+	uint8_t flags_ret_val;
+
+	idn = (int) simple_strtoul(argv[0], NULL, 16);
+
+	ret = set_flag((enum flags_id)idn,  &flags_ret_val);
+	if (UFS_SUCCESS != ret) {
+		errorf("UFS set_flag(0x%x) fail!ret=%d\n", idn, ret);
+		return CMD_RET_FAILURE;
+	}
+	debugf("UFS set_flag(0x%x) OK\n", idn);
+	return 0;
+}
+
+int test_ufs_getflag(int argc, char * argv[])
+{
+	int idn = 0;
+	uint32_t val = 0;
+	int ret =0;
+	uint8_t flags_ret_val;
+
+	idn = (int) simple_strtoul(argv[0], NULL, 16);
+
+	ret = read_flag((enum flags_id)idn, &flags_ret_val);
+	if (UFS_SUCCESS != ret) {
+		errorf("UFS read_flag(0x%x) fail!ret=%d\n", idn, ret);
+		return CMD_RET_FAILURE;
+	}
+
+	debugf("read flag value=0x%x\n", flags_ret_val);
 	return 0;
 }
 
@@ -308,6 +347,54 @@ int test_ufs_raw_erase(int argc, char * argv[])
 	return 0;
 }
 
+int test_ufs_bufread(int argc, char * argv[])
+{
+	int ret = 0;
+	uint64_t size = 0;
+	uint64_t offset = 0;
+	char* buf = NULL;
+
+	offset = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+
+	buf = (char *)simple_strtoul(argv[2], NULL, 16);
+
+	size = (uint64_t)simple_strtoul(argv[3], NULL, 16);
+
+	debugf("read part(%s), size=0x%lx, offset=0x%lx, to buffer 0x%lx\n", argv[0], size, offset, buf);
+	ret = common_raw_read(argv[0], size, offset, buf);
+	if (-1 == ret) {
+		errorf("common_raw_read fail!\n");
+		return CMD_RET_FAILURE;
+	}
+	debugf("Buffer read OK\n");
+	return 0;
+}
+
+int test_ufs_bufwrite(int argc, char * argv[])
+{
+	int ret = 0;
+	uint64_t size = 0;
+	uint64_t offset = 0;
+	int i =0;
+	char* buf = NULL;
+
+	offset = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+
+	buf = (char *)simple_strtoul(argv[2], NULL, 16);
+
+	size = (uint64_t)simple_strtoul(argv[3], NULL, 16);
+
+	debugf("write part(%s), size=0x%lx, offset=0x%lx, from buffer 0x%lx\n", argv[0], size, offset, buf);
+	ret = common_raw_write(argv[0], size, 0, offset, buf);
+	if (-1 == ret) {
+		errorf("common_raw_write fail!\n");
+		return CMD_RET_FAILURE;
+	}
+
+	debugf("Buffer write OK\n");
+	return 0;
+}
+
 
 int do_ufs(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
@@ -337,11 +424,23 @@ int do_ufs(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	if (0 == strcmp(argv[1], "rawerase"))
 		return test_ufs_raw_erase(argc, &argv[2]);
 
+	if (0 == strcmp(argv[1], "bufread"))
+		return test_ufs_bufread(argc, &argv[2]);
+
+	if (0 == strcmp(argv[1], "bufwrite"))
+		return test_ufs_bufwrite(argc, &argv[2]);
+
 	if (0 == strcmp(argv[1], "setattr"))
 		return test_ufs_setattr(argc, &argv[2]);
 
 	if (0 == strcmp(argv[1], "getattr"))
 		return test_ufs_getattr(argc, &argv[2]);
+
+	if (0 == strcmp(argv[1], "setflag"))
+		return test_ufs_setflag(argc, &argv[2]);
+
+	if (0 == strcmp(argv[1], "getflag"))
+		return test_ufs_getflag(argc, &argv[2]);
 
 	return CMD_RET_USAGE;
 }
@@ -359,13 +458,18 @@ U_BOOT_CMD(
 	"ufs erase"
 		" - Coming soon...\n"
 	"ufs rawread [lun] [size(block)] [offset(block)]"
-		" - Directly read few blocks in a specific LU\n"
+		" - Directly read a few blocks in a specific LU\n"
 	"ufs rawwrite [lun] [size(block)] [offset(block)] [value]"
-		" - Directly fill few blocks with same value in a specific LU\n"
+		" - Directly fill a few blocks with same value in a specific LU\n"
 	"ufs rawerase"
 		" - Coming soon...\n"
+	"ufs bufread [part] [offset] [buf_addr] [buf_size]"
+		" - Read part of a partition to the specific buffer\n"
+	"ufs bufwrite [part] [offset] [buf_addr] [buf_size]"
+		" - Write to a partition with data in the specific buffer\n"
 	"ufs setattr [attr_idn] [value]"
 		" - Set a specific UFS attribute\n"
+		" - Attention! it's a dangerous action, be careful !"
 	"ufs getattr [attr_idn]"
 		" - Get a specific UFS attribute value\n"
 );

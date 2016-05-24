@@ -5,6 +5,7 @@
 #include <malloc.h>
 #include <linux/io.h>
 #include <asm/arch/sprd_reg.h>
+#include "asm/cache.h"
 
 struct   ufs_driver_info ufs_info;
 
@@ -212,6 +213,12 @@ static int check_uic_link_startup_result()
 	return ((0xFF & ufs_readl(DW_UFS_UICCMDARG2)));
 }
 
+void clear_cmd_desc(struct dwc_ufs_tcd * cmd_upiu_ptr)
+{
+	memset(cmd_upiu_ptr, 0, sizeof(struct dwc_ufs_tcd));
+	return;
+}
+
 
 /***************************************************************
  * create_nop_out_upiu
@@ -353,6 +360,7 @@ static int wait_for_cmd_completion()
 {
 	int retry = RETRY_CNT;
 
+	flush_dcache_range(0, 0);
 	/* Set the doorbell for processing the request */
 	ufs_writel(DW_UFS_UTRLDBR, BIT(0));
 
@@ -367,6 +375,13 @@ static int wait_for_cmd_completion()
 		}
 		udelay(100); /* Platform Specific Implementation */
 	}
+
+#ifdef CONFIG_X86
+	/*instruction "invd" must be excuted inline, it's strange*/
+	invd();
+#else
+	invalidate_dcache_range(0, 0);
+#endif
 
 	return UFS_SUCCESS;
 }
@@ -400,11 +415,11 @@ static int do_flag_operation(int opcode, int query_func, enum flags_id idn, uint
 
 /***************************************************************
  *
- * SetFlag
+ * set_flag
  * Description: The function invokes do_flag_operation for set flag
  *              operation
  ***************************************************************/
-int SetFlag(enum flags_id idn, uint8_t *flags_ret)
+int set_flag(enum flags_id idn, uint8_t *flags_ret)
 {
 	int ret;
 
@@ -434,7 +449,7 @@ int ToggleFlag(enum flags_id idn, uint8_t *flags_ret)
  *               flag operation
  *
  ***************************************************************/
-int ReadFlag(enum flags_id idn, uint8_t *flags_ret)
+int read_flag(enum flags_id idn, uint8_t *flags_ret)
 {
 	int ret;
 
@@ -536,8 +551,11 @@ static int handle_scsi_completion()
 		if(status == SAM_STAT_GOOD)
 			return UFS_SUCCESS;
 		/* 0x20 is added to sense key to return unique error code */
-		if(status == SAM_STAT_CHECK_CONDITION)
-			return -(0x20 + (ufs_info.cmd_desc->response_upiu[SENSE_KEY_INDEX] & 0xf));
+		if(status == SAM_STAT_CHECK_CONDITION) {
+			errorf("SCSI Command error, sense data=0x%x, see more in SPEC 10.5.4\n",
+				resp_upiu->sense_data[SENSE_KEY_INDEX]);
+			return -(0x20 + (resp_upiu->sense_data[SENSE_KEY_INDEX] & 0xf));
+		}
 	} else {
 		errorf("The OCS val returned is 0x%x",ufs_info.utrd_desc->ocs);
 		return -(ufs_info.utrd_desc->ocs);
@@ -706,7 +724,7 @@ int write_read_descriptor(void *req_upiu)
 		ufs_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
 
 	/*why use dwc_ufs_query_upiu size? there are always attached data follow the response upiu*/
-	ufs_info.utrd_desc->resp_upiu_length = ALIGNED_UPIU_SIZE;
+	ufs_info.utrd_desc->resp_upiu_length = (ALIGNED_UPIU_SIZE) >> 2;
 	ufs_info.utrd_desc->prdt_length = 0;
 
 	/*maybe not necessary*/
@@ -789,6 +807,19 @@ void enable_ahb_ufs(void)
 	return;
 }
 
+void soft_reset_aon_ufs(void)
+{
+	uint32_t temp = 0;
+	uint32_t temp1 = 0;
+
+	temp = readl((void *)REG_AON_APB_AON_UFS_CTRL);
+	temp1 = temp |( 1 << 6) | (1 << 7);
+	writel(temp1, (void *)REG_AON_APB_AON_UFS_CTRL);
+	udelay(1000);
+	writel(temp, (void *)REG_AON_APB_AON_UFS_CTRL);
+
+}
+
 /****************************************************************
  *
  * init_ufs_hostc
@@ -807,12 +838,13 @@ int init_ufs_hostc()
 	int      retry2 = RETRY_CNT;
 
 	enable_ahb_ufs();
+	soft_reset_aon_ufs();
 
 #ifdef USE_SNPS_MPHY_TC
 	writel(0x10, (void *)0xE43F0000);
 #endif
 
-	/* The function resets the UFS Host Controller */
+	/* Reset the UFS Host Controller */
 	ret = dwc_reset_hc();
 	if(ret != 0)
 		return ret;
@@ -831,22 +863,17 @@ int init_ufs_hostc()
 	 * keep sending the DME_LINKSTARTUP command until the device is detected
 	 */
 	while(retry1 > 0) {
-		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_DP) {
-			debugf("Connection been established with UFS device!\n");
-			break;
-		}
-		/* Do the HCE reset before sending next link startup command */
-		dwc_reset_hc();
-
 		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_UCRDY) {
 			setup_mphy_tc();
 			debugf("Send link startup UIC command\n");
 			send_dme_link_startup();
 		} else {
+			dwc_reset_hc();
+			retry1--;
 			continue;
 		}
 
-		udelay(20000); /* Wait for 20ms before checking the Link status */
+		udelay(10000); /* Wait for 10ms before checking the Link status */
 
 		/*wait for the UIC Command to complete by checking UCCS field*/
 		retry2 = RETRY_CNT;
@@ -856,9 +883,15 @@ int init_ufs_hostc()
 				break;
 			}
 			udelay(10000); /* Total of 10ms delay before next LINK STARTUP */
-
 			retry2--;
 		}
+
+		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_DP) {
+			debugf("Connection been established with UFS device!\n");
+			break;
+		}
+		/* Do the HCE reset before sending next link startup command */
+		dwc_reset_hc();
 		retry1--;
 
 	}
@@ -929,12 +962,12 @@ int init_ufs_device()
 	}
 
 	/* Set the Device Init Flag */
-	ret = SetFlag(FDEVICE_INIT, &flags_ret_val);
+	ret = set_flag(FDEVICE_INIT, &flags_ret_val);
 	if(ret)
 		return ret;
 	do {
 		retry--;
-		ret = ReadFlag(FDEVICE_INIT, &flags_ret_val);
+		ret = read_flag(FDEVICE_INIT, &flags_ret_val);
 		if ((ret == UFS_SUCCESS) && (flags_ret_val == 0)) {
 			debugf("fDeviceInit flag==0, UFS device init complete\n");
 			break;
@@ -1071,9 +1104,8 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 	req_upiu->tsf[4]            = 0x0;
 	req_upiu->tsf[5]            = 0x0;
 
-	/*0xFF larger than all types of desc, so the response will provide the exact desc size*/
-	req_upiu->tsf[6]            = 0x0;
-	req_upiu->tsf[7]            = 0xFF;
+	req_upiu->tsf[6]            = (uint8_t) ((sizeof(struct ufs_cfg_desc_tbl) >> 8)  & 0xFF);
+	req_upiu->tsf[7]            = (uint8_t) (sizeof(struct ufs_cfg_desc_tbl) & 0xFF);
 
 	for(id = 8; id < 15 ;id++)
 		req_upiu->tsf[id]    = 0x00;
@@ -1222,6 +1254,7 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	lbaint_t size = 0;
 
 	tmp_ptr = ufs_info.cmd_desc->command_upiu;
+	clear_cmd_desc(tmp_ptr);
 	cmd_upiu_ptr = (struct dwc_ufs_cmd_upiu *)(tmp_ptr);
 
 	if (direction == DMA_FROM_DEVICE) {
@@ -1267,7 +1300,7 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	cmd_upiu_ptr->exp_data_xfer_len = cpu_to_be32(transfer_size);
 
 	/* Update PRDT Length */ 
-	/*the caller must guarantee the transfer_size no more than max prdt capability*/
+	/*the caller must guarantee that the transfer_size no more than max prdt capability*/
 	ufs_info.utrd_desc->prdt_length = (uint16_t)((0 == transfer_size % prdt_buf_size) ?
 					(transfer_size /prdt_buf_size) : (transfer_size /prdt_buf_size + 1));
 
@@ -1290,7 +1323,7 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 			}
 		}
 	}
-
+/*
 	ptr = (uint8_t *)ufs_info.utrd_desc;
 	debugf("The byte array dump of  UTRD is\n");
 	for(i=0;(i < (sizeof(struct dwc_ufs_utrd))); i+=4)
@@ -1300,7 +1333,7 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	debugf("The byte array dump of cmd upiu is\n");
 	for(i=0;(i < (sizeof(struct dwc_ufs_cmd_upiu))); i+=4)
 		debugf("0x%x 0x%x 0x%x 0x%x\n", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
-
+*/
 	return;
 }
 
@@ -1316,6 +1349,21 @@ int send_scsi_cmd (uint32_t opcode, enum dma_data_direction direction,
 	ret = wait_for_cmd_completion();
 	return ret;
 }
+
+int test_unit_ready(struct lu_info_tbl *lu_info)
+{
+	int ret = 0;
+	int retry = 5;
+	do {
+		ret = send_scsi_cmd(UFS_OP_TEST_UNIT_READY, DMA_NONE, lu_info, NULL, 0, 0, 0);
+		if (UFS_SUCCESS == ret)
+			ret = handle_scsi_completion();
+		retry--;
+	} while (UFS_SUCCESS != ret && retry > 0);
+
+	return ret;
+}
+
 
 struct lu_info_tbl *find_lu_info(int lun)
 {
@@ -1367,8 +1415,6 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 		errorf("UFS get config desc fail!ret=%d\n", ret);
 		return ret;
 	}
-	/*maybe not necessary*/
-	//update_native_lu_info(cfg_desc);
 
 	ret = compare_cfg_lu_table(lu_cfg, common_cfg);
 	if (LU_INFO_SAME == ret) {
@@ -1383,14 +1429,21 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 	if (UFS_SUCCESS != ret) {
 		errorf("UFS set config desc fail!ret=%d\n", ret);
 		return ret;
+	} else {
+		debugf("UFS set config desc success!\n");
 	}
 
+/*Be careful to handle this attribute!!!*/
+#if 0
 	ret = write_attribute(B_CONFIG_DESC_LOCK, val, 0);
 	if (UFS_SUCCESS != ret) {
 		errorf("UFS lock config desc fail!ret=%d\n",ret);
 		return ret;
 	}
+#endif
 
+/*endpoint reset is not enough, soft reset AON UFS in init_ufs_hostc instead*/
+#if 0
 	/*TODO for option*/
 	//ret = poweron_reset();
 	ret = endpoint_reset();
@@ -1398,7 +1451,7 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 		errorf("UFS rreset device fail!ret=%d\n",ret);
 		return ret;
 	}
-
+#endif
 	/*init ufs host controller and device again after lu reconstruct*/
 	ufs_init();
 
@@ -1426,6 +1479,12 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 	if ( NULL == lu_info)
 		return 0;
 
+	ret = test_unit_ready(lu_info);
+	if (UFS_SUCCESS != ret) {
+		errorf("TEST UNIT READY fail!Can not read UFS device\n");
+		return 0;
+	}
+
 	if (0 != (ulong)dst % 4) {
 		errorf("UFS read destination addr not aligned to 4 bytes, it will harm the read efficiency!\n");
 		max_read_size = ufs_info.max_prdt_cap > SZ_1M ? SZ_1M : ufs_info.max_prdt_cap;
@@ -1450,6 +1509,7 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 			memcpy(dst, temp_buff, cur << lu_info->log2blksz);
 			dst += cur << lu_info->log2blksz;
 		} while (blocks_todo > 0);
+		free(temp_buff);
 	} else {
 		max_read_blk = ufs_info.max_prdt_cap >> lu_info->log2blksz;
 		do {
@@ -1482,7 +1542,13 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 	struct lu_info_tbl *lu_info = find_lu_info(dev_num);
 	if ( NULL == lu_info)
 		return 0;
-	
+
+	ret = test_unit_ready(lu_info);
+	if (UFS_SUCCESS != ret) {
+		errorf("TEST UNIT READY fail!Can not write UFS device\n");
+		return 0;
+	}
+
 	if (0 != (ulong)src % 4) {
 		errorf("UFS write source addr not aligned to 4 bytes, it will harm the write efficiency!\n");
 		max_write_size = ufs_info.max_prdt_cap > SZ_1M ? SZ_1M : ufs_info.max_prdt_cap;
@@ -1507,6 +1573,7 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 			start += cur;
 			src += cur << lu_info->log2blksz;
 		} while (blocks_todo > 0);
+		free(temp_buff);
 	} else {
 		max_write_blk = ufs_info.max_prdt_cap >> lu_info->log2blksz;
 		do {

@@ -33,7 +33,7 @@
 
 void get_cmnd(uint32_t opcode, lbaint_t lba, lbaint_t size, uint8_t *cmd)
 {
-	debugf("Logical blk addr 0x%llx, size 0x%llx \n",lba, size);
+	debugf("Logical blk addr 0x%lx, size 0x%lx \n",lba, size);
 	memset(cmd,0x0,16);
 	
 	switch (opcode)
