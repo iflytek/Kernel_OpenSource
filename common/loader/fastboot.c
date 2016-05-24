@@ -246,7 +246,7 @@ int _fb_write_nv_img(char * partition_name, uint64_t size)
 }
 
 
-int _fb_download_image(char *partition_name)
+int _fb_download_image(char *partition_name,ulong offset)
 {
 	int retval;
 	int i;
@@ -272,7 +272,7 @@ int _fb_download_image(char *partition_name)
 		}
 	}
 
-	sparse_header = (sparse_header_t *)ImageInfo.base_address;
+	sparse_header = (sparse_header_t *)(ImageInfo.base_address+offset);
 	if ((sparse_header->magic == SPARSE_HEADER_MAGIC) && (sparse_header->major_version == SPARSE_HEADER_MAJOR_VER)) {
 		img_format = IMG_WITH_SPARSE;
 		debugf("img_format =FB_IMG_WITH_SPARSE\n");
@@ -302,36 +302,41 @@ int _fb_download_image(char *partition_name)
 	return 1;
 }
 
-int _fb_img_write_with_backup(char *partition_name)
+OPERATE_STATUS _fb_img_write_with_backup(char *partition_name)
 {
 	uint64_t write_size = ImageInfo.data_size;
 	char *buf = ImageInfo.base_address;
 	if (0 == strcmp("splloader",  partition_name)) {
 		write_size = max(write_size, SPL_CHECKSUM_LEN);
 		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
-			return 0;
+			return OPERATE_WRITE_ERROR;
 		strcat(partition_name, "_bak");
 		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
-			return 0;
+			return OPERATE_WRITE_ERROR;
 	} else if (0 == strcmp("uboot",  partition_name)
 		|| 0 == strcmp("trustos",partition_name)
 		|| 0 == strcmp("sml",partition_name)) {
 		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
-			return 0;
+			return OPERATE_WRITE_ERROR;
 		strcat(partition_name, "_bak");
 		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
-			return 0;
+			return OPERATE_WRITE_ERROR;
+	}
+	  else {
+		return OPERATE_IGNORE;
 	}
 	debugf("cmd_flash: success!\n");
-	return 1;
+	return OPERATE_SUCCESS;
 }
 
 void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 {
 	int i;
+	OPERATE_STATUS status = 0;
 	char partition_name[PARTNAME_SZ];
 	char *partition_name_p = NULL;
 	ulong strip_header = 0;
+	ulong sec_offset=0x200;
 	static sys_img_header *bakup_header;
 
 	debugf("data = %p,ImageInfo[0].base_address = %p\n", data, ImageInfo.base_address);
@@ -368,17 +373,22 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 	bakup_header = (sys_img_header *)(ImageInfo.base_address);
 	debugf("bakup_header->mMagicNum=0x%x\n", bakup_header->mMagicNum);
 	if(bakup_header->mMagicNum == IMG_BAK_HEADER) {
-		if(!_fb_img_write_with_backup(partition_name_p)) {
+		status=_fb_img_write_with_backup(partition_name_p);
+		if(OPERATE_WRITE_ERROR==status) {
 			errorf("image write with backup error!\n");
 			return ;
 		}
-	} else {
-		if(!_fb_download_image(partition_name_p)) {
-			errorf("image write error!\n");
-			return ;
+		else if(OPERATE_IGNORE==status) {
+			if(!_fb_download_image(partition_name_p,sec_offset)) {
+				errorf("image write error!\n");
+				return ;
+			}
 		}
 	}
-
+	else if(!_fb_download_image(partition_name_p,0)) {
+		errorf("image write error!\n");
+		return ;
+	}
 	fastboot_okay("");
 }
 
