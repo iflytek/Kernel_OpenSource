@@ -137,14 +137,14 @@ dtb-$(CONFIG_MACH_SUN9I) += \
 dtb-$(CONFIG_VF610) += vf500-colibri.dtb \
 	vf610-colibri.dtb
 
-dtb-$(CONFIG_TARGET_SP9850S_1H10_5M) += sp9850s-1h10-native.dtb
-dtb-$(CONFIG_TARGET_SP9850S_2H10_5M) += sp9850s-2h10-native.dtb
-dtb-$(CONFIG_TARGET_SP9860G_1H10_5M) += sp9860g-1h10-native.dtb
-dtb-$(CONFIG_TARGET_SP9860G_1H10_3G) += sp9860g-1h10-3g.dtb
-dtb-$(CONFIG_TARGET_SP9860G_1H10_AL) += sp9860g-1h10-al.dtb
-dtb-$(CONFIG_TARGET_SP9860G_2H10_5M) += sp9860g-2h10-native.dtb
-dtb-$(CONFIG_TARGET_SS_WHALE2_J7) += ss_whale2_j7-native.dtb
-dtb-$(CONFIG_TARGET_SS_WHALE2_JIGBOARD) += ss_whale2_jigboard-native.dtb
+dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
+	sp9850s-2h10-native.dtb \
+	sp9860g-1h10-native.dtb \
+	sp9860g-1h10-3g.dtb \
+	sp9860g-1h10-al.dtb \
+	sp9860g-2h10-native.dtb \
+	ss_whale2_j7-native.dtb \
+	ss_whale2_jigboard-native.dtb
 
 targets += $(dtb-y)
 
