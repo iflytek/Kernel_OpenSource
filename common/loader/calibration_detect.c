@@ -612,21 +612,20 @@ int read_adc_calibration_data(char *buffer,int size)
 		return 0;
 
 	unsigned int adc_magic_flag = 0;
-	int phase_check_len = sizeof(SP09_PHASE_CHECK_T);
 	int adc_magic_len = sizeof(unsigned int);
-	int tmp_size = phase_check_len + adc_magic_len + sizeof(nv_buffer);
+	int tmp_size = adc_magic_len + sizeof(nv_buffer);
 	char *tmp = malloc(tmp_size);
 
 	debugf("start read miscdata adc data...\n");
-	if(common_raw_read("miscdata", (uint64_t)tmp_size, 0, tmp)) {
+	if(common_raw_read("miscdata", (uint64_t)tmp_size, ADC_DATA_START, tmp)) {
 		errorf("read miscdata adc data error.\n");
 		free(tmp);
 		return 0;
 	}
-	adc_magic_flag = *((unsigned int *)(tmp + phase_check_len));
+	adc_magic_flag = *((unsigned int *)tmp);
 	if(adc_magic_flag == ADC_MAGIC) {
 		debugf("ADC MAGIC is true!\n");
-		memcpy(nv_buffer, tmp + phase_check_len + adc_magic_len, sizeof(nv_buffer));
+		memcpy(nv_buffer, tmp + adc_magic_len, sizeof(nv_buffer));
 
 	} else {
 		debugf("ADC MAGIC is false!\nstart read prodnv /adc.bin...\n");

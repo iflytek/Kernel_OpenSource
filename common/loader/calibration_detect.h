@@ -22,6 +22,9 @@
 #define CALIBERATE_COMMAND_AUTOTEST  0x15
 #define CALIBERATE_COMMAND_PROGRAMKEY 0x17
 #define ADC_MAGIC      (0x4144434D)//ADCM, header flag of adc data
+#define MISCDATA_BASE  (0)
+#define ADC_DATA_OFFSET  (512 * 1024)
+#define ADC_DATA_START  (MISCDATA_BASE + ADC_DATA_OFFSET)
 
 extern int dwc_otg_driver_init(void);
 extern void dwc_otg_driver_cleanup(void);
