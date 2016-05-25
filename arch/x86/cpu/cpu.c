@@ -419,6 +419,7 @@ int dcache_status(void)
 /* Define these functions to allow ehch-hcd to function */
 void flush_dcache_range(unsigned long start, unsigned long stop)
 {
+	asm volatile ("wbinvd" : : : "memory");
 }
 
 void invalidate_dcache_range(unsigned long start, unsigned long stop)

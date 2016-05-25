@@ -1,5 +1,4 @@
 #include <common.h>
-#include <linux/sizes.h>
 #include <sprd_ufs.h>
 #include "protocol_util.h"
 #include <malloc.h>
@@ -373,7 +372,7 @@ static int wait_for_cmd_completion()
 			debugf("DoorBell Not Cleared and Timed Out\n");
 			return UFS_TIMEOUT;
 		}
-		udelay(100); /* Platform Specific Implementation */
+		udelay(10000); /* Platform Specific Implementation */
 	}
 
 #ifdef CONFIG_X86
@@ -557,7 +556,7 @@ static int handle_scsi_completion()
 			return -(0x20 + (resp_upiu->sense_data[SENSE_KEY_INDEX] & 0xf));
 		}
 	} else {
-		errorf("The OCS val returned is 0x%x",ufs_info.utrd_desc->ocs);
+		errorf("Returned OCS value is 0x%x\n",ufs_info.utrd_desc->ocs);
 		return -(ufs_info.utrd_desc->ocs);
 	}
 
@@ -836,9 +835,16 @@ int init_ufs_hostc()
 	int      ret    = 0;
 	int      retry1 = RETRY_CNT;
 	int      retry2 = RETRY_CNT;
+	uint32_t temp = 0;
 
 	enable_ahb_ufs();
 	soft_reset_aon_ufs();
+
+#ifdef UFS_INTEL_MPHY_TC
+	temp = readl((void *)0xE43031D8);
+	temp = temp |( 1 << 6) | (1 << 7);
+	writel(temp, (void *)0xE43031D8);
+#endif
 
 #ifdef USE_SNPS_MPHY_TC
 	writel(0x10, (void *)0xE43F0000);

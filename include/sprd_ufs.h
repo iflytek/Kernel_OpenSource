@@ -1,6 +1,7 @@
 #ifndef _SPRD_UFS_H
 #define _SPRD_UFS_H
 
+#include <linux/sizes.h>
 
 /* UFS DEVICE Spec Versions */
 #define UFS_DEVICE_SPEC_1_1	0x0110
@@ -10,8 +11,10 @@
 #define DWC_UFS_HC_VERSION_1_1 0x00010100
 #define DWC_UFS_HC_VERSION_2_0 0x00000200
 
-/*use synopsys mphy in FPGA bringup*/
-#define USE_SNPS_MPHY_TC
+/*two M-phy used in FPGA, select one*/
+//#define USE_SNPS_MPHY_TC
+#define UFS_INTEL_MPHY_TC
+
 #define USE_SNPS_UFS_HC
 
 /* General Macros Used in Driver */
@@ -22,7 +25,7 @@
 #define UIC_ENDPOINT_RESET_CMD   0x15
 #define UIC_LINK_STARTUP_CMD   0x16
 #define MAX_PRDT_ENTRIES       128
-#define PRDT_BUFFER_SIZE       4096
+#define PRDT_BUFFER_SIZE       SZ_256K
 #define TOTAL_PRDT_CAP		((MAX_PRDT_ENTRIES) * (PRDT_BUFFER_SIZE))
 #define LOGICAL_BLK_SIZE       4096 
 #define NUM_OF_DESC            1
@@ -40,7 +43,6 @@
 #define UNIT_DESCS_COUNT       8
 #define RPMB_DATA_SIZE         256
 #define RPMB_FRAME_SIZE        512
-#define PHI 0x9e3779b9
 #define CAPCITY_ADJ_FACTOR 1
 
 

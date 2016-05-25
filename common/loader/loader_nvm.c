@@ -590,7 +590,7 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	int ret = -1;
 	uchar *dt_end_addr;
 	uchar *ramdisk_adr;
-	uint32_t auto_mem_num;
+	uint32_t auto_mem_num = 0;
 
 	size = sizeof(struct dt_table);
 	if (0 != common_raw_read(partition, size, boot_img_offset.dt_offset, &table)) {
