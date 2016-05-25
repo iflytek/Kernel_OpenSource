@@ -105,22 +105,64 @@ void scx35_pmu_reconfig(void)
 void scx35_pmu_reconfig(void) {}
 #endif
 
-static void sprd_get_chipid(void)
+#define KLT8	0x6B4C5438
+#define KL	0x6B4C0000
+#define SHAR	0x53686172
+#define E2	0x65320000
+#define WHAL	0x5768616C
+
+int sprd_get_chipid(int *chip_id, int *version_id)
 {
-	unsigned int chip_id0 = 0, chip_id1 = 0, i = 0;
-	char *p;
-	char chip_id_buf[9];
+
+	unsigned int chip_id0 = 0, chip_id1 = 0;
+	int ch_id;
+	int ver_id;
+
 	chip_id0 = __raw_readl((void *)REG_AON_APB_AON_CHIP_ID0);
 	chip_id1 = __raw_readl((void *)REG_AON_APB_AON_CHIP_ID1);
-	p = (char *)&chip_id1;
-	for(i = 0; i < 4; i++)
-		chip_id_buf[i] = *(p+3-i);
-	p = (char *)&chip_id0;
-	for(i = 0; i < 4; i++)
-		chip_id_buf[i+4] = *(p+3-i);
-	chip_id_buf[8] = 0;
 
-	debugf("chip id = %s, VID = 0x%x\n",chip_id_buf, __raw_readl((void *)REG_AON_APB_AON_VER_ID));
+	switch (chip_id1) {
+	case SHAR:
+		switch (chip_id0) {
+		case KL:
+			ch_id = 0x9830;
+			break;
+		case KLT8:
+			ch_id = 0x9838;
+			break;
+		default:
+			ch_id = 0;
+			break;
+		}
+		break;
+
+	case WHAL:
+		switch (chip_id0) {
+		case E2:
+			ch_id = 0x9850;
+			break;
+		default:
+			ch_id = 0;
+			break;
+		}
+		break;
+
+	default:
+		ch_id = 0;
+		break;
+	}
+
+	ver_id = __raw_readl((void *)REG_AON_APB_AON_VER_ID);
+
+	if (!chip_id || !version_id) {
+		debugf("chip id = 0x%x, VID = 0x%x\n",ch_id, ver_id);
+		return 0;
+	}
+
+	*chip_id = ch_id;
+	*version_id = ver_id;
+
+	return 0;
 }
 
 void misc_init()
@@ -138,7 +180,7 @@ void misc_init()
 
 	pmic_misc_init();
 
-	sprd_get_chipid();
+	sprd_get_chipid(NULL, NULL);
 	sprd_uid_bin_info();
 }
 
