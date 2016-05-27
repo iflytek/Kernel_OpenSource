@@ -47,7 +47,6 @@ int uboot_verify_img(uint64_t start_addr, uint64_t lenth){
   param.a2 = start_addr;
   param.a3 = lenth;
 
-  flush_dcache_all_area();
   //2、调用SMC
   tee_smc_call64(&param);
 
@@ -84,7 +83,6 @@ int uboot_program_efuse(uint64_t start_addr, uint64_t lenth){
   param.a2 = start_addr;
   param.a3 = lenth;
   printf("a0=%x,a1=%x,a2=%x,a3=%x\n",param.a0,param.a1,param.a2,param.a3);
-  flush_dcache_all_area();
   tee_smc_call64(&param);
 
   ret = param.a0;
@@ -108,7 +106,7 @@ int uboot_get_socid(uint64_t start_addr, uint64_t lenth){
   param.a1 = funcid;
   param.a2 = start_addr;
   param.a3 = lenth;
-  flush_dcache_all_area();
+
   tee_smc_call64(&param);
 
   ret = param.a0;
@@ -121,16 +119,16 @@ int uboot_update_swVersion(uint64_t start_addr, uint64_t lenth){
   uint32_t ret;
   uint32_t smcid;
   uint32_t funcid;
-  struct smc_param64 param;
 
   smcid  = TEESMC64_SIPCALL_WITH_ARG;
   funcid = FUNCTYPE_UPDATE_VERSION;
 
+  struct smc_param64 param;
   param.a0 = smcid;
   param.a1 = funcid;
   param.a2 = start_addr;
   param.a3 = lenth;
-  flush_dcache_all_area();
+
   tee_smc_call64(&param);
 
   ret = param.a0;
@@ -152,7 +150,7 @@ int uboot_sansa_get_lcs(uint32_t *p_lcs){
    param.a0 = smcid;
    param.a1 = funcid;
    printf("a0=%x,a1=%x\n",param.a0,param.a1);
-   flush_dcache_all_area();
+
    tee_smc_call64(&param);
 
    ret = param.a0;
@@ -177,7 +175,7 @@ int uboot_sansa_set_rma(uint32_t *p_rmaret){
    param.a0 = smcid;
    param.a1 = funcid;
    printf("a0=%x,a1=%x\n",param.a0,param.a1);
-   flush_dcache_all_area();
+
    tee_smc_call64(&param);
 
    ret = param.a0;
@@ -204,7 +202,6 @@ int uboot_kce_program(uint64_t start_addr, uint64_t lenth){
   param.a2 = start_addr;
   param.a3 = lenth;
   printf("a0=%x,a1=%x,a2=%x,a3=%x\n",param.a0,param.a1,param.a2,param.a3);
-  flush_dcache_all_area();
   tee_smc_call64(&param);
 
   ret = param.a0;
