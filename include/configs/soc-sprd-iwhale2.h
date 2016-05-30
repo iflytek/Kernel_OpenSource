@@ -29,32 +29,42 @@
 #define CHIP_ENDIAN_LITTLE
 #define _LITTLE_ENDIAN 1
 
-#define CONFIG_ARCH_SCX35L
 
-/*eMMC config*/
-#define CONFIG_MMC
-#define CONFIG_MMC_SDMA
-#define CONFIG_EMMC_VERSION_V40
 
-/*eMMC boot*/
 #define CONFIG_EMMC_BOOT
-#define CONFIG_GENERIC_MMC
-#define CONFIG_EMMC_RST_N_FUNCTION
+#define CONFIG_ARCH_SCX35L
+#define CONFIG_EMMC_VERSION_V40
+#define CONFIG_SUPPORT_EMMC_BOOT
 
-/*UFS boot
-#define CONFIG_UFS
-#define CONFIG_UFS_BOOT
-*/
+#ifdef  CONFIG_EMMC_BOOT
+#define EMMC_SECTOR_SIZE 512
 
-/*file system config*/
-#define CONFIG_FAT_WRITE
 #define CONFIG_FS_EXT4
+#define CONFIG_EXT4_WRITE
 #define CONFIG_CMD_EXT4
-#define CONFIG_CMD_FAT
+#define CONFIG_CMD_EXT4_WRITE
 
-/*partition type*/
-#define CONFIG_DOS_PARTITION
-#define CONFIG_EFI_PARTITION	
+
+#define CONFIG_UEFI_PARTITION
+#define CONFIG_EXT4_SPARSE_DOWNLOAD
+#endif
+
+/*
+ * MMC definition
+ */
+#define CONFIG_CMD_FAT			1
+#define CONFIG_FAT_WRITE		1
+#define CONFIG_MMC			1
+#define CONFIG_GENERIC_MMC		1
+#define CONFIG_SDHCI			1
+#define CONFIG_SDHCI_CTRL_NO_HISPD 	1 /* disable high speed control */
+#define CONFIG_SYS_MMC_MAX_BLK_COUNT	0x1000
+#define CONFIG_MMC_SDMA			1
+#define CONFIG_MV_SDHCI			1
+#define CONFIG_DOS_PARTITION		1
+#define CONFIG_EFI_PARTITION		1
+#define CONFIG_SYS_MMC_NUM		1
+
 
 
 #define CONFIG_SYS_HZ			1000
@@ -171,6 +181,9 @@
 
 #define PHYS_OFFSET_ADDR			0x80000000
 
+
+
+#define CONFIG_PBINT_7S_RESET_V1
 /*7S reset config*/
 #define CONFIG_7S_RST_MODULE_EN		1	
 
@@ -183,15 +196,15 @@
 #define CONFIG_7S_RST_2KEY_MODE		0	
 #define CONFIG_7S_RST_THRESHOLD		7	
 
- /*SMPL config*/
-/*#define CONFIG_SMPL_EN*/
-#define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
+
 
 #define VLX_TAG_ADDR    0x82000100
+/* SPRD VP DEBUG ANDROID     */
+#define CONFIG_VP_DEBUG
 #define DT_ADR 	    0x15400000
 #define RAMDISK_ADR 0X15500000
 #define KERNEL_ADR  0x10080000
-#define BOOTIMG_ADR 0X7D000000
+#define BOOTIMG_ADR 0X1D000000
 
 
 
@@ -202,6 +215,11 @@
 #define CONFIG_PREBOOT "role"
 #define CONFIG_BOARD_LATE_INIT
 
+#define CONFIG_ARM32
+#define CONFIG_ARCH_SHARK
+#define CONFIG_PREBOOT "role"
+#define CONFIG_BOARD_LATE_INIT
+/**#define CONFIG_SEPARATE_DT*/
 
 /* Chip Driver Macro Definitions Start*/
 /*sprd adc*/

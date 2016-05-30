@@ -31,6 +31,10 @@
 #endif
 extern int lcd_line_length;
 
+#ifdef CONFIG_TARGET_IWHALE2_FPGA
+extern uint64_t ramdisk_size;
+#endif
+
 extern int fdt_fixup_memory_region(void *fdt, int *auto_mem_num_p);
 extern int get_dt_end_addr(void *fdt, uchar **addr);
 
@@ -571,7 +575,9 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 		errorf("ramdisk image size should not be zero\n");
 		return 0;
 	}
-
+#ifdef CONFIG_TARGET_IWHALE2_FPGA
+	ramdisk_size = size;
+#endif
 	/* dt image */
 	boot_img_offset.dt_offset = boot_img_offset.ramdisk_offset + size;
 	return 1;

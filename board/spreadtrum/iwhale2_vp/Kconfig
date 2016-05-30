@@ -12,8 +12,13 @@ config SYS_SOC
 config SYS_CONFIG_NAME
 	default "iwhale2_vp"
 
+if TARGET_IWHALE2_FPGA
 config SYS_TEXT_BASE
 	default 0x7f000000
+endif
+
+config SYS_TEXT_BASE
+	default 0x1f000000
 
 config BOARD_SPECIFIC_OPTIONS # dummy
 	def_bool y

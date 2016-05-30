@@ -11,6 +11,8 @@
 #define CONFIG_LMB
 #define CONFIG_OF_LIBFDT
 
+#define CONFIG_NO_RELOCATION
+
 /* no need to uncompress kernel right now */
 #undef CONFIG_LZO
 #undef CONFIG_ZLIB
@@ -20,9 +22,16 @@
 
 #define CONFIG_SYS_MAX_FLASH_SECT  512
 
+#ifdef CONFIG_IWHALE2_DDR4G
+#define CONFIG_NR_DRAM_BANKS	4
+#define PHYS_SDRAM_1_SIZE	0x40000000
+#elif defined(CONFIG_TARGET_IWHALE2_FPGA_SIN)
+#define CONFIG_NR_DRAM_BANKS	1
+#define PHYS_SDRAM_1_SIZE	0x40000000
+#else
 #define CONFIG_NR_DRAM_BANKS	1
 #define PHYS_SDRAM_1_SIZE	0x80000000
-
+#endif
 /*-----------------------------------------------------------------------
  * Environment configuration
  */
@@ -61,12 +70,20 @@
 
 /* commands */
 #define CONFIG_CMD_ZBOOT
-
+#ifdef CONFIG_TARGET_IWHALE2_FPGA
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_BOOTDELAY	2
+#else
+#define CONFIG_BAUDRATE		921600
+#endif
 
+#define CONFIG_BOOTDELAY	0
+
+#ifdef CONFIG_TARGET_IWHALE2_FPGA
 #define CONFIG_BOOTARGS		"earlycon console=ttyS0,115200n8"
-#define CONFIG_BOOTCOMMAND	"zboot 00100000"
+#else
+#define CONFIG_BOOTARGS		"earlycon console=ttyS0,921600n8"
+#endif
+#define CONFIG_BOOTCOMMAND   "zboot 10080000 800000 15500000 800000"
 
 /* SPRD Serial Configuration */
 #define CONFIG_SPRD_UART
@@ -74,5 +91,7 @@
 #define CONFIG_SPRD_UART_PORTS		{ (void *)(CONFIG_SYS_SERIAL0),(void *)(CONFIG_SYS_SERIAL1) }
 #define CONFIG_SYS_SERIAL0		0xe7000000
 #define CONFIG_SYS_SERIAL1		0xe7100000
+
+#define CONFIG_EXTRA_ENV_SETTINGS "setup_dtb_addr=0x00080000"
 
 #endif /* __CONFIG_H */

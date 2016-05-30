@@ -792,7 +792,9 @@ init_fnc_t init_sequence_r[] = {
 	initr_onenand,
 #endif
 #ifdef CONFIG_GENERIC_MMC
+#ifdef CONFIG_TARGET_IWHALE2_FPGA
 	initr_mmc,
+#endif
 #endif
 #ifdef CONFIG_UFS
 	initr_ufs,

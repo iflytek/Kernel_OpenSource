@@ -238,28 +238,26 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 	int bootproto = get_boot_protocol(hdr);
 	setup_base->e820_entries = install_e820_map(
 		ARRAY_SIZE(setup_base->e820_map), setup_base->e820_map);
-#ifdef CONFIG_VP_DEBUG
-	uint32_t dt_img_adr = DT_ADR;
-	if(load_dtb((uint64_t) DT_ADR,dt_img_adr))
-	{
-		printf("\nWARNING:load dtb from bootimg failed!\n");
-	}
-	else
-	{
-		struct setup_data *sd;
-		u8 *fdt_blob =(u8*)DT_ADR;
-		sd = (void *)DEFAULT_SETUP_DTB_ADDR;
-		sd->next = 0;
-		sd->type = SETUP_DTB;
-		sd->len = fdt_totalsize(fdt_blob);
-		memcpy(sd->data, (const void *)DT_ADR, sd->len);
-		/* we assume this is the only one setup_data entry */
-		hdr->setup_data = (__u32)sd;
+	void *fdt_blob;
 
+#ifndef CONFIG_TARGET_IWHALE2_FPGA
+	uint32_t dt_img_adr = DT_ADR;
+	if(load_dtb((uint64_t) DT_ADR, dt_img_adr) < 0) {
+		printf("\nWARNING:load dtb from bootimg failed!\n");
+		if (fdt_check_header(DT_ADR) < 0)
+			fdt_blob = gd->fdt_blob;
+		else
+			fdt_blob = DT_ADR;
+	} else {
+		fdt_blob = (void *)DT_ADR;
 	}
 #else
+	fdt_blob = (u8 *)DT_ADR;
+#endif
+	printf("Selected fdt_blob address 0x%x\n", fdt_blob);
+
 	/* if FDT then pass it to the kernel setup header */
-	if (gd->fdt_blob) {
+	if (fdt_blob) {
 		struct setup_data *sd;
 		/* use setup_dtb_addr if defined */
 		sd = (void *)(getenv_ulong("setup_dtb_addr", 16, 0UL) ? :
@@ -267,12 +265,11 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 
 		sd->next = 0;
 		sd->type = SETUP_DTB;
-		sd->len = fdt_totalsize(gd->fdt_blob);
-		memcpy(sd->data, gd->fdt_blob, sd->len);
+		sd->len = fdt_totalsize(fdt_blob);
+		memcpy(sd->data, fdt_blob, sd->len);
 		/* we assume this is the only one setup_data entry */
 		hdr->setup_data = (__u32)sd;
 	}
-#endif
 
 	if (gd->arch.hardware_subarch)
 		hdr->hardware_subarch = gd->arch.hardware_subarch;
@@ -363,16 +360,19 @@ int do_zboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 #ifdef CONFIG_VP_DEBUG
 	boot_hdr = malloc(512*4);
 	memcpy((void *)boot_hdr,(const void *)BOOTIMG_ADR,512*4);
-	bzImage_size = (boot_hdr->kernel_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
-	initrd_size = (boot_hdr->ramdisk_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
-	dtb_size = (boot_hdr->dt_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
-	memcpy((void *)KERNEL_ADR,(const void *)BOOTIMG_ADR+512*4,bzImage_size);
-	memcpy((void *)RAMDISK_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size,initrd_size);
-	memcpy((void *)DT_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size+initrd_size,dtb_size);
+	if (!memcmp(boot_hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
+		bzImage_size = (boot_hdr->kernel_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+		initrd_size = (boot_hdr->ramdisk_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+		dtb_size = (boot_hdr->dt_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+		memcpy((void *)KERNEL_ADR,(const void *)BOOTIMG_ADR+512*4,bzImage_size);
+		memcpy((void *)RAMDISK_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size,initrd_size);
+		memcpy((void *)DT_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size+initrd_size,dtb_size);
 
-	debugf("\nthe kernel is loading in the address:%x,size is %d\n",KERNEL_ADR,bzImage_size);
-	debugf("\nthe ramdisk is loading in the address:%x,size is %d\n",RAMDISK_ADR,initrd_size);
-	debugf("\nthe dtb is loading in the address:%x,size is %d\n",DT_ADR,dtb_size);
+		debugf("\nthe kernel is loading in the address:%x,size is %d\n",KERNEL_ADR,bzImage_size);
+		debugf("\nthe ramdisk is loading in the address:%x,size is %d\n",RAMDISK_ADR,initrd_size);
+		debugf("\nthe dtb is loading in the address:%x,size is %d\n",DT_ADR,dtb_size);
+	}
+	free(boot_hdr);
 #endif
 	/* Lets look for */
 	base_ptr = load_zimage(bzImage_addr, bzImage_size, &load_address);

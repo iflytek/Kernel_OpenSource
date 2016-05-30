@@ -4,7 +4,7 @@
 
 .globl car_init
 
-#define SRAM_START 0xFFFB0000
+#define SRAM_START 0xE6000000
 
 #define IA32_MTRRCAP 0x00FE
 #define IA32_MTRR_DEF_TYPE 0x02FF
@@ -69,24 +69,85 @@ no_address_info:
 	incl	%esi
 
 
-/* Variable Range MTRR #1: xxxx0000-xxxxFFFF, WP (SRAM) */
-
+/* Variable Range MTRR #1: xxxx0000-xxx3FFFF, WP (SRAM) */
+/*the usb download was affected because of this,disable temporarily*/
+#if 0
 	movl	$0, %edx
 	movl	$(SRAM_START | 0x0005), %eax
 	wrmsr
 	incl	%ecx
 
 	movl	%ebx, %edx
-	movl	$0xFFFF0800, %eax
+	movl	$0xFFFC0800, %eax
+	wrmsr
+	incl	%ecx
+
+	incl	%esi
+#endif
+/* Variable Range MTRR #2: 00000000-3FFFFFFF, WB */
+
+	movl	$0, %edx
+	movl	$0x00000006, %eax
+	wrmsr
+	incl	%ecx
+
+	movl	%ebx, %edx
+	movl	$0xc0000800, %eax
 	wrmsr
 	incl	%ecx
 
 	incl	%esi
 
-/* Variable Range MTRR #2: 00000000-7FFFFFFF, WB */
+#ifdef CONFIG_IWHALE2_DDR4G
+   #ifdef CONFIG_IWHALE2_DDR4G_INTERLEAVE
+
+        /* Variable Range MTRR #3: 1 4000 0000-1 7FFF FFFF, WB ,bottom 1GB of non interleave area on pub1*/
+
+        movl    $0x00000001, %edx
+        movl    $0x40000006, %eax
+        wrmsr
+        incl    %ecx
+
+        movl    %ebx, %edx
+        movl    $0x80000800, %eax
+        wrmsr
+        incl    %ecx
+
+        incl    %esi
+
+        /* Variable Range MTRR #4: 2 C000 0000-2 FFFF FFFF, WB for interleave aera top 2GB*/
+
+        movl    $0x00000002, %edx
+        movl    $0xC0000006, %eax
+        wrmsr
+        incl    %ecx
+
+        movl    %ebx, %edx
+        movl    $0xC0000800, %eax
+        wrmsr
+        incl    %ecx
+
+        incl    %esi
+
+        /* Variable Range MTRR #5: 3 0000 0000-3 3FFF FFFF, WB for interleve aera top 2GB*/
+
+        movl    $0x00000003, %edx
+        movl    $0x00000006, %eax
+        wrmsr
+        incl    %ecx
+
+        movl    %ebx, %edx
+        movl    $0xC0000800, %eax
+        wrmsr
+        incl    %ecx
+
+        incl    %esi
+    #else /*CONFIG_IWHALE2_DDR4G_INTERLEAVE*/
+
+    /* Variable Range MTRR #3: 40000000-7FFFFFFF, WB ,top 1GB of pub0*/
 
 	movl	$0, %edx
-	movl	$0x00000006, %eax
+	movl	$0x40000006, %eax
 	wrmsr
 	incl	%ecx
 
@@ -96,6 +157,51 @@ no_address_info:
 	incl	%ecx
 
 	incl	%esi
+
+        /* Variable Range MTRR #4: 1 4000 0000-1 7FFF FFFF, WB ,bottom 1GB of pub1*/
+
+        movl    $0x00000001, %edx
+        movl    $0x40000006, %eax
+        wrmsr
+        incl    %ecx
+
+        movl    %ebx, %edx
+        movl    $0x80000800, %eax
+        wrmsr
+        incl    %ecx
+
+        incl    %esi
+
+        /* Variable Range MTRR #3: 1 8000 0000-1 BFFF FFFF, WB .top 1GB of pub1*/
+
+        movl    $0x00000001, %edx
+        movl    $0x80000006, %eax
+        wrmsr
+        incl    %ecx
+
+        movl    %ebx, %edx
+        movl    $0xC0000800, %eax
+        wrmsr
+        incl    %ecx
+
+        incl    %esi
+
+    #endif /*CONFIG_IWHALE2_DDR4G_INTERLEAVE*/
+#else /*CONFIG_IWHALE2_DDR4G*/
+/* Variable Range MTRR #3: 40000000-7FFFFFFF, WB */
+
+	movl	$0, %edx
+	movl	$0x40000006, %eax
+	wrmsr
+	incl	%ecx
+
+	movl	%ebx, %edx
+	movl	$0x80000800, %eax
+	wrmsr
+	incl	%ecx
+
+	incl	%esi
+#endif /*CONFIG_IWHALE2_DDR4G*/
 
 /* disable the rest of Variable Range MTRR */
 

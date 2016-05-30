@@ -664,6 +664,9 @@ static int reloc_fdt(void)
 
 static int setup_reloc(void)
 {
+#ifdef CONFIG_NO_RELOCATION
+    gd->relocaddr = CONFIG_SYS_TEXT_BASE;
+#endif
 #ifdef CONFIG_SYS_TEXT_BASE
 	gd->reloc_off = gd->relocaddr - CONFIG_SYS_TEXT_BASE;
 #ifdef CONFIG_M68K

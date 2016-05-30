@@ -192,6 +192,11 @@ config MARK_GRAPHICS_MEM_WRCOMB
 	  memory is set as write-combining cache type. This option
 	  enables marking the graphics memory as write-combining.
 
+config MOBILEVISOR
+	bool "Mobilevisor support for image verification"
+	help
+	  Select this option to add this for image verification.
+
 config HAVE_FSP
 	bool "Add an Firmware Support Package binary"
 	help
@@ -251,6 +256,39 @@ config SMP
 	  obtained using the 'cpu' command. If this option is disabled, then
 	  only one CPU will be enabled regardless of the number of CPUs
 	  available.
+
+config TARGET_IWHALE2_FPGA
+    bool "switch for fpga board"
+    default n
+    help
+      use for fpga board
+
+config TARGET_IWHALE2_FPGA_SIN
+    bool "switch for fpga ddr single channel board"
+    depends on TARGET_FPGA
+    default n
+    help
+      use for fpga board
+
+config TARGET_IWHALE2_FPGA_DOU
+    bool "switch for fpga ddr double channel board"
+    depends on TARGET_FPGA
+    default n
+    help
+      use for fpga board
+
+config IWHALE2_DDR4G
+    bool "with ddr4g board"
+    default n
+    help
+      use for ddr4g board
+
+config IWHALE2_DDR4G_INTERLEAVE
+    bool "with ddr4g_interleave board"
+    depends on DDR4G
+    default n
+    help
+      use for ddr4g_interleave board
 
 config AP_STACK_SIZE
 	hex

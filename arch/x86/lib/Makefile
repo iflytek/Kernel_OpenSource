@@ -32,6 +32,7 @@ obj-y	+= tables.o
 obj-$(CONFIG_SYS_X86_TSC_TIMER)	+= tsc_timer.o
 obj-$(CONFIG_CMD_ZBOOT)	+= zimage.o
 obj-$(CONFIG_HAVE_FSP) += fsp/
+obj-$(CONFIG_MOBILEVISOR) += mv/
 
 extra-$(CONFIG_USE_PRIVATE_LIBGCC) := lib.a
 

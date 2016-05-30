@@ -7,7 +7,8 @@ dtb-y += chromebook_link.dtb \
 	qemu-x86_q35.dtb \
 	isharkl.dtb \
 	iwhale2.dtb \
-	iwhale2_vmm.dtb
+	iwhale2_vmm.dtb \
+	iwhale2_vmm_fpga.dtb
 
 targets += $(dtb-y)
 
