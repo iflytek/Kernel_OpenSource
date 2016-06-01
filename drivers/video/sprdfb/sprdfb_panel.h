@@ -273,6 +273,7 @@ struct panel_spec {
 	uint16_t direction;
 	uint16_t is_need_reset;
 	uint16_t is_need_dsc;
+	uint16_t non_continue_clk_en;
 	union {
 		struct info_mcu *mcu;
 		struct info_rgb *rgb;

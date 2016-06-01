@@ -228,6 +228,7 @@ struct panel_spec lcd_s6e3fa3_mipi_spec = {
 	.type = LCD_MODE_DSI,
 	.direction = LCD_DIRECT_NORMAL,
 	.is_need_reset = 1,
+	.non_continue_clk_en = 1,
 	.info = {
 		.mipi = &lcd_s6e3fa3_mipi_info
 	},

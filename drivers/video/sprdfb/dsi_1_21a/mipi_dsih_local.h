@@ -241,6 +241,9 @@ typedef struct dsih_ctrl_t
 	int color_mode_polarity;
 	/** Describe the shut down pin (dpishutdn) whether it is active high or low - REQUIRED */
 	int shut_down_polarity;
+	/** Enable non coninuous clock for energy saving
+	 * - Clock lane will go to LS while not transmitting video */
+	int non_continuous_clock;
 	/** initialised or not */
 	dsih_state_t status;
 	/** Register read access function handle - REQUIRED */
@@ -279,9 +282,6 @@ typedef struct
 	/** Maximum number of byte clock cycles needed by the PHY to transition
 	 * the clock lane from low power to high speed - REQUIRED */
 	uint8_t max_clk_lp_to_hs_cycles;
-	/** Enable non coninuous clock for energy saving
-	 * - Clock lane will go to LS while not transmitting video */
-	int non_continuous_clock;
 	/** Enable receiving of ack packets */
 	int 	 receive_ack_packets;
 	/** Byte (lane) clock [KHz] */

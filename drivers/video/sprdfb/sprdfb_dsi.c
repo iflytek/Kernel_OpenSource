@@ -230,6 +230,7 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 	dsi_instance->address = DSI_CTL_BEGIN;
 	dsi_instance->color_mode_polarity =mipi->color_mode_pol;
 	dsi_instance->shut_down_polarity = mipi->shut_down_pol;
+	dsi_instance->non_continuous_clock = dev->panel->non_continue_clk_en;
 	dsi_instance->core_read_function = dsi_core_read_function;
 	dsi_instance->core_write_function = dsi_core_write_function;
 	dsi_instance->log_error = dsi_log_error;
@@ -242,19 +243,6 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 	#endif
 	dsi_instance->max_lanes = mipi->lan_number;
 
-	if(SPRDFB_MIPI_MODE_CMD == mipi->work_mode){
-		dsi_edpi_init();
-	}/*else{
-		dsi_dpi_init(dev->panel);
-	}*/
-
-/*
-	result = mipi_dsih_unregister_all_events(dsi_instance);
-	if(OK != result){
-		FB_PRINT("sprdfb: [%s]: mipi_dsih_unregister_all_events fail (%d)!\n", __FUNCTION__, result);
-		return -1;
-	}
-*/
 #ifdef CONFIG_DSIH_VERSION_1P21A
 	dsi_core_write_function(DSI_CTL_BEGIN,  R_DSI_HOST_INT_MSK0, 0x1fffff);
 	dsi_core_write_function(DSI_CTL_BEGIN,  R_DSI_HOST_INT_MSK1, 0x3ffff);
@@ -287,6 +275,7 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 	}
 
 	if(SPRDFB_MIPI_MODE_CMD == mipi->work_mode){
+		dsi_edpi_init();
 		dsi_edpi_setbuswidth(mipi);
 	}
 
@@ -317,10 +306,6 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 	if(SPRDFB_MIPI_MODE_VIDEO == mipi->work_mode){
 		dsi_dpi_init(dev);
 	}
-
-#ifdef CONFIG_DSIH_VERSION_1P21A
-	mipi_dsih_dphy_enable_nc_clk(&(dsi_instance->phy_instance), 0);
-#endif
 
 	return 0;
 }
