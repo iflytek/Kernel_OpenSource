@@ -372,7 +372,33 @@ static int wait_for_cmd_completion()
 			debugf("DoorBell Not Cleared and Timed Out\n");
 			return UFS_TIMEOUT;
 		}
-		udelay(10000); /* Platform Specific Implementation */
+		udelay(5000); /* Platform Specific Implementation */
+	}
+
+#ifdef CONFIG_X86
+	/*instruction "invd" must be excuted inline, it's strange*/
+	invd();
+#else
+	invalidate_dcache_range(0, 0);
+#endif
+
+	return UFS_SUCCESS;
+}
+
+static int wait_for_previous_scsi_completion()
+{
+	int retry = RETRY_CNT;
+
+	/* Wait for the DoorBell to clear */
+	while(1) {
+		if((ufs_readl(DW_UFS_UTRLDBR) & BIT(0)) == 0)
+			break;
+		retry--;
+		if(retry == 0) {
+			debugf("DoorBell Not Cleared and Timed Out\n");
+			return UFS_TIMEOUT;
+		}
+		udelay( 5000); /* Platform Specific Implementation */
 	}
 
 #ifdef CONFIG_X86
@@ -535,15 +561,6 @@ static int handle_scsi_completion()
 	tmp_ptr = ufs_info.cmd_desc->response_upiu;
 	resp_upiu = (struct dwc_ufs_xfer_resp_upiu *)tmp_ptr;
 
-#ifdef UFS_DEBUG_MODE
-	int i;
-	uint8_t *ptr;
-	ptr = ufs_info.cmd_desc->response_upiu;
-	printf("\n\n The SCSI Command Response is");
-	for(i=0;(i < (sizeof(struct dwc_ufs_xfer_resp_upiu))); i+=4)
-		printf("\n0x%x 0x%x 0x%x 0x%x",ptr[i],ptr[i+1],ptr[i+2],ptr[i+3]);
-#endif
-
 	/* read the OCS value */
 	if(ufs_info.utrd_desc->ocs == UFS_SUCCESS) {
 		status = resp_upiu->status;
@@ -647,21 +664,6 @@ int check_config_desclock()
 	return UFS_SUCCESS;
 }
 
-/***************************************************************
- *
- * SetConfigDescLock 
- * Description: The function programs the config lock attribute
- *              sets the Permanant Write Protect or/and the PowerOn
- *              Write Protect Flags if requested in the input args
- *
- ****************************************************************/
-int SetConfigDescLock(void)
-{
-	int      ret;
-	uint8_t  desc_lock_val[4] = {0x00,0x00,0x00,0x01};
-	ret = write_attribute(B_CONFIG_DESC_LOCK, desc_lock_val, 0);
-	return ret;
-}
 
 void prepare_read_desc_upiu(struct dwc_ufs_query_upiu *req_upiu, uint8_t idn, uint8_t index)
 {
@@ -726,25 +728,15 @@ int write_read_descriptor(void *req_upiu)
 	ufs_info.utrd_desc->resp_upiu_length = (ALIGNED_UPIU_SIZE) >> 2;
 	ufs_info.utrd_desc->prdt_length = 0;
 
-	/*maybe not necessary*/
-	//create_desc_upiu(req_upiu);
-
 	ret = wait_for_cmd_completion();
 	if(ret != UFS_SUCCESS)
 		return ret;
 
 	ptr = ufs_info.cmd_desc->response_upiu;
 
-	/*
-	debugf("\n\n The data segment of length %ld is",ALIGNED_UPIU_SIZE - sizeof(struct dwc_ufs_query_upiu));
-	for(i=32; i < ALIGNED_UPIU_SIZE; i = i+4)
-		debugf("\n %x %x %x %x",ptr[i],ptr[1+i],ptr[i+2],ptr[i+3]);
-	*/
 	ret = handle_query_response(NULL);
 	return ret;
 }
-
-
 
 
 int get_descriptor_data(void ** desc_ptr, uint8_t idn, uint8_t index)
@@ -1258,6 +1250,8 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	uint32_t transfer_size = 0;
 	uint8_t  *ptr = NULL;
 	lbaint_t size = 0;
+	ulong list_len = 0;
+	struct unmap_para_list *um_list = NULL;
 
 	tmp_ptr = ufs_info.cmd_desc->command_upiu;
 	clear_cmd_desc(tmp_ptr);
@@ -1291,28 +1285,43 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	cmd_upiu_ptr->reserved_1[2]     = 0x0;
 	cmd_upiu_ptr->tot_ehs_len       = 0x0;
 	cmd_upiu_ptr->reserved_2        = 0x0;
-	cmd_upiu_ptr->data_seg_len      = 0x0;
+	if (UFS_OP_UNMAP == opcode)
+		cmd_upiu_ptr->data_seg_len = sizeof(struct unmap_para_list);
+	else
+		cmd_upiu_ptr->data_seg_len = 0x0;
 
 	if (opcode == UFS_OP_SECURITY_PROTOCOL_IN || opcode == UFS_OP_SECURITY_PROTOCOL_OUT) {
 		/*TODO, for RPMB, size in unit of byte*/
 		size = blkcnt << lu_info->log2blksz;
 		get_cmnd(opcode, 0, size, cmd_upiu_ptr->cdb);
 		prdt_buf_size = RPMB_FRAME_SIZE;
+	} else if (UFS_OP_UNMAP == opcode) {
+		list_len = sizeof(struct unmap_para_list);
+		get_cmnd(opcode, 0, list_len, cmd_upiu_ptr->cdb);
+		/*TODO, future extension, consider the "MAXIMUM UNMAP BLOCK DESCRIPTOR COUNT" and
+		"MAXIMUM UNMAP LBA COUNT" field in VPD page*/
+		um_list = (struct unmap_para_list *)((uchar *)cmd_upiu_ptr + sizeof(struct dwc_ufs_cmd_upiu));
+		um_list->um_data_len = sizeof(struct unmap_para_list) - 2;
+		um_list->um_block_desc_len = sizeof(struct um_block_descriptor);
+		if (8 == sizeof(lbaint_t))
+			um_list->ub_desc.um_block_addr = cpu_to_be64(start);
+		else
+			um_list->ub_desc.um_block_addr = (uint64_t)cpu_to_be32(start);
+		um_list->ub_desc.um_block_sz = cpu_to_be32((uint32_t)blkcnt);
 	} else {
 		get_cmnd(opcode, start, blkcnt, cmd_upiu_ptr->cdb);
 	}
 
-	transfer_size = blkcnt << lu_info->log2blksz;
-	cmd_upiu_ptr->exp_data_xfer_len = cpu_to_be32(transfer_size);
-
-	/* Update PRDT Length */ 
-	/*the caller must guarantee that the transfer_size no more than max prdt capability*/
-	ufs_info.utrd_desc->prdt_length = (uint16_t)((0 == transfer_size % prdt_buf_size) ?
-					(transfer_size /prdt_buf_size) : (transfer_size /prdt_buf_size + 1));
-
-
-	/* Fill PRD Table Info */
 	if (direction != DMA_NONE) {
+		transfer_size = blkcnt << lu_info->log2blksz;
+		cmd_upiu_ptr->exp_data_xfer_len = cpu_to_be32(transfer_size);
+
+		/* Update PRDT Length */
+		/*the caller must guarantee that the transfer_size no more than max prdt capability*/
+		ufs_info.utrd_desc->prdt_length = (uint16_t)((0 == transfer_size % prdt_buf_size) ?
+						(transfer_size /prdt_buf_size) : (transfer_size /prdt_buf_size + 1));
+
+		/* Fill PRD Table Info */
 		for (i = 0; transfer_size > 0; i++) {
 			ufs_info.cmd_desc->prdt_table[i].base_addr
 				 = LOWER_32_BITS((ulong)(buf_addr + i * prdt_buf_size));
@@ -1328,18 +1337,11 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 				transfer_size = 0;
 			}
 		}
+	} else {
+		cmd_upiu_ptr->exp_data_xfer_len = 0;
+		ufs_info.utrd_desc->prdt_length = 0;
 	}
-/*
-	ptr = (uint8_t *)ufs_info.utrd_desc;
-	debugf("The byte array dump of  UTRD is\n");
-	for(i=0;(i < (sizeof(struct dwc_ufs_utrd))); i+=4)
-		debugf("0x%x 0x%x 0x%x 0x%x\n", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
 
-	ptr = (uint8_t *)ufs_info.cmd_desc->command_upiu;
-	debugf("The byte array dump of cmd upiu is\n");
-	for(i=0;(i < (sizeof(struct dwc_ufs_cmd_upiu))); i+=4)
-		debugf("0x%x 0x%x 0x%x 0x%x\n", ptr[i], ptr[i+1], ptr[i+2], ptr[i+3]);
-*/
 	return;
 }
 
@@ -1355,6 +1357,22 @@ int send_scsi_cmd (uint32_t opcode, enum dma_data_direction direction,
 	ret = wait_for_cmd_completion();
 	return ret;
 }
+
+int send_scsi_cmd_backstage(uint32_t opcode, enum dma_data_direction direction,
+						struct lu_info_tbl *lu_info, void *buf_addr,
+						lbaint_t start, lbaint_t blkcnt, uint8_t cmd_set_type)
+{
+	int ret;
+
+	create_cmd_upiu(opcode, direction, lu_info, buf_addr, start, blkcnt, cmd_set_type);
+
+	flush_dcache_range(0, 0);
+	/* Set the doorbell for processing the request */
+	ufs_writel(DW_UFS_UTRLDBR, BIT(0));
+
+	return UFS_SUCCESS;
+}
+
 
 int test_unit_ready(struct lu_info_tbl *lu_info)
 {
@@ -1601,23 +1619,83 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 	return blkcnt;
 }
 
-/*TODO*/
+
 static ulong ufs_erase(int dev_num, lbaint_t start, lbaint_t blkcnt)
 {
 	int ret;
-	lbaint_t blocks_todo = blkcnt;
-	lbaint_t cur = blkcnt;
+	struct lu_info_tbl *lu_info = find_lu_info(dev_num);
+	if ( NULL == lu_info)
+		return 0;
+
+	ret = test_unit_ready(lu_info);
+	if (UFS_SUCCESS != ret) {
+		errorf("TEST UNIT READY fail!Can not erase UFS device\n");
+		return 0;
+	}
+
+	if (start % lu_info->erase_block_sz != 0 || blkcnt % lu_info->erase_block_sz != 0)
+		debugf("UFS erase area not aligned to dEraseBlockSize, \
+		it will harm the erase efficiency, see more in 12.2.3\n");
+
+	debugf("erase lun(%d), start(0x%lx), erase_block(0x%lx)\n", lu_info->lu_index, start, blkcnt);
+	ret = send_scsi_cmd(UFS_OP_UNMAP, DMA_TO_DEVICE, lu_info, NULL, start, blkcnt, 0);
+	if (UFS_SUCCESS == ret)
+		ret = handle_scsi_completion();
+	if (ret != UFS_SUCCESS)
+		return 0;
+
+	return blkcnt;
+}
+
+ulong ufs_write_backstage(int dev_num, lbaint_t start, lbaint_t blkcnt, const void *src)
+{
+	int ret;
+	static int tested = 0;
 	lbaint_t max_write_blk = 0;
 
 	struct lu_info_tbl *lu_info = find_lu_info(dev_num);
 	if ( NULL == lu_info)
 		return 0;
 
+	max_write_blk = ufs_info.max_prdt_cap >> lu_info->log2blksz;
+	if (blkcnt > max_write_blk) {
+		errorf("Backstage write block count(0x%lx) can not over the max PRDT capacity(0x%lx)\n",
+			blkcnt, max_write_blk);
+		return 0;
+	}
 
+	/*test unit ready only once in backstage write*/
+	if (0 == tested) {
+		ret = test_unit_ready(lu_info);
+		if (UFS_SUCCESS != ret) {
+			errorf("TEST UNIT READY fail!Can not write UFS device\n");
+			return 0;
+		}
+		tested++;
+	}
+
+	/* Send Write 10 Command and don't wait for its completion*/
+	debugf("backstage write lun(%d), start(0x%lx), write_block(0x%lx)\n", lu_info->lu_index, start, blkcnt);
+	ret = send_scsi_cmd_backstage(UFS_OP_WRITE_10, DMA_TO_DEVICE, lu_info, src, start, blkcnt, 0);
+	if (ret != UFS_SUCCESS)
+		return 0;
 
 	return blkcnt;
-
 }
+
+ulong ufs_query_backstage(lbaint_t blkcnt)
+{
+	int ret = 0;
+	ret = wait_for_previous_scsi_completion();
+	if (UFS_SUCCESS == ret)
+		ret = handle_scsi_completion();
+	if (ret != UFS_SUCCESS) {
+		return 0;
+	}
+
+	return blkcnt;
+}
+
 
 void ufs_register_blk_device(int lun_index, uint32_t log2_blk_sz, uint64_t blk_count, enum lu_bootable type)
 {

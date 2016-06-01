@@ -368,7 +368,7 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 
 }
 
-/*TODO*/
+
 int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 {
 	int dev_id = 0;
@@ -376,17 +376,48 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 	disk_partition_t part_info;
 	block_dev_desc_t *dev_desc;
 	uint64_t total_part_size = 0;
-	/*TODO, if size=0, erase whole partition, if part_name=erase_all, erase whole flash*/
+	ulong ret = 0;
+	int type = NONE_BOOT;
+	if (0 == strcmp(part_name, "erase_all")) {
+		debugf("erase all the flash\n");
+		for (type = NONE_BOOT; type <= ALTERNATE_BOOT; type++) {
+			dev_id = get_lun_by_bootable(type);
+			if (-1 == dev_id)
+				return -1;
+			dev_desc = get_dev("ufs", dev_id);
+			if (NULL == dev_desc)
+				return -1;
+			ret = dev_desc->block_erase(dev_desc->dev, 0, dev_desc->lba);
+			if (ret != dev_desc->lba)
+				return -1;
+		}
+		return 0;
+	}
+
 	if (0 == strcmp(part_name, "splloader")) {
 		dev_id = get_lun_by_bootable(MAIN_BOOT);
-	} else if (0 == strcmp(part_name, "uboot")) {
+	} else if (0 == strcmp(part_name, "splloader_bak")) {
 		dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
+	} else if (0 == strcmp(part_name, "uboot")) {
+		dev_id = get_user_lun(&part_info, part_name);
+		if (-1 == dev_id) {
+			dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
+		} else {
+			part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
+			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
+			if (size + offset > total_part_size) {
+				errorf("uboot erase size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
+				return -1;
+			}
+		}
 	} else {
 		dev_id = get_user_lun(&part_info, part_name);
-		part_start = part_info.start;
+		part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-		if (size + offset > total_part_size)
+		if (size + offset > total_part_size) {
+			errorf("erase size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
 			return -1;
+		}
 	}
 
 	if (-1 == dev_id)
@@ -396,26 +427,62 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 	if (NULL == dev_desc)
 		return -1;
 
-	offset += (uint64_t)part_start * dev_desc->blksz;
+	if (0 == size)
+		size = total_part_size;
 
-	/*TODO*/
+	offset += (uint64_t)part_start;
+
 	return block_dev_erase(dev_desc, size, offset);
 
 }
 
-/*TODO*/
-int common_write_Backstage(char *part_name, uint32_t size, uint32_t offset, char *buf)
+int common_write_backstage(char *part_name, uint32_t size, uint32_t offset, char *buf)
 {
+	static int dev_id = 0;
+	lbaint_t start = 0;
+	lbaint_t blk_num = 0;
+	uint64_t total_part_size = 0;
+	block_dev_desc_t *dev_desc = NULL;
+	int ret = 0;
+	if (0 != strcmp(part_name, local_part_info.name))
+		dev_id = get_user_lun(&local_part_info, part_name);
+
+	/*invoker must guarantee that the size and offset aligned to the block size*/
+	if (0 != size % local_part_info.blksz || 0 != offset % local_part_info.blksz) {
+		errorf("input size or offset not aligned, size(0x%x), offset(0x%x)\n", size, offset);
+		return -1;
+	}
+
+	if (0 != (ulong)buf % 4) {
+		errorf("input buffer must aligned to 4! buffer(0x%lx)\n", (ulong)buf);
+		return -1;
+	}
+
+	blk_num = size / local_part_info.blksz;
+	start = local_part_info.start + (offset / local_part_info.blksz);
+	if (blk_num + start > local_part_info.size + local_part_info.start) {
+		errorf("backstage write size overflow the total partition size\n");
+		return -1;
+	}
+
+	/*only none boot lun support backstage write*/
+	if (blk_num != ufs_write_backstage(dev_id, start, blk_num, buf))
+		return -1;
+
 	return 0;
 }
 
-/*TODO*/
-int common_query_backstage(char *part_name, uint64_t size, char *buf)
+int common_query_backstage(char *part_name, uint32_t size, char *buf)
 {
+	lbaint_t blk_num = 0;
+	if (0 != strcmp(part_name, local_part_info.name))
+		return -1;
+	blk_num = size / local_part_info.blksz;
+	if (blk_num != ufs_query_backstage(blk_num))
+		return -1;
+
 	return 0;
 }
-
-
 
 int common_repartition(disk_partition_t *partitions, int parts_count)
 {
@@ -465,10 +532,51 @@ int32_t common_get_lba_size(void)
 	return -1;
 }
 
-/*TODO*/
 int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
 {
+#ifdef CONFIG_FS_EXT4
+	static int dev_id = 0;
+	disk_partition_t info;
+	block_dev_desc_t *dev_desc;
+	loff_t len_read = 0;
+
+	dev_id = get_user_lun(&info, mpart);
+
+	dev_desc = get_dev("ufs", dev_id);
+	if (NULL == dev_desc) {
+		errorf("ext4_read_content get dev error\n");
+		return -1;
+	}
+
+	/* set the device as block device */
+	ext4fs_set_blk_dev(dev_desc, &info);
+
+	/* mount the filesystem */
+	if (!ext4fs_mount(info.size)) {
+		errorf("Bad ext4 partition:%s\n",  mpart);
+		ext4fs_close();
+		return -1;
+	}
+
+	/* start read */
+	if (ext4_read_file(filenm, buf, 0, len, &len_read) == -1) {
+		errorf("** Error ext4_read_file() **\n");
+		ext4fs_close();
+		return -1;
+	}
+	debugf("read %s ok, len : 0x%llx", filenm, len_read);
+	ext4fs_close();
 	return 0;
+#else
+	return -1;
+#endif
+
+}
+
+int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
+{
+	/*do not write in uboot now*/
+	return -1;
 }
 
 
@@ -603,7 +711,6 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 		return 0;
 	}
 
-	/*TODO, if size=0, erase whole partition, if part_name=erase_all, erase whole flash*/
 	if (0 == strcmp(part_name, "splloader")) {
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
 		total_part_size = Emmc_GetCapacity(PARTITION_BOOT1);
@@ -644,7 +751,7 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 
 }
 
-int common_write_Backstage(char *part_name, uint32_t size, uint32_t offset, char *buf)
+int common_write_backstage(char *part_name, uint32_t size, uint32_t offset, char *buf)
 {
 	uint32_t start = 0;
 	uint32_t blk_num = 0;
@@ -658,7 +765,7 @@ int common_write_Backstage(char *part_name, uint32_t size, uint32_t offset, char
 
 	/*invoker must guarantee that the size and offset aligned to the block size*/
 	if (0 != size % local_part_info.blksz || 0 != offset % local_part_info.blksz) {
-		errorf("input size or offset in not aligned, size(0x%x), offset(0x%x)\n", size, offset);
+		errorf("input size or offset not aligned, size(0x%x), offset(0x%x)\n", size, offset);
 		ret = -1;
 	}
 
@@ -680,7 +787,7 @@ int common_write_Backstage(char *part_name, uint32_t size, uint32_t offset, char
 }
 
 
-int common_query_backstage(char *part_name, uint64_t size, char *buf)
+int common_query_backstage(char *part_name, uint32_t size, char *buf)
 {
 	uint32_t blk_num = 0;
 	if (0 != strcmp(part_name, local_part_info.name))
@@ -769,23 +876,8 @@ int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
 	debugf("read %s ok, len : 0x%llx", filenm, len_read);
 	ext4fs_close();
 	return 0;
-#elif defined(CONFIG_FS_UBIFS)
-	int ret=-1;
-	static int is_ubifs_init = 0;
-	if(is_ubifs_init == 0){
-		ubifs_init();
-		is_ubifs_init = 1;
-	}
-
-	ret = ubifs_mount(mpart);
-	if(ret){
-		errorf("do_fs_file_read:mount %s failed!\n",mpart);
-		return ret;
-	}
-	ret = ubifs_load(filenm, buf, len);
-	if(ret)
-		errorf("do_fs_file_read:file %s not found!\n", filenm);
-	return ret;
+#else
+	return -1;
 #endif
 }
 

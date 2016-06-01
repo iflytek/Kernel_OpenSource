@@ -701,5 +701,21 @@ struct ufs_cfg_desc_tbl {
 	struct ufs_unit_cfg_tbl	unit_cfg[UFS_MAX_LU_NUM];
 } __attribute__ ((packed));
 
+struct um_block_descriptor {
+	uint64_t um_block_addr;
+	uint32_t um_block_sz;
+	uint32_t   reserve;
+} __attribute__ ((packed));
+
+
+struct unmap_para_list {
+	uint16_t um_data_len;
+	uint16_t um_block_desc_len;
+	uint32_t   reserve;
+	/*support only one block descriptor*/
+	struct um_block_descriptor ub_desc;
+} __attribute__ ((packed));
+
+
 
 #endif

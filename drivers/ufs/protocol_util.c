@@ -102,6 +102,20 @@ void get_cmnd(uint32_t opcode, lbaint_t lba, lbaint_t size, uint8_t *cmd)
 			cmd[11] = 0x00;
 			break;
 
+		case UFS_OP_UNMAP:
+			cmd[0] = UFS_OP_UNMAP;
+			cmd[1] = 0;
+			cmd[2] = 0;
+			cmd[3] = 0;
+			cmd[4] = 0;
+			cmd[5] = 0;
+			cmd[6] = 0;
+			/*use size as parameter list length*/
+			cmd[7] = (uint8_t)((size >> 8) & 0xff);
+			cmd[8] = (uint8_t)((size) & 0xff);
+			cmd[9] = 0;
+			break;
+
 		default:
 			break;
 	}

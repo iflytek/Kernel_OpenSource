@@ -215,7 +215,7 @@ int test_ufs_write(int argc, char * argv[])
 	value = (int)simple_strtoul(argv[3], NULL, 16);
 	memset(buf, value, size);
 
-	debugf("write part(%s), size=0x%x, offset=0x%x, value=0x%x\n", argv[0], size, offset, value);
+	debugf("write part(%s), size=0x%llx, offset=0x%llx, value=0x%x\n", argv[0], size, offset, value);
 	ret = common_raw_write(argv[0], size, 0, offset, buf);
 	if (-1 == ret) {
 		errorf("common_raw_write fail!\n");
@@ -232,9 +232,21 @@ fail:
 
 }
 
-/*TODO*/
 int test_ufs_erase(int argc, char * argv[])
 {
+	int ret = 0;
+	uint64_t size = 0;
+	uint64_t offset = 0;
+
+	size = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+	offset = (uint64_t)simple_strtoul(argv[2], NULL, 16);
+
+	debugf("erase part(%s), size=0x%llx, offset=0x%llx\n", argv[0], size, offset);
+	ret = common_raw_erase(argv[0], size, offset);
+	if (-1 == ret) {
+		errorf("common_raw_erase fail!\n");
+		return CMD_RET_FAILURE;
+	}
 	return 0;
 }
 
@@ -306,7 +318,7 @@ int test_ufs_raw_write(int argc, char * argv[])
 		return CMD_RET_FAILURE;
 	}
 
-	id = (uint64_t) simple_strtoul(argv[0], NULL, 16);
+	id = (int) simple_strtoul(argv[0], NULL, 16);
 
 	dev_desc = get_dev("ufs", id);
 	if (NULL == dev_desc)
@@ -340,11 +352,30 @@ fail:
 
 }
 
-
-/*TODO*/
 int test_ufs_raw_erase(int argc, char * argv[])
 {
+	int ret = 0;
+	uint64_t size = 0;
+	uint64_t offset = 0;
+	int id = 0;
+	block_dev_desc_t *dev_desc;
+
+	id = (int) simple_strtoul(argv[0], NULL, 16);
+	dev_desc = get_dev("ufs", id);
+	if (NULL == dev_desc)
+		return CMD_RET_FAILURE;
+
+	size = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+	offset = (uint64_t)simple_strtoul(argv[2], NULL, 16);
+
+	debugf("erase part(%s), size=0x%llx, offset=0x%llx\n", argv[0], size, offset);
+	ret = dev_desc->block_erase(dev_desc->dev, offset, size);
+	if (size != ret) {
+		errorf("common_raw_erase fail!\n");
+		return CMD_RET_FAILURE;
+	}
 	return 0;
+
 }
 
 int test_ufs_bufread(int argc, char * argv[])
@@ -395,6 +426,40 @@ int test_ufs_bufwrite(int argc, char * argv[])
 	return 0;
 }
 
+int test_ufs_backwrite(int argc, char * argv[])
+{
+	int ret = 0;
+	uint64_t size = 0;
+	uint64_t offset = 0;
+	int i =0;
+	char* buf = NULL;
+	int wait = 0;
+
+	offset = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+	buf = (char *)simple_strtoul(argv[2], NULL, 16);
+	size = (uint64_t)simple_strtoul(argv[3], NULL, 16);
+	wait = (int)simple_strtoul(argv[4], NULL, 16);
+
+	debugf("backstage write part(%s), size=0x%lx, offset=0x%lx, from buffer 0x%lx\n", argv[0], size, offset, buf);
+	ret = common_write_backstage(argv[0], size, offset, buf);
+	if (-1 == ret) {
+		errorf("common_write_backstage fail!\n");
+		return CMD_RET_FAILURE;
+	}
+
+	if (0 != wait)
+		mdelay(wait);
+
+	ret = common_query_backstage(argv[0], size, buf);
+	if (-1 == ret) {
+		errorf("common_query_backstage fail!\n");
+		return CMD_RET_FAILURE;
+	}
+
+	debugf("Backstage write OK\n");
+	return 0;
+}
+
 
 int do_ufs(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
@@ -430,6 +495,9 @@ int do_ufs(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	if (0 == strcmp(argv[1], "bufwrite"))
 		return test_ufs_bufwrite(argc, &argv[2]);
 
+	if (0 == strcmp(argv[1], "backwrite"))
+		return test_ufs_backwrite(argc, &argv[2]);
+
 	if (0 == strcmp(argv[1], "setattr"))
 		return test_ufs_setattr(argc, &argv[2]);
 
@@ -455,18 +523,21 @@ U_BOOT_CMD(
 		" - Read content in a specific partition\n"
 	"ufs write  [part] [size(byte)] [offset(byte)] [value]"
 		" - Fill a specific part in a partition with same value\n"
-	"ufs erase"
-		" - Coming soon...\n"
+	"ufs erase [part] [size(byte)] [offset(byte)]"
+		" - erase a part of a partition, size=0 means erase whole partition,\
+		part=erase_all means erase the whole flash\n"
 	"ufs rawread [lun] [size(block)] [offset(block)]"
 		" - Directly read a few blocks in a specific LU\n"
 	"ufs rawwrite [lun] [size(block)] [offset(block)] [value]"
 		" - Directly fill a few blocks with same value in a specific LU\n"
-	"ufs rawerase"
-		" - Coming soon...\n"
+	"ufs rawerase [lun] [size(block)] [offset(block)]"
+		" - Directly erase a few blocks in a specific LU\n"
 	"ufs bufread [part] [offset] [buf_addr] [buf_size]"
 		" - Read part of a partition to the specific buffer\n"
 	"ufs bufwrite [part] [offset] [buf_addr] [buf_size]"
 		" - Write to a partition with data in the specific buffer\n"
+	"ufs backwrite [part] [offset] [buf_addr] [buf_size] [mdelay]"
+		" - Write to a partition with data in the specific buffer in backstage way\n"
 	"ufs setattr [attr_idn] [value]"
 		" - Set a specific UFS attribute\n"
 		" - Attention! it's a dangerous action, be careful !"

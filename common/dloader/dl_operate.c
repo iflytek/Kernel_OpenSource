@@ -382,7 +382,7 @@ int speedup_download_process(uint16_t size, char *buf)
 				return OPERATE_WRITE_ERROR;
 			}
 
-		if (0 != common_write_Backstage(g_dl_eMMCStatus.curUserPartitionName,
+		if (0 != common_write_backstage(g_dl_eMMCStatus.curUserPartitionName,
 			tot_buf_size, g_dl_eMMCStatus.offset, current_buffer->addr)) {
 			errorf("write backstage fail, offset=0x%x\n", g_dl_eMMCStatus.offset);
 			return OPERATE_WRITE_ERROR;
