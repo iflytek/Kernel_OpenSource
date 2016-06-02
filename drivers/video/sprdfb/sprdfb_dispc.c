@@ -165,8 +165,8 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 
 #endif
 	}else
- #endif	
-	reg_val = ( dev->panel->width & 0xfff) ;	
+ #endif
+	reg_val = ( dev->panel->width & 0xfff) ;
 	dispc_write(reg_val, DISPC_OSD_PITCH);
 
 	/*OSD base address*/
@@ -197,7 +197,7 @@ static void dispc_update_clock(struct sprdfb_device *dev)
 	FB_PRINT("sprdfb:[%s]\n", __FUNCTION__);
 
 	if(0 == panel->fps){
-		printf("sprdfb: No panel->fps specified!\n");
+		debugf("sprdfb: No panel->fps specified!\n");
 		return;
 	}
 
@@ -209,7 +209,7 @@ static void dispc_update_clock(struct sprdfb_device *dev)
 			hpixels = panel->width + rgb->timing->hsync + rgb->timing->hbp + rgb->timing->hfp;
 			vlines = panel->height + rgb->timing->vsync + rgb->timing->vbp + rgb->timing->vfp;
 		}else{
-			printf("sprdfb:[%s] unexpected panel type!(%d)\n", __FUNCTION__, dev->panel->type);
+			errorf("sprdfb:[%s] unexpected panel type!(%d)\n", __FUNCTION__, dev->panel->type);
 			return;
 		}
 
@@ -219,14 +219,14 @@ static void dispc_update_clock(struct sprdfb_device *dev)
 			dividor += 1;
 		}
 		if((dividor<1) || (dividor > 0x100)){
-			printf("sprdfb:[%s]: Invliad dividor(%d)!Not update dpi clock!\n", __FUNCTION__, dividor);
+			errorf("sprdfb:[%s]: Invliad dividor(%d)!Not update dpi clock!\n", __FUNCTION__, dividor);
 			return;
 		}
 
 		dev->dpi_clock = SPRDFB_DPI_CLOCK_SRC / dividor;
 		dispc_dpi_clk_set(DISPC_DPI_SEL_DEFAULT, (dividor-1));
 
-		printf("sprdfb:[%s] need_clock = %d, dividor = %d, dpi_clock = %d\n", __FUNCTION__, need_clock, dividor, dev->dpi_clock);
+		debugf("sprdfb:[%s] need_clock = %d, dividor = %d, dpi_clock = %d\n", __FUNCTION__, need_clock, dividor, dev->dpi_clock);
 	}
 	dispc_print_clk();
 
@@ -265,13 +265,13 @@ static void gsp_iommu_workaround(void)
 
 	emc_en_cfg = __raw_readl(DISPC_EMC_EN);
 	gsp_en_cfg = __raw_readl(DISPC_AHB_EN);
-	printf("ytc:gsp_iommu_workaround: emc_eb_cfg:%x; gsp_eb_cfg:%x;\n", emc_en_cfg, gsp_en_cfg);
+	debugf("ytc:gsp_iommu_workaround: emc_eb_cfg:%x; gsp_eb_cfg:%x;\n", emc_en_cfg, gsp_en_cfg);
 	REG_WRITE(DISPC_EMC_EN,emc_en_cfg & (~0x800)); // disable emc clk
 	REG_WRITE(DISPC_AHB_EN,gsp_en_cfg | 0x8); // enable gsp
 	cycle_delay(5); // delay for a while
 	REG_WRITE(GSP_MMU_CTRL_BASE,0x10000001);//set iova base as 0x10000000, and enable gsp_iommu
 	cycle_delay(5); // delay for a while
-	printf("ytc:gsp_iommu_workaround: %x, gsp_eb_cfg: %x\n", __raw_readl(DISPC_EMC_EN), __raw_readl(DISPC_AHB_EN));
+	debugf("ytc:gsp_iommu_workaround: %x, gsp_eb_cfg: %x\n", __raw_readl(DISPC_EMC_EN), __raw_readl(DISPC_AHB_EN));
 	REG_WRITE(DISPC_AHB_EN,gsp_en_cfg); // restore gsp
 	REG_WRITE(DISPC_EMC_EN,emc_en_cfg); // restore emc clk
 }
@@ -417,7 +417,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 {
 	uint32_t i;
 
-	printf("sprdfb:[%s]\n",__FUNCTION__);
+	debugf("sprdfb:[%s]\n",__FUNCTION__);
 
 	if(SPRDFB_PANEL_IF_DPI != dev->panel_if_type){
 		sprdfb_panel_invalidate(dev->panel);
@@ -444,7 +444,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 				}
 			}
 			if(i >= 1000){
-				printf("sprdfb:[%s] wait dispc update  int time out!! (0x%x)\n", __FUNCTION__, dispc_read(DISPC_INT_RAW));
+				errorf("sprdfb:[%s] wait dispc update  int time out!! (0x%x)\n", __FUNCTION__, dispc_read(DISPC_INT_RAW));
 			}else{
 				FB_PRINT("sprdfb:[%s] got dispc update int (0x%x)\n", __FUNCTION__, dispc_read(DISPC_INT_RAW));
 			}
@@ -461,7 +461,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 			}
 		}
 		if(i >= 1000){
-			printf("sprdfb:[%s] wait dispc done int time out!! (0x%x)\n", __FUNCTION__, dispc_read(DISPC_INT_RAW));
+			errorf("sprdfb:[%s] wait dispc done int time out!! (0x%x)\n", __FUNCTION__, dispc_read(DISPC_INT_RAW));
 		}else{
 			FB_PRINT("sprdfb:[%s] got dispc done int (0x%x)\n", __FUNCTION__, dispc_read(DISPC_INT_RAW));
 		}

@@ -52,7 +52,7 @@ static int prop_init(char *name, uint32_t noffs, struct property *prop)
 	int num;
 
 	if(NULL == name || NULL == prop) {
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
@@ -72,12 +72,12 @@ static int fill_prop_value(int type, void *value, int len, struct property *prop
 	char *p = NULL;
 
 	if(NULL == value || NULL == prop || 0 == len) {
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
 	if(len > sizeof(prop->value)) {
-		printf("%s: <%s> fill value too big, len = %d\n", __func__, prop->name, len);
+		errorf("%s: <%s> fill value too big, len = %d\n", __func__, prop->name, len);
 		return 0;
 	}
 
@@ -120,7 +120,7 @@ static int fill_cell_prop_value(void *value, uint32_t size, int cell, struct pro
 	char *p = NULL;
 
 	if(!value || !prop) {
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
@@ -140,22 +140,22 @@ static int fill_cell_prop_value(void *value, uint32_t size, int cell, struct pro
 static int fill_reg_prop_value(uint64_t base, uint64_t size, int ac, int sc, struct property *prop)
 {
 	if(ac > 2 || sc > 2 || !prop) {
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
 	if(size == 0) {
-		printf("%s: size = 0, invalid\n", __func__);
+		errorf("%s: size = 0, invalid\n", __func__);
 		return 0;
 	}
 
 	if(fill_cell_prop_value(&base, sizeof(base), ac, prop)) {
-		printf("%s: fill base to %s prop failed.\n", __func__, prop->name);
+		errorf("%s: fill base to %s prop failed.\n", __func__, prop->name);
 		return -1;
 	}
 
 	if(fill_cell_prop_value(&size, sizeof(size), sc, prop)) {
-		printf("%s: fill size to %s prop failed.\n", __func__, prop->name);
+		errorf("%s: fill size to %s prop failed.\n", __func__, prop->name);
 		return -1;
 	}
 
@@ -166,22 +166,22 @@ static int fill_ranges_prop_value(uint64_t offs, uint64_t base,
 					uint64_t size, int c_ac, int ac, int c_sc, struct property *prop)
 {
 	if(ac > 2 || c_ac > 2 || c_sc > 2 || !prop) {
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
 	if(fill_cell_prop_value(&offs, sizeof(offs), c_ac, prop)) {
-		printf("%s: fill base to %s prop failed.\n", __func__, prop->name);
+		errorf("%s: fill base to %s prop failed.\n", __func__, prop->name);
 		return -1;
 	}
 
 	if(fill_cell_prop_value(&base, sizeof(base), ac, prop)) {
-		printf("%s: fill base to %s prop failed.\n", __func__, prop->name);
+		errorf("%s: fill base to %s prop failed.\n", __func__, prop->name);
 		return -1;
 	}
 
 	if(fill_cell_prop_value(&size, sizeof(size), c_sc, prop)) {
-		printf("%s: fill size to %s prop failed.\n", __func__, prop->name);
+		errorf("%s: fill size to %s prop failed.\n", __func__, prop->name);
 		return -1;
 	}
 
@@ -193,12 +193,12 @@ static int do_add_prop_to_fdt(struct fdt_header *fdt, int mode, struct property 
 	int ret;
 
 	if(NULL == prop || NULL == fdt) {
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
 	if(filled_prop != prop->flag) {
-		printf("%s: %s prop is bad or no value, do not add to fdt\n", __func__, prop->name);
+		errorf("%s: %s prop is bad or no value, do not add to fdt\n", __func__, prop->name);
 		return -1;
 	}
 
@@ -209,7 +209,7 @@ static int do_add_prop_to_fdt(struct fdt_header *fdt, int mode, struct property 
 	}
 
 	if (ret < 0) {
-		printf("%s: add prop %s to %s failed, reason: %s\n",
+		errorf("%s: add prop %s to %s failed, reason: %s\n",
 			__func__, prop->name, fdt_get_name(fdt, prop->offset, 0), fdt_strerror(ret));
 		return -1;
 	}
@@ -230,14 +230,14 @@ static int do_parse_add_sipc_info(struct keyinfo *key,
 	struct comm_info_conf *comm_info = NULL;
 
 	if(NULL == key || NULL == info || NULL == fdt) {
-		printf("%s: param error\n", __func__);
+		errorf("param error\n");
 		goto err;
 	}
 
 	comm_info = &info->comm_info;
 	offs = fdt_node_offset_by_prop_value(fdt, 0, key->name, key->value, strlen(key->value) + 1);
 	if(offs < 0) {
-		printf("%s: the sipc node do not support decoupling\n", __func__);
+		errorf("the sipc node do not support decoupling\n");
 		return 1;
 	}
 
@@ -247,14 +247,14 @@ static int do_parse_add_sipc_info(struct keyinfo *key,
 		ns = 1;
 	}
 
-	printf("start update sipc node info\n");
+	debugf("start update sipc node info\n");
 	print_fdt_node(fdt, offs);
 
 	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
-	printf("%s: a_cells = %d, s_cells = %d\n", __func__, na, ns);
+	debugf("a_cells = %d, s_cells = %d\n", na, ns);
 
 	of_bus_default_count_cells(fdt, offs, &c_na, &c_ns);
-	printf("%s: ca_cells: %d, cs_cells: %d\n", __func__, c_na, c_ns);
+	debugf("ca_cells: %d, cs_cells: %d\n", c_na, c_ns);
 
 	prop_init("reg", 0, &c_reg);
 	prop_init("reg", offs, &reg);
@@ -264,7 +264,7 @@ static int do_parse_add_sipc_info(struct keyinfo *key,
 		base = comm_info->res[i].base;
 		size = comm_info->res[i].size;
 		deta = comm_info->res[i].base - PHY_BASE_ADDR;
-		printf("%s: i = %d, base = 0x%x, size = 0x%x\n", __func__, i, base, size);
+		debugf("%s: i = %d, base = 0x%x, size = 0x%x\n", i, base, size);
 		if (i == 0) {
 			fill_reg_prop_value(base, size, na, ns, &reg);
 		}
@@ -275,27 +275,27 @@ static int do_parse_add_sipc_info(struct keyinfo *key,
 	}
 
 	if(do_add_prop_to_fdt(fdt, 0, &reg) < 0) {
-		printf("%s: update reg property to sipc node failed\n", __func__);
+		errorf("update reg property to sipc node failed\n");
 		goto err;
 	}
 
 	if(do_add_prop_to_fdt(fdt, 1, &ranges) < 0) {
-		printf("%s: update ranges property to sipc node failed\n", __func__);
+		errorf("update ranges property to sipc node failed\n");
 		goto err;
 	}
 
 	c_reg.offset = fdt_first_subnode(fdt, offs);
 	if(c_reg.offset < 0) {
-		printf("%s: the sipc child node not found\n", __func__);
+		errorf("the sipc child node not found\n");
 		goto err;
 	}
 
 	if(do_add_prop_to_fdt(fdt, 0, &c_reg) < 0) {
-		printf("%s: update reg property to sipc child node failed\n", __func__);
+		errorf("update reg property to sipc child node failed\n");
 		goto err;
 	}
 
-	printf("update sipc node info done\n");
+	debugf("update sipc node info done\n");
 	print_fdt_node(fdt, offs);
 
 	return 0;
@@ -321,17 +321,17 @@ static int do_parse_add_cproc_info(struct keyinfo *key,
 	struct region_info *region = NULL;
 	struct boot_info_conf *binfo = NULL;
 
-	printf("start update cproc node info\n");
+	debugf("start update cproc node info\n");
 
 	if(NULL == key || NULL == info || NULL == fdt) {
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		goto err0;
 	}
 
 	binfo = &info->boot_info;
 	offs = fdt_node_offset_by_prop_value(fdt, 0, key->name, key->value, strlen(key->value) + 1);
 	if(offs < 0) {
-		printf("%s: the cproc node do not support decoupling\n", __func__);
+		errorf("%s: the cproc node do not support decoupling\n", __func__);
 		return 1;
 	}
 
@@ -344,7 +344,7 @@ static int do_parse_add_cproc_info(struct keyinfo *key,
 	print_fdt_node(fdt, offs);
 
 	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
-	printf("%s: a_cells: %d, s_cells: %d\n", __func__, na, ns);
+	debugf("%s: a_cells: %d, s_cells: %d\n", __func__, na, ns);
 
 	prop_init("reg", offs, &prop);
 	for(i = 0; binfo->res[i].size > 0; i++) {
@@ -358,20 +358,20 @@ static int do_parse_add_cproc_info(struct keyinfo *key,
 	}
 
 	if(do_add_prop_to_fdt(fdt, 1, &prop) < 0) {
-		printf("%s: add reg property to cproc node failed\n", __func__);
+		errorf("%s: add reg property to cproc node failed\n", __func__);
 		goto err0;
 	}
 
 	prop_init("sprd,iram-dsize", offs, &prop);
 	fill_prop_value(num_t, &binfo->bcode.count, sizeof(uint32_t), &prop);
 	if(do_add_prop_to_fdt(fdt, 0, &prop) < 0) {
-		printf("%s: add iram_dsize property to cproc node failed\n", __func__);
+		errorf("%s: add iram_dsize property to cproc node failed\n", __func__);
 	}
 
 	prop_init("sprd,iram-data", offs, &prop);
 	fill_prop_value(num_t, binfo->bcode.code, binfo->bcode.count * sizeof(uint32_t), &prop);
 	if(do_add_prop_to_fdt(fdt, 0, &prop) < 0) {
-		printf("%s: add iram_data property to cproc node failed\n", __func__);
+		errorf("%s: add iram_data property to cproc node failed\n", __func__);
 	}
 
 	for(i = 0, region = binfo->regions; i < MAX_REGION_NUM; i++, region++) {
@@ -383,7 +383,7 @@ static int do_parse_add_cproc_info(struct keyinfo *key,
 				sprintf(node_name, "%s@%x", region->res.name, deta);
 				c_offs = fdt_add_subnode(fdt, offs, node_name);
 				if(c_offs < 0) {
-					printf("%s: create %s node failed\n", __func__, node_name);
+					errorf("%s: create %s node failed\n", __func__, node_name);
 					continue;
 				}
 			}
@@ -393,21 +393,21 @@ static int do_parse_add_cproc_info(struct keyinfo *key,
 			prop_init("reg", c_offs, &prop);
 			fill_reg_prop_value(deta, region->res.size, c_na, c_ns, &prop);
 			if(do_add_prop_to_fdt(fdt, 0, &prop) < 0) {
-				printf("%s: add reg property failed, in %s node\n", __func__, node_name);
+				errorf("%s: add reg property failed, in %s node\n", __func__, node_name);
 				goto err1;
 			}
 
 			prop_init("cproc,name", c_offs, &prop);
 			fill_prop_value(str_t, region->res.name, sizeof(region->res.name), &prop);
 			if(do_add_prop_to_fdt(fdt, 0, &prop) < 0) {
-				printf("%s: add %s property failed, in %s node\n", __func__, prop.name, node_name);
+				errorf("%s: add %s property failed, in %s node\n", __func__, prop.name, node_name);
 				goto err1;
 			}
 
 			prop_init("ranges", offs, &ranges);
 			fill_ranges_prop_value(deta, region->res.base, region->res.size, c_na, na, c_ns, &ranges);
 			if(do_add_prop_to_fdt(fdt, 1, &ranges) < 0) {
-				printf("%s: add ranges property to cproc node failed\n", __func__);
+				errorf("%s: add ranges property to cproc node failed\n", __func__);
 				goto err1;
 			}
 
@@ -421,7 +421,7 @@ err1:
 		}
 	}
 
-	printf("update cproc node info done\n");
+	debugf("update cproc node info done\n");
 	print_fdt_node(fdt, offs);
 
 	return 0;
@@ -446,15 +446,15 @@ static int do_parse_add_rsvmem_info(struct keyinfo *key,
 	struct region_info *rsvmem;
 
 	if(NULL == info || NULL == fdt)	{
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
-	printf("start add cp rsvmem to fdt\n");
+	debugf("start add cp rsvmem to fdt\n");
 
 	node = fdt_path_offset(fdt, "/reserved-memory");
 	if (node < 0) {
-		printf("/reserved-memory node not exist\n");
+		errorf("/reserved-memory node not exist\n");
 		return -1;
 	}
 	print_fdt_node(fdt, node);
@@ -464,13 +464,13 @@ static int do_parse_add_rsvmem_info(struct keyinfo *key,
 			break;
 		}
 
-		printf("%s: rsvbase = 0x%p, rsvsize = 0x%p\n", __func__, rsvmem->res.base, rsvmem->res.size);
+		debugf("rsvbase = 0x%p, rsvsize = 0x%p\n", rsvmem->res.base, rsvmem->res.size);
 		base = rsvmem->res.base;
 		offs = node;
 		of_bus_default_count_cells(fdt, node, &na, &ns);
 		for (offs = fdt_first_subnode(fdt, node); offs > 0; offs = fdt_next_subnode(fdt, offs)) {
 			p = fdt_get_name(fdt, offs, &len);
-			printf("node name: %s\n", p);
+			debugf("node name: %s\n", p);
 			if (p && strstr(p, rsvmem->res.name)) {
 				p = fdt_getprop(fdt, offs, "reg", &len);
 				if (p) {
@@ -479,14 +479,14 @@ static int do_parse_add_rsvmem_info(struct keyinfo *key,
 					while (na_t--)
 						r = (r << 32) | fdt32_to_cpu(*((fdt32_t *)p++));
 					if (r) {
-						printf("%s info already exist\n", rsvmem->res.name);
+						debugf("%s info already exist\n", rsvmem->res.name);
 						break;
 					}
 
 					sprintf(name, "%s@%x", rsvmem->res.name, base);
 					err = fdt_set_name(fdt, offs, name);
 					if (err < 0) {
-						printf("%s: set node name error(%s)\n", __func__, fdt_strerror(err));
+						errorf("%s: set node name error(%s)\n", __func__, fdt_strerror(err));
 						break;
 					}
 
@@ -499,17 +499,17 @@ static int do_parse_add_rsvmem_info(struct keyinfo *key,
 					cells[j++] = cpu_to_fdt32(rsvmem->res.size);
 					err = fdt_setprop(fdt, offs, "reg", cells, sizeof(cells[0]) * j);
 					if (err < 0) {
-						printf("%s: set reg prop error(%s)\n", __func__, fdt_strerror(err));
+						errorf("%s: set reg prop error(%s)\n", __func__, fdt_strerror(err));
 					}
 
-					printf("%s: update %s reg info done\n", __func__, name);
+					debugf("%s: update %s reg info done\n", __func__, name);
 					break;
 				}
 			}
 		}
 	}
 
-	printf("add cp rsvmem to fdt done\n");
+	debugf("add cp rsvmem to fdt done\n");
 	print_fdt_node(fdt, node);
 
 	return 0;
@@ -518,7 +518,7 @@ static int do_parse_add_rsvmem_info(struct keyinfo *key,
 static int add_fdt_total_size(uint size, struct fdt_header *fdt)
 {
 	if(size <= 0 || NULL == fdt)	{
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
@@ -534,7 +534,7 @@ static int fixup_image_partition_name(const char *rname, struct partition_name_i
 	char *p = pinfo->partition;
 
 	if(NULL == rname || NULL == pinfo) {
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
@@ -590,7 +590,7 @@ int get_coupling_info(const char *partition, struct cp_mem_coupling_info *info)
 	boot_image_required_t img_info;
 
 	if(NULL == partition || NULL == info){
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
@@ -621,7 +621,7 @@ int fdt_fixup_cp_coupling_info(void *blob)
 	struct partition_name_info mp;
 
 	if(NULL == blob)	{
-		printf("%s: param error\n", __func__);
+		errorf("%s: param error\n", __func__);
 		return -1;
 	}
 
@@ -630,13 +630,13 @@ int fdt_fixup_cp_coupling_info(void *blob)
 	fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
 
 	if(g_info.magic != HEADER_INFO_MAGIC && get_coupling_info(mp.partition, &g_info) < 0) {
-		printf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
+		errorf(" read cp mem coupling info failed from %s\n", mp.partition);
 		return -1;
 	}
 
-	printf("%s: magic = 0x%x, version = 0x%x\n", __func__, g_info.magic, g_info.version);
+	debugf("%s: magic = 0x%x, version = 0x%x\n", __func__, g_info.magic, g_info.version);
 	if(HEADER_INFO_MAGIC != g_info.magic) {
-		printf("%s: this version not support cp mem decoupling\n", __func__);
+		debugf("this version not support cp mem decoupling\n");
 		return 1;
 	}
 
@@ -646,7 +646,7 @@ int fdt_fixup_cp_coupling_info(void *blob)
 		if(g_decopu_conf[i].do_parse_add) {
 			ret = (g_decopu_conf[i].do_parse_add)(&g_decopu_conf[i].key, &g_info, fdt);
 			if(ret < 0) {
-				printf("%s: do parse add %s failed.\n", __func__, g_decopu_conf[i].key.name);
+				debugf("do parse add %s failed.\n", g_decopu_conf[i].key.name);
 				return -1;
 			}
 		}
@@ -664,13 +664,13 @@ boot_image_required_t * get_cp_load_table(void)
 	fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
 
 	if(g_info.magic != HEADER_INFO_MAGIC && get_coupling_info(mp.partition, &g_info) < 0) {
-		printf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
+		errorf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
 		return NULL;
 	}
 
-	printf("%s: magic: 0x%x, version: 0x%x\n", __func__, g_info.magic, g_info.version);
+	debugf("%s: magic: 0x%x, version: 0x%x\n", __func__, g_info.magic, g_info.version);
 	if(HEADER_INFO_MAGIC != g_info.magic) {
-		printf("%s: this version not support cp mem decoupling\n", __func__);
+		errorf("%s: this version not support cp mem decoupling\n", __func__);
 		return NULL;
 	}
 
@@ -690,11 +690,11 @@ boot_image_required_t * get_cp_load_table(void)
 				s_boot_image_cp_table[j].mem_addr = region->res.base;
 
 				if(s_boot_image_cp_table[j].bak_partition)
-					printf("partition: %s, bak_partition: %s, size: 0x%llx, mem_addr: 0x%x\n",
+					debugf("partition: %s, bak_partition: %s, size: 0x%llx, mem_addr: 0x%x\n",
 						s_boot_image_cp_table[j].partition, s_boot_image_cp_table[j].bak_partition,
 						s_boot_image_cp_table[j].size, s_boot_image_cp_table[j].mem_addr);
 				else
-					printf("partition: %s, bak_partition: NULL, size: 0x%llx, mem_addr: 0x%x\n",
+					debugf("partition: %s, bak_partition: NULL, size: 0x%llx, mem_addr: 0x%x\n",
 						s_boot_image_cp_table[j].partition,
 						s_boot_image_cp_table[j].size, s_boot_image_cp_table[j].mem_addr);
 				j++;
@@ -716,7 +716,7 @@ int get_cp_loader(u32 *count, u32 *loader)
 	fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
 
 	if(g_info.magic != HEADER_INFO_MAGIC && get_coupling_info(mp.partition, &g_info) < 0) {
-		printf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
+		errorf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
 		return -1;
 	}
 
@@ -741,7 +741,7 @@ int get_ring_info(u64 *addr, u64 *size)
 	fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
 
 	if(g_info.magic != HEADER_INFO_MAGIC && get_coupling_info(mp.partition, &g_info) < 0) {
-		printf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
+		errorf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
 		return -1;
 	}
 

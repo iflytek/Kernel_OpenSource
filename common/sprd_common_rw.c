@@ -869,7 +869,6 @@ int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
 
 	/* start read */
 	if (ext4_read_file(filenm, buf, 0, len, &len_read) == -1) {
-		errorf("** Error ext4_read_file() **\n");
 		ext4fs_close();
 		return -1;
 	}

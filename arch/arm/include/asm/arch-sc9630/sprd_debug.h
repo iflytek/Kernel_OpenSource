@@ -1,12 +1,11 @@
 #ifndef _SPRD_DEBUG_H_
 #define _SPRD_DEBUG_H_
 
-enum{
-	SPRD_ERROR = 0,
-	SPRD_WARNING,
-	SPRD_INFO,
-	SPRD_DEBUG,
-};
+
+#define SPRD_ERROR 0
+#define SPRD_WARNING 1
+#define SPRD_INFO 2
+#define SPRD_DEBUG 3
 
 #if (SPRD_DEBUG_LEVEL > SPRD_ERROR)
 #define sprd_err(fmt, args...) do {printf("err:%s(): "fmt, __func__, ##args); } while (0)

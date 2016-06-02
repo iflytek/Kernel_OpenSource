@@ -75,13 +75,13 @@ static int real_refresh(struct sprdfb_device *dev)
 	FB_PRINT("sprdfb: [%s]\n", __FUNCTION__);
 
 	if(NULL == dev->panel){
-		printf("sprdfb: [%s] fail (no panel!)\n", __FUNCTION__);
+		errorf("sprdfb: [%s] fail (no panel!)\n", __FUNCTION__);
 		return -1;
 	}
 
 	ret = dev->ctrl->refresh(dev);
 	if (ret) {
-		printf("sprdfb: failed to refresh !!!!\n");
+		errorf("sprdfb: failed to refresh !!!!\n");
 		return -1;
 	}
 
@@ -97,7 +97,7 @@ static int sprdfb_probe(void *lcdbase)
 	unsigned long base, size;
 
 
-	printf("sprdfb:[%s]\n", __FUNCTION__);
+	debugf("sprdfb:[%s]\n", __FUNCTION__);
 
 	set_backlight(0);
 
@@ -107,7 +107,7 @@ static int sprdfb_probe(void *lcdbase)
 	if (0 != sprdfb_panel_probe(dev)) {
 		sprdfb_panel_remove(dev);
 		dev->ctrl->uninit(dev);
-		printf("sprdfb: failed to probe\n");
+		errorf("sprdfb: failed to probe\n");
 		return -EFAULT;
 	}
 
@@ -136,27 +136,27 @@ static int sprdfb_probe(void *lcdbase)
 		return -1;
 
 	if (fdtdec_decode_region(fdt_blob, phandle, "reg", &base, &size)) {
-		printf("%s: Failed to decode reg property \n", __func__);
+		errorf("Failed to decode reg property \n");
 		return -EINVAL;
 	}
 
 	gd->fb_base = base + (size / 3) * 2;
 	dev->smem_start = gd->fb_base;
 	dev->ctrl->init(dev);
-	printf("sprdfb:[%s]---\n", __FUNCTION__);
+	debugf("sprdfb:[%s]---\n", __FUNCTION__);
 	return 0;
 }
 
 void lcd_disable(void)
 {
-	printf("sprdfb: [%s]\n", __FUNCTION__);
+	debugf("sprdfb: [%s]\n", __FUNCTION__);
 	sprdfb_panel_remove(&s_sprdfb_dev);
 	s_sprdfb_dev.ctrl->uninit(&s_sprdfb_dev);
 }
 
 void lcd_enable(void)
 {
-	printf("sprdfb: [%s]\n", __FUNCTION__);
+	debugf("sprdfb: [%s]\n", __FUNCTION__);
 	real_refresh(&s_sprdfb_dev);
 }
 
@@ -171,16 +171,16 @@ void lcd_ctrl_init(void *lcdbase)
 	size = lcd_get_size(&lcd_line_length) >> 1;
 	bmp = malloc(size);
 	if (!bmp) {
-		printf("sprdfb: %s: failed to alloc bmp space\n", __FUNCTION__);
+		errorf("sprdfb: %s: failed to alloc bmp space\n", __FUNCTION__);
 		return;
 	}
 	setenv_hex("splashimage", (ulong)bmp);
 	s = getenv("splashimage");
 	addr = simple_strtoul(s, NULL, 16);
-	printf("sprdfb: splashimage addr is 0x%p, fb size is 0x%x\n",
+	debugf("sprdfb: splashimage addr is 0x%p, fb size is 0x%x\n",
 			(void *)addr, size);
 	lcd_set_flush_dcache(TRUE);
-	printf("sprdfb:[%s]---\n", __FUNCTION__);
+	debugf("sprdfb:[%s]---\n", __FUNCTION__);
 }
 
 #ifdef CONFIG_LCD_INFO

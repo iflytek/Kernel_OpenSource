@@ -59,11 +59,11 @@ static int get_adc_value_board(int channel){
 
 	adc_value = pmic_adc_get_value_by_isen(channel,0,15,2000);
 	vol = sprd_chan_small_adc_to_vol(channel, 0 , 0 ,adc_value);
-	printf("result = %d\n",vol);
+	debugf("result = %d\n",vol);
 
 
 	if (vol <= 0 || vol >= 1200) {
-		printf("vol is out of ranger [0~1200]\n");
+		errorf("vol is out of ranger [0~1200]\n");
 		return -1;
 	}
 
@@ -96,23 +96,23 @@ static int Sprd_getHWRFboardID(void){
 	adc_val = get_adc_value_board(ADC_CHANNEL_FOR_NV);
 #endif
 	shift_bit++;
-	printf("adc_val: %d\n", adc_val);
+	debugf("adc_val: %d\n", adc_val);
 
 #ifdef LB_GPIO_NUM
 	gpio_val |= gpio_state(LB_GPIO_NUM) << shift_bit;
 	shift_bit++;
-	printf("gpio_val0: %d\n", gpio_val);
+	debugf("gpio_val0: %d\n", gpio_val);
 #endif
 
 #ifdef MB_GPIO_NUM
 	gpio_val |= gpio_state(MB_GPIO_NUM) << shift_bit;
 	shift_bit++;
-	printf("gpio_val1: %d\n", gpio_val);
+	debugf("gpio_val1: %d\n", gpio_val);
 #endif
 
 #ifdef HB_GPIO_NUM
 	gpio_val |= gpio_state(HB_GPIO_NUM) << shift_bit;
-	printf("gpio_val2: %d\n", gpio_val);
+	debugf("gpio_val2: %d\n", gpio_val);
 #endif
 	return gpio_val + adc_val;
 #endif

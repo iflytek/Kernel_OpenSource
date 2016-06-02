@@ -25,25 +25,25 @@ unsigned char board_key_scan(void)
 
 	gpio_volumedown = sprd_gpio_get(NULL, 124);
 	if(gpio_volumedown < 0)
-		printf("[gpio keys] volumedown : sprd_gpio_get return ERROR!\n");
+		errorf("[gpio keys] volumedown : sprd_gpio_get return ERROR!\n");
 
 	gpio_volumeup = sprd_gpio_get(NULL, 125);
 	if(gpio_volumeup < 0)
-		printf("[gpio keys] volumeup : sprd_gpio_get return ERROR!\n");
+		errorf("[gpio keys] volumeup : sprd_gpio_get return ERROR!\n");
 
 	if(0 == gpio_volumedown) {
 		key_code = KEY_VOLUMEDOWN;
-		printf("[gpio keys] volumedown pressed!\n");
+		debugf("[gpio keys] volumedown pressed!\n");
 		return key_code;
 	}
 
 	if(0 == gpio_volumeup) {
 		key_code = KEY_VOLUMEUP;
-		printf("[gpio keys] volumeup pressed!\n");
+		debugf("[gpio keys] volumeup pressed!\n");
 		return key_code;
 	}
 
-	printf("[gpio keys] no key pressed!\n");
+	debugf("[gpio keys] no key pressed!\n");
 	return key_code;
 }
 

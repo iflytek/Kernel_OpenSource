@@ -126,13 +126,13 @@ int sprd_2701_read_reg(int reg, u8 *value)
 	int ret;
 	ret = i2c_reg_read(SLAVE_ADDR , reg);
 	if (ret < 0) {
-		printf("%s reg(0x%x), ret(%d)\n", __func__, reg, ret);
+		debugf("%s reg(0x%x), ret(%d)\n", __func__, reg, ret);
 		return ret;
 	}
 
 	ret &= 0xff;
 	*value = ret;
-	printf("######sprd_2701readreg reg  = %d value =%d/%x\n",reg, ret, ret);
+	debugf("######sprd_2701readreg reg  = %d value =%d/%x\n",reg, ret, ret);
 	return 0;
 }
 
@@ -141,7 +141,7 @@ static void sprd_2701_set_value(BYTE reg, BYTE reg_bit,BYTE reg_shift, BYTE val)
 	BYTE tmp;
 	sprd_2701_read_reg(reg, &tmp);
 	tmp = tmp & (~reg_bit) |(val << reg_shift);
-	printf("sprd_2701_set_value tmp =0x%x,val=0x%x\n",tmp,val);
+	debugf("sprd_2701_set_value tmp =0x%x,val=0x%x\n",tmp,val);
 	sprd_2701_write_reg(reg,tmp);
 }
 
@@ -171,26 +171,26 @@ void sprd_2701_ta_start_charging(void)
 
 void sprdchg_2701_start_chg(int type)
 {
-	printf("sprdchg_2701_start_chg\n type=%d\n",type);
+	debugf("sprdchg_2701_start_chg\n type=%d\n",type);
 	sprd_2701_set_value(POWER_ON_CTL, CHG_EN_BIT , CHG_EN_SHIFT, 1);
 	if(type == ADP_TYPE_CDP || type == ADP_TYPE_DCP){
-		printf("charge start with AC\n");
+		debugf("charge start with AC\n");
 		sprd_2701_set_value(INPUT_SRC_CTL,
 				    IN_CUR_LIMIT_BIT, IN_CUR_LIMIT_SHIFT, 6);
 		sprd_2701_ta_start_charging();
 	}else{
-		printf("charge start with USB\n");
+		debugf("charge start with USB\n");
 		sprd_2701_usb_start_charging();
 	}
 }
  void sprdchg_2701_stop_charging(void)
-{	
-	printf("stop charge\n");
+{
+	debugf("stop charge\n");
 	sprd_2701_set_value(POWER_ON_CTL, CHG_EN_BIT , CHG_EN_SHIFT, CHG_DISABLE_VAL);
 }
 void  sprd_2701_sw_reset(void)
 {
-	printf("sprdchg_2701_sw_reset");
+	debugf("sprdchg_2701_sw_reset");
 	sprd_2701_set_value(POWER_ON_CTL, SW_RESET_BIT, SW_RESET_SHIFT, 1);
 }
 
@@ -199,15 +199,15 @@ void sprdchg_2701_init(void)
 	BYTE data = 0;
 	int i = 0;
 
-	printf("2701init\n");
+	debugf("2701init\n");
 	sprd_2701_i2c_init();
 	sprd_2701_sw_reset();
 	for(i = 0;  i < 11;  i++){
 		sprd_2701_read_reg(i, &data);
-		printf("sprd_2701_ReadReg i = %d, data = %x\n",i,data);
+		debugf("sprd_2701_ReadReg i = %d, data = %x\n",i,data);
 	}
 
-	sprd_2701_set_value(TIMER_CTL,WATCH_DOG_TIMER_BIT,WATCH_DOG_TIMER_SHIFT,0); // disable whatchdog 
+	sprd_2701_set_value(TIMER_CTL,WATCH_DOG_TIMER_BIT,WATCH_DOG_TIMER_SHIFT,0); // disable whatchdog
 	//sprd_2701_set_value(MISC_CTL,JEITA_ENABLE_BIT,JEITA_ENABLE_SHIFT,1);//enable jeita
 	//sprd_2701_set_value(TIMER_CTL,CHG_TERMINA_EN_BIT,CHG_TERMINA_EN_SHIFT,0); //disable chg termina
 	sprd_2701_set_value(TIMER_CTL,CHG_SAFE_TIMER_EN_BIT,CHG_SAFE_TIMER_EN_SHIFT,0); //disable safety timer
@@ -215,7 +215,7 @@ void sprdchg_2701_init(void)
 
 void sprdchg_2701_reset_timer(void)
 {
-	printf("2701 reset rimer\n");
+	debugf("2701 reset timer\n");
 	//sprd_2701_set_value(FAN5405_REG_CONTROL0, FAN5405_TMR_RST_OTG,FAN5405_TMR_RST_OTG_SHIFT, RESET32S);
 }
 struct sprd_ext_ic_operations sprd_extic_op ={

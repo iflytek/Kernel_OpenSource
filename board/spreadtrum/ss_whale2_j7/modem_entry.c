@@ -7,7 +7,7 @@
 #include "cp_boot.h"
 
 #define CP0_ZERO_MAP_ADR    0x50000000
-#define CP0_ARM0_EXEC_ADR        0x88400000 
+#define CP0_ARM0_EXEC_ADR        0x88400000
 
 #define CP1_ZERO_MAP_ADR    0x50001000
 #define CP1_EXEC_ADR        0x8ae00000
@@ -172,7 +172,7 @@ void sipc_addr_reset()
 	uint64_t size;
 
 	if(get_ring_info(&addr, &size) == 0) {
-		printf("%s: ring addr = 0x%p, size = 0x%x\n", __func__, addr, size);
+		debugf("%s: ring addr = 0x%p, size = 0x%x\n", __func__, addr, size);
 		memset((void *)addr, 0x0, size);
 	} else {
 		memset((void *)SIPC_LTE_APCP_START_ADDR, 0x0, SIPC_APCP_RESET_ADDR_SIZE);

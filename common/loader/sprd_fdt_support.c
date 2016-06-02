@@ -637,7 +637,7 @@ int fdt_fixup_socid(void *fdt)
 
 	ret = sansa_compute_socid(soc_id);
 	if (ret != 0) {
-		printf("ERROR: compute socid fail!\n");
+		errorf("ERROR: compute socid fail!\n");
 		return ret;
 	}
 	memset(buf, 0, sizeof(buf));

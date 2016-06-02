@@ -229,7 +229,7 @@ static __inline int ap_efuse_wait_clear(u32 bits)
 	int ret = 0;
 	unsigned long timeout;
 
-	printf("ap efuse wait %x\n", __raw_readl((void *)REG_EFUSE_STATUS));
+	debugf("ap efuse wait %x\n", __raw_readl((void *)REG_EFUSE_STATUS));
 
 	/* wait for maximum of 300 msec */
 	timeout = jiffies + msecs_to_jiffies(300);
@@ -269,7 +269,7 @@ u32 sprd_ap_efuse_read(int blk_index)
 	ap_efuse_power_on();
 	val = ap_efuse_read(blk_index);
 	ap_efuse_power_off();
-	printf("ap efuse read block =%d,val = 0x%x\n", blk_index,val);
+	debugf("ap efuse read block =%d,val = 0x%x\n", blk_index,val);
 	return val;
 }
 

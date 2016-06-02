@@ -440,12 +440,12 @@ int pctool_mode_detect(void)
 
 	int ret , command , bat_info;
 
-    printf(" uart cooperating with pc tool\n");
+	 debugf(" uart cooperating with pc tool\n");
     //if(get_mode_from_gpio() && (get_poweron_src() == POWERON_JIG))
 	if(get_mode_from_gpio())
 		return pctool_mode_detect_uart();
 
-	printf("%s\n", "usb cooperating with pc tool");
+	debugf("%s\n", "usb cooperating with pc tool");
 
 	if(charger_connected()){
 		bat_info = sprdchg_charger_is_adapter();
@@ -558,7 +558,6 @@ int cali_file_check(void)
 #define CALI_MAGIC      (0x49424143) //CALI
 #define CALI_COMP       (0x504D4F43) //COMP
 
-
 	if(do_fs_file_read("prodnv", "/adc.bin", (char *)nv_buffer,sizeof(nv_buffer)))
 		return 1;
 
@@ -630,7 +629,7 @@ int read_adc_calibration_data(char *buffer,int size)
 	} else {
 		debugf("ADC MAGIC is false!\nstart read prodnv /adc.bin...\n");
 		if(do_fs_file_read("prodnv", "/adc.bin", (char *)nv_buffer,sizeof(nv_buffer))) {
-			errorf("read prodnv /adb.bin error.\n");
+			printf("%s: cannot read prodnv /adb.bin.\n", __func__);
 			free(tmp);
 			return 0;
 		}

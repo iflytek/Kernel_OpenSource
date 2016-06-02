@@ -457,7 +457,7 @@ static int panel_mount(struct sprdfb_device *dev, struct panel_spec *panel)
 {
 	uint16_t rval = 1;
 
-	printf("sprdfb: [%s], type = %d\n",__FUNCTION__, panel->type);
+	debugf("sprdfb: [%s], type = %d\n",__FUNCTION__, panel->type);
 
 	switch(panel->type){
 #if defined(CONFIG_I2C) && defined(CONFIG_SPI)
@@ -475,7 +475,7 @@ static int panel_mount(struct sprdfb_device *dev, struct panel_spec *panel)
 		break;
 #endif
 	default:
-		printf("sprdfb: [%s]: erro panel type.(%d)",__FUNCTION__, panel->type);
+		debugf("sprdfb: [%s]: erro panel type.(%d)",__FUNCTION__, panel->type);
 		dev->if_ctrl = NULL;
 		rval = 0 ;
 		break;
@@ -490,7 +490,7 @@ static int panel_mount(struct sprdfb_device *dev, struct panel_spec *panel)
 	}
 
 	if(0 == rval){
-		printf("sprdfb: [%s] check panel fail!\n", __FUNCTION__);
+		errorf("sprdfb: [%s] check panel fail!\n", __FUNCTION__);
 		dev->if_ctrl = NULL;
 		return -1;
 	}
@@ -510,7 +510,7 @@ static int panel_mount(struct sprdfb_device *dev, struct panel_spec *panel)
 int panel_init(struct sprdfb_device *dev)
 {
 	if((NULL == dev) || (NULL == dev->panel)){
-		printf("sprdfb: [%s]: Invalid param\n", __FUNCTION__);
+		errorf("sprdfb: [%s]: Invalid param\n", __FUNCTION__);
 		return -1;
 	}
 
@@ -525,7 +525,7 @@ int panel_init(struct sprdfb_device *dev)
 int panel_ready(struct sprdfb_device *dev)
 {
 	if((NULL == dev) || (NULL == dev->panel)){
-		printf("sprdfb: [%s]: Invalid param\n", __FUNCTION__);
+		errorf("sprdfb: [%s]: Invalid param\n", __FUNCTION__);
 		return -1;
 	}
 
@@ -546,10 +546,10 @@ static struct panel_spec *adapt_panel_from_readid(struct sprdfb_device *dev)
 	FB_PRINT("sprdfb: [%s]\n",__FUNCTION__);
 
 	for(i = 0;i<(sizeof(panel_cfg))/(sizeof(panel_cfg[0]));i++) {
-		printf("sprdfb: [%s]: try panel 0x%x\n", __FUNCTION__, panel_cfg[i].lcd_id);
+		debugf("sprdfb: [%s]: try panel 0x%x\n", __FUNCTION__, panel_cfg[i].lcd_id);
 		ret = panel_mount(dev, panel_cfg[i].panel);
 		if(ret < 0){
-			printf("sprdfb: panel_mount failed!\n");
+			errorf("sprdfb: panel_mount failed!\n");
 			continue;
 		}
 		dev->ctrl->update_clk(dev);
@@ -561,22 +561,22 @@ static struct panel_spec *adapt_panel_from_readid(struct sprdfb_device *dev)
 		}
 		id = dev->panel->ops->panel_readid(dev->panel);
 		if(id == panel_cfg[i].lcd_id) {
-			printf("sprdfb: [%s]: LCD Panel 0x%x is attached!\n", __FUNCTION__, panel_cfg[i].lcd_id);
+			debugf("sprdfb: [%s]: LCD Panel 0x%x is attached!\n", __FUNCTION__, panel_cfg[i].lcd_id);
 
 			if(NULL != dev->panel->ops->panel_init){
-				dev->panel->ops->panel_init(dev->panel);		//zxdebug modify for LCD adaptor 
+				dev->panel->ops->panel_init(dev->panel);		//zxdebug modify for LCD adaptor
 			}
-			
+
 			save_lcd_id_to_kernel(id);
 			panel_ready(dev);
 			return panel_cfg[i].panel;
 		} else {							//zxdbg for LCD adaptor
-			printf("sprdfb: [%s]: LCD Panel 0x%x attached fail!go next\n", __FUNCTION__, panel_cfg[i].lcd_id);
-			sprdfb_panel_remove(dev);				//zxdebug modify for LCD adaptor 
+			errorf("sprdfb: [%s]: LCD Panel 0x%x attached fail!go next\n", __FUNCTION__, panel_cfg[i].lcd_id);
+			sprdfb_panel_remove(dev);				//zxdebug modify for LCD adaptor
 		}
 	}
-	
-	printf("sprdfb:  [%s]: final failed to attach LCD Panel!\n", __FUNCTION__);
+
+	errorf("sprdfb:  [%s]: final failed to attach LCD Panel!\n", __FUNCTION__);
 	return NULL;
 }
 
@@ -585,7 +585,7 @@ uint16_t sprdfb_panel_probe(struct sprdfb_device *dev)
 	struct panel_spec *panel;
 
 	if(NULL == dev){
-		printf("sprdfb: [%s]: Invalid param\n", __FUNCTION__);
+		errorf("sprdfb: [%s]: Invalid param\n", __FUNCTION__);
 		return -1;
 	}
 
@@ -605,7 +605,7 @@ uint16_t sprdfb_panel_probe(struct sprdfb_device *dev)
 		return 0;
 	}
 
-	printf("sprdfb: [%s] can not got panel\n", __FUNCTION__);
+	errorf("sprdfb: [%s] can not got panel\n", __FUNCTION__);
 
 	return -1;
 }

@@ -121,10 +121,10 @@ static void pmic_efuse_lookat(void)
 	volatile u32 *reg = (volatile u32 *)ANA_REGS_EFUSE_BASE;
 	int cnt = 16;
 	while (cnt--) {
-		printf("[%p] = %08x\n", reg, sci_adi_read((u32) reg));
+		debugf("[%p] = %08x\n", reg, sci_adi_read((u32) reg));
 		reg++;
 	}
-	printf("\n");
+	debugf("\n");
 }
 
 static void pmic_efuse_power_on(void)
@@ -143,7 +143,7 @@ static __inline int pmic_efuse_wait_clear(u32 bits)
 	unsigned long timeout;
 	u32 bit_status = 1;
 	u32 val;
-	printf("pmic efuse wait %x\n", sci_adi_read(ANA_REG_EFUSE_STATUS));
+	debugf("pmic efuse wait %x\n", sci_adi_read(ANA_REG_EFUSE_STATUS));
 
 	/* wait for maximum of 3000 msec */
 	timeout = jiffies + msecs_to_jiffies(3000);
@@ -194,7 +194,7 @@ u32 sprd_pmic_efuse_read(int blk_index)
 out:
 	pmic_efuse_power_off();
 
-	printf("pmic efuse read %d,val=0x%x\n", blk_index,val);
+	debugf("pmic efuse read %d,val=0x%x\n", blk_index,val);
 	return val;
 }
 
@@ -210,24 +210,24 @@ u32 sprd_pmic_efuse_read_bits(int bit_index, int length)
 	}
 	val >>= (bit_index & (EFUSE_BLOCK_WIDTH - 1));
 	val &= BIT(length) - 1;
-	printf("pmic efuse read bits %d ++ %d 0x%08x\n\n", bit_index, length, val);
+	debugf("pmic efuse read bits %d ++ %d 0x%08x\n\n", bit_index, length, val);
 	return val;
 }
 
 void pmic_efuse_block_dump(void)
 {
 	int i, idx;
-	printf("pmic efuse blocks dump:\n");
+	debugf("pmic efuse blocks dump:\n");
 
 	for (idx = 0; idx < EFUSE_BLOCK_MAX; idx++) {
 		u32 val = 0;
-		printf("\n");
+		debugf("\n");
 		val = sprd_pmic_efuse_read(idx);
 		dummy_cached_otp[idx] = (VALUE_TYPE) val;
-		printf("%02d  ", idx);
+		debugf("%02d  ", idx);
 		for (i = EFUSE_BLOCK_WIDTH - 1; i >= 0; --i)
-			printf("%s ", (val & BIT(i)) ? "1" : "0");
-		printf("\n");
+			debugf("%s ", (val & BIT(i)) ? "1" : "0");
+		debugf("\n");
 	}
-	printf("\n");
+	debugf("\n");
 }

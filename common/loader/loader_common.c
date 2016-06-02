@@ -93,13 +93,13 @@ void fdt_fixup_all(u8 *fdt_blob)
 	char  *boot_mode_type_str;
 
 	if (fdt_check_header(fdt_blob) != 0) {
-		printf("image is not a fdt\n");
+		errorf("image is not a fdt\n");
 	}
 	fdt_size = fdt_totalsize(fdt_blob);
 
 	err = fdt_open_into(fdt_blob, fdt_blob, fdt_size + FDT_ADD_SIZE);
 	if (err != 0) {
-		printf("libfdt fdt_open_into(): %s\n", fdt_strerror(err));
+		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(err));
 	}
 
 #ifdef CONFIG_SPLASH_SCREEN

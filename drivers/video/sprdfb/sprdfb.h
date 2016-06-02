@@ -7,7 +7,9 @@
 #define _SPRDFB_H_
 
 #define printk printf
+#ifdef DEBUG
 #define  FB_DEBUG
+#endif
 #ifdef FB_DEBUG
 #define FB_PRINT printk
 #else

@@ -22,6 +22,7 @@
 #include <otp_helper.h>
 #include <sprd_adc.h>
 #include "adi_hal_internal.h"
+#include <common.h>
 
 typedef unsigned int u32;
 #define ADC_REG_BASE                        ADC_BASE
@@ -277,7 +278,7 @@ static int pmic_adc_set_current(u8 enable, int isen)
 		sci_adi_clr(ANA_REG_GLB_AUXAD_CTL, BIT_AUXAD_CURRENTSEN_EN);
 		sci_adi_clr(ANA_REG_GLB_BATDET_CUR_CTRL,BIT_BATDET_CUR_EN);
 	}
-	printf("ANA_REG_GLB_BATDET_CUR_CTRL =0x%x\n",sci_adi_read(ANA_REG_GLB_BATDET_CUR_CTRL));
+	debugf("ANA_REG_GLB_BATDET_CUR_CTRL =0x%x\n",sci_adi_read(ANA_REG_GLB_BATDET_CUR_CTRL));
 	return 0;
 }
 
@@ -300,9 +301,9 @@ int32_t pmic_adc_get_value_by_isen(uint16_t channel, int scale, uint8_t num,
 	pmic_adc_set_current(0, 0);
 
 	for (i = 0; i < ARRAY_SIZE(results); i++) {
-		printf("%d\t", results[i]);
+		debugf("%d\t", results[i]);
 	}
-	printf("adc[%d] isen: %d, value: %d\n", channel, isen, values);
+	debugf("adc[%d] isen: %d, value: %d\n", channel, isen, values);
 
 	return values;
 }
@@ -326,8 +327,8 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 	case ADC_CHANNEL_DCDCCORE:
 		mux = mux >> 13;
 		switch (mux) {
-		case 1:	
-		case 2:	
+		case 1:
+		case 2:
 			return (scale ? RATIO(36, 55) : RATIO(9, 11));
 		case 3:
 		case 5:
@@ -385,16 +386,16 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 	case ADC_CHANNEL_DCDCCORE:
 		mux = mux >> 12;
 		switch (mux) {
-		case 1:	
+		case 1:
 		case 2:
 			return (scale ? RATIO(4, 5) : RATIO(1, 1));
-		case 3:	
+		case 3:
 			return (scale ? RATIO(3, 5) : RATIO(3, 4));
-		case 4:	
+		case 4:
 			return (scale ? RATIO(49, 125) : RATIO(49, 100));
-		case 5:	
+		case 5:
 			return (scale ? RATIO(9, 20) : RATIO(9, 16));
-		case 6:	
+		case 6:
 			return (scale ? RATIO(4, 5) : RATIO(1, 1));
 		case 7:
 			return (scale ? RATIO(36, 170) : RATIO(9, 34));
@@ -409,15 +410,15 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 		mux = mux >> 4;
 		switch (mux) {
 		case 1:
-		case 2:	
+		case 2:
 		case 3:
-		case 4:	
+		case 4:
 			return (scale ? RATIO(1, 3) : RATIO(1, 1));
 		case 5:
-		case 6:	
+		case 6:
 		case 7:
-		case 8:	
-		case 9:	
+		case 8:
+		case 9:
 		case 10:
 		case 11:
 			return (scale ? RATIO(1, 12) : RATIO(1, 4));
@@ -448,7 +449,7 @@ static int sprd_get_adc_small_scale_cal(uint32_t *p_cal_data)
 	deta =
 	    sprd_pmic_efuse_read_bits(BITSINDEX(para.small_cal_efuse_blk, 0),
 				 para.small_cal_efuse_bit);
-	printf("get pmic efuse block %u, deta: 0x%08x\n",
+	debugf("get pmic efuse block %u, deta: 0x%08x\n",
 		para.small_cal_efuse_blk, deta);
 	deta &= 0xFFFFFF;
 	if ((!deta) || (p_cal_data == NULL)) {
@@ -458,25 +459,25 @@ static int sprd_get_adc_small_scale_cal(uint32_t *p_cal_data)
 	/* adc 0.1V */
 	adc_data =
 	    ((deta & 0x00FF) + para.small_adc_p1 - para.adc_data_off) * 4;
-	printf("0.1V adc data 0x%x\n", adc_data);
+	debugf("0.1V adc data 0x%x\n", adc_data);
 	p_cal_data[1] = (para.small_vol_p1) | (adc_data << 16);
 
 	/* adc 1.0V */
 	adc_data =
 	    (((deta >> 8) & 0x00FF) + para.small_adc_p0 - para.adc_data_off) * 4;
-	printf("1.0V adc data 0x%x\n", adc_data);
+	debugf("1.0V adc data 0x%x\n", adc_data);
 	p_cal_data[0] = (para.small_vol_p0) | (adc_data << 16);
 #elif defined(CONFIG_ADIE_SC2731)
 	/* adc 0.1V */
 	adc_data =
 		 (((deta >> 8) & 0x00FF) + para.small_adc_p1 - para.adc_data_off) * 4;
-	printf("0.1V adc data 0x%x\n", adc_data);
+	debugf("0.1V adc data 0x%x\n", adc_data);
 	p_cal_data[1] = (para.small_vol_p1) | (adc_data << 16);
 
 	/* adc 1.0V */
 	adc_data =
 		 ((deta & 0x00FF) + para.small_adc_p0 - para.adc_data_off) * 4;
-	printf("1.0V adc data 0x%x\n", adc_data);
+	debugf("1.0V adc data 0x%x\n", adc_data);
 	p_cal_data[0] = (para.small_vol_p0) | (adc_data << 16);
 #endif
 
@@ -493,7 +494,7 @@ int sprd_get_adc_bat_cal(uint32_t *p_cal_data)
 	if ((!deta) || (p_cal_data == NULL)) {
 		return -1;
 	}
-	printf("get pmic efuse block %u, deta: 0x%08x\n",
+	debugf("get pmic efuse block %u, deta: 0x%08x\n",
 		para.big_cal_efuse_blk, deta);
 	/*adc 3.6V */
 	cal_data =
@@ -517,7 +518,7 @@ static int sprd_bat_scale_adc_efuse_get(void)
 		big_scale_cal.p1_vol = efuse_cal_data[1] & 0xffff;
 		big_scale_cal.p1_adc = (efuse_cal_data[1] >> 16) & 0xffff;
 		big_scale_cal.cal_type = SPRDBIG_AUXADC_CAL_CHIP;
-		printf("adc efuse big cal %d,%d,%d,%d,cal_type:%d\n",
+		debugf("adc efuse big cal %d,%d,%d,%d,cal_type:%d\n",
 			big_scale_cal.p0_vol, big_scale_cal.p0_adc,
 			big_scale_cal.p1_vol, big_scale_cal.p1_adc,
 			big_scale_cal.cal_type);
@@ -536,7 +537,7 @@ static int sprd_small_scale_adc_efuse_get(void)
 		small_sclae_cal.p1_vol = efuse_cal_data[1] & 0xffff;
 		small_sclae_cal.p1_adc = (efuse_cal_data[1] >> 16) & 0xffff;
 		small_sclae_cal.cal_type = SPRDLIT_AUXADC_CAL_CHIP;
-		printf("adc efuse small cal %d,%d,%d,%d,cal_type:%d\n",
+		debugf("adc efuse small cal %d,%d,%d,%d,cal_type:%d\n",
 			small_sclae_cal.p0_vol, small_sclae_cal.p0_adc,
 			small_sclae_cal.p1_vol, small_sclae_cal.p1_adc,
 			small_sclae_cal.cal_type);
@@ -561,9 +562,9 @@ void pmic_adc_Init(void)
 								   (ANA_REG_GLB_CHIP_ID_LOW)
 								   & 0xFFFF);
 	if (0 == sprd_small_scale_adc_efuse_get())
-		printf("sprd small scale efuse have cal\n");
+		debugf("sprd small scale efuse have cal\n");
 	if (0 == sprd_bat_scale_adc_efuse_get())
-		printf("sprd big scale efuse have cal\n");
+		debugf("sprd big scale efuse have cal\n");
 	sprd_current_source_cal();
 }
 
@@ -613,7 +614,7 @@ int32_t sprd_chan_bat_adc_to_vol(uint16_t channel, int scale, int mux,
 	n = bat_denominators * numerators;
 	m = vol * bat_numerators * (denominators);
 	result = (m + n / 2) / n;
-	printf("big scale adc %d vol %d\n", adcvalue, result);
+	debugf("big scale adc %d vol %d\n", adcvalue, result);
 	return result;
 }
 
@@ -638,7 +639,7 @@ int32_t sprd_chan_small_adc_to_vol(uint16_t channel, int scale, int mux,
 	n = bat_denominators * numerators;
 	m = vol * bat_numerators * (denominators);
 	result = (m + n / 2) / n;
-	printf("small scale adc %d vol %d\n", adcvalue, result);
+	debugf("small scale adc %d vol %d\n", adcvalue, result);
 	return result;
 }
 

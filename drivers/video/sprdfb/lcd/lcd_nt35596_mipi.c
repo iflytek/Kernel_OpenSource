@@ -20,7 +20,9 @@
 
 #define printk printf
 
+#ifdef DEBUG
 #define  LCD_DEBUG
+#endif
 #ifdef LCD_DEBUG
 #define LCD_PRINT printk
 #else
@@ -54,7 +56,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x18, 0x00}},
 {LCM_SLEEP(20)},
 
-//CMD2_P0                                                                                                 
+//CMD2_P0
 {LCM_SEND(2), {0xFF, 0x01}},
 {LCM_SEND(2), {0xFB, 0x01}},
 
@@ -67,40 +69,40 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x05, 0x40}},
 
 
-//VGH SEL TO 8V     
+//VGH SEL TO 8V
 {LCM_SEND(2), {0x06, 0x94}},
-//VGL SEL TO -7V    
+//VGL SEL TO -7V
 {LCM_SEND(2), {0x07, 0x94}},
 {LCM_SEND(2), {0x08, 0x0C}},
 
 
-//VCOM SEL           
+//VCOM SEL
 {LCM_SEND(2), {0x11, 0x19}},
 {LCM_SEND(2), {0x12, 0x19}},
 {LCM_SEND(2), {0x13, 0x03}},
 
-//VGH              
+//VGH
 {LCM_SEND(2), {0x14, 0x94}},
 
-//AVDDR SEL TO 5.0V  
+//AVDDR SEL TO 5.0V
 {LCM_SEND(2), {0x15, 0x15}},
-//AVEER SEL TO -5.0V 
+//AVEER SEL TO -5.0V
 {LCM_SEND(2), {0x16, 0x15}},
 {LCM_SEND(2), {0x6D, 0x22}},
 
-//GVDDP SEL TO 4.6V  
+//GVDDP SEL TO 4.6V
 {LCM_SEND(2), {0x0B, 0xAF}},
-//GVDDN SEL TO -4.6V 
+//GVDDN SEL TO -4.6V
 {LCM_SEND(2), {0x0C, 0xAF}},
 
-//VGHO SEL TO 8.0V  
+//VGHO SEL TO 8.0V
 {LCM_SEND(2), {0x0E, 0xAB}},
-//VGLO SEL TO -7.0 V 
+//VGLO SEL TO -7.0 V
 {LCM_SEND(2), {0x0F, 0xA4}},
 
 
 
-//GATE_EQ              
+//GATE_EQ
 {LCM_SEND(2), {0x58, 0x82}},
 {LCM_SEND(2), {0x59, 0x02}},
 {LCM_SEND(2), {0x5A, 0x02}},
@@ -110,19 +112,19 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x5E, 0x02}},
 {LCM_SEND(2), {0x5F, 0x02}},
 
-//gamma  R(+/-);G(+) 3/2 ADD  
-{LCM_SEND(2), {0x75, 0x00}},     
-{LCM_SEND(2), {0x76, 0x00}}, 
-{LCM_SEND(2), {0x77, 0x00}},              
-{LCM_SEND(2), {0x78, 0x11}},                        
+//gamma  R(+/-);G(+) 3/2 ADD
+{LCM_SEND(2), {0x75, 0x00}},
+{LCM_SEND(2), {0x76, 0x00}},
+{LCM_SEND(2), {0x77, 0x00}},
+{LCM_SEND(2), {0x78, 0x11}},
 {LCM_SEND(2), {0x79, 0x00}},
 {LCM_SEND(2), {0x7A, 0x30}},
-{LCM_SEND(2), {0x7B, 0x00}}, 
-{LCM_SEND(2), {0x7C, 0x4A}},  
-{LCM_SEND(2), {0x7D, 0x00}},  
-{LCM_SEND(2), {0x7E, 0x62}}, 
-{LCM_SEND(2), {0x7F, 0x00}},                       
-{LCM_SEND(2), {0x80, 0x78}},   
+{LCM_SEND(2), {0x7B, 0x00}},
+{LCM_SEND(2), {0x7C, 0x4A}},
+{LCM_SEND(2), {0x7D, 0x00}},
+{LCM_SEND(2), {0x7E, 0x62}},
+{LCM_SEND(2), {0x7F, 0x00}},
+{LCM_SEND(2), {0x80, 0x78}},
 {LCM_SEND(2), {0x81, 0x00}},
 {LCM_SEND(2), {0x82, 0x8C}},
 {LCM_SEND(2), {0x83, 0x00}},
@@ -140,8 +142,8 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x8F, 0x01}},
 {LCM_SEND(2), {0x90, 0xC2}},
 {LCM_SEND(2), {0x91, 0x01}},
-{LCM_SEND(2), {0x92, 0xFB}},     
-{LCM_SEND(2), {0x93, 0x01}},  
+{LCM_SEND(2), {0x92, 0xFB}},
+{LCM_SEND(2), {0x93, 0x01}},
 {LCM_SEND(2), {0x94, 0xFC}},
 {LCM_SEND(2), {0x95, 0x02}},
 {LCM_SEND(2), {0x96, 0x34}},
@@ -549,7 +551,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x35, 0x74}},
 {LCM_SEND(2), {0x36, 0x00}},
 {LCM_SEND(2), {0x37, 0x2D}},
-{LCM_SEND(2), {0x38, 0x08}},                                                                      
+{LCM_SEND(2), {0x38, 0x08}},
 {LCM_SEND(2), {0x92, 0x94}},  //RTN
 
 //CTRL1
@@ -571,7 +573,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0x84, 0x03}},
 {LCM_SEND(2), {0x85, 0x05}},
 
-{LCM_SEND(2), {0xC5, 0x20}},   
+{LCM_SEND(2), {0xC5, 0x20}},
 
 //Source EQ;
 {LCM_SEND(2), {0x80, 0x00}},
@@ -591,7 +593,7 @@ static LCM_Init_Code init_data[] = {
 //CMD_9D_1DATA4 DBH 9D,B6
 
 //VIDEO DROP
-{LCM_SEND(2), {0xE7, 0x80}},                                                                                                                                                            
+{LCM_SEND(2), {0xE7, 0x80}},
 
 //CMD_EC_1DATA4 DBH EC,00
 
@@ -603,19 +605,19 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0xD2, 0x03}},
 {LCM_SEND(2), {0xD3, 0x12}},//vsync + vbp
 {LCM_SEND(2), {0xD4, 0x08}},//vfp
-{LCM_SEND(2), {0x35, 0x00}}, 
+{LCM_SEND(2), {0x35, 0x00}},
 //{LCM_SEND(2), {0x36, 0xC0}},  //2/15 ADD
 
 
 
-{LCM_SEND(2), {0xBA, 0x03}}, 
+{LCM_SEND(2), {0xBA, 0x03}},
 
 {LCM_SEND(1), {0x11}}, //Sleep Out
 {LCM_SLEEP(120)},
 {LCM_SEND(1), {0x29}}, //Display On
 
 //{LCM_SEND(2), {0xFF, 0x05}},
-//{LCM_SEND(2), {0xEC, 0x01}}, 
+//{LCM_SEND(2), {0xEC, 0x01}},
 
 
 };
@@ -685,10 +687,10 @@ static uint32_t nt35596_readid(struct panel_spec *self)
 			rd_prepare++;
 		}
 		read_rtn = mipi_force_read(0xF4, 1,(uint8_t *)read_data);
-		printk("lcd_nt35596_mipi read id 0xF4 value is 0x%x, 0x%x, 0x%x!\n", read_data[0], read_data[1], read_data[2]);
+		debugf("lcd_nt35596_mipi read id 0xF4 value is 0x%x, 0x%x, 0x%x!\n", read_data[0], read_data[1], read_data[2]);
 
 		if(0x96 == read_data[0]){
-			printk("lcd_nt35596_mipi read id success!\n");
+			debugf("lcd_nt35596_mipi read id success!\n");
 			mipi_eotp_set(1,1);
 			return 0x96;
 		}

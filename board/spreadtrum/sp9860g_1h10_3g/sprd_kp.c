@@ -15,7 +15,7 @@ void board_keypad_init(void)
 	sprd_gpio_request(NULL, 125);
 	sprd_gpio_direction_input(NULL, 125);
 */
-	printf("[gpio keys] init!\n");
+	debugf("[gpio keys] init!\n");
 	return;
 }
 
@@ -29,27 +29,27 @@ unsigned char board_key_scan(void)
 	sprd_eic_request(EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE);
 	udelay(3000);
 	gpio_volumeup = sprd_eic_get(EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE);
-	printf("gpio_volumeup = %d\n",gpio_volumeup);
+	debugf("gpio_volumeup = %d\n",gpio_volumeup);
 	if(gpio_volumeup < 0)
-		printf("[eic keys] volumeup : sprd_eic_get return ERROR!\n");
+		errorf("[eic keys] volumeup : sprd_eic_get return ERROR!\n");
 	if(gpio_volumeup > 0) {
 		key_code = KEY_VOLUMEUP;
-		printf("[eic keys] volumeup pressed!\n");
+		debugf("[eic keys] volumeup pressed!\n");
 	 }
 
 	sprd_eic_request(SPRD_DDIE_EIC_EXTINT2);
 	udelay(3000);
 	gpio_volumedown = sprd_eic_get(SPRD_DDIE_EIC_EXTINT2);
-		printf("gpio_volumedown = %d\n",gpio_volumedown);
+		debugf("gpio_volumedown = %d\n",gpio_volumedown);
 	if(gpio_volumedown < 0)
-		printf("[eic keys] volumedown : sprd_eic_get return ERROR!\n");
+		errorf("[eic keys] volumedown : sprd_eic_get return ERROR!\n");
 	if(gpio_volumedown == 0) {
 		key_code = KEY_VOLUMEDOWN;
-		printf("[eic keys] volumedown pressed!\n");
+		debugf("[eic keys] volumedown pressed!\n");
 	}
 
 	if (KEY_RESERVED == key_code)
-		printf("[gpio keys] no key pressed!\n");
+		debugf("[gpio keys] no key pressed!\n");
 
 	return key_code;
 }
