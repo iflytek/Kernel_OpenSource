@@ -44,25 +44,24 @@
 			reg = <0x0 0x8f600000 0x0 0x6000000>;
 		};
 
-		camera_reserved: camera-mem@4,c2d50000{
-			reg = <0x4 0xc2d50000 0x0 0x3800000>;
+		camera_reserved: camera-mem@c2d50000{
+			reg = <0x0 0xc2d50000 0x0 0x3800000>;
 		};
 
-		fb_reserved: framebuffer@4,c6550000{
-			reg = <0x4 0xc6550000 0x0 0x2a30000>;
+		fb_reserved: framebuffer@c6550000{
+			reg = <0x0 0xc6550000 0x0 0x17bb000>;
 		};
 
-		overlay_reserved: overlaybuffer@4,c8f80000{
-			reg = <0x4 0xc8f80000 0x0 0x7080000>;
+		overlay_reserved: overlaybuffer@c8f80000{
+			reg = <0x0 0xc8f80000 0x0 0x3f48000>;
 		};
 
-		/* For cma 4M align, enlarge its size from 0xd840000 to 0xd8d0000 */
-		mm_reserved: multimediabuffer@4,d0000000{
-			reg = <0x4 0xd0000000 0x0 0x10000000>;
+		mm_reserved: multimediabuffer@d0000000{
+			reg = <0x0 0xd0000000 0x0 0x10000000>;
 		};
 
-		system_reserved: systembuffer@5,c2d50000{
-			reg = <0x5 0xc2d50000 0x0 0x1d2b0000>;
+		system_reserved: systembuffer@1,c2d50000{
+			reg = <0x1 0xc2d50000 0x0 0x1d2b0000>;
 		};
 
 		iq_reserved: iq-mem{
