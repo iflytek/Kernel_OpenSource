@@ -391,7 +391,7 @@ int test_ufs_bufread(int argc, char * argv[])
 
 	size = (uint64_t)simple_strtoul(argv[3], NULL, 16);
 
-	debugf("read part(%s), size=0x%lx, offset=0x%lx, to buffer 0x%lx\n", argv[0], size, offset, buf);
+	debugf("read part(%s), size=0x%llx, offset=0x%llx, to buffer 0x%lx\n", argv[0], size, offset, buf);
 	ret = common_raw_read(argv[0], size, offset, buf);
 	if (-1 == ret) {
 		errorf("common_raw_read fail!\n");
@@ -415,7 +415,7 @@ int test_ufs_bufwrite(int argc, char * argv[])
 
 	size = (uint64_t)simple_strtoul(argv[3], NULL, 16);
 
-	debugf("write part(%s), size=0x%lx, offset=0x%lx, from buffer 0x%lx\n", argv[0], size, offset, buf);
+	debugf("write part(%s), size=0x%llx, offset=0x%llx, from buffer 0x%lx\n", argv[0], size, offset, buf);
 	ret = common_raw_write(argv[0], size, 0, offset, buf);
 	if (-1 == ret) {
 		errorf("common_raw_write fail!\n");
@@ -429,18 +429,18 @@ int test_ufs_bufwrite(int argc, char * argv[])
 int test_ufs_backwrite(int argc, char * argv[])
 {
 	int ret = 0;
-	uint64_t size = 0;
-	uint64_t offset = 0;
+	uint32_t size = 0;
+	uint32_t offset = 0;
 	int i =0;
-	char* buf = NULL;
+	char * buf = NULL;
 	int wait = 0;
 
-	offset = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+	offset = (uint32_t) simple_strtoul(argv[1], NULL, 16);
 	buf = (char *)simple_strtoul(argv[2], NULL, 16);
-	size = (uint64_t)simple_strtoul(argv[3], NULL, 16);
+	size = (uint32_t)simple_strtoul(argv[3], NULL, 16);
 	wait = (int)simple_strtoul(argv[4], NULL, 16);
 
-	debugf("backstage write part(%s), size=0x%lx, offset=0x%lx, from buffer 0x%lx\n", argv[0], size, offset, buf);
+	debugf("backstage write part(%s), size=0x%x, offset=0x%x, from buffer 0x%lx\n", argv[0], size, offset, buf);
 	ret = common_write_backstage(argv[0], size, offset, buf);
 	if (-1 == ret) {
 		errorf("common_write_backstage fail!\n");

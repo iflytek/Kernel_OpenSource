@@ -403,7 +403,7 @@ static int wait_for_previous_scsi_completion()
 
 #ifdef CONFIG_X86
 	/*instruction "invd" must be excuted inline, it's strange*/
-	invd();
+	//invd();
 #else
 	invalidate_dcache_range(0, 0);
 #endif
@@ -1285,10 +1285,7 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	cmd_upiu_ptr->reserved_1[2]     = 0x0;
 	cmd_upiu_ptr->tot_ehs_len       = 0x0;
 	cmd_upiu_ptr->reserved_2        = 0x0;
-	if (UFS_OP_UNMAP == opcode)
-		cmd_upiu_ptr->data_seg_len = sizeof(struct unmap_para_list);
-	else
-		cmd_upiu_ptr->data_seg_len = 0x0;
+	cmd_upiu_ptr->data_seg_len = 0x0;
 
 	if (opcode == UFS_OP_SECURITY_PROTOCOL_IN || opcode == UFS_OP_SECURITY_PROTOCOL_OUT) {
 		/*TODO, for RPMB, size in unit of byte*/
@@ -1298,22 +1295,14 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	} else if (UFS_OP_UNMAP == opcode) {
 		list_len = sizeof(struct unmap_para_list);
 		get_cmnd(opcode, 0, list_len, cmd_upiu_ptr->cdb);
-		/*TODO, future extension, consider the "MAXIMUM UNMAP BLOCK DESCRIPTOR COUNT" and
-		"MAXIMUM UNMAP LBA COUNT" field in VPD page*/
-		um_list = (struct unmap_para_list *)((uchar *)cmd_upiu_ptr + sizeof(struct dwc_ufs_cmd_upiu));
-		um_list->um_data_len = sizeof(struct unmap_para_list) - 2;
-		um_list->um_block_desc_len = sizeof(struct um_block_descriptor);
-		if (8 == sizeof(lbaint_t))
-			um_list->ub_desc.um_block_addr = cpu_to_be64(start);
-		else
-			um_list->ub_desc.um_block_addr = (uint64_t)cpu_to_be32(start);
-		um_list->ub_desc.um_block_sz = cpu_to_be32((uint32_t)blkcnt);
 	} else {
 		get_cmnd(opcode, start, blkcnt, cmd_upiu_ptr->cdb);
 	}
 
 	if (direction != DMA_NONE) {
 		transfer_size = blkcnt << lu_info->log2blksz;
+		if (UFS_OP_UNMAP == opcode)
+			transfer_size = sizeof(struct unmap_para_list);
 		cmd_upiu_ptr->exp_data_xfer_len = cpu_to_be32(transfer_size);
 
 		/* Update PRDT Length */
@@ -1623,6 +1612,7 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 static ulong ufs_erase(int dev_num, lbaint_t start, lbaint_t blkcnt)
 {
 	int ret;
+	struct unmap_para_list *um_list = NULL;
 	struct lu_info_tbl *lu_info = find_lu_info(dev_num);
 	if ( NULL == lu_info)
 		return 0;
@@ -1637,10 +1627,24 @@ static ulong ufs_erase(int dev_num, lbaint_t start, lbaint_t blkcnt)
 		debugf("UFS erase area not aligned to dEraseBlockSize, \
 		it will harm the erase efficiency, see more in 12.2.3\n");
 
+	um_list = (struct unmap_para_list *)malloc(sizeof(struct unmap_para_list));
+	if (NULL == um_list)
+		return 0;
+	/*TODO, future extension, consider the "MAXIMUM UNMAP BLOCK DESCRIPTOR COUNT" and
+		"MAXIMUM UNMAP LBA COUNT" field in VPD page*/
+	um_list->um_data_len = cpu_to_be16(sizeof(struct unmap_para_list) - 2);
+	um_list->um_block_desc_len = cpu_to_be16(sizeof(struct um_block_descriptor));
+	if (8 == sizeof(lbaint_t))
+		um_list->ub_desc.um_block_addr = cpu_to_be64(start);
+	else
+		um_list->ub_desc.um_block_addr = cpu_to_be64((uint64_t)start);
+	um_list->ub_desc.um_block_sz = cpu_to_be32((uint32_t)blkcnt);
+
 	debugf("erase lun(%d), start(0x%lx), erase_block(0x%lx)\n", lu_info->lu_index, start, blkcnt);
-	ret = send_scsi_cmd(UFS_OP_UNMAP, DMA_TO_DEVICE, lu_info, NULL, start, blkcnt, 0);
+	ret = send_scsi_cmd(UFS_OP_UNMAP, DMA_TO_DEVICE, lu_info, (void *)um_list, start, blkcnt, 0);
 	if (UFS_SUCCESS == ret)
 		ret = handle_scsi_completion();
+	free(um_list);
 	if (ret != UFS_SUCCESS)
 		return 0;
 
@@ -1675,7 +1679,7 @@ ulong ufs_write_backstage(int dev_num, lbaint_t start, lbaint_t blkcnt, const vo
 	}
 
 	/* Send Write 10 Command and don't wait for its completion*/
-	debugf("backstage write lun(%d), start(0x%lx), write_block(0x%lx)\n", lu_info->lu_index, start, blkcnt);
+	debugf("backstage write lun(%d), start(0x%lx), write_block(0x%lx), buffer(0x%lx)\n", lu_info->lu_index, start, blkcnt, src);
 	ret = send_scsi_cmd_backstage(UFS_OP_WRITE_10, DMA_TO_DEVICE, lu_info, src, start, blkcnt, 0);
 	if (ret != UFS_SUCCESS)
 		return 0;
