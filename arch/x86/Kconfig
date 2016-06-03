@@ -290,6 +290,12 @@ config IWHALE2_DDR4G_INTERLEAVE
     help
       use for ddr4g_interleave board
 
+config ISHARKL2_DDR4G
+    bool "with isharkl2 ddr4g board"
+    default n
+    help
+      use for isharkl2 ddr4g board
+
 config EMMC_BOOT
 	bool "with board boot from eMMC"
 	default n

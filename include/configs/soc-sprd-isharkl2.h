@@ -15,7 +15,7 @@
 
 #define TDDSP_ADR       0x88020000
 
-#define CONFIG_KERNEL_BOOT_CP
+/*#define CONFIG_KERNEL_BOOT_CP*/
 
 #define FIXNV_SIZE     LTE_FIXNV_SIZE
 #define LTE_FIXNV_SIZE 0x0006C000 // 272K the max size is 512k

@@ -21,7 +21,7 @@
 #include <asm/arch/common.h>
 
 
-const  SDIO_BASE_INFO  sdio_ctrl_info[2] =
+const  struct sdio_base_info  sdio_ctrl_info[2] =
 {
 	{
 		EMMC,
@@ -76,7 +76,7 @@ const  SDIO_BASE_INFO  sdio_ctrl_info[2] =
 	}
 };
 
-SDIO_BASE_INFO*  get_sdcontrol_info(uint32_t device_type)
+struct sdio_base_info*  get_sdcontrol_info(uint32_t device_type)
 {
 	return  &sdio_ctrl_info[device_type];
 }

@@ -158,6 +158,35 @@ no_address_info:
 
 	incl	%esi
 
+    #ifdef CONFIG_ISHARKL2_DDR
+        /* Variable Range MTRR #4: 8000 0000-BFFF FFFF, WB ,bottom 1GB of pub0*/
+
+        movl    $0x0, %edx
+        movl    $0x80000006, %eax
+        wrmsr
+        incl    %ecx
+
+        movl    %ebx, %edx
+        movl    $0xC0000800, %eax
+        wrmsr
+        incl    %ecx
+
+        incl    %esi
+
+        /* Variable Range MTRR #3: 1 0000 0000-1 3FFF FFFF, WB .top 1GB of pub0*/
+
+        movl    $0x00000001, %edx
+        movl    $0x00000006, %eax
+        wrmsr
+        incl    %ecx
+
+        movl    %ebx, %edx
+        movl    $0xC0000800, %eax
+        wrmsr
+        incl    %ecx
+
+        incl    %esi
+    #else /*CONFIG_ISHARKL2_DDR*/
         /* Variable Range MTRR #4: 1 4000 0000-1 7FFF FFFF, WB ,bottom 1GB of pub1*/
 
         movl    $0x00000001, %edx
@@ -185,7 +214,7 @@ no_address_info:
         incl    %ecx
 
         incl    %esi
-
+    #endif /*CONFIG_ISHARKL2_DDR*/
     #endif /*CONFIG_IWHALE2_DDR4G_INTERLEAVE*/
 #else /*CONFIG_IWHALE2_DDR4G*/
 /* Variable Range MTRR #3: 40000000-7FFFFFFF, WB */

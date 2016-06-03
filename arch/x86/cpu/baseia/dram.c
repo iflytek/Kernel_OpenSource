@@ -126,7 +126,21 @@ unsigned install_e820_map(unsigned max_entries, struct e820entry *entries)
     entries->type = E820_RAM;
     e820_entries++;
     entries++;
+    #ifdef CONFIG_ISHARKL2_DDR
+    /*add e820 entry for memory  0x8000 0000~0xbfff ffff, pub0*/
+    entries->addr = 0x80000000;
+    entries->size = 0x40000000;
+    entries->type = E820_RAM;
+    e820_entries++;
+    entries++;
 
+    /*add e820 entry for memory  0x1 0000 0000~0x1 3fff ffff, pub0*/
+    entries->addr = 0x100000000;
+    entries->size = 0x40000000;
+    entries->type = E820_RAM;
+    e820_entries++;
+    entries++;
+    #else/*CONFIG_ISHARKL2_DDR*/
     /*add e820 entry for memory  0x1 4000 0000~0x1 7fff ffff, pub1*/
     entries->addr = 0x140000000;
     entries->size = 0x40000000;
@@ -140,6 +154,7 @@ unsigned install_e820_map(unsigned max_entries, struct e820entry *entries)
     entries->type = E820_RAM;
     e820_entries++;
     entries++;
+	#endif /*CONFIG_ISHARKL2_DDR*/
 #endif /*CONFIG_IWHALE2_DDR4G_INTERLEAVE*/
 
 #else /*CONFIG_IWHALE2_DDR4G*/
@@ -177,14 +192,25 @@ void dram_init_banksize(void)
     gd->bd->bi_dram[3].start = 0x300000000;
     gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
     #else
-    gd->bd->bi_dram[1].start = 0x40000000;
-    gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
+        #ifdef CONFIG_ISHARKL2_DDR
+        gd->bd->bi_dram[1].start = 0x40000000;
+        gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
 
-    gd->bd->bi_dram[2].start = 0x140000000;
-    gd->bd->bi_dram[2].size  = PHYS_SDRAM_1_SIZE;
+        gd->bd->bi_dram[2].start = 0x80000000;
+        gd->bd->bi_dram[2].size  = PHYS_SDRAM_1_SIZE;
 
-    gd->bd->bi_dram[3].start = 0x180000000;
-    gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
+        gd->bd->bi_dram[3].start = 0x100000000;
+        gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
+        #else
+        gd->bd->bi_dram[1].start = 0x40000000;
+        gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
+
+        gd->bd->bi_dram[2].start = 0x140000000;
+        gd->bd->bi_dram[2].size  = PHYS_SDRAM_1_SIZE;
+
+        gd->bd->bi_dram[3].start = 0x180000000;
+        gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
+        #endif
     #endif
 #endif
 
