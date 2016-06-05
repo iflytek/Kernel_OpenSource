@@ -60,12 +60,7 @@ uint32_t load_lcd_hight_to_kernel(void)
 
 void *lcd_get_base_addr(void *lcd_base)
 {
-	static void *base = NULL;
-
-	if (!base)
-		base = lcd_base;
-
-	return base;
+	return gd->fb_base;
 }
 
 static int real_refresh(struct sprdfb_device *dev)

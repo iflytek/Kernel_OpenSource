@@ -366,6 +366,9 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 		}
 	}
 
+	misc_noc_ctrl(REG_AON_APB_DISP_NOC_CTRL,
+			dev->smem_start > 0x400000000 ? FULL_MODE : NORMAL_MODE,
+			SIZE_64);
 	/*set bg color*/
 //	dispc_set_bg_color(0xFFFFFFFF);
 	dispc_set_bg_color(0x0);
