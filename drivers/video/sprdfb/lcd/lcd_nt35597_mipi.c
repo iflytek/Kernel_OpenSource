@@ -783,11 +783,15 @@ int32_t nt35597_reset(struct panel_spec *self)
 
 	sprd_gpio_request(NULL, LCM_GPIO_RSTN);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
-	mdelay(20);
+	mdelay(5);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 0);
-	mdelay(20);
+	mdelay(5);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
-	mdelay(120);
+	mdelay(5);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 0);
+	mdelay(5);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
+	mdelay(20);
 
 	return 0;
 }
@@ -828,7 +832,7 @@ struct panel_spec lcd_nt35597_mipi_spec = {
 	.fps = 60,
 	.type = LCD_MODE_DSI,
 	.direction = LCD_DIRECT_NORMAL,
-	.is_need_reset = 1,
+	//.is_need_reset = 1,
 	.is_need_dsc = 1,
 	.info = {
 		.mipi = &lcd_nt35597_mipi_info
