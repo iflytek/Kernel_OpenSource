@@ -38,7 +38,7 @@
 
 		mm_reserved: multimediabuffer@0{
 			/* start address will be filled by bootloader */
-			reg = <0x0 0x0 0x0 0x10000000>;
+			reg = <0x0 0x0 0x0 0x11E00000>;
 		};
 
 		fb_reserved: framebuffer@0{
