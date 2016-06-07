@@ -67,7 +67,7 @@ SECTIONS
 	}
 
 	_end = .;
-	. = . + 3k;
+	. = . + 53k;
 	. = ALIGN(8);
 
 	.bss_start : {
