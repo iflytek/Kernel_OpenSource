@@ -20,8 +20,8 @@
 		#size-cells = <2>;
 		ranges;
 
-		pub1_mpu_reserved: mpu1-dump@180000000 {
-			reg = <0x1 0x80000000 0x0 0x1000>;
+		pub1_mpu_reserved: mpu1-dump@874fe000 {
+			reg = <0x0 0x874fe000 0x0 0x1000>;
 		};
 
 		pub0_mpu_reserved: mpu0-dump@874ff000 {
@@ -60,8 +60,8 @@
 			reg = <0x0 0xd0000000 0x0 0x10000000>;
 		};
 
-		system_reserved: systembuffer@1,c2d50000{
-			reg = <0x1 0xc2d50000 0x0 0x1d2b0000>;
+		system_reserved: systembuffer@95600000{
+			reg = <0x0 0x95600000 0x0 0x8000000>;
 		};
 
 		iq_reserved: iq-mem{
