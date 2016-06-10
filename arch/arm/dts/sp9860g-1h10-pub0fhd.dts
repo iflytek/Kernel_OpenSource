@@ -56,10 +56,6 @@
 			reg = <0x0 0xd0000000 0x0 0x10000000>;
 		};
 
-		system_reserved: systembuffer@95600000{
-			reg = <0x0 0x95600000 0x0 0x8000000>;
-		};
-
 		iq_reserved: iq-mem{
 			compatible = "sprd,iq-mem";
 			alignment = <0x0 0x1000>;
@@ -77,8 +73,7 @@
 		heap@0 {
 			reg = <0>;
 			label = "system";
-			type = <2>;
-			memory-region = <&system_reserved>;
+			type = <0>;
 		};
 
 		heap@1 {
