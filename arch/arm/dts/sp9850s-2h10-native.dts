@@ -33,7 +33,8 @@
 		};
 
 		tos_reserved: tos-mem@96000000 {
-			reg = <0x0 0x96000000 0x0 0x2000000>;
+			reg = <0x0 0x96000000 0x0 0x4000000>;
+			no-map;
 		};
 
 		mm_reserved: multimediabuffer@0{
@@ -99,6 +100,14 @@
 			label = "carveout_fb";
 			type = <2>;
 			memory-region = <&fb_reserved>;
+			sprd,memory-region-auto;
+		};
+
+		heap@4 {
+			reg = <4>;
+			label = "carveout_camera";
+			type = <2>;
+			memory-region = <&camera_reserved>;
 			sprd,memory-region-auto;
 		};
 	};

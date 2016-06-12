@@ -40,8 +40,9 @@
 			reg = <0x0 0x87d00000 0x0 0x7900000>;
 		};
 
-		tos_reserved: tos-mem@bf300000 {
-			reg = <0x0 0xbf300000 0x0 0x6000000>;
+		tos_reserved: tos-mem@8f600000 {
+			reg = <0x0 0x8f600000 0x0 0x6000000>;
+			no-map;
 		};
 
 		camera_reserved: camera-mem@4,c5400000{
@@ -56,6 +57,10 @@
 			reg = <0x4 0xc7eb0000 0x0 0x7080000>;
 		};
 
+		system_reserved: systembuffer@5,c5400000{
+			reg = <0x5 0xc5400000 0x0 0x1ac00000>;
+		};
+
 		/* For cma 4M align, enlarge its size from 0xd840000 to 0xd8d0000 */
 		mm_reserved: multimediabuffer@4,d2730000{
 			reg = <0x4 0xcef30000 0x0 0x10000000>;
@@ -66,14 +71,6 @@
 			alignment = <0x0 0x1000>;
 			alloc-ranges = <0x0 0x80000000 0 0x45400000>;
 			size = <0x0 0x8000000>;
-		};
-
-		/* Must 4M align */
-		linux,cma@5,c5400000{
-			compatible = "shared-dma-pool";
-			reusable;
-			reg = <0x5 0xc5400000 0 0x1ac00000>;
-			linux,cma-default;
 		};
 	};
 
@@ -86,7 +83,8 @@
 		heap@0 {
 			reg = <0>;
 			label = "system";
-			type = <0>;
+			type = <2>;
+			memory-region = <&system_reserved>;
 		};
 
 		heap@1 {

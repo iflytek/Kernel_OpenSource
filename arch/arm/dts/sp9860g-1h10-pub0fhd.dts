@@ -20,10 +20,6 @@
 		#size-cells = <2>;
 		ranges;
 
-		pub1_mpu_reserved: mpu1-dump@874fe000 {
-			reg = <0x0 0x874fe000 0x0 0x1000>;
-		};
-
 		pub0_mpu_reserved: mpu0-dump@874ff000 {
 			reg = <0x0 0x874ff000 0x0 0x1000>;
 		};

@@ -36,20 +36,34 @@
 			reg = <0x0 0x96000000 0x0 0x2000000>;
 		};
 
-		mm_reserved: multimediabuffer@c0000000{
-			reg = <0x0 0xc0000000 0x0 0x10000000>;
+		mm_reserved: multimediabuffer@0{
+			/* start address will be filled by bootloader */
+			reg = <0x0 0x0 0x0 0x10000000>;
 		};
 
-		fb_reserved: framebuffer@b1ead000{
-			reg = <0x0 0xb1ead000 0x0 0x17bb000>;
+		fb_reserved: framebuffer@0{
+			/* start address will be filled by bootloader */
+			reg = <0x0 0x0 0x0 0x17bb000>;
 		};
 
-		overlay_reserved: overlaybuffer@b3668000{
-			reg = <0x0 0xb3668000 0x0 0x3f48000>;
+		overlay_reserved: overlaybuffer@0{
+			/* start address will be filled by bootloader */
+			reg = <0x0 0x0 0x0 0x3f48000>;
+		};
+
+		pub0_mpu_reserved: mpu0-dump@0 {
+			/* start address will be filled by bootloader */
+			reg = <0x0 0x0 0x0 0x1000>;
 		};
 
 		camera_reserved: camera-mem@bd4f0000{
 			reg = <0x0 0xbd4f0000 0x0 0x2b10000>;
+		};
+
+		iq_reserved: iq-mem{
+			compatible = "sprd,iq-mem";
+			alignment = <0x0 0x1000>;
+			size = <0x0 0x8000000>;
 		};
 	};
 
@@ -69,6 +83,7 @@
 			label = "carveout_mm";
 			type = <2>;
 			memory-region = <&mm_reserved>;
+			sprd,memory-region-auto;
 		};
 
 		heap@2 {
@@ -76,6 +91,7 @@
 			label = "carveout_overlay";
 			type = <2>;
 			memory-region = <&overlay_reserved>;
+			sprd,memory-region-auto;
 		};
 
 		heap@3 {
@@ -83,6 +99,15 @@
 			label = "carveout_fb";
 			type = <2>;
 			memory-region = <&fb_reserved>;
+			sprd,memory-region-auto;
+		};
+
+		heap@4 {
+			reg = <4>;
+			label = "carveout_camera";
+			type = <2>;
+			memory-region = <&camera_reserved>;
+			sprd,memory-region-auto;
 		};
 	};
 };

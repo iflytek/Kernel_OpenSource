@@ -20,6 +20,10 @@
 		#size-cells = <2>;
 		ranges;
 
+		pub0_mpu_reserved: mpu0-dump@874ff000 {
+			reg = <0x0 0x874ff000 0x0 0x1000>;
+		};
+
 		audio_reserved: audio-mem@87500000 {
 			reg = <0x0 0x87500000 0x0 0x300000>;
 		};
@@ -89,6 +93,14 @@
 			label = "carveout_fb";
 			type = <2>;
 			memory-region = <&fb_reserved>;
+		};
+
+		heap@4 {
+			reg = <4>;
+			label = "carveout_camera";
+			type = <2>;
+			memory-region = <&camera_reserved>;
+			sprd,memory-region-auto;
 		};
 	};
 
