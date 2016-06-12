@@ -109,3 +109,28 @@ int sansa_kce_program(uint32_t *kcePtr)
   }
   return PROG_OK;
 }
+
+void sansa_calc_hbk(void)
+{
+  unsigned int t_readValue = 0;
+
+  t_readValue = sprd_ap_efuse_read(BLOCK_NUM_3);
+
+  if(DISABLE_DX_DEBUG_CONTROL != (t_readValue&DISABLE_DX_DEBUG_CONTROL))
+  {
+    /**read spl image**/
+    common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)SAVE_SPL_IMAGE);
+
+    g_imgToVerInfo.img_addr = SAVE_SPL_IMAGE;
+    g_imgToVerInfo.img_len = SPL_IMAGE_SIZE;
+    g_imgToVerInfo.flag = SANSA_FLAG;
+
+    uboot_get_hbk(&g_imgToVerInfo,sizeof(imgToVerifyInfo));
+  }
+  else
+  {
+    printf("###### disable dx debug control is ok ######\n");
+  }
+
+}
+

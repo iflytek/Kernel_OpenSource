@@ -75,4 +75,6 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 
 int secure_efuse_program();
 
+void sansa_calc_hbk(void);
+
 #endif

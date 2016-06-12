@@ -210,4 +210,24 @@ int uboot_kce_program(uint64_t start_addr, uint64_t lenth){
   return ret;
 }
 
+int uboot_get_hbk(uint64_t start_addr, uint64_t lenth){
+
+  uint32_t ret;
+  uint32_t smcid;
+  uint32_t funcid;
+  struct smc_param64 param;
+
+  ap_sansa_efuse_prog_power_on();
+  smcid  = TEESMC64_SIPCALL_WITH_ARG;
+  funcid = FUNCTYPE_GET_HBK;
+  param.a0 = smcid;
+  param.a1 = funcid;
+  param.a2 = start_addr;
+  param.a3 = lenth;
+  tee_smc_call64(&param);
+
+  ret = param.a0;
+  ap_sansa_efuse_power_off();
+  return ret;
+}
 
