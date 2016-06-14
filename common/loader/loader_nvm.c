@@ -937,6 +937,14 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 		i++;
 	}
 
+#if defined(CONFIG_KERNEL_BOOT_CP)
+	extern unsigned int g_charger_mode;
+	if(g_charger_mode) {
+		boot_image_required_t pm_image = {"pm_sys", NULL, DFS_SIZE, DFS_ADDR};
+		_boot_load_required_image(pm_image);
+	}
+#endif
+
 #if !defined(CONFIG_KERNEL_BOOT_CP) && defined(CONFIG_MEM_LAYOUT_DECOUPLING)
 extern boot_image_required_t *get_cp_load_table(void);
 	do {

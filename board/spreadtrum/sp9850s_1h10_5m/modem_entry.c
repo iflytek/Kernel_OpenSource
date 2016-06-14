@@ -154,6 +154,12 @@ void modem_entry()
         cp_dynamic_loader();
 	pubcp_boot();
 	debugf("boot CP1 OK\n");
+#else
+	extern unsigned int g_charger_mode;
+	if(g_charger_mode) {
+		pmic_arm_m4_boot();
+		debugf("boot CM4 OK\n");
+	}
 #endif
 }
 
