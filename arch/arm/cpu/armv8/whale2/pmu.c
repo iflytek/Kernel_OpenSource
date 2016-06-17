@@ -1024,6 +1024,7 @@ static void setup_autopd_mode(void)
 	);
 }
 
+
 static void dcdc_ldo_optimize_config(uint32_t para)
 {
 #if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723)
@@ -1076,73 +1077,23 @@ struct dcdc_sleep_reg_ctrl ds_cfg=
 	0x99991111
 };
 
-static void dcdc_core_ds_config(uint32_t para)
+static void dcdc_core_ds_config(uint32_t core_cal_para, uint32_t core_ctrl_para)
 {
-#if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723)
-	uint32_t core_adi_val = 0;
-        uint32_t reg_chip_id = 0;
-        uint32_t reg_val = 0;
-        uint32_t reg_val_cal = 0;
+	/*Get the chip id for eco chip*/
+	if(0x1 == CHIP_REG_GET(REG_AON_APB_AON_VER_ID))
+		ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1,
+			BITS_DCDC_CORE_CAL_DS_SW(core_cal_para)|
+			BITS_DCDC_CORE_CTRL_DS_SW(core_ctrl_para)
+		);
+	else {
+		ANA_REG_AND(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
+			~BIT_SLP_DCDCCORE_DROP_EN
+		);
 
-        reg_chip_id =(ANA_REG_GET(ANA_REG_GLB_CHIP_ID_HIGH) & 0xFFFF) << 16;
-        reg_chip_id |= (ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW) & 0xFFFF);
-        if(reg_chip_id == 0x2723a000) {
-                reg_val = ANA_REG_GET(ANA_REG_GLB_DCDC_CORE_ADI);
-                reg_val &= 0x1F;
-                core_adi_val |= reg_val << 5;
-                reg_val_cal = ANA_REG_GET(ANA_REG_GLB_DCDC_CORE_ADI);
-                reg_val_cal &= 0x1F << 5;
-                core_adi_val |= reg_val_cal >> 5;
-                ANA_REG_SET(ANA_REG_GLB_DCDC_SLP_CTRL1, core_adi_val);
-                /*disable the DCDC_CORE_SLEEP_OUT_STEP for dcdc core step down */
-                ANA_REG_AND(ANA_REG_GLB_DCDC_SLP_CTRL0, ~(0x3));
-        } else {
-                if(0x00000007 == ds_cfg.is_auto_ds) {
-                        /*enable the DCDC_CORE_SLEEP_OUT_STEP for dcdc core step down */
-                        ANA_REG_OR(ANA_REG_GLB_DCDC_SLP_CTRL0, 0x3);
-                } else {
-                        /*SLEEP_VDDCORE equal NOMAL_VDDCORE*/
-                        reg_val = ANA_REG_GET(ANA_REG_GLB_DCDC_CORE_ADI);
-                        reg_val &= 0x1F;
-                        core_adi_val |= reg_val << 5;
-                        reg_val_cal = ANA_REG_GET(ANA_REG_GLB_DCDC_CORE_ADI);
-                        reg_val_cal &= 0x1F << 5;
-                        core_adi_val |= reg_val_cal >> 5;
-                        ANA_REG_SET(ANA_REG_GLB_DCDC_SLP_CTRL1, core_adi_val);
-                        /*enable the DCDC_CORE_SLEEP_OUT_STEP for dcdc core step down */
-                        //ANA_REG_OR(ANA_REG_GLB_DCDC_SLP_CTRL0, 0x3);
-                        /*disable the DCDC_CORE_SLEEP_OUT_STEP */
-                        ANA_REG_AND(ANA_REG_GLB_DCDC_SLP_CTRL0, ~(0x3));
-                }
-        }
-#elif defined(CONFIG_ADIE_SC2731)
-	uint32_t core_adi_val = 0;
-        uint32_t reg_chip_id = 0;
-        uint32_t reg_val = 0;
-        uint32_t reg_val_cal = 0;
-
-	return;
-
-	reg_chip_id =(ANA_REG_GET(ANA_REG_GLB_CHIP_ID_HIGH) & 0xFFFF) << 16;
-        reg_chip_id |= (ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW) & 0xFFFF);
-	if(0x00000007 == ds_cfg.is_auto_ds) {
-		/*enable the DCDC_CORE_SLEEP_OUT_STEP for dcdc core step down */
-		ANA_REG_OR(ANA_REG_GLB_DCDC_CORE_SLP_CTRL0, 0x3);
-	} else {
-		/*SLEEP_VDDCORE equal NOMAL_VDDCORE*/
-		reg_val = ANA_REG_GET(ANA_REG_GLB_DCDC_CORE_VOL);
-		reg_val &= 0x1F;
-		core_adi_val |= reg_val << 5;
-		reg_val_cal = ANA_REG_GET(ANA_REG_GLB_DCDC_CORE_VOL);
-		reg_val_cal &= 0x1F << 5;
-		core_adi_val |= reg_val_cal >> 5;
-		ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1, core_adi_val);
-		/*enable the DCDC_CORE_SLEEP_OUT_STEP for dcdc core step down */
-		//ANA_REG_OR(ANA_REG_GLB_DCDC_SLP_CTRL0, 0x3);
-		/*disable the DCDC_CORE_SLEEP_OUT_STEP */
-		ANA_REG_AND(ANA_REG_GLB_DCDC_CORE_SLP_CTRL0, ~(0x3));
+		ANA_REG_AND(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
+			~BIT_SLP_DCDCCORE_LP_EN 
+		);
 	}
-#endif
 }
 
 void CSP_Init(uint32_t gen_para)
@@ -1150,7 +1101,7 @@ void CSP_Init(uint32_t gen_para)
 	uint32_t reg_val;
 	//setup_autopd_mode();
 	pmu_commom_config();
-	dcdc_core_ds_config(0x00000000);
+	dcdc_core_ds_config(0,3);
 	//setup_ap_cp_sync_sleep_code(0x50001800);
 	//dcdc_ldo_optimize_config(0x00000000);
 }
