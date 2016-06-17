@@ -1,48 +1,19 @@
-/******************************************************************************
- ** File Name:    sdio_reg_v0.h                                            *
- ** Author:       Steve.Zhan                                                 *
- ** DATE:         06/05/2010                                                  *
- ** Copyright:    2010 Spreatrum, Incoporated. All Rights Reserved.           *
- ** Description:                                                              *
- ******************************************************************************/
-/******************************************************************************
- **                   Edit    History                                         *
- **---------------------------------------------------------------------------*
- ** DATE          NAME            DESCRIPTION                                 *
- ** 06/05/2010    Steve.Zhan      Create.                                     *
- ******************************************************************************/
+/*
+ * Copyright (C) 2016 Spreadtrum Communications Inc.
+ *
+ * SPDX-License-Identifier:	GPL-2.0+
+ */
+
 #ifndef _SDIO_REG_V0_H_
 #define _SDIO_REG_V0_H_
-/*----------------------------------------------------------------------------*
- **                         Dependencies                                      *
- **------------------------------------------------------------------------- */
 
-/**---------------------------------------------------------------------------*
- **                             Compiler Flag                                 *
- **--------------------------------------------------------------------------*/
-#ifdef   __cplusplus
-extern   "C"
-{
-#endif
-/**---------------------------------------------------------------------------*
-**                               Micro Define                                **
-**---------------------------------------------------------------------------*/
 #include <sprd_regulator.h>
-//#include <sdhci.h>
 #include <sprd_sdhci.h>
 
-#define	 EMMC 	0
-#define 	 SD 		1
+#define EMMC	0
+#define SD	1
 
-typedef struct
-{
-	uint32_t 	pin_base;
-	uint32_t 	pin_offset;
-	uint32_t 	pin_value;
-}SDIO_PING_REG;
-
-typedef struct
-{
+struct sdio_base_info {
 	uint32_t  dev_type;
 	uint32_t  regbase;
 	uint32_t  baseclk_reg;
@@ -58,14 +29,9 @@ typedef struct
 
 	const char *ldo_io;
 	const char *ldo_core;
-}SDIO_BASE_INFO;
+};
 
-SDIO_BASE_INFO*  get_sdcontrol_info(uint32_t device_type);
+struct sdio_base_info *get_sdcontrol_info(uint32_t device_type);
 void  sdio_dump(uint32_t device_type);
 
-#ifdef   __cplusplus
-}
 #endif
-/**---------------------------------------------------------------------------*/
-#endif
-// End

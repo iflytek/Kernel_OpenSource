@@ -42,6 +42,8 @@ else
 endif
 obj-$(CONFIG_EMMC_VERSION_V40) += sprd_mmc_v40.o
 obj-$(CONFIG_EMMC_VERSION_V40) += sprd_sdhci_v40.o
+obj-$(CONFIG_EMMC_VERSION_R7P0) += sprd_mmc_r7.o
+obj-$(CONFIG_EMMC_VERSION_R7P0) += sprd_sdhci_r7.o
 obj-$(CONFIG_SPRD_MMC) += sprd_mmc.o
 obj-$(CONFIG_SPRD_MMC) += sprd_sdhci.o
 obj-$(CONFIG_SPRD_MMC) += sprd_rpmb.o

@@ -28,7 +28,7 @@
 static struct list_head mmc_devices;
 static int cur_dev_num = -1;
 
-SDIO_BASE_INFO *emmc_info;
+struct sdio_base_info *emmc_info;
 int __weak board_mmc_getwp(struct mmc *mmc)
 {
 	return -1;
@@ -1065,7 +1065,7 @@ static int mmc_startup(struct mmc *mmc)
 	int err, i;
 	uint mult, freq;
 	u64 cmult, csize, capacity;
-	SDIO_BASE_INFO *sprd_host_info;
+	struct sdio_base_info *sprd_host_info;
 	struct mmc_cmd cmd;
 	ALLOC_CACHE_ALIGN_BUFFER(u8, ext_csd, MMC_MAX_BLOCK_LEN);
 	ALLOC_CACHE_ALIGN_BUFFER(u8, test_csd, MMC_MAX_BLOCK_LEN);
@@ -1802,7 +1802,7 @@ int sprd_host_init(int sdio_type)
 {
 	struct mmc *mmc;
 	uint32_t ret, i;
-	SDIO_BASE_INFO *sprd_host_info;
+	struct sdio_base_info *sprd_host_info;
 	sprd_host_info = get_sdcontrol_info(sdio_type);
 	regulator_enable(sprd_host_info->ldo_core);
 	regulator_enable(sprd_host_info->ldo_io);
