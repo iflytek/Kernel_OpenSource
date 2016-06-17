@@ -751,8 +751,8 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 				size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
 				ramdisk_addr = *dt_addr - size;
 				hdr->ramdisk_addr = ramdisk_addr;
-				fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+ramdisk_size, 1);
 			}
+			fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+hdr->ramdisk_size , 1);
 			boot_sprdisk(ramdisk_size, ramdisk_addr, 1);
 		} else {
 			errorf("%s, sprdisk mode failure!\n", __FUNCTION__);
