@@ -531,8 +531,8 @@ void pmu_commom_config(void)
 		0
 	);
 	CHIP_REG_SET(REG_PMU_APB_PWR_ST_DEBUG_DLY1,
-		BIT_PMU_APB_SHUTDOWN_M_D_DLY(0x04) |
-		BIT_PMU_APB_PWR_ST_CLK_DIV_CFG(0x07) |
+		BIT_PMU_APB_SHUTDOWN_M_D_DLY(0x08) |
+		BIT_PMU_APB_PWR_ST_CLK_DIV_CFG(0x0F) |
 		BIT_PMU_APB_RST_ASSERT_DLY(0x02) |
 		0
 	);
@@ -1024,59 +1024,6 @@ static void setup_autopd_mode(void)
 	);
 }
 
-
-static void dcdc_ldo_optimize_config(uint32_t para)
-{
-#if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723)
-	unsigned short dcdc_ctrl[]={
-		0x1a80,/*core*/
-		0x1a80,/*mem*/
-		0x1c80,/*gen*/
-		0x1a80,/*arm*/
-		0x1a80,/*wpa*/
-		0x1a80,/*rf*/
-		0x1a80,/*con*/
-		0x0808,/*mem & core*/
-		0x0a08,/*arm & gen*/
-		0x0808,/*con & rf*/
-		//0x3008 /*wpa*/
-	};
-	uint32_t i;
-	uint32_t reg_val = 0;
-	for(i=0;i<sizeof(dcdc_ctrl)/sizeof(dcdc_ctrl[0]);i++)
-	{
-		sci_adi_write(ANA_REG_GLB_DCDC_CTRL0 + (i << 2),dcdc_ctrl[i],0xffff);
-	}
-
-	reg_val =(ANA_REG_GET(ANA_REG_GLB_CHIP_ID_HIGH) & 0xFFFF) << 16;
-		reg_val |= (ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW) & 0xFFFF);
-
-	if((reg_val != 0x2723a000) && (reg_val != 0x2723a001)) {
-			/*enable the vdd28 low power mode for sc2723AD*/
-		ANA_REG_OR(ANA_REG_GLB_PWR_SLP_CTRL2, 0x2);
-	}
-#elif defined(CONFIG_ADIE_SC2731)
-	return;
-#endif
-}
-
-struct dcdc_sleep_reg_ctrl{
-	volatile uint32_t magic_header;
-	volatile uint32_t is_auto_ds;
-	volatile uint32_t magic_ender;
-};
-
-struct dcdc_sleep_reg_ctrl ds_cfg=
-{
-	0x11119999,
-#if  defined(CONFIG_SC9836A) || defined(CONFIG_SC9838A)
-	0x00000007,
-#else
-	0x00000000,
-#endif
-	0x99991111
-};
-
 static void dcdc_core_ds_config(uint32_t core_cal_para, uint32_t core_ctrl_para)
 {
 	/*Get the chip id for eco chip*/
@@ -1102,8 +1049,6 @@ void CSP_Init(uint32_t gen_para)
 	//setup_autopd_mode();
 	pmu_commom_config();
 	dcdc_core_ds_config(0,3);
-	//setup_ap_cp_sync_sleep_code(0x50001800);
-	//dcdc_ldo_optimize_config(0x00000000);
 }
 
 #endif
