@@ -145,6 +145,7 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9860g-1h10-pub0fhd.dtb \
 	sp9860g-1h10-al.dtb \
 	sp9860g-2h10-native.dtb \
+	sp9860g-3h10-native.dtb \
 	ss_whale2_j7-native.dtb \
 	ss_whale2_jigboard-native.dtb
 
