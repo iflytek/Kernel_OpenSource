@@ -230,7 +230,6 @@
 /*eMMC config*/
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
-//#define CONFIG_EMMC_VERSION_V40
 #define CONFIG_EMMC_VERSION_R7P0
 
 /*eMMC boot*/

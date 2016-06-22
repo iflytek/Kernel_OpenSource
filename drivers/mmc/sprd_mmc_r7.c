@@ -64,41 +64,41 @@ int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 	int i;
 	u8 *ptr;
 
-	debugf("CMD_SEND:%d\n", cmd->cmdidx);
-	debugf("\t\tARG\t\t\t 0x%08X\n", cmd->cmdarg);
+	printf("CMD_SEND:%d\n", cmd->cmdidx);
+	printf("\t\tARG\t\t\t 0x%08X\n", cmd->cmdarg);
 	ret = mmc->cfg->ops->send_cmd(mmc, cmd, data);
 	switch (cmd->resp_type) {
 	case MMC_RSP_NONE:
-		debugf("\t\tMMC_RSP_NONE\n");
+		printf("\t\tMMC_RSP_NONE\n");
 		break;
 	case MMC_RSP_R1:
-		debugf("\t\tMMC_RSP_R1,5,6,7 \t 0x%08X \n", cmd->response[0]);
+		printf("\t\tMMC_RSP_R1,5,6,7 \t 0x%08X \n", cmd->response[0]);
 		break;
 	case MMC_RSP_R1b:
-		debugf("\t\tMMC_RSP_R1b\t\t 0x%08X \n", cmd->response[0]);
+		printf("\t\tMMC_RSP_R1b\t\t 0x%08X \n", cmd->response[0]);
 		break;
 	case MMC_RSP_R2:
-		debugf("\t\tMMC_RSP_R2\t\t 0x%08X \n", cmd->response[0]);
-		debugf("\t\t          \t\t 0x%08X \n", cmd->response[1]);
-		debugf("\t\t          \t\t 0x%08X \n", cmd->response[2]);
-		debugf("\t\t          \t\t 0x%08X \n", cmd->response[3]);
-		debugf("\n");
-		debugf("\t\t\t\t\tDUMPING DATA\n");
+		printf("\t\tMMC_RSP_R2\t\t 0x%08X \n", cmd->response[0]);
+		printf("\t\t          \t\t 0x%08X \n", cmd->response[1]);
+		printf("\t\t          \t\t 0x%08X \n", cmd->response[2]);
+		printf("\t\t          \t\t 0x%08X \n", cmd->response[3]);
+		printf("\n");
+		printf("\t\t\t\t\tDUMPING DATA\n");
 		for (i = 0; i < 4; i++) {
 			int j;
-			debugf("\t\t\t\t\t%03d - ", i * 4);
+			printf("\t\t\t\t\t%03d - ", i * 4);
 			ptr = (u8 *)&cmd->response[i];
 			ptr += 3;
 			for (j = 0; j < 4; j++)
-				debugf("%02X ", *ptr--);
-			debugf("\n");
+				printf("%02X ", *ptr--);
+			printf("\n");
 		}
 		break;
 	case MMC_RSP_R3:
-		debugf("\t\tMMC_RSP_R3,4\t\t 0x%08X\n", cmd->response[0]);
+		printf("\t\tMMC_RSP_R3,4\t\t 0x%08X\n", cmd->response[0]);
 		break;
 	default:
-		debugf("\t\tERROR MMC rsp not supported\n");
+		printf("\t\tERROR MMC rsp not supported\n");
 		break;
 	}
 #else
@@ -773,7 +773,6 @@ static int mmc_change_freq(struct mmc *mmc)
 		return 0;
 	mmc->card_caps |= MMC_MODE_4BIT | MMC_MODE_8BIT;
 
-	err = mmc_send_ext_csd(mmc, ext_csd);
 /*
  * Somebody found that the value of ext_csd couldn't be obtained in
  * FPGA platform by calling mmc_send_ext_csd() one time. However,
@@ -781,7 +780,9 @@ static int mmc_change_freq(struct mmc *mmc)
  * add the macro *CONFIG_FPGA* to handle it.
  * If anybody find the code is redandunt in FPGA, please remove it.
  */
-#ifdef CONFIG_FPGA
+#ifndef CONFIG_FPGA
+	err = mmc_send_ext_csd(mmc, ext_csd);
+#else
 	int temp = 0;
 	/* check  ext_csd version and capacity */
 	for (temp = 0; temp < 10; temp++) {
@@ -806,8 +807,9 @@ static int mmc_change_freq(struct mmc *mmc)
 		return err == SWITCH_ERR ? 0 : err;
 
 	/* Now check to see that it worked */
+#ifndef CONFIG_FPGA
 	err = mmc_send_ext_csd(mmc, ext_csd);
-#ifdef CONFIG_FPGA
+#else
 	/* check ext_csd version and capacity */
 	for (temp = 0; temp < 10; temp++) {
 		err = mmc_send_ext_csd(mmc, ext_csd);
@@ -842,8 +844,8 @@ static int mmc_change_freq(struct mmc *mmc)
 
 static int mmc_set_capacity(struct mmc *mmc, int part_num)
 {
-	debugf("%s: capacity_user:0x%x, capacity_boot:0x%x, capacity_rpmb:0x%x\n",
-	       __func__, mmc->capacity_user, mmc->capacity_boot, mmc->capacity_rpmb);
+	debugf("capacity_user:0x%x, capacity_boot:0x%x, capacity_rpmb:0x%x\n",
+	       mmc->capacity_user, mmc->capacity_boot, mmc->capacity_rpmb);
 
 	switch (part_num) {
 	case 0:
@@ -1334,7 +1336,7 @@ static int mmc_startup(struct mmc *mmc)
 	bool has_parts = false;
 	bool part_completed;
 
-	debugf("%s entry\n", __func__);
+	debugf("entry\n");
 #ifdef CONFIG_MMC_SPI_CRC_ON
 	if (mmc_host_is_spi(mmc)) {	/* enable CRC check for spi */
 		cmd.cmdidx = MMC_CMD_SPI_CRC_ON_OFF;

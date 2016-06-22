@@ -726,3 +726,17 @@ int sprd_sdhci_init(u32 regbase, u32 max_clk, u32 min_clk, u32 quirks)
 	printf("sprd_sdhci_init :version :%d\n", host->version);
 	return add_sdhci(host, max_clk, min_clk);
 }
+
+void sdio_dump(u32 regbase)
+{
+	u32  i;
+
+	printf("*****SDIO REGISTER DUMP*****\n");
+	for (i = 0; i < 8; i++) {
+		printf("0x%08x, 0x%08x, 0x%08x, 0x%08x\n",
+		       CHIP_REG_GET(regbase + i * 16 + 0),
+		       CHIP_REG_GET(regbase + i * 16 + 4),
+		       CHIP_REG_GET(regbase + i * 16 + 8),
+		       CHIP_REG_GET(regbase + i * 16 + 0xc));
+	}
+}
