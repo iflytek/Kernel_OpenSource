@@ -1355,14 +1355,14 @@ static int mmc_startup(struct mmc *mmc)
 	cmd.resp_type = MMC_RSP_R2;
 	cmd.cmdarg = 0;
 
+#ifndef CONFIG_FPGA
 	err = mmc_send_cmd(mmc, &cmd, NULL);
-
 	if (err) {
 		errorf("mmc_send_cmd MMC_CMD_SEND_CID err=%x\n", err);
 		return err;
 	}
 
-#ifdef CONFIG_FPGA
+#else
 	int times = 0;
 	/* check  ext_csd version and capacity */
 	for (times = 0; times < 10; times++) {
