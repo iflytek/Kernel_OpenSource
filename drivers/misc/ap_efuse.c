@@ -292,9 +292,6 @@ static int ap_efuse_prog(int blk, u32 val)
 {
 	u32 cfg0 = __raw_readl((void *)REG_EFUSE_CFG0);
 
-	if (blk < 0 || blk >= EFUSE_BLOCK_MAX)	/* debug purpose */
-		goto out;
-
 	/* enable pgm mode and setup magic number before programming */
 	cfg0 |= BIT_PGM_EN;
 	__raw_writel(cfg0, (void *)REG_EFUSE_CFG0);
@@ -302,8 +299,7 @@ static int ap_efuse_prog(int blk, u32 val)
 		     (void *)REG_EFUSE_MAGIC_NUMBER);
 
 	__raw_writel(val, (void *)REG_EFUSE_DATA_WR);
-	__raw_writel(BITS_READ_WRITE_INDEX(blk),
-		     (void *)REG_EFUSE_READ_WRITE_INDEX);
+	__raw_writel(blk, (void *)REG_EFUSE_READ_WRITE_INDEX);
 	printf("cfg0 %x\n", __raw_readl((void *)REG_EFUSE_CFG0));
 	__raw_writel(BIT_PG_START, (void *)REG_EFUSE_MODE_CTRL);
 	if (IS_ERR_VALUE(ap_efuse_wait_clear(BIT_PGM_BUSY)))
