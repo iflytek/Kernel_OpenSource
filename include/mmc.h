@@ -292,6 +292,11 @@ struct mmc_data {
 	uint blocksize;
 };
 
+/* These macros ard defined by SPRD self */
+#define PARTITION_USER		0
+#define PARTITION_BOOT1		1
+#define PARTITION_BOOT2		2
+
 /* forward decl. */
 struct mmc;
 

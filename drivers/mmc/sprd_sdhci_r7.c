@@ -719,6 +719,18 @@ int add_sdhci(struct sdhci_host *host, u32 max_clk, u32 min_clk)
 	host->cfg.ops = &sdhci_ops;
 
 	caps = sdhci_readl(host, SDHCI_CAPABILITIES);
+
+	/*
+	 * The default value of Capabilities Register bit[25] (Voltage
+	 * Support 3.0V) is 0 in SPRD host controller. So we must set
+	 * this bit value manually.
+	 * If the value of Voltage Support 3.0 is 0, the value of
+	 * host->cfg.voltage is also 0. And then the argument of CMD41
+	 * (SD_CMD_APP_SEND_OP_COND) of SD card will be 0. In this case,
+	 * the OCR value of SD card can't be obtaind.
+	 */
+	caps |= SDHCI_CAN_VDD_300;
+
 #ifdef CONFIG_MMC_SDMA
 	if (!(caps & SDHCI_CAN_DO_SDMA)) {
 		printf("%s: Your controller doesn't support SDMA!!\n",
@@ -796,6 +808,13 @@ int sprd_sdhci_init(u32 regbase, u32 max_clk, u32 min_clk, u32 quirks)
 		printf("sdh_host malloc fail!\n");
 		return 1;
 	}
+
+	/*
+	 * The allocate memory of host struct must be filled with zero,
+	 * if not, some member of host may point a dirty value, e.g.
+	 * *host->control_reg* may be not NULL.
+	 */
+	memset(host, 0, sizeof(*host));
 
 	host->name = SPRD_SDHCI_NAME;
 	host->ioaddr = (void *)regbase;

@@ -22,7 +22,7 @@
 #include <linux/mtd/mtd.h>
 #include <linux/sizes.h>
 #include <asm/arch/check_reboot.h>
-#include <sprd_mmc.h>
+#include <mmc.h>
 #include <fat.h>
 #include <exfat.h>
 #include "loader_common.h"

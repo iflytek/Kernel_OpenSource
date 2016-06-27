@@ -6,7 +6,7 @@
 #include <ubi_uboot.h>
 #endif
 #ifdef  CONFIG_EMMC_BOOT
-#include <sprd_mmc.h>
+#include <mmc.h>
 #endif
 #ifdef CONFIG_UFS_BOOT
 #include <sprd_ufs.h>

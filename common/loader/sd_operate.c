@@ -1,7 +1,7 @@
 #include <linux/types.h>
 #include <common.h>
 #include <part.h>
-#include <sprd_mmc.h>
+#include <mmc.h>
 #include <fat.h>
 #include <android_bootimg.h>
 
