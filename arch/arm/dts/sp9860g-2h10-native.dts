@@ -45,25 +45,25 @@
 			no-map;
 		};
 
-		camera_reserved: camera-mem@4,c5400000{
-			reg = <0x4 0xc5400000 0x0 0x80000>;
+		camera_reserved: camera-mem@4,c64f0000{
+			reg = <0x4 0xc64f0000 0x0 0x3800000>;
 		};
 
-		fb_reserved: framebuffer@4,c8c80000{
-			reg = <0x4 0xc5480000 0x0 0x2a30000>;
+		fb_reserved: framebuffer@4,c9cf0000{
+			reg = <0x4 0xc9cf0000 0x0 0x2a30000>;
 		};
 
-		overlay_reserved: overlaybuffer@4,cb6b0000{
-			reg = <0x4 0xc7eb0000 0x0 0x7080000>;
-		};
-
-		system_reserved: systembuffer@5,c5400000{
-			reg = <0x5 0xc5400000 0x0 0x1ac00000>;
+		overlay_reserved: overlaybuffer@4,cc720000{
+			reg = <0x4 0xcc720000 0x0 0x2ee0000>;
 		};
 
 		/* For cma 4M align, enlarge its size from 0xd840000 to 0xd8d0000 */
-		mm_reserved: multimediabuffer@4,d2730000{
-			reg = <0x4 0xcef30000 0x0 0x10000000>;
+		mm_reserved: multimediabuffer@4,cf600000{
+			reg = <0x4 0xcf600000 0x0 0x10a00000>;
+		};
+
+		system_reserved: systembuffer@5,c64f0000{
+			reg = <0x5 0xc64f0000 0x0 0x19b10000>;
 		};
 
 		iq_reserved: iq-mem{
@@ -106,6 +106,13 @@
 			label = "carveout_fb";
 			type = <2>;
 			memory-region = <&fb_reserved>;
+		};
+
+		heap@4 {
+			reg = <4>;
+			label = "carveout_camera";
+			type = <2>;
+			memory-region = <&camera_reserved>;
 		};
 	};
 };
