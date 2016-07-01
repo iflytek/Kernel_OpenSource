@@ -1695,6 +1695,7 @@ static int mmc_startup(struct mmc *mmc)
 		errorf("mmc_set_capacityerr=%x\n", err);
 		return err;
 	}
+#ifndef CONFIG_MMC_1BIT_BUS_MODE
 	if (IS_SD(mmc)) {
 		err = sd_change_freq(mmc);
 		debugf("sd_change_freq=%x\n", err);
@@ -1704,7 +1705,7 @@ static int mmc_startup(struct mmc *mmc)
 	}
 	if (err)
 		return err;
-
+#endif
 	/* Restrict card's capabilities by what the host can do */
 	mmc->card_caps &= mmc->cfg->host_caps;
 

@@ -62,6 +62,7 @@
 #include "dwc_otg_core_if.h"
 #include "dwc_otg_pcd_if.h"
 #include <ubi_uboot.h>
+#include <linux/usb/ch9.h>
 
 #define DWC_DRIVER_VERSION	"2.81a 04-FEB-2009"
 #define DWC_DRIVER_DESC		"HS OTG USB Controller driver"

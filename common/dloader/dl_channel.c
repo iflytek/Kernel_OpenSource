@@ -16,6 +16,7 @@
 /******************************************************************************/
 extern struct FDL_ChannelHandler gUart0Channel, gUart1Channel;
 extern struct FDL_ChannelHandler gUSBChannel;
+
 struct FDL_ChannelHandler *FDL_ChannelGet()
 {
     unsigned int bootMode = 0;
@@ -23,10 +24,15 @@ struct FDL_ChannelHandler *FDL_ChannelGet()
 
     struct FDL_ChannelHandler *channel;
 	bootMode = BOOT_FLAG_USB;
+#ifdef CONFIG_UART_DOWNLOAD
+	bootMode = BOOT_FLAG_UART1;
+#endif
+
     switch (bootMode)
     {
         case BOOT_FLAG_UART1:
             channel = &gUart1Channel;
+            channel -> Open(channel, 115200);
             break;
         case BOOT_FLAG_UART0:
             channel = &gUart0Channel;

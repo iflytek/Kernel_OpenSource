@@ -1,7 +1,7 @@
-if TARGET_SHARKL2_FPGA
+if TARGET_SP9833_1H10
 
 config SYS_BOARD
-	default "sharkl2_fpga"
+	default "sp9833_1h10"
 
 config SYS_VENDOR
 	default "spreadtrum"
@@ -10,7 +10,7 @@ config SYS_SOC
 	default "sc9630"
 
 config SYS_CONFIG_NAME
-	default "sharkl2_fpga"
+	default "sp9833_1h10"
 
 config SYS_TEXT_BASE
 	default 0x9f000000

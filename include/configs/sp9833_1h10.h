@@ -30,7 +30,7 @@
 #define CONFIG_OF_LIBFDT
 #define CONFIG_SPRD_PLATFORM
 
-#define DT_PLATFROM_ID 8830
+#define DT_PLATFROM_ID 9833
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 
@@ -141,6 +141,7 @@
 #define CONFIG_DOS_PARTITION
 #define CONFIG_EFI_PARTITION		1
 //#define CONFIG_MMC_TEST
+#define CONFIG_MMC_1BIT_BUS_MODE
 
 /*timer*/
 #define CONFIG_SYS_HZ			1000
@@ -329,6 +330,7 @@
 #define CONFIG_SPRD_UART_PORTS	{ (void *) (CONFIG_SYS_SERIAL0), (void *) (CONFIG_SYS_SERIAL1) }
 #define CONFIG_SYS_SERIAL0		0x70000000
 #define CONFIG_SYS_SERIAL1		0x70100000
+#define CONFIG_UART_DOWNLOAD		1
 
 /* Chip Driver Macro Definitions End*/
 
