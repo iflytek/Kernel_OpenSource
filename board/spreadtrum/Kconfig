@@ -86,6 +86,12 @@ config TARGET_SP9860G_3H10_5M
 	select ARM64
 	help
 	  This is the Spreadtrum sp9860g_3h10_5m Board
+
+config TARGET_SHARKL2_FPGA
+	bool "Spreadtrum sharkl2_fpga"
+	select CPU_V7
+	help
+	  This is the Spreadtrum sharkl2_fpga Board
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
@@ -103,4 +109,5 @@ source "board/spreadtrum/sp9860g_1h10_3g/Kconfig"
 source "board/spreadtrum/sp9860g_1h10_al/Kconfig"
 source "board/spreadtrum/sp9860g_2h10_5m/Kconfig"
 source "board/spreadtrum/sp9860g_3h10_5m/Kconfig"
+source "board/spreadtrum/sharkl2_fpga/Kconfig"
 endif
