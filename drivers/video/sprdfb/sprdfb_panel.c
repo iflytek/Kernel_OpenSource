@@ -62,6 +62,8 @@ extern struct panel_spec lcd_ams549hq01_mipi_spec;
 extern struct panel_spec lcd_nt35596_mipi_spec;
 extern struct panel_spec lcd_nt35597_mipi_spec;
 extern struct panel_spec lcd_s6e3fa3_mipi_spec;
+extern struct panel_spec lcd_ili9885_mipi_spec;
+
 
 
 void sprdfb_panel_remove(struct sprdfb_device *dev);
@@ -69,6 +71,12 @@ void sprdfb_panel_remove(struct sprdfb_device *dev);
 static ushort colormap[256];
 
 static struct panel_cfg panel_cfg[] = {
+#if defined (CONFIG_FB_LCD_ILI9885_MIPI)
+	{
+		.lcd_id = 0x98,
+		.panel = &lcd_ili9885_mipi_spec,
+	},
+#endif
 #if defined (CONFIG_FB_LCD_HX8379C_MIPI_SHARKL_J1POPLTE)
 		{
 			.lcd_id = 0x8379,

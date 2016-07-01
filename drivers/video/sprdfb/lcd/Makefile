@@ -54,3 +54,4 @@ obj-$(CONFIG_FB_LCD_NT35596H_RDC_MIPI) += lcd_nt35596h_rdc_mipi.o
 obj-$(CONFIG_FB_LCD_S6D7AA0X62_MIPI) += lcd_s6d7aa0x62_t8_mipi.o
 obj-$(CONFIG_FB_LCD_AMS549HQ01_MIPI) += lcd_ams549hq01_mipi.o
 obj-$(CONFIG_FB_LCD_S6E3FA3_MIPI) += lcd_s6e3fa3_mipi_fhd.o
+obj-$(CONFIG_FB_LCD_ILI9885_MIPI) += lcd_ili9885_mipi.o
