@@ -19,6 +19,7 @@
 #define CHG_CFG2		(ANA_SWICHG_BASE+ 0x08)
 #define CHG_CFG3		(ANA_SWICHG_BASE+ 0x0c)
 #define CHG_CFG4		(ANA_SWICHG_BASE+ 0x10)
+#define CHG_CFG6		(ANA_SWICHG_BASE+ 0x2c)
 
 #define SWTCHG_APB_EN		BIT(5)
 
@@ -65,6 +66,12 @@ static void sprd2731_chg_init(void)
 {
 	debugf("sprd2731_init\n");
 	sci_adi_set(ANA_REG_GLB_MODULE_EN1, SWTCHG_APB_EN);
+}
+
+static void sprd2731_chg_leakage_cur_config(void)
+{
+	debugf("sprd2731_chg_leakage_cur_config\n");
+	sci_adi_write(CHG_CFG6, 0xA86, 0xFFF);
 }
 
 static void sprd2731_chg_start_charge(void)
@@ -248,6 +255,7 @@ void sprdbat_init(void)
 #else
 	sprd2731_chg_init();
 #endif
+	sprd2731_chg_leakage_cur_config();
 	sprd_eic_request(EIC_BATDET);	//enable battery detect eic
 
 	//set charge current 500mA(USB) or 600mA(AC)
