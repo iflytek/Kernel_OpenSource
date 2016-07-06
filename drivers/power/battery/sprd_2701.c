@@ -207,7 +207,7 @@ void sprdchg_2701_init(void)
 		debugf("sprd_2701_ReadReg i = %d, data = %x\n",i,data);
 	}
 
-	sprd_2701_set_value(TIMER_CTL,WATCH_DOG_TIMER_BIT,WATCH_DOG_TIMER_SHIFT,0); // disable whatchdog
+	sprd_2701_set_value(TIMER_CTL,WATCH_DOG_TIMER_BIT,WATCH_DOG_TIMER_SHIFT,0x01);
 	//sprd_2701_set_value(MISC_CTL,JEITA_ENABLE_BIT,JEITA_ENABLE_SHIFT,1);//enable jeita
 	//sprd_2701_set_value(TIMER_CTL,CHG_TERMINA_EN_BIT,CHG_TERMINA_EN_SHIFT,0); //disable chg termina
 	sprd_2701_set_value(TIMER_CTL,CHG_SAFE_TIMER_EN_BIT,CHG_SAFE_TIMER_EN_SHIFT,0); //disable safety timer
@@ -216,7 +216,10 @@ void sprdchg_2701_init(void)
 void sprdchg_2701_reset_timer(void)
 {
 	debugf("2701 reset timer\n");
-	//sprd_2701_set_value(FAN5405_REG_CONTROL0, FAN5405_TMR_RST_OTG,FAN5405_TMR_RST_OTG_SHIFT, RESET32S);
+	sprd_2701_set_value(TIMER_CTL, WATCH_DOG_TIMER_BIT,
+		WATCH_DOG_TIMER_SHIFT, 0x01);
+	sprd_2701_set_value(POWER_ON_CTL, TMR_RST_BIT,
+		TMR_RST_SHIFT, 0x01);
 }
 struct sprd_ext_ic_operations sprd_extic_op ={
 	.ic_init = sprdchg_2701_init,
