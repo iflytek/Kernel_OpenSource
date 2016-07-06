@@ -232,6 +232,48 @@ fail:
 
 }
 
+int test_ufs_comp(int argc, char * argv[])
+{
+	int ret = 0;
+	uint64_t size = 0;
+	int value = 0;
+	char* write_buf = (char *)0x6000000;
+	char* read_buf = (char *)0x7000000;
+
+	size = (uint64_t) simple_strtoul(argv[1], NULL, 16);
+
+	value = (uint64_t)simple_strtoul(argv[2], NULL, 16);
+
+	memset(write_buf, value, size);
+
+	debugf("write compare part(%s), size=0x%llx, value=0x%x\n", argv[0], size, value);
+	ret = common_raw_write(argv[0], size, 0, 0, write_buf);
+	if (-1 == ret) {
+		errorf("common_raw_write fail!\n");
+		goto fail;
+	}
+	debugf("Comp write OK\n");
+
+	ret = common_raw_read(argv[0], size, 0, read_buf);
+	if (-1 == ret) {
+		errorf("common_raw_read fail!\n");
+		goto fail;
+	}
+	debugf("Comp read OK\n");
+
+	ret = memcmp(write_buf, read_buf, size);
+	if (0 == ret)
+		debugf("Write and read compare same! \n");
+	else
+		debugf("Write and read compare diff! \n");
+
+	return 0;
+fail:
+	return CMD_RET_FAILURE;
+
+}
+
+
 int test_ufs_erase(int argc, char * argv[])
 {
 	int ret = 0;
@@ -460,6 +502,73 @@ int test_ufs_backwrite(int argc, char * argv[])
 	return 0;
 }
 
+int test_ufs_stress(int argc, char * argv[])
+{
+	int ret = 0;
+	uint32_t num = 0;
+	int id = 0;
+	block_dev_desc_t *dev_desc;
+	lbaint_t blk_todo = 0;
+	lbaint_t blk = 0;
+	lbaint_t buf_in_blk = 0;
+	lbaint_t offset = 0;
+	char * buf = NULL;
+
+	num = (uint32_t) simple_strtoul(argv[1], NULL, 16);
+
+	buf = malloc(SZ_512K);
+	if (NULL == buf) {
+		errorf("Malloc for raw read buf fail\n");
+		return CMD_RET_FAILURE;
+	}
+	memset(buf, 0x23, SZ_512K);
+
+	if (0 == strcmp(argv[0], "seq")) {
+		while (1) {
+			dev_desc = get_dev("ufs", id);
+			if (NULL == dev_desc)
+				return CMD_RET_FAILURE;
+			blk_todo = dev_desc->lba;
+			buf_in_blk = SZ_512K >> dev_desc->log2blksz;
+			offset = 0;
+			while (0 != blk_todo) {
+				blk = (buf_in_blk < blk_todo) ? buf_in_blk : blk_todo;
+
+				ret = dev_desc->block_write(dev_desc->dev, offset, blk, buf);
+				if (blk != ret) {
+					errorf("ufs stress write fail, blk=0x%x, offset=0x%x!\n", blk, offset);
+					return CMD_RET_FAILURE;
+				}
+
+				ret = dev_desc->block_read(dev_desc->dev, offset, blk, buf);
+				if (blk != ret) {
+					errorf("ufs stress read fail, blk=0x%x, offset=0x%x!\n", blk, offset);
+					return CMD_RET_FAILURE;
+				}
+				blk_todo -= blk;
+				offset += blk;
+
+				if (1 == num)
+					break;
+				else if (num > 0)
+					num--;
+			}
+
+			if (1 == num)
+				break;
+			id++;
+			id = id % 3;
+		}
+	}
+
+	/*TODO*/
+	if (0 == strcmp(argv[0], "random")) {
+	}
+
+	debugf("UFS stress over!!\n");
+	return 0;
+}
+
 
 int do_ufs(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
@@ -510,6 +619,12 @@ int do_ufs(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	if (0 == strcmp(argv[1], "getflag"))
 		return test_ufs_getflag(argc, &argv[2]);
 
+	if (0 == strcmp(argv[1], "stress"))
+		return test_ufs_stress(argc, &argv[2]);
+
+	if (0 == strcmp(argv[1], "comp"))
+		return test_ufs_comp(argc, &argv[2]);
+
 	return CMD_RET_USAGE;
 }
 
@@ -540,8 +655,12 @@ U_BOOT_CMD(
 		" - Write to a partition with data in the specific buffer in backstage way\n"
 	"ufs setattr [attr_idn] [value]"
 		" - Set a specific UFS attribute\n"
-		" - Attention! it's a dangerous action, be careful !"
+		" - Attention! it's a dangerous action, be careful !\n"
 	"ufs getattr [attr_idn]"
 		" - Get a specific UFS attribute value\n"
+	"ufs stress [seq/random] [number of times]"
+		" - ufs device stress test, read and write many times, each time for 512KB\n"
+		" - set 0 times means read and write forever, never stop\n"
+	"ufs comp [part] [size] [value]"
 );
 

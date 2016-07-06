@@ -78,14 +78,29 @@ void send_uic_command(uint32_t command, uint32_t arg1, uint32_t arg2, uint32_t a
 	ufs_writel(DW_UFS_UICCMD,(command & 0xFF));
 }
 
-/***************************************************************
- *
- * send_dme_link_startup
- * Description: Programs the Command Argument and the Command
- *     Register to send the DME_LINK_STARTUP command 
- *     to the device
- *
- ***************************************************************/
+int wait_uic_complete()
+{
+	int retry = 100;
+	uint32_t uccs_intr_res = 0;
+
+	/*wait for the UIC Command to complete by checking UCCS field*/
+	while(retry > 0) {
+		udelay(1000);
+		uccs_intr_res = ufs_readl(DW_UFS_IS) & DW_UFS_IS_UCCS;
+		if (uccs_intr_res) {
+			ufs_writel(DW_UFS_IS, uccs_intr_res);
+			break;
+		}
+		retry--;
+	}
+
+	if (0 == retry)
+		return UFS_TIMEOUT;
+	else
+		return UFS_SUCCESS;
+
+}
+
 void send_dme_link_startup(void)
 {
 
@@ -98,18 +113,11 @@ void send_dme_link_startup(void)
 
 void set_mphy(uint32_t code, uint32_t value)
 {
-	int retry = 100;
-
 	code = (code << 16) | ((code >> 16) & 0x0000FFFF);
 	send_uic_command(UIC_SET_CMD, code, 0, value);
 
-	/*wait for the UIC Command to complete by checking UCCS field*/
-	while(retry > 0) {
-		udelay(1000);
-		if (ufs_readl(DW_UFS_IS) & DW_UFS_IS_UCCS)
-			break;
-		retry--;
-	}
+	wait_uic_complete();
+
 	/*return with no error*/
 	return;
 }
@@ -825,8 +833,7 @@ void soft_reset_aon_ufs(void)
 int init_ufs_hostc()
 {
 	int      ret    = 0;
-	int      retry1 = RETRY_CNT;
-	int      retry2 = RETRY_CNT;
+	int      retry = RETRY_CNT;
 	uint32_t temp = 0;
 
 	enable_ahb_ufs();
@@ -860,29 +867,18 @@ int init_ufs_hostc()
 	 * Link Startup Procedure
 	 * keep sending the DME_LINKSTARTUP command until the device is detected
 	 */
-	while(retry1 > 0) {
+	while(retry > 0) {
 		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_UCRDY) {
 			setup_mphy_tc();
 			debugf("Send link startup UIC command\n");
 			send_dme_link_startup();
 		} else {
 			dwc_reset_hc();
-			retry1--;
+			retry--;
 			continue;
 		}
 
-		udelay(10000); /* Wait for 10ms before checking the Link status */
-
-		/*wait for the UIC Command to complete by checking UCCS field*/
-		retry2 = RETRY_CNT;
-		while(retry2 > 0) {
-			if(ufs_readl(DW_UFS_IS) & DW_UFS_IS_UCCS) {
-				debugf("Link startup UIC Command complete.\n");
-				break;
-			}
-			udelay(10000); /* Total of 10ms delay before next LINK STARTUP */
-			retry2--;
-		}
+		wait_uic_complete();
 
 		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_DP) {
 			debugf("Connection been established with UFS device!\n");
@@ -890,10 +886,10 @@ int init_ufs_hostc()
 		}
 		/* Do the HCE reset before sending next link startup command */
 		dwc_reset_hc();
-		retry1--;
+		retry--;
 
 	}
-	if(retry1 == 0)
+	if(retry == 0)
 		return UFS_TIMEOUT;
 
 	if(0 != check_uic_link_startup_result())
@@ -1391,23 +1387,9 @@ struct lu_info_tbl *find_lu_info(int lun)
 
 int endpoint_reset(void)
 {
-	int retry = RETRY_CNT;
-
 	send_uic_command(UIC_ENDPOINT_RESET_CMD, 0, 0, 0);
 
-	/*wait for the UIC Command to complete by checking UCCS field*/
-	while (retry > 0) {
-		udelay(10000);
-		if(ufs_readl(DW_UFS_IS) & DW_UFS_IS_UCCS)
-			break;
-		retry--;
-	}
-
-	if (0 == retry)
-		return UFS_TIMEOUT;
-
-	return UFS_SUCCESS;
-
+	return wait_uic_complete();
 }
 
 int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_tbl *common_cfg)
