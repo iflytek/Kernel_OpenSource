@@ -765,6 +765,16 @@ static uint32_t nt35597_readid(struct panel_spec *self)
 		if(0x97 == read_data[0]){
 			printk("lcd_nt35597_mipi read id success!\n");
 			mipi_eotp_set(1,1);
+
+			i2c_set_bus_num(4);
+			if (0x0A != i2c_reg_read(0x3E, 0x00)) {
+				i2c_reg_write(0x3E, 0x00, 0x0A);
+				i2c_reg_write(0x3E, 0x01, 0x0A);
+				i2c_reg_write(0x3E, 0x03, 0x03);
+				i2c_reg_write(0x3E, 0xFF, 0x80);
+				mdelay(50);
+			}
+
 			return 0x97;
 		}
 	}
