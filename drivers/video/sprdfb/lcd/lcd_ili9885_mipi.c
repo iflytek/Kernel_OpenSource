@@ -48,7 +48,6 @@ typedef struct LCM_force_cmd_code_tag{
 #define LCM_TAG_SLEEP (1 << 1)
 
 static LCM_Init_Code init_data[] = {
-	
 	{LCM_SEND(6),{4,0,0xB0,0x98,0x85,0x0A}},
 
 	{LCM_SEND(6),{4,0,0xD1,0x09,0x09,0xC2}},
@@ -99,7 +98,9 @@ static LCM_Init_Code init_data[] = {
 
 	{LCM_SEND(2),{0x35,0x00}},
 
-	{LCM_SEND(2),{0x36,0x08}},
+	{LCM_SEND(2),{0x36,0x00}},//RGB order, Flip Horizontal
+
+	{LCM_SEND(6),{4,0,0xC1,0x04,0x00,0x01}}, //Flip Vertical
 
 	{LCM_SEND(1),{0x11}},
 
