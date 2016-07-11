@@ -1,4 +1,5 @@
 #include <dl_channel.h>
+#include <config.h>
 //#include <usb/usb_boot.h>
 
 #define BOOT_FLAG_USB                   (0x5A)
