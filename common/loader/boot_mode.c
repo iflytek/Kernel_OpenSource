@@ -9,7 +9,7 @@ void normal_mode(void)
 	vibrator_hw_init();
 
 	set_vibrator(1);
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_ON);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_ON, LCD_ON);
 	return;
 }
 
@@ -18,7 +18,7 @@ void calibration_mode(void)
 	debugf("calibration_mode\n");
 
 	setenv("bootmode", "cali");
-	vlx_nand_boot(RECOVERY_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(RECOVERY_PART, BACKLIGHT_OFF, LCD_OFF);
 	return;
 }
 
@@ -27,7 +27,7 @@ void autotest_mode(void)
 	debugf("autotest_mode\n");
 
 	setenv("bootmode", "autotest");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 	return;
 }
 
@@ -35,7 +35,7 @@ void recovery_mode(void)
 {
 	debugf("recovery_mode\n");
 
-	vlx_nand_boot(RECOVERY_PART, BACKLIGHT_ON);
+	vlx_nand_boot(RECOVERY_PART, BACKLIGHT_ON, LCD_ON);
 	return;
 
 }
@@ -46,7 +46,7 @@ void special_mode(void)
 	debugf("special_mode\n");
 
 	setenv("bootmode", "special");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 	return;
 }
 
@@ -54,7 +54,7 @@ void iq_mode(void)
 {
 	debugf("iq_mode\n");
 	setenv("bootmode", "iq");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 	return;
 
 }
@@ -63,7 +63,7 @@ void watchdog_mode(void)
 {
 	debugf("watchdog_mode\n");
 	setenv("bootmode", "wdgreboot");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 	return;
 
 }
@@ -72,7 +72,7 @@ void unknow_reboot_mode(void)
 {
 	debugf("unknow_reboot_mode\n");
 	setenv("bootmode", "unknowreboot");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 	return;
 
 }
@@ -81,7 +81,7 @@ void panic_reboot_mode(void)
 {
 	debugf("enter\n");
 	setenv("bootmode", "panic");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 	return;
 
 }
@@ -90,6 +90,9 @@ void fastboot_mode(void)
 {
 	debugf("enter\n");
 #ifdef CONFIG_SPLASH_SCREEN
+extern int drv_lcd_init (void);
+	drv_lcd_init();
+
 	vibrator_hw_init();
 	set_vibrator(1);
 
@@ -126,7 +129,7 @@ void charge_mode(void)
 
 	g_charger_mode = 1;
 	setenv("bootmode", "charger");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_ON);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_ON, LCD_ON);
 
 }
 
@@ -134,7 +137,7 @@ void engtest_mode(void)
 {
 	printf("enter\n");
 	setenv("bootmode", "engtest");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 
 }
 
@@ -143,7 +146,7 @@ void alarm_mode(void)
 {
 	debugf("enter\n");
 	setenv("bootmode", "alarm");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 
 }
 
@@ -151,7 +154,7 @@ void factorytest_mode(void)
 {
     printf("%s\n", __func__);
     setenv("bootmode", "factorytest");
-    vlx_nand_boot(RECOVERY_PART, BACKLIGHT_ON);
+    vlx_nand_boot(RECOVERY_PART, BACKLIGHT_ON, LCD_ON);
 
 }
 
@@ -159,6 +162,6 @@ void sprdisk_mode(void)
 {
 	debugf("enter\n");
 	setenv("bootmode", "sprdisk");
-	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 
 }

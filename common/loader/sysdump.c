@@ -755,6 +755,11 @@ void write_sysdump_before_boot(int rst_mode)
 		}
 		memset(infop->magic, 0, sizeof(infop->magic));
 
+#ifdef CONFIG_SPLASH_SCREEN
+		extern int drv_lcd_init(void);
+		drv_lcd_init();
+#endif
+
 		if(-1 == sysdump_flag_check()) {
 			debugf("skip sysdump because sysdump_flag is close.\n");
 			goto FINISH;

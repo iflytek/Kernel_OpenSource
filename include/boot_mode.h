@@ -4,6 +4,8 @@
 
 #define BACKLIGHT_ON 25
 #define BACKLIGHT_OFF 0
+#define LCD_ON 1
+#define LCD_OFF 0
 
 typedef enum {
 	CMD_UNDEFINED_MODE=0,
@@ -79,5 +81,5 @@ boot_mode_enum_type get_mode_from_charger(void);
 boot_mode_enum_type get_mode_from_keypad(void);
 boot_mode_enum_type get_mode_from_gpio_extend(void);
 
-void vlx_nand_boot(char * kernel_pname, int backlight_set);
+void vlx_nand_boot(char * kernel_pname, int backlight_set, int lcd_enable);
 #endif

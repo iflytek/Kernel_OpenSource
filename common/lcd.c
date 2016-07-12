@@ -148,6 +148,10 @@ int drv_lcd_init(void)
 	struct stdio_dev lcddev;
 	int rc;
 
+	/* if lcd is enabled, no need to init it again*/
+	if (lcd_is_enabled)
+		return 0;
+
 	lcd_base = map_sysmem(gd->fb_base, 0);
 
 	lcd_init(lcd_base);

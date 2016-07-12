@@ -10,6 +10,7 @@
 #include <secureboot/sprdsec_header.h>
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>
+#include <stdio_dev.h>
 
 #ifdef CONFIG_ARM7_RAM_ACTIVE
     extern void pmic_arm7_RAM_active(void);
@@ -877,7 +878,7 @@ int secure_load_partition(uchar * partition_name,void *ram_addr)
 	return ret;
 }
 #endif
-void vlx_nand_boot(char *kernel_pname, int backlight_set)
+void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 {
 	boot_img_hdr *hdr = (void *)raw_header;
 	char *mode_ptr = NULL;
@@ -888,8 +889,11 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 	uchar *dt_adr = DT_ADR;
 
 #ifdef CONFIG_SPLASH_SCREEN
+	if(lcd_enable)
+		drv_lcd_init();
 	set_backlight(backlight_set);
 #endif
+	set_vibrator(0);
 
 #if defined(CONFIG_SECURE_BOOT)||defined(CONFIG_SECBOOT)
 	if (0 == memcmp(kernel_pname, RECOVERY_PART, strlen(RECOVERY_PART))) {
@@ -918,8 +922,6 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set)
 	if (!_boot_load_kernel_ramdisk_image(kernel_pname, hdr, &dt_adr))
 		ret = -1;
 #endif
-
-	set_vibrator(0);
 
 	if (-1 == ret)
 		return;

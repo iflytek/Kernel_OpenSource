@@ -255,10 +255,6 @@ int stdio_add_devices(void)
 	i2c_init (CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
 #endif
-#ifdef CONFIG_LCD
-if(boot_role == BOOTLOADER_MODE_LOAD)
-	drv_lcd_init ();
-#endif
 #if defined(CONFIG_VIDEO) || defined(CONFIG_CFB_CONSOLE)
 	drv_video_init ();
 #endif
