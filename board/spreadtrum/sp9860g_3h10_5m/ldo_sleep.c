@@ -364,7 +364,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 		//BIT_LDO_WIFIPA_EXT_XTL0_EN |
 		//BIT_LDO_WIFIPA_EXT_XTL1_EN |
 		//BIT_LDO_WIFIPA_EXT_XTL2_EN |
-		//BIT_LDO_WIFIPA_EXT_XTL3_EN |
+		BIT_LDO_WIFIPA_EXT_XTL3_EN |
 		0
 	);
 
