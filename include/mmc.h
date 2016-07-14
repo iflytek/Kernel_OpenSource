@@ -473,6 +473,11 @@ struct pci_device_id;
 int pci_mmc_init(const char *name, struct pci_device_id *mmc_supported,
 		 int num_ids);
 
+u64 Emmc_GetCapacity(char part_num);
+int emmc_write_backstage(char part_num, uint32_t start_block,
+			uint32_t num, uint8_t *buf);
+int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf);
+
 /* Set block count limit because of 16 bit register limit on some hardware*/
 #ifndef CONFIG_SYS_MMC_MAX_BLK_COUNT
 #define CONFIG_SYS_MMC_MAX_BLK_COUNT 65535

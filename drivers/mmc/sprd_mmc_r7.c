@@ -1666,8 +1666,15 @@ static int mmc_startup(struct mmc *mmc)
 			int erase_gsz, erase_gmul;
 			erase_gsz = (mmc->csd[2] & 0x00007c00) >> 10;
 			erase_gmul = (mmc->csd[2] & 0x000003e0) >> 5;
+			/*
+			 * The size of (ERASE_GRP_SIZE + 1) *
+			 * (ERASE_GRP_MULT + 1) is given as minimum number of
+			 * write blocks that can be erased in a signal erase
+			 * command. If the size is multiply by 2, the erase
+			 * performace may improve greater than 3 times.
+			 */
 			mmc->erase_grp_size = (erase_gsz + 1)
-				* (erase_gmul + 1);
+				* (erase_gmul + 1) * 2;
 		}
 
 		mmc->hc_wp_grp_size = 1024
@@ -2525,7 +2532,7 @@ int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf)
 	return ret;
 }
 
-uint64_t Emmc_GetCapacity(char part_num)
+u64 Emmc_GetCapacity(char part_num)
 {
 	struct mmc *mmc = find_mmc_device(EMMC);
 	if (!mmc)
