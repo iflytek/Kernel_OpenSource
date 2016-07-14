@@ -197,7 +197,7 @@ static ulong mmc_erase_t(struct mmc *mmc, ulong start, lbaint_t blkcnt, uint era
 	struct mmc_cmd cmd;
 	ulong end;
 	int err, start_cmd, end_cmd;
-	debugf("start:0x%lx, blkcnt: %d\n", start, blkcnt);
+
 	if (mmc->high_capacity) {
 		end = start + blkcnt - 1;
 	} else {
@@ -844,7 +844,7 @@ static int mmc_change_freq(struct mmc *mmc)
 
 static int mmc_set_capacity(struct mmc *mmc, int part_num)
 {
-	debugf("capacity_user:0x%x, capacity_boot:0x%x, capacity_rpmb:0x%x\n",
+	debugf("capacity_user:0x%llx, capacity_boot:0x%llx, capacity_rpmb:0x%llx\n",
 	       mmc->capacity_user, mmc->capacity_boot, mmc->capacity_rpmb);
 
 	switch (part_num) {
@@ -1417,9 +1417,11 @@ static int mmc_startup(struct mmc *mmc)
 	mmc->csd[2] = cmd.response[2];
 	mmc->csd[3] = cmd.response[3];
 
+	printf("csd register(128 bit): ");
 	for (i = 0; i < 4; i++)
-		debugf("mmc->csd[%d] = 0x%x", i, cmd.response[i]);
-	debugf("\nmmc->version =0x%x\n", mmc->version);
+		printf("%08x ", cmd.response[i]);
+	printf("\n");
+	debugf("mmc->version =0x%x\n", mmc->version);
 
 	if (mmc->version == MMC_VERSION_UNKNOWN) {
 		int version = (cmd.response[0] >> 26) & 0xf;
@@ -1544,6 +1546,16 @@ static int mmc_startup(struct mmc *mmc)
 			if ((capacity >> 20) > 2 * 1024)
 				mmc->capacity_user = capacity;
 		}
+
+#ifdef CONFIG_MMC_TRACE
+		printf("\n============== ext_csd ================\n");
+		for (i = 0; i < 512; i++) {
+			if (i % 10 == 0)
+				printf("\n%4d:   ", i);
+			printf("0x%02x    ", ext_csd[i]);
+		}
+        printf("\n");
+#endif
 
 		switch (ext_csd[EXT_CSD_REV]) {
 		case 1:
@@ -1683,7 +1695,8 @@ static int mmc_startup(struct mmc *mmc)
 
 		mmc->wr_rel_set = ext_csd[EXT_CSD_WR_REL_SET];
 	}
-	debugf("mmc_set_capacity start mmc->part_num=%x\n", mmc->part_num);
+	debugf("mmc->part_num = %x, erase_grp_size = 0x%x\n",
+	       mmc->part_num, mmc->erase_grp_size);
 
 #ifdef CONFIG_EMMC_RST_N_FUNCTION
 	if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 0) {
