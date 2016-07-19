@@ -85,6 +85,7 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	//dl_cmd_register(BSL_CMD_READ_CHIP_TYPE, dl_cmd_mcu_read_chiptype);
 	dl_cmd_register(BSL_CMD_READ_MCP_TYPE, dl_cmd_read_mcptype);
 	dl_cmd_register(BSL_CMD_CHECK_ROOTFLAG, dl_cmd_check_rootflag);
+	dl_cmd_register(BSL_CMD_READ_UID, dl_cmd_get_uid);
 
 	usb_init(0);
 	dl_send_ack (BSL_INCOMPATIBLE_PARTITION);

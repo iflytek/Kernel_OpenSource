@@ -49,6 +49,7 @@ int dl_cmd_reboot (dl_packet_t *pakcet, void *arg);
 int dl_powerdown_device(dl_packet_t *packet, void *arg);
 int dl_cmd_read_mcptype(dl_packet_t * packet, void *arg);
 int dl_cmd_check_rootflag(dl_packet_t * packet, void *arg);
+int dl_cmd_get_uid(dl_packet_t *packet, void *arg);
 
 
 #endif /*DL_CMD_PROC_H */

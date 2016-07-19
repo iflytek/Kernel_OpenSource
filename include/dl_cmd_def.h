@@ -45,6 +45,7 @@ typedef enum dl_cmd_type {
     BSL_CMD_OFF_CHG = 0x13,                     /* 0x13*/
     BSL_CMD_POWER_DOWN_TYPE = 0x17,             /* 0x17*/
     BSL_CMD_CHECK_ROOTFLAG = 0x19,               /* 0x19*/
+    BSL_CMD_READ_UID = 0x1A,               /*0x1A*/
     BSL_CMD_TYPE_MAX,
 
     /* Start of the Command can be transmited by phone*/
@@ -99,6 +100,7 @@ typedef enum dl_cmd_type {
 
     /*phone root return value*/
     BSL_PHONE_ROOTFLAG = 0xA7,
+    BSL_REP_READ_CHIP_UID = 0xAB,
     BSL_PKT_TYPE_MAX
 }dl_cmd_type_t ;
 

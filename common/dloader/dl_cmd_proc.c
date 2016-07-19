@@ -10,6 +10,9 @@
 
 #include <boot_mode.h>
 #include "asm/arch/check_reboot.h"
+#include "otp_helper.h"
+#include "asm/arch/common.h"
+
 
 
 extern void fixup_pmic_items(void);
@@ -317,3 +320,25 @@ int dl_cmd_check_rootflag(dl_packet_t *packet, void *arg)
 
 	return 1;
 }
+
+int dl_cmd_get_uid(dl_packet_t *packet, void *arg)
+{
+	uint32_t efuse_blk0 = 0;
+	uint32_t efuse_blk1 = 0;
+	uint32_t * uid = (unsigned int *) (packet->body.content);
+
+	efuse_blk0 = sprd_ap_efuse_read(0);
+	efuse_blk0 &= ~(BIT_31);
+	efuse_blk1 = sprd_ap_efuse_read(1);
+	efuse_blk1 &= ~(BIT_31);
+	debugf("Read efuse_blk0 = 0x%x, efuse_blk1 = 0x%x\n", efuse_blk0, efuse_blk1);
+
+	packet->body.type = BSL_REP_READ_CHIP_UID;
+	packet->body.size = 0x8;
+	*uid = efuse_blk0;
+	uid ++;
+	*uid = efuse_blk1;
+	dl_send_packet (packet);
+	return 0;
+}
+
