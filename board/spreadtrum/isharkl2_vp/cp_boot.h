@@ -63,7 +63,7 @@ static u32 g_loader[] = {
 
 static inline void pubcp_boot(void)
 {
-
+#if 0
     u32 state;
 	memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
 	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) |= BIT_10; /*cr5 core soft reset*/
@@ -76,7 +76,7 @@ static inline void pubcp_boot(void)
 	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST)|= BIT_2;   /* reset R5 */
 	msleep(50);
     *((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_2; /* pubcp soft reset */
-
+#endif
 }
 
 /*****************************************************************************/
@@ -86,7 +86,7 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) |= BIT_1;   /* reset M3 */
+	//*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) |= BIT_1;   /* reset M3 */
 }
 
 /*****************************************************************************/
@@ -96,14 +96,17 @@ void pmic_arm7_RAM_active(void)
 /*****************************************************************************/
 static inline void pmic_arm_m3_boot(void)
 {
+#if 0
     u32 state;
     *((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_23;   /*clear M3 force sleep */
   *((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_1;   /* reset M3 */
     msleep(50);
+#endif
 }
 
 static inline void agdsp_boot(void)
 {
+#if 0
    *((volatile u32*)REG_PMU_APB_PD_AGCP_SYS_CFG) &= ~BIT_25;
    *((volatile u32*)REG_PMU_APB_PD_AGCP_DSP_CFG) &= ~BIT_25;
    *((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_28;
@@ -112,6 +115,7 @@ static inline void agdsp_boot(void)
    *((volatile u32*)REG_AON_APB_AGCP_DSP_CTRL0) = BITS_AON_APB_AGCP_DSP_BOOT_VECTOR(0x449d0040);
    *((volatile u32*)REG_AON_APB_AGCP_CTRL) |= BIT_0;
    *((volatile u32*)REG_AON_APB_AGCP_SOFT_RESET) &= ~BIT_1;
+#endif
 }
 
 /*****************************************************************************/
