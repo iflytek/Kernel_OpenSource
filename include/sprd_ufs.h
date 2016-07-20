@@ -21,7 +21,9 @@
 #define BIT(n)                 (1L     << (n))
 #define LOWER_32_BITS(x)       ((uint32_t)((x)    &  0xFFFFFFFFUL))
 #define UPPER_32_BITS(x)       ((uint32_t)((x)    >> 32))
+#define UIC_GET_CMD                                0x1
 #define UIC_SET_CMD                                0x2
+#define UIC_PEER_GET_CMD                                0x3
 #define UIC_ENDPOINT_RESET_CMD   0x15
 #define UIC_LINK_STARTUP_CMD   0x16
 #define MAX_PRDT_ENTRIES       128
@@ -31,7 +33,7 @@
 #define NUM_OF_DESC            1
 #define ALIGN_SIZE             1024
 #define LOOPBACK_DEFAULT       0xb01
-#define CLK_DIV_DEFAULT        0x100
+#define CLK_DIV_DEFAULT        0x1A
 #define DISABLE_CLK_GATE     0x101B6000
 #define RETRY_CNT              2000
 #define HCE_RESET              0x1
@@ -44,6 +46,8 @@
 #define RPMB_DATA_SIZE         256
 #define RPMB_FRAME_SIZE        512
 #define CAPCITY_ADJ_FACTOR 1
+#define PWR_LOCAL   1
+
 
 
 #define UFS_MAX_LU_NUM    8
@@ -54,6 +58,21 @@
 #define LU_INFO_ILLEGAL  -1
 
 #define LOCK_CONFIGURATION    1
+#define BOOT_LU_A_ENABLE	1
+
+/*Uni-Pro DME*/
+#define PA_ACTIVETXDATALANES	0x1560
+#define PA_CONNECTEDTXDATALANES	0x1561
+#define PA_TXGEAR		0x1568
+#define PA_TXTERMINATION	0x1569
+#define PA_HSSERIES		0x156A
+#define PA_PWRMODE		0x1571
+#define PA_ACTIVERXDATALANES	0x1580
+#define PA_CONNECTEDRXDATALANES	0x1581
+#define PA_RXGEAR		0x1583
+#define PA_RXTERMINATION	0x1584
+#define PA_MAXRXPWMGEAR		0x1586
+#define PA_MAXRXHSGEAR		0x1587
 
 /*
  * UFSStatus/Error Macros used as return values for all functions
@@ -164,11 +183,11 @@ struct lu_specific_cfg_tbl {
 	uint32_t               log2blksz;
 	uint64_t               blkcnt;
 	uint16_t 		   lu_context;
+	enum lu_memory_type memory_type;
 };
 
 struct lu_common_cfg_tbl {
 	enum lu_write_protect write_protect;
-	enum lu_memory_type memory_type;
 	enum lu_provisioning_type provisioning_type;
 	enum lu_data_reliability data_reliability;
 };
@@ -241,6 +260,7 @@ struct ufs_driver_info {
  * Register Fields
  */
 #define DW_UFS_HCS_DP    BIT(0)
+#define DW_UFS_IS_UPMS   BIT(4)
 #define DW_UFS_IS_UCCS   BIT(10)
 #define DW_UFS_HCS_UCRDY BIT(3)
 #define DW_UFS_CAPS_64AS BIT(24)
@@ -346,6 +366,38 @@ WRITE_RPMB_DATA      = 0x01,
 READ_RPMB_DATA       = 0x02,
 RESULT_REGISTER_READ = 0x03,
 AUTH_KEY_DATA        = 0x04
+};
+
+struct ufs_pa_layer_attr {
+	uint32_t gear_rx;
+	uint32_t gear_tx;
+	uint32_t lane_rx;
+	uint32_t lane_tx;
+	uint32_t pwr_rx;
+	uint32_t pwr_tx;
+	uint32_t hs_rate;
+};
+
+/* PA power modes */
+enum {
+	FAST_MODE	= 1,
+	SLOW_MODE	= 2,
+	FASTAUTO_MODE	= 4,
+	SLOWAUTO_MODE	= 5,
+	UNCHANGED	= 7,
+};
+
+/* PA TX/RX Frequency Series */
+enum {
+	PA_HS_MODE_A	= 1,
+	PA_HS_MODE_B	= 2,
+};
+
+enum ufs_hs_gear_tag {
+	UFS_HS_DONT_CHANGE,	/* Don't change Gear */
+	UFS_HS_G1,		/* HS Gear 1 (default for reset) */
+	UFS_HS_G2,		/* HS Gear 2 */
+	UFS_HS_G3,		/* HS Gear 3 */
 };
 
 /*

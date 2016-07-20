@@ -111,10 +111,28 @@ void send_dme_link_startup(void)
 	ufs_writel(DW_UFS_UICCMD,(UIC_LINK_STARTUP_CMD & 0xFF));
 }
 
-void set_mphy(uint32_t code, uint32_t value)
+uint32_t dme_get(uint32_t mib)
 {
-	code = (code << 16) | ((code >> 16) & 0x0000FFFF);
-	send_uic_command(UIC_SET_CMD, code, 0, value);
+	mib = (mib << 16) | ((mib >> 16) & 0x0000FFFF);
+	send_uic_command(UIC_GET_CMD, mib, 0, 0);
+	wait_uic_complete();
+
+	return ufs_readl(DW_UFS_UICCMDARG3);
+}
+
+uint32_t dme_peer_get(uint32_t mib)
+{
+	mib = (mib << 16) | ((mib >> 16) & 0x0000FFFF);
+	send_uic_command(UIC_PEER_GET_CMD, mib, 0, 0);
+	wait_uic_complete();
+
+	return ufs_readl(DW_UFS_UICCMDARG3);
+}
+
+void dme_set(uint32_t mib, uint32_t value)
+{
+	mib = (mib << 16) | ((mib >> 16) & 0x0000FFFF);
+	send_uic_command(UIC_SET_CMD, mib, 0, value);
 
 	wait_uic_complete();
 
@@ -130,71 +148,71 @@ void set_mphy(uint32_t code, uint32_t value)
  ***************************************************************/
 void setup_snps_mphy_tc()
 {
-	set_mphy(0x0000d0a0, 0x10);
+	dme_set(0x0000d0a0, 0x10);
 
-	set_mphy(0x0000802b, 0x00);
-	set_mphy(0x000080bf, 0x01);
-	set_mphy(0x000080ea, 0x80);
-	set_mphy(0x000080cd, 0x02);
-	set_mphy(0x000080e6, 0x04);
-	set_mphy(0x000080f1, 0x44);
+	dme_set(0x0000802b, 0x00);
+	dme_set(0x000080bf, 0x01);
+	dme_set(0x000080ea, 0x80);
+	dme_set(0x000080cd, 0x02);
+	dme_set(0x000080e6, 0x04);
+	dme_set(0x000080f1, 0x44);
 
-	set_mphy(0x000000eb, 0x0d);
-	set_mphy(0x000100eb, 0x0d);
-	set_mphy(0x000400eb, 0x01);
-	set_mphy(0x000500eb, 0x01);
+	dme_set(0x000000eb, 0x0d);
+	dme_set(0x000100eb, 0x0d);
+	dme_set(0x000400eb, 0x01);
+	dme_set(0x000500eb, 0x01);
 
-	set_mphy(0x000000ec, 0x19);
-	set_mphy(0x000100ec, 0x19);
-	set_mphy(0x000400ec, 0x19);
-	set_mphy(0x000500ec, 0x19);
+	dme_set(0x000000ec, 0x19);
+	dme_set(0x000100ec, 0x19);
+	dme_set(0x000400ec, 0x19);
+	dme_set(0x000500ec, 0x19);
 
-	set_mphy(0x000000f0, 0x12);
-	set_mphy(0x000100f0, 0x12);
-	set_mphy(0x000400f0, 0x02);
-	set_mphy(0x000500f0, 0x02);
+	dme_set(0x000000f0, 0x12);
+	dme_set(0x000100f0, 0x12);
+	dme_set(0x000400f0, 0x02);
+	dme_set(0x000500f0, 0x02);
 
-	set_mphy(0x000400ba, 0x80);
-	set_mphy(0x000500ba, 0x80);
+	dme_set(0x000400ba, 0x80);
+	dme_set(0x000500ba, 0x80);
 
-	set_mphy(0x000080f3, 0x64);
-	set_mphy(0x000000f1, 0xd6);
-	set_mphy(0x000100f1, 0xd6);
+	dme_set(0x000080f3, 0x64);
+	dme_set(0x000000f1, 0xd6);
+	dme_set(0x000100f1, 0xd6);
 
-	set_mphy(0x000080fb, 0x09);
-	set_mphy(0x000080f0, 0x00);
+	dme_set(0x000080fb, 0x09);
+	dme_set(0x000080f0, 0x00);
 
-	set_mphy(0x000400f2, 0x03);
-	set_mphy(0x000500f2, 0x03);
-	set_mphy(0x000400bd, 0x16);
-	set_mphy(0x000500bd, 0x16);
-	set_mphy(0x000400c7, 0x22);
-	set_mphy(0x000500c7, 0x22);
-	set_mphy(0x000080f8, 0x00);
+	dme_set(0x000400f2, 0x03);
+	dme_set(0x000500f2, 0x03);
+	dme_set(0x000400bd, 0x16);
+	dme_set(0x000500bd, 0x16);
+	dme_set(0x000400c7, 0x22);
+	dme_set(0x000500c7, 0x22);
+	dme_set(0x000080f8, 0x00);
 
-	set_mphy(0x000400f3, 0xa4);
-	set_mphy(0x000500f3, 0xa4);
-	set_mphy(0x000400b4, 0x01);
-	set_mphy(0x000500b4, 0x01);
-	set_mphy(0x000400f4, 0x01);
-	set_mphy(0x000500f4, 0x01);
-	set_mphy(0x000400e9, 0x28);
-	set_mphy(0x000500e9, 0x28);
-	set_mphy(0x000400bf, 0x2f);
-	set_mphy(0x000500bf, 0x2f);
-	set_mphy(0x000400b5, 0x1e);
-	set_mphy(0x000500b5, 0x1e);
+	dme_set(0x000400f3, 0xa4);
+	dme_set(0x000500f3, 0xa4);
+	dme_set(0x000400b4, 0x01);
+	dme_set(0x000500b4, 0x01);
+	dme_set(0x000400f4, 0x01);
+	dme_set(0x000500f4, 0x01);
+	dme_set(0x000400e9, 0x28);
+	dme_set(0x000500e9, 0x28);
+	dme_set(0x000400bf, 0x2f);
+	dme_set(0x000500bf, 0x2f);
+	dme_set(0x000400b5, 0x1e);
+	dme_set(0x000500b5, 0x1e);
 
-	set_mphy(0x0000d085, 0x01);
-	set_mphy(0x0000d000, 0x01);
+	dme_set(0x0000d085, 0x01);
+	dme_set(0x0000d000, 0x01);
 
-	set_mphy(0x000015aa, 0x02);
-	set_mphy(0x000015a8, 0x40);
-	set_mphy(0x000015a7, 0x10);
-	set_mphy(0x0000d084, 0x0a);
-	set_mphy(0x0000d0af, 0x00);
-	set_mphy(0x000015a4, 0xfa);
-	set_mphy(0x0000d09e, 0x01);
+	dme_set(0x000015aa, 0x02);
+	dme_set(0x000015a8, 0x40);
+	dme_set(0x000015a7, 0x10);
+	dme_set(0x0000d084, 0x0a);
+	dme_set(0x0000d0af, 0x00);
+	dme_set(0x000015a4, 0xfa);
+	dme_set(0x0000d09e, 0x01);
 
 	return;
 }
@@ -978,11 +996,117 @@ int init_ufs_device()
 	return ret;
 }
 
+
+void change_ufs_power_mode(void)
+{
+	int ret = 0;
+	int retry = 100;
+	uint32_t upms_intr_res = 0;
+	struct ufs_pa_layer_attr pwr_info;
+
+	pwr_info.pwr_rx = FASTAUTO_MODE;
+	pwr_info.pwr_tx = FASTAUTO_MODE;
+	pwr_info.hs_rate = PA_HS_MODE_B;
+
+	/*Get max power mode*/
+	pwr_info.lane_rx = dme_get(PA_CONNECTEDRXDATALANES);
+	pwr_info.lane_tx = dme_get(PA_CONNECTEDTXDATALANES);
+	if (0 == pwr_info.lane_rx || 0 == pwr_info.lane_tx) {
+		errorf("invalid connected lanes value. rx=%d, tx=%d\n", pwr_info.lane_rx, pwr_info.lane_tx);
+		return;
+	}
+
+	pwr_info.gear_rx = dme_get(PA_MAXRXHSGEAR);
+	if (0 == pwr_info.gear_rx) {
+		pwr_info.gear_rx = dme_get(PA_MAXRXPWMGEAR);
+		if (0 == pwr_info.gear_rx) {
+			errorf("invalid max pwm rx gear read = %d\n", pwr_info.gear_rx);
+			return;
+		}
+		pwr_info.pwr_rx = SLOWAUTO_MODE;
+	}
+
+	pwr_info.gear_tx = dme_peer_get(PA_MAXRXHSGEAR);
+	if (0 == pwr_info.gear_tx) {
+		pwr_info.gear_tx = dme_peer_get(PA_MAXRXPWMGEAR);
+		if (0 == pwr_info.gear_tx) {
+			errorf("invalid max pwm tx gear read = %d\n", pwr_info.gear_tx);
+			return;
+		}
+		pwr_info.pwr_tx = SLOWAUTO_MODE;
+	}
+
+/*Intel Phy in FPGA can only support Gear 1*/
+#ifdef UFS_INTEL_MPHY_TC
+	pwr_info.gear_rx = UFS_HS_G1;
+	pwr_info.gear_tx = UFS_HS_G1;
+#endif
+
+	debugf("Power mode:pwr_rx(%d), pwr_tx(%d), lane_rx(%d), lane_tx(%d), gear_rx(%d), gear_tx(%d), hs_rate(%d)\n",
+		pwr_info.pwr_rx, pwr_info.pwr_tx, pwr_info.lane_rx, pwr_info.lane_tx,
+		pwr_info.gear_rx, pwr_info.gear_tx, pwr_info.hs_rate);
+
+	/*Set power mode*/
+	dme_set(PA_TXGEAR, pwr_info.gear_tx);
+	dme_set(PA_RXGEAR, pwr_info.gear_rx);
+
+	if (pwr_info.pwr_rx == FASTAUTO_MODE ||
+	    pwr_info.pwr_tx == FASTAUTO_MODE ||
+	    pwr_info.pwr_rx == FAST_MODE ||
+	    pwr_info.pwr_tx == FAST_MODE)
+		dme_set(PA_HSSERIES, pwr_info.hs_rate);
+
+	dme_set(PA_ACTIVETXDATALANES, pwr_info.lane_tx);
+	dme_set(PA_ACTIVERXDATALANES, pwr_info.lane_rx);
+
+#ifdef UFS_INTEL_MPHY_TC
+	writel(2, (void *)0xe41030c8);
+	/*This delay is necessary*/
+	udelay(100);
+#endif
+
+	if (FASTAUTO_MODE == pwr_info.pwr_tx || FAST_MODE == pwr_info.pwr_tx)
+		dme_set(PA_TXTERMINATION, 1);
+	else
+		dme_set(PA_TXTERMINATION, 0);
+
+	if (FASTAUTO_MODE == pwr_info.pwr_rx ||FAST_MODE == pwr_info.pwr_rx)
+		dme_set(PA_RXTERMINATION, 1);
+	else
+		dme_set(PA_RXTERMINATION, 0);
+
+	dme_set(PA_PWRMODE, (pwr_info.pwr_rx << 4) | pwr_info.pwr_tx);
+
+	/*check set power mode result*/
+	while(retry > 0) {
+		upms_intr_res = ufs_readl(DW_UFS_IS) & DW_UFS_IS_UPMS;
+		if (upms_intr_res) {
+			ufs_writel(DW_UFS_IS, upms_intr_res);
+			break;
+		}
+		udelay(1000);
+		retry--;
+	}
+
+	if (0 == retry) {
+		errorf("Change power mode fail!!\n");
+		return;
+	}
+
+	ret = (ufs_readl(DW_UFS_HCS) >> 8) & 0x7;
+	if (PWR_LOCAL != ret)
+		errorf("Fail to change power mode, power status is %d\n", ret);
+
+	return;
+}
+
+
 void ufs_init()
 {
 	init_ufs_hostc();
 	init_ufs_device();
 	ufs_update_native();
+	change_ufs_power_mode();
 }
 
 uint32_t align_to_alloc_unit(uint64_t blk_cnt, uint32_t log2_blk_sz)
@@ -1011,7 +1135,8 @@ int compare_cfg_lu_table(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cf
 	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++) {
 		if (lu_cfg[lun_index].lu_index != ufs_info.lu_info[lun_index].lu_index
 				|| lu_cfg[lun_index].bootable != ufs_info.lu_info[lun_index].bootable
-				|| lu_cfg[lun_index].log2blksz != ufs_info.lu_info[lun_index].log2blksz) {
+				|| lu_cfg[lun_index].log2blksz != ufs_info.lu_info[lun_index].log2blksz
+				|| lu_cfg[lun_index].memory_type != ufs_info.lu_info[lun_index].memory_type) {
 			debugf("lun_index(%d) different...\n ", ufs_info.lu_info[lun_index].lu_index);
 			ret = LU_INFO_DIFF;
 			break;
@@ -1038,7 +1163,6 @@ int compare_cfg_lu_table(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cf
 
 		if (1 == last_lu) {
 			if (common_cfg->write_protect != ufs_info.lu_info[lun_index].write_protect
-					|| common_cfg->memory_type != ufs_info.lu_info[lun_index].memory_type
 					|| common_cfg->provisioning_type != ufs_info.lu_info[lun_index].provisioning_type
 					|| common_cfg->data_reliability != ufs_info.lu_info[lun_index].data_reliability) {
 				debugf("lun_index(%d) different in common config...\n ", ufs_info.lu_info[lun_index].lu_index);
@@ -1119,6 +1243,7 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 			req_cfg_desc->unit_cfg[lu_index].bLUEnable = 0x01;
 			req_cfg_desc->unit_cfg[lu_index].bBootLunID = new_cfg[id].bootable;
 			req_cfg_desc->unit_cfg[lu_index].bLogicalBlockSize = new_cfg[id].log2blksz;
+			req_cfg_desc->unit_cfg[lu_index].bMemoryType = new_cfg[id].memory_type;
 
 			if (0xFF == new_cfg[id].lu_context) {
 				context = (uint16_t)ufs_info.max_context - assigned_context;
@@ -1130,7 +1255,6 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 			req_cfg_desc->unit_cfg[lu_index].wContextCapabilities = context;
 
 			req_cfg_desc->unit_cfg[lu_index].bLUWriteProtect = common_cfg->write_protect;
-			req_cfg_desc->unit_cfg[lu_index].bMemoryType = common_cfg->memory_type;
 			req_cfg_desc->unit_cfg[lu_index].bProvisioningType = common_cfg->provisioning_type;
 			req_cfg_desc->unit_cfg[lu_index].bDataReliability = common_cfg->data_reliability;
 
@@ -1395,7 +1519,7 @@ int endpoint_reset(void)
 int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_tbl *common_cfg)
 {
 	int ret = 0;
-	uint8_t val[4] = {0, 0, 0, LOCK_CONFIGURATION};
+	uint8_t val[4] = {0, 0, 0, 0};
 
 	struct ufs_cfg_desc_tbl *cfg_desc;
 
@@ -1403,6 +1527,14 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 	if (LU_INFO_ILLEGAL == ret) {
 		errorf("UFS LU configuration table illegal!\n");
 		return UFS_INVALID_PARTITIONING;
+	}
+
+	/*Enable boot from Boot LU A*/
+	val[3] = BOOT_LU_A_ENABLE;
+	ret = write_attribute(B_BOOT_LUNEN, val, 0);
+	if (UFS_SUCCESS != ret) {
+		errorf("Write Attribute bBootLunEn to enable boot from boot LU A fail!ret=%d\n",ret);
+		return ret;
 	}
 
 	ret = get_descriptor_data((void **)(&cfg_desc), CONFIGURATION_DESC, 0);
@@ -1430,6 +1562,7 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 
 /*Be careful to handle this attribute!!!*/
 #if 0
+	val[3] = LOCK_CONFIGURATION;
 	ret = write_attribute(B_CONFIG_DESC_LOCK, val, 0);
 	if (UFS_SUCCESS != ret) {
 		errorf("UFS lock config desc fail!ret=%d\n",ret);

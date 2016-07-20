@@ -219,16 +219,16 @@ fail:
 #ifdef CONFIG_UFS_BOOT
 
 struct lu_specific_cfg_tbl factory_lu_tbl[] = {
-	/*lu_index, bootable,               log2blksz,  blkcnt,  lu_context*/
-	{0x00,              MAIN_BOOT, 		    0x0C, 		1024,    	0x0},
-	{0x01,              ALTERNATE_BOOT, 0x0C, 		1024,    	0x0},
-	{0x02,              NONE_BOOT, 	    0x0C, 		0        ,    	0xFF},
-	{0	  ,              0		       ,              0	     ,            0	 ,       0}
+	/*lu_index, bootable,               log2blksz,  blkcnt,  lu_context, memory_type*/
+	{0x00,              MAIN_BOOT, 		    0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1},
+	{0x01,              ALTERNATE_BOOT, 0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1},
+	{0x02,              NONE_BOOT, 	    0x0C, 		0        ,    	0xFF,		NORMAL_MEMORY},
+	{0	  ,              0		       ,              0	     ,            0	 ,       0       ,		0}
 };
 
 struct lu_common_cfg_tbl lu_common_tbl = {
-	/*write_protect, 		      memory_type,      provisioning_type,              data_reliability*/
-	WRITE_PROTECT_POWERON,  NORMAL_MEMORY, PROV_ENABLE_WITH_TPRZ, DATA_PROTECTED
+	/*write_protect, 		      provisioning_type,              data_reliability*/
+	WRITE_PROTECT_POWERON,  PROV_ENABLE_WITH_TPRZ, DATA_PROTECTED
 };
 
 
