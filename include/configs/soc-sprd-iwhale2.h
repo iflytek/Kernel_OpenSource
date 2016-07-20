@@ -205,6 +205,9 @@
 /*sprd adc*/
 #define CONFIG_SPRD_ADC
 
+/*sprd ap efuse*/
+#define CONFIG_SPRD_AP_IEFUSE_R1P0
+
 /*sprd adi*/
 #define CONFIG_SPRD_ADI
 #define ADI_R3P0_VER
