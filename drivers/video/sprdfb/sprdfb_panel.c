@@ -63,6 +63,7 @@ extern struct panel_spec lcd_nt35596_mipi_spec;
 extern struct panel_spec lcd_nt35597_mipi_spec;
 extern struct panel_spec lcd_s6e3fa3_mipi_spec;
 extern struct panel_spec lcd_ili9885_mipi_spec;
+extern struct panel_spec lcd_nt35532_mipi_spec;
 
 
 
@@ -75,6 +76,12 @@ static struct panel_cfg panel_cfg[] = {
 	{
 		.lcd_id = 0x98,
 		.panel = &lcd_ili9885_mipi_spec,
+	},
+#endif
+#if defined (CONFIG_FB_LCD_NT35532_MIPI)
+	{
+		.lcd_id = 0x32,
+		.panel = &lcd_nt35532_mipi_spec,
 	},
 #endif
 #if defined (CONFIG_FB_LCD_HX8379C_MIPI_SHARKL_J1POPLTE)
