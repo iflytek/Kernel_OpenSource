@@ -13,14 +13,11 @@
  *
  */
 
-//#include <asm/arch/sci.h>
 #include <asm/arch/sprd_reg.h>
 #include <asm/io.h>
 #include <common.h>
 #include <linux/types.h>
 #include <linux/err.h>
-#include <regs_efuse.h>
-#include <regs_ana_efuse.h>
 #include "adi.h"
 
 typedef unsigned int u32;
@@ -143,8 +140,9 @@ static __inline int pmic_efuse_wait_clear(u32 bits)
 	unsigned long timeout;
 	u32 bit_status = 1;
 	u32 val;
-	debugf("pmic efuse wait %x\n", sci_adi_read(ANA_REG_EFUSE_STATUS));
 
+	debugf("pmic efuse wait %x\n", sci_adi_read(ANA_REG_EFUSE_STATUS));
+	udelay(2000);
 	/* wait for maximum of 3000 msec */
 	timeout = jiffies + msecs_to_jiffies(3000);
 	while (bit_status) {

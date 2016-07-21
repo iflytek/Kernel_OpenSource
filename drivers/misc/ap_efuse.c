@@ -46,8 +46,6 @@
 #include <common.h>
 #include <linux/types.h>
 #include <linux/err.h>
-#include <regs_efuse.h>
-#include <regs_ana_efuse.h>
 
 typedef unsigned int u32;
 
