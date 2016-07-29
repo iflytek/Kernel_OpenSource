@@ -24,21 +24,11 @@
 
 #define CONFIG_ARCH_SCX35L
 
-/*eMMC config*/
+/*eMMC config, note that even UFS boards need these macros to support SD card*/
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
 #define CONFIG_EMMC_VERSION_V40
-
-/*eMMC boot*/
-#define CONFIG_EMMC_BOOT
-#define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
-
-
-/*UFS boot
-#define CONFIG_UFS
-#define CONFIG_UFS_BOOT
-*/
 
 /*file system config*/
 #define CONFIG_FAT_WRITE

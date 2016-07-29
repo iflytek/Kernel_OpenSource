@@ -290,6 +290,35 @@ config IWHALE2_DDR4G_INTERLEAVE
     help
       use for ddr4g_interleave board
 
+config EMMC_BOOT
+	bool "with board boot from eMMC"
+	default n
+	help
+	  Board which boot from eMMC requires this variable to read
+	  and write and erase partitions in the eMMC device.
+
+config GENERIC_MMC
+	bool "add eMMC initialization sequence"
+	default n
+	help
+	  Board which boot from eMMC requires this variable to include
+	  eMMC initialization in the init sequence.
+
+config UFS
+	bool "with UFS board"
+	default n
+	help
+	  Board with UFS(Universal Flash Storage) requires this variable to
+	  compile the UFS driver and include UFS initialization in the init
+	  sequence.
+
+config UFS_BOOT
+	bool "with board boot from UFS"
+	default n
+	help
+	  Board which boot from UFS(Universal Flash Storage) requires this
+	  variable to read and write and erase partitions in the UFS device.
+
 config AP_STACK_SIZE
 	hex
 	default 0x1000

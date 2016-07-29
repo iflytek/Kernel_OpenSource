@@ -1865,6 +1865,19 @@ int mmc_select_hwpart(int dev_num, int hwpart)
 	return 0;
 }
 
+/*
+ * Modify EXT_CSD[162] which is RST_n_FUNCTION based on the given value
+ * for enable.  Note that this is a write-once field for non-zero values.
+ *
+ * Returns 0 on success.
+ */
+int mmc_set_rst_n_function(struct mmc *mmc, u8 enable)
+{
+	return mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_RST_N_FUNCTION,
+			  enable);
+}
+
+
 #ifdef CONFIG_EMMC_BOOT
 /*
  * This function changes the size of boot partition and the size of rpmb
@@ -2045,16 +2058,6 @@ uint64_t Emmc_GetCapacity(char part_num)
 	}
 }
 
-/*
- * Modify EXT_CSD[162] which is RST_n_FUNCTION based on the given value
- * for enable.  Note that this is a write-once field for non-zero values.
- *
- * Returns 0 on success.
- */
-int mmc_set_rst_n_function(struct mmc *mmc, u8 enable)
-{
-	return mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_RST_N_FUNCTION,
-			  enable);
-}
+
 
 #endif
