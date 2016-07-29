@@ -8,6 +8,11 @@
 
 struct   ufs_driver_info ufs_info;
 
+uint32_t fatal_err = 0;
+
+struct backstage_recovery bs_recv;
+
+
 static inline uint32_t ufs_readl(int reg)
 {
 	return readl((void *)REG_BASE_ADDRESS + reg);
@@ -39,9 +44,7 @@ int dwc_reset_hc()
 	udelay(1000); /* Platform Specific Implementation */
 	ufs_writel(DW_UFS_HCE, HCE_RESET);
 
-	/*
-	 * poll untill (DW_UFS_HCE == 1) i'e initialization sequence has completed
-	 */
+	/*poll untill (DW_UFS_HCE == 1) i'e initialization sequence has completed*/
 	while (retry != 0) {
 		if(1 == ufs_readl(DW_UFS_HCE)) {
 			debugf("Reset UFS host controller success\n");
@@ -372,7 +375,6 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
 
 }
 
-
 /***************************************************************
  *
  * wait_for_cmd_completion
@@ -383,7 +385,8 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
  ***************************************************************/
 static int wait_for_cmd_completion()
 {
-	int retry = RETRY_CNT;
+	int retry = RW_RETRY_CNT;
+	uint32_t is_status = 0;
 
 	flush_dcache_range(0, 0);
 	/* Set the doorbell for processing the request */
@@ -391,6 +394,17 @@ static int wait_for_cmd_completion()
 
 	/* Wait for the DoorBell to clear */
 	while(1) {
+		udelay(50);
+		is_status = ufs_readl(DW_UFS_IS);
+		if (0 != is_status)
+			ufs_writel(DW_UFS_IS, is_status);
+		if (0 != (is_status & IS_FATAL_ERROR)) {
+			errorf("Meet UFS fatal error, Interrupt Status=0x%x\n", is_status);
+			ufs_writel(DW_UFS_UTRLCLR, 0xfffffffe);
+			/*for stress test*/
+			fatal_err++;
+			return UFS_FATAL_ERROR;
+		}
 		if((ufs_readl(DW_UFS_UTRLDBR) & BIT(0)) == 0)
 			break;
 		retry--;
@@ -398,7 +412,6 @@ static int wait_for_cmd_completion()
 			debugf("DoorBell Not Cleared and Timed Out\n");
 			return UFS_TIMEOUT;
 		}
-		udelay(5000); /* Platform Specific Implementation */
 	}
 
 #ifdef CONFIG_X86
@@ -413,10 +426,21 @@ static int wait_for_cmd_completion()
 
 static int wait_for_previous_scsi_completion()
 {
-	int retry = RETRY_CNT;
+	int retry = RW_RETRY_CNT;
+	uint32_t is_status = 0;
 
 	/* Wait for the DoorBell to clear */
 	while(1) {
+		is_status = ufs_readl(DW_UFS_IS);
+		if (0 != is_status)
+			ufs_writel(DW_UFS_IS, is_status);
+		if (0 != (is_status & IS_FATAL_ERROR)) {
+			errorf("Meet UFS fatal error, Interrupt Status=0x%x\n", is_status);
+			ufs_writel(DW_UFS_UTRLCLR, 0xfffffffe);
+			/*for stress test*/
+			fatal_err++;
+			return UFS_FATAL_ERROR;
+		}
 		if((ufs_readl(DW_UFS_UTRLDBR) & BIT(0)) == 0)
 			break;
 		retry--;
@@ -424,7 +448,7 @@ static int wait_for_previous_scsi_completion()
 			debugf("DoorBell Not Cleared and Timed Out\n");
 			return UFS_TIMEOUT;
 		}
-		udelay( 5000); /* Platform Specific Implementation */
+		udelay(5); /* Platform Specific Implementation */
 	}
 
 #ifdef CONFIG_X86
@@ -447,18 +471,24 @@ static int wait_for_previous_scsi_completion()
  ***************************************************************/
 static int do_flag_operation(int opcode, int query_func, enum flags_id idn, uint8_t *flags_ret)
 {
-	int ret, i;
+	int ret = 0;
+	int retry = 4;
+	int i = 0;
 	uint8_t val[4];
 
-	for(i=0;i < 3;i++)
+	for (i = 0; i < 4; i++)
 		val[i] = 0x00;
 
-	create_query_upiu((uint8_t)opcode, (uint8_t)query_func, (uint8_t)0, (uint8_t)idn, val);
-	ret = wait_for_cmd_completion();
-	if(ret != UFS_SUCCESS)
-		return ret;
+	do {
+		create_query_upiu((uint8_t)opcode, (uint8_t)query_func, (uint8_t)0, (uint8_t)idn, val);
+		ret = wait_for_cmd_completion();
+		if (UFS_SUCCESS != ret)
+			reset_and_restore_hc();
+		else
+			ret = handle_query_response(val);
+		retry--;
+	} while (UFS_SUCCESS != ret && retry > 0);
 
-	ret = handle_query_response(val);
 	*flags_ret = val[3];
 
 	return ret;
@@ -535,17 +565,23 @@ int ClearFlag(enum flags_id idn, uint8_t *flags_ret)
  ***************************************************************/
 int read_attribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector)
 {
-	int ret,i;
+	int ret = 0;
+	int retry = 4;
+	int i = 0;
 
 	for(i=0;i < 4;i++)
 		ret_value[i] = 0x00;
 	debugf("read idn=0x%x\n", idn);
-	create_query_upiu(READ_ATTR_OPCODE, STANDARD_RD_REQ, selector, idn, ret_value);
-	ret = wait_for_cmd_completion();
-	if(ret != UFS_SUCCESS)
-		return ret;
+	do {
+		create_query_upiu(READ_ATTR_OPCODE, STANDARD_RD_REQ, selector, idn, ret_value);
+		ret = wait_for_cmd_completion();
+		if (ret != UFS_SUCCESS)
+			reset_and_restore_hc();
+		else
+			ret = handle_query_response(ret_value);
+		retry--;
+	} while (UFS_SUCCESS != ret && retry > 0);
 
-	ret = handle_query_response(ret_value);
 	return ret;
 }
 
@@ -559,14 +595,20 @@ int read_attribute(enum attr_id idn, uint8_t *ret_value, uint8_t selector)
  ***************************************************************/
 int write_attribute(enum attr_id idn, uint8_t *value, uint8_t selector)
 {
-	int ret;
-	debugf("write idn=0x%x\n", idn);
-	create_query_upiu(WRITE_ATTR_OPCODE, STANDARD_WR_REQ, selector, idn, value);
-	ret = wait_for_cmd_completion();
-	if(ret != UFS_SUCCESS)
-		return ret;
+	int ret = 0;
+	int retry = 4;
 
-	ret = handle_query_response(value);
+	debugf("write idn=0x%x\n", idn);
+	do {
+		create_query_upiu(WRITE_ATTR_OPCODE, STANDARD_WR_REQ, selector, idn, value);
+		ret = wait_for_cmd_completion();
+		if (ret != UFS_SUCCESS)
+			reset_and_restore_hc();
+		else
+			ret = handle_query_response(value);
+		retry--;
+	} while (UFS_SUCCESS != ret && retry > 0);
+
 	return ret;
 }
 
@@ -649,7 +691,6 @@ int send_nop_out_cmd()
 
 	do {
 		create_nop_out_upiu();
-		udelay(100);
 		retry--;
 		ret = wait_for_cmd_completion();
 		if(ret != UFS_SUCCESS) {
@@ -659,7 +700,7 @@ int send_nop_out_cmd()
 
 		ret = read_nop_rsp();
 		debugf("NOP OUT response ret = 0x%x\n", ret);
-	} while(ret != UFS_SUCCESS && retry > 0);
+	} while (ret != UFS_SUCCESS && retry > 0);
 
 	return ret;
 }
@@ -768,21 +809,24 @@ int write_read_descriptor(void *req_upiu)
 int get_descriptor_data(void ** desc_ptr, uint8_t idn, uint8_t index)
 {
 	int      ret;
+	int retry = 3;
 	struct   dwc_ufs_query_upiu *req_upiu;
-	void *   tmp_ptr;
-	void     *resp_upiu = ufs_info.cmd_desc->response_upiu;
+	uint8_t * resp_upiu;
 
-	tmp_ptr = ufs_info.cmd_desc->command_upiu;
-	req_upiu = (struct dwc_ufs_query_upiu *)tmp_ptr;
+	do {
+		req_upiu = (struct dwc_ufs_query_upiu *)(ufs_info.cmd_desc->command_upiu);
+		prepare_read_desc_upiu(req_upiu, idn, index);
+		ret = write_read_descriptor(req_upiu);
+		if (UFS_SUCCESS != ret) {
+			reset_and_restore_hc();
+		} else {
+			resp_upiu = ufs_info.cmd_desc->response_upiu;
+			*desc_ptr = (uint8_t *)resp_upiu + sizeof(struct dwc_ufs_query_upiu);
+		}
+		retry--;
+	} while (UFS_SUCCESS != ret && retry > 0);
 
-	prepare_read_desc_upiu(req_upiu, idn, index);
-
-	if((ret = write_read_descriptor(req_upiu)) != UFS_SUCCESS)
-		return ret;
-
-	*desc_ptr = (uint8_t *)resp_upiu + sizeof(struct dwc_ufs_query_upiu);
-	return UFS_SUCCESS;
-
+	return ret;
 }
 
 void preconfig_utrd_descriptor(void)
@@ -861,7 +905,12 @@ int init_ufs_hostc()
 	temp = readl((void *)0xE43031D8);
 	temp = temp |( 1 << 6) | (1 << 7);
 	writel(temp, (void *)0xE43031D8);
+
+	writel(0, (void *)0xe41030c8);
+	/*This delay is necessary in FPGA*/
+	udelay(1000);
 #endif
+
 
 #ifdef USE_SNPS_MPHY_TC
 	writel(0x10, (void *)0xE43F0000);
@@ -1004,9 +1053,9 @@ void change_ufs_power_mode(void)
 	uint32_t upms_intr_res = 0;
 	struct ufs_pa_layer_attr pwr_info;
 
-	pwr_info.pwr_rx = FASTAUTO_MODE;
-	pwr_info.pwr_tx = FASTAUTO_MODE;
-	pwr_info.hs_rate = PA_HS_MODE_B;
+	pwr_info.pwr_rx = FAST_MODE;
+	pwr_info.pwr_tx = FAST_MODE;
+	pwr_info.hs_rate = PA_HS_MODE_A;
 
 	/*Get max power mode*/
 	pwr_info.lane_rx = dme_get(PA_CONNECTEDRXDATALANES);
@@ -1062,7 +1111,7 @@ void change_ufs_power_mode(void)
 #ifdef UFS_INTEL_MPHY_TC
 	writel(2, (void *)0xe41030c8);
 	/*This delay is necessary*/
-	udelay(100);
+	udelay(1000);
 #endif
 
 	if (FASTAUTO_MODE == pwr_info.pwr_tx || FAST_MODE == pwr_info.pwr_tx)
@@ -1106,6 +1155,22 @@ void ufs_init()
 	init_ufs_hostc();
 	init_ufs_device();
 	ufs_update_native();
+	change_ufs_power_mode();
+}
+
+void release_desc_mem()
+{
+	free(ufs_info.cmd_desc);
+	free(ufs_info.utrd_desc);
+	free(ufs_info.utm_desc);
+	return;
+}
+
+void reset_and_restore_hc()
+{
+	release_desc_mem();
+	init_ufs_hostc();
+	init_ufs_device();
 	change_ufs_power_mode();
 }
 
@@ -1281,16 +1346,18 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 int set_descriptor_data(struct ufs_cfg_desc_tbl *default_desc, struct lu_specific_cfg_tbl *new_cfg,
 		struct lu_common_cfg_tbl *common_cfg)
 {
-	int      ret;
+	int ret = 0;
+	int retry = 3;
 	struct   dwc_ufs_query_upiu *req_upiu;
-	void *   tmp_ptr;
 
-	tmp_ptr = ufs_info.cmd_desc->command_upiu;
-	req_upiu = (struct dwc_ufs_query_upiu *)tmp_ptr;
-
-	prepare_write_desc_upiu(req_upiu, default_desc, new_cfg, common_cfg);
-
-	ret = write_read_descriptor(req_upiu);
+	do {
+		req_upiu = (struct dwc_ufs_query_upiu *)(ufs_info.cmd_desc->command_upiu);
+		prepare_write_desc_upiu(req_upiu, default_desc, new_cfg, common_cfg);
+		ret = write_read_descriptor(req_upiu);
+		if (UFS_SUCCESS != ret)
+			reset_and_restore_hc();
+		retry--;
+	} while (UFS_SUCCESS != ret && retry > 0);
 
 	return ret;
 }
@@ -1455,15 +1522,24 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 }
 
 
-int send_scsi_cmd (uint32_t opcode, enum dma_data_direction direction, 
+int send_scsi_cmd(uint32_t opcode, enum dma_data_direction direction,
 						struct lu_info_tbl *lu_info, void *buf_addr,
 						lbaint_t start, lbaint_t blkcnt, uint8_t cmd_set_type)
 {
 	int ret;
+	int retry = 4;
+	do {
+		create_cmd_upiu(opcode, direction, lu_info, buf_addr, start, blkcnt, cmd_set_type);
 
-	create_cmd_upiu(opcode, direction, lu_info, buf_addr, start, blkcnt, cmd_set_type);
+		ret = wait_for_cmd_completion();
+		if (UFS_SUCCESS != ret)
+			reset_and_restore_hc();
+		else
+			ret = handle_scsi_completion();
 
-	ret = wait_for_cmd_completion();
+		retry--;
+	} while (UFS_SUCCESS != ret && retry > 0);
+
 	return ret;
 }
 
@@ -1486,11 +1562,9 @@ int send_scsi_cmd_backstage(uint32_t opcode, enum dma_data_direction direction,
 int test_unit_ready(struct lu_info_tbl *lu_info)
 {
 	int ret = 0;
-	int retry = 5;
+	int retry = 3;
 	do {
 		ret = send_scsi_cmd(UFS_OP_TEST_UNIT_READY, DMA_NONE, lu_info, NULL, 0, 0, 0);
-		if (UFS_SUCCESS == ret)
-			ret = handle_scsi_completion();
 		retry--;
 	} while (UFS_SUCCESS != ret && retry > 0);
 
@@ -1581,6 +1655,7 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 	}
 #endif
 	/*init ufs host controller and device again after lu reconstruct*/
+	release_desc_mem();
 	ufs_init();
 
 	ret = compare_cfg_lu_table(lu_cfg, common_cfg);
@@ -1625,8 +1700,6 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 			cur = (blocks_todo > max_read_blk) ? max_read_blk : blocks_todo;
 			/* Send Read 10 Command and handle its completion */
 			ret = send_scsi_cmd(UFS_OP_READ_10, DMA_FROM_DEVICE, lu_info, temp_buff, start, cur, 0);
-			if (UFS_SUCCESS == ret)
-				ret = handle_scsi_completion();
 			if (ret != UFS_SUCCESS) {
 				free(temp_buff);
 				return 0;
@@ -1644,8 +1717,6 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 			cur = (blocks_todo > max_read_blk) ? max_read_blk : blocks_todo;
 			/* Send Read 10 Command and handle its completion */
 			ret = send_scsi_cmd(UFS_OP_READ_10, DMA_FROM_DEVICE, lu_info, dst, start, cur, 0);
-			if (UFS_SUCCESS == ret)
-				ret = handle_scsi_completion();
 			if (ret != UFS_SUCCESS)
 				return 0;
 			
@@ -1690,8 +1761,6 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 			memcpy(temp_buff, src, cur << lu_info->log2blksz);
 			/* Send Write 10 Command and handle its completion */
 			ret = send_scsi_cmd(UFS_OP_WRITE_10, DMA_TO_DEVICE, lu_info, temp_buff, start, cur, 0);
-			if (UFS_SUCCESS == ret)
-				ret = handle_scsi_completion();
 			if (ret != UFS_SUCCESS) {
 				free(temp_buff);
 				return 0;
@@ -1709,8 +1778,6 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 			/* Send Write 10 Command and handle its completion */
 			debugf("write lun(%d), start(0x%x), write_block(0x%x)\n", lu_info->lu_index, start, cur);
 			ret = send_scsi_cmd(UFS_OP_WRITE_10, DMA_TO_DEVICE, lu_info, src, start, cur, 0);
-			if (UFS_SUCCESS == ret)
-				ret = handle_scsi_completion();
 			if (ret != UFS_SUCCESS)
 				return 0;
 			
@@ -1757,8 +1824,6 @@ static ulong ufs_erase(int dev_num, lbaint_t start, lbaint_t blkcnt)
 
 	debugf("erase lun(%d), start(0x%lx), erase_block(0x%lx)\n", lu_info->lu_index, start, blkcnt);
 	ret = send_scsi_cmd(UFS_OP_UNMAP, DMA_TO_DEVICE, lu_info, (void *)um_list, start, blkcnt, 0);
-	if (UFS_SUCCESS == ret)
-		ret = handle_scsi_completion();
 	free(um_list);
 	if (ret != UFS_SUCCESS)
 		return 0;
@@ -1771,6 +1836,12 @@ ulong ufs_write_backstage(int dev_num, lbaint_t start, lbaint_t blkcnt, const vo
 	int ret;
 	static int tested = 0;
 	lbaint_t max_write_blk = 0;
+
+	/*for disaster recovery*/
+	bs_recv.dev = dev_num;
+	bs_recv.start = start;
+	bs_recv.blkcnt = blkcnt;
+	bs_recv.src = src;
 
 	struct lu_info_tbl *lu_info = find_lu_info(dev_num);
 	if ( NULL == lu_info)
@@ -1806,10 +1877,13 @@ ulong ufs_query_backstage(lbaint_t blkcnt)
 {
 	int ret = 0;
 	ret = wait_for_previous_scsi_completion();
-	if (UFS_SUCCESS == ret)
+	if (UFS_SUCCESS != ret)
+		reset_and_restore_hc();
+	else
 		ret = handle_scsi_completion();
-	if (ret != UFS_SUCCESS) {
-		return 0;
+	if (UFS_SUCCESS != ret) {
+		/*if backstage write fail, try normal write*/
+		return ufs_bwrite(bs_recv.dev, bs_recv.start, bs_recv.blkcnt, bs_recv.src);
 	}
 
 	return blkcnt;
@@ -1910,7 +1984,7 @@ block_dev_desc_t *ufs_get_dev(int dev)
 	}
 
 	if (IF_TYPE_UFS == ufs_info.block_dev[dev].if_type) {
-		debugf("Find the UFS device %d\n", dev);
+		//debugf("Find the UFS device %d\n", dev);
 		return &ufs_info.block_dev[dev];
 	}
 

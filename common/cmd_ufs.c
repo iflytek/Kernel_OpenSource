@@ -502,6 +502,8 @@ int test_ufs_backwrite(int argc, char * argv[])
 	return 0;
 }
 
+extern uint32_t fatal_err;
+
 int test_ufs_stress(int argc, char * argv[])
 {
 	int ret = 0;
@@ -513,6 +515,7 @@ int test_ufs_stress(int argc, char * argv[])
 	lbaint_t buf_in_blk = 0;
 	lbaint_t offset = 0;
 	char * buf = NULL;
+	uint64_t count = 0;
 
 	num = (uint32_t) simple_strtoul(argv[1], NULL, 16);
 
@@ -527,7 +530,7 @@ int test_ufs_stress(int argc, char * argv[])
 		while (1) {
 			dev_desc = get_dev("ufs", id);
 			if (NULL == dev_desc)
-				return CMD_RET_FAILURE;
+				goto fail;
 			blk_todo = dev_desc->lba;
 			buf_in_blk = SZ_512K >> dev_desc->log2blksz;
 			offset = 0;
@@ -537,16 +540,19 @@ int test_ufs_stress(int argc, char * argv[])
 				ret = dev_desc->block_write(dev_desc->dev, offset, blk, buf);
 				if (blk != ret) {
 					errorf("ufs stress write fail, blk=0x%x, offset=0x%x!\n", blk, offset);
-					return CMD_RET_FAILURE;
+					goto fail;
 				}
 
 				ret = dev_desc->block_read(dev_desc->dev, offset, blk, buf);
 				if (blk != ret) {
 					errorf("ufs stress read fail, blk=0x%x, offset=0x%x!\n", blk, offset);
-					return CMD_RET_FAILURE;
+					goto fail;
 				}
 				blk_todo -= blk;
 				offset += blk;
+
+				count++;
+				debugf("c:%llx,e:%x\n", count, fatal_err);
 
 				if (1 == num)
 					break;
@@ -566,7 +572,11 @@ int test_ufs_stress(int argc, char * argv[])
 	}
 
 	debugf("UFS stress over!!\n");
+	free(buf);
 	return 0;
+fail:
+	free(buf);
+	return CMD_RET_FAILURE;
 }
 
 

@@ -36,6 +36,7 @@
 #define CLK_DIV_DEFAULT        0x1A
 #define DISABLE_CLK_GATE     0x101B6000
 #define RETRY_CNT              2000
+#define RW_RETRY_CNT     200000
 #define HCE_RESET              0x1
 #define SENSE_KEY_INDEX        2
 #define CMD_DESC_ALIGNMENT     128
@@ -260,10 +261,18 @@ struct ufs_driver_info {
  * Register Fields
  */
 #define DW_UFS_HCS_DP    BIT(0)
+#define DW_UFS_IS_UE	 BIT(2)
 #define DW_UFS_IS_UPMS   BIT(4)
 #define DW_UFS_IS_UCCS   BIT(10)
+#define DW_UFS_IS_DFES   BIT(11)
+#define DW_UFS_IS_HCFES   BIT(16)
+#define DW_UFS_IS_SBFES   BIT(17)
 #define DW_UFS_HCS_UCRDY BIT(3)
 #define DW_UFS_CAPS_64AS BIT(24)
+
+#define IS_FATAL_ERROR	(DW_UFS_IS_DFES |\
+				DW_UFS_IS_HCFES |\
+				DW_UFS_IS_SBFES)
 
 /* UFS Command Opcodes */
 #define READ_DESC_OPCODE   0x1
@@ -377,6 +386,14 @@ struct ufs_pa_layer_attr {
 	uint32_t pwr_tx;
 	uint32_t hs_rate;
 };
+
+struct backstage_recovery {
+	int dev;
+	lbaint_t start;
+	lbaint_t blkcnt;
+	void * src;
+};
+
 
 /* PA power modes */
 enum {
