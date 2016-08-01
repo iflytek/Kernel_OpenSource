@@ -732,7 +732,7 @@ static int mmc_send_ext_csd(struct mmc *mmc, u8 *ext_csd)
 	data.flags = MMC_DATA_READ;
 
 	err = mmc_send_cmd(mmc, &cmd, &data);
-	debugf("mmc_send_ext_csd=%x\n", err);
+	debugf("mmc_send_ext_csd=%d\n", err);
 
 	return err;
 }
@@ -1323,6 +1323,16 @@ static void mmc_set_bus_width(struct mmc *mmc, uint width)
 	mmc_set_ios(mmc);
 }
 
+#ifdef CONFIG_EMMC_HAS_DDR_MODE
+static void mmc_set_timing(struct mmc *mmc, uint timing)
+{
+	debugf("set ddr52 mode\n");
+
+	mmc->timing = timing;
+	mmc_set_ios(mmc);
+}
+#endif
+
 static int mmc_startup(struct mmc *mmc)
 {
 	int err, i;
@@ -1554,7 +1564,7 @@ static int mmc_startup(struct mmc *mmc)
 				printf("\n%4d:   ", i);
 			printf("0x%02x    ", ext_csd[i]);
 		}
-        printf("\n");
+		printf("\n");
 #endif
 
 		switch (ext_csd[EXT_CSD_REV]) {
@@ -1718,10 +1728,10 @@ static int mmc_startup(struct mmc *mmc)
 #ifndef CONFIG_MMC_1BIT_BUS_MODE
 	if (IS_SD(mmc)) {
 		err = sd_change_freq(mmc);
-		debugf("sd_change_freq=%x\n", err);
+		debugf("sd_change_freq=%d\n", err);
 	} else {
 		err = mmc_change_freq(mmc);
-		debugf("mmc_change_freq=%x\n", err);
+		debugf("mmc_change_freq=%d\n", err);
 	}
 	if (err)
 		return err;
@@ -1809,6 +1819,10 @@ static int mmc_startup(struct mmc *mmc)
 
 			if (err)
 				continue;
+#ifdef CONFIG_EMMC_HAS_DDR_MODE
+			else
+				mmc_set_timing(mmc, MMC_MODE_DDR_52MHz);
+#endif
 
 			mmc->ddr_mode = (caps & MMC_MODE_DDR_52MHz) ? 1 : 0;
 			mmc_set_bus_width(mmc, widths[idx]);

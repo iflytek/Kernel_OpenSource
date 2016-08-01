@@ -330,6 +330,11 @@ struct mmc {
 	int high_capacity;
 	uint bus_width;
 	uint clock;
+#ifdef CONFIG_EMMC_HAS_DDR_MODE
+	uint timing;
+	/* We don't care other mode(e.g. UHS_SDR12/UHS_SDR25) */
+	#define MMC_TIMING_UHS_DDR52	8
+#endif
 	uint card_caps;
 	uint ocr;
 	uint dsr;

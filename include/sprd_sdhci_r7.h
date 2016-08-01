@@ -156,6 +156,15 @@
 
 #define SDHCI_ACMD12_ERR	0x3C
 
+/* only for DDR52 mode*/
+#define SDHCI_HOST_CONTROL2	0x3E
+/*
+ * The other modes(e.g. SDR12/SDR25/SDR104) are't be used,
+ * but we'd better to reserve them.
+ */
+#define SDHCI_TIMING_MODE_DDR52	0x4
+
+
 /* 3E-3F reserved */
 
 #define SDHCI_CAPABILITIES	0x40
@@ -208,6 +217,9 @@
 #define   SDHCI_SPEC_410	4
 
 #define SDHCI_GET_VERSION(x) (x->version & SDHCI_SPEC_VER_MASK)
+
+/* The register is defined by spreadtrum self, only for DDR52 mode */
+#define SDHCI_DLL_DLY	0x204
 
 /*
  * End of controller registers.

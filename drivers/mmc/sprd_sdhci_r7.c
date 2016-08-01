@@ -608,6 +608,9 @@ static void sdhci_set_ios(struct mmc *mmc)
 {
 	u32 ctrl;
 	struct sdhci_host *host = mmc->priv;
+#ifdef CONFIG_EMMC_HAS_DDR_MODE
+	u32 timing_mode = 0;
+#endif
 
 	/*
 	 * Someone remove this callback, which may be fix some bugs.
@@ -635,6 +638,24 @@ static void sdhci_set_ios(struct mmc *mmc)
 		else
 			ctrl &= ~SDHCI_CTRL_4BITBUS;
 	}
+
+#ifdef CONFIG_EMMC_HAS_DDR_MODE
+	if (mmc->timing == MMC_MODE_DDR_52MHz) {
+		timing_mode = sdhci_readw(host, SDHCI_HOST_CONTROL2);
+		timing_mode |= SDHCI_TIMING_MODE_DDR52;
+		sdhci_writew(host, timing_mode, SDHCI_HOST_CONTROL2);
+		/*
+		 * The timing delay value may be not same in different SOC.
+		 * In sp9860, it's better to set the value to 0x1414753f which
+		 * means as follows:
+		 * clock data write line delay value is 0x3f,
+		 * clock read command line delay value is 0x75,
+		 * clock read data posedge delay value is 0x14,
+		 * clock read data negedge delay value is 0x14.
+		 */
+		sdhci_writel(host, 0x1414753f, SDHCI_DLL_DLY);
+	}
+#endif
 
 	/*
 	 * SPRD MMC controller can not be set high speed mode, this bit must
@@ -778,6 +799,9 @@ int add_sdhci(struct sdhci_host *host, u32 max_clk, u32 min_clk)
 		host->cfg.voltages |= host->voltages;
 
 	host->cfg.host_caps = MMC_MODE_HS | MMC_MODE_HS_52MHz | MMC_MODE_4BIT;
+#ifdef CONFIG_EMMC_HAS_DDR_MODE
+	host->cfg.host_caps |= MMC_MODE_DDR_52MHz;
+#endif
 	if (SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300) {
 		if (caps & SDHCI_CAN_DO_8BIT)
 			host->cfg.host_caps |= MMC_MODE_8BIT;
