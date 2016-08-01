@@ -21,6 +21,26 @@
 #define CHG_CFG4		(ANA_SWICHG_BASE+ 0x10)
 #define CHG_CFG6		(ANA_SWICHG_BASE+ 0x2c)
 
+#define RG_SETUP_TIME	(ANA_FLASH_BASE + 0x04)
+#define RG_BST_CFG0		(ANA_FLASH_BASE + 0x18)
+#define RG_BST_CFG2		(ANA_FLASH_BASE + 0x20)
+#define RG_OTG_NEW		(ANA_FLASH_BASE + 0x28)
+
+
+//RG_SETUP_TIME
+#define OTG_SETUP(x)	(((x) & 0x3) << 2)
+
+//RG_BST_CFG0
+#define RG_BST_STB_OP(x)	(((x) & 0x3F) << 5)
+
+//RG_BST_CFG2
+#define RG_BST_DIS_PFM		BIT(12)
+#define RG_BST_DCM_EN		BIT(11)
+
+//RG_OTG_NEW
+#define RG_OTG_OCP_DBC(x)	(((x) & 0x3) << 2)
+
+
 #define SWTCHG_APB_EN		BIT(5)
 
 //CHG_CFG0
@@ -66,6 +86,18 @@ static void sprd2731_chg_init(void)
 {
 	debugf("sprd2731_init\n");
 	sci_adi_set(ANA_REG_GLB_MODULE_EN1, SWTCHG_APB_EN);
+
+	//for otg setting
+	sci_adi_write(RG_BST_CFG0, RG_BST_STB_OP(~0),
+		  RG_BST_STB_OP(~0));
+	sci_adi_write(RG_BST_CFG2, RG_BST_DIS_PFM,
+		  (RG_BST_DIS_PFM | RG_BST_DCM_EN));
+	sci_adi_write(RG_SETUP_TIME, OTG_SETUP(~0),
+		  OTG_SETUP(~0));
+	//CA or later version, use this setup
+	if (sci_adi_read(ANA_REG_GLB_CHIP_ID_LOW) >= 0xC000)
+		sci_adi_write(RG_OTG_NEW, RG_OTG_OCP_DBC(2),
+			RG_OTG_OCP_DBC(~0));
 }
 
 static void sprd2731_chg_leakage_cur_config(void)
@@ -252,9 +284,8 @@ void sprdbat_init(void)
 #ifdef CONFIG_SPRD_EXT_IC_POWER
 	struct sprd_ext_ic_operations *sprd_ext_ic_op = sprd_get_ext_ic_ops();
 	sprd_ext_ic_op->ic_init();
-#else
-	sprd2731_chg_init();
 #endif
+	sprd2731_chg_init();
 	sprd2731_chg_leakage_cur_config();
 	sprd_eic_request(EIC_BATDET);	//enable battery detect eic
 
