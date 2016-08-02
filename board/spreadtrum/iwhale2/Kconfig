@@ -41,5 +41,4 @@ config SYS_CAR_SIZE
 	default 0x4000
 	help
 	  This option specifies the board specific Cache-As-RAM (CAR) size.
-
 endif

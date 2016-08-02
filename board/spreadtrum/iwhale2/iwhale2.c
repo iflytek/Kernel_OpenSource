@@ -72,6 +72,8 @@ int board_init(void)
 int misc_init_r(void)
 {
 #ifdef CONFIG_SPRD_PLATFORM
+	dvfs_init();
+	init_vid_table();
 	boot_pwr_check();
 	return 0;
 #else
