@@ -19,4 +19,6 @@
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0
 
+#define CONFIG_MISC_INIT_R
+
 #endif /* __CONFIG_H */
