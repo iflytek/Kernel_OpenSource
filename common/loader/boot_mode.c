@@ -33,10 +33,10 @@ void autotest_mode(void)
 
 void recovery_mode(void)
 {
-	debugf("recovery_mode\n");
-
-	vlx_nand_boot(RECOVERY_PART, BACKLIGHT_ON, LCD_ON);
-	return;
+    debugf("recovery_mode\n");
+    setenv("bootmode", "recovery");
+    vlx_nand_boot(RECOVERY_PART, BACKLIGHT_ON, LCD_ON);
+    return;
 
 }
 
@@ -152,10 +152,10 @@ void alarm_mode(void)
 
 void factorytest_mode(void)
 {
-    printf("%s\n", __func__);
+    debugf("factorytest enter\n");
     setenv("bootmode", "factorytest");
     vlx_nand_boot(RECOVERY_PART, BACKLIGHT_ON, LCD_ON);
-
+    return;
 }
 
 void sprdisk_mode(void)
