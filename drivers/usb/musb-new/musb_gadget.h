@@ -58,6 +58,11 @@ struct musb_request {
 	u8 epnum;
 	enum buffer_map_state map_state;
 };
+enum dma_data_direction {
+	DMA_BIDIRECTIONAL	= 0,
+	DMA_TO_DEVICE		= 1,
+	DMA_FROM_DEVICE		= 2,
+};
 
 static inline struct musb_request *to_musb_request(struct usb_request *req)
 {

@@ -132,7 +132,7 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:" MUSB_DRIVER_NAME);
 
-
+#define __UBOOT__
 #ifndef __UBOOT__
 /*-------------------------------------------------------------------------*/
 
@@ -1992,7 +1992,7 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 	pm_runtime_get_sync(musb->controller);
 
 #ifndef CONFIG_MUSB_PIO_ONLY
-	if (use_dma && dev->dma_mask) {
+	if (use_dma ) {
 		struct dma_controller	*c;
 
 		c = dma_controller_create(musb, musb->mregs);

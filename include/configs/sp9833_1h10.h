@@ -209,8 +209,8 @@
 #define CONFIG_MODEM_CALIBERATE
 #define CALIBRATE_ENUM_MS 3000
 #define CALIBRATE_IO_MS 2000
-#define CONFIG_DWC_OTG
-
+//#define CONFIG_DWC_OTG
+#define CONFIG_MUSB_GADGET
 /*lcd config*/
 //#define CONFIG_LCD
 #ifdef  CONFIG_LCD
@@ -330,7 +330,7 @@
 #define CONFIG_SPRD_UART_PORTS	{ (void *) (CONFIG_SYS_SERIAL0), (void *) (CONFIG_SYS_SERIAL1) }
 #define CONFIG_SYS_SERIAL0		0x70000000
 #define CONFIG_SYS_SERIAL1		0x70100000
-#define CONFIG_UART_DOWNLOAD		1
+#define CONFIG_UART_DOWNLOAD		0
 
 /* Chip Driver Macro Definitions End*/
 

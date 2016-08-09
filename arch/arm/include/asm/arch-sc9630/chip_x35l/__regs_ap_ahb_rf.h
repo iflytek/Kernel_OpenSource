@@ -52,6 +52,7 @@
 #define REG_AP_AHB_HSIC_PHY_CTRL        SCI_ADDR(REGS_AP_AHB_BASE, 0x3034)
 #define REG_AP_AHB_ZIP_MTX_QOS_CFG      SCI_ADDR(REGS_AP_AHB_BASE, 0x3038)
 #define REG_AP_AHB_CHIP_ID              SCI_ADDR(REGS_AP_AHB_BASE, 0x30FC)
+#define REG_AP_AHB_OTG_CTRL1        SCI_ADDR(REGS_AP_AHB_BASE, 0x3030)
 
 /* bits definitions for register REG_AP_AHB_AHB_EB */
 #define BIT_ZIPMTX_EB                   ( BIT(23) )
