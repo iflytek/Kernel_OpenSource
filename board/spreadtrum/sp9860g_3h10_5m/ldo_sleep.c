@@ -220,7 +220,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 		//BIT_SLP_DCDCGPU_PD_EN |
 		//BIT_SLP_DCDCGPU_DROP_EN |
 		BIT_SLP_DCDCCORE_DROP_EN |
-		BIT_SLP_DCDCRF_PD_EN |
+		//BIT_SLP_DCDCRF_PD_EN |    /*control by wcn*;
 		//BIT_SLP_DCDCWPA_PD_EN |
 		//BIT_SLP_DCDCARM0_PD_EN |  /*control by sleep drv*/
 		//BIT_SLP_DCDCARM1_PD_EN |  /*control by sleep drv*/
@@ -252,12 +252,12 @@ void pmic_lowpower_config(uint32_t gen_para)
 		BIT_SLP_LDOCON_PD_EN |	/*control by marlin*/
 		//BIT_SLP_LDOSIM0_PD_EN |	/*control by the drv*/
 		BIT_SLP_LDOAVDD18_PD_EN | 	/*use by the pll/mipi/lvds/usb phy*/
-		BIT_SLP_LDOSRAM_PD_EN |	/*use by iwhale l2 sram control by ap psci*/
+		//BIT_SLP_LDOSRAM_PD_EN |	/*control by wcn*/
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-		//BIT_SLP_DCDCRF_LP_EN |
+		//BIT_SLP_DCDCRF_LP_EN |    /*control by wcn, not slp_lp*/
 		BIT_SLP_DCDCCORE_LP_EN |
 		//BIT_SLP_DCDCGPU_LP_EN |
 		BIT_SLP_DCDCMEM_LP_EN |
@@ -292,7 +292,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 		//BIT_SLP_LDOCON_LP_EN |
 		//BIT_SLP_LDOSIM0_LP_EN |
 		//BIT_SLP_LDOAVDD18_LP_EN |
-		//BIT_SLP_LDOSRAM_LP_EN |
+		//BIT_SLP_LDOSRAM_LP_EN |   /*control by wcn, not slp_lp*/
 		0
 	);
 
@@ -333,10 +333,10 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_DCDC_XTL_EN3,
-		BIT_DCDC_RF_EXT_XTL0_EN |
-		BIT_DCDC_RF_EXT_XTL1_EN |
-		BIT_DCDC_RF_EXT_XTL2_EN |
-		BIT_DCDC_RF_EXT_XTL3_EN |
+		//BIT_DCDC_RF_EXT_XTL0_EN |  /*wcn need dcdcrf not shutdown,not config relationship*/
+		//BIT_DCDC_RF_EXT_XTL1_EN |  /*wcn need dcdcrf not shutdown,not config relationship*
+		//BIT_DCDC_RF_EXT_XTL2_EN |  /*wcn need dcdcrf not shutdown,not config relationship*/
+		//BIT_DCDC_RF_EXT_XTL3_EN |  /*wcn need dcdcrf not shutdown,not config relationship*/
 		//BIT_DCDC_WPA_EXT_XTL0_EN |
 		//BIT_DCDC_WPA_EXT_XTL1_EN |
 		//BIT_DCDC_WPA_EXT_XTL2_EN |
