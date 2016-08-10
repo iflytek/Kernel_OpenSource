@@ -603,8 +603,8 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2), {0xFF, 0x00}},
 //CMD_FB_1DATA1 DBH FB,01
 {LCM_SEND(2), {0xD2, 0x03}},
-{LCM_SEND(2), {0xD3, 0x12}},//vsync + vbp
-{LCM_SEND(2), {0xD4, 0x08}},//vfp
+{LCM_SEND(2), {0xD3, 0x0E}},//vsync + vbp
+{LCM_SEND(2), {0xD4, 0x06}},//vfp
 {LCM_SEND(2), {0x35, 0x00}},
 //{LCM_SEND(2), {0x36, 0xC0}},  //2/15 ADD
 
@@ -741,12 +741,12 @@ static struct panel_operations lcd_nt35596_mipi_operations = {
 };
 
 static struct timing_rgb lcd_nt35596_mipi_timing = {
-	.hfp = 4,  /* unit: pixel */
-	.hbp = 4,
+	.hfp = 6,  /* unit: pixel */
+	.hbp = 6,
 	.hsync = 8,
-	.vfp = 8, /*unit: line*/
-	.vbp = 8,
-	.vsync = 10,
+	.vfp = 6, /*unit: line*/
+	.vbp = 6,
+	.vsync = 8,
 };
 
 static struct info_mipi lcd_nt35596_mipi_info = {
