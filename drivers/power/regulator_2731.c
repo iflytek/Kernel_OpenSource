@@ -47,6 +47,7 @@ static u16 ana_mixed_ctl;
 #undef ffs
 #undef fls
 
+#if !(CONFIG_X86)
 /* On ARMv5 and above those functions can be implemented around the clz instruction for
  * much better code efficiency.		*/
 
@@ -61,6 +62,7 @@ static inline int fls(int x)
 
 #define __fls(x) (fls(x) - 1)
 #define ffs(x) ({ unsigned long __t = (x); fls(__t & -__t); })
+#endif
 #define __ffs(x) (ffs(x) - 1)
 #define ffz(x) __ffs( ~(x) )
 

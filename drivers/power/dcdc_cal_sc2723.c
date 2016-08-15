@@ -58,21 +58,21 @@ vol_para_t *ppvol_para;
 extern chipram_env_t  local_chipram_env;
 
 
+#if !(CONFIG_X86)
 /* On ARMv5 and above those functions can be implemented around the clz instruction for
  * much better code efficiency.		*/
 
 static inline int fls(int x)
 {
 	int ret;
-#if !(CONFIG_X86)
 	asm("clz\t%0, %1": "=r"(ret):"r"(x));
 	ret = 32 - ret;
-#endif
 	return ret;
 }
 
 #define __fls(x) (fls(x) - 1)
 #define ffs(x) ({ unsigned long __t = (x); fls(__t & -__t); })
+#endif
 #define __ffs(x) (ffs(x) - 1)
 #define ffz(x) __ffs( ~(x) )
 
