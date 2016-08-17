@@ -573,7 +573,8 @@ int read_cp_required_image(boot_image_required_t img_info)
 	} else {
 #if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
 		secure_boot_offset = SYS_HEADER_SIZE;
-		if (0 != common_raw_read(img_info.partition, img_info.size, secure_boot_offset, (char *)img_info.mem_addr))
+		normal_boot_offset = get_boot_offset(img_info, secure_boot_offset);
+		if (0 != common_raw_read(img_info.partition, img_info.size, secure_boot_offset + normal_boot_offset, (char *)img_info.mem_addr))
 			errorf("read %s partition fail\n", img_info.partition);
 #else
 		normal_boot_offset = get_boot_offset(img_info, 0);

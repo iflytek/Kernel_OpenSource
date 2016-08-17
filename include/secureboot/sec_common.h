@@ -38,14 +38,17 @@ SPL_EMMC_SECTOR_NUM=SPL_IMAGE_SIZE / SECTOR_SIZE
 #define SPL_EMMC_SECTOR_NUM  (SPL_IMAGE_SIZE/SECTION_SIZE)
 #define SAVE_SPL_IMAGE  0x9d000000
 
-
+#define MAX_PACKED_IMAGE_SIZE  0x1400000  // 20MB
 typedef struct{
-	uint32_t mMagicNum; //0x42544844
-	uint32_t mVersion; // 1
-	uint8_t mPayloadHash[32]; //sha256 hash val
-	uint64_t mImgAddr;  // image loader address
-	uint32_t mImgSize;  //image size
-	uint8_t reserved[460]; // 460 + 13*4 = 512
+    uint32_t  mMagicNum;        // "BTHD"=="0x42544844"=="boothead"
+    uint32_t  mVersion;         // 1
+    uint8_t   mPayloadHash[32]; // sha256 hash value
+    uint64_t  mImgAddr;         // image loaded address
+    uint32_t  mImgSize;         // image size
+    uint32_t  is_packed;        // packed image flag 0:false 1:true
+    uint32_t  mFirmwareSize;    // runtime firmware size
+    uint32_t  mFirmwareOff;     // runtime firmware offset
+    uint8_t   reserved[448];    // 448 + 16*4 = 512
 }sys_img_header;
 
 typedef enum VERIFY_RESULT {
