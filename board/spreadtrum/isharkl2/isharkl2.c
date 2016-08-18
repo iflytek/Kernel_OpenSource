@@ -13,96 +13,58 @@
 #include <boot_mode.h>
 #include <adi_hal_internal.h>
 #include <sprd_adc.h>
+#include <chipram_env.h>
 
 #define SERIAL_DEV PNP_DEV(0x2e, 4)
 
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x80000000;
 
-int board_early_init_f(void)
-{
-//	lpc47m_enable_serial(SERIAL_DEV, UART0_BASE);
-
-	return 0;
-}
-
-int board_early_init_r(void)
-{
-	printf("Board_early_init_r :\n");
-	return 0;
-}
-
-void setup_pch_gpios(u16 gpiobase, const struct pch_gpio_map *gpio)
-{
-	return;
-}
-
-int board_eth_init(bd_t *bis)
-{
-//	return pci_eth_init(bis);
-}
 
 int board_init(void)
 {
 	printf("Board_init:\n");
-#ifdef CONFIG_SPRD_PLATFORM
+#ifndef CONFIG_FPGA
 	/*get env transfer from chipram*/
 	setup_chipram_env();
-
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 	ADI_init();
-	/*FPGA forbiden*/
-	//misc_init();
-	//LDO_Init();
+	misc_init();
+	LDO_Init();
 	pmic_adc_Init();
-	/*FPGA forbiden*/
-//	pin_init();
+	pin_init();
 	sprd_eic_init();
 	sprd_gpio_init();
-	/*FPGA forbiden*/
-	init_ldo_sleep_gr();
+	sprd_pmu_lowpower_init();
 	TDPllRefConfig(1);
-	boot_pwr_check();
-	return 0;
-#else
-	return 0;
 #endif
+	return 0;
 }
 
 int misc_init_r(void)
 {
-#ifdef CONFIG_SPRD_PLATFORM
-	boot_pwr_check();
+/*reserver for future use*/
 	return 0;
-#else
-	return 0;
-#endif
 }
 
 int board_late_init(void)
 {
-#ifdef CONFIG_SPRD_PLATFORM
+#ifndef CONFIG_FPGA
 	boot_pwr_check();
-
-#if !defined(CONFIG_FPGA)
 #ifdef CONFIG_NAND_BOOT
-        //extern int nand_ubi_dev_init(void);
-        nand_ubi_dev_init();
-        debugf("nand ubi init OK!\n");
+	//extern int nand_ubi_dev_init(void);
+	nand_ubi_dev_init();
+	debugf("nand ubi init OK!\n");
 #endif
-
-	CHG_Init();
+	sprdbat_init();
 	debugf("CHG init OK!\n");
-	if (CHG_GetAdcCalType() != 0) {
-         /*fix me*/
+	if (sprdbat_get_vbatauxadc_caltype() != 0) {
+		/*fix me*/
 		DCDC_Cal_ArmCore();
-        }
-#endif
+	}
 	board_keypad_init();
-	return 0;
-#else
-	return 0;
 #endif
+	return 0;
 }
 
 phys_size_t get_real_ram_size(void)
@@ -111,9 +73,9 @@ phys_size_t get_real_ram_size(void)
 }
 
 CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
-#ifdef CONFIG_SPRD_PLATFORM
-        //get_mode_from_bat_low,
-        write_sysdump_before_boot_extend,
+#ifndef CONFIG_FPGA
+	get_mode_from_bat_low,
+	write_sysdump_before_boot_extend,
 	/* 1 get mode from file*/
 	get_mode_from_file_extend,
 	/* 2 get mode from watch dog */
@@ -121,7 +83,7 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 	/* 3 get mode from alarm register */
 	get_mode_from_alarm_register,
 	/* 0 get mode from calibration detect */
-	get_mode_from_calibration,
+	get_mode_from_pctool,
 	/*4 get mode from charger */
 	get_mode_from_charger,
 	/*5 get mode from keypad*/
@@ -134,24 +96,22 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 
 void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 {
-#ifdef CONFIG_SPRD_PLATFORM
-        MODE_REGIST(CMD_NORMAL_MODE, normal_mode);
-        MODE_REGIST(CMD_RECOVERY_MODE, recovery_mode);
-        MODE_REGIST(CMD_FASTBOOT_MODE, fastboot_mode);
-        MODE_REGIST(CMD_WATCHDOG_REBOOT, watchdog_mode);
-        MODE_REGIST(CMD_UNKNOW_REBOOT_MODE, unknow_reboot_mode);
-        MODE_REGIST(CMD_PANIC_REBOOT, panic_reboot_mode);
-        MODE_REGIST(CMD_AUTODLOADER_REBOOT, autodloader_mode);
-        MODE_REGIST(CMD_SPECIAL_MODE, special_mode);
-        MODE_REGIST(CMD_CHARGE_MODE, charge_mode);
-        MODE_REGIST(CMD_ENGTEST_MODE,engtest_mode);
-        MODE_REGIST(CMD_CALIBRATION_MODE, calibration_mode);
-        MODE_REGIST(CMD_EXT_RSTN_REBOOT_MODE, normal_mode);
-        MODE_REGIST(CMD_IQ_REBOOT_MODE, iq_mode);
-        MODE_REGIST(CMD_ALARM_MODE, alarm_mode);
-
+	MODE_REGIST(CMD_NORMAL_MODE, normal_mode);
+	MODE_REGIST(CMD_RECOVERY_MODE, recovery_mode);
+	MODE_REGIST(CMD_FASTBOOT_MODE, fastboot_mode);
+	MODE_REGIST(CMD_WATCHDOG_REBOOT, watchdog_mode);
+	MODE_REGIST(CMD_UNKNOW_REBOOT_MODE, unknow_reboot_mode);
+	MODE_REGIST(CMD_PANIC_REBOOT, panic_reboot_mode);
+	MODE_REGIST(CMD_AUTODLOADER_REBOOT, autodloader_mode);
+	MODE_REGIST(CMD_SPECIAL_MODE, special_mode);
+	MODE_REGIST(CMD_CHARGE_MODE, charge_mode);
+	MODE_REGIST(CMD_ENGTEST_MODE,engtest_mode);
+	MODE_REGIST(CMD_FACTORYTEST_MODE, factorytest_mode);
+	MODE_REGIST(CMD_CALIBRATION_MODE, calibration_mode);
+	MODE_REGIST(CMD_EXT_RSTN_REBOOT_MODE, normal_mode);
+	MODE_REGIST(CMD_IQ_REBOOT_MODE, iq_mode);
+	MODE_REGIST(CMD_ALARM_MODE, alarm_mode);
+	MODE_REGIST(CMD_SPRDISK_MODE, sprdisk_mode);
+	MODE_REGIST(CMD_AUTOTEST_MODE, autotest_mode);
 	return;
-#else
-	return;
-#endif
 }

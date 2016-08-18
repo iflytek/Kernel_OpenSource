@@ -5,9 +5,6 @@
 #include <configs/x86-sprd-common.h>
 
 #define CONFIG_SPRD_SOC_ISHARKL2
-/*for device tree*/
-#define DT_PLATFROM_ID 9868
-#define DT_HARDWARE_ID 1
-#define DT_SOC_VER     0x20000
+#define DISABLE_CACHE_FOR_USB
 
 #endif /* __CONFIG_H */

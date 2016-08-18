@@ -457,6 +457,8 @@ void mmc_set_preinit(struct mmc *mmc, int preinit);
 struct mmc *mmc_spi_init(uint bus, uint cs, uint speed, uint mode);
 #else
 int mmc_legacy_init(int verbose);
+/* for vp board which not CONFIG_GENERIC_MMC and not init mmc but still compile mmc code*/
+#define mmc_host_is_spi(mmc)	0
 #endif
 
 void board_mmc_power_init(void);

@@ -721,7 +721,7 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_DM
 	initr_dm,
 #endif
-#ifdef CONFIG_ARM
+#if defined(CONFIG_ARM) || defined(CONFIG_X86)
 	board_init,	/* Setup chipselects */
 #endif
 	/*
@@ -792,9 +792,7 @@ init_fnc_t init_sequence_r[] = {
 	initr_onenand,
 #endif
 #ifdef CONFIG_GENERIC_MMC
-#ifdef CONFIG_TARGET_IWHALE2_FPGA
 	initr_mmc,
-#endif
 #endif
 #ifdef CONFIG_UFS
 	initr_ufs,

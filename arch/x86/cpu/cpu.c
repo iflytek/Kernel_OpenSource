@@ -365,7 +365,9 @@ void x86_disable_caches(void)
 	unsigned long cr0;
 
 	cr0 = read_cr0();
-	cr0 |= X86_CR0_NW | X86_CR0_CD;
+	/*cr0 |= X86_CR0_NW | X86_CR0_CD;*/
+	cr0 &= ~X86_CR0_NW;
+	cr0 |= X86_CR0_CD;
 	wbinvd();
 	write_cr0(cr0);
 	wbinvd();
@@ -419,7 +421,7 @@ int dcache_status(void)
 /* Define these functions to allow ehch-hcd to function */
 void flush_dcache_range(unsigned long start, unsigned long stop)
 {
-	asm volatile ("wbinvd" : : : "memory");
+    flush_cache(start, stop);
 }
 
 void invalidate_dcache_range(unsigned long start, unsigned long stop)

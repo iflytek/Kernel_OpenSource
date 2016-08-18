@@ -24,6 +24,11 @@ config TARGET_IWHALE2_VP
 	help
 	  This is the Spreadtrum iWhaleL2 Board
 
+config TARGET_ISHARKL2
+	bool "Spreadtrum isharkl2"
+	help
+	  This is the Spreadtrum isharkl2 Board
+
 config TARGET_SP9830A_5H10_GA1
 	bool "Spreadtrum sp9830a-5h10_ga1"
 	select CPU_V7
@@ -92,15 +97,13 @@ config TARGET_SP9833_1H10
 	select CPU_V7
 	help
 	  This is the Spreadtrum sp9833_1h10 Board
-config TARGET_ISHARKL2_VP
-	bool "Spreadtrum isharkl2_vp"
-	help
-	  This is the Spreadtrum iSharkL2 Board
+
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
 source "board/spreadtrum/iwhale2/Kconfig"
 source "board/spreadtrum/iwhale2_vp/Kconfig"
+source "board/spreadtrum/isharkl2/Kconfig"
 source "board/spreadtrum/sp9830a-5h10_ga1/Kconfig"
 source "board/spreadtrum/sp9830a-7h10_ga1/Kconfig"
 source "board/spreadtrum/sp9850s_1h10_5m/Kconfig"
@@ -109,7 +112,6 @@ source "board/spreadtrum/ss_whale2_jigboard/Kconfig"
 source "board/spreadtrum/ss_whale2_j7/Kconfig"
 source "board/spreadtrum/sp9860g_1h10_5m/Kconfig"
 source "board/spreadtrum/sp9860g_1h10_3g/Kconfig"
-source "board/spreadtrum/isharkl2_vp/Kconfig"
 
 source "board/spreadtrum/sp9860g_1h10_al/Kconfig"
 source "board/spreadtrum/sp9860g_2h10_5m/Kconfig"

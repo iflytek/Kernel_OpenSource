@@ -22,16 +22,6 @@
 
 #define CONFIG_SYS_MAX_FLASH_SECT  512
 
-#ifdef CONFIG_IWHALE2_DDR4G
-#define CONFIG_NR_DRAM_BANKS	4
-#define PHYS_SDRAM_1_SIZE	0x40000000
-#elif defined(CONFIG_TARGET_IWHALE2_FPGA_SIN)
-#define CONFIG_NR_DRAM_BANKS	1
-#define PHYS_SDRAM_1_SIZE	0x40000000
-#else
-#define CONFIG_NR_DRAM_BANKS	1
-#define PHYS_SDRAM_1_SIZE	0x80000000
-#endif
 /*-----------------------------------------------------------------------
  * Environment configuration
  */
@@ -70,7 +60,7 @@
 
 /* commands */
 #define CONFIG_CMD_ZBOOT
-#ifdef CONFIG_TARGET_IWHALE2_FPGA
+#if defined(CONFIG_TARGET_IWHALE2_FPGA) || defined(CONFIG_TARGET_ISHARKL2_FPGA)
 #define CONFIG_BAUDRATE		115200
 #else
 #define CONFIG_BAUDRATE		921600
@@ -78,7 +68,7 @@
 
 #define CONFIG_BOOTDELAY	0
 
-#ifdef CONFIG_TARGET_IWHALE2_FPGA
+#if defined(CONFIG_TARGET_IWHALE2_FPGA) || defined(CONFIG_TARGET_ISHARKL2_FPGA)
 #define CONFIG_BOOTARGS		"earlycon console=ttyS0,115200n8"
 #else
 #define CONFIG_BOOTARGS		"earlycon console=ttyS0,921600n8"

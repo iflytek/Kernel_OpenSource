@@ -1,4 +1,4 @@
-if TARGET_IWHALE2
+if TARGET_ISHARKL2
 
 config SYS_BOARD
 	default "isharkl2"
@@ -7,7 +7,7 @@ config SYS_VENDOR
 	default "spreadtrum"
 
 config SYS_SOC
-	default "isharkl"
+	default "iwhale"
 
 config SYS_CONFIG_NAME
 	string "Board Config Header file"
@@ -16,8 +16,13 @@ config SYS_CONFIG_NAME
 	  This option selects the board config file in
 	  include/configs/ directory to be used to build U-Boot.
 
+if TARGET_ISHARKL2_FPGA
 config SYS_TEXT_BASE
 	default 0x7f000000
+endif
+
+config SYS_TEXT_BASE
+	default 0x1f000000
 
 config BOARD_SPECIFIC_OPTIONS # dummy
 	def_bool y
@@ -25,7 +30,7 @@ config BOARD_SPECIFIC_OPTIONS # dummy
 
 config DEFAULT_DEVICE_TREE
 	string "Board Device Tree Source (dts) file"
-	default "iwhale2"
+	default "isharkl2"
 	help
 	  This option selects the board Device Tree Source (dts) file in
 	  arch/x86/dts/ directory to be used to build U-Boot.

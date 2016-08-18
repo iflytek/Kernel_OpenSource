@@ -683,7 +683,7 @@ int do_fastboot(void)
 
 	fastboot_register("flash:", fb_cmd_flash);
 	fastboot_register("erase:", fb_cmd_erase);
-	fastboot_register("boot", fb_cmd_boot);
+	fastboot_register("boot", fb_cmd_continue);
 	fastboot_register("reboot", fb_cmd_reboot);
 	fastboot_register("powerdown", fb_cmd_powerdown);
 	fastboot_register("continue", fb_cmd_continue);

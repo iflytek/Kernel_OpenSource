@@ -263,16 +263,22 @@ config TARGET_IWHALE2_FPGA
     help
       use for fpga board
 
+config TARGET_ISHARKL2_FPGA
+    bool "switch for fpga board"
+    default n
+    help
+      use for fpga board
+
 config TARGET_IWHALE2_FPGA_SIN
     bool "switch for fpga ddr single channel board"
-    depends on TARGET_FPGA
+    depends on TARGET_IWHALE2_FPGA
     default n
     help
       use for fpga board
 
 config TARGET_IWHALE2_FPGA_DOU
     bool "switch for fpga ddr double channel board"
-    depends on TARGET_FPGA
+    depends on TARGET_IWHALE2_FPGA
     default n
     help
       use for fpga board
@@ -285,7 +291,7 @@ config IWHALE2_DDR4G
 
 config IWHALE2_DDR4G_INTERLEAVE
     bool "with ddr4g_interleave board"
-    depends on DDR4G
+    depends on IWHALE2_DDR4G
     default n
     help
       use for ddr4g_interleave board
@@ -295,7 +301,7 @@ config ISHARKL2_DDR4G
     default n
     help
       use for isharkl2 ddr4g board
-
+ 
 config EMMC_BOOT
 	bool "with board boot from eMMC"
 	default n

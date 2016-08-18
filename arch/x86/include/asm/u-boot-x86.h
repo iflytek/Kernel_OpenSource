@@ -70,6 +70,8 @@ void quick_ram_check(void);
 
 int x86_init_cpus(void);
 
+int board_init(void);
+
 #define PCI_VGA_RAM_IMAGE_START		0xc0000
 
 #endif	/* _U_BOOT_I386_H_ */

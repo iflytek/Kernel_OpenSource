@@ -240,7 +240,8 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 		ARRAY_SIZE(setup_base->e820_map), setup_base->e820_map);
 	void *fdt_blob;
 
-#ifndef CONFIG_TARGET_IWHALE2_FPGA
+#if !defined(CONFIG_TARGET_IWHALE2_FPGA) && !defined(CONFIG_TARGET_ISHARKL2_FPGA)
+
 	uint32_t dt_img_adr = DT_ADR;
 	if(load_dtb((uint64_t) DT_ADR, dt_img_adr) < 0) {
 		printf("\nWARNING:load dtb from bootimg failed!\n");

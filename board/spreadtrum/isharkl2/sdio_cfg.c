@@ -25,8 +25,7 @@ const struct sdio_base_info  sdio_ctrl_info[2] =
 {
 	{
 		EMMC,
-		//SPRD_EMMC_BASE,
-		0XC0C00000,
+		SPRD_EMMC_BASE,
 #ifdef CONFIG_FPGA
              NULL,
              NULL,
@@ -34,16 +33,14 @@ const struct sdio_base_info  sdio_ctrl_info[2] =
 	      100000,
 #else
 		//REG_AP_CLK_EMMC_CFG,
-		0XE42D0338,
+		0XE42D0324,
 		0X0400,
    		384000000,
 		400000,
 #endif
-		//REG_AP_AHB_AHB_EB,
-		0XE2210000,
+		REG_AP_AHB_AHB_EB,
 		BIT_10,
-		//REG_AP_AHB_AHB_RST,
-		0XE2210004,
+		REG_AP_AHB_AHB_RST,
 		BIT_11,
 
 		"vddgen",
@@ -64,12 +61,10 @@ const struct sdio_base_info  sdio_ctrl_info[2] =
 		400000,
 #endif
 
-		//REG_AP_AHB_AHB_EB,
-		0X20E00000,
+		REG_AP_AHB_AHB_EB,
+		BIT_7,
+		REG_AP_AHB_AHB_RST,
 		BIT_8,
-		//REG_AP_AHB_AHB_RST,
-		0X20E00004,
-		BIT_11,
 
 		"vddsdio",
 		"vddsdcore",
@@ -79,20 +74,6 @@ const struct sdio_base_info  sdio_ctrl_info[2] =
 struct sdio_base_info*  get_sdcontrol_info(uint32_t device_type)
 {
 	return  &sdio_ctrl_info[device_type];
-}
-
-void  sdio_dump(uint32_t regbase)
-{
-#ifdef CONFIG_SPRD_PLATFORM
-	uint32_t  i;
-	printf("*****SDIO REGISTER DUMP*****\n");
-
-	for(i=0;i<8;i++){
-		printf("0x%08x,0x%08x,0x%08x,0x%08x\n",CHIP_REG_GET(regbase + i*16 +0),CHIP_REG_GET(regbase + i*16 +4),CHIP_REG_GET(regbase + i*16 +8),CHIP_REG_GET(regbase + i*16+0xc));
-	}
-#else
-	return;
-#endif
 }
 
 

@@ -14,9 +14,6 @@
 #include "sprd_cpcmdline.h"
 
 unsigned char raw_header[8192];
-#ifdef CONFIG_TARGET_IWHALE2_FPGA
-uint64_t ramdisk_size=0x5a5a;
-#endif
 unsigned int g_charger_mode = 0;
 char serial_number_to_transfer[SP15_MAX_SN_LEN];
 
@@ -152,18 +149,15 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 static int start_linux_x86()
 {
 	struct boot_params *base_ptr;
-	struct boot_img_hdr *boot_hdr;
+	struct boot_img_hdr *boot_hdr = (void *)raw_header;
 	ulong load_address;
 	char *bzImage_addr = KERNEL_ADR;
 	ulong bzImage_size = 0;
 	ulong initrd_addr = RAMDISK_ADR;
-#ifdef CONFIG_TARGET_IWHALE2_FPGA
-	ulong initrd_size = ramdisk_size;
-#else
-	ulong initrd_size = 0;
-#endif
+	ulong initrd_size = PAD_SIZE(boot_hdr->ramdisk_size, KERNL_PAGE_SIZE);
 	ulong dtb_addr = 0;
 
+	debugf("initrd_size: 0x%lx\n", initrd_size);
 	disable_interrupts();
 
 	/* Setup board for maximum PC/AT Compatibility */
