@@ -289,6 +289,13 @@ config IWHALE2_DDR4G
     help
       use for ddr4g board
 
+config IWHALE2_DDR4G_SINGLE
+    bool "with ddr4g_single board"
+    depends on IWHALE2_DDR4G
+    default n
+    help
+      use for ddr4g_single board
+
 config IWHALE2_DDR4G_INTERLEAVE
     bool "with ddr4g_interleave board"
     depends on IWHALE2_DDR4G

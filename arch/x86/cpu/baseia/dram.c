@@ -56,115 +56,7 @@ unsigned install_e820_map(unsigned max_entries, struct e820entry *entries)
 	if (e820_entries)
 		return e820_entries;
 
-    entries->addr = 0xfe000000;
-	entries->size = 0x1000000;
-	entries->type = E820_RESERVED;
-	e820_entries++;
-	entries++;
-
-#ifdef CONFIG_IWHALE2_DDR4G
-#ifdef CONFIG_IWHALE2_DDR4G_INTERLEAVE
-/*interleave solution for soc 0.9.17*/
-	/*reserved mem for kernel*/
-        entries->addr = 0x0;
-        entries->size = 0x6000000;
-        entries->type = E820_RAM;
-        e820_entries++;
-        entries++;
-
-	/*bottom 1GB of pub0 for non-interleave area*/
-	/*for memdisk,cache.img ,userdata.img*/
-    /*    entries->addr = 0x28000000;
-        entries->size = 0x18000000;
-        entries->type = E820_RAM;
-        e820_entries++;
-        entries++;*/
-	/*bottom 1GB of pub1 for non-interleave area*/
-        /*for memdisk,system.img */
-	    /*entries->addr = 0x140000000;
-        entries->size = 0x3d000000;
-        entries->type = E820_RAM;
-        e820_entries++;*/
-
-	/*reserve the top 1GB non-interleave area on each pub, 0x4000 0000-0x7fff ffff and 0x1 8000 0000-0x1 c000 0000, make sure no one use it*/
-        entries->addr = 0x40000000;
-        entries->size = 0x40000000;
-        entries->type = E820_RESERVED;
-        e820_entries++;
-        entries++;
-
-        entries->addr = 0x180000000;
-        entries->size = 0x40000000;
-        entries->type = E820_RESERVED;
-        e820_entries++;
-        entries++;
-
-	/*top 2GB of interleave area memory,0x2 C000 0000-0x2 ffff ffff and 0x3 0000 0000-0x3 3fff ffff, for soc 0.9.17 interleave pattern.*/
-        entries->addr = 0x2C0000000;
-        entries->size = 0x40000000;
-        entries->type = E820_RAM;
-        e820_entries++;
-        entries++;
-
-        entries->addr = 0x300000000;
-        entries->size = 0x40000000;
-        entries->type = E820_RAM;
-        e820_entries++;
-        entries++;
-
-#else /*CONFIG_IWHALE2_DDR4G_INTERLEAVE*/
-    /*add e820 entry for memory 0x0~0x3fffffff ,pub0*/
-	entries->addr = 0x0;
-	entries->size = PHYS_SDRAM_1_SIZE;
-	entries->type = E820_RAM;
-	e820_entries++;
-	entries++;
-
-    /*add e820 entry for memory  0x4000 0000~0x7fff ffff, pub0*/
-    entries->addr = 0x40000000;
-    entries->size = 0x40000000;
-    entries->type = E820_RAM;
-    e820_entries++;
-    entries++;
-    #ifdef CONFIG_ISHARKL2_DDR
-    /*add e820 entry for memory  0x8000 0000~0xbfff ffff, pub0*/
-    entries->addr = 0x80000000;
-    entries->size = 0x40000000;
-    entries->type = E820_RAM;
-    e820_entries++;
-    entries++;
-
-    /*add e820 entry for memory  0x1 0000 0000~0x1 3fff ffff, pub0*/
-    entries->addr = 0x100000000;
-    entries->size = 0x40000000;
-    entries->type = E820_RAM;
-    e820_entries++;
-    entries++;
-    #else/*CONFIG_ISHARKL2_DDR*/
-    /*add e820 entry for memory  0x1 4000 0000~0x1 7fff ffff, pub1*/
-    entries->addr = 0x140000000;
-    entries->size = 0x40000000;
-    entries->type = E820_RAM;
-    e820_entries++;
-    entries++;
-
-    /*add e820 entry for memory  0x1 8000 0000~0x1 bfff ffff, pub1*/
-    entries->addr = 0x180000000;
-    entries->size = 0x40000000;
-    entries->type = E820_RAM;
-    e820_entries++;
-    entries++;
-	#endif /*CONFIG_ISHARKL2_DDR*/
-#endif /*CONFIG_IWHALE2_DDR4G_INTERLEAVE*/
-
-#else /*CONFIG_IWHALE2_DDR4G*/
-
-    /*add e820 entry for memory 0x0~0x7fffffff ,pub0*/
-	entries->addr = 0x0;
-	entries->size = PHYS_SDRAM_1_SIZE;
-	entries->type = E820_RAM;
-	e820_entries++;
-#endif /*CONFIG_IWHALE2_DDR4G*/
+	printf("%s, !!!!!ERROR!!!!! found %d e820 entries in DTS file! \n", __func__, e820_entries);
 	return e820_entries > max_entries ? max_entries : e820_entries;
 }
 
@@ -182,26 +74,25 @@ void dram_init_banksize(void)
 	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
 
 #ifdef CONFIG_IWHALE2_DDR4G
-    #ifdef CONFIG_IWHALE2_DDR4G_INTERLEAVE 
-    gd->bd->bi_dram[1].start = 0x140000000; /*non interleave area for memdisk*/
-    gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
+    #ifdef CONFIG_IWHALE2_DDR4G_SINGLE	/*single channel ddr 4g memory map*/
+    	gd->bd->bi_dram[1].start = 0x40000000;
+    	gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
 
-    gd->bd->bi_dram[2].start = 0x2C0000000;
-    gd->bd->bi_dram[2].size  = PHYS_SDRAM_1_SIZE;
+    	gd->bd->bi_dram[2].start = 0x80000000;
+    	gd->bd->bi_dram[2].size  = PHYS_SDRAM_1_SIZE;
 
-    gd->bd->bi_dram[3].start = 0x300000000;
-    gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
-    #else
-        #ifdef CONFIG_ISHARKL2_DDR
-        gd->bd->bi_dram[1].start = 0x40000000;
-        gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
+    	gd->bd->bi_dram[3].start = 0x100000000;
+    	gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
+    #elif CONFIG_IWHALE2_DDR4G_INTERLEAVE	/*interleave memory map*/
+    	gd->bd->bi_dram[1].start = 0x140000000; /*non interleave area for memdisk*/
+    	gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
 
-        gd->bd->bi_dram[2].start = 0x80000000;
-        gd->bd->bi_dram[2].size  = PHYS_SDRAM_1_SIZE;
+    	gd->bd->bi_dram[2].start = 0x2C0000000;
+    	gd->bd->bi_dram[2].size  = PHYS_SDRAM_1_SIZE;
 
-        gd->bd->bi_dram[3].start = 0x100000000;
-        gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
-        #else
+    	gd->bd->bi_dram[3].start = 0x300000000;
+    	gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
+    #else	/*noninterleave memory map*/
         gd->bd->bi_dram[1].start = 0x40000000;
         gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
 
@@ -210,10 +101,19 @@ void dram_init_banksize(void)
 
         gd->bd->bi_dram[3].start = 0x180000000;
         gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
-        #endif
     #endif
 #endif
 
+#ifdef CONFIG_ISHARKL2_DDR4G
+    gd->bd->bi_dram[1].start = 0x40000000;
+    gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
+
+    gd->bd->bi_dram[2].start = 0x80000000;
+    gd->bd->bi_dram[2].size  = PHYS_SDRAM_1_SIZE;
+
+    gd->bd->bi_dram[3].start = 0x100000000;
+    gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
+#endif
 }
 
 ulong board_get_usable_ram_top(ulong total_size)

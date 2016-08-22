@@ -84,153 +84,103 @@ no_address_info:
 
 	incl	%esi
 #endif
-/* Variable Range MTRR #2: 00000000-3FFFFFFF, WB */
+/* Variable Range MTRR #1: 00000000-FFFFFFFF, WB */
 
-	movl	$0, %edx
+	movl	$0x00000000, %edx
 	movl	$0x00000006, %eax
 	wrmsr
 	incl	%ecx
 
 	movl	%ebx, %edx
-	movl	$0xc0000800, %eax
+	movl	$0x00000800, %eax
 	wrmsr
 	incl	%ecx
 
 	incl	%esi
 
-#ifdef CONFIG_IWHALE2_DDR4G
-   #ifdef CONFIG_IWHALE2_DDR4G_INTERLEAVE
+/* Variable Range MTRR #2: C0000000-FFFFFFFF, UC*/
 
-        /* Variable Range MTRR #3: 1 4000 0000-1 7FFF FFFF, WB ,bottom 1GB of non interleave area on pub1*/
-
-        movl    $0x00000001, %edx
-        movl    $0x40000006, %eax
-        wrmsr
-        incl    %ecx
-
-        movl    %ebx, %edx
-        movl    $0x80000800, %eax
-        wrmsr
-        incl    %ecx
-
-        incl    %esi
-
-        /* Variable Range MTRR #4: 2 C000 0000-2 FFFF FFFF, WB for interleave aera top 2GB*/
-
-        movl    $0x00000002, %edx
-        movl    $0xC0000006, %eax
-        wrmsr
-        incl    %ecx
-
-        movl    %ebx, %edx
-        movl    $0xC0000800, %eax
-        wrmsr
-        incl    %ecx
-
-        incl    %esi
-
-        /* Variable Range MTRR #5: 3 0000 0000-3 3FFF FFFF, WB for interleve aera top 2GB*/
-
-        movl    $0x00000003, %edx
-        movl    $0x00000006, %eax
-        wrmsr
-        incl    %ecx
-
-        movl    %ebx, %edx
-        movl    $0xC0000800, %eax
-        wrmsr
-        incl    %ecx
-
-        incl    %esi
-    #else /*CONFIG_IWHALE2_DDR4G_INTERLEAVE*/
-
-    /* Variable Range MTRR #3: 40000000-7FFFFFFF, WB ,top 1GB of pub0*/
-
-	movl	$0, %edx
-	movl	$0x40000006, %eax
+	movl	$0x00000000, %edx
+	movl	$0xC0000000, %eax
 	wrmsr
 	incl	%ecx
 
 	movl	%ebx, %edx
-	movl	$0x80000800, %eax
+	movl	$0xC0000800, %eax
 	wrmsr
 	incl	%ecx
 
 	incl	%esi
 
-    #ifdef CONFIG_ISHARKL2_DDR
-        /* Variable Range MTRR #4: 8000 0000-BFFF FFFF, WB ,bottom 1GB of pub0*/
+/* Variable Range MTRR #3: 1 0000 0000-1 FFFF FFFF, WB*/
 
-        movl    $0x0, %edx
-        movl    $0x80000006, %eax
-        wrmsr
-        incl    %ecx
-
-        movl    %ebx, %edx
-        movl    $0xC0000800, %eax
-        wrmsr
-        incl    %ecx
-
-        incl    %esi
-
-        /* Variable Range MTRR #3: 1 0000 0000-1 3FFF FFFF, WB .top 1GB of pub0*/
-
-        movl    $0x00000001, %edx
-        movl    $0x00000006, %eax
-        wrmsr
-        incl    %ecx
-
-        movl    %ebx, %edx
-        movl    $0xC0000800, %eax
-        wrmsr
-        incl    %ecx
-
-        incl    %esi
-    #else /*CONFIG_ISHARKL2_DDR*/
-        /* Variable Range MTRR #4: 1 4000 0000-1 7FFF FFFF, WB ,bottom 1GB of pub1*/
-
-        movl    $0x00000001, %edx
-        movl    $0x40000006, %eax
-        wrmsr
-        incl    %ecx
-
-        movl    %ebx, %edx
-        movl    $0x80000800, %eax
-        wrmsr
-        incl    %ecx
-
-        incl    %esi
-
-        /* Variable Range MTRR #3: 1 8000 0000-1 BFFF FFFF, WB .top 1GB of pub1*/
-
-        movl    $0x00000001, %edx
-        movl    $0x80000006, %eax
-        wrmsr
-        incl    %ecx
-
-        movl    %ebx, %edx
-        movl    $0xC0000800, %eax
-        wrmsr
-        incl    %ecx
-
-        incl    %esi
-    #endif /*CONFIG_ISHARKL2_DDR*/
-    #endif /*CONFIG_IWHALE2_DDR4G_INTERLEAVE*/
-#else /*CONFIG_IWHALE2_DDR4G*/
-/* Variable Range MTRR #3: 40000000-7FFFFFFF, WB */
-
-	movl	$0, %edx
-	movl	$0x40000006, %eax
+	movl    $0x00000001, %edx
+	movl    $0x00000006, %eax
 	wrmsr
-	incl	%ecx
+	incl    %ecx
 
-	movl	%ebx, %edx
-	movl	$0x80000800, %eax
+	movl    %ebx, %edx
+	movl    $0x00000800, %eax
 	wrmsr
-	incl	%ecx
+	incl    %ecx
 
-	incl	%esi
-#endif /*CONFIG_IWHALE2_DDR4G*/
+	incl    %esi
+
+/* Variable Range MTRR #4: 1 C000 0000-1 FFFF FFFF, UC*/
+
+	movl    $0x00000001, %edx
+	movl    $0xC0000000, %eax
+	wrmsr
+	incl    %ecx
+
+	movl    %ebx, %edx
+	movl    $0xC0000800, %eax
+	wrmsr
+	incl    %ecx
+
+	incl    %esi
+
+/* Variable Range MTRR #5: 2 0000 0000-2 FFFF FFFF, WB*/
+
+	movl    $0x00000002, %edx
+	movl    $0x00000006, %eax
+	wrmsr
+	incl    %ecx
+
+	movl    %ebx, %edx
+	movl    $0x00000800, %eax
+	wrmsr
+	incl    %ecx
+
+	incl    %esi
+
+/* Variable Range MTRR #6: 2 0000 0000-2 3FFF FFFF, UC*/
+
+	movl    $0x00000002, %edx
+	movl    $0x00000000, %eax
+	wrmsr
+	incl    %ecx
+
+	movl    %ebx, %edx
+	movl    $0xC0000800, %eax
+	wrmsr
+	incl    %ecx
+
+	incl    %esi
+
+/* Variable Range MTRR #7: 3 0000 0000-3 3FFF FFFF, WB*/
+
+	movl    $0x00000003, %edx
+	movl    $0x00000006, %eax
+	wrmsr
+	incl    %ecx
+
+	movl    %ebx, %edx
+	movl    $0xC0000800, %eax
+	wrmsr
+	incl    %ecx
+
+	incl    %esi
 
 /* disable the rest of Variable Range MTRR */
 
