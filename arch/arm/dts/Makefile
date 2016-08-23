@@ -147,7 +147,8 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9860g-2h10-native.dtb \
 	sp9860g-3h10-native.dtb \
 	ss_whale2_j7-native.dtb \
-	ss_whale2_jigboard-native.dtb
+	ss_whale2_jigboard-native.dtb \
+	sp9833_1h10_native.dtb
 
 targets += $(dtb-y)
 
