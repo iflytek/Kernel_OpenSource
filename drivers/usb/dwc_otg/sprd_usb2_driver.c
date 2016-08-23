@@ -771,9 +771,6 @@ void usb_core_init(unsigned long reg_base_addr, uint32_t autodl_mode)
  */
 void usb_init(unsigned int autodl_mode)
 {
-#ifdef DISABLE_CACHE_FOR_USB
-	dcache_disable();
-#endif
 	usb_core_init(SPRD_USB_BASE, autodl_mode);
 }
 
