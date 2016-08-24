@@ -183,7 +183,9 @@ int board_late_init(void)
 		/*fix me*/
 		DCDC_Cal_ArmCore();
 	}
+	#if 0  /*for fpga have no keypad */
 	board_keypad_init();
+        #endif
 	return 0;
 }
 
