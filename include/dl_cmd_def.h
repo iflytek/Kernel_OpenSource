@@ -112,7 +112,7 @@ struct dl_cmd {
 
 #define SEND_ERROR_RSP(x)         \
     {                       \
-        dl_send_packet(x);        \
+        dl_send_ack(x);        \
         while(1);           \
     }
 

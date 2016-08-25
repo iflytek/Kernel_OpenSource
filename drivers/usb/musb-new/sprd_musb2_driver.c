@@ -27,7 +27,7 @@ void flush_dcache_range(unsigned long start, unsigned long stop);
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/
-#define MAX_RECV_LENGTH     (64*64)//640*64 0xa000
+#define MAX_RECV_LENGTH     0x4000 //(64*64)//640*64 0xa000
 #define USB_TIMEOUT             (1000)
 #define REG32(x)     (*((volatile uint32 *)(x)))
 /**---------------------------------------------------------------------------*

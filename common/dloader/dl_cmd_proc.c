@@ -242,7 +242,7 @@ int dl_cmd_repartition(dl_packet_t *pakcet, void *arg)
 
 	if (0 != (size % part_cell_length)) {
 		printf("%s:recvd packet size(%d) error \n", __FUNCTION__,size);
-		dl_send_packet (BSL_INCOMPATIBLE_PARTITION);
+		dl_send_ack(BSL_INCOMPATIBLE_PARTITION);
 		return 0;
 	}
 	total_partition_num = size / part_cell_length;
