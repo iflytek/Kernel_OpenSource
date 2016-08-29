@@ -12,7 +12,7 @@
 #ifndef _AP_CLK_REG_H
 #define _AP_CLK_REG_H
 
-#define CTL_BASE_AP_CLK   SPRD_APCLK_BASE
+#define CTL_BASE_AP_CLK SPRD_APCLK_BASE
 
 
 #define REG_AP_CLK_CGM_CTL_CFG        ( CTL_BASE_AP_CLK + 0x0010 )

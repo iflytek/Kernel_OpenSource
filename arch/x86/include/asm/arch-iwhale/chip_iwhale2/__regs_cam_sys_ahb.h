@@ -12,7 +12,7 @@
 #ifndef _CAM_AHB_REG_H
 #define _CAM_AHB_REG_H
 
-#define CTL_BASE_CAM_AHB    SPRD_CAMAHB_BASE
+#define CTL_BASE_CAM_AHB SPRD_CAMAHB_BASE
 
 
 #define REG_CAM_AHB_AHB_EB               ( CTL_BASE_CAM_AHB + 0x0000 )
@@ -40,6 +40,8 @@
 #define REG_CAM_AHB_CAM_AB1_CTRL2        ( CTL_BASE_CAM_AHB + 0x0058 )
 #define REG_CAM_AHB_CAM_AB0_DBG          ( CTL_BASE_CAM_AHB + 0x005C )
 #define REG_CAM_AHB_CAM_AB1_DBG          ( CTL_BASE_CAM_AHB + 0x0060 )
+#define REG_CAM_AHB_DSI0_CNT_CTRL        ( CTL_BASE_CAM_AHB + 0x0064 )
+#define REG_CAM_AHB_DSI1_CNT_CTRL        ( CTL_BASE_CAM_AHB + 0x0068 )
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_CAM_AHB_AHB_EB
@@ -173,6 +175,16 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
+#define BIT_CAM_AHB_ISPC_SOFT_RST_MASK                             BIT(25)
+#define BIT_CAM_AHB_ISPB_SOFT_RST_MASK                             BIT(24)
+#define BIT_CAM_AHB_ISPA_SOFT_RST_MASK                             BIT(23)
+#define BIT_CAM_AHB_DCAM2ISP_SOFT_RST_MASK                         BIT(22)
+#define BIT_CAM_AHB_DCAM1_SOFT_RST_MASK                            BIT(21)
+#define BIT_CAM_AHB_DCAM0_SOFT_RST_MASK                            BIT(20)
+#define BIT_CAM_AHB_DISPC1_SOFT_RST_MASK                           BIT(19)
+#define BIT_CAM_AHB_DISPC0_SOFT_RST_MASK                           BIT(18)
+#define BIT_CAM_AHB_CPP_SOFT_RST_MASK                              BIT(17)
+#define BIT_CAM_AHB_JPG_SOFT_RST_MASK                              BIT(16)
 #define BIT_CAM_AHB_CAM_NIC0_DDR_ADDR_BIT32                        BIT(8)
 #define BIT_CAM_AHB_CAM_NIU0_AR_QOS(x)                             (((x) & 0xF) << 4)
 #define BIT_CAM_AHB_CAM_NIU0_AW_QOS(x)                             (((x) & 0xF))
@@ -457,6 +469,24 @@
 ---------------------------------------------------------------------------*/
 
 #define BIT_CAM_AHB_CAM_AB1_DBG_SIGNAL(x)                          (((x) & 0xFFFFFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_CAM_AHB_DSI0_CNT_CTRL
+// Register Offset : 0x0064
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_CAM_AHB_DSI0_DLN_TIMER_VALUE(x)                        (((x) & 0x1FF) << 9)
+#define BIT_CAM_AHB_DSI0_CLN_TIMER_VALUE(x)                        (((x) & 0x1FF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_CAM_AHB_DSI1_CNT_CTRL
+// Register Offset : 0x0068
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_CAM_AHB_DSI1_DLN_TIMER_VALUE(x)                        (((x) & 0x1FF) << 9)
+#define BIT_CAM_AHB_DSI1_CLN_TIMER_VALUE(x)                        (((x) & 0x1FF))
 
 
 #endif // _CAM_AHB_REG_H

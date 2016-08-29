@@ -12,24 +12,26 @@
 #ifndef _AON_SEC_APB_REG_H
 #define _AON_SEC_APB_REG_H
 
-#define CTL_BASE_AON_SEC_APB   SPRD_SEC_AON_BASE
+#define CTL_BASE_AON_SEC_APB SPRD_SEC_AON_BASE
 
 
-#define REG_AON_SEC_APB_CHIP_KPRTL_0        ( CTL_BASE_AON_SEC_APB + 0x0000 )
-#define REG_AON_SEC_APB_CHIP_KPRTL_1        ( CTL_BASE_AON_SEC_APB + 0x0004 )
-#define REG_AON_SEC_APB_CHIP_KPRTL_2        ( CTL_BASE_AON_SEC_APB + 0x0008 )
-#define REG_AON_SEC_APB_CHIP_KPRTL_3        ( CTL_BASE_AON_SEC_APB + 0x000C )
-#define REG_AON_SEC_APB_SEC_EB              ( CTL_BASE_AON_SEC_APB + 0x0010 )
-#define REG_AON_SEC_APB_SEC_SOFT_RST        ( CTL_BASE_AON_SEC_APB + 0x0014 )
-#define REG_AON_SEC_APB_RVBARADDR0_LIT      ( CTL_BASE_AON_SEC_APB + 0x0034 )
-#define REG_AON_SEC_APB_RVBARADDR1_LIT      ( CTL_BASE_AON_SEC_APB + 0x0038 )
-#define REG_AON_SEC_APB_RVBARADDR2_LIT      ( CTL_BASE_AON_SEC_APB + 0x003C )
-#define REG_AON_SEC_APB_RVBARADDR3_LIT      ( CTL_BASE_AON_SEC_APB + 0x0040 )
-#define REG_AON_SEC_APB_RVBARADDR0_BIG      ( CTL_BASE_AON_SEC_APB + 0x0044 )
-#define REG_AON_SEC_APB_RVBARADDR1_BIG      ( CTL_BASE_AON_SEC_APB + 0x0048 )
-#define REG_AON_SEC_APB_RVBARADDR2_BIG      ( CTL_BASE_AON_SEC_APB + 0x004C )
-#define REG_AON_SEC_APB_RVBARADDR3_BIG      ( CTL_BASE_AON_SEC_APB + 0x0050 )
-#define REG_AON_SEC_APB_SP_SUBSYS_SEC_ATTR  ( CTL_BASE_AON_SEC_APB + 0x005C )
+#define REG_AON_SEC_APB_CHIP_KPRTL_0            ( CTL_BASE_AON_SEC_APB + 0x0000 )
+#define REG_AON_SEC_APB_CHIP_KPRTL_1            ( CTL_BASE_AON_SEC_APB + 0x0004 )
+#define REG_AON_SEC_APB_CHIP_KPRTL_2            ( CTL_BASE_AON_SEC_APB + 0x0008 )
+#define REG_AON_SEC_APB_CHIP_KPRTL_3            ( CTL_BASE_AON_SEC_APB + 0x000C )
+#define REG_AON_SEC_APB_SEC_EB                  ( CTL_BASE_AON_SEC_APB + 0x0010 )
+#define REG_AON_SEC_APB_SEC_SOFT_RST            ( CTL_BASE_AON_SEC_APB + 0x0014 )
+#define REG_AON_SEC_APB_RVBARADDR0_LIT          ( CTL_BASE_AON_SEC_APB + 0x0034 )
+#define REG_AON_SEC_APB_RVBARADDR1_LIT          ( CTL_BASE_AON_SEC_APB + 0x0038 )
+#define REG_AON_SEC_APB_RVBARADDR2_LIT          ( CTL_BASE_AON_SEC_APB + 0x003C )
+#define REG_AON_SEC_APB_RVBARADDR3_LIT          ( CTL_BASE_AON_SEC_APB + 0x0040 )
+#define REG_AON_SEC_APB_RVBARADDR0_BIG          ( CTL_BASE_AON_SEC_APB + 0x0044 )
+#define REG_AON_SEC_APB_RVBARADDR1_BIG          ( CTL_BASE_AON_SEC_APB + 0x0048 )
+#define REG_AON_SEC_APB_RVBARADDR2_BIG          ( CTL_BASE_AON_SEC_APB + 0x004C )
+#define REG_AON_SEC_APB_RVBARADDR3_BIG          ( CTL_BASE_AON_SEC_APB + 0x0050 )
+#define REG_AON_SEC_APB_SP_SUBSYS_SEC_ATTR      ( CTL_BASE_AON_SEC_APB + 0x005C )
+#define REG_AON_SEC_APB_FUNCDMA_NORMAL_MODE_EN  ( CTL_BASE_AON_SEC_APB + 0x0060 )
+#define REG_AON_SEC_APB_ADI_PPROT_SEL           ( CTL_BASE_AON_SEC_APB + 0x0064 )
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_CHIP_KPRTL_0
@@ -37,7 +39,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_KPRTL_0(x)                            (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_KPRTL_0(x)                          (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_CHIP_KPRTL_1
@@ -45,7 +47,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_KPRTL_1(x)                            (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_KPRTL_1(x)                          (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_CHIP_KPRTL_2
@@ -53,7 +55,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_KPRTL_2(x)                            (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_KPRTL_2(x)                          (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_CHIP_KPRTL_3
@@ -61,7 +63,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_KPRTL_3(x)                            (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_KPRTL_3(x)                          (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_SEC_EB
@@ -69,14 +71,11 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_SEC_RTC_CLK_GATE_EB                   BIT(7)
-#define BIT_AON_SEC_APB_SEC_GPIO_EB                           BIT(6)
-#define BIT_AON_SEC_APB_SEC_WDG_EB                            BIT(5)
-#define BIT_AON_SEC_APB_SEC_WDG_RTC_EB                        BIT(4)
-#define BIT_AON_SEC_APB_SEC_RTC_EB                            BIT(3)
-#define BIT_AON_SEC_APB_SEC_TMR0_EB                           BIT(2)
-#define BIT_AON_SEC_APB_SEC_TMR0_RTC_EB                       BIT(1)
-#define BIT_AON_SEC_APB_SEC_TZPC_EB                           BIT(0)
+#define BIT_AON_SEC_APB_SEC_WDG_EB                          BIT(5)
+#define BIT_AON_SEC_APB_SEC_WDG_RTC_EB                      BIT(4)
+#define BIT_AON_SEC_APB_SEC_TMR0_EB                         BIT(2)
+#define BIT_AON_SEC_APB_SEC_TMR0_RTC_EB                     BIT(1)
+#define BIT_AON_SEC_APB_SEC_TZPC_EB                         BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_SEC_SOFT_RST
@@ -84,11 +83,9 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_SEC_GPIO_SOFT_RST                     BIT(4)
-#define BIT_AON_SEC_APB_SEC_WDG_SOFT_RST                      BIT(3)
-#define BIT_AON_SEC_APB_SEC_RTC_SOFT_RST                      BIT(2)
-#define BIT_AON_SEC_APB_SEC_TMR0_SOFT_RST                     BIT(1)
-#define BIT_AON_SEC_APB_SEC_TZPC_SOFT_RST                     BIT(0)
+#define BIT_AON_SEC_APB_SEC_WDG_SOFT_RST                    BIT(3)
+#define BIT_AON_SEC_APB_SEC_TMR0_SOFT_RST                   BIT(1)
+#define BIT_AON_SEC_APB_SEC_TZPC_SOFT_RST                   BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_RVBARADDR0_LIT
@@ -96,7 +93,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_RVBARADDR0_LIT(x)                     (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_RVBARADDR0_LIT(x)                   (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_RVBARADDR1_LIT
@@ -104,7 +101,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_RVBARADDR1_LIT(x)                     (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_RVBARADDR1_LIT(x)                   (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_RVBARADDR2_LIT
@@ -112,7 +109,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_RVBARADDR2_LIT(x)                     (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_RVBARADDR2_LIT(x)                   (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_RVBARADDR3_LIT
@@ -120,7 +117,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_RVBARADDR3_LIT(x)                     (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_RVBARADDR3_LIT(x)                   (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_RVBARADDR0_BIG
@@ -128,7 +125,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_RVBARADDR0_BIG(x)                     (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_RVBARADDR0_BIG(x)                   (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_RVBARADDR1_BIG
@@ -136,7 +133,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_RVBARADDR1_BIG(x)                     (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_RVBARADDR1_BIG(x)                   (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_RVBARADDR2_BIG
@@ -144,7 +141,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_RVBARADDR2_BIG(x)                     (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_RVBARADDR2_BIG(x)                   (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_RVBARADDR3_BIG
@@ -152,7 +149,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_RVBARADDR3_BIG(x)                     (((x) & 0xFFFFFFFF))
+#define BIT_AON_SEC_APB_RVBARADDR3_BIG(x)                   (((x) & 0xFFFFFFFF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_SEC_APB_SP_SUBSYS_SEC_ATTR
@@ -160,8 +157,24 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_SEC_APB_SP_SUBSYS_RD_SEC                      BIT(1)
-#define BIT_AON_SEC_APB_SP_SUBSYS_WR_SEC                      BIT(0)
+#define BIT_AON_SEC_APB_SP_SUBSYS_RD_SEC                    BIT(1)
+#define BIT_AON_SEC_APB_SP_SUBSYS_WR_SEC                    BIT(0)
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AON_SEC_APB_FUNCDMA_NORMAL_MODE_EN
+// Register Offset : 0x0060
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_AON_SEC_APB_FDMA_NORMAL_EB                      BIT(0)
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AON_SEC_APB_ADI_PPROT_SEL
+// Register Offset : 0x0064
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_AON_SEC_APB_ADI_PPROT_SEL                       BIT(0)
 
 
 #endif // _AON_SEC_APB_REG_H

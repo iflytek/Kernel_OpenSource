@@ -61,6 +61,7 @@
 ---------------------------------------------------------------------------*/
 
 #define BIT_VSP_SYS_AHB_GSP_MTX_SOFT_RST                            BIT(10)
+#define BIT_VSP_SYS_AHB_GSP_SFBCD_SOFT_RST                          BIT(9)
 #define BIT_VSP_SYS_AHB_MEM_FW_SOFT_RST                             BIT(8)
 #define BIT_VSP_SYS_AHB_GSP1_SOFT_RST                               BIT(7)
 #define BIT_VSP_SYS_AHB_GSP0_SOFT_RST                               BIT(6)
@@ -87,6 +88,11 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
+#define BIT_VSP_SYS_AHB_VPP_SOFT_RST_MASK                           BIT(20)
+#define BIT_VSP_SYS_AHB_VSPENC_SOFT_RST_MASK                        BIT(19)
+#define BIT_VSP_SYS_AHB_VSPHEVC_SOFT_RST_MASK                       BIT(18)
+#define BIT_VSP_SYS_AHB_GSP1_SOFT_RST_MASK                          BIT(17)
+#define BIT_VSP_SYS_AHB_GSP0_SOFT_RST_MASK                          BIT(16)
 #define BIT_VSP_SYS_AHB_ADDR_CUTOFF_ENABLE_VSP                      BIT(12)
 #define BIT_VSP_SYS_AHB_VSP_INTERLEAVE_SIZE_SEL                     BIT(3)
 #define BIT_VSP_SYS_AHB_SFBCD_BYPASS_MODE                           BIT(2)

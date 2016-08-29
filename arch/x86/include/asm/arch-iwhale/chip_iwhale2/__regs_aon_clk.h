@@ -12,96 +12,95 @@
 #ifndef _AON_CLK_REG_H
 #define _AON_CLK_REG_H
 
-#define CTL_BASE_AON_CLK SPRD_AONCKG_BASE
+#define CTL_BASE_AON_CLK	SPRD_AONCKG_BASE 
 
 
 #define REG_AON_CLK_CGM_CTL_CFG           ( CTL_BASE_AON_CLK + 0x0010 )
-#define REG_AON_CLK_CGM_EMC0_2X_CFG       ( CTL_BASE_AON_CLK + 0x0020 )
-#define REG_AON_CLK_CGM_EMC0_1X_CFG       ( CTL_BASE_AON_CLK + 0x0024 )
-#define REG_AON_CLK_CGM_EMC1_2X_CFG       ( CTL_BASE_AON_CLK + 0x0028 )
-#define REG_AON_CLK_CGM_EMC1_1X_CFG       ( CTL_BASE_AON_CLK + 0x002C )
-#define REG_AON_CLK_CGM_AON_APB_CFG       ( CTL_BASE_AON_CLK + 0x0030 )
-#define REG_AON_CLK_CGM_ADI_CFG           ( CTL_BASE_AON_CLK + 0x0034 )
-#define REG_AON_CLK_CGM_AUX0_CFG          ( CTL_BASE_AON_CLK + 0x0038 )
-#define REG_AON_CLK_CGM_AUX1_CFG          ( CTL_BASE_AON_CLK + 0x003C )
-#define REG_AON_CLK_CGM_AUX2_CFG          ( CTL_BASE_AON_CLK + 0x0040 )
-#define REG_AON_CLK_CGM_PROBE_CFG         ( CTL_BASE_AON_CLK + 0x0044 )
-#define REG_AON_CLK_CGM_PWM0_CFG          ( CTL_BASE_AON_CLK + 0x0048 )
-#define REG_AON_CLK_CGM_PWM1_CFG          ( CTL_BASE_AON_CLK + 0x004C )
-#define REG_AON_CLK_CGM_PWM2_CFG          ( CTL_BASE_AON_CLK + 0x0050 )
-#define REG_AON_CLK_CGM_PWM3_CFG          ( CTL_BASE_AON_CLK + 0x0054 )
-#define REG_AON_CLK_CGM_EFUSE_CFG         ( CTL_BASE_AON_CLK + 0x0058 )
-#define REG_AON_CLK_CGM_SP_UART0_CFG      ( CTL_BASE_AON_CLK + 0x005C )
-#define REG_AON_CLK_CGM_SP_UART1_CFG      ( CTL_BASE_AON_CLK + 0x0060 )
-#define REG_AON_CLK_CGM_32K_OUT_CFG       ( CTL_BASE_AON_CLK + 0x0064 )
-#define REG_AON_CLK_CGM_3K2_OUT_CFG       ( CTL_BASE_AON_CLK + 0x0068 )
-#define REG_AON_CLK_CGM_1K_OUT_CFG        ( CTL_BASE_AON_CLK + 0x006C )
-#define REG_AON_CLK_CGM_THM_CFG           ( CTL_BASE_AON_CLK + 0x0070 )
-#define REG_AON_CLK_CGM_BIA_THM0_CFG      ( CTL_BASE_AON_CLK + 0x0074 )
-#define REG_AON_CLK_CGM_BIA_THM1_CFG      ( CTL_BASE_AON_CLK + 0x0078 )
-#define REG_AON_CLK_CGM_SP_I2C0_CFG       ( CTL_BASE_AON_CLK + 0x007C )
-#define REG_AON_CLK_CGM_SP_I2C1_CFG       ( CTL_BASE_AON_CLK + 0x0080 )
-#define REG_AON_CLK_CGM_SP_SPI_CFG        ( CTL_BASE_AON_CLK + 0x0084 )
-#define REG_AON_CLK_CGM_AP_HS_SPI_CFG     ( CTL_BASE_AON_CLK + 0x0088 )
-#define REG_AON_CLK_CGM_AON_I2C_CFG       ( CTL_BASE_AON_CLK + 0x008C )
-#define REG_AON_CLK_CGM_AVS_CFG           ( CTL_BASE_AON_CLK + 0x0090 )
-#define REG_AON_CLK_CGM_DAP_CFG           ( CTL_BASE_AON_CLK + 0x0094 )
-#define REG_AON_CLK_CGM_DAP_MTCK_CFG      ( CTL_BASE_AON_CLK + 0x0098 )
-#define REG_AON_CLK_CGM_TS_CFG            ( CTL_BASE_AON_CLK + 0x009C )
-#define REG_AON_CLK_CGM_RFTI_SBI_CFG      ( CTL_BASE_AON_CLK + 0x00A0 )
-#define REG_AON_CLK_CGM_RFTI1_XO_CFG      ( CTL_BASE_AON_CLK + 0x00A4 )
-#define REG_AON_CLK_CGM_RFTI1_LTH_CFG     ( CTL_BASE_AON_CLK + 0x00A8 )
-#define REG_AON_CLK_CGM_RFTI2_XO_CFG      ( CTL_BASE_AON_CLK + 0x00AC )
-#define REG_AON_CLK_CGM_RFTI2_LTH_CFG     ( CTL_BASE_AON_CLK + 0x00B0 )
-#define REG_AON_CLK_CGM_LVDSRF_CALI_CFG   ( CTL_BASE_AON_CLK + 0x00B4 )
-#define REG_AON_CLK_CGM_MDAR_CHK_CFG      ( CTL_BASE_AON_CLK + 0x00B8 )
-#define REG_AON_CLK_CGM_RCO100M_REF_CFG   ( CTL_BASE_AON_CLK + 0x00BC )
-#define REG_AON_CLK_CGM_RCO100M_FDK_CFG   ( CTL_BASE_AON_CLK + 0x00C0 )
-#define REG_AON_CLK_CGM_DJTAG_TCK_CFG     ( CTL_BASE_AON_CLK + 0x00C4 )
-#define REG_AON_CLK_CGM_DAP4_TCK_CFG      ( CTL_BASE_AON_CLK + 0x00C8 )
-#define REG_AON_CLK_CGM_SP_AHB_CFG        ( CTL_BASE_AON_CLK + 0x00CC )
-#define REG_AON_CLK_CGM_SP_TMR_CFG        ( CTL_BASE_AON_CLK + 0x00D0 )
-#define REG_AON_CLK_CGM_DET_32K_CFG       ( CTL_BASE_AON_CLK + 0x00D4 )
-#define REG_AON_CLK_CGM_PMU_CFG           ( CTL_BASE_AON_CLK + 0x00D8 )
-#define REG_AON_CLK_CGM_DEBOUNCE_CFG      ( CTL_BASE_AON_CLK + 0x00DC )
-#define REG_AON_CLK_CGM_FUNCTEST_CFG      ( CTL_BASE_AON_CLK + 0x00E0 )
-#define REG_AON_CLK_CGM_BIA_LBAXI_CFG     ( CTL_BASE_AON_CLK + 0x00E4 )
-#define REG_AON_CLK_CGM_BIA_IC_CFG        ( CTL_BASE_AON_CLK + 0x00E8 )
-#define REG_AON_CLK_CGM_BIA_26M_CFG       ( CTL_BASE_AON_CLK + 0x00EC )
-#define REG_AON_CLK_CGM_BIA_32K_CFG       ( CTL_BASE_AON_CLK + 0x00F0 )
-#define REG_AON_CLK_CGM_ANALOG_APB_CFG    ( CTL_BASE_AON_CLK + 0x00F4 )
-#define REG_AON_CLK_CGM_IO_APB_CFG        ( CTL_BASE_AON_CLK + 0x00F8 )
-#define REG_AON_CLK_CGM_DPHY0_REF_CFG     ( CTL_BASE_AON_CLK + 0x00FC )
-#define REG_AON_CLK_CGM_DPHY1_REF_CFG     ( CTL_BASE_AON_CLK + 0x0100 )
-#define REG_AON_CLK_CGM_USB2_REF_CFG      ( CTL_BASE_AON_CLK + 0x0104 )
-#define REG_AON_CLK_CGM_USB3_SUSPEND_CFG  ( CTL_BASE_AON_CLK + 0x0108 )
-#define REG_AON_CLK_CGM_CSI0_RXDFE_CFG    ( CTL_BASE_AON_CLK + 0x010C )
-#define REG_AON_CLK_CGM_CSI1_RXDFE_CFG    ( CTL_BASE_AON_CLK + 0x0110 )
-#define REG_AON_CLK_CGM_CSI2_RXDFE_CFG    ( CTL_BASE_AON_CLK + 0x0114 )
-#define REG_AON_CLK_CGM_WCDMA_ICI_CFG     ( CTL_BASE_AON_CLK + 0x0118 )
-#define REG_AON_CLK_CGM_WCDMA_CFG         ( CTL_BASE_AON_CLK + 0x011C )
-#define REG_AON_CLK_CGM_RFTI_TX_WD_CFG    ( CTL_BASE_AON_CLK + 0x0120 )
-#define REG_AON_CLK_CGM_RFTI_RX_WD_CFG    ( CTL_BASE_AON_CLK + 0x0124 )
-#define REG_AON_CLK_CGM_W_ZIF_CFG         ( CTL_BASE_AON_CLK + 0x0128 )
-#define REG_AON_CLK_CGM_W_SYS_CFG         ( CTL_BASE_AON_CLK + 0x012C )
-#define REG_AON_CLK_CGM_AON_CP_APB_CFG    ( CTL_BASE_AON_CLK + 0x0130 )
-#define REG_AON_CLK_CGM_AON_MDAR_APB_CFG  ( CTL_BASE_AON_CLK + 0x0134 )
-#define REG_AON_CLK_CGM_AON_PUB_APB_CFG   ( CTL_BASE_AON_CLK + 0x0138 )
-#define REG_AON_CLK_CGM_AP_MM_CFG         ( CTL_BASE_AON_CLK + 0x013C )
-#define REG_AON_CLK_CGM_SDIO0_2X_CFG      ( CTL_BASE_AON_CLK + 0x0140 )
-#define REG_AON_CLK_CGM_SDIO0_1X_CFG      ( CTL_BASE_AON_CLK + 0x0144 )
-#define REG_AON_CLK_CGM_SDIO1_2X_CFG      ( CTL_BASE_AON_CLK + 0x0148 )
-#define REG_AON_CLK_CGM_SDIO1_1X_CFG      ( CTL_BASE_AON_CLK + 0x014C )
-#define REG_AON_CLK_CGM_SDIO2_2X_CFG      ( CTL_BASE_AON_CLK + 0x0150 )
-#define REG_AON_CLK_CGM_SDIO2_1X_CFG      ( CTL_BASE_AON_CLK + 0x0154 )
-#define REG_AON_CLK_CGM_EMMC_2X_CFG       ( CTL_BASE_AON_CLK + 0x0158 )
-#define REG_AON_CLK_CGM_EMMC_1X_CFG       ( CTL_BASE_AON_CLK + 0x015C )
-#define REG_AON_CLK_CGM_UFS_TXSYMBOL_CFG  ( CTL_BASE_AON_CLK + 0x0160 )
-#define REG_AON_CLK_CGM_UFS_RXSYMBOL_CFG  ( CTL_BASE_AON_CLK + 0x0164 )
-#define REG_AON_CLK_CGM_UFS_CGCFG_CFG     ( CTL_BASE_AON_CLK + 0x0168 )
-#define REG_AON_CLK_CGM_UFS_BUS_CFG       ( CTL_BASE_AON_CLK + 0x016C )
-#define REG_AON_CLK_CGM_DEBUG_DSI_CFG     ( CTL_BASE_AON_CLK + 0x0170 )
-#define REG_AON_CLK_CGM_EMC_CFG           ( CTL_BASE_AON_CLK + 0x0174 )
+#define REG_AON_CLK_CGM_AON_APB_CFG       ( CTL_BASE_AON_CLK + 0x0020 )
+#define REG_AON_CLK_CGM_ADI_CFG           ( CTL_BASE_AON_CLK + 0x0024 )
+#define REG_AON_CLK_CGM_AUX0_CFG          ( CTL_BASE_AON_CLK + 0x0028 )
+#define REG_AON_CLK_CGM_AUX1_CFG          ( CTL_BASE_AON_CLK + 0x002C )
+#define REG_AON_CLK_CGM_AUX2_CFG          ( CTL_BASE_AON_CLK + 0x0030 )
+#define REG_AON_CLK_CGM_PROBE_CFG         ( CTL_BASE_AON_CLK + 0x0034 )
+#define REG_AON_CLK_CGM_PWM0_CFG          ( CTL_BASE_AON_CLK + 0x0038 )
+#define REG_AON_CLK_CGM_PWM1_CFG          ( CTL_BASE_AON_CLK + 0x003C )
+#define REG_AON_CLK_CGM_PWM2_CFG          ( CTL_BASE_AON_CLK + 0x0040 )
+#define REG_AON_CLK_CGM_PWM3_CFG          ( CTL_BASE_AON_CLK + 0x0044 )
+#define REG_AON_CLK_CGM_EFUSE_CFG         ( CTL_BASE_AON_CLK + 0x0048 )
+#define REG_AON_CLK_CGM_SP_UART0_CFG      ( CTL_BASE_AON_CLK + 0x004C )
+#define REG_AON_CLK_CGM_SP_UART1_CFG      ( CTL_BASE_AON_CLK + 0x0050 )
+#define REG_AON_CLK_CGM_32K_OUT_CFG       ( CTL_BASE_AON_CLK + 0x0054 )
+#define REG_AON_CLK_CGM_3K2_OUT_CFG       ( CTL_BASE_AON_CLK + 0x0058 )
+#define REG_AON_CLK_CGM_1K_OUT_CFG        ( CTL_BASE_AON_CLK + 0x005C )
+#define REG_AON_CLK_CGM_THM_CFG           ( CTL_BASE_AON_CLK + 0x0060 )
+#define REG_AON_CLK_CGM_BIA_THM0_CFG      ( CTL_BASE_AON_CLK + 0x0064 )
+#define REG_AON_CLK_CGM_BIA_THM1_CFG      ( CTL_BASE_AON_CLK + 0x0068 )
+#define REG_AON_CLK_CGM_SP_I2C0_CFG       ( CTL_BASE_AON_CLK + 0x006C )
+#define REG_AON_CLK_CGM_SP_I2C1_CFG       ( CTL_BASE_AON_CLK + 0x0070 )
+#define REG_AON_CLK_CGM_SP_SPI_CFG        ( CTL_BASE_AON_CLK + 0x0074 )
+#define REG_AON_CLK_CGM_AP_HS_SPI_CFG     ( CTL_BASE_AON_CLK + 0x0078 )
+#define REG_AON_CLK_CGM_AON_I2C_CFG       ( CTL_BASE_AON_CLK + 0x007C )
+#define REG_AON_CLK_CGM_AVS_CFG           ( CTL_BASE_AON_CLK + 0x0080 )
+#define REG_AON_CLK_CGM_DAP_CFG           ( CTL_BASE_AON_CLK + 0x0084 )
+#define REG_AON_CLK_CGM_DAP_MTCK_CFG      ( CTL_BASE_AON_CLK + 0x0088 )
+#define REG_AON_CLK_CGM_TS_CFG            ( CTL_BASE_AON_CLK + 0x008C )
+#define REG_AON_CLK_CGM_RFTI_SBI_CFG      ( CTL_BASE_AON_CLK + 0x0090 )
+#define REG_AON_CLK_CGM_RFTI1_XO_CFG      ( CTL_BASE_AON_CLK + 0x0094 )
+#define REG_AON_CLK_CGM_RFTI1_LTH_CFG     ( CTL_BASE_AON_CLK + 0x0098 )
+#define REG_AON_CLK_CGM_RFTI2_XO_CFG      ( CTL_BASE_AON_CLK + 0x009C )
+#define REG_AON_CLK_CGM_RFTI2_LTH_CFG     ( CTL_BASE_AON_CLK + 0x00A0 )
+#define REG_AON_CLK_CGM_LVDSRF_CALI_CFG   ( CTL_BASE_AON_CLK + 0x00A4 )
+#define REG_AON_CLK_CGM_MDAR_CHK_CFG      ( CTL_BASE_AON_CLK + 0x00A8 )
+#define REG_AON_CLK_CGM_RCO100M_REF_CFG   ( CTL_BASE_AON_CLK + 0x00AC )
+#define REG_AON_CLK_CGM_RCO100M_FDK_CFG   ( CTL_BASE_AON_CLK + 0x00B0 )
+#define REG_AON_CLK_CGM_DJTAG_TCK_CFG     ( CTL_BASE_AON_CLK + 0x00B4 )
+#define REG_AON_CLK_CGM_DAP4_TCK_CFG      ( CTL_BASE_AON_CLK + 0x00B8 )
+#define REG_AON_CLK_CGM_SP_AHB_CFG        ( CTL_BASE_AON_CLK + 0x00BC )
+#define REG_AON_CLK_CGM_SP_TMR_CFG        ( CTL_BASE_AON_CLK + 0x00C0 )
+#define REG_AON_CLK_CGM_DET_32K_CFG       ( CTL_BASE_AON_CLK + 0x00C4 )
+#define REG_AON_CLK_CGM_PMU_CFG           ( CTL_BASE_AON_CLK + 0x00C8 )
+#define REG_AON_CLK_CGM_DEBOUNCE_CFG      ( CTL_BASE_AON_CLK + 0x00CC )
+#define REG_AON_CLK_CGM_FUNCTEST_CFG      ( CTL_BASE_AON_CLK + 0x00D0 )
+#define REG_AON_CLK_CGM_BIA_LBAXI_CFG     ( CTL_BASE_AON_CLK + 0x00D4 )
+#define REG_AON_CLK_CGM_BIA_IC_CFG        ( CTL_BASE_AON_CLK + 0x00D8 )
+#define REG_AON_CLK_CGM_BIA_26M_CFG       ( CTL_BASE_AON_CLK + 0x00DC )
+#define REG_AON_CLK_CGM_BIA_32K_CFG       ( CTL_BASE_AON_CLK + 0x00E0 )
+#define REG_AON_CLK_CGM_ANALOG_APB_CFG    ( CTL_BASE_AON_CLK + 0x00E4 )
+#define REG_AON_CLK_CGM_IO_APB_CFG        ( CTL_BASE_AON_CLK + 0x00E8 )
+#define REG_AON_CLK_CGM_DPHY0_REF_CFG     ( CTL_BASE_AON_CLK + 0x00EC )
+#define REG_AON_CLK_CGM_DPHY1_REF_CFG     ( CTL_BASE_AON_CLK + 0x00F0 )
+#define REG_AON_CLK_CGM_USB2_REF_CFG      ( CTL_BASE_AON_CLK + 0x00F4 )
+#define REG_AON_CLK_CGM_USB3_SUSPEND_CFG  ( CTL_BASE_AON_CLK + 0x00F8 )
+#define REG_AON_CLK_CGM_CSI0_RXDFE_CFG    ( CTL_BASE_AON_CLK + 0x00FC )
+#define REG_AON_CLK_CGM_CSI1_RXDFE_CFG    ( CTL_BASE_AON_CLK + 0x0100 )
+#define REG_AON_CLK_CGM_CSI2_RXDFE_CFG    ( CTL_BASE_AON_CLK + 0x0104 )
+#define REG_AON_CLK_CGM_WCDMA_ICI_CFG     ( CTL_BASE_AON_CLK + 0x0108 )
+#define REG_AON_CLK_CGM_WCDMA_CFG         ( CTL_BASE_AON_CLK + 0x010C )
+#define REG_AON_CLK_CGM_RFTI_TX_WD_CFG    ( CTL_BASE_AON_CLK + 0x0110 )
+#define REG_AON_CLK_CGM_RFTI_RX_WD_CFG    ( CTL_BASE_AON_CLK + 0x0114 )
+#define REG_AON_CLK_CGM_W_ZIF_CFG         ( CTL_BASE_AON_CLK + 0x0118 )
+#define REG_AON_CLK_CGM_W_SYS_CFG         ( CTL_BASE_AON_CLK + 0x011C )
+#define REG_AON_CLK_CGM_AON_CP_APB_CFG    ( CTL_BASE_AON_CLK + 0x0120 )
+#define REG_AON_CLK_CGM_AON_MDAR_APB_CFG  ( CTL_BASE_AON_CLK + 0x0124 )
+#define REG_AON_CLK_CGM_AON_PUB_APB_CFG   ( CTL_BASE_AON_CLK + 0x0128 )
+#define REG_AON_CLK_CGM_AP_MM_CFG         ( CTL_BASE_AON_CLK + 0x012C )
+#define REG_AON_CLK_CGM_AP_NOC_CFG        ( CTL_BASE_AON_CLK + 0x0130 )
+#define REG_AON_CLK_CGM_MDAR_SERDES_CFG   ( CTL_BASE_AON_CLK + 0x0134 )
+#define REG_AON_CLK_CGM_SDIO0_2X_CFG      ( CTL_BASE_AON_CLK + 0x0138 )
+#define REG_AON_CLK_CGM_SDIO0_1X_CFG      ( CTL_BASE_AON_CLK + 0x013C )
+#define REG_AON_CLK_CGM_SDIO1_2X_CFG      ( CTL_BASE_AON_CLK + 0x0140 )
+#define REG_AON_CLK_CGM_SDIO1_1X_CFG      ( CTL_BASE_AON_CLK + 0x0144 )
+#define REG_AON_CLK_CGM_SDIO2_2X_CFG      ( CTL_BASE_AON_CLK + 0x0148 )
+#define REG_AON_CLK_CGM_SDIO2_1X_CFG      ( CTL_BASE_AON_CLK + 0x014C )
+#define REG_AON_CLK_CGM_EMMC_2X_CFG       ( CTL_BASE_AON_CLK + 0x0150 )
+#define AON_EMMC_CLK_2X_CFG		REG_AON_CLK_CGM_EMMC_2X_CFG
+#define REG_AON_CLK_CGM_EMMC_1X_CFG       ( CTL_BASE_AON_CLK + 0x0154 )
+#define REG_AON_CLK_CGM_UFS_TXSYMBOL_CFG  ( CTL_BASE_AON_CLK + 0x0158 )
+#define REG_AON_CLK_CGM_UFS_RXSYMBOL_CFG  ( CTL_BASE_AON_CLK + 0x015C )
+#define REG_AON_CLK_CGM_UFS_CGCFG_CFG     ( CTL_BASE_AON_CLK + 0x0160 )
+#define REG_AON_CLK_CGM_UFS_BUS_CFG       ( CTL_BASE_AON_CLK + 0x0164 )
+#define REG_AON_CLK_CGM_DEBUG_DSI_CFG     ( CTL_BASE_AON_CLK + 0x0168 )
+#define REG_AON_CLK_CGM_EMC_CFG           ( CTL_BASE_AON_CLK + 0x016C )
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_CTL_CFG
@@ -112,36 +111,8 @@
 #define BIT_AON_CLK_CGM_DOZE_MODE_EN                       BIT(0)
 
 /*---------------------------------------------------------------------------
-// Register Name   : REG_AON_CLK_CGM_EMC0_2X_CFG
-// Register Offset : 0x0020
-// Description     : 
----------------------------------------------------------------------------*/
-
-
-/*---------------------------------------------------------------------------
-// Register Name   : REG_AON_CLK_CGM_EMC0_1X_CFG
-// Register Offset : 0x0024
-// Description     : 
----------------------------------------------------------------------------*/
-
-
-/*---------------------------------------------------------------------------
-// Register Name   : REG_AON_CLK_CGM_EMC1_2X_CFG
-// Register Offset : 0x0028
-// Description     : 
----------------------------------------------------------------------------*/
-
-
-/*---------------------------------------------------------------------------
-// Register Name   : REG_AON_CLK_CGM_EMC1_1X_CFG
-// Register Offset : 0x002C
-// Description     : 
----------------------------------------------------------------------------*/
-
-
-/*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AON_APB_CFG
-// Register Offset : 0x0030
+// Register Offset : 0x0020
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -151,7 +122,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_ADI_CFG
-// Register Offset : 0x0034
+// Register Offset : 0x0024
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -160,47 +131,47 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AUX0_CFG
-// Register Offset : 0x0038
+// Register Offset : 0x0028
 // Description     : 
 ---------------------------------------------------------------------------*/
 
 #define BIT_AON_CLK_CGM_AUX0_DOZE_EN                       BIT(17)
 #define BIT_AON_CLK_CGM_AUX0_DIV(x)                        (((x) & 0xF) << 8)
-#define BIT_AON_CLK_CGM_AUX0_SEL(x)                        (((x) & 0xF))
+#define BIT_AON_CLK_CGM_AUX0_SEL(x)                        (((x) & 0x1F))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AUX1_CFG
-// Register Offset : 0x003C
+// Register Offset : 0x002C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
 #define BIT_AON_CLK_CGM_AUX1_DOZE_EN                       BIT(17)
 #define BIT_AON_CLK_CGM_AUX1_DIV(x)                        (((x) & 0xF) << 8)
-#define BIT_AON_CLK_CGM_AUX1_SEL(x)                        (((x) & 0xF))
+#define BIT_AON_CLK_CGM_AUX1_SEL(x)                        (((x) & 0x1F))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AUX2_CFG
-// Register Offset : 0x0040
+// Register Offset : 0x0030
 // Description     : 
 ---------------------------------------------------------------------------*/
 
 #define BIT_AON_CLK_CGM_AUX2_DOZE_EN                       BIT(17)
 #define BIT_AON_CLK_CGM_AUX2_DIV(x)                        (((x) & 0xF) << 8)
-#define BIT_AON_CLK_CGM_AUX2_SEL(x)                        (((x) & 0xF))
+#define BIT_AON_CLK_CGM_AUX2_SEL(x)                        (((x) & 0x1F))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_PROBE_CFG
-// Register Offset : 0x0044
+// Register Offset : 0x0034
 // Description     : 
 ---------------------------------------------------------------------------*/
 
 #define BIT_AON_CLK_CGM_PROBE_DOZE_EN                      BIT(17)
 #define BIT_AON_CLK_CGM_PROBE_DIV(x)                       (((x) & 0xF) << 8)
-#define BIT_AON_CLK_CGM_PROBE_SEL(x)                       (((x) & 0xF))
+#define BIT_AON_CLK_CGM_PROBE_SEL(x)                       (((x) & 0x1F))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_PWM0_CFG
-// Register Offset : 0x0048
+// Register Offset : 0x0038
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -209,7 +180,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_PWM1_CFG
-// Register Offset : 0x004C
+// Register Offset : 0x003C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -218,7 +189,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_PWM2_CFG
-// Register Offset : 0x0050
+// Register Offset : 0x0040
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -227,7 +198,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_PWM3_CFG
-// Register Offset : 0x0054
+// Register Offset : 0x0044
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -236,7 +207,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_EFUSE_CFG
-// Register Offset : 0x0058
+// Register Offset : 0x0048
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -245,7 +216,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SP_UART0_CFG
-// Register Offset : 0x005C
+// Register Offset : 0x004C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -254,7 +225,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SP_UART1_CFG
-// Register Offset : 0x0060
+// Register Offset : 0x0050
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -263,7 +234,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_32K_OUT_CFG
-// Register Offset : 0x0064
+// Register Offset : 0x0054
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -272,21 +243,21 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_3K2_OUT_CFG
-// Register Offset : 0x0068
+// Register Offset : 0x0058
 // Description     : 
 ---------------------------------------------------------------------------*/
 
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_1K_OUT_CFG
-// Register Offset : 0x006C
+// Register Offset : 0x005C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_THM_CFG
-// Register Offset : 0x0070
+// Register Offset : 0x0060
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -295,7 +266,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_BIA_THM0_CFG
-// Register Offset : 0x0074
+// Register Offset : 0x0064
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -304,7 +275,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_BIA_THM1_CFG
-// Register Offset : 0x0078
+// Register Offset : 0x0068
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -313,7 +284,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SP_I2C0_CFG
-// Register Offset : 0x007C
+// Register Offset : 0x006C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -322,7 +293,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SP_I2C1_CFG
-// Register Offset : 0x0080
+// Register Offset : 0x0070
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -331,7 +302,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SP_SPI_CFG
-// Register Offset : 0x0084
+// Register Offset : 0x0074
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -342,7 +313,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AP_HS_SPI_CFG
-// Register Offset : 0x0088
+// Register Offset : 0x0078
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -353,7 +324,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AON_I2C_CFG
-// Register Offset : 0x008C
+// Register Offset : 0x007C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -362,7 +333,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AVS_CFG
-// Register Offset : 0x0090
+// Register Offset : 0x0080
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -371,7 +342,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_DAP_CFG
-// Register Offset : 0x0094
+// Register Offset : 0x0084
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -380,7 +351,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_DAP_MTCK_CFG
-// Register Offset : 0x0098
+// Register Offset : 0x0088
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -388,7 +359,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_TS_CFG
-// Register Offset : 0x009C
+// Register Offset : 0x008C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -397,7 +368,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_RFTI_SBI_CFG
-// Register Offset : 0x00A0
+// Register Offset : 0x0090
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -406,7 +377,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_RFTI1_XO_CFG
-// Register Offset : 0x00A4
+// Register Offset : 0x0094
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -415,7 +386,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_RFTI1_LTH_CFG
-// Register Offset : 0x00A8
+// Register Offset : 0x0098
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -424,7 +395,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_RFTI2_XO_CFG
-// Register Offset : 0x00AC
+// Register Offset : 0x009C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -433,7 +404,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_RFTI2_LTH_CFG
-// Register Offset : 0x00B0
+// Register Offset : 0x00A0
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -442,7 +413,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_LVDSRF_CALI_CFG
-// Register Offset : 0x00B4
+// Register Offset : 0x00A4
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -451,7 +422,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_MDAR_CHK_CFG
-// Register Offset : 0x00B8
+// Register Offset : 0x00A8
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -460,7 +431,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_RCO100M_REF_CFG
-// Register Offset : 0x00BC
+// Register Offset : 0x00AC
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -469,7 +440,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_RCO100M_FDK_CFG
-// Register Offset : 0x00C0
+// Register Offset : 0x00B0
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -478,7 +449,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_DJTAG_TCK_CFG
-// Register Offset : 0x00C4
+// Register Offset : 0x00B4
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -488,7 +459,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_DAP4_TCK_CFG
-// Register Offset : 0x00C8
+// Register Offset : 0x00B8
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -496,7 +467,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SP_AHB_CFG
-// Register Offset : 0x00CC
+// Register Offset : 0x00BC
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -506,7 +477,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SP_TMR_CFG
-// Register Offset : 0x00D0
+// Register Offset : 0x00C0
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -515,7 +486,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_DET_32K_CFG
-// Register Offset : 0x00D4
+// Register Offset : 0x00C4
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -524,7 +495,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_PMU_CFG
-// Register Offset : 0x00D8
+// Register Offset : 0x00C8
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -533,7 +504,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_DEBOUNCE_CFG
-// Register Offset : 0x00DC
+// Register Offset : 0x00CC
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -542,7 +513,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_FUNCTEST_CFG
-// Register Offset : 0x00E0
+// Register Offset : 0x00D0
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -550,7 +521,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_BIA_LBAXI_CFG
-// Register Offset : 0x00E4
+// Register Offset : 0x00D4
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -559,7 +530,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_BIA_IC_CFG
-// Register Offset : 0x00E8
+// Register Offset : 0x00D8
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -568,7 +539,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_BIA_26M_CFG
-// Register Offset : 0x00EC
+// Register Offset : 0x00DC
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -577,7 +548,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_BIA_32K_CFG
-// Register Offset : 0x00F0
+// Register Offset : 0x00E0
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -586,7 +557,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_ANALOG_APB_CFG
-// Register Offset : 0x00F4
+// Register Offset : 0x00E4
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -595,7 +566,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_IO_APB_CFG
-// Register Offset : 0x00F8
+// Register Offset : 0x00E8
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -605,7 +576,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_DPHY0_REF_CFG
-// Register Offset : 0x00FC
+// Register Offset : 0x00EC
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -614,7 +585,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_DPHY1_REF_CFG
-// Register Offset : 0x0100
+// Register Offset : 0x00F0
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -623,7 +594,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_USB2_REF_CFG
-// Register Offset : 0x0104
+// Register Offset : 0x00F4
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -632,7 +603,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_USB3_SUSPEND_CFG
-// Register Offset : 0x0108
+// Register Offset : 0x00F8
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -641,7 +612,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_CSI0_RXDFE_CFG
-// Register Offset : 0x010C
+// Register Offset : 0x00FC
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -650,7 +621,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_CSI1_RXDFE_CFG
-// Register Offset : 0x0110
+// Register Offset : 0x0100
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -659,7 +630,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_CSI2_RXDFE_CFG
-// Register Offset : 0x0114
+// Register Offset : 0x0104
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -668,7 +639,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_WCDMA_ICI_CFG
-// Register Offset : 0x0118
+// Register Offset : 0x0108
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -677,7 +648,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_WCDMA_CFG
-// Register Offset : 0x011C
+// Register Offset : 0x010C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -686,7 +657,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_RFTI_TX_WD_CFG
-// Register Offset : 0x0120
+// Register Offset : 0x0110
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -695,7 +666,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_RFTI_RX_WD_CFG
-// Register Offset : 0x0124
+// Register Offset : 0x0114
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -704,7 +675,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_W_ZIF_CFG
-// Register Offset : 0x0128
+// Register Offset : 0x0118
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -713,7 +684,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_W_SYS_CFG
-// Register Offset : 0x012C
+// Register Offset : 0x011C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -722,7 +693,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AON_CP_APB_CFG
-// Register Offset : 0x0130
+// Register Offset : 0x0120
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -732,7 +703,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AON_MDAR_APB_CFG
-// Register Offset : 0x0134
+// Register Offset : 0x0124
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -742,7 +713,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AON_PUB_APB_CFG
-// Register Offset : 0x0138
+// Register Offset : 0x0128
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -752,7 +723,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_AP_MM_CFG
-// Register Offset : 0x013C
+// Register Offset : 0x012C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -761,8 +732,26 @@
 #define BIT_AON_CLK_CGM_AP_MM_SEL(x)                       (((x) & 0x7))
 
 /*---------------------------------------------------------------------------
+// Register Name   : REG_AON_CLK_CGM_AP_NOC_CFG
+// Register Offset : 0x0130
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_AON_CLK_CGM_AP_NOC_DOZE_EN                     BIT(17)
+#define BIT_AON_CLK_CGM_AP_NOC_SEL(x)                      (((x) & 0x3))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AON_CLK_CGM_MDAR_SERDES_CFG
+// Register Offset : 0x0134
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_AON_CLK_CGM_MDAR_SERDES_DOZE_EN                BIT(17)
+#define BIT_AON_CLK_CGM_MDAR_SERDES_SEL                    BIT(0)
+
+/*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SDIO0_2X_CFG
-// Register Offset : 0x0140
+// Register Offset : 0x0138
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -771,7 +760,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SDIO0_1X_CFG
-// Register Offset : 0x0144
+// Register Offset : 0x013C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -779,7 +768,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SDIO1_2X_CFG
-// Register Offset : 0x0148
+// Register Offset : 0x0140
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -788,7 +777,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SDIO1_1X_CFG
-// Register Offset : 0x014C
+// Register Offset : 0x0144
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -796,7 +785,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SDIO2_2X_CFG
-// Register Offset : 0x0150
+// Register Offset : 0x0148
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -805,7 +794,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_SDIO2_1X_CFG
-// Register Offset : 0x0154
+// Register Offset : 0x014C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -813,7 +802,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_EMMC_2X_CFG
-// Register Offset : 0x0158
+// Register Offset : 0x0150
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -822,7 +811,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_EMMC_1X_CFG
-// Register Offset : 0x015C
+// Register Offset : 0x0154
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -830,7 +819,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_UFS_TXSYMBOL_CFG
-// Register Offset : 0x0160
+// Register Offset : 0x0158
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -838,7 +827,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_UFS_RXSYMBOL_CFG
-// Register Offset : 0x0164
+// Register Offset : 0x015C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -846,7 +835,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_UFS_CGCFG_CFG
-// Register Offset : 0x0168
+// Register Offset : 0x0160
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -855,16 +844,16 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_UFS_BUS_CFG
-// Register Offset : 0x016C
+// Register Offset : 0x0164
 // Description     : 
 ---------------------------------------------------------------------------*/
 
 #define BIT_AON_CLK_CGM_UFS_BUS_DOZE_EN                    BIT(17)
-#define BIT_AON_CLK_CGM_UFS_BUS_SEL(x)                     (((x) & 0x3))
+#define BIT_AON_CLK_CGM_UFS_BUS_SEL(x)                     (((x) & 0x7))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_DEBUG_DSI_CFG
-// Register Offset : 0x0170
+// Register Offset : 0x0168
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -872,7 +861,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_CLK_CGM_EMC_CFG
-// Register Offset : 0x0174
+// Register Offset : 0x016C
 // Description     : 
 ---------------------------------------------------------------------------*/
 

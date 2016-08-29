@@ -40,6 +40,8 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
+#define BIT_AON_DBG_APB_DAP2CS_DBGEN                                   BIT(15)
+#define BIT_AON_DBG_APB_DAP2AP_DBGEN                                   BIT(14)
 #define BIT_AON_DBG_APB_GPU_DBGEN                                      BIT(13)
 #define BIT_AON_DBG_APB_DJTAG_DBGEN                                    BIT(12)
 #define BIT_AON_DBG_APB_AGDSP_DBGEN                                    BIT(11)
@@ -61,6 +63,8 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
+#define BIT_AON_DBG_APB_DAP2CS_NON_SEC_DBGEN                           BIT(15)
+#define BIT_AON_DBG_APB_DAP2AP_NON_SEC_DBGEN                           BIT(14)
 #define BIT_AON_DBG_APB_GPU_NON_SEC_DBGEN                              BIT(13)
 #define BIT_AON_DBG_APB_DJTAG_NON_SEC_DBGEN                            BIT(12)
 #define BIT_AON_DBG_APB_AGDSP_NON_SEC_DBGEN                            BIT(11)

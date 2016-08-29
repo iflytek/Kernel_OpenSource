@@ -25,13 +25,16 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_APB_SIM_32K_EB                      BIT(21)
 #define BIT_AP_APB_SPI3_EB                         BIT(20)
 #define BIT_AP_APB_CKG_EB                          BIT(19)
 #define BIT_AP_APB_UART4_EB                        BIT(18)
 #define BIT_AP_APB_UART3_EB                        BIT(17)
 #define BIT_AP_APB_UART2_EB                        BIT(16)
 #define BIT_AP_APB_UART1_EB                        BIT(15)
+#define BIT_UART1_EB					BIT_AP_APB_UART1_EB
 #define BIT_AP_APB_UART0_EB                        BIT(14)
+#define BIT_UART0_EB					BIT_AP_APB_UART0_EB
 #define BIT_AP_APB_I2C5_EB                         BIT(13)
 #define BIT_AP_APB_I2C4_EB                         BIT(12)
 #define BIT_AP_APB_I2C3_EB                         BIT(11)
@@ -81,6 +84,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_APB_APB_RSV(x)                      (((x) & 0x3FFFFFFF) << 2)
 #define BIT_AP_APB_SIM_CLK_POLARITY                BIT(1)
 #define BIT_AP_APB_FMARK_POLARITY_INV              BIT(0)
 

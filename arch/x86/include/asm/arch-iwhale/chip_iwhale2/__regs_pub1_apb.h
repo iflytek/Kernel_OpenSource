@@ -12,7 +12,7 @@
 #ifndef _PUB_APB_PUB1_REG_H
 #define _PUB_APB_PUB1_REG_H
 
-#define CTL_BASE_PUB_APB_PUB1   SPRD_PUB1_GLB_BASE
+#define CTL_BASE_PUB_APB_PUB1 SPRD_PUB1_GLB_BASE
 
 
 #define REG_PUB_APB_PUB1_PUB_INT                           ( CTL_BASE_PUB_APB_PUB1 + 0x0000 )

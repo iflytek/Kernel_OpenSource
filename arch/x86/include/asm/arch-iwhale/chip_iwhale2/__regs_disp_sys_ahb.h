@@ -12,7 +12,7 @@
 #ifndef _DISP_AHB_REG_H
 #define _DISP_AHB_REG_H
 
-#define CTL_BASE_DISP_AHB    SPRD_DISPAHB_BASE
+#define CTL_BASE_DISP_AHB SPRD_DISPAHB_BASE
 
 
 #define REG_DISP_AHB_AHB_EB          ( CTL_BASE_DISP_AHB + 0x0000 )
@@ -53,6 +53,7 @@
 ---------------------------------------------------------------------------*/
 
 #define BIT_DISP_AHB_GSP_MTX_SOFT_RST                       BIT(15)
+#define BIT_DISP_AHB_DISPC_SFBCD_SOFT_RST                   BIT(13)
 #define BIT_DISP_AHB_DISPC0_ENC_SOFT_RST                    BIT(12)
 #define BIT_DISP_AHB_DISPC_MTX_SOFT_RST                     BIT(11)
 #define BIT_DISP_AHB_CKG_SOFT_RST                           BIT(10)

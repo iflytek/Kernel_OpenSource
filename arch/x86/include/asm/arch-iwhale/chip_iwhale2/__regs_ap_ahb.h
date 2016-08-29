@@ -31,8 +31,6 @@
 #define REG_AP_AHB_RESERVED_REG_1              ( CTL_BASE_AP_AHB + 0x3008 )
 #define REG_AP_AHB_RESERVED_REG_0              ( CTL_BASE_AP_AHB + 0x300C )
 #define REG_AP_AHB_USB3_CTRL                   ( CTL_BASE_AP_AHB + 0x3020 )
-#define REG_AP_AHB_MISC_CTRL                   ( CTL_BASE_AP_AHB + 0x3024 )
-#define REG_AP_AHB_MISC_STATUS                 ( CTL_BASE_AP_AHB + 0x3028 )
 #define REG_AP_AHB_NOC_CTRL0                   ( CTL_BASE_AP_AHB + 0x302C )
 #define REG_AP_AHB_NOC_CTRL1                   ( CTL_BASE_AP_AHB + 0x3030 )
 #define REG_AP_AHB_NOC_CTRL2                   ( CTL_BASE_AP_AHB + 0x3034 )
@@ -247,20 +245,6 @@
 #define BIT_AP_AHB_BUS_FILTER_BYPASS(x)                         (((x) & 0xF))
 
 /*---------------------------------------------------------------------------
-// Register Name   : REG_AP_AHB_MISC_CTRL
-// Register Offset : 0x3024
-// Description     : 
----------------------------------------------------------------------------*/
-
-
-/*---------------------------------------------------------------------------
-// Register Name   : REG_AP_AHB_MISC_STATUS
-// Register Offset : 0x3028
-// Description     : 
----------------------------------------------------------------------------*/
-
-
-/*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_NOC_CTRL0
 // Register Offset : 0x302C
 // Description     : 
@@ -340,9 +324,9 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AP_AHB_USB3_CLK_GATE_CTRL(x)                        (((x) & 0x7) << 4)
-#define BIT_AP_AHB_USB3_OPERATIONAL_MODE(x)                     (((x) & 0x3) << 2)
-#define BIT_AP_AHB_USB3_DBG_2(x)                                (((x) & 0x3))
+#define BIT_AP_AHB_USB3_CLK_GATE_CTRL(x)                        (((x) & 0x7) << 5)
+#define BIT_AP_AHB_USB3_OPERATIONAL_MODE(x)                     (((x) & 0x3) << 3)
+#define BIT_AP_AHB_USB3_DBG_2(x)                                (((x) & 0x7))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_UFS_DBG0
