@@ -13,7 +13,7 @@ u32 get_rootflag(root_stat_t *stat)
 {
 	u32 result = 0;
 
-	if (0 != common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(root_stat_t), 512, stat)) {
+	if (0 != common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(root_stat_t), ROOT_OFFSET, stat)) {
 		errorf("read miscdata error.\n");
 		return result;
 	}

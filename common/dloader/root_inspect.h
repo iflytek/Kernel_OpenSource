@@ -3,7 +3,7 @@
 
 
 #define ROOT_MAGIC 0x524F4F54 //"ROOT"
-#define ROOT_OFFSET 512
+#define ROOT_OFFSET 0x1000
 
 typedef struct {
 	u32 magic;
