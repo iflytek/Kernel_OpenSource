@@ -330,7 +330,7 @@
 #define CONFIG_SPRD_UART_PORTS	{ (void *) (CONFIG_SYS_SERIAL0), (void *) (CONFIG_SYS_SERIAL1) }
 #define CONFIG_SYS_SERIAL0		0x70000000
 #define CONFIG_SYS_SERIAL1		0x70100000
-#define CONFIG_UART_DOWNLOAD		0
+//#define CONFIG_UART_DOWNLOAD		0
 
 /* Chip Driver Macro Definitions End*/
 
