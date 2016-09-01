@@ -218,15 +218,15 @@ static int start_linux_armv8(uchar *dt_addr)
 	void (*theKernel) (void *dtb_addr, int zero, int arch, int reserved);
 	theKernel = (void (*)(void *, int, int, int))KERNEL_ADR;
 
-	/*start modem CP */
-	modem_entry();
-
 	/*before switch to el2,flush all cache */
 	/*FIXME: cleanup_before_linux() will cause panic here, we need to find the solution*/
 	flush_dcache_range(CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_SDRAM_END);
 #ifdef CONFIG_DUAL_DDR
 		flush_dcache_range(CONFIG_SYS_SDRAM_BASE2, CONFIG_SYS_SDRAM_END2);
 #endif
+
+	/*start modem CP */
+	modem_entry();
 
 #ifdef CONFIG_MINI_TRUSTZONE
 	trustzone_entry(TRUSTZONE_ADR + 0x200);
