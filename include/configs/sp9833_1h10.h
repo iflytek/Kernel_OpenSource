@@ -42,8 +42,9 @@
 /*
  * SPREADTRUM BIGPHONE board - SoC Configuration
  */
-#define CONFIG_SC9630
+#define CONFIG_SC9833
 #define CONFIG_ADIE_SC2723
+#define CONFIG_ARCH_SCX35L2
 #define CONFIG_ARCH_SCX35L
 
 #define DFS_ON_ARM7

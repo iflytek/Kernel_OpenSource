@@ -7,7 +7,7 @@ config SYS_VENDOR
 	default "spreadtrum"
 
 config SYS_SOC
-	default "sc9630"
+	default "sc9833"
 
 config SYS_CONFIG_NAME
 	default "sp9833_1h10"
