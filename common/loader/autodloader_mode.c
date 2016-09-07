@@ -189,12 +189,14 @@ int autodloader_mainhandler(void)
 	/*start from here, we play a role of RomCode*/
 	act_as_romcode = 1;
 
+	dcache_disable();
 	/* initialize usb module*/
 	if(autodloader_initusb())
 		return 0;
 
 	usb_init(1);
 	dl_packet_init();
+	dcache_enable();
 
 	debugf("start register adl cmd\n");
 	adl_cmd_register(BSL_CMD_CONNECT,    autodloader_connect);
