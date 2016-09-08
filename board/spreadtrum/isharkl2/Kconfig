@@ -16,13 +16,8 @@ config SYS_CONFIG_NAME
 	  This option selects the board config file in
 	  include/configs/ directory to be used to build U-Boot.
 
-if TARGET_ISHARKL2_FPGA
 config SYS_TEXT_BASE
 	default 0x7f000000
-endif
-
-config SYS_TEXT_BASE
-	default 0x1f000000
 
 config BOARD_SPECIFIC_OPTIONS # dummy
 	def_bool y
