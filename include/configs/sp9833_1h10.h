@@ -180,7 +180,6 @@
 #define CONFIG_ENV_IS_NOWHERE
 #define CONFIG_ENV_SIZE		(128 * 1024)
 
-#define CONFIG_DDR_AUTO_DETECT
 #define CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM    0x1C00   /* IRAM store ddr info */
 
 /* U-Boot general configuration */
