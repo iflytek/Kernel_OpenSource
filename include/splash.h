@@ -36,7 +36,8 @@ struct splash_location {
 };
 
 int splash_source_load(struct splash_location *locations, uint size);
-int splash_screen_prepare(void);
+int splash_screen_prepare(uchar *logo_part_name, u8 *addr);
+
 
 #ifdef CONFIG_SPLASH_SCREEN_ALIGN
 void splash_get_pos(int *x, int *y);
@@ -45,9 +46,9 @@ static inline void splash_get_pos(int *x, int *y) { }
 #endif
 
 #if defined(CONFIG_SPLASH_SCREEN) && defined(CONFIG_LCD)
-int lcd_splash(ulong addr);
+int lcd_splash(uchar *logo_part_name);
 #else
-static inline int lcd_splash(ulong addr)
+static inline int lcd_splash(uchar *logo_part_name)
 {
 	return -ENOSYS;
 }

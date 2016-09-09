@@ -28,6 +28,7 @@ extern unsigned char raw_header[8192];
 
 #define SPL_PART "spl"
 #define LOGO_PART "logo"
+#define CHARGER_LOGO_PART "chargelogo"
 #define BOOT_PART "boot"
 #define RECOVERY_PART "recovery"
 #define FACTORY_PART "prodnv"

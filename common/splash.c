@@ -24,10 +24,11 @@
 #include <splash.h>
 #include <lcd.h>
 
-__weak int splash_screen_prepare(void)
+__weak int splash_screen_prepare(uchar *logo_part_name, u8 *addr)
 {
 	return 0;
 }
+
 
 #ifdef CONFIG_SPLASH_SCREEN_ALIGN
 void splash_get_pos(int *x, int *y)
@@ -53,11 +54,20 @@ void splash_get_pos(int *x, int *y)
 #endif /* CONFIG_SPLASH_SCREEN_ALIGN */
 
 #if defined(CONFIG_SPLASH_SCREEN) && defined(CONFIG_LCD)
-int lcd_splash(ulong addr)
+int lcd_splash(uchar *logo_part_name)
 {
 	int x = 0, y = 0, ret;
+	u8 *addr;
+	u8 *s;
 
-	ret = splash_screen_prepare();
+	s = getenv("splashimage");
+	if (!s) {
+		debugf("%s: failed to get env from splashimage\n");
+		return -1;
+	}
+	addr = (u8 *) simple_strtoul(s, NULL, 16);
+
+	ret = splash_screen_prepare(logo_part_name, addr);
 	if (ret)
 		return ret;
 
@@ -65,4 +75,5 @@ int lcd_splash(ulong addr)
 
 	return bmp_display(addr, x, y);
 }
+
 #endif

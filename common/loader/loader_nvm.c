@@ -274,27 +274,18 @@ void _boot_secure_check(void)
 	return;
 }
 
-int splash_screen_prepare(void)
+int splash_screen_prepare(uchar *logo_part_name, u8 *addr)
 {
 	size_t size ;
-	u8 *addr;
-	u8 *s;
 
-	s = getenv("splashimage");
-	if (!s) {
-		debugf("%s: failed to get env from splashimage\n");
-		return -1;
-	}
-	addr = (u8 *) simple_strtoul(s, NULL, 16);
 	size = lcd_get_size(&lcd_line_length) >> 1;
-	if (0 != common_raw_read("logo", size, 0, addr)) {
-		errorf("failed to read logo partition\n");
+	if (0 != common_raw_read(logo_part_name, size, 0, addr)) {
+		errorf("failed to read logo partition:%s\n", logo_part_name);
 		return -1;
 	}
 
 	return 0;
 }
-
 
 int32_t _boot_read_partition_with_backup(boot_image_required_t info)
 {
@@ -917,8 +908,10 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	uchar *dt_adr = DT_ADR;
 
 #ifdef CONFIG_SPLASH_SCREEN
-	if(lcd_enable)
+	if(lcd_enable) {
 		drv_lcd_init();
+		lcd_splash(LOGO_PART);
+	}
 	set_backlight(backlight_set);
 #endif
 	set_vibrator(0);

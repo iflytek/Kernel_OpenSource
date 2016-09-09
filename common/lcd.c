@@ -224,14 +224,10 @@ void lcd_clear(void)
 	/* Paint the logo and retrieve LCD base address */
 	debug("[LCD] Drawing the logo...\n");
 	if (do_splash) {
-		s = getenv("splashimage");
-		if (s) {
-			do_splash = 0;
-			addr = simple_strtoul(s, NULL, 16);
-			if (lcd_splash(addr) == 0) {
-				lcd_sync();
-				return;
-			}
+		do_splash = 0;
+		if (lcd_splash("logo") == 0) {
+			lcd_sync();
+			return;
 		}
 	}
 
