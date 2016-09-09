@@ -42,8 +42,8 @@
 #include <linux/types.h>
 #include "asm/arch/sci_types.h"
 #include "asm/arch/common.h"
-#include "asm/arch/sys_timer_reg_v0.h"
-#include "asm/arch/timer_reg_v3.h"
+#include "asm/arch/sys_timer_reg_v5.h"
+#include "asm/arch/timer_reg_r4p0.h"
 
 #define TIMER_MAX_VALUE 0xFFFFFFFF
 static unsigned long mul_value = 26;//default 26Mhz
@@ -103,7 +103,7 @@ int timer_init(void)
 void reset_timer(void)
 {
 	//capture current incrementer value time
-	lastinc = readl(SYS_CNT0);
+	lastinc = readl(SYS_VALUE_SHDW);
 	timestamp = 0;
 }
 void reset_timer_masked(void)
@@ -112,7 +112,7 @@ void reset_timer_masked(void)
 }
 unsigned long long get_ticks(void)
 {
-	ulong now = readl(SYS_CNT0);
+	ulong now = readl(SYS_VALUE_SHDW);
 
 	if(now >= lastinc) {
 	/* not roll
@@ -145,39 +145,15 @@ void set_timer(ulong t)
 void __udelay (unsigned long usec)
 {
 	unsigned long delta_usec = usec * mul_value;
-	writel(delta_usec, TM2_LOAD);
-	REG32 (TM2_CTL) |= (TMCTL_EN);//timer runs
-	while(readl(TM2_VALUE) > 0);//loop
-	REG32 (TM2_CTL) &=~ (TMCTL_EN);//timer stops
-}
-#if 0
-void __udelay (unsigned long usec)
-{
-	unsigned long long tmp;
-	ulong tmo;
 
-	tmo = us_to_tick(usec);
-	tmp = get_ticks() + tmo; // get current timestamp
-
-	while(get_ticks() < tmp) //loop till event
-		/*NOP*/;
+	writel(delta_usec, TM2_LOAD_LO);
+	REG32 (TM2_CTL) |= (BIT_TIMER_RUN);//timer runs
+	while(readl(TM2_SHDW_LO) > 0);//loop
+	REG32 (TM2_CTL) &=~ (BIT_TIMER_RUN);//timer stops
 }
-#endif
 
 uint32 SCI_GetTickCount(void)
 {
-	volatile uint32 tmp_tick1;
-	volatile uint32 tmp_tick2;
-
-	tmp_tick1 = SYSTEM_CURRENT_CLOCK;
-	tmp_tick2 = SYSTEM_CURRENT_CLOCK;
-
-	while (tmp_tick1 != tmp_tick2)
-	{
-		tmp_tick1 = tmp_tick2;
-		tmp_tick2 = SYSTEM_CURRENT_CLOCK;
-	}
-
-	return tmp_tick1;
+	return SYSTEM_CURRENT_CLOCK;
 }
 
