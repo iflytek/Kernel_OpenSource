@@ -96,7 +96,8 @@ int timer_init(void)
 				REG_AON_APB_APB_EB1);
 	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AP_TMR1_RTC_EB
 				| BIT_AP_TMR2_RTC_EB, REG_AON_APB_APB_RTC_EB);
-
+	/*init arch timer*/
+	writel(0x1, 0x40400000);
 	return 0;
 }
 
