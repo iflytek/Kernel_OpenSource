@@ -11,6 +11,7 @@
 #include <adi_hal_internal.h>
 #include <chipram_env.h>
 #include <sprd_adc.h>
+#include <sprd_led.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x40000000;
@@ -35,6 +36,7 @@ int board_init(void)
 	pin_init();
 	sprd_eic_init();
 	sprd_gpio_init();
+	sprd_led_init();
 	/*FPGA forbiden*/
 	sprd_pmu_lowpower_init();
 	TDPllRefConfig(1);
