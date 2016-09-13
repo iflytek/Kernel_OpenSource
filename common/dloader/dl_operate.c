@@ -11,6 +11,8 @@
 #include <secure_boot.h>
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>
+#include <chipram_env.h>
+
 
 static DL_EMMC_FILE_STATUS g_status;
 static DL_EMMC_STATUS g_dl_eMMCStatus;
@@ -523,8 +525,19 @@ OPERATE_STATUS _download_image(void)
 
 #if defined (CONFIG_SECURE_BOOT) ||defined (CONFIG_SECBOOT)
 	VERIFY_RESULT verify_res;
-	verify_res = dl_secure_process_flow(&strip_header, g_dl_eMMCStatus.curUserPartitionName,
-		g_status.unsave_recv_size, g_status.total_size, g_eMMCBuf);
+	boot_mode_t boot_role = get_boot_role();
+	if (BOOTLOADER_MODE_DOWNLOAD == boot_role) {
+		/* for normal download mode, use dl_secure_process_flow verify*/
+		verify_res = dl_secure_process_flow(&strip_header,
+			g_dl_eMMCStatus.curUserPartitionName,
+			g_status.unsave_recv_size, g_status.total_size, g_eMMCBuf);
+	} else {
+		/* for autodloader mode, use fb_secure_process_flow verify */
+		verify_res = fb_secure_process_flow(&strip_header,
+			g_dl_eMMCStatus.curUserPartitionName,
+			g_status.unsave_recv_size, g_status.total_size, g_eMMCBuf);
+	}
+
 	switch (verify_res) {
 	case VERIFY_FAIL:
 		if (0 == strcmp("system", g_dl_eMMCStatus.curUserPartitionName))
