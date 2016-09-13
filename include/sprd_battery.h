@@ -31,6 +31,8 @@ void sprdbat_get_vbatauxadc_caldata(void);
 void sprdbat_init(void);
 int sprdbat_is_battery_connected(void);
 void sprdfgu_init(void);
+void sprdbat_show_chglogo(void);
+void sprdbat_chg_led(int on);
 
 #endif
 

@@ -294,7 +294,7 @@ void sprdbat_init(void)
 		enum sprd_adapter_type adp_type = sprdchg_charger_is_adapter();
 		if (adp_type == ADP_TYPE_CDP || adp_type == ADP_TYPE_DCP) {
 			debugf("uboot adp AC\n");
-			sprd2731_chg_set_chg_cur(700);
+			sprd2731_chg_set_chg_cur(1000);
 		} else {
 			debugf("uboot adp USB\n");
 			sprd2731_chg_set_chg_cur(450);

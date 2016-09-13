@@ -276,6 +276,8 @@
 #define LOW_BAT_VOL            3500 /*phone battery voltage low than this value will not boot up*/
 #define LOW_BAT_VOL_CHG        3300    //3.3V charger connect
 
+#define CONFIG_CHG_LED
+#define CONFIG_SHOW_CHGLOGO
 
 /*for device tree*/
 #define DT_PLATFROM_ID 9860

@@ -8,6 +8,7 @@
 //#include <android_bootimg.h>
 //#include <asm/arch/gpio.h>
 #include <asm/arch/check_reboot.h>
+#include <sprd_battery.h>
 
 extern CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] ;
 
@@ -84,6 +85,7 @@ boot_mode_enum_type get_mode_from_bat_low(void)
 	while(is_bat_low()) {
 	  if(charger_connected()) {
 		  debugf("cboot:low battery,charging...\n");
+		  sprdbat_show_chglogo();
 #ifdef CONFIG_SPRD_EXT_IC_POWER
 		  chg_low_bat_chg();
 #endif
@@ -94,6 +96,7 @@ boot_mode_enum_type get_mode_from_bat_low(void)
 	  }
 	}
 #endif
+	sprdbat_chg_led(0);
 	return CMD_UNDEFINED_MODE;
 }
 
