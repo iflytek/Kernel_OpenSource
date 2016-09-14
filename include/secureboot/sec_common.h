@@ -20,11 +20,11 @@ typedef struct{
 extern imgToVerifyInfo img_verify_info;
 /*this two marco is diffent among products, pls check it!*/
 #define IRAM_BEGIN 0x0000ce00
-#define UBOOT_START  0x9efffe00
 #define VERIFY_ADDR 0x9c000000 //for 32bit TOS verification
 #define SIMG_BUF     0x2E00000
 #define CERT_SIZE    0x1000
 #define SYS_HEADER_SIZE 0x200
+#define UBOOT_START  (CONFIG_SYS_TEXT_BASE - SYS_HEADER_SIZE)
 
 #define SEC_TRUE    0
 #define SEC_FALSE   1
@@ -79,5 +79,13 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 int secure_efuse_program();
 
 void sansa_calc_hbk(void);
+
+int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr);
+
+void secboot_init(void);
+
+void secboot_terminal(void);
+
+void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr);
 
 #endif

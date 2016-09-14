@@ -217,16 +217,7 @@ static boot_image_required_t *const s_boot_image_table[] = {
 #ifdef CONFIG_SECURE_BOOT
 uint8_t header_buf[SEC_HEADER_MAX_SIZE];
 #endif
-#if 0
-static void enable_cc63_module(void)
-{
-  printf("Enable_cc63_module\n");
-  sprd_ap_efuse_prog(0x02,0x401);
-  printf("Enable_cc63_module end\n");
-  __asm__("b .");
-}
 
-#endif
 #ifdef CONFIG_SECURE_BOOT
 
 int get_spl_hash(void *hash_data)
@@ -513,11 +504,7 @@ int _boot_load_required_image(boot_image_required_t img_info)
 		secure_verify("uboot", header_buf, (u8 *)FREE_RAM_SPACE_ADDR);
 		memcpy((u8 *)img_info.mem_addr, (u8 *)FREE_RAM_SPACE_ADDR + (normal_boot_offset * EMMC_SECTOR_SIZE), img_info.size);
 #elif defined (CONFIG_SECBOOT)
-		//_boot_partition_read(dev,img_info.partition,0,(img_info.size + CERT_SIZE),(u8*)VERIFY_ADDR);
-        common_raw_read(img_info.partition,(img_info.size + CERT_SIZE), 0, (u8*)VERIFY_ADDR);
-		secboot_param_set((u8*)VERIFY_ADDR,&img_verify_info);
-		uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
-
+        secboot_secure_process_flow(img_info.partition,(img_info.size + CERT_SIZE),0,(char *)VERIFY_ADDR);
 		memcpy(img_info.mem_addr,(VERIFY_ADDR + SYS_HEADER_SIZE),img_info.size);
 #else
 		normal_boot_offset = get_boot_offset(img_info, 0);
@@ -863,15 +850,7 @@ int secure_verify_partition(block_dev_desc_t * dev, uchar * partition_name, void
 	return ret;
 }
 #endif
-#ifdef CONFIG_SECBOOT
-int secure_load_partition(uchar * partition_name,void *ram_addr)
-{
-	int ret = 0;
-	int size = 0;
-	common_raw_read(partition_name,size, 0, (uint8_t *) ram_addr);
-	return ret;
-}
-#endif
+
 void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 {
 	boot_img_hdr *hdr = (void *)raw_header;
@@ -899,11 +878,9 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	secure_verify_partition(dev, partition, KERNEL_ADR);
 #endif
 #if defined (CONFIG_SECBOOT)
-        sansa_calc_hbk();
-	secure_load_partition(partition,VERIFY_ADDR);
-	secboot_param_set(VERIFY_ADDR,&img_verify_info);
-	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
-	uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+    secboot_init();
+    secboot_secure_process_flow(partition,0,0,(char *)VERIFY_ADDR);
+    secboot_terminal();
 #endif
 #endif
 #ifdef OTA_BACKUP_MISC_RECOVERY
@@ -956,21 +933,5 @@ extern boot_image_required_t *get_cp_load_table(void);
 	} while(0);
 #endif
 
-#if defined (CONFIG_SECBOOT)
-	uint32_t flag;
-#ifdef CONFIG_SPRD_SECBOOT
-	flag = SPRD_FLAG;
-#endif
-#ifdef CONFIG_SANSA_SECBOOT
-	flag = SANSA_FLAG;
-#endif
-	//ap_sansa_efuse_prog_power_on();
-	//uboot_update_swVersion(&flag,sizeof(flag));
-	//ap_sansa_efuse_power_off();
-#endif
-
-#if 0
-enable_cc63_module();
-#endif
 	vlx_entry(dt_adr);
 }
