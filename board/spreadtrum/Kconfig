@@ -98,6 +98,11 @@ config TARGET_SP9833_1H10
 	help
 	  This is the Spreadtrum sp9833_1h10 Board
 
+config TARGET_SP9833ZEBU
+	bool "Spreadtrum sp9833zebu"
+	select CPU_V7
+	help
+	  This is the Spreadtrum sp9833zebu Board
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
@@ -117,4 +122,6 @@ source "board/spreadtrum/sp9860g_1h10_al/Kconfig"
 source "board/spreadtrum/sp9860g_2h10_5m/Kconfig"
 source "board/spreadtrum/sp9860g_3h10_5m/Kconfig"
 source "board/spreadtrum/sp9833_1h10/Kconfig"
+source "board/spreadtrum/sp9833zebu/Kconfig"
+
 endif

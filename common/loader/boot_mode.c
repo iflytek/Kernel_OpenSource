@@ -6,10 +6,14 @@ extern unsigned int g_charger_mode;
 
 void normal_mode(void)
 {
+#ifndef CONFIG_ZEBU
 	vibrator_hw_init();
 
 	set_vibrator(1);
 	vlx_nand_boot(BOOT_PART, BACKLIGHT_ON, LCD_ON);
+#else
+	vlx_nand_boot_zebu(BOOT_PART, BACKLIGHT_ON, LCD_ON);
+#endif
 	return;
 }
 

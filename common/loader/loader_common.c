@@ -106,7 +106,10 @@ void fdt_fixup_all(u8 *fdt_blob)
 	fdt_fixup_lcdbase(fdt_blob);
 	fdt_fixup_lcdsize(fdt_blob);
 #endif
+
+#ifndef CONFIG_ZEBU
 	fdt_fixup_adc_calibration_data(fdt_blob);
+#endif
 	//fdt_fixup_dram_training(fdt_blob);
 	fdt_fixup_ddr_size(fdt_blob);
 	fdt_fixup_sysdump_magic(fdt_blob);
@@ -186,7 +189,9 @@ static int start_linux(uchar *dt_addr)
 	theKernel = (void (*)(void *, int, int, int))KERNEL_ADR;
 
 	/*start modem CP */
+#ifndef CONFIG_ZEBU
 	modem_entry();
+#endif
 
 	/*disable all caches */
 	cleanup_before_linux();

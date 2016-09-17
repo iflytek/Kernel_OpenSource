@@ -872,6 +872,40 @@ int secure_load_partition(uchar * partition_name,void *ram_addr)
 	return ret;
 }
 #endif
+
+#ifdef CONFIG_ZEBU
+void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
+{
+	uint32_t size = DT_SIZE;
+	size = (size+(KERNL_PAGE_SIZE - 1)) & (~(KERNL_PAGE_SIZE - 1));
+	uint64_t dt_img_adr = RAMDISK_ADR - size - KERNL_PAGE_SIZE;
+	debugf("%s,dt_img_addr:%p\n",__func__,dt_img_adr);
+
+	/* copy kernel/dt/ramdisk/sml from jointRAM to InterlaceRAM */
+#ifdef CONFIG_INTERLACE_RAM_COPY
+	memcpy(KERNEL_ADR,SRC_KERNEL_ADR,KERNEL_SIZE);
+	memcpy(RAMDISK_ADR,SRC_RAMDISK_ADR,RAMDISK_SIZE);
+#endif
+	memcpy(dt_img_adr,SRC_DT_ADR,DT_SIZE);
+#ifdef CONFIG_INTERLACE_RAM_COPY
+	debugf("copy kernel to interlace RAM done\n");
+#endif
+
+	if (load_dtb((uint64_t)DT_ADR,(void*)dt_img_adr)) {
+	debugf("dt load error!\n");
+	return;
+	}
+
+	fdt_fixup_all((uchar *)DT_ADR);
+	uint32_t r_size = RAMDISK_SIZE;
+	r_size = (r_size+(KERNL_PAGE_SIZE - 1)) & (~(KERNL_PAGE_SIZE - 1));
+	fdt_initrd_norsvmem((uchar *)DT_ADR,RAMDISK_ADR,RAMDISK_ADR+r_size, 1);
+
+	vlx_entry(DT_ADR);
+
+}
+#endif
+
 void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 {
 	boot_img_hdr *hdr = (void *)raw_header;
