@@ -18,7 +18,7 @@
 #define SHORT_PACKET			4
 #define BLANKING_PACKET         6
 /** Version supported by this driver */
-static const uint32_t mipi_dsih_supported_versions[] = {0x100, 0x3132302A, 0x3132312A};
+static const uint32_t mipi_dsih_supported_versions[] = {0x100, 0x3132302A, 0x3132312A,0x3133312A};
 static const uint32_t mipi_dsih_no_of_versions = sizeof(mipi_dsih_supported_versions) / sizeof(uint32_t);
 uint32_t mipi_dsih_current_versions;
 
@@ -104,7 +104,7 @@ dsih_error_t mipi_dsih_open(dsih_ctrl_t * instance)
             return ERR_DSI_CORE_INCOMPATIBLE;
         }
     }
-
+    printf("phy status %x\n",instance->phy_instance.core_read_function(DSI_CTL_BEGIN, R_DSI_HOST_PHY_STATUS));
     mipi_dsih_hal_power(instance, 0);//tianci 1.21a modify
     //mipi_dsih_hal_power(instance, 0);//Jessica masked
     //mipi_dsih_hal_power(instance, 1);//Jessica masked

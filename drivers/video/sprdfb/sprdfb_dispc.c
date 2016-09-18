@@ -333,7 +333,9 @@ static int32_t sprdfb_dispc_early_init(struct sprdfb_device *dev)
 	gsp_iommu_workaround();
 #endif
 	dispc_pll_clk_set(DISPC_PLL_SEL_DEFAULT, 0);
-	dispc_dbi_clk_set(DISPC_DBI_SEL_DEFAULT, 0);
+#ifndef	CONFIG_SOC_IWHALE2
+    dispc_dbi_clk_set(DISPC_DBI_SEL_DEFAULT, 0);
+#endif
 	dispc_dpi_clk_set(DISPC_DPI_SEL_DEFAULT, 0);
 
 	dev->dpi_clock = SPRDFB_DPI_CLOCK_SRC / (DISPC_DPI_DIV_DEFAULT + 1);

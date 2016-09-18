@@ -58,11 +58,17 @@
 #include "sprdfb_chip_9851.h"
 #endif
 
+#ifdef CONFIG_SOC_IWHALE2
+#include "sprdfb_chip_9861.h"
+#endif
+
 void __raw_bits_or(unsigned int v, unsigned int a);
 void __raw_bits_and(unsigned int v, unsigned int a);
 void __raw_bits_set_value(unsigned int reg, unsigned int value, unsigned int bit, unsigned int mask);
 void dispc_pll_clk_set(unsigned int clk_src, unsigned int clk_div);
+#ifndef CONFIG_SOC_IWHALE2
 void dispc_dbi_clk_set(unsigned int clk_src, unsigned int clk_div);
+#endif
 void dispc_dpi_clk_set(unsigned int clk_src, unsigned int clk_div);
 
 #endif

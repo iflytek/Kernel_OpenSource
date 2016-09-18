@@ -9,6 +9,7 @@ obj-$(CONFIG_FB_LCD_NT35516_RGB_SPI) += lcd_nt35516_rgb_spi.o
 obj-$(CONFIG_FB_LCD_NT35510_MIPI) += lcd_nt35510_mipi.o
 obj-$(CONFIG_FB_LCD_NT35512_MIPI) += lcd_nt35512_mipi.o
 obj-$(CONFIG_FB_LCD_NT35532_MIPI) += lcd_nt35532_mipi.o
+obj-$(CONFIG_FB_LCD_NT35532_2_MIPI) += lcd_nt35532_2_mipi.o
 obj-$(CONFIG_FB_LCD_OTM8018B_MIPI) += lcd_otm_8018b_mipi.o
 obj-$(CONFIG_FB_LCD_SSD2075_MIPI) += lcd_ssd2075_mipi.o
 obj-$(CONFIG_FB_LCD_OTM1283A_MIPI) += lcd_otm1283a_mipi.o
