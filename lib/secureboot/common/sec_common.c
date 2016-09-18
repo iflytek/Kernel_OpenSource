@@ -8,7 +8,9 @@
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>
-#include "sprd_common_rw.h"
+
+
+extern u32 __ddie_efuse_read(int blk_index);
 
 #define EFUSE_HASH_STARTID 2
  imgToVerifyInfo img_verify_info = {0};
@@ -251,53 +253,5 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 	return VERIFY_OK;
 }
 
-int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
-{
-    sys_img_header img_header;
-	uint32_t img_size = 0;
 
-	if ((0 == strcmp(partition_name, "boot"))||(0 == strcmp(partition_name, "recovery")))
-	{
-	  if (0 != common_raw_read(partition_name, SYS_HEADER_SIZE, 0, (char*)&img_header))
-	  {
-	    errorf("read %s partition header fail\n", partition_name);
-	    return;
-	  }
-
-	img_size = img_header.mImgSize;
-
-	  if (0 != common_raw_read(partition_name, img_size+CERT_SIZE, 0, ram_addr))
-          {
-            errorf("read %s partition fail\n", partition_name);
-            return;
-	  }
-	}
-	else
-	{
-	  if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
-	   {
-            errorf("read %s partition fail\n", partition_name);
-            return;
-	   }
-	}
-}
-
-void secboot_init(void)
-{
-#if defined (CONFIG_SANSA_SECBOOT)
-  sansa_calc_hbk();
-#endif
-}
-
-void secboot_terminal(void)
-{
-}
-
-void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
-{
-    secure_load_partition(partition_name,size,offset,ram_addr);
-    secboot_param_set(VERIFY_ADDR,&img_verify_info);
-    secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
-    uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
-}
 
