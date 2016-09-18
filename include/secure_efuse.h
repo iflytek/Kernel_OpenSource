@@ -12,6 +12,9 @@
  * GNU General Public License for more details.
  *
  */
+#ifndef _SECURE_EFUSE_H
+#define _SECURE_EFUSE_H
+
 #include <common.h>
 
 #define PROG_OK     0
@@ -32,5 +35,6 @@ int sansa_compute_socid(void *socid);
 int sansa_get_lcs_cmd(void);
 int sansa_set_rma_cmd(void);
 int sansa_kce_program(uint32_t *kcePtr);
+void sansa_calc_hbk(void);
 
-
+#endif

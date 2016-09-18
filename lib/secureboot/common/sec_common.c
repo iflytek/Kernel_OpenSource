@@ -8,9 +8,7 @@
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>
-
-
-extern u32 __ddie_efuse_read(int blk_index);
+#include "sprd_common_rw.h"
 
 #define EFUSE_HASH_STARTID 2
  imgToVerifyInfo img_verify_info = {0};
@@ -48,50 +46,80 @@ static uchar *const s_force_secure_check[] = {
 	NULL
 };
 
-
-void secboot_verify(void *ptr,void *m,void *n,uint32_t data_len)
-{
-	uint32_t jflag;
-	jflag = data_len;
-
-	switch (jflag){
-		case SPRD_FLAG:
-			sprd_secure_check((uint8_t*)ptr,(uint8_t*)m);
-			break;
-		case SANSA_FLAG:
-			sansa_secure_check(m,ptr);
-			break;
-		default:
-			break;
-	}
-}
-
-int secure_efuse_program()
-{
-	int ret = 0;
-
-	#if defined(CONFIG_SANSA_SECBOOT)
-		    printf("###### secure_efuse_program ######\n");
-			ret = secure_efuse_program_sansa();
-	#endif
-
-	#if defined(CONFIG_SPRD_SECBOOT)
-			ret = secure_efuse_program_sprd();
-	#endif
-
-	#if defined(CONFIG_SECURE_BOOT)
-			ret = secure_efuse_program_native();
-	#endif
-}
-int dl_secure_verify(void *partition_name,void *header,void *code)
+static int dl_secure_verify(void *partition_name,void *header,void *code)
 {
 #ifdef CONFIG_SPRD_SECBOOT
-		sprd_dl_verify(partition_name, header, code);
+	sprd_dl_verify(partition_name, header, code);
 #elif defined CONFIG_SANSA_SECBOOT
-    sansa_enable_efuse_EB();
+	sansa_enable_efuse_EB();
 	sansa_dl_secure_verify(partition_name,header,code);
 #else
 	secure_verify(partition_name,header,code);
+#endif
+}
+
+static void fb_secure_verify(void *partition_name,void *header,void *code)
+{
+#ifdef CONFIG_SPRD_SECBOOT
+	//sprd_fb__secure_verify(partition_name, header, code);
+#elif defined CONFIG_SANSA_SECBOOT
+	sansa_fb_secure_verify(partition_name,header,code);
+#else
+	secure_verify(partition_name,header,code);
+#endif
+}
+
+static int _check_secure_part(uchar * partition_name)
+{
+	int i = 0;
+	do {
+		if (SEC_TRUE == strcmp(s_force_secure_check[i], partition_name))
+			return SEC_TRUE;
+		i++;
+	}
+	while (s_force_secure_check[i] != 0);
+
+	return SEC_FALSE;
+}
+
+static int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
+{
+	sys_img_header img_header;
+	uint32_t img_size = 0;
+
+	if ((0 == strcmp(partition_name, "boot"))||(0 == strcmp(partition_name, "recovery")))
+	{
+		if (0 != common_raw_read(partition_name, SYS_HEADER_SIZE, 0, (char*)&img_header))
+		{
+			errorf("read %s partition header fail\n", partition_name);
+			return;
+		}
+
+	img_size = img_header.mImgSize;
+
+		if (0 != common_raw_read(partition_name, img_size+CERT_SIZE, 0, ram_addr))
+		{
+			errorf("read %s partition fail\n", partition_name);
+			return;
+		}
+	}
+	else
+	{
+		if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
+		{
+			errorf("read %s partition fail\n", partition_name);
+			return;
+		}
+	}
+}
+
+static void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo)
+{
+#if defined (CONFIG_SPRD_SECBOOT)
+	sprd_get_hash_key((uint8_t *)img_buf,(uint8_t *)imginfo);//be carefull! the first param in chipram is not same as uboot64
+#endif
+#if defined (CONFIG_SANSA_SECBOOT)
+	sansa_get_hash_key((uint8_t *)img_buf,(uint8_t *)imginfo);
 #endif
 }
 
@@ -110,29 +138,23 @@ void  secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo)
 #endif
 }
 
-void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo)
+int secure_efuse_program(void)
 {
-#if defined (CONFIG_SPRD_SECBOOT)
-	sprd_get_hash_key((uint8_t *)img_buf,(uint8_t *)imginfo);//be carefull! the first param in chipram is not same as uboot64
+	int ret = 0;
+
+#if defined(CONFIG_SANSA_SECBOOT)
+			printf("###### secure_efuse_program ######\n");
+			ret = secure_efuse_program_sansa();
 #endif
-#if defined (CONFIG_SANSA_SECBOOT)
-	sansa_get_hash_key((uint8_t *)img_buf,(uint8_t *)imginfo);
+
+#if defined(CONFIG_SPRD_SECBOOT)
+			ret = secure_efuse_program_sprd();
+#endif
+
+#if defined(CONFIG_SECURE_BOOT)
+			ret = secure_efuse_program_native();
 #endif
 }
-
-int _check_secure_part(uchar * partition_name)
-{
-	int i = 0;
-	do {
-		if (SEC_TRUE == strcmp(s_force_secure_check[i], partition_name))
-			return SEC_TRUE;
-		i++;
-	}
-	while (s_force_secure_check[i] != 0);
-
-	return SEC_FALSE;
-}
-
 
 VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
 			uint32_t rcv_size, uint32_t total_size, unsigned char * buf)
@@ -186,17 +208,6 @@ VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
 	}
 
 	return VERIFY_OK;
-}
-
-void fb_secure_verify(void *partition_name,void *header,void *code)
-{
-#ifdef CONFIG_SPRD_SECBOOT
-	//sprd_fb__secure_verify(partition_name, header, code);
-#elif defined CONFIG_SANSA_SECBOOT
-	sansa_fb_secure_verify(partition_name,header,code);
-#else
-	secure_verify(partition_name,header,code);
-#endif
 }
 
 VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
@@ -253,5 +264,44 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 	return VERIFY_OK;
 }
 
+void secboot_init(void)
+{
+#if defined (CONFIG_SANSA_SECBOOT)
+	sansa_calc_hbk();
+#endif
+}
 
+void secboot_terminal(void)
+{
+}
+
+void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
+{
+	secure_load_partition(partition_name,size,offset,ram_addr);
+	secboot_param_set(VERIFY_ADDR,&img_verify_info);
+	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
+	uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+}
+
+void secboot_update_swVersion(void)
+{
+	uint32_t flag;
+#ifdef CONFIG_SPRD_SECBOOT
+	flag = SPRD_FLAG;
+#endif
+#ifdef CONFIG_SANSA_SECBOOT
+	flag = SANSA_FLAG;
+#endif
+
+#ifdef CONFIG_SANSA_SECBOOT
+	ap_sansa_efuse_prog_power_on();
+#endif
+
+	uboot_update_swVersion(&flag,sizeof(flag));
+
+#ifdef CONFIG_SANSA_SECBOOT
+	ap_sansa_efuse_power_off();
+#endif
+
+}
 

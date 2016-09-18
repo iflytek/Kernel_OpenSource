@@ -5,6 +5,8 @@
 
 #include<secureboot/sprdsec_header.h>
 #include<secureboot/sprd_rsa.h>
+#include<secure_efuse.h>
+#include<asm/arch/chip_releted_def.h>
 
 typedef struct{
 	uint64_t img_addr; //the base address of image to verify
@@ -19,12 +21,14 @@ typedef struct{
 
 extern imgToVerifyInfo img_verify_info;
 /*this two marco is diffent among products, pls check it!*/
-#define IRAM_BEGIN 0x0000ce00
-#define UBOOT_START  0x9efffe00
-#define VERIFY_ADDR 0x9c000000 //for 32bit TOS verification
 #define SIMG_BUF     0x2E00000
 #define CERT_SIZE    0x1000
 #define SYS_HEADER_SIZE 0x200
+#define RESERVE_SIZE 0x3000000
+#define IRAM_BEGIN   (SPL_BASE_ADDR - SYS_HEADER_SIZE)
+#define UBOOT_START  (CONFIG_SYS_TEXT_BASE - SYS_HEADER_SIZE)
+#define VERIFY_ADDR  (CONFIG_SYS_TEXT_BASE - RESERVE_SIZE)
+
 
 #define SEC_TRUE    0
 #define SEC_FALSE   1
@@ -36,7 +40,7 @@ extern imgToVerifyInfo img_verify_info;
 SPL_EMMC_SECTOR_NUM=SPL_IMAGE_SIZE / SECTOR_SIZE
 **/
 #define SPL_EMMC_SECTOR_NUM  (SPL_IMAGE_SIZE/SECTION_SIZE)
-#define SAVE_SPL_IMAGE  0x9d000000
+#define SAVE_SPL_IMAGE  VERIFY_ADDR
 
 #define MAX_PACKED_IMAGE_SIZE  0x1400000  // 20MB
 typedef struct{
@@ -59,25 +63,22 @@ typedef enum VERIFY_RESULT {
 	VERIFY_SPECIAL
 } VERIFY_RESULT;
 
-
-void secboot_verify(void *ptr,void *m,void *n,uint32_t data_len);
-
-int dl_secure_verify(void *partition_name,void *header,void *code);
-
-void secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo);
-
-void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo);
-
 VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name, 
 				uint32_t rcv_size, uint32_t total_size, unsigned char * buf);
-
-void fb_secure_verify(void *partition_name,void *header,void *code);
 
 VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 			    uint32_t rcv_size, uint32_t total_size, unsigned char * buf);
 
+void secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo);
+
 int secure_efuse_program();
 
-void sansa_calc_hbk(void);
+void secboot_init(void);
+
+void secboot_terminal(void);
+
+void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr);
+
+void secboot_update_swVersion(void);
 
 #endif

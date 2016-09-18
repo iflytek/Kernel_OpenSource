@@ -362,7 +362,7 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 		load_spl();
 		#if defined (TOS_VERIFY_SEC)
 		secboot_param_set(header,&img_verify_info);
-		secboot_get_pubkhash(IRAM_BEGIN,img_verify_info.pubkeyhash);
+		sprd_get_hash_key(IRAM_BEGIN,img_verify_info.pubkeyhash);
 		uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
 		#else
 		sprd_secure_check(IRAM_BEGIN,header);
@@ -371,7 +371,7 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 			load_uboot();
 			#if defined (TOS_VERIFY_SEC)
 			secboot_param_set(header,&img_verify_info);
-			secboot_get_pubkhash((CONFIG_SYS_TEXT_BASE - 0x200),img_verify_info.pubkeyhash);
+			sprd_get_hash_key((CONFIG_SYS_TEXT_BASE - 0x200),img_verify_info.pubkeyhash);
 			uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
 			#else
 			sprd_secure_check((CONFIG_SYS_TEXT_BASE - 0x200),header);// first para is the addr
