@@ -186,6 +186,7 @@ void sprdchg_2701_start_chg(int type)
  void sprdchg_2701_stop_charging(void)
 {
 	debugf("stop charge\n");
+	sprd_2701_set_value(TIMER_CTL, WATCH_DOG_TIMER_BIT,WATCH_DOG_TIMER_SHIFT, 0x00);
 	sprd_2701_set_value(POWER_ON_CTL, CHG_EN_BIT , CHG_EN_SHIFT, CHG_DISABLE_VAL);
 }
 void  sprd_2701_sw_reset(void)
