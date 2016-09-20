@@ -53,6 +53,10 @@ int read_adc_calibration_data(char *buffer,int size);
 int pctool_mode_detect_uart(void);
 int sprdisk_mode_detect(void);
 
+#if defined CONFIG_AUTOLOAD_MODE
+void autoload_mode(void);
+#endif
+
 void normal_mode(void);
 void recovery_mode(void);
 void charge_mode(void);

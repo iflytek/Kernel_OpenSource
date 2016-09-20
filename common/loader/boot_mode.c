@@ -1,8 +1,62 @@
 
 #include "loader_common.h"
+#include <libfdt.h>
+#include "dev_tree.h"
 
 extern unsigned int g_charger_mode;
 
+#if defined CONFIG_AUTOLOAD_MODE
+
+void autoload_mode(void)
+{
+	struct boot_img_hdr *boot_hdr;
+	ulong kernel_size = 0;
+	uchar * ramdisk_addr = 0;
+	ulong ramdisk_size = 0;
+	uchar * dt_addr = 0;
+	ulong dt_size = 0;
+	struct dt_table *table = NULL;
+	uint64_t size = 0;
+	struct dt_entry *dt_entry_ptr = NULL;
+	uint64_t offset = 0;
+	debugf("autoload_mode\n");
+	boot_hdr = malloc(512*4);
+	memcpy((void *)boot_hdr,(const void *)BOOTIMG_ADR,512*4);
+	if (!memcmp(boot_hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
+		kernel_size = (boot_hdr->kernel_size + (KERNL_PAGE_SIZE-1)) & (~(KERNL_PAGE_SIZE -1));
+		ramdisk_addr =  (void *)BOOTIMG_ADR+512*4+kernel_size;
+		ramdisk_size = (boot_hdr->ramdisk_size + (KERNL_PAGE_SIZE-1)) & (~(KERNL_PAGE_SIZE -1));
+		dt_addr = (void *)BOOTIMG_ADR+512*4+kernel_size+ramdisk_size;
+		dt_size = (boot_hdr->dt_size + (KERNL_PAGE_SIZE-1)) & (~(KERNL_PAGE_SIZE -1));
+		memcpy((void *)KERNEL_ADR, (const void *)BOOTIMG_ADR+512*4, kernel_size);
+		memcpy((void *)RAMDISK_ADR, ramdisk_addr, ramdisk_size);
+
+		table = (struct dt_table*)dt_addr;
+		/* Validate the device tree table header */
+		if((table->magic != DEV_TREE_MAGIC) || (table->version != DEV_TREE_VERSION)) {
+			errorf("Cannot validate Device Tree Table \n");
+		}
+
+		/* Calculate the offset of device tree within device tree table */
+		dt_entry_ptr = dev_tree_get_entry_ptr(table);
+		if(NULL == dt_entry_ptr) {
+			errorf("Getting device tree address failed\n");
+		}
+
+		memcpy((void *)DT_ADR, dt_addr+dt_entry_ptr->offset, dt_entry_ptr->size);
+
+		debugf("\nthe kernel is loading in the address:0x%x,size is 0x%lx\n", KERNEL_ADR, kernel_size);
+		debugf("\nthe ramdisk is loading in the address:0x%x,size is 0x%lx\n", RAMDISK_ADR, ramdisk_size);
+		debugf("\nthe dtb is loading in the address:0x%x,size is 0x%lx\n", DT_ADR, dt_entry_ptr->size);
+	}
+	fdt_initrd_norsvmem(DT_ADR, RAMDISK_ADR, RAMDISK_ADR + boot_hdr->ramdisk_size, 1);
+	free(boot_hdr);
+
+	vlx_entry(DT_ADR);
+
+}
+
+#endif
 
 void normal_mode(void)
 {

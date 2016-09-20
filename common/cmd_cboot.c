@@ -234,6 +234,10 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	if(argc > 2)
 		return CMD_RET_USAGE;
 
+#if defined CONFIG_AUTOLOAD_MODE
+	autoload_mode();
+#endif
+
 #if defined CONFIG_AUTOBOOT || defined CONFIG_FPGA
 	if (reboot_mode_check() == CMD_AUTODLOADER_REBOOT)
 		autodloader_mode();

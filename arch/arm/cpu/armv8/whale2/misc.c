@@ -165,6 +165,21 @@ int sprd_get_chipid(int *chip_id, int *version_id)
 	return 0;
 }
 
+#if defined CONFIG_SMT
+
+void set_smt(void)
+{
+	if(0x00 == CONFIG_SMT_VALUE){
+		__raw_writel(__raw_readl(JVT_MT_CFG) & (~(0x3)),JVT_MT_CFG);/*open smt*/
+	}else if(0x01 == CONFIG_SMT_VALUE){
+		__raw_writel(__raw_readl(JVT_MT_CFG) | 0x3,JVT_MT_CFG);/*close smt*/
+	}else if(0x10 == CONFIG_SMT_VALUE){
+		/*get config info from mmc*/
+	}
+}
+
+#endif
+
 void misc_init()
 {
 	scx35_pmu_reconfig();
@@ -182,6 +197,10 @@ void misc_init()
 
 	sprd_get_chipid(NULL, NULL);
 	sprd_uid_bin_info();
+
+#if defined CONFIG_SMT
+	set_smt();
+#endif
 }
 
 typedef struct mem_cs_info
