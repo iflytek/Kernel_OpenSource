@@ -571,6 +571,9 @@ dsih_error_t mipi_dsih_dpi_video(dsih_ctrl_t * instance, dsih_dpi_video_t * vide
     }
     mipi_dsih_hal_dpi_video_mode_type(instance, video_params->video_mode);
     mipi_dsih_hal_dpi_hline(instance, (uint16_t)((video_params->h_total_pixels * ratio_clock_xPF) / PRECISION_FACTOR));
+#ifdef CONFIG_SC9833
+    mipi_dsih_hal_dpi_sig_delay(instance, 95*(video_params->h_total_pixels * ratio_clock_xPF) / PRECISION_FACTOR /100);
+#endif
     mipi_dsih_hal_dpi_hbp(instance, ((video_params->h_back_porch_pixels * ratio_clock_xPF) / PRECISION_FACTOR));
     mipi_dsih_hal_dpi_hsa(instance, ((video_params->h_sync_pixels * ratio_clock_xPF) / PRECISION_FACTOR));
     mipi_dsih_hal_dpi_vactive(instance, video_params->v_active_lines);
@@ -719,6 +722,10 @@ dsih_error_t mipi_dsih_dpi_video(dsih_ctrl_t * instance, dsih_dpi_video_t * vide
     mipi_dsih_dphy_no_of_lanes(&(instance->phy_instance), video_params->no_of_lanes);
     /* enable high speed clock */
 //    mipi_dsih_dphy_enable_hs_clk(&(instance->phy_instance), 1);//jessica, panel not init yet, could not set to hs, or result in err to some panel
+#ifdef CONFIG_SC9833
+    mipi_dsih_dphy_enable_hs_clk(&(instance->phy_instance), 1);//jessica, panel not init yet, could not set to hs, or result in err to some panel
+    mipi_dsih_reset_controller(instance);
+#endif
     return err_code;
 }
 /**

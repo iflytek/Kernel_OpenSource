@@ -49,7 +49,7 @@ uint8_t mipi_dsih_dphy_get_no_of_lanes(dphy_t * instance);
 void mipi_dsih_dphy_enable_nc_clk(dphy_t * instance, int enable);
 void mipi_dsih_dphy_enable_hs_clk(dphy_t * instance, int enable);
 dsih_error_t mipi_dsih_dphy_escape_mode_trigger(dphy_t * instance, uint8_t trigger_request);
- #ifdef GEN_2
+#if defined(GEN_2) || defined(CONFIG_SC9833)
 dsih_error_t mipi_dsih_dphy_ulps_data_lanes(dphy_t * instance, int enable);
 dsih_error_t mipi_dsih_dphy_ulps_clk_lane(dphy_t * instance, int enable);
 #else

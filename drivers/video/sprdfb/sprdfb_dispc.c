@@ -54,7 +54,6 @@ static inline void dispc_set_osd_ck(uint32_t ck_color)
 static void dispc_dithering_enable(uint16_t enable)
 {
 	FB_PRINT("sprdfb:[%s]\n",__FUNCTION__);
-
 	if(enable){
 		dispc_set_bits((1<<6), DISPC_CTRL);
 	}else{
@@ -76,10 +75,10 @@ static void dispc_set_exp_mode(uint16_t exp_mode)
 static void dispc_module_enable(void)
 {
 	FB_PRINT("sprdfb:[%s]\n",__FUNCTION__);
-
+#ifndef CONFIG_SC9833
 	/*dispc module enable */
 	dispc_write((1<<0), DISPC_CTRL);
-
+#endif
 	/*disable dispc INT*/
 	dispc_write(0x0, DISPC_INT_EN);
 
@@ -338,11 +337,11 @@ static int32_t sprdfb_dispc_early_init(struct sprdfb_device *dev)
 	dispc_dpi_clk_set(DISPC_DPI_SEL_DEFAULT, 0);
 
 	dev->dpi_clock = SPRDFB_DPI_CLOCK_SRC / (DISPC_DPI_DIV_DEFAULT + 1);
-
+#ifndef CONFIG_FPGA
 	FB_PRINT("sprdfb:DISPC_PLL_SEL_CFG:0x%08x \n",__raw_readl(DISPC_PLL_SEL_CFG));
 	FB_PRINT("sprdfb:DISPC_DPI_SEL_CFG:0x%08x \n",__raw_readl(DISPC_DPI_SEL_CFG));
 	//FB_PRINT("sprdfb:REG_DISP_AHB_AHB_EB:%x \n",__raw_readl(REG_DISP_AHB_AHB_EB));
-
+#endif
 	dispc_reset();
 	dispc_module_enable();
 	is_first_frame = 1;
@@ -365,15 +364,18 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 			return -1;
 		}
 	}
-
+#ifndef CONFIG_SC9833
 	misc_noc_ctrl(REG_AON_APB_DISP_NOC_CTRL,
 			dev->smem_start > 0x400000000 ? FULL_MODE : NORMAL_MODE,
 			SIZE_64);
+#endif
 	/*set bg color*/
 //	dispc_set_bg_color(0xFFFFFFFF);
 	dispc_set_bg_color(0x0);
+#ifndef CONFIG_SC9833
 	/*enable dithering*/
 	dispc_dithering_enable(1);
+#endif
 	/*use MSBs as img exp mode*/
 	dispc_set_exp_mode(0x0);
 
@@ -384,10 +386,18 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 	if(SPRDFB_PANEL_IF_DPI == dev->panel_if_type){
 		if(is_first_frame){
 			/*set dpi register update only with SW*/
+#ifndef CONFIG_SC9833
 			dispc_set_bits((1<<4), DISPC_DPI_CTRL);
+#else
+			dispc_set_bits((1<<4), DISPC_CTRL);
+#endif
 		}else{
 			/*set dpi register update with SW & VSYNC*/
+#ifndef CONFIG_SC9833
 			dispc_clear_bits((1<<4), DISPC_DPI_CTRL);
+#else
+			dispc_clear_bits((1<<4), DISPC_CTRL);
+#endif
 		}
 		/*enable dispc update done INT*/
 //		dispc_write((1<<4), DISPC_INT_EN);
@@ -430,13 +440,23 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 
 	if(SPRDFB_PANEL_IF_DPI == dev->panel_if_type){
 		/*dpi register update*/
+#ifndef CONFIG_SC9833
 		dispc_set_bits((1<<5), DISPC_DPI_CTRL);
+#else
+		dispc_set_bits((1<<5), DISPC_CTRL);
+#endif
 		if(is_first_frame){
 			udelay(30);
 			/*dpi register update with SW and VSync*/
+#ifndef CONFIG_SC9833
 			dispc_clear_bits((1<<4), DISPC_DPI_CTRL);
 			/* start refresh */
 			dispc_set_bits((1 << 4), DISPC_CTRL);
+#else
+			dispc_clear_bits((1<<4), DISPC_CTRL);
+			/* start refresh */
+			dispc_set_bits((1 << 0), DISPC_CTRL);
+#endif
 			is_first_frame = 0;
 		}else{
 			for(i=0;i<1000;i++){

@@ -89,7 +89,7 @@ typedef enum
 	ERR_DSI_PHY_POWERUP,
 	ERR_DSI_PHY_INVALID,
 	ERR_DSI_PHY_FREQ_OUT_OF_BOUND,
-#ifdef GEN_2
+#if defined(GEN_2) || defined(CONFIG_SC9833)
     ERR_DSI_PHY_PLL_NOT_LOCKED,
 #endif
     ERR_DSI_TIMEOUT

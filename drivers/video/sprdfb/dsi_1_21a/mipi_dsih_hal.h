@@ -91,6 +91,9 @@
 	#define R_DSI_HOST_INT_MSK0     		(0x0C)//(0xC4)
 	#define R_DSI_HOST_INT_MSK1     		(0x14)//(0xC8)
 	#define R_DSI_HOST_PHY_STATUS			(0x9C)//(0xB0)
+#ifdef CONFIG_SC9833
+	#define R_DSI_HOST_VIDEO_SIG_DELAY	(0xD0)
+#endif
 #else
 	#define R_DSI_HOST_VERSION     			(0x00)
 	#define R_DSI_HOST_PWR_UP     			(0x04)

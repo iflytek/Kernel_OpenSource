@@ -115,7 +115,6 @@ static int sprdfb_probe(void *lcdbase)
 	dev->display_height = dev->panel->height;
 #endif
 #endif
-
 	debugf("ion node offset = %d\n", nodeoffset);
 	if (nodeoffset == -FDT_ERR_NOTFOUND)
 		return -1;

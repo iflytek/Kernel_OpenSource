@@ -712,6 +712,12 @@ void mipi_dsih_hal_dpi_hline(dsih_ctrl_t * instance, uint16_t time)
 	mipi_dsih_write_part(instance, R_DSI_HOST_VID_HLINE_TIME, time, 0, 15);
 #endif
 }
+#ifdef CONFIG_SC9833
+void mipi_dsih_hal_dpi_sig_delay(dsih_ctrl_t * instance, uint16_t time)
+{
+	mipi_dsih_write_part(instance, R_DSI_HOST_VIDEO_SIG_DELAY, time, 0, 24);
+}
+#endif
 /**
  * Configure the Horizontal back porch time
  * @param instance pointer to structure holding the DSI Host core information

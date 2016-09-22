@@ -64,7 +64,9 @@ int32_t dsi_early_int(void)
 	}
 
 #ifdef CONFIG_FPGA
+#ifndef CONFIG_SC9833
 	usc28c_dsi_init();
+#endif
 #endif
 	dsi_reset();
 
@@ -209,14 +211,12 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 	dphy_t *phy = &(dsi_instance->phy_instance);
 	struct info_mipi * mipi = dev->panel->info.mipi;
 	int i = 0;
-
-#ifdef CONFIG_FPGA   //not use lcd
-
-	return -1;
-
+#ifdef CONFIG_FPGA
+	int j = 0;
 #endif
 
 	dsi_enable();
+
 
 	FB_PRINT("sprdfb:[%s]\n", __FUNCTION__);
 
@@ -271,6 +271,11 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 #endif
 		if(0x0 == ++i%500000){
 			printf("sprdfb: [%s] warning: busy waiting!\n", __FUNCTION__);
+#ifdef CONFIG_FPGA
+			if(++j > 5) {
+				break;
+			}
+#endif
 		}
 	}
 
