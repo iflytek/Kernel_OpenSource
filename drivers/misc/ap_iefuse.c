@@ -79,25 +79,42 @@ typedef unsigned int u32;
 #define BIT_DATA_READY              ( BIT(4) )
 #define BIT_CTL_BUSY                ( BIT(24) )
 
-#define ISENSELV 0x000
-#define IFAVOR 0x000
+#define ISENSELV 0x0
+#define IFAVOR 0x0
 #define SHIFT_ISENSELV 0
 #define READ_MODE 0x0015
-
+#define PROG_MODE 0x0011
+#define KEY_ACCESS_MODE 0x0018
 #define KEY_ACCESS_VALUE             ( 0x55aa55)
-#define CLRBIT(nr)			(0UL << (nr))
-#define CLR_BIT_AON_APB_EFUSE_SOFT_RST CLRBIT(14)
-#define CLR_BIT_AON_APB_EFUSE_EB           CLRBIT(13)
-#define WHALE_LEAK_BIN_BLOCK 15
-#define HWSPINLOCK_TIMEOUT		(5000)
 
-#define EFUSE_BLOCK_MAX                 ( 72 )
+#define DC_READ_MODE 0x0016
+#define DC_WRITE_MODE 0x0013
+#define HWSPINLOCK_TIMEOUT		(5000)
+#define BIT_LOCK_EFUSE                (BIT(31))
+
+#define EFUSE_BLOCK_MAX                 ( 63 )
 #define EFUSE_BLOCK_WIDTH               ( 32 )
 
 #define jiffies (SCI_GetTickCount())	/* return msec count */
 #define msecs_to_jiffies(a) (a)
 #define time_after(a,b)	((int)(b) - (int)(a) < 0)
 #define cpu_relax()
+
+static inline unsigned int ap_efuse_reg_read(u32 reg)
+{
+	return __raw_readl(reg);
+}
+
+static inline void ap_efuse_reg_write(u32 val, u32 reg)
+{
+	__raw_writel(val, reg);
+}
+
+static inline void ap_efuse_bit_write(u32 reg, u32 bits,
+				      u32 clear_msk)
+{
+	__raw_writel(((__raw_readl(reg) & ~clear_msk) | bits), reg);
+}
 
 static void msleep(u32 ms)
 {
@@ -118,14 +135,21 @@ static void ap_efuse_lookat(void)
 	printf("\n");
 }
 
+static void efuse_lock(void)
+{
+}
+
+static void efuse_unlock(void)
+{
+}
+
 static void ap_efuse_reset(void)
 {
 	/* should enable module before soft reset efuse */
 	WARN_ON(!sci_glb_read(REG_AON_APB_APB_EB0, BIT_AON_APB_EFUSE_EB));
 	sci_glb_set(REG_AON_APB_APB_RST0, BIT_AON_APB_EFUSE_SOFT_RST);
-	msleep(10);
+	udelay(10);
 	sci_glb_clr(REG_AON_APB_APB_RST0, BIT_AON_APB_EFUSE_SOFT_RST);
-	msleep(10);
 }
 
 static __inline int ap_efuse_wait_clear(u32 bits)
@@ -133,11 +157,11 @@ static __inline int ap_efuse_wait_clear(u32 bits)
 	int ret = 0;
 	unsigned long timeout;
 
-	printf("wait %x\n", __raw_readl((void *)REG_EFUSE_STATUS));
-
+	debugf("wait 0x%x\n", ap_efuse_reg_read(REG_EFUSE_STATUS));
+	udelay(10);
 	/* wait for maximum of 300 msec */
 	timeout = jiffies + msecs_to_jiffies(300);
-	while (__raw_readl((void *)REG_EFUSE_STATUS) & bits) {
+	while (ap_efuse_reg_read(REG_EFUSE_STATUS) & bits) {
 		if (time_after(jiffies, timeout)) {
 			WARN_ON(1);
 			ret = -ETIMEDOUT;
@@ -151,73 +175,142 @@ static __inline int ap_efuse_wait_clear(u32 bits)
 static void ap_efuse_enable(void)
 {
 	sci_glb_set(REG_AON_APB_APB_EB0, BIT_AON_APB_EFUSE_EB);
-	msleep(5);
 }
 
 static void ap_efuse_disable(void)
 {
-	msleep(1);
 	sci_glb_clr(REG_AON_APB_APB_EB0, BIT_AON_APB_EFUSE_EB);
 }
 
 static void ap_efuse_margin_mode(void)
 {
-	u32 cfg = __raw_readl((void *)REG_EFUSE_MOD_CTRL);
-	cfg &= ~BIT_MARGIN_EN;
-	__raw_writel(cfg, (void *)REG_EFUSE_MOD_CTRL);
-	msleep(1);
+	ap_efuse_bit_write(REG_EFUSE_MOD_CTRL, 0, BIT_MARGIN_EN);
 }
 
-static u32 ap_efuse_read(int bank, int blk)
+static int ap_efuse_read(int bank_index, int blk_index, u32 *data)
 {
 	u32 val = 0;
 	u32 cfg_temp = 0;
-	u32 cfg = 0;
+	int ret = 0;
 
-	__raw_writel(READ_MODE, REG_EFUSE_OP_CFG);
+	ap_efuse_reg_write(READ_MODE, REG_EFUSE_OP_CFG);
 	cfg_temp = (ISENSELV << SHIFT_ISENSELV) | IFAVOR;
-	__raw_writel(cfg_temp, REG_EFUSE_RD_CFG);
-	msleep(1);
-	__raw_writel(blk, REG_EFUSE_BLOCK_INDEX);
-	msleep(1);
-	cfg = __raw_readl((void *)REG_EFUSE_MOD_CTRL);
-	cfg |= BIT_CMD_INPUT;
-	__raw_writel(cfg, REG_EFUSE_MOD_CTRL);
+	ap_efuse_reg_write(cfg_temp, REG_EFUSE_RD_CFG);
+	ap_efuse_reg_write(blk_index, REG_EFUSE_BLOCK_INDEX);
+	ap_efuse_bit_write(REG_EFUSE_MOD_CTRL, BIT_CMD_INPUT, 0);
 
-	if (IS_ERR_VALUE(ap_efuse_wait_clear(BIT_READ_BUSY)))
-		goto out;
-	val = __raw_readl(REG_EFUSE_DATA_RD);
+	ret = ap_efuse_wait_clear(BIT_CTL_BUSY);
+	if (ret) {
+		debugf("iefuse time out 0x%x\n", ap_efuse_reg_read(REG_EFUSE_STATUS));
+		return ret;
+	}
 
-out:
-	return val;
+	val = ap_efuse_reg_read(REG_EFUSE_DATA_RD);
+	*data = val;
+	return ret;
+}
+
+
+static int ap_efuse_dc_read(u32 dc_num, u32 dc_len, u32 *data)
+{
+	u32 val = 0;
+	int ret = 0;
+
+	ap_efuse_reg_write(DC_READ_MODE, REG_EFUSE_OP_CFG);
+	ap_efuse_bit_write(REG_EFUSE_DC_CFG1, dc_num, 0);
+	ap_efuse_bit_write(REG_EFUSE_DC_CFG1, dc_len, 0);
+	ap_efuse_bit_write(REG_EFUSE_MOD_CTRL, BIT_CMD_INPUT, 0);
+
+	ret = ap_efuse_wait_clear(BIT_CTL_BUSY);
+	if (ret) {
+		debugf("iefuse time out 0x%x\n", ap_efuse_reg_read(REG_EFUSE_STATUS));
+		return ret;
+	}
+
+	val = ap_efuse_reg_read(REG_EFUSE_DATA_RD);
+	*data = val ;
+	return ret;
+}
+
+static int ap_efuse_dc_write(u32 data, u32 dc_num, u32 dc_len)
+{
+	int ret = 0;
+
+	debugf("iefuse dc write 0x%08x\n", data);
+	ap_efuse_reg_write(DC_WRITE_MODE, REG_EFUSE_OP_CFG);
+	ap_efuse_bit_write(REG_EFUSE_DC_CFG1, dc_num, 0);
+	ap_efuse_bit_write(REG_EFUSE_DC_CFG1, dc_len, 0);
+	ap_efuse_reg_write(data, REG_EFUSE_DC_CFG0);
+	ap_efuse_bit_write(REG_EFUSE_MOD_CTRL, BIT_CMD_INPUT, 0);
+
+	ret = ap_efuse_wait_clear(BIT_CTL_BUSY);
+	if (ret) {
+		debugf("iefuse time out 0x%x\n", ap_efuse_reg_read(REG_EFUSE_STATUS));
+	}
+	return ret;
+}
+
+int sprd_ap_efuse_dc_read(u32 dc_num, u32 dc_len, u32 *data)
+{
+	u32 val = 0;
+    int ret = 0;
+
+	debugf("iefuse dc read number=%d,len=%d\n", dc_len, dc_num);
+	efuse_lock();
+	ap_efuse_enable();
+	ap_efuse_margin_mode();
+	ret = ap_efuse_dc_read(dc_num, dc_len, data);
+	ap_efuse_disable();
+	efuse_unlock();
+	debugf("iefuse read 0x%08x\n", val);
+	return ret;
+}
+
+int sprd_ap_efuse_dc_write(u32 data, u32 dc_len, u32 dc_num)
+{
+	int ret = 0;
+
+	debugf("iefuse dc write 0x%x num=%d,len=%d\n", data, dc_len, dc_num);
+	efuse_lock();
+	ap_efuse_enable();
+	ap_efuse_margin_mode();
+	ret = ap_efuse_dc_write(data, dc_len, dc_num);
+	ap_efuse_disable();
+	efuse_unlock();
+	return ret;
 }
 
 u32 sprd_ap_efuse_read(int blk_index)
 {
-	u32 val;
+	u32 val = 0;
 	int bank_index = 0;
+	int ret = 0;
 
-	printf("iefuse read bank ,block %d\n", bank_index, blk_index);
+	efuse_lock();
 	ap_efuse_enable();
 	ap_efuse_margin_mode();
-	val = ap_efuse_read(bank_index, blk_index);
+	ret = ap_efuse_read(bank_index, blk_index, &val);
+	if(ret)
+		val = 0;
 	ap_efuse_disable();
+	efuse_unlock();
+	debugf("iefuse read ret %d,index %d, 0x%08x\n", ret, blk_index, val);
 	return val;
 }
 
 int sprd_ap_efuse_prog(int blk_index, u32 val)
 {
 	int ret = 0;
-	printf("iefuse prog %d %08x\n", blk_index, val);
+	debugf("iefuse prog %d %08x\n", blk_index, val);
 	return ret;
 }
 
 void ap_efuse_block_dump(void)
 {
 	int idx;
-	printf("ap iefuse base %08x\n", SPRD_UIDEFUSE_BASE);
-	printf("ap iefuse blocks dump:\n");
+	debugf("ap iefuse base %08x\n", SPRD_UIDEFUSE_BASE);
+	debugf("ap iefuse blocks dump:\n");
 	for (idx = 0; idx < EFUSE_BLOCK_MAX; idx++) {
-		printf("[%02d] %08x\n", idx, sprd_ap_efuse_read(idx));
+		debugf("[%02d] %08x\n", idx, sprd_ap_efuse_read(idx));
 	}
 }
