@@ -715,24 +715,28 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 	debugf("%s ramdisk read OK,size=0x%llx, locate to 0x%lx \n", partition, size, ramdisk_addr);
 
 	boot_mode_type_str = getenv("bootmode");
-	if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
-		int ramdisk_size;
-		ramdisk_size = boot_sprdisk(size, ramdisk_addr, 0);
-		if (ramdisk_size > 0) {
-			hdr->ramdisk_size = ramdisk_size;
-			if (RAMDISK_ADR != ramdisk_addr) {
-				/* get ramdisk size , calculate addr, so we can have enough room for sprdisk ramdisk */
-				size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
-				ramdisk_addr = *dt_addr - size;
-				hdr->ramdisk_addr = ramdisk_addr;
+	if (NULL != boot_mode_type_str)
+	{
+		if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
+			int ramdisk_size;
+			ramdisk_size = boot_sprdisk(size, ramdisk_addr, 0);
+			if (ramdisk_size > 0) {
+				hdr->ramdisk_size = ramdisk_size;
+				if (RAMDISK_ADR != ramdisk_addr) {
+					/* get ramdisk size , calculate addr, so we can have enough room for sprdisk ramdisk */
+					size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+					ramdisk_addr = *dt_addr - size;
+					hdr->ramdisk_addr = ramdisk_addr;
+				}
+				fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+hdr->ramdisk_size , 1);
+				boot_sprdisk(ramdisk_size, ramdisk_addr, 1);
+			} else {
+				errorf("%s, sprdisk mode failure!\n", __FUNCTION__);
 			}
-			fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+hdr->ramdisk_size , 1);
-			boot_sprdisk(ramdisk_size, ramdisk_addr, 1);
-		} else {
-			errorf("%s, sprdisk mode failure!\n", __FUNCTION__);
+			return 1;
 		}
-		return 1;
 	}
+
 
 #ifdef CONFIG_SDRAMDISK
 	{

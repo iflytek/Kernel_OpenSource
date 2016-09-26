@@ -126,8 +126,11 @@ void fdt_fixup_all(u8 *fdt_blob)
 	fdt_fixup_cp_boot(fdt_blob);
 
 	boot_mode_type_str = getenv("bootmode");
-	if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
-		fdt_fixup_memleakon(fdt_blob);
+	if (NULL != boot_mode_type_str)
+	{
+		if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
+			fdt_fixup_memleakon(fdt_blob);
+		}
 	}
 
 	fdt_fixup_serialno(fdt_blob);
