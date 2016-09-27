@@ -674,6 +674,12 @@ static uint32_t nt35532_readid(struct panel_spec *self)
 		if(0x32 == read_data[0]){
 			printk("lcd_nt35532_mipi read id success!\n");
 			mipi_eotp_set(1,1);
+			i2c_set_bus_num(4);
+			i2c_init(100000, 0x3E);
+			i2c_reg_write(0x3E, 0x00, 0x0e);
+			mdelay(50);
+			i2c_reg_write(0x3E, 0x01, 0x0e);
+			mdelay(50);
 			return 0x32;
 		}
 	}
