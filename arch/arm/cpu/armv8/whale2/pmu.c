@@ -32,11 +32,9 @@ extern   "C"
 /**---------------------------------------------------------------------------*
  **                         Macro defines.
  **---------------------------------------------------------------------------*/
-#define DDR_PHY_IND_ADDR  0x30010184
-#define DDR_PHY_IND_ADDR1 0x30040000
-#define DDR_PHY_IND_ADDR2 0x402e3048
-#define DDR_PHY_IND_PHY_ALIVE 0x00000001
-
+#define WHALE2_SRAM_REPAIR_EFUSE_BLOCK  3
+#define WHALE2_SRAM_REPAIR_EFUSE_BIT1   27
+#define WHALE2_SRAM_REPAIR_EFUSE_BIT2   19
 
 /**---------------------------------------------------------------------------*
  **                         Struct defines.
@@ -1043,10 +1041,28 @@ static void dcdc_core_ds_config(uint32_t core_cal_para, uint32_t core_ctrl_para)
 	}
 }
 
+static void sram_repair()
+{
+	u32 data = sprd_ap_efuse_read(WHALE2_SRAM_REPAIR_EFUSE_BLOCK);
+	u32 check_bit1 = (data >> WHALE2_SRAM_REPAIR_EFUSE_BIT1) & 0x1;
+	u32 check_bit2 = (data >> WHALE2_SRAM_REPAIR_EFUSE_BIT2) & 0x1;
+
+	if( !check_bit1 && !check_bit2 )
+		return;
+
+	CHIP_REG_AND(REG_PMU_APB_PD_AON_SYS_CFG, ~BIT_PMU_APB_AON_WAKEUP_POR); //disable aon repair
+	CHIP_REG_OR(REG_AON_APB_SUB_SYS_DBG_SIG6, 0x1); //enable efuse buffer rst_n
+	CHIP_REG_OR(REG_AON_APB_SUB_SYS_DBG_SIG6, 0x2); //enable efuse buffer start
+	udelay(60);  //delay for 60us
+	CHIP_REG_SET(REG_PMU_APB_BISR_BYP_CFG1, 0x0); //enable all power domain repair
+	CHIP_REG_AND(REG_PMU_APB_BISR_BYP_CFG2, 0x0); //enable all power domain repair
+}
+
 void CSP_Init(uint32_t gen_para)
 {
 	uint32_t reg_val;
 	//setup_autopd_mode();
+	sram_repair();
 	pmu_commom_config();
 	dcdc_core_ds_config(0,3);
 }
