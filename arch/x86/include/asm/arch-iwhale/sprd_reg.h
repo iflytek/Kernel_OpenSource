@@ -13,6 +13,7 @@
 #include <power/sprd_pmic/pmic_glb_reg.h>
 
 #if defined(CONFIG_TARGET_SP9861_VP) || defined(CONFIG_TARGET_SP9861) || defined(CONFIG_TARGET_SP9861E_1H10)
+#include "chip_iwhale2/__regs_ana_apb.h"
 #include "chip_iwhale2/__regs_ap_apb.h"
 #include "chip_iwhale2/__regs_aon_apb.h"
 #include "chip_iwhale2/__regs_aon_clk.h"
@@ -34,7 +35,6 @@
 #include "chip_iwhale2/__regs_anlg_phy_g4.h"
 #include "chip_iwhale2/__regs_anlg_phy_g6.h"
 #include "chip_iwhale2/__regs_anlg_phy_g8.h"
-#include "chip_iwhale2/__regs_anlg_phy_g9.h"
 #include "chip_iwhale2/__regs_com_pmu_apb.h"
 #include "chip_iwhale2/__regs_common_apb.h"
 #include "chip_iwhale2/__regs_baseia_dvfs.h"
