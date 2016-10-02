@@ -155,15 +155,18 @@ void lcd_enable(void)
 	real_refresh(&s_sprdfb_dev);
 }
 
+
 void lcd_ctrl_init(void *lcdbase)
 {
 	int size;
 	void *bmp;
 	char *s;
 	ulong addr;
+	u32 bmp_header_size = 8192;
 
 	sprdfb_probe(lcdbase);
 	size = lcd_get_size(&lcd_line_length) >> 1;
+	size += bmp_header_size;
 	bmp = malloc(size);
 	if (!bmp) {
 		errorf("sprdfb: %s: failed to alloc bmp space\n", __FUNCTION__);
