@@ -18,7 +18,7 @@
 #define SHORT_PACKET			4
 #define BLANKING_PACKET         6
 /** Version supported by this driver */
-static const uint32_t mipi_dsih_supported_versions[] = {0x100, 0x3132302A, 0x3132312A,0x3133312A};
+static const uint32_t mipi_dsih_supported_versions[] = {0x100, 0x3132302A, 0x3132312A, 0x3133312A};
 static const uint32_t mipi_dsih_no_of_versions = sizeof(mipi_dsih_supported_versions) / sizeof(uint32_t);
 uint32_t mipi_dsih_current_versions;
 

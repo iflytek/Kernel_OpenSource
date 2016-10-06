@@ -259,11 +259,11 @@ typedef enum {
 #define DDR_CAPACITY_OFFSET	9
 #define DDR_CAPACITY_MASK	(0x7 << DDR_CAPACITY_OFFSET)
 
-#define INTERLEAVE_MODE_OFFSET	1
+#define INTERLEAVE_MODE_OFFSET	2
 #define INTERLEAVE_MODE_MASK	(0x3 << INTERLEAVE_MODE_OFFSET)
 
-#define INTERLEAVE_SEL_OFFSET	0
-#define INTERLEAVE_SEL_MASK	(0x1 << INTERLEAVE_SEL_OFFSET)
+#define INTERLEAVE_SEL_OFFSET	6
+#define INTERLEAVE_SEL_MASK	(0x3 << INTERLEAVE_SEL_OFFSET)
 
 void misc_noc_ctrl(unsigned long base, unsigned int mode, unsigned int sel);
 void dsi_enable(void);
