@@ -255,12 +255,14 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 #endif
 	dsi_instance->phy_feq = dev->panel->info.mipi->phy_feq;
 
+	printf("phy status0 %x\n",dsi_core_read_function(DSI_CTL_BEGIN, R_DSI_HOST_PHY_STATUS));
 	result = mipi_dsih_open(dsi_instance);
 	if(OK != result){
 		printf("sprdfb: [%s]: mipi_dsih_open fail (%d)!\n", __FUNCTION__, result);
 		return -1;
 	}
 
+	printf("phy status1 %x\n",dsi_core_read_function(DSI_CTL_BEGIN, R_DSI_HOST_PHY_STATUS));
 	result = mipi_dsih_dphy_configure(phy,  mipi->lan_number, mipi->phy_feq);
 	if(OK != result){
 		printf("sprdfb: [%s]: mipi_dsih_dphy_configure fail (%d)!\n", __FUNCTION__, result);
@@ -282,6 +284,7 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 		}
 	}
 
+	printf("phy status2 %x\n",dsi_core_read_function(DSI_CTL_BEGIN, R_DSI_HOST_PHY_STATUS));
 	if(SPRDFB_MIPI_MODE_CMD == mipi->work_mode){
 		dsi_edpi_init();
 		dsi_edpi_setbuswidth(mipi);

@@ -112,6 +112,7 @@ uint8_t mipi_dsih_dphy_calibration(dphy_t * phy)// tianci need check with thomas
  */
 dsih_error_t mipi_dsih_dphy_open(dphy_t * phy)
 {
+    printf("%s enter\n",__func__);
     if (phy == 0)
     {
         return ERR_DSI_PHY_INVALID;
@@ -144,9 +145,18 @@ dsih_error_t mipi_dsih_dphy_open(dphy_t * phy)
  * @param output_freq desired high speed frequency
  * @return error code
  */
+void writel_nbits(uint8_t value,uint8_t nbits,uint8_t offset,uint32_t addr)
+{
+	uint32_t tmp;
+	tmp = __raw_readl(addr);
+	tmp &= ~(((1 << nbits)-1) << offset);
+	tmp |= value << offset;
+        __raw_writel(tmp, addr);
+}
  #ifdef GEN_2
 dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_t output_freq)
 {
+    printf("%s enter\n",__func__);
     uint32_t loop_divider = 0; /* (M) */
     uint32_t input_divider = 1; /* (N) */
     uint8_t data[4]; /* maximum data for now are 4 bytes per test mode*/
@@ -207,6 +217,86 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
 		{1400, 0x1C, 0x07}, {1450, 0x2C, 0x07}, {1500, 0x3C, 0x07}
 	};
 
+#if 1
+    uint32_t fbdivratio,fracdiv,fracnen,div5bbypass,div5b,div2or3;
+    /******fwen,sys_rst,apb_rst*************/
+    __raw_bits_or(1<<1, 0xe4109000); //pgen reset ?
+    __raw_bits_or(1<<2, 0xe4109000);
+    __raw_bits_or(1<<20, 0xe4109000);
+    __raw_bits_or(1<<21, 0xe4109000);
+    __raw_bits_or(1<<3, 0xd39000a0);//force pll
+    /****latchreset,latchen****/
+    __raw_bits_or(1<<13, 0xe4109000);
+    __raw_bits_or(1<<14, 0xe4109000);
+    printf("0xe4109000 = 0x%x\n", __raw_readl(0xe4109000));
+    /***********enable dsi**************/
+#define PHY_OFFSET 0x0
+    __raw_writel(0x0,0xe41b0014+PHY_OFFSET);
+    __raw_writel(0x0,0xe41b0000+PHY_OFFSET);
+    __raw_writel(0xf,0xe41b0018+PHY_OFFSET);
+    __raw_writel(0x0,0xe41b0058+PHY_OFFSET);
+    __raw_writel(0x3810,0xe41b0044+PHY_OFFSET);
+    __raw_bits_or(1<<4, 0xe41b0120+PHY_OFFSET);
+    printf("0xe41b0014 = 0x%x\n", __raw_readl(0xe41b0014+PHY_OFFSET));
+    printf("0xe41b0000 = 0x%x\n", __raw_readl(0xe41b0000+PHY_OFFSET));
+    printf("0xe41b0018 = 0x%x\n", __raw_readl(0xe41b0018+PHY_OFFSET));
+    printf("0xe41b0058 = 0x%x\n", __raw_readl(0xe41b0058+PHY_OFFSET));
+    printf("0xe41b0044 = 0x%x\n", __raw_readl(0xe41b0044+PHY_OFFSET));
+    printf("0xe41b0120 = 0x%x\n", __raw_readl(0xe41b0120+PHY_OFFSET));
+    //__raw_writel(0x10,0xe41b0120+PHY_OFFSET);
+    /*********set pll*************/
+    if (output_freq == 300*1000) {
+       fbdivratio = 0x80;
+       fracdiv = 0x0;
+       fracnen = 0x0;
+       div5bbypass = 0x0;
+       div5b = 0x2;
+       div2or3 = 0x0;
+    } else if (output_freq == 800*1000) {
+       fbdivratio = 168;
+       fracdiv = 0x0;
+       fracnen = 0x0;
+       div5bbypass = 0x0;
+       div5b = 0x1;
+       div2or3 = 0x0;
+    } else if (output_freq == 880*1000) {
+       fbdivratio = 138;
+       fracdiv = 0x0;
+       fracnen = 0x0;
+       div5bbypass = 0x0;
+       div5b = 0x0;
+       div2or3 = 0x1;
+    }
+
+    __raw_bits_and(~(1<<3),0xd3900000);
+    writel_nbits(fbdivratio,8,0,0xe41b0300+PHY_OFFSET);
+    //writel_nbits(0x80,8,0,0xe41b0300+PHY_OFFSET);
+    writel_nbits(fracdiv,22,0,0xe41b0308+PHY_OFFSET);
+    //writel_nbits(0x0,22,0,0xe41b0308+PHY_OFFSET);
+    //__raw_bits_and(~(1<<16),0xe41b030c+PHY_OFFSET);
+    //writel_nbits(0x0,1,16,0xe41b030c+PHY_OFFSET);
+    writel_nbits(fracnen,1,16,0xe41b030c+PHY_OFFSET);
+
+    //writel_nbits(0x0,1,5,0xe41b0004+PHY_OFFSET);
+    writel_nbits(div5bbypass,1,5,0xe41b0004+PHY_OFFSET);
+    //writel_nbits(0x2,3,1,0xe41b0004+PHY_OFFSET);
+    writel_nbits(div5b,3,1,0xe41b0004+PHY_OFFSET);
+    //writel_nbits(0x0,1,4,0xe41b0004+PHY_OFFSET);
+    writel_nbits(div2or3,1,4,0xe41b0004+PHY_OFFSET);
+
+    __raw_bits_or(1<<0, 0xe41b0120+PHY_OFFSET);
+    __raw_bits_or(1<<3, 0xd39000a0);//force pll
+
+    /************set hs prepare time*************/
+    __raw_writel(0x1,0xe41b00e4+PHY_OFFSET);
+
+    printf("0xe41b0300 = 0x%x\n", __raw_readl(0xe41b0300+PHY_OFFSET));
+    printf("0xe41b0308 = 0x%x\n", __raw_readl(0xe41b0308+PHY_OFFSET));
+    printf("0xe41b030c = 0x%x\n", __raw_readl(0xe41b030c+PHY_OFFSET));
+    printf("0xe41b0004 = 0x%x\n", __raw_readl(0xe41b0004+PHY_OFFSET));
+    printf("0xe41b0120 = 0x%x\n", __raw_readl(0xe41b0120+PHY_OFFSET));
+    printf("0xe41b00e4 = 0x%x\n", __raw_readl(0xe41b00e4+PHY_OFFSET));
+#endif
     if (phy == 0)
     {
         return ERR_DSI_INVALID_INSTANCE;
@@ -414,14 +504,6 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     return OK;
 }
 #else
-void writel_nbits(uint8_t value,uint8_t nbits,uint8_t offset,uint32_t addr)
-{
-	uint32_t tmp;
-	tmp = __raw_readl(addr);
-	tmp &= ~(((1 << nbits)-1) << offset);
-	tmp |= value << offset;
-        __raw_writel(tmp, addr);
-}
 dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_t output_freq)
 {
     uint32_t loop_divider = 0; /* (M) */
@@ -482,22 +564,29 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
 #if 1
     uint32_t fbdivratio,fracdiv,fracnen,div5bbypass,div5b,div2or3;
     /******fwen,sys_rst,apb_rst*************/
-    __raw_bits_or(1<<2, 0xe4100900);
-    __raw_bits_or(1<<20, 0xe4100900);
-    __raw_bits_or(1<<21, 0xe4100900);
+    __raw_bits_or(1<<1, 0xe4109000); //pgen reset ?
+    __raw_bits_or(1<<2, 0xe4109000);
+    __raw_bits_or(1<<20, 0xe4109000);
+    __raw_bits_or(1<<21, 0xe4109000);
     __raw_bits_or(1<<3, 0xd39000a0);//force pll
     /****latchreset,latchen****/
-    __raw_bits_or(1<<13, 0xe4100900);
-    __raw_bits_or(1<<14, 0xe4100900);
-
+    __raw_bits_or(1<<13, 0xe4109000);
+    __raw_bits_or(1<<14, 0xe4109000);
+    FB_PRINT("0xe4109000 = 0x%x\n", __raw_readl(0xe4109000));
     /***********enable dsi**************/
-#define PHY_OFFSET 0x800
+#define PHY_OFFSET 0x0
     __raw_writel(0x0,0xe41b0014+PHY_OFFSET);
     __raw_writel(0x0,0xe41b0000+PHY_OFFSET);
     __raw_writel(0xf,0xe41b0018+PHY_OFFSET);
     __raw_writel(0x0,0xe41b0058+PHY_OFFSET);
     __raw_writel(0x3810,0xe41b0044+PHY_OFFSET);
     __raw_bits_or(1<<4, 0xe41b0120+PHY_OFFSET);
+    FB_PRINT("0xe41b0014 = 0x%x\n", __raw_readl(0xe41b0014+PHY_OFFSET));
+    FB_PRINT("0xe41b0000 = 0x%x\n", __raw_readl(0xe41b0000+PHY_OFFSET));
+    FB_PRINT("0xe41b0018 = 0x%x\n", __raw_readl(0xe41b0018+PHY_OFFSET));
+    FB_PRINT("0xe41b0058 = 0x%x\n", __raw_readl(0xe41b0058+PHY_OFFSET));
+    FB_PRINT("0xe41b0044 = 0x%x\n", __raw_readl(0xe41b0044+PHY_OFFSET));
+    FB_PRINT("0xe41b0120 = 0x%x\n", __raw_readl(0xe41b0120+PHY_OFFSET));
     //__raw_writel(0x10,0xe41b0120+PHY_OFFSET);
     /*********set pll*************/
     if (output_freq == 300*1000) {
@@ -535,7 +624,7 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     //writel_nbits(0x0,1,5,0xe41b0004+PHY_OFFSET);
     writel_nbits(div5bbypass,1,5,0xe41b0004+PHY_OFFSET);
     //writel_nbits(0x2,3,1,0xe41b0004+PHY_OFFSET);
-    writel_nbits(div5b,1,5,0xe41b0004+PHY_OFFSET);
+    writel_nbits(div5b,3,1,0xe41b0004+PHY_OFFSET);
     //writel_nbits(0x0,1,4,0xe41b0004+PHY_OFFSET);
     writel_nbits(div2or3,1,4,0xe41b0004+PHY_OFFSET);
 
@@ -545,7 +634,12 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     /************set hs prepare time*************/
     __raw_writel(0x1,0xe41b00e4+PHY_OFFSET);
 
-   
+    FB_PRINT("0xe41b0300 = 0x%x\n", __raw_readl(0xe41b0300+PHY_OFFSET));
+    FB_PRINT("0xe41b0308 = 0x%x\n", __raw_readl(0xe41b0308+PHY_OFFSET));
+    FB_PRINT("0xe41b030c = 0x%x\n", __raw_readl(0xe41b030c+PHY_OFFSET));
+    FB_PRINT("0xe41b0004 = 0x%x\n", __raw_readl(0xe41b0004+PHY_OFFSET));
+    FB_PRINT("0xe41b0120 = 0x%x\n", __raw_readl(0xe41b0120+PHY_OFFSET));
+    FB_PRINT("0xe41b00e4 = 0x%x\n", __raw_readl(0xe41b00e4+PHY_OFFSET));
 #endif
     if (phy == 0)
     {
@@ -711,6 +805,7 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
  */
 dsih_error_t mipi_dsih_dphy_close(dphy_t * phy)
 {
+    printf("%s enter\n",__func__);
     if (phy == 0)
     {
         return ERR_DSI_INVALID_INSTANCE;
@@ -768,6 +863,7 @@ void mipi_dsih_dphy_shutdown(dphy_t * instance, int powerup)
  */
 void mipi_dsih_dphy_force_pll(dphy_t * instance, int force)
 {
+    printf("%s enter\n",__func__);
     mipi_dsih_dphy_write_part(instance, R_DPHY_RSTZ, force, 3, 1);
 }
 /**
@@ -1151,6 +1247,7 @@ void mipi_dsih_dphy_test_data_in(dphy_t * instance, uint8_t test_data)
  */
 void mipi_dsih_dphy_write(dphy_t * instance, uint8_t address, uint8_t * data, uint8_t data_length)
 {
+#if 0
     unsigned i = 0;
     if (data != 0)
     {
@@ -1176,6 +1273,7 @@ void mipi_dsih_dphy_write(dphy_t * instance, uint8_t address, uint8_t * data, ui
         }
 #endif
     }
+#endif
 }
 
 
