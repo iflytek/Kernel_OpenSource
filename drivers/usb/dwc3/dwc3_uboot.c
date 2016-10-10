@@ -25,12 +25,16 @@
 #ifdef CONFIG_USB_DWC3_SPRD
 #include "sprd_usb3_hw.c"
 #else
+#ifdef CONFIG_USB_DWC3_SPRD_INTEL
+#include "sprd_intel_usb3_hw.c"
+#else
 static void dwc3_device dwc3_dev = {
 	.base = 0x0,
 	.maximum_speed = USB_SPEED_UNKNOWN,
 };
 static void usb_clk_enable(u32 is_on) {}
 static void usb_phy_enable(u32 is_on) {}
+#endif
 #endif
 
 int usb_driver_init(unsigned int max_speed)

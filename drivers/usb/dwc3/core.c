@@ -381,9 +381,14 @@ static void dwc3_phy_setup(struct dwc3 *dwc)
 
 	reg = dwc3_readl(dwc->regs, DWC3_GUSB2PHYCFG(0));
 
-	reg |= DWC3_GUSB2PHYCFG_PHYIF;
 	reg &= ~DWC3_GUSB2PHYCFG_USBTRDTIM_MASK;
+#ifdef CONFIG_USB_DWC3_SPRD_INTEL
+	reg &= ~DWC3_GUSB2PHYCFG_PHYIF;
+	reg |= DWC3_GUSB2PHYCFG_USBTRDTIM(9);
+#else
+	reg |= DWC3_GUSB2PHYCFG_PHYIF;
 	reg |= DWC3_GUSB2PHYCFG_USBTRDTIM(5);
+#endif
 
 	/*
 	 * Above 1.94a, it is recommended to set DWC3_GUSB2PHYCFG_SUSPHY to
@@ -505,6 +510,12 @@ static int dwc3_core_init(struct dwc3 *dwc)
 	dwc3_writel(dwc->regs, DWC3_GCTL, reg);
 
 	dwc3_phy_setup(dwc);
+
+#ifdef CONFIG_USB_DWC3_SPRD_INTEL
+	reg = dwc3_readl(dwc->regs, DWC3_GUCTL1);
+	reg |= DWC3_GUCTL1_DEV_FOR_30_CLK;
+	dwc3_writel(dwc->regs, DWC3_GUCTL1, reg);
+#endif
 
 	ret = dwc3_alloc_scratch_buffers(dwc);
 	if (ret)

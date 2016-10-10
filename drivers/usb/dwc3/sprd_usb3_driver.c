@@ -64,8 +64,8 @@ static int g_out_len;
 /** Send buffer for EPn in transfer */
 //static char g_in_buffer[MAX_RECV_LENGTH];
 
-extern void invalidate_dcache_range(uint64_t, uint64_t);
-extern void flush_dcache_range(uint64_t, uint64_t);
+extern void invalidate_dcache_range(phys_addr_t, phys_addr_t);
+extern void flush_dcache_range(phys_addr_t, phys_addr_t);
 extern uint32_t	dwc3_get_evt_lpos();
 
 static void usb_receive(usb3_pcd_t *pcd);
