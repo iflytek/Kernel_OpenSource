@@ -47,7 +47,7 @@
 #define CONFIG_ARCH_SCX35L2
 #define CONFIG_ARCH_SCX35L
 
-//#define DFS_ON_ARM7
+#define DFS_ON_ARM7
 #define DFS_PARAM_SRC_ADDR     0x0001c0c
 #define DFS_PARAM_TARGET_ADDR  0x50805400
 #define DFS_PARAM_LEN  0x400
@@ -60,15 +60,15 @@
 
 #define LTE_GDSP_LOAD_OFFSET	0x20000
 
-#define LTE_FIXNV_SIZE 0x0006C000 // 272K the max size is 512k
-#define LTE_RUNNV_SIZE 0x00090000 // 400k the max size is 512k
-#define LTE_FIXNV_ADDR 0x8AA42000
+#define LTE_FIXNV_SIZE 0x00088000 // 544K the max size is 768K
+#define LTE_RUNNV_SIZE 0x000a8000 // 672k the max size is 768K
+#define LTE_FIXNV_ADDR 0x8C520000
 #define LTE_RUNNV_ADDR (LTE_FIXNV_ADDR + LTE_FIXNV_SIZE)
-#define LTE_MODEM_SIZE 0x00E00000
-#define LTE_MODEM_ADDR 0x8AB48000
+#define LTE_MODEM_SIZE 0x00D00000
+#define LTE_MODEM_ADDR 0x8b800000
 #define LTE_LDSP_SIZE  0x00300000
-#define LTE_LDSP_ADDR  0x89900000
-#define LTE_GDSP_SIZE  0x002E0000
+#define LTE_LDSP_ADDR  0x89D00000
+#define LTE_GDSP_SIZE  0x00300000
 #define LTE_GDSP_ADDR (0x89600000 + LTE_GDSP_LOAD_OFFSET)
 
 #define WL_WARM_SIZE 0x00200000
@@ -86,7 +86,7 @@
 
 #define CONFIG_DFS_ENABLE
 #define DFS_ADDR    0x50800000
-#define DFS_SIZE    32768 //32K
+#define DFS_SIZE    0xC000     //48K
 
 #ifdef SECURE_BOOT_ENABLE
 #define MODEM_SIZE		(0x800000)
@@ -336,7 +336,6 @@
 
 /*active arm7 ram before access to it*/
 #define CONFIG_ARM7_RAM_ACTIVE
-
 
 #endif /* __CONFIG_H */
 
