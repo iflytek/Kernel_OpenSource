@@ -37,6 +37,12 @@ endif
 
 export UBOOT_SECURE_BOOT_FLAG
 
+ifeq ($(strip $(CONFIG_TEE_FIREWALL)),true)
+UBOOT_FIREWALL_FLAG := -DCONFIG_TEE_FIREWALL
+endif
+
+export UBOOT_FIREWALL_FLAG
+
 .PHONY: $(UBOOT_OUT)
 $(UBOOT_OUT):
 	@echo "Start U-Boot build board $(UBOOT_DEFCONFIG)"

@@ -78,7 +78,7 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 #define FUNCTYPE_SET_SANSA_RMA            0x06
 #define FUNCTYPE_KCE_PROGRAM              0x07
 #define FUNCTYPE_GET_HBK                  0x08
-
+#define FUNCTYPE_SET_SECURE_RANGE_PARAM   0x09
 
 #define BLOCK_NUM_3                      (0x03)
 #define DISABLE_DX_DEBUG_CONTROL         (0x20000000)

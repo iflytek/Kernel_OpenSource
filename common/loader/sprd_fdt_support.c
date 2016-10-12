@@ -10,6 +10,8 @@
 #include "sprd_cpcmdline.h"
 #include "sysdump.h"
 #include "sprd_common_rw.h"
+#include <uboot_sec_drv.h>
+#include <fdtdec.h>
 
 extern void *lcd_get_base_addr(void *lcd_base);
 extern uint32_t load_lcd_id_to_kernel();
@@ -30,6 +32,23 @@ unsigned harsh_data_buf[8] __attribute__ ((align(4))) = {
 void *spl_data = spl_data_buf;
 void *harsh_data = harsh_data_buf;
 #endif
+
+typedef enum {
+	TOS_MEMORY = 0,
+	MULTIMEDIA,
+	AUDIO_MEMORY,
+	SIPC_MEMORY,
+	CP_MODEM,
+	FRAMEBUFFER,
+	OVERLAYBUFFER
+} mem_type;
+
+typedef struct {
+	mem_type type;
+	uint32_t start_high;
+	uint32_t start_low;
+	uint32_t size;
+} mem_info;
 
 int fdt_initrd_norsvmem(void *fdt, ulong initrd_start, ulong initrd_end, int force)
 {
@@ -134,6 +153,111 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 	}
 
 	return err;
+}
+
+int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t size){
+	uint32_t ret;
+	uint32_t smcid;
+	uint32_t funcid;
+	mem_info mi;
+
+	smcid  = TEESMC64_SIPCALL_WITH_ARG;
+	funcid = FUNCTYPE_SET_SECURE_RANGE_PARAM;
+	struct smc_param64 param;
+	mi.type = type;
+	mi.start_high = (start >> 32);
+	mi.start_low = (start & 0xffffffff);
+	mi.size = size;
+	param.a0 = smcid;
+	param.a1 = funcid;
+	param.a2 = &mi;
+	param.a3 = sizeof(mem_info);
+#ifdef CONFIG_ARM64	
+	optee_smc_call64(&param);
+#endif
+	ret = param.a0;
+	return ret;
+}
+
+int fdt_reserved_mem_multimedia_parse(void*fdt)
+{
+	int parentoffset,nodeoffset;
+	int offset;
+	uchar * dt_addr;
+	const fdt32_t *reg;
+	int str_len;
+	char nodename[256];
+	fdt_addr_t  s_addr;
+	fdt_addr_t  s_size ;
+	char *pStr=NULL;
+	mem_info mi;
+
+	parentoffset = fdt_path_offset(fdt, "/reserved-memory");
+	if (parentoffset < 0) {
+		errorf("fdt_reserved_mem_multimedia_parse: cann't find mm_reserved \n");
+		return -1;
+	}
+	for (offset = fdt_first_subnode(fdt, parentoffset);
+	      offset >= 0; offset = fdt_next_subnode(fdt, offset)) {
+		sprintf(nodename, "%s", fdt_get_name(fdt, offset, NULL));
+		str_len = strlen(nodename);
+		nodename[str_len] = '\0';
+		pStr = strstr(nodename,"multimediabuffer");
+		if(pStr){
+			if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
+			{
+				debugf("cannot find reg prop, go to next node.\n" );
+				goto next;
+			}
+			uboot_set_secure_range_paraneters(MULTIMEDIA,s_addr,s_size);
+		}
+		pStr = strstr(nodename,"tos-mem");
+		if(pStr){
+			if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
+			{
+				debugf("cannot find reg prop, go to next node.\n" );
+				goto next;
+			}
+			uboot_set_secure_range_paraneters(TOS_MEMORY,s_addr,s_size);
+		}
+		pStr = strstr(nodename,"audio-mem");
+		if(pStr){
+			if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
+			{
+				debugf("cannot find reg prop, go to next node.\n" );
+				goto next;
+			}
+			uboot_set_secure_range_paraneters(AUDIO_MEMORY,s_addr,s_size);
+		}
+		pStr = strstr(nodename,"cp-modem");
+		if(pStr){
+			if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
+			{
+				debugf("cannot find reg prop, go to next node.\n" );
+				goto next;
+			}
+			uboot_set_secure_range_paraneters(CP_MODEM,s_addr,s_size);
+		}
+		pStr = strstr(nodename,"framebuffer");
+		if(pStr){
+			if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
+			{
+				debugf("cannot find reg prop, go to next node.\n" );
+				goto next;
+			}
+			uboot_set_secure_range_paraneters(FRAMEBUFFER,s_addr,s_size);
+		}
+		pStr = strstr(nodename,"overlaybuffer");
+		if(pStr){
+			if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
+			{
+				debugf("cannot find reg prop, go to next node.\n" );
+				goto next;
+			}
+			uboot_set_secure_range_paraneters(OVERLAYBUFFER,s_addr,s_size);
+		}
+next:;
+	}
 }
 
 int fdt_chosen_bootargs_replace(void *fdt, char *old_args, char *new_args)

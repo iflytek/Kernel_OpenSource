@@ -1038,6 +1038,8 @@ extern boot_image_required_t *get_cp_load_table(void);
 	secboot_terminal();
 
 #endif
-
+#ifdef CONFIG_TEE_FIREWALL
+	fdt_reserved_mem_multimedia_parse(dt_adr);
+#endif
 	vlx_entry(dt_adr);
 }
