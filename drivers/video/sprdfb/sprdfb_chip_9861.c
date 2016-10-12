@@ -42,8 +42,8 @@ int disp_domain_power_ctrl(int enable)
 void dsi_enable(void)
 {
 	unsigned int reg = 0;
-	__raw_writel(0x4687,0xD2100064);//counter
-	__raw_writel(0x4687,0xD2100068);
+	__raw_writel(0x6c87,0xD2100064);//counter
+	__raw_writel(0x6c87,0xD2100068);
 //	__raw_writel(0x8,0xd3100008);
 	__raw_bits_or(BIT_DISP_AHB_DSI0_EB, REG_DISP_AHB_AHB_EB);
 	__raw_bits_or(BIT_DISP_AHB_DPHY0_CFG_CKG_EN, REG_DISP_AHB_GEN_CKG_CFG);
@@ -92,6 +92,7 @@ void dispc_print_clk(void)
 	FB_PRINT("0xd3000020 = 0x%x\n", __raw_readl(0xd3000020));
 	FB_PRINT("0xd3000024 = 0x%x\n", __raw_readl(0xd3000024));
 	FB_PRINT("0xd3000028 = 0x%x\n", __raw_readl(0xd3000028));
+	FB_PRINT("0xd2100064 = 0x%x\n", __raw_readl(0xd2100064));
 #endif
 }
 

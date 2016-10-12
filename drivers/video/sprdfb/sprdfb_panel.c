@@ -66,6 +66,8 @@ extern struct panel_spec lcd_ili9885_mipi_spec;
 extern struct panel_spec lcd_nt35532_mipi_spec;
 extern struct panel_spec lcd_nt35597_mipi_fpga_spec;
 extern struct panel_spec lcd_ili9881c_mipi_spec;
+extern struct panel_spec lcd_nt35532_2_mipi_spec;
+
 
 
 void sprdfb_panel_remove(struct sprdfb_device *dev);
@@ -83,6 +85,12 @@ static struct panel_cfg panel_cfg[] = {
 	{
 		.lcd_id = 0x32,
 		.panel = &lcd_nt35532_mipi_spec,
+	},
+#endif
+#if defined (CONFIG_FB_LCD_NT35532_2_MIPI)
+	{
+		.lcd_id = 0x32,
+		.panel = &lcd_nt35532_2_mipi_spec,
 	},
 #endif
 #if defined (CONFIG_FB_LCD_HX8379C_MIPI_SHARKL_J1POPLTE)

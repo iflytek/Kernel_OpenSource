@@ -744,7 +744,7 @@ static struct info_mipi lcd_nt35532_mipi_info = {
 	.ops = NULL,
 };
 
-struct panel_spec lcd_nt35532_mipi_spec = {
+struct panel_spec lcd_nt35532_2_mipi_spec = {
 	.width = 1080,
 	.height = 1920,
 	.fps = 60,

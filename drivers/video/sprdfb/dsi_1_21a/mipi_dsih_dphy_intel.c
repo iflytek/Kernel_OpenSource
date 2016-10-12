@@ -153,6 +153,65 @@ void writel_nbits(uint8_t value,uint8_t nbits,uint8_t offset,uint32_t addr)
 	tmp |= value << offset;
         __raw_writel(tmp, addr);
 }
+
+#define PHY_OFFSET 0x0
+void set_pll_frequency(uint32_t output_freq)
+{
+    uint32_t div5b,div2or3,div5bbyass,i_fbdivratio,i_fracdiv2,i_fracdiv1,i_fracdiv0;
+    uint32_t i_feedfwrdgain,i_fracnen_h,i_sscstepsize0,i_sscstepsize1;
+    uint32_t i_sscsteplength0,i_sscsteplength1,i_sscstepnum,i_ssctype,i_sscen_h,i_prop_coeff;
+    uint32_t i_int_coeff,i_gainctrl,i_tdctargetcnt0,i_tdctargetcnt1,i_lockthreshsel,i_pllwait_cntr;
+    if (output_freq == 880*1000) {
+       div5b = 0x0;
+       div2or3 = 0x1;
+       div5bbyass = 0x0;
+       i_fbdivratio = 0x65 ;
+       i_fracdiv2 = 0x3a;
+       i_fracdiv1 = 0x17;
+       i_fracdiv0 = 0xa1;
+       i_feedfwrdgain = 0x03;
+       i_fracnen_h = 0x1;
+       i_sscstepsize0 = 0x0;
+       i_sscstepsize1 = 0x0;
+       i_sscsteplength0 = 0x0;
+       i_sscsteplength1 = 0x0;
+       i_sscstepnum = 0x0;
+       i_ssctype = 0x0;
+       i_sscen_h = 0x0;
+       i_prop_coeff = 0x4;
+       i_int_coeff = 0x8;
+       i_gainctrl = 0x1;
+       i_tdctargetcnt0 = 0x22;
+       i_tdctargetcnt1 = 0x0;
+       i_lockthreshsel = 0x0;
+       i_pllwait_cntr = 0x2;
+    } else if (output_freq == 800*1000) {
+
+    }
+    writel_nbits(div5b,3,1,0xe41b0004+PHY_OFFSET);
+    writel_nbits(div2or3,1,4,0xe41b0004+PHY_OFFSET);
+    writel_nbits(div5bbyass,1,5,0xe41b0004+PHY_OFFSET);
+    writel_nbits(i_fbdivratio,8,0,0xe41b0300+PHY_OFFSET);
+    writel_nbits(i_fracdiv2,6,16,0xe41b0308+PHY_OFFSET);
+    writel_nbits(i_fracdiv1,8,8,0xe41b0308+PHY_OFFSET);
+    writel_nbits(i_fracdiv0,8,0,0xe41b0308+PHY_OFFSET);
+    writel_nbits(i_feedfwrdgain,4,0,0xe41b030c+PHY_OFFSET);
+    writel_nbits(i_fracnen_h,1,16,0xe41b030c+PHY_OFFSET);
+    writel_nbits(i_sscstepsize0,8,0,0xe41b0310+PHY_OFFSET);
+    writel_nbits(i_sscstepsize1,2,8,0xe41b0310+PHY_OFFSET);
+    writel_nbits(i_sscsteplength0,8,16,0xe41b0310+PHY_OFFSET);
+    writel_nbits(i_sscsteplength1,2,24,0xe41b0310+PHY_OFFSET);
+    writel_nbits(i_sscstepnum,3,0,0xe41b0314+PHY_OFFSET);
+    writel_nbits(i_ssctype,2,8,0xe41b0314+PHY_OFFSET);
+    writel_nbits(i_sscen_h,1,16,0xe41b0314+PHY_OFFSET);
+    writel_nbits(i_prop_coeff,4,0,0xe41b0318+PHY_OFFSET);
+    writel_nbits(i_int_coeff,5,8,0xe41b0318+PHY_OFFSET);
+    writel_nbits(i_gainctrl,3,16,0xe41b0318+PHY_OFFSET);
+    writel_nbits(i_tdctargetcnt0,8,0,0xe41b0320+PHY_OFFSET);
+    writel_nbits(i_tdctargetcnt1,2,8,0xe41b0320+PHY_OFFSET);
+    writel_nbits(i_lockthreshsel,1,0,0xe41b0324+PHY_OFFSET);
+    writel_nbits(i_pllwait_cntr,3,16,0xe41b0324+PHY_OFFSET);
+}
  #ifdef GEN_2
 dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_t output_freq)
 {
@@ -218,7 +277,8 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
 	};
 
 #if 1
-    uint32_t fbdivratio,fracdiv,fracnen,div5bbypass,div5b,div2or3;
+    //uint32_t fbdivratio,fracdiv,fracnen,div5bbypass,div5b,div2or3;
+    __raw_bits_and(~(1<<11),0xe4109000);
     /******fwen,sys_rst,apb_rst*************/
     __raw_bits_or(1<<1, 0xe4109000); //pgen reset ?
     __raw_bits_or(1<<2, 0xe4109000);
@@ -245,45 +305,7 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     printf("0xe41b0120 = 0x%x\n", __raw_readl(0xe41b0120+PHY_OFFSET));
     //__raw_writel(0x10,0xe41b0120+PHY_OFFSET);
     /*********set pll*************/
-    if (output_freq == 300*1000) {
-       fbdivratio = 0x80;
-       fracdiv = 0x0;
-       fracnen = 0x0;
-       div5bbypass = 0x0;
-       div5b = 0x2;
-       div2or3 = 0x0;
-    } else if (output_freq == 800*1000) {
-       fbdivratio = 168;
-       fracdiv = 0x0;
-       fracnen = 0x0;
-       div5bbypass = 0x0;
-       div5b = 0x1;
-       div2or3 = 0x0;
-    } else if (output_freq == 880*1000) {
-       fbdivratio = 138;
-       fracdiv = 0x0;
-       fracnen = 0x0;
-       div5bbypass = 0x0;
-       div5b = 0x0;
-       div2or3 = 0x1;
-    }
-
-    __raw_bits_and(~(1<<3),0xd3900000);
-    writel_nbits(fbdivratio,8,0,0xe41b0300+PHY_OFFSET);
-    //writel_nbits(0x80,8,0,0xe41b0300+PHY_OFFSET);
-    writel_nbits(fracdiv,22,0,0xe41b0308+PHY_OFFSET);
-    //writel_nbits(0x0,22,0,0xe41b0308+PHY_OFFSET);
-    //__raw_bits_and(~(1<<16),0xe41b030c+PHY_OFFSET);
-    //writel_nbits(0x0,1,16,0xe41b030c+PHY_OFFSET);
-    writel_nbits(fracnen,1,16,0xe41b030c+PHY_OFFSET);
-
-    //writel_nbits(0x0,1,5,0xe41b0004+PHY_OFFSET);
-    writel_nbits(div5bbypass,1,5,0xe41b0004+PHY_OFFSET);
-    //writel_nbits(0x2,3,1,0xe41b0004+PHY_OFFSET);
-    writel_nbits(div5b,3,1,0xe41b0004+PHY_OFFSET);
-    //writel_nbits(0x0,1,4,0xe41b0004+PHY_OFFSET);
-    writel_nbits(div2or3,1,4,0xe41b0004+PHY_OFFSET);
-
+    set_pll_frequency(output_freq);
     __raw_bits_or(1<<0, 0xe41b0120+PHY_OFFSET);
     __raw_bits_or(1<<3, 0xd39000a0);//force pll
 
@@ -296,6 +318,7 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     printf("0xe41b0004 = 0x%x\n", __raw_readl(0xe41b0004+PHY_OFFSET));
     printf("0xe41b0120 = 0x%x\n", __raw_readl(0xe41b0120+PHY_OFFSET));
     printf("0xe41b00e4 = 0x%x\n", __raw_readl(0xe41b00e4+PHY_OFFSET));
+    printf("0xe41b0370 = 0x%x\n", __raw_readl(0xe41b0370+PHY_OFFSET));
 #endif
     if (phy == 0)
     {
