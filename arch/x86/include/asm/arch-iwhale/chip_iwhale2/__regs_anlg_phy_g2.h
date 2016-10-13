@@ -85,13 +85,13 @@
 #define REG_ANLG_PHY_G2_ANALOG_BB_TOP_CLK26M_CTL_0            ( CTL_BASE_ANLG_PHY_G2 + 0x010C )
 #define REG_ANLG_PHY_G2_ANALOG_BB_TOP_WRAP_GLUE_CTRL          ( CTL_BASE_ANLG_PHY_G2 + 0x0110 )
 #define REG_ANLG_PHY_G2_ANALOG_BB_TOP_AAPC_TEST               ( CTL_BASE_ANLG_PHY_G2 + 0x0114 )
-#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RW0                ( CTL_BASE_ANLG_PHY_G2 + 0x0118 )
-#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RW1                ( CTL_BASE_ANLG_PHY_G2 + 0x011C )
-#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RO0                ( CTL_BASE_ANLG_PHY_G2 + 0x0120 )
-#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RO1                ( CTL_BASE_ANLG_PHY_G2 + 0x0124 )
-#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_REG_SEL_CFG_0           ( CTL_BASE_ANLG_PHY_G2 + 0x0128 )
-#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_REG_SEL_CFG_1           ( CTL_BASE_ANLG_PHY_G2 + 0x012C )
-#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_REG_SEL_CFG_2           ( CTL_BASE_ANLG_PHY_G2 + 0x0130 )
+#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_REG_SEL_CFG_0           ( CTL_BASE_ANLG_PHY_G2 + 0x0118 )
+#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_REG_SEL_CFG_1           ( CTL_BASE_ANLG_PHY_G2 + 0x011C )
+#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_REG_SEL_CFG_2           ( CTL_BASE_ANLG_PHY_G2 + 0x0120 )
+#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RW0                ( CTL_BASE_ANLG_PHY_G2 + 0x0124 )
+#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RW1                ( CTL_BASE_ANLG_PHY_G2 + 0x0128 )
+#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RO0                ( CTL_BASE_ANLG_PHY_G2 + 0x012C )
+#define REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RO1                ( CTL_BASE_ANLG_PHY_G2 + 0x0130 )
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_ANLG_PHY_G2_ANALOG_PLL_0_CRIT_CTRL_0
@@ -963,40 +963,8 @@
 #define BIT_ANLG_PHY_G2_ANALOG_BB_TOP_AAPC_GEN_SEL                                               BIT(0)
 
 /*---------------------------------------------------------------------------
-// Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RW0
-// Register Offset : 0x0118
-// Description     : 
----------------------------------------------------------------------------*/
-
-#define BIT_ANLG_PHY_G2_ANALOG_BB_TOP_DUMMY_RW0(x)                                               (((x) & 0xFFFFFFFF))
-
-/*---------------------------------------------------------------------------
-// Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RW1
-// Register Offset : 0x011C
-// Description     : 
----------------------------------------------------------------------------*/
-
-#define BIT_ANLG_PHY_G2_ANALOG_BB_TOP_DUMMY_RW1(x)                                               (((x) & 0xFFFFFFFF))
-
-/*---------------------------------------------------------------------------
-// Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RO0
-// Register Offset : 0x0120
-// Description     : 
----------------------------------------------------------------------------*/
-
-#define BIT_ANLG_PHY_G2_ANALOG_BB_TOP_DUMMY_RO0(x)                                               (((x) & 0xFFFFFFFF))
-
-/*---------------------------------------------------------------------------
-// Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RO1
-// Register Offset : 0x0124
-// Description     : 
----------------------------------------------------------------------------*/
-
-#define BIT_ANLG_PHY_G2_ANALOG_BB_TOP_DUMMY_RO1(x)                                               (((x) & 0xFFFFFFFF))
-
-/*---------------------------------------------------------------------------
 // Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_REG_SEL_CFG_0
-// Register Offset : 0x0128
+// Register Offset : 0x0118
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -1035,7 +1003,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_REG_SEL_CFG_1
-// Register Offset : 0x012C
+// Register Offset : 0x011C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -1074,7 +1042,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_REG_SEL_CFG_2
-// Register Offset : 0x0130
+// Register Offset : 0x0120
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -1100,6 +1068,38 @@
 #define BIT_ANLG_PHY_G2_DBG_SEL_ANALOG_BB_TOP_AAPC_G1                                            BIT(2)
 #define BIT_ANLG_PHY_G2_DBG_SEL_ANALOG_BB_TOP_AAPC_G2                                            BIT(1)
 #define BIT_ANLG_PHY_G2_DBG_SEL_ANALOG_BB_TOP_ANA_BB_RESERVED                                    BIT(0)
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RW0
+// Register Offset : 0x0124
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_ANLG_PHY_G2_ANALOG_BB_TOP_DUMMY_RW0(x)                                               (((x) & 0xFFFFFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RW1
+// Register Offset : 0x0128
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_ANLG_PHY_G2_ANALOG_BB_TOP_DUMMY_RW1(x)                                               (((x) & 0xFFFFFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RO0
+// Register Offset : 0x012C
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_ANLG_PHY_G2_ANALOG_BB_TOP_DUMMY_RO0(x)                                               (((x) & 0xFFFFFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_ANLG_PHY_G2_ANALOG_BB_TOP_DUMY_RO1
+// Register Offset : 0x0130
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_ANLG_PHY_G2_ANALOG_BB_TOP_DUMMY_RO1(x)                                               (((x) & 0xFFFFFFFF))
 
 
 #endif // _ANLG_PHY_G2_REG_H
