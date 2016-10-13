@@ -880,9 +880,16 @@ int fdtdec_decode_region(const void *blob, int node, const char *prop_name,
 		debug("cell=%p, len=%d\n", cell, len);
 		return -1;
 	}
-
+/*
+In x86 ,we need to read 32bit address from 64bit dts for lcd frambuffer.
+*/
+#ifdef CONFIG_X86
+	*basep = fdt_addr_to_cpu(cell[1]);
+	*sizep = fdt_size_to_cpu(cell[3]);
+#else
 	*basep = fdt_addr_to_cpu(*cell);
 	*sizep = fdt_size_to_cpu(cell[1]);
+#endif
 	debug("%s: base=%08lx, size=%lx\n", __func__, (ulong)*basep,
 	      (ulong)*sizep);
 
