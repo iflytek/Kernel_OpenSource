@@ -29,10 +29,10 @@
 
 #include "gpio_phy.h"
 
-//#define DEBUG
+//#define DEBUG_GPIO
 
 
-#ifdef DEBUG
+#ifdef DEBUG_GPIO
 #define GPIO_DBG(fmt...) pr_debug(fmt)
 #else
 #define GPIO_DBG(fmt...)
