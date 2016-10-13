@@ -7,7 +7,9 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-.global _resume
+.global _resume_cpus
+.global _resume_start
+.global _resume_end
 
 #include <config.h>
 #include <asm/processor-flags.h>
@@ -51,9 +53,6 @@
  *  the following part is to be copied to SRAM on startup
  *  and executed from there on resume
  */
-
-.global _resume_start
-.global _resume_end
 
 .text
 
@@ -197,7 +196,10 @@ idt_ptr:
 hpet_mhz:
 	.quad	0
 
-cpu_count:
+_resume_cpus:
+	.long	1
+
+cpu_started:
 	.long	0
 
 cpu_updated:
@@ -328,7 +330,7 @@ ap_update32:
 
 /* get next available number, incrementing total CPU count */
 
-	movl	$SRAM_ADDRESS(cpu_count), %ebx
+	movl	$SRAM_ADDRESS(cpu_started), %ebx
 	movl	$1, %eax
 	lock	xadd	%eax, (%ebx)
 	movl	%eax, %edi
@@ -468,7 +470,7 @@ _resume_s3:
 
 update_other_cpus:
 	movl	$1, %eax
-	movl	$SRAM_ADDRESS(cpu_count), %ebx
+	movl	$SRAM_ADDRESS(cpu_started), %ebx
 	movl	%eax, (%ebx)
 	movl	$SRAM_ADDRESS(cpu_updated), %ebx
 	movl	%eax, (%ebx)
@@ -507,11 +509,19 @@ update_other_cpus:
 	movl	$200, %eax
 	call	hpet_udelay
 
+/* wait for APs to start */
+	movl	SRAM_ADDRESS(_resume_cpus), %eax
+	movl	$SRAM_ADDRESS(cpu_started), %ebx
+_wait_for_ap_startup:
+	pause
+	cmpl	%eax, (%ebx)
+	jb	_wait_for_ap_startup
+
 /* wait for ucode update on all APs */
 
 _wait_for_ap_update:
 	pause
-	movl	$SRAM_ADDRESS(cpu_count), %ebx
+	movl	$SRAM_ADDRESS(cpu_started), %ebx
 	movl	(%ebx), %eax
 	movl	$SRAM_ADDRESS(cpu_updated), %ebx
 	cmpl	(%ebx), %eax
@@ -625,6 +635,7 @@ hpet_udelay:
 
 	movl	$HPET_BASE, %ebx
 _hpet_udelay_wait:
+	pause
 	movl	HPET_MCV (%ebx), %eax
 	subl	%esi, %eax
 	cmpl	%edi, %eax

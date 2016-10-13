@@ -20,6 +20,7 @@
 #ifdef CONFIG_BASEIA_S3
 #define RESERVED_RAM_SIZE 0x10000
 extern char _resume_start[], _resume_end[];
+extern int _resume_cpus;
 #endif
 
 #ifdef CONFIG_SMP
@@ -110,6 +111,8 @@ int x86_init_cpus(void)
 #endif
 
 #ifdef CONFIG_BASEIA_S3
+	_resume_cpus = detect_num_cpus();
+
 	/* Copy S3 resume code into SRAM */
 	memcpy((void *) CONFIG_BASEIA_SRAM, (const void *) _resume_start,
 			_resume_end - _resume_start);
