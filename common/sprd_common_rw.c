@@ -115,6 +115,7 @@ int block_dev_write(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, 
 	}
 
 	blkcnt = size / dev_desc->blksz;
+
 	if (blkcnt > 0) {
 		if (blkcnt != dev_desc->block_write(dev_desc->dev, start, blkcnt, buf)) {
 			errorf("write block 0x%x size 0x%x fail\n", start, blkcnt);
@@ -436,7 +437,7 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 
 }
 
-int common_write_backstage(char *part_name, uint32_t size, uint32_t offset, char *buf)
+int common_write_backstage(char *part_name, uint32_t size, uint64_t offset, char *buf)
 {
 	static int dev_id = 0;
 	lbaint_t start = 0;
@@ -751,10 +752,10 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 
 }
 
-int common_write_backstage(char *part_name, uint32_t size, uint32_t offset, char *buf)
+int common_write_backstage(char *part_name, uint32_t size, uint64_t offset, char *buf)
 {
-	uint32_t start = 0;
-	uint32_t blk_num = 0;
+	lbaint_t start = 0;
+	lbaint_t blk_num = 0;
 	uint64_t total_part_size = 0;
 	block_dev_desc_t *dev_desc = NULL;
 	int ret = 0;
@@ -789,7 +790,7 @@ int common_write_backstage(char *part_name, uint32_t size, uint32_t offset, char
 
 int common_query_backstage(char *part_name, uint32_t size, char *buf)
 {
-	uint32_t blk_num = 0;
+	lbaint_t blk_num = 0;
 	if (0 != strcmp(part_name, local_part_info.name))
 		return -1;
 	blk_num = size / local_part_info.blksz;

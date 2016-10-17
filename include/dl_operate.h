@@ -40,16 +40,16 @@ typedef enum _PARTITION_PURPOSE {
 } PARTITION_PURPOSE;
 
 typedef struct DL_EMMC_STATUS_TAG {
-	uint32_t offset;
+	uint64_t offset;
 	uchar curUserPartitionName[32];
 	PARTITION_PURPOSE partitionpurpose;
 	PARTITION_IMG_TYPE curImgType;
 } DL_EMMC_STATUS;
 
 typedef struct DL_FILE_STATUS_TAG {
-	uint32_t total_size;
-	uint32_t total_recv_size;
-	uint32_t unsave_recv_size;
+	uint64_t total_size;
+	uint64_t total_recv_size;
+	uint64_t unsave_recv_size;
 } DL_EMMC_FILE_STATUS;
 
 typedef struct _SPECIAL_PARTITION_CFG {
@@ -81,13 +81,13 @@ typedef enum _ALTERNATIVE_BUFFER_STATUS {
 	BUFFER_DIRTY
 } ALTERNATIVE_BUFFER_STATUS;
 
-OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t nv_checksum);
+OPERATE_STATUS dl_download_start(uchar * partition_name, uint64_t size, uint32_t nv_checksum);
 OPERATE_STATUS dl_download_midst(uint16_t size, char *buf);
 OPERATE_STATUS dl_download_end(void);
-OPERATE_STATUS dl_read_start(uchar * partition_name, uint32_t size);
-OPERATE_STATUS dl_read_midst(uint32_t size, uint32_t off, uchar * buf);
+OPERATE_STATUS dl_read_start(uchar * partition_name, uint64_t size);
+OPERATE_STATUS dl_read_midst(uint32_t size, uint64_t off, uchar * buf);
 OPERATE_STATUS dl_read_end(void);
-OPERATE_STATUS dl_erase(uchar * partition_name, uint32_t size);
+OPERATE_STATUS dl_erase(uchar * partition_name, uint64_t size);
 OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_num,
 									uchar version, uchar size_unit);
 

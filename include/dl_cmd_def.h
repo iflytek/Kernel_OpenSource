@@ -48,6 +48,7 @@ typedef enum dl_cmd_type {
     BSL_CMD_READ_UID = 0x1A,               /*0x1A*/
     BSL_CMD_TYPE_MAX,
 
+    BSL_CMD_END_PROCESS = 0x7F,
     /* Start of the Command can be transmited by phone*/
     BSL_REP_TYPE_MIN = 0x80,
 
@@ -101,6 +102,7 @@ typedef enum dl_cmd_type {
     /*phone root return value*/
     BSL_PHONE_ROOTFLAG = 0xA7,
     BSL_REP_READ_CHIP_UID = 0xAB,
+    BSL_UNSUPPORTED_CMD = 0xFE,
     BSL_PKT_TYPE_MAX
 }dl_cmd_type_t ;
 

@@ -656,7 +656,7 @@ OPERATE_STATUS regular_download_process(uint16_t size, char *buf)
 	return OPERATE_SUCCESS;
 }
 
-OPERATE_STATUS dl_erase(uchar * partition_name, uint32_t size)
+OPERATE_STATUS dl_erase(uchar * partition_name, uint64_t size)
 {
 	uchar *backup_partition_name = NULL;
 
@@ -802,7 +802,7 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 }
 
 
-OPERATE_STATUS dl_read_start(uchar * partition_name, uint32_t size)
+OPERATE_STATUS dl_read_start(uchar * partition_name, uint64_t size)
 {
 	size_t sblock_size = 0;
 	struct ext2_sblock *sblock = NULL;
@@ -844,7 +844,7 @@ err:
 	return OPERATE_SYSTEM_ERROR;
 }
 
-OPERATE_STATUS dl_read_midst(uint32_t size, uint32_t off, uchar * buf)
+OPERATE_STATUS dl_read_midst(uint32_t size, uint64_t off, uchar * buf)
 {
 	if (PARTITION_PURPOSE_NV == g_dl_eMMCStatus.partitionpurpose) {
 		memcpy(buf, (uchar *) (g_eMMCBuf + off), size);
@@ -864,7 +864,7 @@ OPERATE_STATUS dl_read_end(void)
 }
 
 
-OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t nv_checksum)
+OPERATE_STATUS dl_download_start(uchar * partition_name, uint64_t size, uint32_t nv_checksum)
 {
 	int i = 0;
 	uint32_t size_in_lba = 0;
@@ -879,7 +879,7 @@ OPERATE_STATUS dl_download_start(uchar * partition_name, uint32_t size, uint32_t
 	if (PARTITION_PURPOSE_NV == g_dl_eMMCStatus.partitionpurpose) {
 		debugf("partition purpose is NV\n");
 		if (size > FIXNV_SIZE) {
-			errorf("size(0x%x) beyond FIXNV_SIZE:0x%x !\n", size, FIXNV_SIZE);
+			errorf("size(0x%llx) beyond FIXNV_SIZE:0x%x !\n", size, FIXNV_SIZE);
 			return OPERATE_INVALID_SIZE;
 		}
 		memset(g_eMMCBuf, 0xff, FIXNV_SIZE + NV_HEADER_SIZE);

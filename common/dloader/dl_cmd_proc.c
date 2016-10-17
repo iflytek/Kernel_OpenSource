@@ -22,11 +22,16 @@ extern void fixup_pmic_items(void);
 static root_stat_t root_stat;
 
 
-static void _decode_packet_data(dl_packet_t *packet, uchar * partition_name, uint32_t * size, uint32_t * checksum)
+static void _decode_packet_data(dl_packet_t *packet, uchar * partition_name, uint64_t * size, uint32_t * checksum)
 {
 	uint32_t  i = 0;
 	uint16_t *data = (uint16_t *) (packet->body.content);
-	*size = *(uint32_t *) (data + MAX_PARTITION_NAME_SIZE);
+
+	if (BIT64_DATA_LENGTH == packet->body.size)
+		*size = *(uint64_t *) (data + MAX_PARTITION_NAME_SIZE);
+	else
+		*size = (uint64_t)*(uint32_t *) (data + MAX_PARTITION_NAME_SIZE);
+	debugf("packet->body.size:0x%x, image size:0x%llx\n", packet->body.size, *size);
 	if (NULL != checksum)
 		*checksum = *(uint32_t *) (data + MAX_PARTITION_NAME_SIZE + 2);
 
@@ -113,13 +118,13 @@ int _parse_repartition_header(uchar * data, REPARTITION_TABLE_INFO * info, uchar
 int dl_cmd_write_start (dl_packet_t *packet, void *arg)
 {
 	uchar partition_name[MAX_PARTITION_NAME_SIZE] = {0};
-	uint32_t size;
+	uint64_t size;
 	uint32_t nv_checksum;
 	int32_t           op_res = 1;
 
 	_decode_packet_data(packet, partition_name, &size, &nv_checksum);
 
-	debugf("partition_name=%s,size=0x%x,nvchecksum=0x%x\n", partition_name, size, nv_checksum);
+	debugf("partition_name=%s,size=0x%llx,checksum=0x%x\n", partition_name, size, nv_checksum);
 	if((root_stat.root_flag == 1) && !strcmp(partition_name, "system")) {
 		debugf("start clear root flag.\n");
 		erase_rootflag(&root_stat);
@@ -155,12 +160,12 @@ int dl_cmd_write_end (dl_packet_t *packet, void *arg)
 int dl_cmd_read_start(dl_packet_t *packet, void *arg)
 {
 	uchar partition_name[MAX_PARTITION_NAME_SIZE] = {0};
-	uint32_t size;
+	uint64_t size;
 	int32_t           op_res = 0;
 
 	_decode_packet_data(packet, partition_name, &size, NULL);
 
-	debugf("partition_name=%s,size=0x%x\n", partition_name, size);
+	debugf("partition_name=%s,size=0x%llx\n", partition_name, size);
 	op_res = dl_read_start(partition_name, size);
 
 	debugf("operate result =%d,send ack\n", op_res);
@@ -172,15 +177,19 @@ int dl_cmd_read_midst(dl_packet_t *packet, void *arg)
 {
 	uint32_t *data = (uint32_t *) (packet->body.content);
 	uint32_t size = *data;
-	uint32_t off = *(data + 1);
+	uint64_t off = 0;
 	int32_t           op_res = 0;
+
+	if (BIT64_READ_MIDST_LENGTH == packet->body.size)
+		off = *(uint64_t *) (data + 1);
+	else
+		off = (uint64_t)*(data + 1);
 
 	if (size > MAX_PKT_SIZE) {
 		debug("Size:0x%x beyond MAX_PKT_SIZE(0x%x)\n",size,MAX_PKT_SIZE);
 		dl_send_ack (BSL_REP_DOWN_SIZE_ERROR);
 		return 0;
 	}
-
 
 	op_res = dl_read_midst(size, off, (uchar *)(packet->body.content));
 	if (OPERATE_SUCCESS == op_res) {
@@ -207,12 +216,12 @@ int dl_cmd_read_end(dl_packet_t *packet, void *arg)
 int dl_cmd_erase(dl_packet_t *packet, void *arg)
 {
 	uchar partition_name[MAX_PARTITION_NAME_SIZE] = {0};
-	uint32_t size;
+	uint64_t size;
 	int32_t op_res =0;
 
 	_decode_packet_data(packet, partition_name, &size, NULL);
 
-	debugf("partition_name=%s,size=%u\n", partition_name, size);
+	debugf("partition_name=%s,size=0x%llx\n", partition_name, size);
 	op_res = dl_erase(partition_name, size);
 
 	debugf("operate result =%d,send ack\n", op_res);
@@ -339,6 +348,13 @@ int dl_cmd_get_uid(dl_packet_t *packet, void *arg)
 	uid ++;
 	*uid = efuse_blk1;
 	dl_send_packet (packet);
+	return 0;
+}
+
+int dl_cmd_end_process(dl_packet_t *packet, void *arg)
+{
+	debugf("enter the end process\n");
+	dl_send_ack(BSL_REP_ACK);
 	return 0;
 }
 

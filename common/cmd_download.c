@@ -56,6 +56,9 @@ void dl_cmd_handler(void)
 			dl_free_packet(pkt);
 			break;
 		}
+		/* cannot found the cmd in cmdlist */
+		if (NULL == cmd)
+			dl_send_ack(BSL_UNSUPPORTED_CMD);
 	}
 	return 0;
 }
@@ -86,6 +89,7 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	dl_cmd_register(BSL_CMD_READ_MCP_TYPE, dl_cmd_read_mcptype);
 	dl_cmd_register(BSL_CMD_CHECK_ROOTFLAG, dl_cmd_check_rootflag);
 	dl_cmd_register(BSL_CMD_READ_UID, dl_cmd_get_uid);
+	dl_cmd_register(BSL_CMD_END_PROCESS, dl_cmd_end_process);
 
 	usb_init(0);
 	dl_send_ack (BSL_INCOMPATIBLE_PARTITION);

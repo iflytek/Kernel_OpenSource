@@ -7,6 +7,8 @@
 #define GAP_SIZE_LENGTH   (8)
 #define PARTITION_SIZE_LENGTH_V1  (8)
 #define REPARTITION_HEADER_MAGIC 0x3A726170
+#define BIT64_DATA_LENGTH 0x58
+#define BIT64_READ_MIDST_LENGTH 0x0C
 
 #define REPARTITION_UNIT_LENGTH    (MAX_PARTITION_NAME_SIZE *2 + PARTITION_SIZE_LENGTH)
 #define REPARTITION_UNIT_LENGTH_V1    (MAX_PARTITION_NAME_SIZE *2 +  PARTITION_SIZE_LENGTH_V1 + GAP_SIZE_LENGTH)
@@ -50,6 +52,6 @@ int dl_powerdown_device(dl_packet_t *packet, void *arg);
 int dl_cmd_read_mcptype(dl_packet_t * packet, void *arg);
 int dl_cmd_check_rootflag(dl_packet_t * packet, void *arg);
 int dl_cmd_get_uid(dl_packet_t *packet, void *arg);
-
+int dl_cmd_end_process(dl_packet_t *packet, void *arg);
 
 #endif /*DL_CMD_PROC_H */
