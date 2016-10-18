@@ -456,14 +456,15 @@ int pin_init(void);
 
 
 // CFIO --------
-#define BITS_HYSCTL(_x_)		( ((_x_) << 28) & (BIT_28|BIT_29) )//CFIO
-#define BIT_NSTATICEN		    ( BIT_27 )//CFIO
-#define BIT_PSTATICEN		    ( BIT_26 )//CFIO
-#define BITS_NSLEW(_x_)		    ( ((_x_) << 24) & (BIT_24|BIT_25) )//CFIO
-#define BITS_PSLEW(_x_)		    ( ((_x_) << 22) & (BIT_22|BIT_23) )//CFIO
+#define BITS_DEF(_x_)		    ( ((_x_) << 22) & (BIT_22|BIT_23|BIT_24|BIT_25|BIT_26|BIT_27|BIT_28|BIT_29) )//BIT22~BIT29 keep default value
+//#define BITS_HYSCTL(_x_)		( ((_x_) << 28) & (BIT_28|BIT_29) )//CFIO
+//#define BIT_NSTATICEN		    ( BIT_27 )//CFIO
+//#define BIT_PSTATICEN		    ( BIT_26 )//CFIO
+//#define BITS_NSLEW(_x_)		    ( ((_x_) << 24) & (BIT_24|BIT_25) )//CFIO
+//#define BITS_PSLEW(_x_)		    ( ((_x_) << 22) & (BIT_22|BIT_23) )//CFIO
 //#define BITS_NSTR(_x_)		( ((_x_) << 20) & (BIT_20|BIT_21) )
 //#define BITS_PSTR(_x_)		( ((_x_) << 18) & (BIT_18|BIT_19) )
-#define BITS_STR(_x_)				((((_x_) << 18) & (BIT_18|BIT_19))||(((_x_) << 20) & (BIT_20|BIT_21)))//CFIO
+#define BITS_STR(_x_)				((((_x_) << 18) & (BIT_18|BIT_19))|(((_x_) << 20) & (BIT_20|BIT_21)))//CFIO
 #define BIT_SLP_AGCP                ( BIT_16 )
 #define BIT_SLP_WTLCP               ( BIT_15 )
 #define BIT_SLP_PUBCP               ( BIT_14 )
