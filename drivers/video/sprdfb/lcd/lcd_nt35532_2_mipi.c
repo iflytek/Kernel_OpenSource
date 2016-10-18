@@ -686,7 +686,7 @@ static uint32_t nt35532_readid(struct panel_spec *self)
 		}
 	}
 	mipi_eotp_set(1,1);
-	return 0x0;
+	return 0x32;
 }
 
 int32_t nt35532_reset(struct panel_spec *self)
