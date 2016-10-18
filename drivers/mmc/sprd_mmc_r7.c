@@ -658,7 +658,7 @@ static int mmc_send_op_cond(struct mmc *mmc)
 	mmc_go_idle(mmc);
 
 	/* Asking to the card its capabilities */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 100; i++) {
 		err = mmc_send_op_cond_iter(mmc, i != 0);
 		if (err)
 			return err;
@@ -666,6 +666,7 @@ static int mmc_send_op_cond(struct mmc *mmc)
 		/* exit if not busy (flag seems to be inverted) */
 		if (mmc->ocr & OCR_BUSY)
 			break;
+		mdelay(10);
 	}
 	mmc->op_cond_pending = 1;
 
