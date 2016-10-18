@@ -44,20 +44,20 @@
 			reg = <0x0 0x8f600000 0x0 0x6000000>;
 		};
 
-		camera_reserved: camera-mem@c2d50000{
-			reg = <0x0 0xc2d50000 0x0 0x3800000>;
+		camera_reserved: camera-mem@c70fd000{
+			reg = <0x0 0xc70fd000 0x0 0x2400000>;
 		};
 
-		fb_reserved: framebuffer@c6550000{
-			reg = <0x0 0xc6550000 0x0 0x17bb000>;
+		fb_reserved: framebuffer@c94fd000{
+			reg = <0x0 0xc94fd000 0x0 0x17bb000>;
 		};
 
-		overlay_reserved: overlaybuffer@c8f80000{
-			reg = <0x0 0xc8f80000 0x0 0x3f48000>;
+		overlay_reserved: overlaybuffer@cacb8000{
+			reg = <0x0 0xcacb8000 0x0 0x3f48000>;
 		};
 
-		mm_reserved: multimediabuffer@d0000000{
-			reg = <0x0 0xd0000000 0x0 0x10000000>;
+		mm_reserved: multimediabuffer@cec00000{
+			reg = <0x0 0xcec00000 0x0 0x11400000>;
 		};
 
 		iq_reserved: iq-mem{
