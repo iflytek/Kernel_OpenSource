@@ -23,7 +23,7 @@
 #error RESERVED_RAM_START must be 4K aligned
 #endif
 
-#define RESUME_POINTER (CONFIG_BASEIA_SRAM + 0x1FF0)
+#define RESUME_POINTER (CONFIG_BASEIA_SRAM + 0x1FE0)
 
 /* AP startup vector is at the end of reserved area - 4K */
 
@@ -70,7 +70,7 @@ _resume_start:
 
 _set_stack:
 
-	movl	$(CONFIG_BASEIA_SRAM + 0x1FF0), %esp
+	movl	$(RESUME_POINTER), %esp
 
 /* wait for DRAM wake */
 
@@ -102,7 +102,67 @@ _bsp_update_fail:
  */
 
 	movl	$(RESUME_POINTER), %esi
-	movl	(%esi), %eax
+
+/* get the trampoline IA-32e page tables */
+
+	movl	8 (%esi), %eax
+	andl	$0xfffff000, %eax
+	jz	_no_64bit_entry
+
+/* check the tables: translate address 0 */
+
+	movl	$4, %ecx
+_next_level:
+	movl	%eax, %ebx
+	movl	(%ebx), %eax
+	movl	4 (%ebx), %edx
+	testl	%edx, %edx
+	jnz	_no_64bit_entry
+	testl	%eax, %eax
+	jz	_no_64bit_entry
+	test	$1, %eax
+	jz	_no_64bit_entry
+	testb	$0x80, %al
+	jnz	_large_page
+	andl	$0xfffff000, %eax
+	loop	_next_level
+_large_page:
+	andl	$0xfffff000, %eax
+	jnz	_no_64bit_entry
+
+/* swith to a short version of resume GDT, first 4 entries */
+
+	push	$SRAM_ADDRESS(resume_gdt)
+	push	$0x001f0000
+	lgdtl	2 (%esp)
+	addl	$8, %esp
+
+	movl	8 (%esi), %eax
+	movl	%eax, %cr3
+
+/* set IA32_EFER.LME */
+	movl	$0xC0000080, %ecx
+	rdmsr
+	orb	$1, %ah
+	wrmsr
+
+/* set CR4.PSE and CR4.PAE */
+
+	movl	%cr4, %eax
+	or	$0x30, %eax
+	mov	%eax, %cr4
+
+/* set CR0.PG */
+
+	movl	%cr0, %eax
+	orl	$0x80000000, %eax
+	movl	%eax, %cr0
+
+	ljmp	$0x10, $SRAM_ADDRESS(_start64)
+
+_no_64bit_entry:
+
+	movl	0x10 (%esi), %eax
 	cmpl	$(0x100000), %eax
 	jb	_use_rm_entry
 	jmpl	*%eax
@@ -137,6 +197,14 @@ _use_rm_entry:
 	mov	%ax, %fs
 	mov	%ax, %gs
 	ljmp	$0x20, $(_switch_to_real - _startup2_start)
+
+.code64
+
+_start64:
+	movq	$0xffffffff, %rax
+	andq	%rax, %rsi
+	movq	(%rsi), %rbx
+	jmp	*%rbx
 
 /* this part is to be copied into reserved DRAM area */
 
@@ -176,7 +244,7 @@ _startup2_start:
 
 	/* jump to the 32bit AP startup code */
 
-	data32	ljmp	$0x10, $SRAM_ADDRESS(ap_startup32)
+	data32	ljmp	$0x08, $SRAM_ADDRESS(ap_startup32)
 
 	.align	8
 
@@ -235,6 +303,7 @@ _real_switch_end:
 _startup2_end:
 
 	.align 16
+
 resume_gdt:
 	/*
 	 * The GDT table ...
@@ -255,16 +324,8 @@ resume_gdt:
 	.byte	0x00		/* flags + limit_high */
 	.byte	0x00		/* base_high */
 
-	/* Unused Desciptor - (matches Linux) */
-	.word	0x0000		/* limit_low */
-	.word	0x0000		/* base_low */
-	.byte	0x00		/* base_middle */
-	.byte	0x00		/* access */
-	.byte	0x00		/* flags + limit_high */
-	.byte	0x00		/* base_high */
-
 	/*
-	 * The Code Segment Descriptor:
+	 * The 32-bit Code Segment Descriptor:
 	 * - Base   = 0x00000000
 	 * - Size   = 4GB
 	 * - Access = Present, Ring 0, Exec (Code), Readable
@@ -275,6 +336,20 @@ resume_gdt:
 	.byte	0x00		/* base_middle */
 	.byte	0x9b		/* access */
 	.byte	0xcf		/* flags + limit_high */
+	.byte	0x00		/* base_high */
+
+	/*
+	 * The 64-bit Code Segment Descriptor:
+	 * - Base   = 0x00000000
+	 * - Size   = 4GB
+	 * - Access = Present, Ring 0, Exec (Code), Readable
+	 * - Flags  = 4kB Granularity, L
+	 */
+	.word	0xffff		/* limit_low */
+	.word	0x0000		/* base_low */
+	.byte	0x00		/* base_middle */
+	.byte	0x9b		/* access */
+	.byte	0xaf		/* flags + limit_high */
 	.byte	0x00		/* base_high */
 
 	/*
