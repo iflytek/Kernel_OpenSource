@@ -9,12 +9,17 @@
 #include <asm/e820.h>
 #include <asm/post.h>
 #include <fdtdec.h>
+#include <chipram_env.h>
 
 #define E820_MAP_NAME "intel,e820_map"
 #define E820_ITEMS "e820_map"
 
 /* element array: addr(64), size(64), type(32)*/
 #define E820_ITEM_SIZE (8 + 8 + 4)
+
+#define U32_TO_U64(val1,val2)	(u64)((((u64)(val1))<<32)|((u64)(val2)))
+
+ddr_info_t local_ddr_range;
 
 static unsigned install_e820_map_fdt(unsigned max_entries,
 			struct e820entry *entries)
@@ -59,6 +64,46 @@ unsigned install_e820_map(unsigned max_entries, struct e820entry *entries)
 	printf("%s, !!!!!ERROR!!!!! found %d e820 entries in DTS file! \n", __func__, e820_entries);
 	return e820_entries > max_entries ? max_entries : e820_entries;
 }
+
+#ifdef CONFIG_SOC_IWHALE2
+void setup_chipram_ddr_range(void)
+{
+	ddr_info_t * env = CHIPRAM_DDR_RANGE_LOCATION;
+
+	local_ddr_range = * env;
+
+}
+
+ddr_info_t* get_ddr_range(void)
+{
+	return &local_ddr_range;
+}
+
+unsigned install_e820_map_auto_detect(unsigned max_entries, struct e820entry *entries)
+{
+	extern ddr_info_t* get_ddr_range(void);
+	u8 e820_entries_detect = 0;
+	u8 e820_entries_dts = 0;
+	int i=0;
+	ddr_info_t* ddr_info = get_ddr_range();
+	e820_entries_detect=ddr_info->section_number;
+	/*the first part of ddr,may be reserved for vmm in vmm board*/
+	e820_entries_dts = install_e820_map_fdt(max_entries, entries);
+	entries++;
+	entries->addr = U32_TO_U64(ddr_info->sec_info[0].start_address_high,ddr_info->sec_info[0].start_address_low)+VMM_RESERVE_SIZE;
+	entries->size  = U32_TO_U64(ddr_info->sec_info[0].end_address_high,ddr_info->sec_info[0].end_address_low)-entries->addr+0x1;
+	entries->type  = E820_RAM;
+	entries++;
+
+	for (i = 1; i < e820_entries_detect; i++) {
+		entries->addr = U32_TO_U64(ddr_info->sec_info[i].start_address_high,ddr_info->sec_info[i].start_address_low);
+		entries->size  = U32_TO_U64(ddr_info->sec_info[i].end_address_high,ddr_info->sec_info[i].end_address_low)-entries->addr+0x1;
+		entries->type  = E820_RAM;
+		entries++;
+	}
+	return e820_entries_dts+e820_entries_detect;
+}
+#endif
 
 int dram_init(void)
 {

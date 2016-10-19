@@ -18,6 +18,20 @@ typedef struct chipram_env {
 	u32 reserved;
 }chipram_env_t;
 
+typedef struct section_info{
+	u32 type;
+	u32 start_address_high;
+	u32 start_address_low;
+	u32 end_address_high;
+	u32 end_address_low;
+}section_info_t;
+
+#define max_sec_number 8
+typedef struct ddr_info {
+	u32 section_number;
+	struct section_info sec_info[max_sec_number];
+}ddr_info_t;
+
 chipram_env_t* get_chipram_env(void);
 boot_mode_t get_boot_role(void);
 

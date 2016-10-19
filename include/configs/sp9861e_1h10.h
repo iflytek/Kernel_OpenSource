@@ -12,6 +12,7 @@
 #define USB3_PHY_TUNE2 0x0f0560fe
 
 /*******DDR CONFIG************************/
+#define CONFIG_E820_AUTO_DETECT
 #define CONFIG_NR_DRAM_BANKS        1
 #define PHYS_SDRAM_1_SIZE           0x60000000
 /***********MEMORY LAYOUT****************/

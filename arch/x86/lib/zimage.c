@@ -300,8 +300,13 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 {
 	struct setup_header *hdr = &setup_base->hdr;
 	int bootproto = get_boot_protocol(hdr);
+#ifdef CONFIG_E820_AUTO_DETECT
+	setup_base->e820_entries = install_e820_map_auto_detect(
+		ARRAY_SIZE(setup_base->e820_map), setup_base->e820_map);
+#else
 	setup_base->e820_entries = install_e820_map(
 		ARRAY_SIZE(setup_base->e820_map), setup_base->e820_map);
+#endif
 	void *fdt_blob = (u8*)DT_ADR;
 
 	printf("Selected fdt_blob address 0x%x\n", fdt_blob);
