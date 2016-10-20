@@ -250,7 +250,7 @@ static LCM_Init_Code init_data[] = {
 
 //CMD2_P0
 {LCM_SEND(2), {0xFF, 0x02}},
-//CMD_FB_1DATA1 DBH FB,01
+{LCM_SEND(2), {0xFB, 0x01}},
 
 {LCM_SEND(2), {0x00, 0x00}},
 {LCM_SEND(2), {0x01, 0x8C}},
@@ -490,7 +490,7 @@ static LCM_Init_Code init_data[] = {
 
 //CMD2_P4
 {LCM_SEND(2), {0xFF, 0x05}},
-//CMD_FB_1DATA1 DBH FB,01
+{LCM_SEND(2), {0xFB, 0x01}},
 //ccmon
 //CGOUT
 {LCM_SEND(2), {0x00, 0x00}},
@@ -593,7 +593,7 @@ static LCM_Init_Code init_data[] = {
 //CMD_9D_1DATA4 DBH 9D,B6
 
 //VIDEO DROP
-{LCM_SEND(2), {0xE7, 0x80}},
+{LCM_SEND(2), {0xE7, 0x83}},
 
 //CMD_EC_1DATA4 DBH EC,00
 
