@@ -23,14 +23,55 @@
 #define OFF_ADI_DLY2			0x60
 #define OFF_ADI_DLY3			0x64
 
-#define DVFS_ENABLE		((ADI_MODE << VLT_MAP_WORK_MODE_BIT) | \
-				(0x1 << VDDCPU_SHUTDWN_BIT) | \
-				(BAD_CFG_VLT << BAD_CFG_BIT))
+#define REG_ADI_CHNL2			(2)
+#define REG_ADI_CHNL5			(5)
+#define REG_ADI_CHNL11			(11)
+/*0x40038c00 + 0x00000054 */
+#define DCDC_ARM0_VOL_ADI_ADDR			(0x8C54)
+ /*0x40038c00 + 0x00000064 */
+#define DCDC_ARM1_VOL_ADI_ADDR			(0x8C64)
+/*0x40038c00 + 0x00000178 */
+#define LDO_SRAM_PD_ADI_ADDR			(0x8D78)
 
-/* 100mV stepping 100us	*/
-#define LAT_2_UPDATE_VDDCPU		0x00000100
-#define LAT_2_RAMPDN_VDDCPU_TO_0	0x00000200
-#define LAT_2_RAMPUP_VDDCPU_TO_V2	0x00000300
+/* ADI mode is by default. Hence no need to set it again */
+#define DVFS_ENABLE	(0x1 << VDDCPU_SHUTDWN_BIT)
+#define ADI_MODE_EN	(0x1 << 0)
+
+/* The default value is 0x1800 and delay time is about 50us
+ * (for 128MHz AON APB clock) or 200us (for default 26MHz AON APB clock).  
+ * During fine tune DVFS function, these delay times shall
+ * be modified according to voltage response latency of PMIC.
+ * Delay1 is VDDCPU modification latency(2us).
+ * Delay2 is VDDCPU shutdown latency (500us – 1ms).
+ * Delay3 is VDDCPU open latency(200us).
+*/
+
+/* For AON APB clock 128 MHZ
+ * 128 x 10^6 -> 10^6us
+ * Delay 1 is 2us
+ * Delay 1 = (128 x 10^6 / 10^6) x 2
+ *	   =  128 x 2 = 256
+ * Delay 2 is 500us
+ *	   = 128 * 500 = 64000
+ * Delay 3 is 200us
+ *	   = 128 * 200 = 25600
+*/
+
+/* For AON APB clock 26 MHZ
+ * 26 x 10^6 -> 10^6us
+ * Delay 1 is 2us
+ * Delay 1 = (26 x 10^6 / 10^6) x 2
+ *	   =  26 x 2 = 52
+ * Delay 2 is 500us
+ *	   = 26 * 500 = 13000
+ * Delay 3 is 200us
+ *	   = 26 * 200 = 5200
+*/
+
+/* Assuming 128MHz is currently used */
+#define LAT_2_UPDATE_VDDCPU		0x00001800
+#define LAT_2_RAMPDN_VDDCPU_TO_0	0x00001800
+#define LAT_2_RAMPUP_VDDCPU_TO_V2	0x00006400
 
 #define VLT_MAP_WORK_MODE_BIT		0x0
 #define	ADI_MODE			0x1
@@ -43,33 +84,6 @@
 #define VF_TABLE_LOCK_BIT		7
 #define	VF_TABLE_LOCK			1
 #define	VF_TABLE_UNLOCK			0
-
-#define ADI_BASE_ADDR			0xE4030000
-#define OFF_ADI_CHNLS			0x40
-#define ENABLE_ADI_CHNL5		(0x1 << 5)
-#define ENABLE_ADI_CHNL11		(0x1 << 11)
-
-#define OFF_ADI_RF_GSSI			0x24
-/* Enable 2 wire + 4 dummy clocks + sample tx at negative edge */
-#define ENABLE_2WIRE			((0x1 << RF_GSSI_STRTBIT_MODE_BIT) | \
-					(0x3 << RF_GSSI_DUMMY_LEN_BIT) | \
-					(0x1 << RF_GSSI_NG_TX))
-
-#define RF_GSSI_STRTBIT_MODE_BIT	31
-#define RF_GSSI_DUMMY_LEN_BIT		16
-#define RF_GSSI_NG_TX			0
-
-#define OFF_PMU_CHNL02			0x44
-#define CHNL02_ADDR_BIT			0x0
-#define CHNL02_ADDR			0x08D78
-
-#define OFF_PMU_CHNL05			0x50
-#define CHNL05_ADDR_BIT			0x0
-#define CHNL05_ADDR			0x08C54
-
-#define OFF_PMU_CHNL11			0x68
-#define CHNL11_ADDR_BIT			0x0
-#define CHNL11_ADDR			0x08C64
 
 #define PMIC_VLT_AVAIL_BIT		31
 #define PMIC_CTRL_BIT			5
@@ -124,4 +138,6 @@ static inline int ceiling_fp(int32_t x)
 		ret += 1;
 	return ret;
 }
+
+extern int adi_hwchannel_set(unsigned int chn, unsigned int config);
 #endif
