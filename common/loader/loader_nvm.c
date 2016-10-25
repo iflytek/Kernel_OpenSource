@@ -1,4 +1,5 @@
 #include <common.h>
+#include <android_bootimg.h>
 #include "loader_common.h"
 #include <malloc.h>
 #include <ext_common.h>
@@ -851,21 +852,39 @@ int secure_verify_partition(block_dev_desc_t * dev, uchar * partition_name, void
 #ifdef CONFIG_ZEBU
 void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
 {
-	uint32_t size = DT_SIZE;
-	size = (size+(KERNL_PAGE_SIZE - 1)) & (~(KERNL_PAGE_SIZE - 1));
-	uint64_t dt_img_adr = RAMDISK_ADR - size - KERNL_PAGE_SIZE;
-	debugf("%s,dt_img_addr:%p\n",__func__,dt_img_adr);
+    struct boot_img_hdr *boot_hdr;
+    ulong bzImage_size = 0;
+    ulong initrd_size = 0;
+    ulong dtb_size = 0;
+    ulong dt_img_adr = 0;
+
+    /* load bootimg to RAM  */
+    boot_hdr = malloc(512*4);
+    memcpy((void *)boot_hdr,(const void *)BOOTIMG_ADR,512*4);
+    bzImage_size = (boot_hdr->kernel_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+    initrd_size = (boot_hdr->ramdisk_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+    dtb_size = (boot_hdr->dt_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+    if (!memcmp(boot_hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
+        memcpy((void *)KERNEL_ADR,(const void *)BOOTIMG_ADR+512*4,bzImage_size);
+        memcpy((void *)RAMDISK_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size,initrd_size);
+        memcpy((void *)DT_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size+initrd_size,dtb_size);
+
+        debugf("\nthe kernel is loading in the address:%x,size is %d\n",KERNEL_ADR,bzImage_size);
+        debugf("\nthe ramdisk is loading in the address:%x,size is %d\n",RAMDISK_ADR,initrd_size);
+        debugf("\nthe dtb is loading in the address:%x,size is %d\n",DT_ADR,dtb_size);
+    }
+    free(boot_hdr);
 
 	/* copy kernel/dt/ramdisk/sml from jointRAM to InterlaceRAM */
 #ifdef CONFIG_INTERLACE_RAM_COPY
 	memcpy(KERNEL_ADR,SRC_KERNEL_ADR,KERNEL_SIZE);
 	memcpy(RAMDISK_ADR,SRC_RAMDISK_ADR,RAMDISK_SIZE);
 #endif
-	memcpy(dt_img_adr,SRC_DT_ADR,DT_SIZE);
+
 #ifdef CONFIG_INTERLACE_RAM_COPY
 	debugf("copy kernel to interlace RAM done\n");
 #endif
-
+	dt_img_adr = DT_ADR;
 	if (load_dtb((uint64_t)DT_ADR,(void*)dt_img_adr)) {
 	debugf("dt load error!\n");
 	return;

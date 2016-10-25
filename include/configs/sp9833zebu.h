@@ -303,6 +303,7 @@
 #define CONFIG_PREBOOT "role"
 #define CONFIG_BOARD_LATE_INIT
 #define SRC_DT_ADR      0x81000000
+#define BOOTIMG_ADR     0x86000000
 
 /*rf board id */
 //#define RF_BAND_INFO
