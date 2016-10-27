@@ -95,8 +95,8 @@ typedef struct _tagSP15_PHASE_CHECK {
 typedef struct boot_image_required {
 	uchar *partition;	//partition name record on disk
 	uchar *bak_partition;	//if no backup partition, set NULL
-	unsigned long size;	//partition size to be read
-	unsigned long mem_addr;	//target memory addr
+	uint64_t size;	//partition size to be read
+	uint64_t mem_addr;	//target memory addr
 } boot_image_required_t;
 
 typedef struct _NV_HEADER {

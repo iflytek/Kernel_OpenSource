@@ -40,58 +40,55 @@
 /**---------------------------------------------------------------------------*
  **                         Function Prototypes                               *
  **---------------------------------------------------------------------------*/
-/*****************************************************************************/
-//  Description:    Sets the different kinds of reset modes, used in normal p-
-//                  ower up mode, watchdog reset mode and calibration mode etc.
-//  Author:         Andrew.Yang
-//  Note:
-/*****************************************************************************/
-static inline void cp0_arm0_boot(void)
+#define PUBCP_IRAM_ADDRESS 0x5000D000
+
+static u32 g_loader[] = {
+	0xee110f10, 0xe3c00005, 0xe3c00a01, 0xf57ff04f,
+	0xee010f10, 0xf57ff06f, 0xee110f30, 0xe3800802,
+	0xe3800801, 0xe3c00902, 0xee010f30, 0xf57ff04f,
+	0xe3a00000, 0xee070f15, 0xee0f0f15, 0xe3a01000,
+	0xee061f12, 0xf57ff06f, 0xe3a01000, 0xee061f11,
+	0xe3a0103f, 0xee061f51, 0xe3a01f42, 0xee061f91,
+	0xee110f30, 0xe3c00802, 0xe3c00801, 0xe3c00902,
+	0xee010f30, 0xee110f10, 0xe3800001, 0xf57ff04f,
+	0xee010f10, 0xf57ff06f, 0xe51ff004, 0x8b800600
+};
+
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+extern int get_cp_loader(u32 *count, u32 *loader);
+#else
+int get_cp_loader(u32 *count, u32 *loader)
 {
-    u32 state;
-
-      /* open cp0 pmu controller
-    *((volatile u32*)REG_PMU_APB_PD_CP0_SYS_CFG ) &= ~BIT(25);
-    msleep(50);
-    *((volatile u32*)REG_PMU_APB_PD_CP0_SYS_CFG ) &= ~BIT(28);
-    */
-
-    *((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~ BIT(17);   /*clear cp0 sleep */
-    *((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT(0);   /* reset cp0 */
-    msleep(50);
-    *((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~ BIT(0); /* clear cp0 force shutdown */
-
-    while(1)
-    {
-    state = *((volatile u32*)REG_PMU_APB_CP_SOFT_RST);
-    if(!(state & BIT(0)))
-      break;
-    }
+	return -1;
 }
+#endif
 
-/*****************************************************************************/
-//  Description:    Gets the current reset mode.
-//  Author:         Andrew.Yang
-//  Note:
-/*****************************************************************************/
-static inline void cp1_boot(void)
+static inline void pubcp_boot(void)
 {
-    u32 state;
-    *((volatile u32*)REG_AON_APB_APB_RST1) |= BIT(20);   /* reset cp1 */
-    msleep(50);
-    *((volatile u32*)REG_AON_APB_APB_RST1) &= ~ BIT(20);   /*clear reset cp1 */
-    *((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~(BIT(18) | BIT(20));   /*clear cp1 sleep */
+	u32 state;
+	u32 loader[0x32] = {0};
+	u32 count = sizeof(loader)/sizeof(u32);
 
-    *((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT(1);   /* reset cp0 */
-    msleep(50);
-    *((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~ BIT(1); /* clear cp0 force shutdown */
+	if(get_cp_loader(&count, loader) == 0)
+	{
+		memcpy((void *)PUBCP_IRAM_ADDRESS, loader, count * sizeof(u32));
+	} else {
+		printf("%s: use default g_loader boot cp\n", __func__);
+		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
+	}
 
-    while(1)
-    {
-    state = *((volatile u32*)REG_PMU_APB_CP_SOFT_RST);
-    if(!(state & BIT(1)))
-      break;
-    }
+	/*boot cr5 */
+	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) |= BIT_10; /*cr5 core soft reset*/
+	msleep(50);
+	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) &= ~BIT_10; /*cr5 core soft reset*/
+
+	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_18;   /*clear R5 force sleep */
+	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_25);/* clear R5 force shutdown */
+
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT_1;   /* reset R5 */
+	msleep(50);
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_1; /* pubcp soft reset */
+
 }
 /*****************************************************************************/
 //  Description:    Gets the current reset mode.

@@ -264,7 +264,7 @@ static int do_parse_add_sipc_info(struct keyinfo *key,
 		base = comm_info->res[i].base;
 		size = comm_info->res[i].size;
 		deta = comm_info->res[i].base - PHY_BASE_ADDR;
-		debugf("%s: i = %d, base = 0x%x, size = 0x%x\n", i, base, size);
+		debugf("%s: i = %d, base = 0x%x, size = 0x%x\n",comm_info->res[i].name, i, base, size);
 		if (i == 0) {
 			fill_reg_prop_value(base, size, na, ns, &reg);
 		}
@@ -562,8 +562,8 @@ static int fixup_image_partition_name(const char *rname, struct partition_name_i
 
 int read_cp_required_image(boot_image_required_t img_info)
 {
-	uint32_t secure_boot_offset = 0;
-	uint32_t normal_boot_offset = 0;
+	uint64_t secure_boot_offset = 0;
+	uint64_t normal_boot_offset = 0;
 
 	debugf("load %s to addr 0x%08x\n", img_info.partition, img_info.mem_addr);
 
@@ -597,7 +597,7 @@ int get_coupling_info(const char *partition, struct cp_mem_coupling_info *info)
 
 	memset(&img_info, 0, sizeof(boot_image_required_t));
 	img_info.partition = partition;
-	img_info.mem_addr = (unsigned long)info;
+	img_info.mem_addr = (uint64_t)info;
 	img_info.size = sizeof(struct cp_mem_coupling_info);
 	read_cp_required_image(img_info);
 

@@ -191,13 +191,14 @@ static int start_linux(uchar *dt_addr)
 	void (*theKernel) (int zero, int arch, u32 params);
 	theKernel = (void (*)(void *, int, int, int))KERNEL_ADR;
 
-	/*start modem CP */
-#ifndef CONFIG_ZEBU
-	modem_entry();
-#endif
-
 	/*disable all caches */
 	cleanup_before_linux();
+
+	/*start modem CP */
+
+	modem_entry();
+
+
 #ifdef CONFIG_MINI_TRUSTZONE
 	trustzone_entry(TRUSTZONE_ADR + 0x200);
 #endif
@@ -212,6 +213,11 @@ static int start_linux(uchar *dt_addr)
 
 	/*start modem CP */
 	cp_cmdline_fixup();
+
+	/*disable all caches */
+	cleanup_before_linux();
+
+	/*start modem CP */
 	modem_entry();
 
 	/* jump to kernel with register set */
