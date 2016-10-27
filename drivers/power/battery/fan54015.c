@@ -211,11 +211,6 @@
 #define ISAFE1450 7
 
 #define I2C_SPEED			(100000)
-#ifdef CONFIG_SC9838A
-#define BUS_NUM		(2)
-#else
-#define BUS_NUM		(1)
-#endif
 #define SLAVE_ADDR 		(0x6a)
 
 #define VENDOR_FAN54015					(0x4)
@@ -223,7 +218,7 @@
 
 uint16_t sprd_fan54015_i2c_init(void)
 {
-	i2c_set_bus_num(BUS_NUM);
+	i2c_set_bus_num(CONFIG_SPRDCHG_I2C_BUS);
 	i2c_init(I2C_SPEED, SLAVE_ADDR);
 	return 0;
 }

@@ -175,18 +175,11 @@ typedef unsigned char BYTE;
 #define CHG_OTG_VAL				(0x01)
 
 #define I2C_SPEED			(100000)
-#ifdef CONFIG_SC9001
-#define BUS_NUM		(5)
-#elif defined (CONFIG_SC9860)
-#define BUS_NUM		(4)
-#else
-#define BUS_NUM		(1)
-#endif
 #define SLAVE_ADDR 		(0x6b)
 
 uint16_t bq25896_i2c_init(void)
 {
-	i2c_set_bus_num(BUS_NUM);
+	i2c_set_bus_num(CONFIG_SPRDCHG_I2C_BUS);
 	i2c_init(I2C_SPEED, SLAVE_ADDR);
 	return 0;
 }
