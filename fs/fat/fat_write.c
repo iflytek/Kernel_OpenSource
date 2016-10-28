@@ -1059,7 +1059,7 @@ static int do_fat_write(const char *path_name, void *buffer, loff_t size,
 	dir_entry *dentptr, *retdent;
 	fsdata datablock;
 	fsdata *mydata = &datablock;
-	const char *start, *end, *cur;
+	const char *start, *end, *cur = path_name;
 	int ret = -1, name_len;
 
 	if (read_fat_dbr(mydata))
