@@ -33,7 +33,7 @@
 
 /* registers definitions for controller CTL_ADI */
 #define REG_ADI_CTRL0					(SPRD_MISC_BASE + 0x04)
-#ifdef	ADI_R1P0_VER
+#if defined(ADI_R1P0_VER) || defined(ADI_R3P0_VER)
 #define REG_ADI_CHNL_PRIL				(SPRD_MISC_PHYS + 0x08)
 #define REG_ADI_CHNL_PRIH				(SPRD_MISC_PHYS + 0x0C)
 #define REG_ADI_INT_RAW					(SPRD_MISC_PHYS + 0x14)
@@ -42,6 +42,10 @@
 #define REG_ADI_FIFO_STS				(SPRD_MISC_PHYS + 0x30)
 #define REG_ADI_GSSI_CFG0                               (SPRD_MISC_PHYS + 0x20)
 #define REG_ADI_GSSI_CFG1                               (SPRD_MISC_PHYS + 0x24)
+#define REG_ADI_CHNL_EN0				(SPRD_MISC_PHYS + 0x40)
+#define REG_ADI_CHNL_EN1				(SPRD_MISC_PHYS + 0x20c)
+#define REG_ADI_CHNL_ADDR(id)				(SPRD_MISC_PHYS + 0x44 + (id - 2) * 4)
+#define HW_CHN_CNT					50
 #else
 #define REG_ADI_CHNL_PRIL				(SPRD_MISC_PHYS + 0x08)
 #define REG_ADI_INT_RAW					(SPRD_MISC_PHYS + 0x10)
@@ -90,6 +94,7 @@
 /* soc defined end*/
 
 static u32 readback_addr_mak = 0;
+static u32 readback_offset = 0;
 static u8 is_ana_init = 0;
 
 #if defined(CONFIG_NAND_SPL) || defined(CONFIG_FDL1)
@@ -108,7 +113,6 @@ static u8 is_ana_init = 0;
 */
 static inline int __adi_ver(void)
 {
-
 	return 1;
 }
 
@@ -187,7 +191,7 @@ static inline int __adi_read(u32 regPddr)
 		}
 	}
 	/* val high part should be the address of the last read operation */
-	BUG_ON(TO_ADDR(val) != (regPddr & readback_addr_mak));
+	BUG_ON(TO_ADDR(val) != ((regPddr & readback_addr_mak) >> readback_offset));
 
 	return (val & MASK_RD_VALU);
 #endif  /* CONFIG_FPGA */
@@ -321,11 +325,18 @@ static void __adi_init(void)
 		}
 		value = VALUE_CH_PRI;
 		__raw_writel(value, REG_ADI_CHNL_PRIL);
-#ifdef	ADI_R1P0_VER
+#if defined(ADI_R1P0_VER) || defined(ADI_R3P0_VER)
 		__raw_writel(value, REG_ADI_CHNL_PRIH);
 #endif
+
+#ifdef ADI_R3P0_VER
+		readback_addr_mak = 0xffff;
+		readback_offset = 2;
+#else
 		value = __raw_readl(REG_ADI_GSSI_CFG0);
 		readback_addr_mak = (value & 0x3f) - ((value >> 11) & 0x1f) - 1;
+		readback_offset = 0;
+#endif
 	}
 #endif  /* CONFIG_FPGA */
 }
@@ -338,18 +349,35 @@ void sci_adi_init(void)
 	if(!is_ana_init) {
 		/* enable adi in global regs */
 		CHIP_REG_OR(REG_AON_APB_APB_EB0, BIT_ADI_EB);
-		/* reset adi */
-#ifndef	ADI_R1P0_VER
-		CHIP_REG_OR(REG_AON_APB_APB_RST0, BIT_ADI_SOFT_RST);
-		udelay(2);
-		CHIP_REG_AND(REG_AON_APB_APB_RST0, (~BIT_ADI_SOFT_RST));
-		udelay(2);
-#endif
 		__adi_init();
 
 		is_ana_init = 1;
 	}
 #endif  /* CONFIG_FPGA */
+}
+
+int adi_hwchannel_set(unsigned int chn, unsigned int config)
+{
+	u32 val;
+
+	if (chn < 2)
+		return -1;
+
+	__raw_writel(config, REG_ADI_CHNL_ADDR(chn));
+
+	if (chn < 32) {
+		val = __raw_readl(REG_ADI_CHNL_EN0);
+		val |= Bit(chn);
+		__raw_writel(val, REG_ADI_CHNL_EN0);
+	} else if (chn < HW_CHN_CNT) {
+		val = __raw_readl(REG_ADI_CHNL_EN1);
+		val |= Bit(chn - 32);
+		__raw_writel(val, REG_ADI_CHNL_EN1);
+	} else {
+		return -1;
+	}
+
+	return 0;
 }
 
 /*
