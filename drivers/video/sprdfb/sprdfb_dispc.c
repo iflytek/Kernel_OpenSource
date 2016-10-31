@@ -364,7 +364,7 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 			return -1;
 		}
 	}
-#ifndef CONFIG_SC9833
+#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
 	misc_noc_ctrl(REG_AON_APB_DISP_NOC_CTRL,
 			dev->smem_start > 0x400000000 ? FULL_MODE : NORMAL_MODE,
 			SIZE_64);

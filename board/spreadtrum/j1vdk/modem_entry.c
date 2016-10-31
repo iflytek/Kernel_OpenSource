@@ -141,8 +141,9 @@ void memset_dsp_share_memory()
 void modem_entry()
 {
 	/*workaround,change wtlcp axi to 307.2M*/
+#ifndef CONFIG_SC9851
 	REG32(REG_AON_APB_SUB_SYS_DBG_SIG7) = 0x09;
-
+#endif
 	/*memset l/tg/agdsp share memory*/
 	memset_dsp_share_memory();
 

@@ -34,7 +34,7 @@ static struct dwc3_device dwc3_dev = {
 static void usb_clk_enable(u32 is_on)
 {
 	u32 val;
-
+#ifndef CONFIG_SC9851
 	val = readl(REG_AP_AHB_AHB_EB);
 	if (is_on)
 		writel(val | (BIT_AP_AHB_USB3_EB | BIT_AP_AHB_USB3_SUSPEND_EB
@@ -42,6 +42,7 @@ static void usb_clk_enable(u32 is_on)
 	else
 		writel(val & ~(BIT_AP_AHB_USB3_EB | BIT_AP_AHB_USB3_SUSPEND_EB
 			 | BIT_AP_AHB_USB3_REF_EB), REG_AP_AHB_AHB_EB);
+#endif
 }
 
 #ifdef CONFIG_FPGA
@@ -53,6 +54,7 @@ static void usb_phy_enable(u32 is_on)
 {
 	u32 val, val1;
 
+#ifndef CONFIG_SC9851
 	if (is_on) {
 		/* regulator_set_voltage(LDO_USB3, vol); */
 		regulator_enable(LDO_USB3);
@@ -139,6 +141,7 @@ static void usb_phy_enable(u32 is_on)
 		val = readl(REG_ANA_APB_PWR_CTRL1);
 		writel(val | BIT_ANA_APB_USB30_PS_PD, REG_ANA_APB_PWR_CTRL1);
 	}
+#endif
 }
 #endif
 
