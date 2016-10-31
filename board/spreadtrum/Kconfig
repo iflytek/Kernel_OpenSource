@@ -115,6 +115,12 @@ config TARGET_J1VDK
 	help
 	  This is the Spreadtrum j1vdk Board
 
+config TARGET_J1FPGA
+	bool "Spreadtrum j1fpga"
+	select ARM64
+	help
+	  This is the Spreadtrum j1fpga Board
+
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
@@ -137,4 +143,5 @@ source "board/spreadtrum/sp9860g_4h10_5m/Kconfig"
 source "board/spreadtrum/sp9833_1h10/Kconfig"
 source "board/spreadtrum/sp9833zebu/Kconfig"
 source "board/spreadtrum/j1vdk/Kconfig"
+source "board/spreadtrum/j1fpga/Kconfig"
 endif
