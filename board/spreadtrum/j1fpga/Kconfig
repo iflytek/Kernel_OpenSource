@@ -7,7 +7,7 @@ config SYS_VENDOR
 	default "spreadtrum"
 
 config SYS_SOC
-	default "whale2"
+	default "sc9851"
 
 config SYS_CONFIG_NAME
 	default "j1fpga"

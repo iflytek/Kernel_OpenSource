@@ -74,7 +74,7 @@
 
 
  /* SPREADTRUM BIGPHONE board - SoC Configuration */
-#define CONFIG_SC9860
+#define CONFIG_SC9851
 #define CONFIG_ADIE_SC2731
 #define CONFIG_ADIE_SC2731R
 

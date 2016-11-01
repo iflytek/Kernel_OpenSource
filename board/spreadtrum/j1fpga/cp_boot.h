@@ -90,10 +90,11 @@ static inline void pubcp_boot(void)
 
 	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~(BIT_19|BIT_20);   /*clear R5 force sleep */
 	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_24 | BIT_25);/* clear R5 force shutdown */
-
+#ifndef CONFIG_SC9851
 	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST)|= BIT_2;   /* reset R5 */
 	msleep(50);
 	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_2; /* pubcp soft reset */
+#endif
 
 }
 
@@ -104,7 +105,9 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
+#ifndef CONFIG_SC9851
 	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) |= BIT_1;   /* reset M4 */
+#endif
 }
 
 /*****************************************************************************/
@@ -116,12 +119,15 @@ static inline void pmic_arm_m4_boot(void)
 {
     u32 state;
 	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_23;   /*clear M4 force sleep */
+#ifndef CONFIG_SC9851
 	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~(BIT_1 | BIT_21);   /* reset M4 */
+#endif
     msleep(50);
 }
 
 static inline void agdsp_boot(void)
 {
+#ifndef CONFIG_SC9851
    *((volatile u32*)REG_PMU_APB_PD_AGCP_SYS_CFG) &= ~BIT_25;
    *((volatile u32*)REG_PMU_APB_PD_AGCP_DSP_CFG) &= ~BIT_25;
    *((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_28;
@@ -130,6 +136,7 @@ static inline void agdsp_boot(void)
    *((volatile u32*)REG_AON_APB_AGCP_DSP_CTRL0) = BITS_AON_APB_AGCP_DSP_BOOT_VECTOR(0x449d0040);
    *((volatile u32*)REG_AON_APB_AGCP_CTRL) |= BIT_0;
    *((volatile u32*)REG_AON_APB_AGCP_SOFT_RESET) &= ~BIT_1;
+#endif
 }
 
 /*****************************************************************************/
