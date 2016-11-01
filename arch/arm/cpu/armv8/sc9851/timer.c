@@ -92,7 +92,10 @@ int timer_init(void)
 
 	/* enable aon timer2 26M clk source */
 	writel(readl(REG_AON_APB_CGM_REG1) | BIT_AON_APB_CGM_CM3_TMR2_EN, REG_AON_APB_CGM_REG1);
-	/*init arch timer*/
+
+	/* enable ts clk output to arch timer */
+	writel(0x1, SPRD_APCPUTS0_BASE);
+
 	return 0;
 }
 
