@@ -861,19 +861,22 @@ void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
     /* load bootimg to RAM  */
     boot_hdr = malloc(512*4);
     memcpy((void *)boot_hdr,(const void *)BOOTIMG_ADR,512*4);
-    bzImage_size = (boot_hdr->kernel_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
-    initrd_size = (boot_hdr->ramdisk_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
-    dtb_size = (boot_hdr->dt_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
     if (!memcmp(boot_hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-        memcpy((void *)KERNEL_ADR,(const void *)BOOTIMG_ADR+512*4,bzImage_size);
-        memcpy((void *)RAMDISK_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size,initrd_size);
-        memcpy((void *)DT_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size+initrd_size,dtb_size);
+	bzImage_size = (boot_hdr->kernel_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+	initrd_size = (boot_hdr->ramdisk_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+	dtb_size = (boot_hdr->dt_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
+	memcpy((void *)KERNEL_ADR,(const void *)BOOTIMG_ADR+512*4,bzImage_size);
+	memcpy((void *)RAMDISK_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size,initrd_size);
+	memcpy((void *)DT_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size+initrd_size,dtb_size);
 
-        debugf("\nthe kernel is loading in the address:%x,size is %d\n",KERNEL_ADR,bzImage_size);
-        debugf("\nthe ramdisk is loading in the address:%x,size is %d\n",RAMDISK_ADR,initrd_size);
-        debugf("\nthe dtb is loading in the address:%x,size is %d\n",DT_ADR,dtb_size);
+	debugf("\nthe kernel is loading in the address:%x,size is %d\n",KERNEL_ADR,bzImage_size);
+	debugf("\nthe ramdisk is loading in the address:%x,size is %d\n",RAMDISK_ADR,initrd_size);
+	debugf("\nthe dtb is loading in the address:%x,size is %d\n",DT_ADR,dtb_size);
     }
-    free(boot_hdr);
+    else {
+	errorf("A wrong boot.img here,please check!\n");
+    }
+	free(boot_hdr);
 
 	/* copy kernel/dt/ramdisk/sml from jointRAM to InterlaceRAM */
 #ifdef CONFIG_INTERLACE_RAM_COPY
@@ -891,9 +894,7 @@ void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
 	}
 
 	fdt_fixup_all((uchar *)DT_ADR);
-	uint32_t r_size = RAMDISK_SIZE;
-	r_size = (r_size+(KERNL_PAGE_SIZE - 1)) & (~(KERNL_PAGE_SIZE - 1));
-	fdt_initrd_norsvmem((uchar *)DT_ADR,RAMDISK_ADR,RAMDISK_ADR+r_size, 1);
+	fdt_initrd_norsvmem((uchar *)DT_ADR,RAMDISK_ADR,RAMDISK_ADR+initrd_size, 1);
 
 	vlx_entry(DT_ADR);
 

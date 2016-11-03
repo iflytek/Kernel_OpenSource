@@ -35,8 +35,11 @@ boot_mode_t get_boot_role(void)
 
 int do_role(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
+#ifdef CONFIG_ZEBU
+	boot_mode_t boot_role = BOOTLOADER_MODE_LOAD;
+#else
 	boot_mode_t boot_role = get_boot_role();
-
+#endif
 	switch(boot_role) {
 		case BOOTLOADER_MODE_DOWNLOAD:
 			setenv("bootdelay", "0");
