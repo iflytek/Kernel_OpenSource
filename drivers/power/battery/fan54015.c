@@ -218,6 +218,9 @@
 #endif
 #define SLAVE_ADDR 		(0x6a)
 
+#define VENDOR_FAN54015					(0x4)
+#define VENDOR_TQ24157					(0x2)
+
 uint16_t sprd_fan54015_i2c_init(void)
 {
 	i2c_set_bus_num(BUS_NUM);
@@ -287,15 +290,9 @@ void fan54015_ta_start_charging(void)
 
 void sprdchg_fan54015_start_chg(int type)
 {
-	if(type == ADP_TYPE_CDP || type == ADP_TYPE_DCP){
-		printf("charge start with AC\n");
-		fan54015_ta_start_charging();
-	}else{
-		printf("charge start with USB\n");
-		fan54015_usb_start_charging();
-	}
+	fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_CE_N,FAN5405_CE_N_SHIFT, ENCHARGER);
 }
- void sprdchg_fan54015_stop_charging(void)
+ void sprdchg_fan54015_stop_charging(int value)
 {
 	printf("stop charge\n");
 	fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_CE_N,FAN5405_CE_N_SHIFT, DISCHARGER);	
@@ -328,12 +325,101 @@ void sprdchg_fan54015_reset_timer(void)
 	printf("fan 54015 reset rimer\n");
 	fan54015_set_value(FAN5405_REG_CONTROL0, FAN5405_TMR_RST_OTG,FAN5405_TMR_RST_OTG_SHIFT, RESET32S);
 }
-struct sprd_ext_ic_operations sprd_extic_op ={
+
+unsigned char fan54015_get_vendor_id(void)
+{
+	return fan54015_get_value(FAN5405_REG_IC_INFO,
+				  FAN5405_VENDOR_CODE,
+				  FAN5405_VENDOR_CODE_SHIFT);
+}
+
+void fan54015_set_chg_current(unsigned char reg_val)
+{
+	if (reg_val == 0)
+		fan54015_set_value(FAN5405_REG_CONTROL1,
+				   FAN5405_IINLIM, FAN5405_IINLIM_SHIFT,
+				   IINLIM500);
+	else
+		fan54015_set_value(FAN5405_REG_CONTROL1,
+				   FAN5405_IINLIM, FAN5405_IINLIM_SHIFT,
+				   NOLIMIT);
+	fan54015_set_value(FAN5405_REG_IBAT, FAN5405_IOCHARGE,
+			   FAN5405_IOCHARGE_SHIFT, reg_val);
+}
+
+unsigned char sprdchg_fan54015_cur2reg(uint32_t cur)
+{
+	unsigned char reg_val;
+
+	if (cur < 650)
+		reg_val = 0;
+	if ((cur >= 650) && (cur < 750))
+		reg_val = 1;
+	if ((cur >= 750) && (cur < 850))
+		reg_val = 2;
+	if ((cur >= 850) && (cur < 1050))
+		reg_val = 3;
+	if ((cur >= 1050) && (cur < 1150))
+		reg_val = 4;
+	if ((cur >= 1150) && (cur < 1350))
+		reg_val = 5;
+	if ((cur >= 1350) && (cur < 1450))
+		reg_val = 6;
+	if (cur >= 1450)
+		reg_val = 7;
+	return reg_val;
+}
+
+unsigned char sprdchg_tq24157_cur2reg(uint32_t cur)
+{
+	unsigned char reg_val;
+
+	if (cur < 650)
+		reg_val = 0;
+	else if (cur >= 1250)
+		reg_val = 7;
+	else
+		reg_val = (cur - 550) / 100;
+
+	return reg_val;
+}
+
+void sprdchg_fan54015_set_cur(uint32_t cur)
+{
+	unsigned char reg_val = 0, vendor_id = VENDOR_FAN54015;
+
+
+	vendor_id = fan54015_get_vendor_id();
+	if (vendor_id == VENDOR_FAN54015)
+		reg_val = sprdchg_fan54015_cur2reg(cur);
+
+	if (vendor_id == VENDOR_TQ24157)
+		reg_val = sprdchg_tq24157_cur2reg(cur);
+
+	fan54015_set_chg_current(reg_val);
+}
+
+
+static int sprdchg_fan54015_cmd(enum sprdchg_cmd cmd,int value)
+{
+	switch (cmd) {
+	case CHG_SET_CURRENT:
+		sprdchg_fan54015_set_cur(value);
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+struct sprdchg_ic_operations sprd_extic_op ={
 	.ic_init = sprdchg_fan54015_init,
-	.charge_start_ext = sprdchg_fan54015_start_chg,
-	.charge_stop_ext = sprdchg_fan54015_stop_charging,
-	.timer_callback_ext = sprdchg_fan54015_reset_timer,
+	.chg_start = sprdchg_fan54015_start_chg,
+	.chg_stop = sprdchg_fan54015_stop_charging,
+	.timer_callback = sprdchg_fan54015_reset_timer,
+	.chg_cmd = sprdchg_fan54015_cmd,
 };
-struct sprd_ext_ic_operations *sprd_get_ext_ic_ops(void){
+struct sprdchg_ic_operations *sprdchg_ic_ops_get(void){
 	return &sprd_extic_op;
 }

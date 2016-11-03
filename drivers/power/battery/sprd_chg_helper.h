@@ -4,13 +4,26 @@
 #include <i2c.h>
 typedef unsigned char BYTE;
 
-struct sprd_ext_ic_operations {
-	void (*ic_init) (void);
-	void (*charge_start_ext) (int);
-	void (*charge_stop_ext) (void);
-	void (*timer_callback_ext) (void);
+enum sprdchg_cmd {
+	CHG_UNKNOWN,
+	CHG_CHIP_INIT,
+	CHG_START,
+	CHG_STOP,
+	CHG_SET_CURRENT,
+	CHG_SET_LIMIT_CURRENT,
 };
-extern int sprdchg_charger_is_adapter(void);
-extern void sprd_ext_charger_init(void);
-extern void chg_low_bat_chg(void);
-extern struct sprd_ext_ic_operations *sprd_get_ext_ic_ops(void);
+
+struct sprdchg_ic_operations {
+	void (*ic_init) (void);
+	void (*chg_start) (int);
+	void (*chg_stop) (int);
+	void (*timer_callback) (void);
+	int (*chg_cmd) (enum sprdchg_cmd cmd,int value);
+};
+
+int sprdchg_charger_is_adapter(void);
+void chg_low_bat_chg(void);
+void sprdbat_help_init(void);
+void sprdfgu_init(void);
+void sprdchg_common_cfg(void);
+struct sprdchg_ic_operations *sprdchg_ic_ops_get(void);

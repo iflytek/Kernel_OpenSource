@@ -20,19 +20,16 @@ enum sprd_adapter_type {
 	ADP_TYPE_SDP = 4,	//Standard Downstream Port,USB and nonstandard charge
 };
 
-void sprdchg_start_charge(void);
-void sprdchg_stop_charge(void);
-void sprdchg_set_chg_cur(uint32_t chg_current);
 int sprdchg_charger_is_adapter(void);
 uint16_t sprdbat_auxadc2vbatvol(uint16_t adcvalue);
 uint32_t sprdbat_get_vbatauxadc_caltype(void);
-void sprdbat_lateinit(void);
 void sprdbat_get_vbatauxadc_caldata(void);
 void sprdbat_init(void);
+void sprdbat_lowbat_chg(void);
 int sprdbat_is_battery_connected(void);
-void sprdfgu_init(void);
 void sprdbat_show_chglogo(void);
 void sprdbat_chg_led(int on);
+uint32_t sprdbat_get_aux_vbatvol(void);
 
 #endif
 

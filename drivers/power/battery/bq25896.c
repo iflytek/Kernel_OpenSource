@@ -258,7 +258,7 @@ void chg_bq25896_start_chg(int type)
 		bq25896_usb_start_charging();
 	}
 }
- void chg_bq25896_stop_charging(void)
+ void chg_bq25896_stop_charging(int value)
 {	
 	printf("stop charge\n");
 	bq25896_set_value(REG03, CHG_CONFIG_BIT , CHG_CONFIG_SHIFT, CHG_DISABLE_VAL);
@@ -292,12 +292,54 @@ void chg_bq25896_reset_timer(void)
 {
 	printf("bq25896 reset rimer\n");
 }
-struct sprd_ext_ic_operations sprd_extic_op ={
+
+void chg_bq25896_set_chg_current_limit(uint32_t limit)
+{
+	/* max limit is 3.25A, min is 100mA  */
+	if (limit > 3250)
+		limit = 3250;
+	else if (limit < 100)
+		limit = 100;
+
+	limit -= 100;
+
+	bq25896_set_value(REG00, IINLIM_BIT, IINLIM_SHIFT, limit / 50);
+}
+
+void chg_bq25896_set_chg_cur(unsigned int cur)
+{
+	unsigned char reg_val = 0;
+
+	if (cur > 3008)
+		cur = 3008;
+	reg_val = (cur >> 6);
+
+	bq25896_set_value(REG04, ICHG_BIT, ICHG_SHIFT, reg_val);
+}
+
+static int chg_bq25896_cmd(enum sprdchg_cmd cmd,int value)
+{
+	switch (cmd) {
+	case CHG_SET_CURRENT:
+		chg_bq25896_set_chg_cur(value);
+		break;
+	case CHG_SET_LIMIT_CURRENT:
+		chg_bq25896_set_chg_current_limit(value);
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+struct sprdchg_ic_operations sprd_extic_op ={
 	.ic_init = chg_bq25896_init,
-	.charge_start_ext = chg_bq25896_start_chg,
-	.charge_stop_ext = chg_bq25896_stop_charging,
-	.timer_callback_ext = chg_bq25896_reset_timer,
+	.chg_start = chg_bq25896_start_chg,
+	.chg_stop = chg_bq25896_stop_charging,
+	.timer_callback = chg_bq25896_reset_timer,
+	.chg_cmd = chg_bq25896_cmd,
 };
-struct sprd_ext_ic_operations *sprd_get_ext_ic_ops(void){
+struct sprdchg_ic_operations *sprdchg_ic_ops_get(void){
 	return &sprd_extic_op;
 }

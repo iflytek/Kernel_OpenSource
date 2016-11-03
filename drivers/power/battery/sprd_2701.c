@@ -169,26 +169,53 @@ void sprd_2701_ta_start_charging(void)
 	sprd_2701_set_value(CHG_CUR_CTL,CHG_CUR_BIT ,CHG_CUR_SHIFT , CHG_CUR_TA_VAL);
 }
 
-void sprdchg_2701_start_chg(int type)
+void sprdchg_2701_start_chg(int value)
 {
-	debugf("sprdchg_2701_start_chg\n type=%d\n",type);
 	sprd_2701_set_value(POWER_ON_CTL, CHG_EN_BIT , CHG_EN_SHIFT, 1);
-	if(type == ADP_TYPE_CDP || type == ADP_TYPE_DCP){
-		debugf("charge start with AC\n");
-		sprd_2701_set_value(INPUT_SRC_CTL,
-				    IN_CUR_LIMIT_BIT, IN_CUR_LIMIT_SHIFT, 6);
-		sprd_2701_ta_start_charging();
-	}else{
-		debugf("charge start with USB\n");
-		sprd_2701_usb_start_charging();
-	}
 }
- void sprdchg_2701_stop_charging(void)
+
+void sprdchg_2701_stop_charging(int value)
 {
 	debugf("stop charge\n");
 	sprd_2701_set_value(TIMER_CTL, WATCH_DOG_TIMER_BIT,WATCH_DOG_TIMER_SHIFT, 0x00);
 	sprd_2701_set_value(POWER_ON_CTL, CHG_EN_BIT , CHG_EN_SHIFT, CHG_DISABLE_VAL);
 }
+
+static void sprdchg_2701_chg_current_limit(uint32_t cur)
+{
+	unsigned char reg_val;
+
+	if (cur <= 300)
+		reg_val = 0;
+	else if (cur <= 500)
+		reg_val = 1;
+	else if (cur <= 900)
+		reg_val = 2;
+	else if (cur <= 1200)
+		reg_val = 3;
+	else if (cur <= 1500)
+		reg_val = 4;
+	else if (cur <= 2000)
+		reg_val = 5;
+	else if (cur <= 3000)
+		reg_val = 6;
+	else
+		reg_val = 7;
+	sprd_2701_set_value(INPUT_SRC_CTL,
+		IN_CUR_LIMIT_BIT, IN_CUR_LIMIT_SHIFT, reg_val);
+}
+
+static void sprdchg_2701_set_chg_cur(unsigned int cur)
+{
+	unsigned char reg_val = 0;
+
+	if (cur < 512)
+		cur = 512;
+	reg_val = (cur - 512) >> 6;
+
+	sprd_2701_set_value(CHG_CUR_CTL, CHG_CUR_BIT, CHG_CUR_SHIFT, reg_val);
+}
+
 void  sprd_2701_sw_reset(void)
 {
 	debugf("sprdchg_2701_sw_reset");
@@ -222,12 +249,30 @@ void sprdchg_2701_reset_timer(void)
 	sprd_2701_set_value(POWER_ON_CTL, TMR_RST_BIT,
 		TMR_RST_SHIFT, 0x01);
 }
-struct sprd_ext_ic_operations sprd_extic_op ={
+
+static int sprdchg_2701_cmd(enum sprdchg_cmd cmd,int value)
+{
+	switch (cmd) {
+	case CHG_SET_CURRENT:
+		sprdchg_2701_set_chg_cur(value);
+		break;
+	case CHG_SET_LIMIT_CURRENT:
+		sprdchg_2701_chg_current_limit(value);
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+struct sprdchg_ic_operations sprd_extic_op ={
 	.ic_init = sprdchg_2701_init,
-	.charge_start_ext = sprdchg_2701_start_chg,
-	.charge_stop_ext = sprdchg_2701_stop_charging,
-	.timer_callback_ext = sprdchg_2701_reset_timer,
+	.chg_start = sprdchg_2701_start_chg,
+	.chg_stop = sprdchg_2701_stop_charging,
+	.timer_callback = sprdchg_2701_reset_timer,
+	.chg_cmd = sprdchg_2701_cmd,
 };
-struct sprd_ext_ic_operations *sprd_get_ext_ic_ops(void){
+struct sprdchg_ic_operations *sprdchg_ic_ops_get(void){
 	return &sprd_extic_op;
 }

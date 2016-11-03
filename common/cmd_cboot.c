@@ -13,8 +13,6 @@
 extern CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] ;
 
 extern unsigned int check_key_boot(unsigned char key);
-extern void chg_low_bat_chg(void);
-
 
 int boot_pwr_check(void)
 {
@@ -86,9 +84,7 @@ boot_mode_enum_type get_mode_from_bat_low(void)
 	  if(charger_connected()) {
 		  debugf("cboot:low battery,charging...\n");
 		  sprdbat_show_chglogo();
-#ifdef CONFIG_SPRD_EXT_IC_POWER
-		  chg_low_bat_chg();
-#endif
+		  sprdbat_lowbat_chg();
 		  mdelay(200);
 	  }else{
 		  debugf("cboot:low battery and shutdown\n");

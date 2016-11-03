@@ -43,6 +43,7 @@ int is_bat_low(void)
 {
 	int adc_value = 0;
 	unsigned int comp_vbat = 0;
+	unsigned int vol_vbat;
 	int i;
 
 	if (charger_connected()) {
@@ -50,8 +51,6 @@ int is_bat_low(void)
 	} else {
 		comp_vbat = LOW_BAT_VOL;
 	}
-
-	pmic_adc_Init();
 
 	for (i = 0; i < _BUF_SIZE; i++) {
 retry_adc:
@@ -67,10 +66,11 @@ retry_adc:
 	}
 
 	adc_value = get_vbat_value();
+	vol_vbat = sprdbat_auxadc2vbatvol(adc_value);
+	printf("is_bat_low adc_value:%d,comp_vbat:%d,vol_vbat:%d\n",
+		adc_value, comp_vbat,vol_vbat);
 
-	printf("is_bat_low adc_value:%d,comp_vbat:%d\n", adc_value, comp_vbat);
-
-	if (sprdbat_auxadc2vbatvol(adc_value) < comp_vbat)
+	if (vol_vbat < comp_vbat)
 		return 1;
 	else
 		return 0;
