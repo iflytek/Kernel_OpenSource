@@ -27,7 +27,7 @@ void flush_dcache_range(unsigned long start, unsigned long stop);
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/
-#define MAX_RECV_LENGTH     0xffff //(64k-1)
+#define MAX_RECV_LENGTH     0xffc0 //(64k-64)
 #define USB_TIMEOUT             (1000)
 #define REG32(x)     (*((volatile uint32 *)(x)))
 /**---------------------------------------------------------------------------*
@@ -39,12 +39,12 @@ static uint32    enum_speed;
 static uint32    recv_length;
 static uint32 nIndex, readIndex;
 PUBLIC __align(64)  unsigned char usb_out_endpoint_buf[MAX_RECV_LENGTH];
-volatile unsigned char    s_setup_packet[8];
-struct linklist_node_s dma_linklist_tx;
-struct linklist_node_s dma_linklist_rx;
+volatile unsigned char    s_setup_packet[8] __attribute__((aligned (64)));
+struct linklist_node_s dma_linklist_tx __attribute__((aligned (64)));
+struct linklist_node_s dma_linklist_rx __attribute__((aligned (64)));
 
-__align (8) unsigned char linklist_ram_tx[12];
-__align (8) unsigned char linklist_ram_rx[12];
+__align (64) unsigned char linklist_ram_tx[12];
+__align (64) unsigned char linklist_ram_rx[12];
 __align (4) unsigned char DeviceStatus[] =
 {
 	0x00,0x00
@@ -114,6 +114,7 @@ int prepare_linklist_node (uint32 dir,int ep, unsigned int transfer_size, unsign
 	int rx_ch;
 	unsigned long cache_start = 0;
 	unsigned long cache_end = 0;
+	u32 len;
 
 	if(dir)
 	{
@@ -140,11 +141,11 @@ int prepare_linklist_node (uint32 dir,int ep, unsigned int transfer_size, unsign
 		q+=4;
 
 		cache_start = (unsigned long)(&dma_linklist_rx);
-		cache_end = cache_start + sizeof(dma_linklist_rx);
+		cache_end = cache_start + 64;
 		invalidate_dcache_range(cache_start, cache_end);
 
 		cache_start = (unsigned long)(&linklist_ram_rx);
-		cache_end = cache_start + sizeof(linklist_ram_rx);
+		cache_end = cache_start + 64;
 		invalidate_dcache_range(cache_start, cache_end);
 
 		//out ep for receive data
@@ -156,8 +157,12 @@ int prepare_linklist_node (uint32 dir,int ep, unsigned int transfer_size, unsign
 		//enable channel and trigger rx dma transfer
 		REG32(MUSB_DMA_CHN_CFG(rx_ch)) |=0x1;
 	}else{
-		cache_start = (unsigned long)buffer;
-		cache_end = cache_start + (unsigned long)transfer_size;
+		cache_start = (u64)buffer;
+		if (transfer_size % 64)
+			len = transfer_size - (transfer_size % 64) + 64;
+		else
+			len = transfer_size;
+		cache_end = cache_start + len;
 		flush_dcache_range(cache_start, cache_end);
 
 		dma_linklist_tx.addr = buffer;
@@ -183,11 +188,11 @@ int prepare_linklist_node (uint32 dir,int ep, unsigned int transfer_size, unsign
 		p+=4;
 
 		cache_start = (unsigned long)(&dma_linklist_tx);
-		cache_end = cache_start + sizeof(dma_linklist_tx);
+		cache_end = cache_start + 64;
 		flush_dcache_range(cache_start, cache_end);
 
 		cache_start = (unsigned long)(&linklist_ram_tx);
-		cache_end = cache_start + sizeof(linklist_ram_tx);
+		cache_end = cache_start + 64;
 		flush_dcache_range(cache_start, cache_end);
 	}
 }
@@ -258,7 +263,7 @@ LOCAL void usb_setup_handle (void)
 	if((reg1 & BIT_0 ) == BIT_0)
 	{
 		cache_start = (unsigned long)s_setup_packet;
-		cache_end = cache_start + sizeof(s_setup_packet);
+		cache_end = cache_start + 64;
 		invalidate_dcache_range(cache_start, cache_end);
 		for(i=0;i<8;i++)
 			s_setup_packet[i] = *(volatile unsigned char*)Mentor_USB_EP0_FIFO;
