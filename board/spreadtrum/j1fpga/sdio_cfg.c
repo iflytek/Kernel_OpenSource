@@ -44,9 +44,9 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	400000,
 #endif
 	REG_AP_AHB_AHB_EB,
-	BIT_10,
+	BIT_AP_AHB_EMMC_EB,
 	REG_AP_AHB_AHB_RST,
-	BIT_11,
+	BIT_AP_AHB_EMMC_SOFT_RST,
 
 	"vddgen",
 	"vddemmccore",
