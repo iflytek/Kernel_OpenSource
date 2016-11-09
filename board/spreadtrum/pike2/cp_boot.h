@@ -101,7 +101,7 @@ static inline void cp1_boot(void)
 void pmic_arm7_RAM_active(void)
 {
     u32 state;
-    *((volatile u32*)REG_AON_APB_ARM7_SYS_SOFT_RST) |= BIT(0);   /* 0x402e0114*/
+    *((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) |= BIT(0);   /* 0x402e0114*/
     msleep(50);
     *((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT(8);   /* reset arm7*/
     msleep(50);
@@ -124,7 +124,7 @@ static inline void pmic_arm7_boot(void)
 {
     u32 state;
     *((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~ BIT(21);   /*clear arm7 force sleep */
-    *((volatile u32*)REG_AON_APB_ARM7_SYS_SOFT_RST) &= ~ BIT(0);   /* reset arm7 */
+    *((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~ BIT(0);   /* reset arm7 */
     msleep(50);
 }
 
