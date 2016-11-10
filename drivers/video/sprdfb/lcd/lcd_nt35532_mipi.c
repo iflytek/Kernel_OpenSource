@@ -676,9 +676,9 @@ static uint32_t nt35532_readid(struct panel_spec *self)
 			mipi_eotp_set(1,1);
 			i2c_set_bus_num(4);
 			i2c_init(100000, 0x3E);
-			i2c_reg_write(0x3E, 0x00, 0x0e);
+			i2c_reg_write(0x3E, 0x00, 0x0F);
 			mdelay(50);
-			i2c_reg_write(0x3E, 0x01, 0x0e);
+			i2c_reg_write(0x3E, 0x01, 0x0F);
 			mdelay(50);
 			return 0x32;
 		}
@@ -722,9 +722,9 @@ static struct timing_rgb lcd_nt35532_mipi_timing = {
 	.hfp = 80,  /* unit: pixel */
 	.hbp = 80,//80
 	.hsync = 10,//4//10
-	.vfp = 32, /*unit: line*/
-	.vbp = 32,//32
-	.vsync = 4,//4//4
+	.vfp = 25, /*unit: line*////===32
+	.vbp = 20,//32///===32
+	.vsync = 2,//4//4///===4
 };
 
 static struct info_mipi lcd_nt35532_mipi_info = {
