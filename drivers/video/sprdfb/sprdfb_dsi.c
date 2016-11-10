@@ -64,7 +64,7 @@ int32_t dsi_early_int(void)
 	}
 
 #ifdef CONFIG_FPGA
-#ifndef CONFIG_SC9833
+#if !((defined(CONFIG_SC9833)) || (defined(CONFIG_SC9851)))
 	usc28c_dsi_init();
 #endif
 #endif
