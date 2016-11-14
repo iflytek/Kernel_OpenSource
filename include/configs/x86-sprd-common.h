@@ -73,7 +73,12 @@
 #else
 #define CONFIG_BOOTARGS		"earlycon console=ttyS0,921600n8"
 #endif
+
+#if defined(CONFIG_TARGET_ISHARKL2_FPGA) || defined(CONFIG_TARGET_ISHARKL2)
+#define CONFIG_BOOTCOMMAND   "zboot 35100000 800000 3b800000 800000"
+#else
 #define CONFIG_BOOTCOMMAND   "zboot 10080000 800000 15500000 800000"
+#endif
 
 /* SPRD Serial Configuration */
 #define CONFIG_SPRD_UART

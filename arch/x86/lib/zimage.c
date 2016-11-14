@@ -28,7 +28,6 @@
 #include <malloc.h>
 #include <libfdt.h>
 
-#define DEFAULT_SETUP_DTB_ADDR	0x500
 DECLARE_GLOBAL_DATA_PTR;
 
 /*
@@ -40,7 +39,6 @@ DECLARE_GLOBAL_DATA_PTR;
  *	0x8000-0x8FFF	Stack and heap
  *	0x9000-0x90FF	Kernel command line
  */
-#define DEFAULT_SETUP_BASE	0x90000
 #define COMMAND_LINE_OFFSET	0x9000
 #define HEAP_END_OFFSET		0x8e00
 
@@ -174,7 +172,7 @@ struct boot_params *load_zimage(char *image, unsigned long kernel_size,
 
 	/* Determine load address */
 	if (big_image)
-		*load_addressp = BZIMAGE_LOAD_ADDR;
+		*load_addressp = KERNEL_ADR;
 	else
 		*load_addressp = ZIMAGE_LOAD_ADDR;
 
@@ -238,32 +236,19 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 	int bootproto = get_boot_protocol(hdr);
 	setup_base->e820_entries = install_e820_map(
 		ARRAY_SIZE(setup_base->e820_map), setup_base->e820_map);
-	void *fdt_blob;
+	void *fdt_blob = (u8*)DT_ADR;
 
-#if !defined(CONFIG_TARGET_IWHALE2_FPGA) && !defined(CONFIG_TARGET_ISHARKL2_FPGA)
-
-	uint32_t dt_img_adr = DT_ADR;
-	if(load_dtb((uint64_t) DT_ADR, dt_img_adr) < 0) {
-		printf("\nWARNING:load dtb from bootimg failed!\n");
-		if (fdt_check_header(DT_ADR) < 0)
-			fdt_blob = gd->fdt_blob;
-		else
-			fdt_blob = DT_ADR;
-	} else {
-		fdt_blob = (void *)DT_ADR;
-	}
-#else
-	fdt_blob = (u8 *)DT_ADR;
-#endif
 	printf("Selected fdt_blob address 0x%x\n", fdt_blob);
+	if (fdt_check_header(fdt_blob) < 0) {
+		printf("Selected fdt_blob invalid, revert to default\n");
+		fdt_blob = gd->fdt_blob;
+	}
 
 	/* if FDT then pass it to the kernel setup header */
 	if (fdt_blob) {
 		struct setup_data *sd;
 		/* use setup_dtb_addr if defined */
-		sd = (void *)(getenv_ulong("setup_dtb_addr", 16, 0UL) ? :
-			DEFAULT_SETUP_DTB_ADDR);
-
+		sd = DEFAULT_SETUP_DTB_ADDR;
 		sd->next = 0;
 		sd->type = SETUP_DTB;
 		sd->len = fdt_totalsize(fdt_blob);
@@ -333,6 +318,7 @@ int do_zboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	ulong initrd_addr = 0;
 	ulong initrd_size = 0;
 	ulong dtb_size = 0;
+	uint32_t dt_img_adr = DT_ADR;
 
 	disable_interrupts();
 
@@ -369,6 +355,8 @@ int do_zboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 		memcpy((void *)RAMDISK_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size,initrd_size);
 		memcpy((void *)DT_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size+initrd_size,dtb_size);
 
+		if(load_dtb((uint64_t) DT_ADR, dt_img_adr) < 0)
+			printf("\nWARNING:load dtb from bootimg failed!\n");
 		debugf("\nthe kernel is loading in the address:%x,size is %d\n",KERNEL_ADR,bzImage_size);
 		debugf("\nthe ramdisk is loading in the address:%x,size is %d\n",RAMDISK_ADR,initrd_size);
 		debugf("\nthe dtb is loading in the address:%x,size is %d\n",DT_ADR,dtb_size);
