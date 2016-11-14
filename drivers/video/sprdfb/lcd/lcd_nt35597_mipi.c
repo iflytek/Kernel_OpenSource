@@ -685,17 +685,17 @@ static LCM_Init_Code init_data[] = {
 
 {LCM_SEND(2), {0x35, 0x00}},
 {LCM_SEND(2), {0xBB, 0x03}},//video:0x03   cmd:0x10
-
+#if 1
 {LCM_SEND(1), {0x11}},
 {LCM_SLEEP(120)},
 {LCM_SEND(1), {0x29}},
 //{LCM_SLEEP(120)},
 //{LCM_SEND(2), {0x58, 0x01}},//start scaling-up
-
-//{LCM_SEND(2), {0xFF, 0x24}},
-//{LCM_SEND(2), {0xFB, 0x01}},
-//{LCM_SEND(2), {0xEC, 0x01}},
-
+#else //bist mode
+{LCM_SEND(2), {0xFF, 0x24}},
+{LCM_SEND(2), {0xFB, 0x01}},
+{LCM_SEND(2), {0xEC, 0x01}},
+#endif
 };
 
 
@@ -826,7 +826,7 @@ static struct info_mipi lcd_nt35597_mipi_info = {
 	.work_mode  = SPRDFB_MIPI_MODE_VIDEO,
 	.video_bus_width = 24, /*18,16*/
 	.lan_number = 4,
-	.phy_feq = 792*1000,
+	.phy_feq = 790*1000,
 	.h_sync_pol = SPRDFB_POLARITY_POS,
 	.v_sync_pol = SPRDFB_POLARITY_POS,
 	.de_pol = SPRDFB_POLARITY_POS,

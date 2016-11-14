@@ -304,7 +304,11 @@ static int32_t dispc_config_dsc_param(struct sprdfb_device *dev)
 		* slice width adn height:720,16
 		* h/v porch > 0x20
 		* */
+#ifdef CONFIG_SOC_IWHALE2
+		0x2000010b,
+#else
 		0x2000000b,
+#endif
 		0x0a0005a0,
 		0x000000f0,
 		0x04096000,

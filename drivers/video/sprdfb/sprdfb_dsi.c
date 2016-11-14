@@ -148,10 +148,15 @@ static int32_t dsi_dpi_init(struct sprdfb_device *dev)
 		dpi_param.color_coding = COLOR_CODE_18BIT_CONFIG1;
 		break;
 	case 24:
+#ifdef CONFIG_SOC_IWHALE2
+		/*iwhale2 use synposys dsi host , not support COLOR_CODE_COMPRESSTION*/
+		dpi_param.color_coding = COLOR_CODE_24BIT;
+#else
 		if(panel->is_need_dsc)
 			dpi_param.color_coding = COLOR_CODE_COMPRESSTION;
 		else
 			dpi_param.color_coding = COLOR_CODE_24BIT;
+#endif
 		break;
 	default:
 		printf("sprdfb:[%s] fail, invalid video_bus_width\n", __FUNCTION__);
@@ -169,12 +174,18 @@ static int32_t dsi_dpi_init(struct sprdfb_device *dev)
 	if(SPRDFB_POLARITY_POS == mipi ->de_pol){
 		dpi_param.data_en_polarity = 1;
 	}
-
 	dpi_param.h_active_pixels = panel->width;
 	dpi_param.h_sync_pixels = mipi->timing->hsync;
 	dpi_param.h_back_porch_pixels = mipi->timing->hbp;
 	dpi_param.h_total_pixels = panel->width + mipi->timing->hsync + mipi->timing->hbp + mipi->timing->hfp;
 
+#ifdef CONFIG_SOC_IWHALE2
+	if(panel->is_need_dsc){
+		dpi_param.h_active_pixels = panel->width / 3;
+		dpi_param.h_total_pixels = panel->width + mipi->timing->hsync + mipi->timing->hbp + mipi->timing->hfp
+			+(panel->width << 1) / 3;
+	}
+#endif
 	dpi_param.v_active_lines = panel->height;
 	dpi_param.v_sync_lines = mipi->timing->vsync;
 	dpi_param.v_back_porch_lines = mipi->timing->vbp;
