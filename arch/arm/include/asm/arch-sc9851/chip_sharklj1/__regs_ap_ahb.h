@@ -76,6 +76,7 @@
 #define BIT_AP_AHB_CE_PUB_EB                               BIT(6)
 #define BIT_AP_AHB_DMA_EB                                  BIT(5)
 #define BIT_AP_AHB_OTG_EB                                  BIT(4)
+#define BIT_USB_EB						BIT_AP_AHB_OTG_EB
 #define BIT_AP_AHB_GSP_EB                                  BIT(3)
 #define BIT_AP_AHB_DISPC_EB                                BIT(1)
 #define BIT_AP_AHB_DSI_EB                                  BIT(0)
@@ -99,8 +100,12 @@
 #define BIT_AP_AHB_NANDC_SOFT_RST                          BIT(10)
 #define BIT_AP_AHB_CE_PUB_SOFT_RST                         BIT(9)
 #define BIT_AP_AHB_DMA_SOFT_RST                            BIT(8)
+#define BIT_AP_AHB_OTG_PHY_SOFT_RST                           BIT(6)
+#define BIT_OTG_PHY_SOFT_RST					BIT_AP_AHB_OTG_PHY_SOFT_RST
 #define BIT_AP_AHB_OTG_UTMI_SOFT_RST                       BIT(5)
+#define BIT_OTG_UTMI_SOFT_RST					BIT_AP_AHB_OTG_UTMI_SOFT_RST
 #define BIT_AP_AHB_OTG_SOFT_RST                            BIT(4)
+#define BIT_OTG_SOFT_RST					BIT_AP_AHB_OTG_SOFT_RST
 #define BIT_AP_AHB_GSP_SOFT_RST                            BIT(3)
 #define BIT_AP_AHB_DISP_MTX_SOFT_RST                       BIT(2)
 #define BIT_AP_AHB_DISPC_SOFT_RST                          BIT(1)

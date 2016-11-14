@@ -15,7 +15,6 @@
 #define CONFIG_MEM_LAYOUT_DECOUPLING
 
 /*sharklj1 fpga/zebu debug*/
-#define CONFIG_AUTOLOAD_MODE
 #define BOOTIMG_ADR	0x8D000000
 
 #define CONFIG_SMT
@@ -27,7 +26,7 @@
 #define CONFIG_REMAKE_ELF
 
 #define CONFIG_FPGA
-//#define CONFIG_FPGA_DEBUG
+#define CONFIG_FPGA_DEBUG
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
@@ -253,11 +252,7 @@
 /*used in usb drv*/
 #define CHIP_ENDIAN_LITTLE
 #define _LITTLE_ENDIAN 1
-#define CONFIG_USB_DWC3
-#ifdef CONFIG_USB_DWC3
-#define CONFIG_USB_DWC3_GADGET
-#define CONFIG_USB_DWC3_SPRD
-#endif
+#define CONFIG_MUSB_GADGET
 #define TMSC_16NM_FFPLL 0x5533166e /* USB3.0_PHY_TSMC_16NM */
 #define USB3_PHY_TUNE1 0x919e9dec
 #define USB3_PHY_TUNE2 0x0f0560fe
@@ -334,7 +329,7 @@
 #endif
 
 /*rf board id */
-#define RF_BAND_INFO
+//#define RF_BAND_INFO
 #ifdef RF_BAND_INFO
 #define LB_GPIO_NUM   175
 #define MB_GPIO_NUM   174
