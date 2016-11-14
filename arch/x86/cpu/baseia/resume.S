@@ -23,6 +23,7 @@
 #error RESERVED_RAM_START must be 4K aligned
 #endif
 
+#define VID_TABLE_DATA (CONFIG_BASEIA_SRAM + CONFIG_VID_OFFSET)
 #define RESUME_POINTER (CONFIG_BASEIA_SRAM + 0x1FE0)
 
 /* AP startup vector is at the end of reserved area - 4K */
@@ -52,6 +53,9 @@
 /* DDR ready flag address on PMU */
 #define DDR0_ACC_RDY 0xe42b02cc
 
+#define ADDR_DVFS_EN_MOD0	0xE44B0000
+#define ADDR_DVFS_EN_MOD1	0xE44C0000
+
 /*
  *  the following part is to be copied to SRAM on startup
  *  and executed from there on resume
@@ -73,7 +77,35 @@ _resume_start:
 
 _set_stack:
 
-	movl	$(RESUME_POINTER), %esp
+	movl	$(VID_TABLE_DATA), %esp
+
+	movl	$(VID_TABLE_DATA), %esi
+
+	movl	$ADDR_DVFS_EN_MOD0, %ebx
+	movl	$SRAM_ADDRESS(vmi_offsets), %edx
+	movl	$(vmi_off_end - vmi_offsets), %ecx
+_next_vid0:
+	xorl	%eax, %eax
+	movb	(%edx), %al
+	incl	%edx
+	movl	%eax, %edi
+	movl	(%esi), %eax
+	addl	$4, %esi
+	movl	%eax, (%ebx, %edi)
+	loop	_next_vid0
+
+	movl	$ADDR_DVFS_EN_MOD1, %ebx
+	movl	$SRAM_ADDRESS(vmi_offsets), %edx
+	movl	$(vmi_off_end - vmi_offsets), %ecx
+_next_vid1:
+	xorl	%eax, %eax
+	movb	(%edx), %al
+	incl	%edx
+	movl	%eax, %edi
+	movl	(%esi), %eax
+	addl	$4, %esi
+	movl	%eax, (%ebx, %edi)
+	loop	_next_vid1
 
 /* wait for DRAM wake */
 _wait_ddr:
@@ -281,6 +313,10 @@ cpu_started:
 
 cpu_updated:
 	.long	0
+
+vmi_offsets:
+	.byte	0x00, 0x14, 0x20, 0x24, 0x28, 0x2c, 0x30, 0x34, 0x38, 0x3c, 0x60, 0x64
+vmi_off_end:
 
 	.align 16
 
