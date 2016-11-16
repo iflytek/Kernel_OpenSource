@@ -333,7 +333,31 @@ void set_pll_frequency(uint32_t output_freq)
        i_tdctargetcnt1 = 0x0;
        i_lockthreshsel = 0x0;
        i_pllwait_cntr = 0x2;
-    }
+    } else if (output_freq == 960*1000) {
+       div5b = 0x0;
+       div2or3 = 0x1;
+       div5bbyass = 0x0;
+       i_fbdivratio = 0x6e;
+       i_fracdiv2 = 0x31;
+       i_fracdiv1 = 0x3b;
+       i_fracdiv0 = 0x13;
+       i_feedfwrdgain = 0x02;
+       i_fracnen_h = 0x1;
+       i_sscstepsize0 = 0x0;
+       i_sscstepsize1 = 0x0;
+       i_sscsteplength0 = 0x0;
+       i_sscsteplength1 = 0x0;
+       i_sscstepnum = 0x0;
+       i_ssctype = 0x0;
+       i_sscen_h = 0x0;
+       i_prop_coeff = 0x4;
+       i_int_coeff = 0x8;
+       i_gainctrl = 0x1;
+       i_tdctargetcnt0 = 0x22;
+       i_tdctargetcnt1 = 0x0;
+       i_lockthreshsel = 0x0;
+       i_pllwait_cntr = 0x2;
+   }
     writel_nbits(div5b,3,1,0xe41b0004+PHY_OFFSET);
     writel_nbits(div2or3,1,4,0xe41b0004+PHY_OFFSET);
     writel_nbits(div5bbyass,1,5,0xe41b0004+PHY_OFFSET);

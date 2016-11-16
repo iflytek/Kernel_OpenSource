@@ -721,8 +721,8 @@ static struct panel_operations lcd_nt35532_mipi_operations = {
 };
 
 static struct timing_rgb lcd_nt35532_mipi_timing = {
-	.hfp = 80,  /* unit: pixel */
-	.hbp = 80,//80
+	.hfp = 176,  /* unit: pixel */
+	.hbp = 16,//80
 	.hsync = 10,//4//10
 	.vfp = 32, /*unit: line*/
 	.vbp = 32,//32
@@ -733,7 +733,7 @@ static struct info_mipi lcd_nt35532_mipi_info = {
 	.work_mode  = SPRDFB_MIPI_MODE_VIDEO,
 	.video_bus_width = 24, /*18,16*/
 	.lan_number = 4,
-	.phy_feq = 880*1000,//4//960
+	.phy_feq = 960*1000,//4//960
 	.h_sync_pol = SPRDFB_POLARITY_POS,
 	.v_sync_pol = SPRDFB_POLARITY_POS,
 	.de_pol = SPRDFB_POLARITY_POS,
