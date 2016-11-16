@@ -273,7 +273,8 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 	sdhci_writel(host, cmd->cmdarg, SDHCI_ARGUMENT);
 
 #ifdef CONFIG_MMC_SDMA
-	flush_cache(start_addr, trans_bytes);
+	if (data != NULL)
+		flush_cache(start_addr, trans_bytes);
 #endif
 
 	sdhci_writel(host, ultemp, SDHCI_TRANSFER_MODE);
@@ -441,7 +442,8 @@ int sdhci_send_command_backstage(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	sdhci_writel(host, cmd->cmdarg, SDHCI_ARGUMENT);
 #ifdef CONFIG_MMC_SDMA
-	flush_cache(start_addr, trans_bytes);
+	if (data != NULL)
+		flush_cache(start_addr, trans_bytes);
 #endif
 
 	sdhci_writel(host, ultemp, SDHCI_TRANSFER_MODE);

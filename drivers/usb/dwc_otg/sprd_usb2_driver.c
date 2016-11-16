@@ -193,6 +193,9 @@ LOCAL void usb_start_transfer (USB_EP_NUM_E ep_num, BOOLEAN dir, uint32_t transf
 		volatile USB_DOEPCTL_U   *doepctl_ptr = (USB_DOEPCTL_U *) USB_DOEPCTL (ep_num);
 
 		if (is_dma) {
+			cache_start = (unsigned long)buffer;
+			cache_end = cache_start + (unsigned long)MAX_RECV_LENGTH;
+			flush_dcache_range(cache_start, cache_end);
 			* (volatile uint32_t *) USB_DOEPDMA (ep_num) = (uint32_t) buffer;
 		}
 

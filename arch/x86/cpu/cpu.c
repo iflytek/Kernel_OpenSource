@@ -395,9 +395,9 @@ int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	return 0;
 }
 
-void  flush_cache(unsigned long dummy1, unsigned long dummy2)
+void  flush_cache(unsigned long start, unsigned long size)
 {
-	asm("wbinvd\n");
+	flush_dcache_range(start, (start + size));
 }
 
 __weak void reset_cpu(ulong addr)
@@ -418,10 +418,27 @@ int dcache_status(void)
 	return !(read_cr0() & 0x40000000);
 }
 
+#define MMU_ALIGN(address)    ((address) & 0xFFFFFFC0)
+#define MMU_ALIGNMENT         64
+
 /* Define these functions to allow ehch-hcd to function */
 void flush_dcache_range(unsigned long start, unsigned long stop)
 {
-    flush_cache(start, stop);
+	unsigned int vaddr = MMU_ALIGN((unsigned long)start);
+	unsigned int endvaddr, align_overhead_size;
+	unsigned int cache_size = stop-start;
+
+	align_overhead_size = (unsigned long)start - vaddr;
+	cache_size = MMU_ALIGN(cache_size + align_overhead_size + MMU_ALIGNMENT - 1);
+	endvaddr = vaddr + cache_size;
+
+	asm volatile("mfence");
+	for(; vaddr < endvaddr; vaddr += MMU_ALIGNMENT)
+	{
+		asm volatile("clflush %0" : "+m"(*(volatile char *)vaddr));
+	}
+	/* memory fence for both loads and stores */
+	asm volatile("mfence");
 }
 
 void invalidate_dcache_range(unsigned long start, unsigned long stop)
