@@ -26,15 +26,16 @@
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_APB_SPI3_EB                         BIT(20)
-#define BIT_AP_APB_CKG_EB                          BIT(19)
+#define BIT_AP_APB_AP_CKG_EB                       BIT(19)
 #define BIT_AP_APB_UART4_EB                        BIT(18)
 #define BIT_AP_APB_UART3_EB                        BIT(17)
 #define BIT_AP_APB_UART2_EB                        BIT(16)
 #define BIT_AP_APB_UART1_EB                        BIT(15)
+#define BIT_UART1_EB					BIT_AP_APB_UART1_EB
 #define BIT_AP_APB_UART0_EB                        BIT(14)
+#define BIT_UART0_EB					BIT_AP_APB_UART0_EB
 #define BIT_AP_APB_I2C5_EB                         BIT(13)
 #define BIT_AP_APB_I2C4_EB                         BIT(12)
-#define BIT_AP_APB_I2C3_EB                         BIT(11)
 #define BIT_AP_APB_I2C2_EB                         BIT(10)
 #define BIT_AP_APB_I2C1_EB                         BIT(9)
 #define BIT_AP_APB_I2C0_EB                         BIT(8)
@@ -54,7 +55,7 @@
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_APB_SPI3_SOFT_RST                   BIT(20)
-#define BIT_AP_APB_CKG_SOFT_RST                    BIT(19)
+#define BIT_AP_APB_AP_CKG_SOFT_RST                 BIT(19)
 #define BIT_AP_APB_UART4_SOFT_RST                  BIT(18)
 #define BIT_AP_APB_UART3_SOFT_RST                  BIT(17)
 #define BIT_AP_APB_UART2_SOFT_RST                  BIT(16)
@@ -62,7 +63,6 @@
 #define BIT_AP_APB_UART0_SOFT_RST                  BIT(14)
 #define BIT_AP_APB_I2C5_SOFT_RST                   BIT(13)
 #define BIT_AP_APB_I2C4_SOFT_RST                   BIT(12)
-#define BIT_AP_APB_I2C3_SOFT_RST                   BIT(11)
 #define BIT_AP_APB_I2C2_SOFT_RST                   BIT(10)
 #define BIT_AP_APB_I2C1_SOFT_RST                   BIT(9)
 #define BIT_AP_APB_I2C0_SOFT_RST                   BIT(8)

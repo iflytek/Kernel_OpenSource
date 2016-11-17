@@ -592,10 +592,15 @@ static void usb_startup(void)
         __raw_bits_and(~BIT_USB_PHY_SOFT_RST, REG_AP_AHB_AHB_RST);
 
 
+#elif defined(CONFIG_TARGET_ISHARKL2)
+	__raw_bits_or(BIT_OTG_SOFT_RST, REG_AP_AHB_AHB_RST);
+	dwc_mdelay(5);
+	__raw_bits_and(~(BIT_OTG_SOFT_RST), REG_AP_AHB_AHB_RST);
 #else
 	__raw_bits_or(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST|BIT_OTG_PHY_SOFT_RST, REG_AP_AHB_AHB_RST);
 	dwc_mdelay(5);
 	__raw_bits_and(~(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST|BIT_OTG_PHY_SOFT_RST), REG_AP_AHB_AHB_RST);
+
 #endif
 	dwc_mdelay(5);
 

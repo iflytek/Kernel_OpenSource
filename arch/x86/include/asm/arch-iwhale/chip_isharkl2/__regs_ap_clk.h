@@ -12,37 +12,36 @@
 #ifndef _AP_CLK_REG_H
 #define _AP_CLK_REG_H
 
-#define CTL_BASE_AP_CLK   SPRD_APCLK_BASE
+#define CTL_BASE_AP_CLK SPRD_APCLK_BASE
 
 
 #define REG_AP_CLK_CGM_CTL_CFG        ( CTL_BASE_AP_CLK + 0x0010 )
 #define REG_AP_CLK_CGM_AP_APB_CFG     ( CTL_BASE_AP_CLK + 0x0020 )
 #define REG_AP_CLK_CGM_AP_AXI_CFG     ( CTL_BASE_AP_CLK + 0x0024 )
-#define REG_AP_CLK_CGM_USB3_UTMI_CFG  ( CTL_BASE_AP_CLK + 0x0028 )
-#define REG_AP_CLK_CGM_USB3_PIPE_CFG  ( CTL_BASE_AP_CLK + 0x002C )
-#define REG_AP_CLK_CGM_USB3_REF_CFG   ( CTL_BASE_AP_CLK + 0x0030 )
-#define REG_AP_CLK_CGM_EFS_CFG        ( CTL_BASE_AP_CLK + 0x0034 )
-#define REG_AP_CLK_CGM_CE0_CFG        ( CTL_BASE_AP_CLK + 0x0038 )
-#define REG_AP_CLK_CGM_CE1_CFG        ( CTL_BASE_AP_CLK + 0x003C )
-#define REG_AP_CLK_CGM_UART0_CFG      ( CTL_BASE_AP_CLK + 0x0040 )
-#define REG_AP_CLK_CGM_UART1_CFG      ( CTL_BASE_AP_CLK + 0x0044 )
-#define REG_AP_CLK_CGM_UART2_CFG      ( CTL_BASE_AP_CLK + 0x0048 )
-#define REG_AP_CLK_CGM_UART3_CFG      ( CTL_BASE_AP_CLK + 0x004C )
-#define REG_AP_CLK_CGM_UART4_CFG      ( CTL_BASE_AP_CLK + 0x0050 )
-#define REG_AP_CLK_CGM_I2C0_CFG       ( CTL_BASE_AP_CLK + 0x0054 )
-#define REG_AP_CLK_CGM_I2C1_CFG       ( CTL_BASE_AP_CLK + 0x0058 )
-#define REG_AP_CLK_CGM_I2C2_CFG       ( CTL_BASE_AP_CLK + 0x005C )
-#define REG_AP_CLK_CGM_I2C3_CFG       ( CTL_BASE_AP_CLK + 0x0060 )
-#define REG_AP_CLK_CGM_I2C4_CFG       ( CTL_BASE_AP_CLK + 0x0064 )
-#define REG_AP_CLK_CGM_I2C5_CFG       ( CTL_BASE_AP_CLK + 0x0068 )
-#define REG_AP_CLK_CGM_SPI0_CFG       ( CTL_BASE_AP_CLK + 0x006C )
-#define REG_AP_CLK_CGM_SPI1_CFG       ( CTL_BASE_AP_CLK + 0x0070 )
-#define REG_AP_CLK_CGM_SPI3_CFG       ( CTL_BASE_AP_CLK + 0x0074 )
-#define REG_AP_CLK_CGM_IIS0_CFG       ( CTL_BASE_AP_CLK + 0x0078 )
-#define REG_AP_CLK_CGM_IIS1_CFG       ( CTL_BASE_AP_CLK + 0x007C )
-#define REG_AP_CLK_CGM_IIS2_CFG       ( CTL_BASE_AP_CLK + 0x0080 )
-#define REG_AP_CLK_CGM_IIS3_CFG       ( CTL_BASE_AP_CLK + 0x0084 )
-#define REG_AP_CLK_CGM_AP_32K_CFG     ( CTL_BASE_AP_CLK + 0x0088 )
+#define REG_AP_CLK_CGM_USB2_UTMI_CFG  ( CTL_BASE_AP_CLK + 0x0028 )
+#define REG_AP_CLK_CGM_EFS_CFG        ( CTL_BASE_AP_CLK + 0x002C )
+#define REG_AP_CLK_CGM_CE0_CFG        ( CTL_BASE_AP_CLK + 0x0030 )
+#define REG_AP_CLK_CGM_CE1_CFG        ( CTL_BASE_AP_CLK + 0x0034 )
+#define REG_AP_CLK_CGM_UART0_CFG      ( CTL_BASE_AP_CLK + 0x0038 )
+#define REG_AP_CLK_CGM_UART1_CFG      ( CTL_BASE_AP_CLK + 0x003C )
+#define REG_AP_CLK_CGM_UART2_CFG      ( CTL_BASE_AP_CLK + 0x0040 )
+#define REG_AP_CLK_CGM_UART3_CFG      ( CTL_BASE_AP_CLK + 0x0044 )
+#define REG_AP_CLK_CGM_UART4_CFG      ( CTL_BASE_AP_CLK + 0x0048 )
+#define REG_AP_CLK_CGM_I2C0_CFG       ( CTL_BASE_AP_CLK + 0x004C )
+#define REG_AP_CLK_CGM_I2C1_CFG       ( CTL_BASE_AP_CLK + 0x0050 )
+#define REG_AP_CLK_CGM_I2C2_CFG       ( CTL_BASE_AP_CLK + 0x0054 )
+#define REG_AP_CLK_CGM_I2C3_CFG       ( CTL_BASE_AP_CLK + 0x0058 )
+#define REG_AP_CLK_CGM_I2C4_CFG       ( CTL_BASE_AP_CLK + 0x005C )
+#define REG_AP_CLK_CGM_I2C5_CFG       ( CTL_BASE_AP_CLK + 0x0060 )
+#define REG_AP_CLK_CGM_SPI0_CFG       ( CTL_BASE_AP_CLK + 0x0064 )
+#define REG_AP_CLK_CGM_SPI1_CFG       ( CTL_BASE_AP_CLK + 0x0068 )
+#define REG_AP_CLK_CGM_SPI3_CFG       ( CTL_BASE_AP_CLK + 0x006C )
+#define REG_AP_CLK_CGM_IIS0_CFG       ( CTL_BASE_AP_CLK + 0x0070 )
+#define REG_AP_CLK_CGM_IIS1_CFG       ( CTL_BASE_AP_CLK + 0x0074 )
+#define REG_AP_CLK_CGM_IIS2_CFG       ( CTL_BASE_AP_CLK + 0x0078 )
+#define REG_AP_CLK_CGM_IIS3_CFG       ( CTL_BASE_AP_CLK + 0x007C )
+#define REG_AP_CLK_CGM_AP_32K_CFG     ( CTL_BASE_AP_CLK + 0x0080 )
+#define REG_AP_CLK_CGM_PTI_CFG        ( CTL_BASE_AP_CLK + 0x0084 )
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_CTL_CFG
@@ -71,33 +70,16 @@
 #define BIT_AP_CLK_CGM_AP_AXI_SEL(x)                  (((x) & 0x3))
 
 /*---------------------------------------------------------------------------
-// Register Name   : REG_AP_CLK_CGM_USB3_UTMI_CFG
+// Register Name   : REG_AP_CLK_CGM_USB2_UTMI_CFG
 // Register Offset : 0x0028
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-#define BIT_AP_CLK_CGM_USB3_UTMI_PAD_SEL              BIT(16)
-
-/*---------------------------------------------------------------------------
-// Register Name   : REG_AP_CLK_CGM_USB3_PIPE_CFG
-// Register Offset : 0x002C
-// Description     : 
----------------------------------------------------------------------------*/
-
-#define BIT_AP_CLK_CGM_USB3_PIPE_PAD_SEL              BIT(16)
-
-/*---------------------------------------------------------------------------
-// Register Name   : REG_AP_CLK_CGM_USB3_REF_CFG
-// Register Offset : 0x0030
-// Description     : 
----------------------------------------------------------------------------*/
-
-#define BIT_AP_CLK_CGM_USB3_REF_DOZE_EN               BIT(17)
-#define BIT_AP_CLK_CGM_USB3_REF_SEL                   BIT(0)
+#define BIT_AP_CLK_CGM_USB2_UTMI_PAD_SEL              BIT(16)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_EFS_CFG
-// Register Offset : 0x0034
+// Register Offset : 0x002C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -106,7 +88,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_CE0_CFG
-// Register Offset : 0x0038
+// Register Offset : 0x0030
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -115,7 +97,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_CE1_CFG
-// Register Offset : 0x003C
+// Register Offset : 0x0034
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -124,7 +106,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_UART0_CFG
-// Register Offset : 0x0040
+// Register Offset : 0x0038
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -134,7 +116,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_UART1_CFG
-// Register Offset : 0x0044
+// Register Offset : 0x003C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -144,7 +126,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_UART2_CFG
-// Register Offset : 0x0048
+// Register Offset : 0x0040
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -154,7 +136,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_UART3_CFG
-// Register Offset : 0x004C
+// Register Offset : 0x0044
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -164,7 +146,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_UART4_CFG
-// Register Offset : 0x0050
+// Register Offset : 0x0048
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -174,7 +156,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_I2C0_CFG
-// Register Offset : 0x0054
+// Register Offset : 0x004C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -184,7 +166,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_I2C1_CFG
-// Register Offset : 0x0058
+// Register Offset : 0x0050
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -194,7 +176,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_I2C2_CFG
-// Register Offset : 0x005C
+// Register Offset : 0x0054
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -204,7 +186,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_I2C3_CFG
-// Register Offset : 0x0060
+// Register Offset : 0x0058
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -214,7 +196,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_I2C4_CFG
-// Register Offset : 0x0064
+// Register Offset : 0x005C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -224,7 +206,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_I2C5_CFG
-// Register Offset : 0x0068
+// Register Offset : 0x0060
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -234,7 +216,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_SPI0_CFG
-// Register Offset : 0x006C
+// Register Offset : 0x0064
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -245,7 +227,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_SPI1_CFG
-// Register Offset : 0x0070
+// Register Offset : 0x0068
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -256,7 +238,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_SPI3_CFG
-// Register Offset : 0x0074
+// Register Offset : 0x006C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -267,7 +249,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_IIS0_CFG
-// Register Offset : 0x0078
+// Register Offset : 0x0070
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -277,7 +259,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_IIS1_CFG
-// Register Offset : 0x007C
+// Register Offset : 0x0074
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -287,7 +269,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_IIS2_CFG
-// Register Offset : 0x0080
+// Register Offset : 0x0078
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -297,7 +279,7 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_IIS3_CFG
-// Register Offset : 0x0084
+// Register Offset : 0x007C
 // Description     : 
 ---------------------------------------------------------------------------*/
 
@@ -307,12 +289,22 @@
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_CLK_CGM_AP_32K_CFG
-// Register Offset : 0x0088
+// Register Offset : 0x0080
 // Description     : 
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_CLK_CGM_AP_32K_DOZE_EN                 BIT(17)
 #define BIT_AP_CLK_CGM_AP_32K_SEL                     BIT(0)
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_CLK_CGM_PTI_CFG
+// Register Offset : 0x0084
+// Description     : 
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_CLK_CGM_PTI_DOZE_EN                    BIT(17)
+#define BIT_AP_CLK_CGM_PTI_DIV(x)                     (((x) & 0x7) << 8)
+#define BIT_AP_CLK_CGM_PTI_SEL(x)                     (((x) & 0x3))
 
 
 #endif // _AP_CLK_REG_H
