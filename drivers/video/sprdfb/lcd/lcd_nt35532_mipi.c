@@ -587,10 +587,10 @@ static LCM_Init_Code init_data[] = {
 
 {LCM_SEND(2),{0xFF,0x00}},   //CMD1
 {LCM_SEND(2),{0xFB,0x01}},
-{LCM_SEND(2),{0xD3,0x15}},   //VBP        
+{LCM_SEND(2),{0xD3,0x15}},   //VBP+VSA
 {LCM_SEND(2),{0xD4,0x10}},   //VFP
-{LCM_SEND(2),{0xD5,0x44}},    //HBP      
-{LCM_SEND(2),{0xD6,0x14}},     //HFP     
+{LCM_SEND(2),{0xD5,0x18}},   //HBP+HSA
+{LCM_SEND(2),{0xD6,0x10}},   //HFP
 {LCM_SEND(2),{0xD7,0x00}},
 {LCM_SEND(2),{0x35,0x00}},          
 
@@ -719,19 +719,19 @@ static struct panel_operations lcd_nt35532_mipi_operations = {
 };
 
 static struct timing_rgb lcd_nt35532_mipi_timing = {
-	.hfp = 80,  /* unit: pixel */
-	.hbp = 80,//80
-	.hsync = 10,//4//10
-	.vfp = 25, /*unit: line*////===32
-	.vbp = 20,//32///===32
-	.vsync = 2,//4//4///===4
+	.hfp = 16,  /* unit: pixel */
+	.hbp = 16,//80
+	.hsync = 8,//4//10
+	.vfp = 16, /*unit: line*////===32
+	.vbp = 17,//32///===32
+	.vsync = 4,//4//4///===4
 };
 
 static struct info_mipi lcd_nt35532_mipi_info = {
 	.work_mode  = SPRDFB_MIPI_MODE_VIDEO,
 	.video_bus_width = 24, /*18,16*/
 	.lan_number = 4,
-	.phy_feq = 840*1000,//4//960
+	.phy_feq = 910*1000,//4//960
 	.h_sync_pol = SPRDFB_POLARITY_POS,
 	.v_sync_pol = SPRDFB_POLARITY_POS,
 	.de_pol = SPRDFB_POLARITY_POS,
