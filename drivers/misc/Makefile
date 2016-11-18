@@ -35,7 +35,7 @@ obj-$(CONFIG_PCA9551_LED) += pca9551_led.o
 obj-$(CONFIG_SPRD_ADI) += adi.o vibrator.o check_reboot.o reset.o
 obj-$(CONFIG_SPRD_ADC) += sprd_adc.o
 obj-y += sprd_glb.o
-ifneq ($(CONFIG_ADIE_SC2723)$(CONFIG_ADIE_SC2723S)$(CONFIG_ADIE_SC2731),)
+ifneq ($(CONFIG_ADIE_SC2723)$(CONFIG_ADIE_SC2723S)$(CONFIG_ADIE_SC2731)$(CONFIG_ADIE_SC2721),)
 obj-y += otp_helper.o pmic_efuse.o ap_efuse.o
 else
 obj-y += otp_helper.o ap_efuse.o

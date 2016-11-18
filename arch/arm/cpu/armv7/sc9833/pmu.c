@@ -55,7 +55,9 @@ extern   "C"
 void fixup_pmic_items(void)
 {
 	/*set ldo_usb pd for tsharkl uboot64*/
+#if defined(CONFIG_ADIE_SC2723)
 	ANA_REG_OR(ANA_REG_GLB_LDO_PD_CTRL,BIT_LDO_USB_PD);
+#endif
 }
 
 

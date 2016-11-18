@@ -27,7 +27,11 @@ void set_vibrator(int on)
 
 void vibrator_hw_init(void)
 {
+#if defined(CONFIG_ADIE_SC2721)
+	//SC2721 TODO
+#else
 	ANA_REG_OR(ANA_REG_GLB_RTC_CLK_EN, BIT_RTC_VIBR_EN);
+#endif
 	ANA_REG_MSK_OR(ANA_VIBRATOR_CTRL0_U,CUR_DRV_CAL_SEL_U,CUR_DRV_CAL_SEL_U);
 	ANA_REG_MSK_OR(ANA_VIBRATOR_CTRL0_U,LDO_VIBR_V_U,LDO_VIBR_V_U);
 }

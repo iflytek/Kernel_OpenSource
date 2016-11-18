@@ -114,6 +114,25 @@ static struct pmic_adc_para para = {
 	.adc_data_off = 128,
 };
 
+#elif defined(CONFIG_ADIE_SC2721)
+
+static struct pmic_adc_para para = {
+	.small_adc_p0 = 838,
+	.small_adc_p1 = 84,
+	.small_vol_p0 = 1000,
+	.small_vol_p1 = 100,
+	.small_cal_efuse_blk = 19,
+	.small_cal_efuse_bit = 16,
+	.big_adc_p0 = 728,
+	.big_adc_p1 = 850,
+	.big_vol_p0 = 3600,
+	.big_vol_p1 = 4200,
+	.big_cal_efuse_blk = 18,
+	.small_cal_efuse_bit = 16,
+	.blk_width = 16,
+	.adc_data_off = 128,
+};
+
 #endif
 static int pmic_adc_data_average(int a[], int N)
 {
@@ -365,6 +384,81 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 }
 
 #elif defined(CONFIG_ADIE_SC2731)
+static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
+{
+	switch (channel) {
+	case ADC_CHANNEL_0:
+		return RATIO(1, 1);
+	case ADC_CHANNEL_1:
+	case ADC_CHANNEL_2:
+	case ADC_CHANNEL_3:
+	case ADC_CHANNEL_4:
+		return (scale ? RATIO(400, 1025) : RATIO(1, 1));
+	case ADC_CHANNEL_VBAT_SENSE:
+	case ADC_CHANNEL_ISENSE:
+		return RATIO(7, 29);
+	case ADC_CHANNEL_VCHGSEN:
+			return RATIO(375, 9000);	//ab
+	case ADC_CHANNEL_VCHGBG:
+	case ADC_CHANNEL_TPYD:
+		return (scale ? RATIO(100, 125) : RATIO(1, 1));
+	case ADC_CHANNEL_DCDCCORE:
+		mux = mux >> 12;
+		switch (mux) {
+		case 1:
+		case 2:
+			return (scale ? RATIO(4, 5) : RATIO(1, 1));
+		case 3:
+			return (scale ? RATIO(3, 5) : RATIO(3, 4));
+		case 4:
+			return (scale ? RATIO(49, 125) : RATIO(49, 100));
+		case 5:
+			return (scale ? RATIO(9, 20) : RATIO(9, 16));
+		case 6:
+			return (scale ? RATIO(4, 5) : RATIO(1, 1));
+		case 7:
+			return (scale ? RATIO(36, 170) : RATIO(9, 34));
+		case 8:
+			return (scale ? RATIO(4, 5) : RATIO(1, 1));
+		default:
+			return RATIO(1, 1);
+		}
+	case ADC_CHANNEL_VBATBK:
+		return RATIO(1, 3);
+	case ADC_CHANNEL_HEADMIC:
+		mux = mux >> 4;
+		switch (mux) {
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			return (scale ? RATIO(1, 3) : RATIO(1, 1));
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+			return (scale ? RATIO(1, 12) : RATIO(1, 4));
+		default:
+			return RATIO(1, 1);
+		}
+	case ADC_CHANNEL_LDO0:
+	case ADC_CHANNEL_LDO1:
+	case ADC_CHANNEL_LDO2:
+		return RATIO(9, 25);
+	case ADC_CHANNEL_USBDP:
+	case ADC_CHANNEL_USBDM:
+		return RATIO(1, 1);
+
+	default:
+		return RATIO(1, 1);
+	}
+	return RATIO(1, 1);
+}
+
+#elif defined(CONFIG_ADIE_SC2721)
 static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 {
 	switch (channel) {

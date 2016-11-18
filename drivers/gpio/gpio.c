@@ -976,7 +976,7 @@ void sprd_gpio_init(void)
 	REG32(REG_AON_APB_APB_EB0) |= BIT_AON_GPIO_EB;
 	#else
 	REG32(REG_AON_APB_APB_EB0) |= BIT_GPIO_EB;
-	#if !(defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)||defined(CONFIG_ADIE_SC2731))
+	#if defined(CONFIG_ADIE_SC2713)
 	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_GPIO_EN);
 	#endif
 	#endif

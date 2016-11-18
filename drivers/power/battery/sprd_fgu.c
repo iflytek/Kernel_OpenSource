@@ -77,8 +77,11 @@ void sprdfgu_init(void)
 {
 
 	sci_adi_set(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_FGU_EN);
+#if defined(CONFIG_ADIE_SC2721)
+	sci_adi_set(ANA_REG_GLB_RTC_CLK_EN, BIT_RTC_FGU_EN);
+#else
 	sci_adi_set(ANA_REG_GLB_RTC_CLK_EN, BIT_RTC_FGU_EN | BIT_RTC_FGUA_EN);
-
+#endif
 	sci_adi_clr(REG_FGU_INT_EN, 0xFFFF);	//disable int after watchdog reset
 	sci_adi_set(REG_FGU_INT_CLR, 0xFFFF);
 	sci_adi_write(REG_FGU_CURT_OFFSET, 0, ~0);	//init offset after watchdog reset

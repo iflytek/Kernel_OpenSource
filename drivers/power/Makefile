@@ -38,7 +38,7 @@ else
     ifdef CONFIG_ADIE_SC2731
     obj-y += regulator_2731.o
 	else
-    obj-y += dcdc_cal.o
+    obj-$(CONFIG_ADIE_SC2721) += regulator_2721.o
 endif
 endif
 endif # CONFIG_ADIE_SC2713S

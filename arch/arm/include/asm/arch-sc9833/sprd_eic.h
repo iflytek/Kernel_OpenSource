@@ -9,14 +9,19 @@
 #endif
 
 #define EIC_CHG_INT         160
+#if defined(CONFIG_ADIE_SC2721)
+#define EIC_PBINT 161
+#define EIC_PBINT2 162
+#else
 #define EIC_PBINT2          161
 #define EIC_PBINT           162
+#endif
 #define EIC_AUDIO_HEAD_BTN  163
 #define EIC_AUDIO_HEAD_INS  164
 #define EIC_AUDIO_HEAD_INS2 165
 #define EIC_VCHG_OVI        166
 #define EIC_VBAT_OVI        167
-#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)
+#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)||defined(CONFIG_ADIE_SC2721)
 #define EIC_AUDIO_HEAD_INS3 168
 #define EIC_BATDET		169
 #define EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE        170
