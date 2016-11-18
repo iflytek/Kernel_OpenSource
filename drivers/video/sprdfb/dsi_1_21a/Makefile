@@ -40,6 +40,7 @@ endif
 else
 ifdef CONFIG_DSIH_INTER_PHY
 obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_intel.o
+obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_intel_pll.o
 else
 obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy.o
 endif

@@ -71,3 +71,33 @@ void mipi_dsih_dphy_write_part(dphy_t * instance, uint32_t reg_address, uint32_t
 uint32_t mipi_dsih_dphy_read_word(dphy_t * instance, uint32_t reg_address);
 uint32_t mipi_dsih_dphy_read_part(dphy_t * instance, uint32_t reg_address, uint8_t shift, uint8_t width);
 #endif /* MIPI_DSIH_DPHY_H_ */
+#ifdef CONFIG_DSIH_INTER_PHY
+struct pll_frequency_intel {
+        uint32_t phy_clk;
+        uint32_t div5b;
+        uint32_t div2or3;
+        uint32_t div5bbyass;
+        uint32_t i_fbdivratio;
+        uint32_t i_fracdiv2;
+        uint32_t i_fracdiv1;
+        uint32_t i_fracdiv0;
+        uint32_t i_feedfwrdgain;
+        uint32_t i_fracnen_h;
+        uint32_t i_sscstepsize0;
+        uint32_t i_sscstepsize1;
+        uint32_t i_sscsteplength0;
+        uint32_t i_sscsteplength1;
+        uint32_t i_sscstepnum;
+        uint32_t i_ssctype;
+        uint32_t i_sscen_h;
+        uint32_t i_prop_coeff;
+        uint32_t i_int_coeff;
+        uint32_t i_gainctrl;
+        uint32_t i_tdctargetcnt0;
+        uint32_t i_tdctargetcnt1;
+        uint32_t i_lockthreshsel;
+        uint32_t i_pllwait_cntr;
+};
+extern void set_pll_frequency(uint32_t output_freq);
+extern void writel_nbits(uint8_t value,uint8_t nbits,uint8_t offset,uint32_t addr);
+#endif
