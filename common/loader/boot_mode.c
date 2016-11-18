@@ -4,6 +4,7 @@
 #include "dev_tree.h"
 
 extern unsigned int g_charger_mode;
+void lcd_enable(void);
 
 #if defined CONFIG_AUTOLOAD_MODE
 
@@ -149,7 +150,10 @@ void fastboot_mode(void)
 	debugf("enter\n");
 #ifdef CONFIG_SPLASH_SCREEN
 extern int drv_lcd_init (void);
+	debug("[LCD] Drawing the logo...\n");
 	drv_lcd_init();
+	lcd_splash(LOGO_PART);
+	lcd_enable();
 
 	vibrator_hw_init();
 	set_vibrator(1);

@@ -757,7 +757,10 @@ void write_sysdump_before_boot(int rst_mode)
 
 #ifdef CONFIG_SPLASH_SCREEN
 		extern int drv_lcd_init(void);
+		extern void lcd_enable(void);
 		drv_lcd_init();
+		lcd_splash(LOGO_PART);
+		lcd_enable();
 #endif
 
 		if(-1 == sysdump_flag_check()) {

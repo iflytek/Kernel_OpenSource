@@ -221,15 +221,7 @@ void lcd_clear(void)
 			 panel_info.vl_col,
 			 panel_info.vl_row,
 			 panel_info.vl_rot);
-	/* Paint the logo and retrieve LCD base address */
-	debug("[LCD] Drawing the logo...\n");
-	if (do_splash) {
-		do_splash = 0;
-		if (lcd_splash("logo") == 0) {
-			lcd_sync();
-			return;
-		}
-	}
+	return;
 
 	lcd_logo();
 #if defined(CONFIG_LCD_LOGO) && !defined(CONFIG_LCD_INFO_BELOW_LOGO)
@@ -268,7 +260,6 @@ static int lcd_init(void *lcdbase)
 	lcd_get_size(&lcd_line_length);
 	lcd_is_enabled = 1;
 	lcd_clear();
-	lcd_enable();
 
 	/* Initialize the console */
 	lcd_set_col(0);

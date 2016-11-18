@@ -913,8 +913,11 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 
 #ifdef CONFIG_SPLASH_SCREEN
 	if(lcd_enable) {
+		extern void lcd_enable(void);
+		debug("[LCD] Drawing the logo...\n");
 		drv_lcd_init();
 		lcd_splash(LOGO_PART);
+		lcd_enable();
 	}
 	set_backlight(backlight_set);
 #endif

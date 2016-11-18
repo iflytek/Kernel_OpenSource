@@ -24,6 +24,7 @@ void sprdbat_show_chglogo(void)
 	static int on_cnt = 0;
 	static int init_flag = 0;
 	extern int drv_lcd_init (void);
+	extern void lcd_enable(void);
 
 	if (!init_flag) {
 		init_flag = 1;
@@ -31,6 +32,7 @@ void sprdbat_show_chglogo(void)
 		on_cnt = CHG_LOGO_TIME;
 		drv_lcd_init();
 		lcd_splash(CHARGER_LOGO_PART);
+		lcd_enable();
 		set_backlight(BACKLIGHT_ON);
 		sprdbat_chg_led(1);
 	}
