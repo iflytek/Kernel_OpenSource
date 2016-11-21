@@ -22,7 +22,6 @@
 #define OFF_ADI_DLY1			0x14
 #define OFF_ADI_DLY2			0x60
 #define OFF_ADI_DLY3			0x64
-
 #define REG_ADI_CHNL2			(2)
 #define REG_ADI_CHNL5			(5)
 #define REG_ADI_CHNL11			(11)
@@ -34,8 +33,9 @@
 #define LDO_SRAM_PD_ADI_ADDR			(0x8D78)
 
 /* ADI mode is by default. Hence no need to set it again */
-#define DVFS_ENABLE	(0x1 << VDDCPU_SHUTDWN_BIT)
 #define ADI_MODE_EN	(0x1 << 0)
+#define DVFS_ENABLE			(0x1 << VDDCPU_SHUTDWN_BIT) | \
+					(0x1 << BAD_REQ_INT_BIT)
 
 /* The default value is 0x1800 and delay time is about 50us
  * (for 128MHz AON APB clock) or 200us (for default 26MHz AON APB clock).  
@@ -80,6 +80,7 @@
 #define VDDCPU_SHUTDWN_BIT		0x5
 #define BAD_CFG_VLT			0xBAD
 #define BAD_CFG_BIT			16
+#define BAD_REQ_INT_BIT                 4
 
 #define VF_TABLE_LOCK_BIT		7
 #define	VF_TABLE_LOCK			1
