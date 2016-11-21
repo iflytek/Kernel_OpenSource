@@ -306,7 +306,7 @@ static const struct usb_descriptor_header *hs_fastboot_function[] = {
 
 static char manufacturer[50];
 static char product_desc[40] = DRIVER_DESC;
-static char serial_number[20];
+static char serial_number[128];
 
 /* static strings, in UTF-8 */
 static struct usb_string strings[] = {
