@@ -60,7 +60,7 @@
 
 /* commands */
 #define CONFIG_CMD_ZBOOT
-#if defined(CONFIG_TARGET_IWHALE2_FPGA) || defined(CONFIG_TARGET_SP9853I_FPGA)
+#if defined(CONFIG_TARGET_SP9861_FPGA) || defined(CONFIG_TARGET_SP9853I_FPGA)
 #define CONFIG_BAUDRATE		115200
 #else
 #define CONFIG_BAUDRATE		921600
@@ -68,7 +68,7 @@
 
 #define CONFIG_BOOTDELAY	0
 
-#if defined(CONFIG_TARGET_IWHALE2_FPGA) || defined(CONFIG_TARGET_SP9853I_FPGA)
+#if defined(CONFIG_TARGET_SP9861_FPGA) || defined(CONFIG_TARGET_SP9853I_FPGA)
 #define CONFIG_BOOTARGS		"earlycon console=ttyS0,115200n8"
 #else
 #define CONFIG_BOOTARGS		"earlycon console=ttyS0,921600n8"

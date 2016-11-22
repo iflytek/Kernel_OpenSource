@@ -73,8 +73,8 @@ void dram_init_banksize(void)
 	gd->bd->bi_dram[0].start = 0; 
 	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
 
-#ifdef CONFIG_IWHALE2_DDR4G
-    #ifdef CONFIG_IWHALE2_DDR4G_SINGLE	/*single channel ddr 4g memory map*/
+#ifdef CONFIG_SP9861_DDR4G
+    #ifdef CONFIG_SP9861_DDR4G_SINGLE	/*single channel ddr 4g memory map*/
     	gd->bd->bi_dram[1].start = 0x40000000;
     	gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
 
@@ -83,7 +83,7 @@ void dram_init_banksize(void)
 
     	gd->bd->bi_dram[3].start = 0x100000000;
     	gd->bd->bi_dram[3].size  = PHYS_SDRAM_1_SIZE;
-    #elif CONFIG_IWHALE2_DDR4G_INTERLEAVE	/*interleave memory map*/
+    #elif CONFIG_SP9861_DDR4G_INTERLEAVE	/*interleave memory map*/
     	gd->bd->bi_dram[1].start = 0x140000000; /*non interleave area for memdisk*/
     	gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
 

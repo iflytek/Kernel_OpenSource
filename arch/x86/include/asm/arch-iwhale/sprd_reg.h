@@ -12,7 +12,7 @@
 #include "sprd_module_config.h"
 #include <power/sprd_pmic/pmic_glb_reg.h>
 
-#if defined(CONFIG_TARGET_IWHALE2_VP) || defined(CONFIG_TARGET_IWHALE2)
+#if defined(CONFIG_TARGET_SP9861_VP) || defined(CONFIG_TARGET_SP9861)
 #include "chip_iwhale2/temp.h"
 #include "chip_iwhale2/__regs_ap_apb.h"
 #include "chip_iwhale2/__regs_aon_apb.h"

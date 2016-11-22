@@ -6,14 +6,14 @@ dtb-y += chromebook_link.dtb \
 	qemu-x86_i440fx.dtb \
 	qemu-x86_q35.dtb \
 	isharkl.dtb \
-	iwhale2-fpga-douchannel.dtb \
-	iwhale2-fpga-sinchannel.dtb \
-	iwhale2-fpga-vmm.dtb \
-	iwhale2-vdk.dtb \
-	iwhale2-vdk-4g-interleave.dtb \
-	iwhale2-vdk-4g-noninterleave.dtb \
-	iwhale2-vdk-4g-single.dtb \
-	iwhale2-vdk-vmm.dtb \
+	sp9861-fpga-douchannel.dtb \
+	sp9861-fpga-sinchannel.dtb \
+	sp9861-fpga-vmm.dtb \
+	sp9861-vdk.dtb \
+	sp9861-vdk-4g-interleave.dtb \
+	sp9861-vdk-4g-noninterleave.dtb \
+	sp9861-vdk-4g-single.dtb \
+	sp9861-vdk-vmm.dtb \
 	sp9853i-fpga.dtb \
 	sp9853i-vdk.dtb \
 	sp9853i-vdk-4g.dtb

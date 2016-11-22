@@ -1,7 +1,7 @@
-if TARGET_IWHALE2
+if TARGET_SP9861
 
 config SYS_BOARD
-	default "iwhale2"
+	default "sp9861"
 
 config SYS_VENDOR
 	default "spreadtrum"
@@ -11,7 +11,7 @@ config SYS_SOC
 
 config SYS_CONFIG_NAME
 	string "Board Config Header file"
-	default "iwhale2"
+	default "sp9861"
 	help
 	  This option selects the board config file in
 	  include/configs/ directory to be used to build U-Boot.
@@ -25,7 +25,7 @@ config BOARD_SPECIFIC_OPTIONS # dummy
 
 config DEFAULT_DEVICE_TREE
 	string "Board Device Tree Source (dts) file"
-	default "iwhale2"
+	default "sp9861"
 	help
 	  This option selects the board Device Tree Source (dts) file in
 	  arch/x86/dts/ directory to be used to build U-Boot.

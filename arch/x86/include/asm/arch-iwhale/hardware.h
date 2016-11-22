@@ -25,7 +25,7 @@
 #include "sprd_eic.h"
 #include "rtc_reg_v3.h"
 
-#if defined(CONFIG_TARGET_IWHALE2_VP) || defined(CONFIG_TARGET_IWHALE2)
+#if defined(CONFIG_TARGET_SP9861_VP) || defined(CONFIG_TARGET_SP9861)
 #include "chip_iwhale2/__hardware-iwhale2.h"
 #else
 #include "chip_isharkl2/__hardware-isharkl2.h"

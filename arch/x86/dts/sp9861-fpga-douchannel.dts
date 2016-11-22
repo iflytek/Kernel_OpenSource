@@ -1,5 +1,5 @@
 /*
- * Spreadtrum iwhale2 vdk board DTS file
+ * Spreadtrum sp9861 fpga board DTS file
  *
  * Copyright (C) 2015, Spreadtrum Communications Inc.
  *
@@ -8,7 +8,7 @@
 
 /dts-v1/;
 
-#include "iwhale2.dtsi"
+#include "sc9861.dtsi"
 #include <dt-bindings/e820/e820.h>
 
 / {

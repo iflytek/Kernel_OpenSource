@@ -257,7 +257,7 @@ config SMP
 	  only one CPU will be enabled regardless of the number of CPUs
 	  available.
 
-config TARGET_IWHALE2_FPGA
+config TARGET_SP9861_FPGA
     bool "switch for fpga board"
     default n
     help
@@ -269,36 +269,36 @@ config TARGET_SP9853I_FPGA
     help
       use for fpga board
 
-config TARGET_IWHALE2_FPGA_SIN
+config TARGET_SP9861_FPGA_SIN
     bool "switch for fpga ddr single channel board"
-    depends on TARGET_IWHALE2_FPGA
+    depends on TARGET_SP9861_FPGA
     default n
     help
       use for fpga board
 
-config TARGET_IWHALE2_FPGA_DOU
+config TARGET_SP9861_FPGA_DOU
     bool "switch for fpga ddr double channel board"
-    depends on TARGET_IWHALE2_FPGA
+    depends on TARGET_SP9861_FPGA
     default n
     help
       use for fpga board
 
-config IWHALE2_DDR4G
+config SP9861_DDR4G
     bool "with ddr4g board"
     default n
     help
       use for ddr4g board
 
-config IWHALE2_DDR4G_SINGLE
+config SP9861_DDR4G_SINGLE
     bool "with ddr4g_single board"
-    depends on IWHALE2_DDR4G
+    depends on SP9861_DDR4G
     default n
     help
       use for ddr4g_single board
 
-config IWHALE2_DDR4G_INTERLEAVE
+config SP9861_DDR4G_INTERLEAVE
     bool "with ddr4g_interleave board"
-    depends on IWHALE2_DDR4G
+    depends on SP9861_DDR4G
     default n
     help
       use for ddr4g_interleave board

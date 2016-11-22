@@ -1,5 +1,5 @@
 /*
- * Spreadtrum iwhale2 fpga board DTS file
+ * Spreadtrum sp9861 vdk board DTS file
  *
  * Copyright (C) 2015, Spreadtrum Communications Inc.
  *
@@ -8,7 +8,7 @@
 
 /dts-v1/;
 
-#include "iwhale2.dtsi"
+#include "sc9861.dtsi"
 #include <dt-bindings/e820/e820.h>
 
 / {
@@ -22,7 +22,7 @@
 		e820_map = <0x00000000 0x00000000 0x00000000 0x00080000 E820_RESERVED>, /* vmm reserve */
 				   <0x00000000 0x00080000 0x00000000 0x1DB40000 E820_RAM>, /* vmm reserve to vmm start */
 				   <0x00000000 0x1DBC0000 0x00000000 0x02440000 E820_RESERVED>, /* vmm start to end, reserve it */
-				   <0x00000000 0x20000000 0x00000000 0x20000000 E820_RAM>, /* vmm end to DRAM end */
+				   <0x00000000 0x20000000 0x00000000 0x60000000 E820_RAM>, /* vmm end to DRAM end */
 				   <0x00000000 0xfe000000 0x00000000 0x01000000 E820_RESERVED>;
 	};
 

@@ -14,13 +14,13 @@ config TARGET_ISHARKL
 	help
 	  This is the Spreadtrum iSharkL Board
 
-config TARGET_IWHALE2
-	bool "Spreadtrum iwhale2"
+config TARGET_SP9861
+	bool "Spreadtrum sp9861"
 	help
 	  This is the Spreadtrum iWhaleL2 Board
 
-config TARGET_IWHALE2_VP
-	bool "Spreadtrum iwhale2_vp"
+config TARGET_SP9861_VP
+	bool "Spreadtrum sp9861_vp"
 	help
 	  This is the Spreadtrum iWhaleL2 Board
 
@@ -130,8 +130,8 @@ config TARGET_J1FPGA
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
-source "board/spreadtrum/iwhale2/Kconfig"
-source "board/spreadtrum/iwhale2_vp/Kconfig"
+source "board/spreadtrum/sp9861/Kconfig"
+source "board/spreadtrum/sp9861_vp/Kconfig"
 source "board/spreadtrum/sp9853i/Kconfig"
 source "board/spreadtrum/sp9830a-5h10_ga1/Kconfig"
 source "board/spreadtrum/sp9830a-7h10_ga1/Kconfig"

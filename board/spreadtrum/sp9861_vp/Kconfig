@@ -1,7 +1,7 @@
-if TARGET_IWHALE2_VP
+if TARGET_SP9861_VP
 
 config SYS_BOARD
-	default "iwhale2_vp"
+	default "sp9861_vp"
 
 config SYS_VENDOR
 	default "spreadtrum"
@@ -10,9 +10,9 @@ config SYS_SOC
 	default "iwhale"
 
 config SYS_CONFIG_NAME
-	default "iwhale2_vp"
+	default "sp9861_vp"
 
-if TARGET_IWHALE2_FPGA
+if TARGET_SP9861_FPGA
 config SYS_TEXT_BASE
 	default 0x7f000000
 endif
@@ -26,7 +26,7 @@ config BOARD_SPECIFIC_OPTIONS # dummy
 
 config DEFAULT_DEVICE_TREE
 	string "Board Device Tree Source (dts) file"
-	default "iwhale2"
+	default "sp9861"
 	help
 	  This option selects the board Device Tree Source (dts) file in
 	  arch/x86/dts/ directory to be used to build U-Boot.
