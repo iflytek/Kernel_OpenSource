@@ -14,9 +14,9 @@ dtb-y += chromebook_link.dtb \
 	iwhale2-vdk-4g-noninterleave.dtb \
 	iwhale2-vdk-4g-single.dtb \
 	iwhale2-vdk-vmm.dtb \
-	isharkl2-fpga.dtb \
-	isharkl2-vdk.dtb \
-	isharkl2-vdk-4g.dtb
+	sp9853i-fpga.dtb \
+	sp9853i-vdk.dtb \
+	sp9853i-vdk-4g.dtb
 
 targets += $(dtb-y)
 

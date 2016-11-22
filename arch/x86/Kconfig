@@ -263,7 +263,7 @@ config TARGET_IWHALE2_FPGA
     help
       use for fpga board
 
-config TARGET_ISHARKL2_FPGA
+config TARGET_SP9853I_FPGA
     bool "switch for fpga board"
     default n
     help
@@ -303,7 +303,7 @@ config IWHALE2_DDR4G_INTERLEAVE
     help
       use for ddr4g_interleave board
 
-config ISHARKL2_DDR4G
+config SP9853I_DDR4G
     bool "with isharkl2 ddr4g board"
     default n
     help

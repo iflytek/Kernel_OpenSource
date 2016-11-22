@@ -24,8 +24,8 @@ config TARGET_IWHALE2_VP
 	help
 	  This is the Spreadtrum iWhaleL2 Board
 
-config TARGET_ISHARKL2
-	bool "Spreadtrum isharkl2"
+config TARGET_SP9853I
+	bool "Spreadtrum sp9853i"
 	help
 	  This is the Spreadtrum isharkl2 Board
 
@@ -132,7 +132,7 @@ endchoice
 source "board/spreadtrum/isharkl/Kconfig"
 source "board/spreadtrum/iwhale2/Kconfig"
 source "board/spreadtrum/iwhale2_vp/Kconfig"
-source "board/spreadtrum/isharkl2/Kconfig"
+source "board/spreadtrum/sp9853i/Kconfig"
 source "board/spreadtrum/sp9830a-5h10_ga1/Kconfig"
 source "board/spreadtrum/sp9830a-7h10_ga1/Kconfig"
 source "board/spreadtrum/sp9850s_1h10_5m/Kconfig"

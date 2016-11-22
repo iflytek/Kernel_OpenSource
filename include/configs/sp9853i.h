@@ -4,7 +4,7 @@
 #include <configs/soc-sprd-isharkl2.h>
 #include <configs/x86-sprd-common.h>
 
-#define CONFIG_SPRD_SOC_ISHARKL2
+#define CONFIG_SPRD_SOC_SP9853I
 
 #define SETUP_DATA_OFFSET 0x10
 #define DEFAULT_SETUP_BASE 0x350c0000

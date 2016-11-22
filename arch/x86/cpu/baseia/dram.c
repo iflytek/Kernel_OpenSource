@@ -104,7 +104,7 @@ void dram_init_banksize(void)
     #endif
 #endif
 
-#ifdef CONFIG_ISHARKL2_DDR4G
+#ifdef CONFIG_SP9853I_DDR4G
     gd->bd->bi_dram[1].start = 0x40000000;
     gd->bd->bi_dram[1].size  = PHYS_SDRAM_1_SIZE;
 

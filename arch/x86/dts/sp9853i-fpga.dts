@@ -8,7 +8,7 @@
 
 /dts-v1/;
 
-#include "isharkl2.dtsi"
+#include "sc9853i.dtsi"
 #include <dt-bindings/e820/e820.h>
 
 / {
