@@ -38,7 +38,7 @@ extern unsigned char raw_header[8192];
 /*FDT_ADD_SIZE used to describe the size of the new bootargs items*/
 
 /*include lcd id, lcd base, etc*/
-#define FDT_ADD_SIZE (1000)
+#define FDT_ADD_SIZE (0x20000)
 
 #define TRUSTRAM_SIZE 0x32000
 

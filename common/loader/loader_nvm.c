@@ -604,7 +604,9 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	}
 
 	size = dt_entry_ptr->size;
+	/* malloc reserve FDT_ADD_SIZE for fdt fixup */
 	fdt_blob = malloc(size + FDT_ADD_SIZE);
+	debugf("malloc size for fdt: 0x%lx\n", size + FDT_ADD_SIZE);
 	if (0 != common_raw_read(partition, size, (boot_img_offset.dt_offset + dt_entry_ptr->offset), (char *)fdt_blob)) {
 		errorf("dt entry size read error!\n");
 		goto error;
