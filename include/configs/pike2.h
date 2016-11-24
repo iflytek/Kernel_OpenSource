@@ -326,7 +326,13 @@
  /*Serial Info*/
 #define CONFIG_SPRD_UART		1
 #define CONFIG_SYS_SC8800X_UART1	1
+
+#ifdef CONFIG_ZEBU
+#define CONFIG_CONS_INDEX	0	/* use UART0 for console */
+#else
 #define CONFIG_CONS_INDEX	1	/* use UART0 for console */
+#endif
+
 #define CONFIG_BAUDRATE		115200	/* Default baud rate */
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_SPRD_UART_PORTS	{ (void *) (CONFIG_SYS_SERIAL0), (void *) (CONFIG_SYS_SERIAL1) }
