@@ -49,6 +49,9 @@
 
 #define ICR_LOW 0xFEE00300
 
+/* DDR ready flag address on PMU */
+#define DDR0_ACC_RDY 0xe42b02cc
+
 /*
  *  the following part is to be copied to SRAM on startup
  *  and executed from there on resume
@@ -73,7 +76,13 @@ _set_stack:
 	movl	$(RESUME_POINTER), %esp
 
 /* wait for DRAM wake */
-
+_wait_ddr:
+        movl    DDR0_ACC_RDY, %eax
+        testl   $0x1, %eax
+        jnz     1f
+        pause
+        jmp     _wait_ddr
+1:
 /* update ucode on BSP and APs */
 
 	call	hpet_init
