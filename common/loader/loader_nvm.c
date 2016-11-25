@@ -653,6 +653,8 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 	uchar *dt_img_adr;
 	char  *boot_mode_type_str;
 	uchar *ramdisk_addr = 0;
+	uint64_t fdt_size = 0;
+	int ret;
 
 	if (0 == memcmp(bootmode, RECOVERY_PART, strlen(RECOVERY_PART))) {
 		partition = "recovery";
@@ -690,6 +692,10 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 #if defined(CONFIG_SEPARATE_DT)
 	if (!_boot_load_separate_dt())
 		return 0;
+	fdt_size = fdt_totalsize(DT_ADR);
+	ret = fdt_open_into(DT_ADR, DT_ADR, fdt_size + FDT_ADD_SIZE);
+	if (0 != ret)
+		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
 	fdt_fixup_all((uchar *)DT_ADR);
 #else
 	/* for memory defragment, dr_addr and ramdisk_adr is allocated dynamically*/
@@ -859,6 +865,8 @@ void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
     ulong initrd_size = 0;
     ulong dtb_size = 0;
     ulong dt_img_adr = 0;
+	uint64_t fdt_size = 0;
+	int ret;
 
     /* load bootimg to RAM  */
     boot_hdr = malloc(512*4);
@@ -895,6 +903,11 @@ void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
 	return;
 	}
 
+	fdt_size = fdt_totalsize(DT_ADR);
+	ret = fdt_open_into(DT_ADR, DT_ADR, fdt_size + FDT_ADD_SIZE);
+	if (0 != ret) {
+		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
+	}
 	fdt_fixup_all((uchar *)DT_ADR);
 	fdt_initrd_norsvmem((uchar *)DT_ADR,RAMDISK_ADR,RAMDISK_ADR+initrd_size, 1);
 
