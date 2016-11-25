@@ -189,9 +189,9 @@ static int start_linux(uchar *dt_addr)
 	cleanup_before_linux();
 
 	/*start modem CP */
-
+#ifndef CONFIG_ZEBU
 	modem_entry();
-
+#endif
 
 #ifdef CONFIG_MINI_TRUSTZONE
 	trustzone_entry(TRUSTZONE_ADR + 0x200);
