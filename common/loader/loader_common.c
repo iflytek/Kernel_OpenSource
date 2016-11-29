@@ -6,6 +6,7 @@
 #include <fdt_support.h>
 #endif
 #include "sprd_common_rw.h"
+#include <linux/usb/usb_uboot.h>
 
 #ifdef CONFIG_MINI_TRUSTZONE
 #include "trustzone_def.h"
@@ -19,7 +20,6 @@ char serial_number_to_transfer[SP15_MAX_SN_LEN];
 
 extern int charger_connected(void);
 extern void modem_entry(void);
-extern void fixup_pmic_items(void);
 
 unsigned short calc_checksum(unsigned char *dat, unsigned long len)
 {
@@ -256,7 +256,7 @@ void vlx_entry(uchar *dt_addr)
 	cp_dfs_param_for_arm7();
 #endif
 	/*shutdown usb ldo, can't shutdown it in the ldo_sleep.c because download mode must use usb */
-	fixup_pmic_items();
+	usb_driver_exit();
 
 #ifdef CONFIG_ARM64
 	smp_kick_all_cpus();

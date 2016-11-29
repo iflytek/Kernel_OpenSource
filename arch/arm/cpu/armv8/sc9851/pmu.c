@@ -58,11 +58,6 @@ struct dcdc_core_ds_step_info{
 	u32 cal_sht;
 };
 
-void fixup_pmic_items(void)
-{
-        /*set ldo_usb pd for tsharkl uboot64*/
-        //ANA_REG_OR(ANA_REG_GLB_LDO_PD_CTRL,BIT_LDO_USB_PD);
-}
 
 #define CONFIG_PMU_CLK_4M
 #define CONFIG_PMU_CLK_RC_4M
@@ -1041,7 +1036,7 @@ static void dcdc_core_ds_config(uint32_t core_cal_para, uint32_t core_ctrl_para)
 		);
 
 		ANA_REG_AND(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-			~BIT_SLP_DCDCCORE_LP_EN 
+			~BIT_SLP_DCDCCORE_LP_EN
 		);
 	}
 }

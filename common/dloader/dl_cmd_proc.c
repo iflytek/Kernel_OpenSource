@@ -14,9 +14,6 @@
 #include "asm/arch/common.h"
 
 
-
-extern void fixup_pmic_items(void);
-
 #include "root_inspect.h"
 
 static root_stat_t root_stat;
@@ -281,8 +278,7 @@ int dl_powerdown_device(dl_packet_t *packet, void *arg)
 	/* Wait until all characters are sent out. */
 	udelay(200);
 
-	/* shutdown usb ldo and Wait until the charger unconnected. */
-	fixup_pmic_items();
+	/* Wait until the charger unconnected. */
 	while(charger_connected());
 	debugf("download end power down device\n");
 	power_down_devices(0);

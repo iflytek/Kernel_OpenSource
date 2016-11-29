@@ -48,8 +48,6 @@ int usb_driver_init(unsigned int max_speed)
 
 void usb_driver_exit(void)
 {
-	dwc3_uboot_exit(&dwc3_dev);
-
 	usb_clk_enable(0);
 	usb_phy_enable(0);
 }
