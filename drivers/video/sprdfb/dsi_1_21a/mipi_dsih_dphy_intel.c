@@ -154,7 +154,49 @@ void writel_nbits(uint8_t value,uint8_t nbits,uint8_t offset,uint32_t addr)
         __raw_writel(tmp, addr);
 }
 
+
  #ifdef GEN_2
+void phy_bios_programming(void)
+{
+    writel_nbits(0x60,8,0,0xe41b0300);
+    writel_nbits(0x7a,8,0,0xe41b0308);
+    writel_nbits(0xa1,8,8,0xe41b0308);
+    writel_nbits(0x17,6,16,0xe41b0308);
+    writel_nbits(0x3,4,0,0xe41b030c);
+    writel_nbits(0x0,8,0,0xe41b0310);
+    writel_nbits(0x0,2,8,0xe41b0310);
+    writel_nbits(0x0,8,16,0xe41b0310);
+    writel_nbits(0x0,2,24,0xe41b0310);
+    writel_nbits(0x0,3,0,0xe41b0314);
+    writel_nbits(0x0,1,16,0xe41b0314);
+    writel_nbits(0x4,4,0,0xe41b0318);
+    writel_nbits(0x8,5,8,0xe41b0318);
+    writel_nbits(0x1,3,16,0xe41b0318);
+    writel_nbits(0x22,8,0,0xe41b0320);
+    writel_nbits(0x0,2,8,0xe41b0320);
+    writel_nbits(0x0,1,0,0xe41b0324);
+    writel_nbits(0x2,3,16,0xe41b0324);
+    writel_nbits(0x1,1,16,0xe41b030c);
+
+    writel_nbits(0x1,1,5,0xe41b0004);
+    writel_nbits(0x0,1,4,0xe41b0004);
+    writel_nbits(0x4,3,1,0xe41b0004);
+    writel_nbits(0xf,8,0,0xe41b00e0);
+    writel_nbits(0xd,8,0,0xe41b00e4);
+    writel_nbits(0x22,8,0,0xe41b00e8);
+    writel_nbits(0x13,8,0,0xe41b00ec);
+    writel_nbits(0x13,8,0,0xe41b00fc);
+    writel_nbits(0x20,8,0,0xe41b00f0);
+    writel_nbits(0x20,8,0,0xe41b0100);
+    writel_nbits(0xf,8,0,0xe41b0104);
+    writel_nbits(0x53,8,0,0xe41b010c);
+    writel_nbits(0xb,8,0,0xe41b0108);
+    writel_nbits(0x1a,8,0,0xe41b0114);
+    writel_nbits(0x186,12,0,0xe41b0110);
+    writel_nbits(0x9c,8,12,0xe41b0110);
+    writel_nbits(0x7,5,11,0xe41b0018);
+    writel_nbits(0x4,3,28,0xe41b0058);
+}
 dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_t output_freq)
 {
     printf("%s enter\n",__func__);
@@ -226,6 +268,12 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     __raw_bits_or(1<<2, 0xe4109000);
     __raw_bits_or(1<<20, 0xe4109000);
     __raw_bits_or(1<<21, 0xe4109000);
+
+    /*******VREG and ref enable*********/
+    __raw_writel(0x40000020,0xe41b0058);
+    __raw_writel(0x0000000f,0xe41b0018);
+    phy_bios_programming();
+
     __raw_bits_or(1<<3, 0xd39000a0);//force pll
     /****latchreset,latchen****/
     __raw_bits_or(1<<13, 0xe4109000);
@@ -235,8 +283,8 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
 #define PHY_OFFSET 0x0
     __raw_writel(0x0,0xe41b0014+PHY_OFFSET);
     __raw_writel(0x0,0xe41b0000+PHY_OFFSET);
-    __raw_writel(0xf,0xe41b0018+PHY_OFFSET);
-    __raw_writel(0x0,0xe41b0058+PHY_OFFSET);
+    //__raw_writel(0xf,0xe41b0018+PHY_OFFSET);
+    //__raw_writel(0x0,0xe41b0058+PHY_OFFSET);
     __raw_writel(0x3810,0xe41b0044+PHY_OFFSET);
     __raw_bits_or(1<<4, 0xe41b0120+PHY_OFFSET);
     printf("0xe41b0014 = 0x%x\n", __raw_readl(0xe41b0014+PHY_OFFSET));
@@ -251,8 +299,10 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     __raw_bits_or(1<<0, 0xe41b0120+PHY_OFFSET);
     __raw_bits_or(1<<3, 0xd39000a0);//force pll
 
-    /************set hs prepare time*************/
-    __raw_writel(0x1,0xe41b00e4+PHY_OFFSET);
+    /************set hs prepare/zero/trail time*************/
+    writel_nbits(0x6,8,0,0xe41b00e4);
+    writel_nbits(0x1c,8,0,0xe41b00e8);
+    writel_nbits(0x9,8,0,0xe41b00ec);
 
     printf("0xe41b0300 = 0x%x\n", __raw_readl(0xe41b0300+PHY_OFFSET));
     printf("0xe41b0308 = 0x%x\n", __raw_readl(0xe41b0308+PHY_OFFSET));
