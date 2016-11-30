@@ -38,7 +38,8 @@ extern int get_dt_end_addr(void *fdt, uchar **addr);
 
 #define MODEM_MAGIC		"SCI1"
 #define MODEM_HDR_SIZE		(12 * 512) //size of a block
-#define MODEM_IMG_HDR		0x1
+#define SCI_TYPE_MODEM_BIN	1
+#define SCI_TYPE_PARSING_LIB	2
 #define MODEM_LAST_HDR		0x100
 #define MODEM_SHA1_HDR		0x400
 #define MODEM_SHA1_SIZE		20
@@ -432,20 +433,43 @@ uint32_t get_boot_offset(boot_image_required_t img_info, uint32_t secure_offset)
 				hdr_ptr = hdr_buf;
 			}
 
-			while(!(hdr_ptr->type_flags & MODEM_IMG_HDR)) {
-				hdr_ptr ++;
-				hdr_offset += MODEM_HDR_SIZE;
-				if(read_len == ((uint8_t*)hdr_ptr - (uint8_t*)hdr_buf)) {
-					result = 1;
+			size_t n = sizeof hdr_buf / sizeof(data_block_header_t);
+			data_block_header_t* startp = hdr_ptr;
+			data_block_header_t* endp = hdr_buf + n;
+			int found = 0;
+
+			while (hdr_ptr < endp) {
+				uint32_t type = (hdr_ptr->type_flags & 0xff);
+				if (SCI_TYPE_MODEM_BIN == type) {
+					// MODEM image
+					found = 1;
 					break;
 				}
-
+				// To work with both the right SCI headers
+				// and the wrong SCI headers, comment out
+				// the following.
+				// This is just a workaround rather than a
+				// formal fix. After the MODEM SCI image
+				// generator is fixed, uncomment it.
+#if 0
 				if(hdr_ptr->type_flags & MODEM_LAST_HDR) {
+					// No MODEM image
 					result = 2;
 					debugf("no modem image, error image header!!!\n");
 					break;
 				}
-			};
+#endif
+				++hdr_ptr;
+			}
+			if (!found) {  // No MODEM image found
+				if (hdr_ptr == endp) {  // Need to read more SCI headers
+					hdr_offset += (hdr_ptr - startp);
+					result = 1;
+				} else {
+					result = 2;
+					debugf("no modem image, error image header!!!\n");
+				}
+			}
 
 			if(result != 1) {
 				break;
