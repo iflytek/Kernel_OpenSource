@@ -66,8 +66,8 @@
 //
 #define TEESMC_FUNCID_SIPCALL_WITH_ARG 0xff02
 
-#define TEESMC64_SIPCALL_WITH_ARG \
-TEESMC_CALL_VAL(TEESMC_64, TEESMC_FAST_CALL, TEESMC_OWNER_SIP, \
+#define TEESMC_SIPCALL_WITH_ARG \
+TEESMC_CALL_VAL(TEESMC_32, TEESMC_FAST_CALL, TEESMC_OWNER_SIP, \
 TEESMC_FUNCID_SIPCALL_WITH_ARG)
 
 #define FUNCTYPE_VERIFY_IMG               0x01
@@ -83,16 +83,16 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 #define BLOCK_NUM_3                      (0x03)
 #define DISABLE_DX_DEBUG_CONTROL         (0x20000000)
 
-struct smc_param64 {
-  uint64_t a0;
-  uint64_t a1;
-  uint64_t a2;
-  uint64_t a3;
-  uint64_t a4;
-  uint64_t a5;
-  uint64_t a6;
-  uint64_t a7;
-};
+typedef struct smc_param {
+        uint32_t a0;
+        uint32_t a1;
+        uint32_t a2;
+        uint32_t a3;
+        uint32_t a4;
+        uint32_t a5;
+        uint32_t a6;
+        uint32_t a7;
+}smc_param;
 
 int uboot_verify_img(uint64_t start_addr, uint64_t lenth);
 int uboot_get_socid(uint64_t start_addr, uint64_t lenth);
@@ -105,5 +105,6 @@ int uboot_sansa_set_rma(uint32_t *p_rmaret);
 
 int uboot_kce_program(uint64_t start_addr, uint64_t lenth);
 
+smc_param *tee_common_call(uint32_t funcid, uint32_t start_addr, uint32_t lenth);
 
 #endif

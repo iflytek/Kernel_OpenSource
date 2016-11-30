@@ -680,7 +680,7 @@ libs-y += drivers/usb/phy/
 libs-y += drivers/usb/ulpi/
 libs-y += common/
 
-libs-$(CONFIG_SECBOOT) += lib/trustzone/
+libs-y += lib/trustzone/
 libs-$(CONFIG_SECBOOT) += lib/secureboot/
 
 libs-$(CONFIG_API) += api/
