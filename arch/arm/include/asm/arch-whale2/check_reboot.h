@@ -15,6 +15,7 @@
 #define   HWRST_STATUS_IQMODE           (0xb0)
 #define   HWRST_STATUS_SPRDISK			(0xc0)
 #define   HWRST_STATUS_NORMAL2			(0xf0)
+#define   HWRST_STATUS_NORMAL3			(0xf1)
 
 #define   HW_PBINT2_STATUS				(0x8)
 #define   HW_VCHG_STATUS				(0x20)

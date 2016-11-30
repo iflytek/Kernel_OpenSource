@@ -128,6 +128,7 @@ boot_mode_enum_type get_mode_from_watchdog(void)
 		case CMD_FASTBOOT_MODE:
 		case CMD_NORMAL_MODE:
 		case CMD_WATCHDOG_REBOOT:
+		case CMD_AP_WATCHDOG_REBOOT:
 		case CMD_UNKNOW_REBOOT_MODE:
 		case CMD_PANIC_REBOOT:
 		case CMD_AUTODLOADER_REBOOT:
@@ -225,7 +226,7 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
 	volatile int i;
 	boot_mode_enum_type bootmode = CMD_UNDEFINED_MODE;
-	CBOOT_MODE_ENTRY boot_mode_array[20] ={0};
+	CBOOT_MODE_ENTRY boot_mode_array[21] ={0};
 
 	if(argc > 2)
 		return CMD_RET_USAGE;

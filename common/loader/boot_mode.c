@@ -127,6 +127,14 @@ void watchdog_mode(void)
 
 }
 
+void ap_watchdog_mode(void)
+{
+	debugf("ap_watchdog_mode\n");
+	setenv("bootmode", "apwdgreboot");
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
+	return;
+
+}
 void unknow_reboot_mode(void)
 {
 	debugf("unknow_reboot_mode\n");

@@ -492,6 +492,7 @@ char *rstmode[] = {
 	"charge",				//CMD_CHARGE_MODE,
 	"engtest",				//CMD_ENGTEST_MODE,
 	"watchdog timeout",		//CMD_WATCHDOG_REBOOT ,
+	"ap watchdog timeout",	//CMD_AP_WATCHDOG_REBOOT ,
 	"framework crash",		//CMD_SPECIAL_MODE,
 	"manual dump",			//CMD_UNKNOW_REBOOT_MODE,
 	"kernel crash",			//CMD_PANIC_REBOOT,
@@ -502,7 +503,7 @@ char *rstmode[] = {
 	"sleep",				//CMD_SLEEP_MODE,
 };
 
-#define GET_RST_MODE(x) rstmode[(x) < 17 ? (x) : 0]
+#define GET_RST_MODE(x) rstmode[(x) < 18 ? (x) : 0]
 
 #ifdef CONFIG_NAND_BOOT
 /*Copy the data saved in nand flash to ram*/
@@ -743,8 +744,9 @@ void write_sysdump_before_boot(int rst_mode)
 	infop = (struct sysdump_info *)sprd_sysdump_magic;
 	debugf("rst_mode:0x%x, Check if need to write sysdump info of 0x%08lx to file...\n", rst_mode,
 	sprd_sysdump_magic);
-	if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_UNKNOW_REBOOT_MODE) || (rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || \
-		((rst_mode == CMD_PANIC_REBOOT) && !memcmp(infop->magic, SYSDUMP_MAGIC, sizeof(infop->magic)))|| (rst_mode == CMD_SPECIAL_MODE) ) {
+	if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_AP_WATCHDOG_REBOOT) || (rst_mode == CMD_UNKNOW_REBOOT_MODE) || \
+		(rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || ((rst_mode == CMD_PANIC_REBOOT) && !memcmp(infop->magic, SYSDUMP_MAGIC, sizeof(infop->magic))) \
+		|| (rst_mode == CMD_SPECIAL_MODE) ) {
 		debugf("\n");
 
 		dt_addr = get_dt_addr();
@@ -781,8 +783,8 @@ void write_sysdump_before_boot(int rst_mode)
 	//	lcd_setfgcolor(CONSOLE_COLOR_RED);
 //		lcd_display();
 
-		if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_UNKNOW_REBOOT_MODE) ||
-			(rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || (rst_mode == CMD_SPECIAL_MODE)) {
+		if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_AP_WATCHDOG_REBOOT) || \
+			(rst_mode == CMD_UNKNOW_REBOOT_MODE) || (rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || (rst_mode == CMD_SPECIAL_MODE)) {
 			infop->dump_path[0] = '\0';
 
 		    sprd_dump_mem_num = fill_dump_mem(dt_addr, sprd_dump_mem, nodeoffset);

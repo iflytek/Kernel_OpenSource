@@ -58,6 +58,8 @@ unsigned check_reboot_mode(void)
 			return CMD_NORMAL_MODE;
 		else if(rst_mode == HWRST_STATUS_NORMAL2)
 			return CMD_WATCHDOG_REBOOT;
+		else if(rst_mode == HWRST_STATUS_NORMAL3)
+			return CMD_AP_WATCHDOG_REBOOT;
 		else if(rst_mode == HWRST_STATUS_ALARM)
 			return CMD_ALARM_MODE;
 		else if(rst_mode == HWRST_STATUS_SLEEP)

@@ -17,6 +17,7 @@ typedef enum {
 	CMD_CHARGE_MODE,
 	CMD_ENGTEST_MODE,
 	CMD_WATCHDOG_REBOOT,
+	CMD_AP_WATCHDOG_REBOOT,
 	CMD_SPECIAL_MODE,
 	CMD_UNKNOW_REBOOT_MODE,
 	CMD_PANIC_REBOOT,
@@ -66,6 +67,7 @@ void engtest_mode(void);
 void calibration_mode(void);
 void factorytest_mode(void);
 void watchdog_mode(void);
+void ap_watchdog_mode(void);
 void unknow_reboot_mode(void);
 void special_mode(void);
 void panic_reboot_mode(void);
