@@ -10,7 +10,7 @@
 #include <linux/usb/ch9.h>
 #include <linux/usb/usb_uboot.h>
 
-#define USB_ENUM_MS 15000
+#define USB_ENUM_MS 300000
 #define USB_IO_MS 100000
 
 
