@@ -11,6 +11,7 @@
 .global _resume_start
 .global _resume_entry
 .global _resume_end
+.global stop_this_cpu
 
 #include <config.h>
 #include <asm/processor-flags.h>
@@ -484,9 +485,22 @@ _wait_update_turn:
 	movl	$SRAM_ADDRESS(cpu_updated), %ebx
 	lock	incl	(%ebx)
 
-_hang:
-	hlt
-	jmp	_hang
+/* enter C6FS state */
+
+_resume_stop_ap:
+	movl	$0xe2, %ecx
+	rdmsr
+	orl	$0x80f, %eax
+	wrmsr
+_hang_loop:
+	xorl	%edx, %edx
+	xorl	%ecx, %ecx
+	movl	$(CONFIG_RESERVED_RAM_START), %eax
+	monitor
+	xorl	%ecx, %ecx
+	movl	$0x52, %eax
+	mwait
+	jmp	_hang_loop
 
 /*
  *  CPU microcode update
@@ -650,11 +664,6 @@ _wait_for_ap_update:
 	movl	$SRAM_ADDRESS(cpu_updated), %ebx
 	cmpl	(%ebx), %eax
 	jne	_wait_for_ap_update
-
-/* broadcast Init IPI to all APs */
-
-	movl	$0x000C4500, %eax
-	mov	%eax, (%esi)
 
 	ret
 
@@ -897,3 +906,11 @@ _mtrr_enable:
 	jmpl	*%ebp
 
 _resume_end:
+
+/**
+ *  stop_this_cpu() - jump to SRAM code that will keep this CPU in C6FS
+ */
+stop_this_cpu:
+	movl	$SRAM_ADDRESS(_resume_stop_ap), %ebx
+	calll	*%ebx
+	ret

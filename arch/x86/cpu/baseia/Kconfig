@@ -13,8 +13,13 @@ config BULLHILL
 
 if BASEIA
 
+config AP_IN_SIPI_WAIT
+	bool
+	default n
+
 config BASEIA_S3
 	bool "Enable Suspend to RAM (S3)"
+	select AP_IN_SIPI_WAIT
 	default y
 
 config BASEIA_SRAM

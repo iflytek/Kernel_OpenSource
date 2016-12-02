@@ -112,34 +112,31 @@ int x86_init_cpus(void)
 	if (microcode_update() >= 0)
 		bios_reset_done();
 
-#ifdef CONFIG_SMP
-	debug("Init additional CPUs class %d\n", UCLASS_CPU);
-	baseia_init_cpus();
-#endif
-
 #ifdef CONFIG_BASEIA_S3
-	_resume_cpus = detect_num_cpus();
+	if(!is_x86_mobilevisor()) {
+		_resume_cpus = detect_num_cpus();
 
-	/* Copy S3 resume code into SRAM */
-	memcpy((void *) CONFIG_BASEIA_SRAM, (const void *) _resume_start,
+		/* Copy S3 resume code into SRAM */
+		memcpy((void *) CONFIG_BASEIA_SRAM, (const void *) _resume_start,
 			_resume_end - _resume_start);
 
-	/*
-	 *  Write resume entry point address to SRAM and store it there, kernel
-	 *  will read it from SRAM and programe it to AON_APB_DAT_1 at late
-	 *  stage of S3. On CPU reset, the boot ROM will jump there if reset
-	 *  reason is S3.
-	 */
-	writel(SRAM_ADDRESS(_resume_entry), RESUME_ENTRY_P);
+		/*
+		*  Write resume entry point address to SRAM and store it there, kernel
+		*  will read it from SRAM and programe it to AON_APB_DAT_1 at late
+		*  stage of S3. On CPU reset, the boot ROM will jump there if reset
+		*  reason is S3.
+		*/
+		writel(SRAM_ADDRESS(_resume_entry), RESUME_ENTRY_P);
 
-	/* Copy CPU microcode data into the reserved DRAM area */
-	if (gd->arch.microcode_size <= RESERVED_RAM_SIZE) {
-		memcpy((void *) CONFIG_RESERVED_RAM_START,
-			gd->arch.microcode_data,
-			gd->arch.microcode_size);
-	} else {
-		printf("Microcode data does not fit"
-			" into reserved DRAM area\n");
+		/* Copy CPU microcode data into the reserved DRAM area */
+		if (gd->arch.microcode_size <= RESERVED_RAM_SIZE) {
+			memcpy((void *) CONFIG_RESERVED_RAM_START,
+				gd->arch.microcode_data,
+				gd->arch.microcode_size);
+		} else {
+			printf("Microcode data does not fit"
+				" into reserved DRAM area\n");
+		}
 	}
 
 #endif
@@ -151,6 +148,13 @@ int x86_init_cpus(void)
 		wrmsr(MSR_IA32_DEBUGCTLMSR, low | DEBUGCTLMSR_LBR, high);
 	}
 #endif
+
+#ifdef CONFIG_SMP
+	debug("Init additional CPUs class %d\n", UCLASS_CPU);
+	if(!is_x86_mobilevisor())
+		baseia_init_cpus();
+#endif
+
 	return 0;
 }
 

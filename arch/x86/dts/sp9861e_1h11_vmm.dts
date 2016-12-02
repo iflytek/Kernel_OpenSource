@@ -29,48 +29,56 @@
 			device_type = "cpu";
 			compatible = "intel,bullhill";
 			reg = <0>;
+			intel,apic-id = <0>;
 		};
 
 		cpu@1 {
 			device_type = "cpu";
 			compatible = "intel,bullhill";
-			reg = <1>;
+			reg = <2>;
+			intel,apic-id = <2>;
 		};
 
 		cpu@2 {
 			device_type = "cpu";
 			compatible = "intel,bullhill";
-			reg = <2>;
+			reg = <4>;
+			intel,apic-id = <4>;
 		};
 
 		cpu@3 {
 			device_type = "cpu";
 			compatible = "intel,bullhill";
-			reg = <3>;
+			reg = <6>;
+			intel,apic-id = <6>;
 		};
 
 		cpu@4 {
 			device_type = "cpu";
 			compatible = "intel,bullhill";
-			reg = <4>;
+			reg = <8>;
+			intel,apic-id = <8>;
 		};
 
 		cpu@5 {
 			device_type = "cpu";
 			compatible = "intel,bullhill";
-			reg = <5>;
+			reg = <10>;
+			intel,apic-id = <10>;
 		};
 
 		cpu@6 {
 			device_type = "cpu";
 			compatible = "intel,bullhill";
-			reg = <6>;
+			reg = <12>;
+			intel,apic-id = <12>;
 		};
 
 		cpu@7 {
 			device_type = "cpu";
 			compatible = "intel,bullhill";
-			reg = <7>;
+			reg = <14>;
+			intel,apic-id = <14>;
 		};
 	};
 
