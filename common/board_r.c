@@ -700,6 +700,7 @@ static int run_main_loop(void)
  * TODO: perhaps reset the watchdog in the initcall function after each call?
  */
 init_fnc_t init_sequence_r[] = {
+	interrupt_init,
 	initr_trace,
 	initr_reloc,
 	/* TODO: could x86/PPC have this also perhaps? */
@@ -839,7 +840,6 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_CMD_KGDB
 	initr_kgdb,
 #endif
-	interrupt_init,
 #if defined(CONFIG_ARM) || defined(CONFIG_AVR32)
 	initr_enable_interrupts,
 #endif
