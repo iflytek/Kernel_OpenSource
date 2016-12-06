@@ -1013,7 +1013,9 @@ int usb_fastboot_init(void)
 	if (status < 0)
 		goto fail;
 	debugf("usb gadget register driver ok!\n");
+	dcache_disable();
 	usb_fastboot_start();
+	dcache_enable();
 	debugf("usb fastboot start finish!\n");
 	return 0;
 

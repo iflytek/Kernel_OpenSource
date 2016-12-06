@@ -454,15 +454,18 @@ int pctool_mode_detect(void)
 	}else{
 		return -1;
 	}
-
+	dcache_disable();
 	ret = cali_usb_prepare();
-	if (!ret)
+	if (!ret){
+		dcache_enable();
 		return -1;
+	}
 
 #if IO_DEBUG
 	cali_usb_debug(pctool_cmd_buf);
 #endif
 	ret = cali_usb_enum();
+	dcache_enable();
 	if (!ret)
 		return -1;
 	ret = cali_get_cmd(pctool_cmd_buf, CALIBERATE_STRING_LEN );
