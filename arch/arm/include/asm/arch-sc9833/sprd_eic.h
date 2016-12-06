@@ -2,7 +2,7 @@
 #define _SPRD_REG_EIC_H_
 
 #define SPRD_ADIE_EIC_START 160
-#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)
+#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)||defined(CONFIG_ADIE_SC2721)
 #define SPRD_ADIE_EIC_END   170
 #else
 #define SPRD_ADIE_EIC_END   167
@@ -28,7 +28,10 @@
 #endif
 
 #define SPRD_DDIE_EIC_START 0
+#define SPRD_DDIE_EIC_END   7
+#define SPRD_DDIE_EIC1_START 8
+#define SPRD_DDIE_EIC1_END   15
 #define SPRD_DDIE_EIC_EXTINT1 2
-#define SPRD_DDIE_EIC_END   4
+
 
 #endif

@@ -69,12 +69,12 @@ enum eic_die {
 #define EIC6_CTL 0x58
 #define EIC7_CTL 0x5C
 #if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723) \
-	|| defined(CONFIG_ADIE_SC2731)
+	|| defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 #define EIC8_CTL 0x60
 #define EIC9_CTL 0x64
 #define EIC10_CTL 0x68
 #endif
-#if defined(CONFIG_ADIE_SC2731)
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 #define EIC11_CTL 0x6C
 #define EIC12_CTL 0x70
 #endif
@@ -89,7 +89,7 @@ static void __get_eic_base_info (u32 eic_id, struct eic_info *info)
 	{
 		info->base_addr= SPRD_ANA_EIC_PHYS;
 		#if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723) \
-		|| defined(CONFIG_ADIE_SC2731)
+		|| defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 		info->bit_num  = eic_id&0xF;
 		#else
 		info->bit_num  = eic_id&0x7;
@@ -103,6 +103,22 @@ static void __get_eic_base_info (u32 eic_id, struct eic_info *info)
 		info->bit_num  = eic_id&0x7;
 		info->die	   = D_DIE;
 	}
+#ifdef CONFIG_SPRD_EIC_EXT1
+	else if (eic_id>=SPRD_DDIE_EIC1_START && eic_id<=SPRD_DDIE_EIC1_END)
+	{
+		info->base_addr= SPRD_EIC1_PHYS;
+		info->bit_num  = eic_id&0x7;
+		info->die	   = D_DIE;
+	}
+#endif
+#ifdef CONFIG_SPRD_EIC_EXT2
+	else if (eic_id>=SPRD_DDIE_EIC2_START && eic_id<=SPRD_DDIE_EIC2_END)
+	{
+		info->base_addr= SPRD_EIC2_PHYS;
+		info->bit_num  = eic_id&0x7;
+		info->die	   = D_DIE;
+	}
+#endif
 	else
 	{
 		info->base_addr = INVALID_REG;

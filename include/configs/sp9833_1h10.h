@@ -318,6 +318,7 @@
 
 /*sprd gpio*/
 #define CONFIG_SPRD_GPIO
+#define CONFIG_SPRD_EIC_EXT1
 
 /*sprd rtc*/
 #define CONFIG_RTC_SPRD
