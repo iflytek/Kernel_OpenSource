@@ -1,7 +1,4 @@
 #include <common.h>
-
-
-//#include "normal_mode.h"
 #include <asm/arch/sprd_reg.h>
 
 #include "cp_boot.h"

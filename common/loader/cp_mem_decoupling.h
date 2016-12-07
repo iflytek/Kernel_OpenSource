@@ -1,8 +1,8 @@
 #ifndef __COUPLING_INFO_H__
 #define __COUPLING_INFO_H__
 
-#define HEADER_INFO_MAGIC	0x5043454D
-#define HEADER_INFO_VERSION	0x302E3156
+#define DECOUPLE_MAGIC_INFO	0x5043454D
+#define HEADER_MAGIC_INFO	0x44485043
 
 #define MAX_HEAD_LENGTH	0x100
 #define MAX_REGION_NUM	0x8
@@ -11,10 +11,8 @@
 #define MAX_RSVMEM_NUM	0x4
 #define MAX_RES_NUM		0x4
 #define MAX_CODE_NUM	0x32
-
+#define MAX_HEADER_SIZE	0x600
 #define EXPAND_FDT_SIZE		0x400
-
-#define PHY_BASE_ADDR		0x80000000
 
 #ifdef CONFIG_SUPPORT_LTE
 #define PARTITION_PREFIX	"l_"
@@ -23,9 +21,11 @@
 #define	DECOUPLING_INFO_PARTITION	"modem"
 
 enum {
-	be_ignore = 0,
-	re_load, //require load to ddr
-	re_clear //require clear
+	ignore_t = 0,
+	load_t, //require load to ddr
+	clear_t, //require clear
+	dump_t,
+	reg_t
 };
 
 enum {
@@ -44,16 +44,6 @@ struct partition_name_info {
 	char partition_bk[MAX_NAME_LEN];
 };
 
-struct keyinfo {
-	char name[MAX_NAME_LEN];
-	char value[MAX_VALUE_LEN];
-};
-
-struct decoup_conf {
-	struct keyinfo key;
-	int (*do_parse_add)(struct keyinfo *key, struct cp_mem_coupling_info *info, struct fdt_header *fdt);
-};
-
 struct property {
 	char name[MAX_NAME_LEN];
 	char value[MAX_VALUE_LEN];
@@ -64,7 +54,7 @@ struct property {
 
 struct mem_resource {
 	char name[MAX_NAME_LEN];
-	uint64_t base;
+	uint64_t base __aligned(8);
 	uint32_t size;
 };
 
@@ -102,6 +92,36 @@ struct cp_mem_coupling_info {
 	struct rsvmem_info_conf rsvmem_info;
 	struct boot_info_conf boot_info;
 	struct comm_info_conf comm_info;
+};
+
+/* using the new format */
+struct img_desc {
+	char desc[MAX_NAME_LEN];
+	uint32_t offs;
+	uint32_t size;
+};
+
+struct iheader_desc {
+	uint32_t magic;
+	struct img_desc desc[1];
+};
+
+struct region_desc {
+	char name[MAX_NAME_LEN];
+	uint64_t base __aligned(8);
+	uint32_t size;
+	uint32_t attr;
+};
+
+struct mem_coupling_info {
+	uint32_t magic;
+	uint32_t version;
+	struct region_desc region[1];
+};
+
+union composite_header {
+	struct iheader_desc iheader;
+	struct cp_mem_coupling_info mem_decoup;
 };
 
 int fdt_fixup_cp_coupling_info(void *blob);

@@ -106,7 +106,6 @@ static boot_image_required_t const s_boot_image_lte_table[] = {
 	{"l_fixnv1","l_fixnv2",LTE_FIXNV_SIZE,LTE_FIXNV_ADDR},
 	{"l_runtimenv1","l_runtimenv2",LTE_RUNNV_SIZE,LTE_RUNNV_ADDR},
 	{"l_modem",NULL,LTE_MODEM_SIZE,LTE_MODEM_ADDR},
-	{"l_wgdsp",NULL,LTE_WGDSP_SIZE,LTE_WGDSP_ADDR},//wgdsp
 	{"l_tgdsp",NULL,LTE_TGDSP_SIZE ,LTE_TGDSP_ADDR}, //tddsp
 	{"l_ldsp",NULL,LTE_LDSP_SIZE ,LTE_LDSP_ADDR},
 #endif

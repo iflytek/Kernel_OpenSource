@@ -1,32 +1,24 @@
 #include <common.h>
+#include <errno.h>
 #include <libfdt_env.h>
 #include <libfdt.h>
 #include "cp_mem_decoupling.h"
 #include "loader_common.h"
 #include <secureboot/sec_common.h>
 
-//#define CP_MEM_DECOUP_DEBUG
+#ifndef BASE_TO_APBASE
+#define BASE_TO_APBASE(addr)	(addr)
+#endif
 
-extern int _boot_load_required_image(boot_image_required_t img_info);
+#define CP_MEM_DECOUP_DEBUG
+
 extern void of_bus_default_count_cells(void *blob, int parentoffset,
 					int *addrc, int *sizec);
 
-static boot_image_required_t s_boot_image_cp_table[MAX_REGION_NUM] = {0};
-static struct partition_name_info g_partition_info[MAX_REGION_NUM] = {0};
+static boot_image_required_t s_boot_image_cp_table[MAX_REGION_NUM];
+static struct partition_name_info g_partition_info[MAX_REGION_NUM];
 
-static struct cp_mem_coupling_info g_info;
-
-static void print_fdt_rsvmem(struct fdt_header *fdt)
-{
-#ifdef CP_MEM_DECOUP_DEBUG
-	char fdt_cmd[MAX_VALUE_LEN] = {0};
-
-	sprintf(fdt_cmd, "fdt addr %p", fdt);
-	run_command(fdt_cmd, 0);
-	run_command("fdt rsvmem print", 0);
-#endif
-	return;
-}
+static char raw_decouple_data[MAX_HEADER_SIZE] __aligned(16);
 
 static void print_fdt_node(struct fdt_header *fdt, int noffs)
 {
@@ -34,63 +26,57 @@ static void print_fdt_node(struct fdt_header *fdt, int noffs)
 	int index = 0;
 	char fdt_cmd[MAX_VALUE_LEN] = {0};
 
-	sprintf(fdt_cmd, "fdt addr %p", fdt);
+	snprintf(fdt_cmd, sizeof(fdt_cmd), "fdt addr %p", fdt);
 	run_command(fdt_cmd, 0);
 
 	memset(fdt_cmd, 0, sizeof(fdt_cmd));
-	strcpy(fdt_cmd, "fdt print ");
+	strncpy(fdt_cmd, "fdt print ", sizeof(fdt_cmd) - 1);
 	index = strlen(fdt_cmd);
-	if(fdt_get_path(fdt, noffs, fdt_cmd + index, sizeof(fdt_cmd) - index) == 0) {
+	if (!fdt_get_path(fdt,
+			 noffs,
+			 fdt_cmd + index,
+			 sizeof(fdt_cmd) - index)) {
 		run_command(fdt_cmd, 0);
 	}
 #endif
 	return;
 }
 
-static int prop_init(char *name, uint32_t noffs, struct property *prop)
+static void prop_init(char *name, uint32_t noffs, struct property *prop)
 {
 	int num;
-
-	if(NULL == name || NULL == prop) {
-		errorf("%s: param error\n", __func__);
-		return -1;
-	}
 
 	memset(prop, 0, sizeof(struct property));
 	num = min(sizeof(prop->name) - 1, strlen(name));
 	strncpy(prop->name, name, num);
 	prop->offset = noffs;
-
-	return 0;
 }
 
-static int fill_prop_value(int type, void *value, int len, struct property *prop)
+static int fill_prop_value(int type,
+			   void *value,
+			   unsigned len,
+			   struct property *prop)
 {
 	int i, n, lenp;
 	uint32_t val;
-	char *s = NULL;
-	char *p = NULL;
+	char *s, *p;
 
-	if(NULL == value || NULL == prop || 0 == len) {
-		errorf("%s: param error\n", __func__);
-		return -1;
-	}
-
-	if(len > sizeof(prop->value)) {
-		errorf("%s: <%s> fill value too big, len = %d\n", __func__, prop->name, len);
-		return 0;
+	if (len > sizeof(prop->value)) {
+		errorf("the %s fill value too long, len = %d\n",
+		       prop->name, len);
+		return -EINVAL;
 	}
 
 	lenp = prop->len;
 	p = prop->value + lenp;
 
-	if(type == str_t) { //property value is string type
+	if (type == str_t) { //property value is string type
 		strcpy(p, value);
 		lenp += strlen(value) + 1;
 
 	} else {
 		n = len / sizeof(uint32_t);
-		if(!n)
+		if (!n)
 			n = 1;
 
 		memset(p, 0, n * sizeof(uint32_t));
@@ -98,7 +84,7 @@ static int fill_prop_value(int type, void *value, int len, struct property *prop
 		p += n * sizeof(uint32_t);
 		lenp += n * sizeof(uint32_t);
 
-		for(s = (char *)value + len ; n > 0; n--) {
+		for (s = (char *)value + len ; n > 0; n--) {
 			s -= sizeof(uint32_t);
 			p -= sizeof(uint32_t);
 			memcpy(&val, s, sizeof(uint32_t));
@@ -113,308 +99,306 @@ static int fill_prop_value(int type, void *value, int len, struct property *prop
 	return 0;
 }
 
-static int fill_cell_prop_value(void *value, uint32_t size, int cell, struct property *prop)
+static int fill_cell_prop_value(void *value,
+				uint32_t size,
+				int cell,
+				struct property *prop)
 {
 	int i, n, delta;
-	char temp[64];
-	char *p = NULL;
+	char tmp[64];
+	char *p;
 
-	if(!value || !prop) {
-		errorf("%s: param error\n", __func__);
-		return -1;
+	if (!value || !prop) {
+		errorf("param error\n");
+		return -EINVAL;
 	}
 
 	p = (char *)value;
 	n = cell * sizeof(uint32_t) < size ? cell * sizeof(uint32_t) : size;
 	delta = cell * sizeof(uint32_t) - sizeof(uint32_t);
-	memset(temp, 0, sizeof(temp));
-	for(i = cell; i > 0; i--) {
-		memcpy(temp + delta, p, sizeof(uint32_t));
+	memset(tmp, 0, sizeof(tmp));
+	for (i = cell; i > 0; i--) {
+		memcpy(tmp + delta, p, sizeof(uint32_t));
 		delta -= sizeof(uint32_t);
 		p += sizeof(uint32_t);
 	}
 
-	return fill_prop_value(num_t, temp, cell * sizeof(uint32_t), prop);
+	return fill_prop_value(num_t, tmp, cell * sizeof(uint32_t), prop);
 }
 
-static int fill_reg_prop_value(uint64_t base, uint64_t size, int ac, int sc, struct property *prop)
+static int fill_reg_prop_value(uint64_t base,
+			       uint64_t size,
+			       int ac,
+			       int sc,
+			       struct property *prop)
 {
-	if(ac > 2 || sc > 2 || !prop) {
-		errorf("%s: param error\n", __func__);
+	if (ac > 2 || sc > 2 || !prop) {
+		errorf("param error\n");
 		return -1;
 	}
 
-	if(size == 0) {
-		errorf("%s: size = 0, invalid\n", __func__);
-		return 0;
-	}
-
-	if(fill_cell_prop_value(&base, sizeof(base), ac, prop)) {
-		errorf("%s: fill base to %s prop failed.\n", __func__, prop->name);
+	if (fill_cell_prop_value(&base, sizeof(base), ac, prop)) {
+		errorf("fill the base to %s prop failed\n", prop->name);
 		return -1;
 	}
 
-	if(fill_cell_prop_value(&size, sizeof(size), sc, prop)) {
-		errorf("%s: fill size to %s prop failed.\n", __func__, prop->name);
+	if (fill_cell_prop_value(&size, sizeof(size), sc, prop)) {
+		errorf("fill the size to %s prop failed\n", prop->name);
 		return -1;
 	}
 
 	return 0;
 }
 
-static int fill_ranges_prop_value(uint64_t offs, uint64_t base,
-					uint64_t size, int c_ac, int ac, int c_sc, struct property *prop)
+static int fill_ranges_prop_value(uint64_t offs,
+				  uint64_t base,
+				  uint64_t size,
+				  int c_ac,
+				  int ac,
+				  int c_sc,
+				  struct property *prop)
 {
-	if(ac > 2 || c_ac > 2 || c_sc > 2 || !prop) {
-		errorf("%s: param error\n", __func__);
+	if (ac > 2 || c_ac > 2 || c_sc > 2 || !prop) {
+		errorf("param error\n");
 		return -1;
 	}
 
-	if(fill_cell_prop_value(&offs, sizeof(offs), c_ac, prop)) {
-		errorf("%s: fill base to %s prop failed.\n", __func__, prop->name);
+	if (fill_cell_prop_value(&offs, sizeof(offs), c_ac, prop)) {
+		errorf("fill the offs to %s prop failed\n", prop->name);
 		return -1;
 	}
 
-	if(fill_cell_prop_value(&base, sizeof(base), ac, prop)) {
-		errorf("%s: fill base to %s prop failed.\n", __func__, prop->name);
+	if (fill_cell_prop_value(&base, sizeof(base), ac, prop)) {
+		errorf("fill the base to %s prop failed\n", prop->name);
 		return -1;
 	}
 
-	if(fill_cell_prop_value(&size, sizeof(size), c_sc, prop)) {
-		errorf("%s: fill size to %s prop failed.\n", __func__, prop->name);
+	if (fill_cell_prop_value(&size, sizeof(size), c_sc, prop)) {
+		errorf("fill the size to %s prop failed\n", prop->name);
 		return -1;
 	}
 
 	return 0;
 }
 
-static int do_add_prop_to_fdt(struct fdt_header *fdt, int mode, struct property *prop)
+static int do_add_prop_to_fdt(struct fdt_header *fdt,
+			      int mode,
+			      struct property *prop)
 {
 	int ret;
 
-	if(NULL == prop || NULL == fdt) {
-		errorf("%s: param error\n", __func__);
+	if (!prop || !fdt) {
+		errorf("param error\n");
 		return -1;
 	}
 
-	if(filled_prop != prop->flag) {
-		errorf("%s: %s prop is bad or no value, do not add to fdt\n", __func__, prop->name);
+	if (prop->flag != filled_prop) {
+		errorf("%s prop is bad or no value, don't add to fdt\n",
+		       prop->name);
 		return -1;
 	}
 
-	if(mode != 0) {
-		ret = fdt_appendprop(fdt, prop->offset, prop->name, prop->value, prop->len);
+	if (mode != 0) {
+		ret = fdt_appendprop(fdt,
+				     prop->offset,
+				     prop->name,
+				     prop->value,
+				     prop->len);
 	} else {
-		ret = fdt_setprop(fdt, prop->offset, prop->name, prop->value, prop->len);
+		ret = fdt_setprop(fdt,
+				  prop->offset,
+				  prop->name,
+				  prop->value,
+				  prop->len);
 	}
 
 	if (ret < 0) {
-		errorf("%s: add prop %s to %s failed, reason: %s\n",
-			__func__, prop->name, fdt_get_name(fdt, prop->offset, 0), fdt_strerror(ret));
+		errorf("add prop %s to %s failed, reason: %s\n",
+			prop->name,
+			fdt_get_name(fdt, prop->offset, 0),
+			fdt_strerror(ret));
 		return -1;
 	}
 
 	return 0;
 }
 
-static int do_parse_add_sipc_info(struct keyinfo *key,
-	struct cp_mem_coupling_info *info, struct fdt_header *fdt)
+static void add_fdt_total_size(uint size, struct fdt_header *fdt)
 {
-	int i;
-	int p_offs, offs;
-	uint64_t base;
-	uint32_t deta, size;
-	uint32_t na = 2, ns = 1;
-	uint32_t c_na = 2, c_ns = 1;
-	struct property reg, c_reg, ranges;
-	struct comm_info_conf *comm_info = NULL;
-
-	if(NULL == key || NULL == info || NULL == fdt) {
-		errorf("param error\n");
-		goto err;
+	if (!fdt &&
+		(fdt_totalsize(fdt) <= fdt_off_dt_strings(fdt) +
+		 fdt_size_dt_strings(fdt) + size)) {
+		fdt_set_totalsize(fdt, fdt_totalsize(fdt) + size);
 	}
 
-	comm_info = &info->comm_info;
-	offs = fdt_node_offset_by_prop_value(fdt, 0, key->name, key->value, strlen(key->value) + 1);
-	if(offs < 0) {
-		errorf("the sipc node do not support decoupling\n");
-		return 1;
-	}
+}
+
+static int create_cproc_subnode(struct fdt_header *fdt,
+				int offs,
+				char *name,
+				uint64_t p_base,
+				uint64_t base,
+				uint32_t size)
+{
+	int p_offs, c_offs, delta;
+	uint32_t na, ns;
+	uint32_t c_na, c_ns;
+	char node_name[64];
+	struct property prop;
 
 	p_offs = fdt_parent_offset(fdt, offs);
-	if(p_offs < 0) {
+	if (p_offs < 0) {
 		na = 2;
 		ns = 1;
 	}
 
-	debugf("start update sipc node info\n");
-	print_fdt_node(fdt, offs);
-
 	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
-	debugf("a_cells = %d, s_cells = %d\n", na, ns);
-
 	of_bus_default_count_cells(fdt, offs, &c_na, &c_ns);
-	debugf("ca_cells: %d, cs_cells: %d\n", c_na, c_ns);
 
-	prop_init("reg", 0, &c_reg);
-	prop_init("reg", offs, &reg);
-	prop_init("ranges", offs, &ranges);
-
-	for(i = 0; comm_info->res[i].size > 0; i++) {
-		base = comm_info->res[i].base;
-		size = comm_info->res[i].size;
-		deta = comm_info->res[i].base - PHY_BASE_ADDR;
-		debugf("%s: i = %d, base = 0x%x, size = 0x%x\n",comm_info->res[i].name, i, base, size);
-		if (i == 0) {
-			fill_reg_prop_value(base, size, na, ns, &reg);
-		}
-
-		fill_reg_prop_value(deta, size, c_na, c_ns, &c_reg);
-
-		fill_ranges_prop_value(deta, base, size, c_na, na, c_ns, &ranges);
+	delta = base - p_base;
+	snprintf(node_name, sizeof(node_name), "%s@%x", name, delta);
+	c_offs = fdt_add_subnode(fdt, offs, node_name);
+	if (c_offs < 0) {
+		errorf("create %s node failed\n", node_name);
+		return -1;
 	}
 
-	if(do_add_prop_to_fdt(fdt, 0, &reg) < 0) {
-		errorf("update reg property to sipc node failed\n");
+	prop_init("reg", c_offs, &prop);
+	fill_reg_prop_value(delta, size, c_na, c_ns, &prop);
+	if (do_add_prop_to_fdt(fdt, 0, &prop) < 0)
 		goto err;
-	}
 
-	if(do_add_prop_to_fdt(fdt, 1, &ranges) < 0) {
-		errorf("update ranges property to sipc node failed\n");
+	prop_init("cproc,name", c_offs, &prop);
+	fill_prop_value(str_t, name, strlen(name), &prop);
+	if (do_add_prop_to_fdt(fdt, 0, &prop) < 0)
 		goto err;
-	}
 
-	c_reg.offset = fdt_first_subnode(fdt, offs);
-	if(c_reg.offset < 0) {
-		errorf("the sipc child node not found\n");
+	prop_init("ranges", offs, &prop);
+	fill_ranges_prop_value(delta, base, size, c_na, na, c_ns, &prop);
+	if (do_add_prop_to_fdt(fdt, 1, &prop) < 0)
 		goto err;
-	}
 
-	if(do_add_prop_to_fdt(fdt, 0, &c_reg) < 0) {
-		errorf("update reg property to sipc child node failed\n");
-		goto err;
-	}
-
-	debugf("update sipc node info done\n");
-	print_fdt_node(fdt, offs);
-
-	return 0;
+	return c_offs;
 
 err:
-	print_fdt_node(fdt, offs);
+	fdt_del_node(fdt, c_offs);
+
 	return -1;
 }
 
-static int do_parse_add_cproc_info(struct keyinfo *key,
-	struct cp_mem_coupling_info *info, struct fdt_header *fdt)
+static int do_parse_decoup_info_v1(struct cp_mem_coupling_info *info,
+				   struct fdt_header *fdt)
 {
-	int i;
-	int p_offs, offs, c_offs;
+	int i, val = 1;
+	int p_offs, offs;
+	int is_new_format;
 	uint64_t base;
 	uint32_t size;
-	uint32_t deta, cp_base;
+	uint32_t cp_base;
 	uint32_t na, ns;
-	uint32_t c_na, c_ns;
-	char node_name[2 * MAX_NAME_LEN] = {0};
+	char name[64];
+	char value[64];
 	struct property prop;
-	struct property ranges;
-	struct region_info *region = NULL;
-	struct boot_info_conf *binfo = NULL;
+	struct region_info *region;
+	struct mem_resource *res;
 
-	debugf("start update cproc node info\n");
-
-	if(NULL == key || NULL == info || NULL == fdt) {
-		errorf("%s: param error\n", __func__);
+	if (!info || !fdt) {
+		errorf("param error\n");
 		goto err0;
 	}
 
-	binfo = &info->boot_info;
-	offs = fdt_node_offset_by_prop_value(fdt, 0, key->name, key->value, strlen(key->value) + 1);
-	if(offs < 0) {
-		errorf("%s: the cproc node do not support decoupling\n", __func__);
-		return 1;
+	res = info->boot_info.res;
+	region = info->boot_info.regions;
+
+	is_new_format = 0;
+
+	strncpy(name, "sprd,decoup", sizeof(name));
+	strncpy(value, "cproc-use-decoup", sizeof(value));
+	offs = fdt_node_offset_by_prop_value(fdt, 0, name, value, strlen(value) + 1);
+	if (offs < 0) {
+		strncpy(value, "cproc-use-decoup-v1", sizeof(value));
+		offs = fdt_node_offset_by_prop_value(fdt, 0, name, value, strlen(value) + 1);
+		if (offs < 0) {
+			debugf("the cp memory info already exist, don't need to parse\n");
+			return 1;
+		}
+
+		is_new_format = 1;
 	}
 
+	add_fdt_total_size(EXPAND_FDT_SIZE, fdt);
+
 	p_offs = fdt_parent_offset(fdt, offs);
-	if(p_offs < 0) {
+	if (p_offs < 0) {
 		na = 2;
 		ns = 1;
 	}
 
+	debugf("start update cproc node info\n");
 	print_fdt_node(fdt, offs);
 
 	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
-	debugf("%s: a_cells: %d, s_cells: %d\n", __func__, na, ns);
+	debugf("a_cells: %d, s_cells: %d\n", na, ns);
 
-	prop_init("reg", offs, &prop);
-	for(i = 0; binfo->res[i].size > 0; i++) {
-		base = binfo->res[i].base;
-		size = binfo->res[i].size;
+	if (!is_new_format) {
+		struct boot_code *bcode;
 
-		if (i == 0)
+		bcode = &info->boot_info.bcode;
+		prop_init("sprd,iram-dsize", offs, &prop);
+		fill_prop_value(num_t, &bcode->count, sizeof(uint32_t), &prop);
+		if(do_add_prop_to_fdt(fdt, 0, &prop) < 0)
+			errorf("add iram-dsize prop to cproc node failed\n");
+
+		prop_init("sprd,iram-data", offs, &prop);
+		fill_prop_value(num_t, bcode->code, bcode->count * sizeof(uint32_t), &prop);
+		if(do_add_prop_to_fdt(fdt, 0, &prop) < 0)
+			errorf("add iram-data prop to cproc node failed\n");
+	}
+
+	for (i = 0; res[i].size > 0; i++) {
+		base = BASE_TO_APBASE(res[i].base);
+		size = res[i].size;
+
+		if (!strncmp(res[i].name, "cp-mem", 6)) {
+			prop_init("reg", offs, &prop);
 			cp_base = base;
+			fill_reg_prop_value(base, size, na, ns, &prop);
 
-		fill_reg_prop_value(base, size, na, ns, &prop);
+		} else if (!strncmp(res[i].name, "mini-dump", 9)) {
+			if (is_new_format) {
+				prop_init("sprd,mini-dump", offs, &prop);
+				fill_reg_prop_value(base, size, 1, 1, &prop);
+			} else {
+				prop_init("reg", offs, &prop);
+				fill_reg_prop_value(base, size, na, ns, &prop);
+			}
+
+		} else {
+			continue;
+		}
+
+		if (do_add_prop_to_fdt(fdt, 1, &prop) < 0)
+			goto err0;
 	}
 
-	if(do_add_prop_to_fdt(fdt, 1, &prop) < 0) {
-		errorf("%s: add reg property to cproc node failed\n", __func__);
+	prop_init("#address-cells", offs, &prop);
+	fill_prop_value(num_t, &val, sizeof(uint32_t), &prop);
+	if (do_add_prop_to_fdt(fdt, 0, &prop) < 0)
 		goto err0;
-	}
 
-	prop_init("sprd,iram-dsize", offs, &prop);
-	fill_prop_value(num_t, &binfo->bcode.count, sizeof(uint32_t), &prop);
-	if(do_add_prop_to_fdt(fdt, 0, &prop) < 0) {
-		errorf("%s: add iram_dsize property to cproc node failed\n", __func__);
-	}
+	prop_init("#size-cells", offs, &prop);
+	fill_prop_value(num_t, &val, sizeof(uint32_t), &prop);
+	if (do_add_prop_to_fdt(fdt, 0, &prop) < 0)
+		goto err0;
 
-	prop_init("sprd,iram-data", offs, &prop);
-	fill_prop_value(num_t, binfo->bcode.code, binfo->bcode.count * sizeof(uint32_t), &prop);
-	if(do_add_prop_to_fdt(fdt, 0, &prop) < 0) {
-		errorf("%s: add iram_data property to cproc node failed\n", __func__);
-	}
-
-	for(i = 0, region = binfo->regions; i < MAX_REGION_NUM; i++, region++) {
-		if(strlen(region->res.name) > 0) {
-			deta = region->res.base - cp_base;
-			c_offs = fdt_node_offset_by_prop_value(fdt, offs, "cproc,name",
-					region->res.name, strlen(region->res.name) + 1);
-			if(c_offs == -FDT_ERR_NOTFOUND) {
-				sprintf(node_name, "%s@%x", region->res.name, deta);
-				c_offs = fdt_add_subnode(fdt, offs, node_name);
-				if(c_offs < 0) {
-					errorf("%s: create %s node failed\n", __func__, node_name);
-					continue;
-				}
-			}
-
-			of_bus_default_count_cells(fdt, offs, &c_na, &c_ns);
-
-			prop_init("reg", c_offs, &prop);
-			fill_reg_prop_value(deta, region->res.size, c_na, c_ns, &prop);
-			if(do_add_prop_to_fdt(fdt, 0, &prop) < 0) {
-				errorf("%s: add reg property failed, in %s node\n", __func__, node_name);
-				goto err1;
-			}
-
-			prop_init("cproc,name", c_offs, &prop);
-			fill_prop_value(str_t, region->res.name, sizeof(region->res.name), &prop);
-			if(do_add_prop_to_fdt(fdt, 0, &prop) < 0) {
-				errorf("%s: add %s property failed, in %s node\n", __func__, prop.name, node_name);
-				goto err1;
-			}
-
-			prop_init("ranges", offs, &ranges);
-			fill_ranges_prop_value(deta, region->res.base, region->res.size, c_na, na, c_ns, &ranges);
-			if(do_add_prop_to_fdt(fdt, 1, &ranges) < 0) {
-				errorf("%s: add ranges property to cproc node failed\n", __func__);
-				goto err1;
-			}
-
-			continue;
-err1:
-			fdt_del_node(fdt, c_offs);
-			continue;
+	for (i = 0; i < MAX_REGION_NUM; i++, region++) {
+		if (strlen(region->res.name) > 0) {
+			base = BASE_TO_APBASE(region->res.base);
+			size = region->res.size;
+			create_cproc_subnode(fdt,
+					     offs,
+					     region->res.name,
+					     cp_base, base, size);
 
 		} else {
 			break;
@@ -431,332 +415,324 @@ err0:
 	return -1;
 }
 
-static int do_parse_add_rsvmem_info(struct keyinfo *key,
-	struct cp_mem_coupling_info *info, struct fdt_header *fdt)
-{
-	int i, j, err;
-	int len;
-	int node, offs;
-	int na, ns;
-	int na_t;
-	fdt32_t cells[4];
-	uint64_t base, r;
-	char name[64];
-	char *p;
-	struct region_info *rsvmem;
-
-	if(NULL == info || NULL == fdt)	{
-		errorf("%s: param error\n", __func__);
-		return -1;
-	}
-
-	debugf("start add cp rsvmem to fdt\n");
-
-	node = fdt_path_offset(fdt, "/reserved-memory");
-	if (node < 0) {
-		errorf("/reserved-memory node not exist\n");
-		return -1;
-	}
-	print_fdt_node(fdt, node);
-
-	for(rsvmem = info->rsvmem_info.rsvmem, i = 0; i < MAX_RSVMEM_NUM; i++, rsvmem++) {
-		if(rsvmem->res.size == 0) {
-			break;
-		}
-
-		debugf("rsvbase = 0x%p, rsvsize = 0x%p\n", rsvmem->res.base, rsvmem->res.size);
-		base = rsvmem->res.base;
-		offs = node;
-		of_bus_default_count_cells(fdt, node, &na, &ns);
-		for (offs = fdt_first_subnode(fdt, node); offs > 0; offs = fdt_next_subnode(fdt, offs)) {
-			p = fdt_get_name(fdt, offs, &len);
-			debugf("node name: %s\n", p);
-			if (p && strstr(p, rsvmem->res.name)) {
-				p = fdt_getprop(fdt, offs, "reg", &len);
-				if (p) {
-					r = 0;
-					na_t = na;
-					while (na_t--)
-						r = (r << 32) | fdt32_to_cpu(*((fdt32_t *)p++));
-					if (r) {
-						debugf("%s info already exist\n", rsvmem->res.name);
-						break;
-					}
-
-					sprintf(name, "%s@%x", rsvmem->res.name, base);
-					err = fdt_set_name(fdt, offs, name);
-					if (err < 0) {
-						errorf("%s: set node name error(%s)\n", __func__, fdt_strerror(err));
-						break;
-					}
-
-					j = 0;
-					if (na == 2)
-						cells[j++] = cpu_to_fdt32(base >> 32);
-					cells[j++] = cpu_to_fdt32(base);
-					if (ns == 2)
-						cells[j++] = 0;
-					cells[j++] = cpu_to_fdt32(rsvmem->res.size);
-					err = fdt_setprop(fdt, offs, "reg", cells, sizeof(cells[0]) * j);
-					if (err < 0) {
-						errorf("%s: set reg prop error(%s)\n", __func__, fdt_strerror(err));
-					}
-
-					debugf("%s: update %s reg info done\n", __func__, name);
-					break;
-				}
-			}
-		}
-	}
-
-	debugf("add cp rsvmem to fdt done\n");
-	print_fdt_node(fdt, node);
-
-	return 0;
-}
-
-static int add_fdt_total_size(uint size, struct fdt_header *fdt)
-{
-	if(size <= 0 || NULL == fdt)	{
-		errorf("%s: param error\n", __func__);
-		return -1;
-	}
-
-	if(fdt_totalsize(fdt) <= fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt) + size) {
-		fdt_set_totalsize(fdt, fdt_totalsize(fdt) + size);
-	}
-
-	return 0;
-}
-
-static int fixup_image_partition_name(const char *rname, struct partition_name_info *pinfo) {
+static int fixup_image_partition_name(const char *rname,
+				      struct partition_name_info *pinfo) {
 	int num, index = 0;
 	char *p = pinfo->partition;
 
-	if(NULL == rname || NULL == pinfo) {
-		errorf("%s: param error\n", __func__);
+	if (!rname || !pinfo) {
+		errorf("param error\n");
 		return -1;
 	}
 
 	strcpy(pinfo->partition, PARTITION_PREFIX);
-	num = min(sizeof(pinfo->partition) - strlen(pinfo->partition) - 1, strlen(rname));
+	num = min(sizeof(pinfo->partition) - strlen(pinfo->partition) - 1,
+		  strlen(rname));
 	strncat(pinfo->partition, rname, num);
 	index = strlen(pinfo->partition) - strlen(NV_PARTITION_KEY);
-	if(index >= 0) {
+	if (index >= 0) {
 		p = pinfo->partition + index;
 	}
 
-	if(!strcmp(p, NV_PARTITION_KEY)) {
-		if(!strcmp(pinfo->partition + strlen(PARTITION_PREFIX), "runnv"))
+	if (!strcmp(p, NV_PARTITION_KEY)) {
+		if (!strcmp(pinfo->partition + strlen(PARTITION_PREFIX), "runnv"))
 			strcpy(pinfo->partition + strlen(PARTITION_PREFIX), "runtimenv");
 
 		strcpy(pinfo->partition_bk, pinfo->partition);
-		num = min(sizeof(pinfo->partition) - strlen(pinfo->partition) - 1, strlen("1"));
+		num = min(sizeof(pinfo->partition) -
+			  strlen(pinfo->partition) - 1, strlen("1"));
 		strncat(pinfo->partition, "1", num);
-		num = min(sizeof(pinfo->partition_bk) - strlen(pinfo->partition_bk) - 1, strlen("2"));
+		num = min(sizeof(pinfo->partition_bk) -
+			  strlen(pinfo->partition_bk) - 1, strlen("2"));
 		strncat(pinfo->partition_bk, "2", num);
 	}
 
 	return 0;
 }
 
-int read_cp_required_image(boot_image_required_t img_info)
+static int do_parse_decoup_info(struct mem_coupling_info * info,
+				struct fdt_header * fdt)
 {
-	uint64_t secure_boot_offset = 0;
-	uint64_t normal_boot_offset = 0;
+	int p_offs, offs;
+	uint32_t val = 1;
+	uint32_t na, ns;
+	uint64_t base = 0;
+	char name[64];
+	char value[64];
+	struct property prop;
+	struct region_desc *region;
 
-	debugf("load %s to addr 0x%08x\n", img_info.partition, img_info.mem_addr);
+	debugf("start parse decoupling info\n");
 
-	if (NULL != img_info.bak_partition) {
-		debugf("load %s with backup img %s\n", img_info.partition, img_info.bak_partition);
-		_boot_read_partition_with_backup(img_info);
-	} else {
-#if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
-		secure_boot_offset = SYS_HEADER_SIZE;
-		normal_boot_offset = get_boot_offset(img_info, secure_boot_offset);
-		if (0 != common_raw_read(img_info.partition, img_info.size, secure_boot_offset + normal_boot_offset, (char *)img_info.mem_addr))
-			errorf("read %s partition fail\n", img_info.partition);
-#else
-		normal_boot_offset = get_boot_offset(img_info, 0);
-		if (0 != common_raw_read(img_info.partition, img_info.size, normal_boot_offset, (char *)img_info.mem_addr))
-			errorf("read %s partition fail\n", img_info.partition);
-#endif
+	if (!info || !fdt) {
+		errorf("param error\n");
+		goto err0;
 	}
 
-	return 1;
-}
-
-int get_coupling_info(const char *partition, struct cp_mem_coupling_info *info)
-{
-	boot_image_required_t img_info;
-
-	if(NULL == partition || NULL == info){
-		errorf("%s: param error\n", __func__);
-		return -1;
-	}
-
-	memset(&img_info, 0, sizeof(boot_image_required_t));
-	img_info.partition = partition;
-	img_info.mem_addr = (uint64_t)info;
-	img_info.size = sizeof(struct cp_mem_coupling_info);
-	read_cp_required_image(img_info);
-
-	return 0;
-}
-
-static struct decoup_conf g_decopu_conf[] = {
-#ifndef CONFIG_DECOUPLING_NO_SURPPORT_RSVMEM
-	{{"rsvmem", NULL}, do_parse_add_rsvmem_info},
-#endif
-	{{"sprd,decoup", "sipc-use-decoup"}, do_parse_add_sipc_info},
-	{{"sprd,decoup", "cproc-use-decoup"}, do_parse_add_cproc_info},
-	NULL
-};
-
-int fdt_fixup_cp_coupling_info(void *blob)
-{
-	int i, ret;
-	unsigned long x = 0;
-	char cmd_buf[64] = {0};
-	struct fdt_header *fdt = NULL;
-	struct partition_name_info mp;
-
-	if(NULL == blob)	{
-		errorf("%s: param error\n", __func__);
-		return -1;
-	}
-
-	fdt = (struct fdt_header *)blob;
-
-	fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
-
-	if(g_info.magic != HEADER_INFO_MAGIC && get_coupling_info(mp.partition, &g_info) < 0) {
-		errorf(" read cp mem coupling info failed from %s\n", mp.partition);
-		return -1;
-	}
-
-	debugf("%s: magic = 0x%x, version = 0x%x\n", __func__, g_info.magic, g_info.version);
-	if(HEADER_INFO_MAGIC != g_info.magic) {
-		debugf("this version not support cp mem decoupling\n");
+	strncpy(name, "sprd,decoup", sizeof(name));
+	strncpy(value, "cproc-use-decoup-v1", sizeof(value));
+	offs = fdt_node_offset_by_prop_value(fdt, 0, name, value, strlen(value) + 1);
+	if (offs < 0) {
+		debugf("the cp memory info already exist, don't need to parse\n");
 		return 1;
 	}
 
 	add_fdt_total_size(EXPAND_FDT_SIZE, fdt);
 
-	for(i = 0; i < sizeof(g_decopu_conf)/sizeof(struct decoup_conf); i++) {
-		if(g_decopu_conf[i].do_parse_add) {
-			ret = (g_decopu_conf[i].do_parse_add)(&g_decopu_conf[i].key, &g_info, fdt);
-			if(ret < 0) {
-				debugf("do parse add %s failed.\n", g_decopu_conf[i].key.name);
-				return -1;
-			}
+	p_offs = fdt_parent_offset(fdt, offs);
+	if (p_offs < 0) {
+		na = 2;
+		ns = 1;
+	}
+
+	if (info->magic != DECOUPLE_MAGIC_INFO) {
+		errorf("format error, magic = 0x%x\n", info->magic);
+		goto err0;
+	}
+
+	prop_init("#address-cells", offs, &prop);
+	fill_prop_value(num_t, &val, sizeof(uint32_t), &prop);
+	if (do_add_prop_to_fdt(fdt, 0, &prop) < 0)
+		goto err0;
+
+	prop_init("#size-cells", offs, &prop);
+	fill_prop_value(num_t, &val, sizeof(uint32_t), &prop);
+	if (do_add_prop_to_fdt(fdt, 0, &prop) < 0)
+		goto err0;
+
+	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
+	debugf("addr cells: %d, size cells: %d\n", na, ns);
+
+	for (region = info->region; region->size != 0; region++) {
+		if (region->attr == reg_t && !strcmp("cp-mem", region->name)) {
+			base = BASE_TO_APBASE(region->base);
+			break;
 		}
 	}
+
+	for (region = info->region; region->size != 0; region++) {
+		uint64_t addr = BASE_TO_APBASE(region->base);
+		uint32_t size = region->size;
+		uint32_t delta = addr - base;
+
+		if (region->attr == reg_t) {
+			prop_init("reg", offs, &prop);
+			fill_reg_prop_value(addr, size, na, ns, &prop);
+			if (do_add_prop_to_fdt(fdt, 0, &prop) < 0)
+				goto err0;
+
+		} else if (region->attr == dump_t) {
+			snprintf(name, sizeof(name), "sprd,%s", region->name);
+			prop_init(name, offs, &prop);
+			fill_reg_prop_value(addr, size, 1, 1, &prop);
+			if (do_add_prop_to_fdt(fdt, 0, &prop) < 0)
+				goto err0;
+
+		} else if (region->attr == load_t || region->attr == clear_t) {
+			create_cproc_subnode(fdt,
+					     offs,
+					     region->name,
+					     base,
+					     addr,
+					     size);
+
+		}
+
+		continue;
+	}
+
+	print_fdt_node(fdt, offs);
 
 	return 0;
+
+err0:
+	print_fdt_node(fdt, offs);
+
+	return -1;
 }
 
-boot_image_required_t * get_cp_load_table(void)
+int fdt_fixup_cp_coupling_info(void *blob)
+{
+	int ret;
+	union composite_header *c_header;
+	struct img_desc *i_desc;
+	struct iheader_desc *ih_desc;
+	struct fdt_header *fdt;
+	struct mem_coupling_info *c_info;
+	struct partition_name_info mp;
+	boot_image_required_t i_info;
+
+	if (!blob)	{
+		errorf("blob is NULL\n");
+		return -1;
+	}
+
+	fdt = (struct fdt_header *)blob;
+
+	ret = fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
+	if (!ret) {
+		memset(&i_info, 0, sizeof(boot_image_required_t));
+		i_info.partition = mp.partition;
+		i_info.mem_addr = (unsigned long)raw_decouple_data;
+		i_info.size = sizeof(raw_decouple_data);
+		_boot_load_required_image(i_info);
+	}
+
+	c_header = (union composite_header *)raw_decouple_data;
+
+	ih_desc = &c_header->iheader;
+	if (ih_desc->magic != HEADER_MAGIC_INFO) {
+		struct cp_mem_coupling_info *decoup_data;
+
+		debugf("magic = 0x%x, it's not new format\n", ih_desc->magic);
+		decoup_data = &c_header->mem_decoup;
+		if (decoup_data->magic == DECOUPLE_MAGIC_INFO)
+			return do_parse_decoup_info_v1(decoup_data, fdt);
+		else
+			goto err;
+	}
+
+	for (i_desc = ih_desc->desc; i_desc->size != 0; i_desc++) {
+		if (!strcmp("decoup-desc", i_desc->desc)) {
+			debugf("decoup desc was found\n");
+			c_info = (struct mem_coupling_info *)((char *)raw_decouple_data + i_desc->offs);
+			return do_parse_decoup_info(c_info, fdt);
+		}
+	}
+
+err:
+	errorf("cp memory decoupling failed\n");
+	return -1;
+}
+
+static boot_image_required_t * get_cp_load_table_v0(struct cp_mem_coupling_info *data)
 {
 	int i, j;
-	struct region_info *region = NULL;
-	struct partition_name_info mp;
+	struct region_info *region;
 
-	fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
-
-	if(g_info.magic != HEADER_INFO_MAGIC && get_coupling_info(mp.partition, &g_info) < 0) {
-		errorf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
+	if (DECOUPLE_MAGIC_INFO != data->magic) {
+		errorf("decoupling data format error, magic = 0x%x\n",
+		       data->magic);
 		return NULL;
 	}
 
-	debugf("%s: magic: 0x%x, version: 0x%x\n", __func__, g_info.magic, g_info.version);
-	if(HEADER_INFO_MAGIC != g_info.magic) {
-		errorf("%s: this version not support cp mem decoupling\n", __func__);
-		return NULL;
-	}
+	region = &data->boot_info.regions[0];
+	for (i = 0, j = 0; i < MAX_REGION_NUM; i++) {
+		if (strlen(region->res.name) > 0 &&
+		   region->flag == load_t) {
+			fixup_image_partition_name(region->res.name,
+						   &g_partition_info[j]);
+			if (strlen(g_partition_info[j].partition) > 0)
+				s_boot_image_cp_table[j].partition =
+					g_partition_info[j].partition;
+			if (strlen(g_partition_info[j].partition_bk) > 0)
+				s_boot_image_cp_table[j].bak_partition =
+					g_partition_info[j].partition_bk;
 
-	for(i = 0, j = 0; i < MAX_REGION_NUM; i++) {
-		region = &g_info.boot_info.regions[i];
-		if(strlen(region->res.name) > 0) {
-			if(region->flag == re_load) {
-				fixup_image_partition_name(region->res.name, &g_partition_info[j]);
-				if(strlen(g_partition_info[j].partition) > 0) {
-					s_boot_image_cp_table[j].partition = g_partition_info[j].partition;
-				}
-				if(strlen(g_partition_info[j].partition_bk) > 0) {
-					s_boot_image_cp_table[j].bak_partition = g_partition_info[j].partition_bk;
-				}
-
-				s_boot_image_cp_table[j].size = region->res.size;
-				s_boot_image_cp_table[j].mem_addr = region->res.base;
-
-				if(s_boot_image_cp_table[j].bak_partition)
-					debugf("partition: %s, bak_partition: %s, size: 0x%llx, mem_addr: 0x%x\n",
-						s_boot_image_cp_table[j].partition, s_boot_image_cp_table[j].bak_partition,
-						s_boot_image_cp_table[j].size, s_boot_image_cp_table[j].mem_addr);
-				else
-					debugf("partition: %s, bak_partition: NULL, size: 0x%llx, mem_addr: 0x%x\n",
-						s_boot_image_cp_table[j].partition,
-						s_boot_image_cp_table[j].size, s_boot_image_cp_table[j].mem_addr);
-				j++;
-
-			}
+			s_boot_image_cp_table[j].size = region->res.size;
+			s_boot_image_cp_table[j].mem_addr =
+				BASE_TO_APBASE(region->res.base);
+			j++;
 		}
+
+		region++;
 	}
 
 	return s_boot_image_cp_table;
 }
 
-int get_cp_loader(u32 *count, u32 *loader)
-{
-	struct partition_name_info mp;
-
-	if (NULL == count || NULL == loader)
-		return -1;
-
-	fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
-
-	if(g_info.magic != HEADER_INFO_MAGIC && get_coupling_info(mp.partition, &g_info) < 0) {
-		errorf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
-		return -1;
-	}
-
-	if(g_info.magic != HEADER_INFO_MAGIC)
-		return -1;
-
-	*count = g_info.boot_info.bcode.count;
-	memcpy(loader, g_info.boot_info.bcode.code, *count * sizeof(uint32_t));
-
-	return 0;
-}
-
-extern char * strstr(const char * s1,const char * s2);
-int get_ring_info(u64 *addr, u64 *size)
+boot_image_required_t * get_cp_load_table(void)
 {
 	int i;
-	struct partition_name_info mp;
+	struct img_desc *i_desc;
+	struct iheader_desc *ih_desc;
+	union composite_header *c_header;
+	struct mem_coupling_info *c_info;
+	struct region_desc *region;
 
-	if (NULL == addr || NULL == size)
-		return -1;
+	c_header = (union composite_header *)raw_decouple_data;
 
-	fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
-
-	if(g_info.magic != HEADER_INFO_MAGIC && get_coupling_info(mp.partition, &g_info) < 0) {
-		errorf("%s: read cp mem coupling info failed from %s\n", __func__, mp.partition);
-		return -1;
+	ih_desc = &c_header->iheader;
+	if (ih_desc->magic != HEADER_MAGIC_INFO) {
+		debugf("magic = 0x%x, it's not new format\n", ih_desc->magic);
+		return get_cp_load_table_v0(&c_header->mem_decoup);
 	}
 
-	if(g_info.magic != HEADER_INFO_MAGIC)
-		return -1;
+	for (i_desc = ih_desc->desc; i_desc->size != 0; i_desc++) {
+		if (!strcmp("decoup-desc", i_desc->desc)) {
+			debugf("decoup desc was found\n");
+			c_info = (struct mem_coupling_info *)((char *)raw_decouple_data + i_desc->offs);
+			for (i = 0, region = c_info->region;
+			     region->size > 0;
+			     region++) {
+				if (region->attr != load_t)
+					continue;
+				fixup_image_partition_name(region->name,
+							   &g_partition_info[i]);
+				if (strlen(g_partition_info[i].partition) > 0)
+					s_boot_image_cp_table[i].partition =
+						g_partition_info[i].partition;
+				if (strlen(g_partition_info[i].partition_bk) > 0)
+					s_boot_image_cp_table[i].bak_partition =
+						g_partition_info[i].partition_bk;
 
-	for (i=0; i<MAX_RES_NUM; i++) {
-		if (strstr("ring", g_info.comm_info.res[i].name)) {
-			*addr = g_info.comm_info.res[i].base;
-			*size = g_info.comm_info.res[i].size;
+				s_boot_image_cp_table[i].size = region->size;
+				s_boot_image_cp_table[i].mem_addr =
+					BASE_TO_APBASE(region->base);
+				i++;
+			}
+			return s_boot_image_cp_table;
+		}
+	}
+
+	errorf("failed to get the cp load table\n");
+	return NULL;
+}
+
+int load_cp_boot_code(void *loader)
+{
+	int ret = -EAGAIN;
+	struct img_desc *i_desc;
+	struct iheader_desc *ih_desc;
+	union composite_header *c_header;
+	struct cp_mem_coupling_info *decoup_data;
+
+	if (!loader) {
+		ret = -EINVAL;
+		goto err;
+	}
+
+	debugf("load cp boot code, addr = 0x%p\n", loader);
+
+	c_header = (union composite_header *)raw_decouple_data;
+
+	ih_desc = &c_header->iheader;
+	if (ih_desc->magic != HEADER_MAGIC_INFO) {
+		struct boot_info_conf *bconf;
+		debugf("magic = 0x%x, it's not new format\n", ih_desc->magic);
+		decoup_data = &c_header->mem_decoup;
+		if (decoup_data->magic != DECOUPLE_MAGIC_INFO) {
+			ret = -EMEDIUMTYPE;
+			goto err;
+		}
+
+		bconf = &decoup_data->boot_info;
+		memcpy(loader, bconf->bcode.code, bconf->bcode.count * sizeof(uint32_t));
+		return 0;
+	}
+
+	for (i_desc = ih_desc->desc; i_desc->size != 0; i_desc++) {
+		if (!strcmp("boot-code", i_desc->desc)) {
+			debugf("boot-code was found\n");
+			memcpy(loader,
+			       (char *)raw_decouple_data + i_desc->offs,
+			       i_desc->size);
 			return 0;
 		}
 	}
 
-	return -1;
+err:
+	errorf("load cp boot code error, err = %d\n", ret);
+	return ret;
 }
 

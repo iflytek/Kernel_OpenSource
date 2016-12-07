@@ -21,13 +21,6 @@
 #define CONFIG_ADIE_SC2723
 #define PHYS_SDRAM_1		0x80000000
 
-#define TDDSP_ADR       0x88020000
-
-/*#define CONFIG_KERNEL_BOOT_CP*/
-
-#define FIXNV_SIZE     LTE_FIXNV_SIZE
-#define LTE_FIXNV_SIZE 0x0006C000 // 272K the max size is 512k
-#define LTE_RUNNV_SIZE 0x00090000 // 400k the max size is 512k
 
 #define CHIP_ENDIAN_LITTLE
 #define _LITTLE_ENDIAN 1
@@ -156,3 +149,44 @@
 /*sprd watchdog*/
 #define CONFIG_HW_WATCHDOG
 #define CONFIG_SPRD_WATCHDOG
+
+/* sprd modem&dsp boot related macro definitions */
+/* #define CONFIG_KERNEL_BOOT_CP */
+#define CONFIG_MEM_LAYOUT_DECOUPLING
+
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+#define BASE_TO_APBASE(addr)	((addr) - 0x80000000)
+#endif
+
+#define CONFIG_SUPPORT_LTE
+#define CONFIG_ADVANCED_LTE
+
+#define LTE_AGDSP_LOADER_OFFSET		0x000a0000
+#define LTE_AGDSP_SIZE			0x260000
+#define LTE_AGDSP_ADDR			(0x00800000 + LTE_AGDSP_LOADER_OFFSET)
+
+#define LTE_TGDSP_LOADER_OFFSET		0x00020000
+#define LTE_TGDSP_SIZE			(0x00600000 - LTE_TGDSP_LOADER_OFFSET)
+#define LTE_TGDSP_ADDR			(LTE_AGDSP_ADDR + LTE_AGDSP_SIZE + LTE_TGDSP_LOADER_OFFSET)
+
+#define LTE_LDSP_SIZE			0xc00000
+#define LTE_LDSP_ADDR			(LTE_TGDSP_ADDR + LTE_TGDSP_SIZE)
+
+#define LTE_MODEM_SIZE			0x01000000
+#define LTE_MODEM_ADDR			0x03000000
+
+#define LTE_FIXNV_SIZE			0x88000 //544K
+#define LTE_FIXNV_ADDR			0x04020000
+#define LTE_RUNNV_SIZE			0xa8000 //672K
+#define LTE_RUNNV_ADDR			0x040a8000
+#define FIXNV_SIZE			LTE_FIXNV_SIZE
+
+#define LTE_CP_CMDLINE_ADDR		0x04150000
+
+/* sprd cm4 boot related macro definitions */
+#define CONFIG_DFS_ENABLE
+#define DFS_ADDR			0xe6040000
+#define DFS_SIZE			(256*1024) //256K
+
+#define CONFIG_ARM7_RAM_ACTIVE	//active the cm4 iram
+
