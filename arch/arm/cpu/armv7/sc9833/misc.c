@@ -3,6 +3,7 @@
 #include <asm/arch/sprd_reg.h>
 #include "adi_hal_internal.h"
 #include <asm/arch/common.h>
+#include "sprd_chipid.h"
 #include <sprd_pmic_misc.h>
 
 /*
@@ -91,25 +92,48 @@ void scx35_pmu_reconfig(void)
 void scx35_pmu_reconfig(void) {}
 #endif
 
-static void sprd_get_chipid(void)
+
+static enum chip_type sprd_get_chipid(void)
 {
-#ifndef CONFIG_SP9830I
-	debugf("chip id = %x\n",__raw_readl((void *)REG_AON_APB_AON_CHIP_ID));
-#else
-	unsigned int chip_id0 = 0, chip_id1 = 0, i = 0;
-	char *p;
-	char chip_id_buf[9];
-	chip_id0 = __raw_readl((void *)REG_AON_APB_AON_CHIP_ID_L);
-	chip_id1 = __raw_readl((void *)REG_AON_APB_AON_CHIP_ID_H);
-	p = (char *)&chip_id1;
-	for(i = 0; i < 4; i++)
-		chip_id_buf[i] = *(p+3-i);
-	p = (char *)&chip_id0;
-	for(i = 0; i < 4; i++)
-		chip_id_buf[i+4] = *(p+3-i);
-	chip_id_buf[8] = 0;
-	debugf("chip id = %s\n",chip_id_buf);
-#endif
+	unsigned int chip_id0 = 0, chip_id1 = 0;
+	enum chip_type chiptype;
+
+	chipid->ver_id = __raw_readl((void *)REG_AON_APB_AON_VER_ID);
+	for(chiptype = 0;chiptype < CHIP_TYPE_MAX;chiptype ++){
+
+		chip_id0 = __raw_readl((void *)REG_AON_APB_AON_CHIP_ID0);
+		if(chipid[chiptype].chipid_1)
+			chip_id1 = __raw_readl((void *)REG_AON_APB_AON_CHIP_ID1);
+
+		if((chip_id0 == chipid[chiptype].chipid_0)
+			&& (chip_id1 == chipid[chiptype].chipid_1)){
+			debugf("chip id = %s\n",chipid[chiptype].name);
+			break;
+		}
+	}
+	if(chiptype == CHIP_TYPE_MAX)
+		debugf("unknown chip\n");
+
+	return chiptype;
+}
+
+
+uint32_t sprd_get_chipid_h(enum chip_type chiptype)
+{
+	if(chiptype != CHIP_TYPE_MAX)
+		return chipid[chiptype].chipid_1;
+}
+
+uint32_t sprd_get_chipid_l(enum chip_type chiptype)
+{
+	if(chiptype != CHIP_TYPE_MAX)
+		return chipid[chiptype].chipid_0;
+}
+
+uint32_t sprd_get_chip_version(enum chip_type chiptype)
+{
+	if(chiptype != CHIP_TYPE_MAX)
+		return chipid[chiptype].ver_id;
 }
 
 static void sc9833_disable_clkautogate()
@@ -121,6 +145,8 @@ static void sc9833_disable_clkautogate()
 
 void misc_init()
 {
+	int chipid_l,chipid_h,version_id;
+	enum chip_type chiptype;
 	scx35_pmu_reconfig();
 	sc9833_disable_clkautogate();
 
@@ -129,7 +155,11 @@ void misc_init()
 
 	pmic_misc_init();
 
-	sprd_get_chipid();
+	chiptype = sprd_get_chipid();
+	chipid_l = sprd_get_chipid_l(chiptype);
+	chipid_h = sprd_get_chipid_h(chiptype);
+	version_id = sprd_get_chip_version(chiptype);
+	debugf("chipid_l = 0x%x chipid_h = 0x%x version_id = 0x%x\n",chipid_l,chipid_h,version_id);
 }
 
 typedef struct mem_cs_info
