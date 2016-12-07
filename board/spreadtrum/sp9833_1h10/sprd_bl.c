@@ -3,7 +3,7 @@
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
 
-#define PWM_INDEX 2
+#define PWM_INDEX 0
 
 #define PWM_PRESCALE (0x0000)
 #define PWM_CNT (0x0004)

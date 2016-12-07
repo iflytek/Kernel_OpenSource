@@ -130,8 +130,11 @@ static inline void dispc_clear_bits(u32 bits, unsigned long reg)
 
 #define BIT(x) (1<<x)
 
-//#define	SPRD_MIPI_DPHY_GEN2
-#define SPRD_MIPI_DPHY_GEN1
+#ifdef CONFIG_FPGA
+#define	SPRD_MIPI_DPHY_GEN1
+#else
+#define	SPRD_MIPI_DPHY_GEN2
+#endif
 
 #define DSI_CTL_BEGIN				SPRD_DSI_BASE
 

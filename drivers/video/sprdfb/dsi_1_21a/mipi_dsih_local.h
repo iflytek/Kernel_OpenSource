@@ -65,6 +65,11 @@
 /** DWC_MIPI_DPHY_BIDIR_TSMC40LP / GF28LP 4 Lanes Gen 2 1.5GHz */
 #define GEN_2
 #endif
+#ifdef CONFIG_FPGA
+#if (defined(CONFIG_SC9833) || defined(CONFIG_SC9851))
+#define MIPI_DPHY_SYSNOPSYS_FOR_FPGA
+#endif
+#endif
 /** 4 Lanes Gen 2 1.5GHz testchips */
 //#define TESTCHIP
 /** TQL 2 Lane test chip */
@@ -89,7 +94,7 @@ typedef enum
 	ERR_DSI_PHY_POWERUP,
 	ERR_DSI_PHY_INVALID,
 	ERR_DSI_PHY_FREQ_OUT_OF_BOUND,
-#if defined(GEN_2) || defined(CONFIG_SC9833) || defined(CONFIG_SC9851)
+#if defined(GEN_2) || defined(MIPI_DPHY_SYSNOPSYS_FOR_FPGA)
     ERR_DSI_PHY_PLL_NOT_LOCKED,
 #endif
     ERR_DSI_TIMEOUT

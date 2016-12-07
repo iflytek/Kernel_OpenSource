@@ -16,7 +16,6 @@
 	#include "chip_x35l2/__regs_ap_apb.h"
 	#include "chip_x35l2/__regs_serdes_apb.h"
 	#include "chip_x35l2/__regs_ap_ahb.h"
-	#include "chip_x35l2/__regs_ap_ahb_rf.h"
 	#include "chip_x35l2/__regs_ap_clk.h"
 	#include "chip_x35l2/__regs_mm_ahb_rf.h"
 	#include "chip_x35l2/__regs_mm_clk.h"

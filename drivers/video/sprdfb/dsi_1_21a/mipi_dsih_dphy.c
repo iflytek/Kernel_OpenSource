@@ -536,7 +536,7 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     {
         phy->bsp_pre_config(phy, 0);
     }
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+#ifndef MIPI_DPHY_SYSNOPSYS_FOR_FPGA
   /* Jessica add - begin*/
     data[0] =  0x42;//0x44;//0x44;//0x40;                 //0x40: ok for 200    clock lane lpx /*about 52ns*/
     mipi_dsih_dphy_write(phy, 0x60, data, 1);
@@ -572,13 +572,14 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     /* setup PLL */
     /* vco range  [7]|[6:3]|[2:1]|[0] */
     data[0] = (1 << 7) | (ranges[range].vco_range << 3) | (0 << 1) | 0;
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+#ifndef MIPI_DPHY_SYSNOPSYS_FOR_FPGA
     mipi_dsih_dphy_write(phy, 0x10, data, 1);                 //Jessica
-#endif
     /* PLL  reserved|Input divider control|Loop Divider Control|Post Divider Ratio [7:6]|[5]|[4]|[3:0] */
     data[0] = (0x00 << 6) | (0x01 << 5) | (0x01 << 4) | (0x03 << 0); /* post divider default = 0x03 - it is only used for clock out 2*/
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
     mipi_dsih_dphy_write(phy, 0x19, data, 1);      //Jessica
+#else
+    /* PLL  reserved|Input divider control|Loop Divider Control|Post Divider Ratio [7:6]|[5]|[4]|[3:0] */
+    data[0] = (0x00 << 6) | (0x01 << 5) | (0x01 << 4) | (0x03 << 0); /* post divider default = 0x03 - it is only used for clock out 2*/
 #endif
 #elif defined DPHY2Btql
     /* vco range  [7:5]|[4]|[3]|[2:1]|[0] */
@@ -587,24 +588,21 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
 #endif
     /* PLL Lock bypass|charge pump current [7:4]|[3:0] */
     data[0] = (0x00 << 4) | (loop_bandwidth[i].cp_current << 0);
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+#ifndef MIPI_DPHY_SYSNOPSYS_FOR_FPGA
     mipi_dsih_dphy_write(phy, 0x11, data, 1);           //Jessica
-#endif
     /* bypass CP default|bypass LPF default| LPF resistor [7]|[6]|[5:0] */
     data[0] = (0x01 << 7) | (0x01 << 6) |(loop_bandwidth[i].lpf_resistor << 0);
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
     mipi_dsih_dphy_write(phy, 0x12, data, 1);
-#endif
     /* PLL input divider ratio [7:0] */
    data[0] = input_divider - 1;
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
    mipi_dsih_dphy_write(phy, 0x17, data, 1);           //Jessica
-#endif
-
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
     data[0] =	0x04; //short the delay time before BTA
     mipi_dsih_dphy_write(phy, 0x07, data, 1);
 #else
+    /* bypass CP default|bypass LPF default| LPF resistor [7]|[6]|[5:0] */
+    data[0] = (0x01 << 7) | (0x01 << 6) |(loop_bandwidth[i].lpf_resistor << 0);
+    /* PLL input divider ratio [7:0] */
+   data[0] = input_divider - 1;
     data[0] = 1;
     mipi_dsih_dphy_write(phy, 0xB0, data, 1);
 #endif
@@ -853,7 +851,7 @@ dsih_error_t mipi_dsih_dphy_escape_mode_trigger(dphy_t * instance, uint8_t trigg
  * @return error code
  * @note this is a blocking function. wait upon exiting the ULPS will exceed 1ms
  */
-#if defined(GEN_2) || defined(CONFIG_SC9833) || defined(CONFIG_SC9851)
+#if defined(GEN_2) || defined(MIPI_DPHY_SYSNOPSYS_FOR_FPGA)
 dsih_error_t mipi_dsih_dphy_ulps_data_lanes(dphy_t * instance, int enable)
 {
     int timeout;
@@ -949,7 +947,7 @@ void mipi_dsih_dphy_ulps_data_lanes(dphy_t * instance, int enable)
  * @return error code
  * @note this is a blocking function. wait upon exiting the ULPS will exceed 1ms
  */
-#if defined(GEN_2) || defined(CONFIG_SC9833) || defined(CONFIG_SC9851)
+#if defined(GEN_2) || defined(MIPI_DPHY_SYSNOPSYS_FOR_FPGA)
 dsih_error_t mipi_dsih_dphy_ulps_clk_lane(dphy_t * instance, int enable)
 {
     int timeout;
