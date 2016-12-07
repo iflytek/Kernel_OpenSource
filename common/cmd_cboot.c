@@ -57,7 +57,7 @@ unsigned reboot_mode_check(void)
 {
 	  static unsigned rst_mode = 0;
 	   static unsigned check_times = 0;
-	  if(!check_times)
+	   if(!check_times)
 	  {
 		  rst_mode = check_reboot_mode();
 		  check_times++;
@@ -235,11 +235,14 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	autoload_mode();
 #endif
 
-#if defined CONFIG_AUTOBOOT || defined CONFIG_FPGA
+#if defined CONFIG_AUTOBOOT
 	if (reboot_mode_check() == CMD_AUTODLOADER_REBOOT)
 		autodloader_mode();
 	else
 		normal_mode();
+#endif
+#if defined CONFIG_ZEBU || defined CONFIG_FPGA
+	normal_mode();
 #endif
 	boot_pwr_check();
 	if (2 == argc) {
