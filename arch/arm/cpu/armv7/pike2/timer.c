@@ -98,6 +98,11 @@ int timer_init(void)
 				| BIT_AP_TMR2_RTC_EB, REG_AON_APB_APB_RTC_EB);
 	/*init arch timer*/
 	writel(0x1, 0x40400000);
+
+	/*just for zebu to bootup multi-core*/
+#ifdef CONFIG_ZEBU
+	writel(0x3a, 0x20e00010);
+#endif
 	return 0;
 }
 
