@@ -57,6 +57,9 @@ typedef struct global_data {
 	unsigned long ram_top;	/* Top address of RAM used by U-Boot */
 
 	unsigned long relocaddr;	/* Start address of U-Boot in RAM */
+#ifdef CONFIG_NO_RELOCATION
+	unsigned long no_relloc_malloc_addr;
+#endif
 	phys_size_t ram_size;	/* RAM size */
 	unsigned long mon_len;	/* monitor len */
 	unsigned long irq_sp;		/* irq stack pointer */

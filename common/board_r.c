@@ -268,7 +268,11 @@ static int initr_malloc(void)
 	      gd->malloc_ptr / 1024);
 #endif
 	/* The malloc area is immediately below the monitor copy in DRAM */
+#ifdef CONFIG_NO_RELOCATION
+	malloc_start = gd->no_relloc_malloc_addr;
+#else
 	malloc_start = gd->relocaddr - TOTAL_MALLOC_LEN;
+#endif
 	mem_malloc_init((ulong)map_sysmem(malloc_start, TOTAL_MALLOC_LEN),
 			TOTAL_MALLOC_LEN);
 	return 0;

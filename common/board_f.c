@@ -468,6 +468,9 @@ static int reserve_uboot(void)
 static int reserve_malloc(void)
 {
 	gd->start_addr_sp = gd->start_addr_sp - TOTAL_MALLOC_LEN;
+#ifdef CONFIG_NO_RELOCATION
+	gd->no_relloc_malloc_addr = gd->start_addr_sp;
+#endif
 	debug("Reserving %dk for malloc() at: %08lx\n",
 			TOTAL_MALLOC_LEN >> 10, gd->start_addr_sp);
 	return 0;
@@ -931,7 +934,9 @@ static init_fnc_t init_sequence_f[] = {
 	reloc_fdt,
 	setup_reloc,
 #if defined(CONFIG_X86) || defined(CONFIG_ARC)
+#ifndef CONFIG_NO_RELOCATION
 	copy_uboot_to_ram,
+#endif
 	clear_bss,
 	do_elf_reloc_fixups,
 #endif
