@@ -24,6 +24,7 @@ phys_size_t real_ram_size = 0x80000000;
 int board_init(void)
 {
 	printf("Board_init:\n");
+	sprd_timer_init();
 #ifndef CONFIG_FPGA
 	/*get env transfer from chipram*/
 	setup_chipram_env();
