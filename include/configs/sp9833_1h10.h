@@ -214,6 +214,8 @@
 #define CALIBRATE_IO_MS 2000
 //#define CONFIG_DWC_OTG
 #define CONFIG_MUSB_GADGET
+#define CONFIG_USB_SPRD_DMA
+#define CONFIG_USB_GADGET_MUSB_HDRC
 /*lcd config*/
 #define CONFIG_LCD
 #ifdef  CONFIG_LCD

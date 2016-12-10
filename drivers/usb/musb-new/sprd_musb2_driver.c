@@ -19,6 +19,8 @@
 #include "sprd_musb2_def.h"
 #include <linux/usb/ch9.h>
 #include <asm/arch/sci_types.h>
+#include <linux/usb/musb.h>
+#include "musb_core.h"
 
 static __inline void usb_handler (void);
 void invalidate_dcache_range(unsigned long start, unsigned long stop);
@@ -474,12 +476,6 @@ static void usb_core_init (unsigned int autodl_mode)
 	unsigned long cache_start = 0;
 	unsigned long cache_end = 0;
 
-
-	if(autodl_mode)
-	{
-		(*(volatile unsigned char*)Mentor_USB_POWER)    =0x60;
-		(*(volatile unsigned char*)Mentor_USB_INTRUSBE)=0xff;
-	}
 	readIndex = recv_length = 0;
 	currentDmaBufferIndex = 0;
 
@@ -656,22 +652,64 @@ void udc_power_off(void)
 	udc_disable();
 }
 
+static void sprd_musb_enable(struct musb *musb)
+{
+	return;
+}
+
+static void sprd_musb_disable(struct musb *musb)
+{
+	return;
+}
+
+static int sprd_musb_init(struct musb *musb)
+{
+	return 0;
+}
+
+const struct musb_platform_ops sprd_musb_ops = {
+	.init		= sprd_musb_init,
+	.enable		= sprd_musb_enable,
+	.disable	= sprd_musb_disable,
+};
+
+static struct musb_fifo_cfg sprd_musb_mode_cfg[] = {
+	MUSB_EP_FIFO_SINGLE(5, FIFO_TX, 512),
+	MUSB_EP_FIFO_SINGLE(6, FIFO_RX, 512),
+};
+
+static struct musb_hdrc_config musb_config = {
+	.fifo_cfg = sprd_musb_mode_cfg,
+	.fifo_cfg_size = ARRAY_SIZE(sprd_musb_mode_cfg),
+	.multipoint     = 1,
+	.dyn_fifo       = 1,
+	.num_eps        = 7,
+	.ram_bits       = 11,
+};
+
+static struct musb_hdrc_platform_data sprd_musb = {
+	.mode		= MUSB_PERIPHERAL,
+	.config         = &musb_config,
+	.power          = 250,
+	.platform_ops	= &sprd_musb_ops,
+};
+
 int usb_driver_init(unsigned int max_speed)
 {
 	int retval = 0;
 	int error;
 
-	//if (max_speed == USB_SPEED_HIGH)
-		//dwc_otg_module_params.speed = DWC_SPEED_PARAM_HIGH;
-	//else if (max_speed == USB_SPEED_FULL)
-		//dwc_otg_module_params.speed = DWC_SPEED_PARAM_FULL;
-
 	udc_power_on();
 
-	//retval = musb_probe();
-	//if (retval < 0) {
-		//return retval;
-	//}
+	if (max_speed == USB_SPEED_HIGH) {
+		(*(volatile unsigned char*)Mentor_USB_POWER)    =0x60;
+		(*(volatile unsigned char*)Mentor_USB_INTRUSBE)=0xff;
+	} else {
+		(*(volatile unsigned char*)Mentor_USB_POWER)    =0x40;
+		(*(volatile unsigned char*)Mentor_USB_INTRUSBE)=0xff;
+	}
+
+	musb_register(&sprd_musb, NULL, (void *)SPRD_USB_BASE);
 
 	return retval;
 }
@@ -679,4 +717,3 @@ int usb_driver_init(unsigned int max_speed)
 {
 	udc_power_off();
 }
-

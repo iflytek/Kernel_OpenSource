@@ -74,8 +74,8 @@ struct musb_ep;
 #include "musb_gadget.h"
 #ifndef __UBOOT__
 #include <linux/usb/hcd.h>
-#endif
 #include "musb_host.h"
+#endif
 
 #define	is_peripheral_enabled(musb)	((musb)->board_mode != MUSB_HOST)
 #define	is_host_enabled(musb)		((musb)->board_mode != MUSB_PERIPHERAL)
@@ -125,10 +125,11 @@ extern void musb_g_disconnect(struct musb *);
 #endif
 #endif
 
+#ifndef __UBOOT__
 extern irqreturn_t musb_h_ep0_irq(struct musb *);
 extern void musb_host_tx(struct musb *, u8);
 extern void musb_host_rx(struct musb *, u8);
-
+#endif
 /****************************** CONSTANTS ********************************/
 
 #ifndef MUSB_C_NUM_EPS

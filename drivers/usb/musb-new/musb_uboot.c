@@ -254,7 +254,7 @@ int usb_lowlevel_stop(int index)
 #ifdef CONFIG_MUSB_GADGET
 static struct musb *gadget;
 
-int usb_gadget_handle_interrupts(int index)
+int usb_gadget_handle_interrupts()
 {
 	WATCHDOG_RESET();
 	if (!gadget || !gadget->isr)

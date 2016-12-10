@@ -113,6 +113,7 @@
 #endif
 
 #include "musb_core.h"
+#include "sprd_musbhsdma.h"
 
 #define TA_WAIT_BCON(m) max_t(int, (m)->a_wait_bcon, OTG_TIME_A_WAIT_BCON)
 
@@ -454,8 +455,6 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
 #endif
 	irqreturn_t handled = IRQ_NONE;
 
-	dev_dbg(musb->controller, "<== Power=%02x, DevCtl=%02x, int_usb=0x%x\n", power, devctl,
-		int_usb);
 
 #ifndef __UBOOT__
 	/* in host mode, the peripheral may issue remote wakeup.
@@ -697,7 +696,6 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
 #endif
 
 	if (int_usb & MUSB_INTR_CONNECT) {
-		struct usb_hcd *hcd = musb_to_hcd(musb);
 
 		handled = IRQ_HANDLED;
 		musb->is_active = 1;
@@ -712,6 +710,8 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
 		musb_writew(musb->mregs, MUSB_INTRRXE, musb->epmask & 0xfffe);
 		musb_writeb(musb->mregs, MUSB_INTRUSBE, 0xf7);
 #ifndef __UBOOT__
+		struct usb_hcd *hcd = musb_to_hcd(musb);
+
 		musb->port1_status &= ~(USB_PORT_STAT_LOW_SPEED
 					|USB_PORT_STAT_HIGH_SPEED
 					|USB_PORT_STAT_ENABLE
@@ -939,13 +939,14 @@ void musb_start(struct musb *musb)
 	musb_writeb(regs, MUSB_INTRUSBE, 0xf7);
 
 	musb_writeb(regs, MUSB_TESTMODE, 0);
-
+#if 0
 	/* put into basic highspeed mode and start session */
 	musb_writeb(regs, MUSB_POWER, MUSB_POWER_ISOUPDATE
 						| MUSB_POWER_HSENAB
 						/* ENSUSPEND wedges tusb */
 						/* | MUSB_POWER_ENSUSPEND */
 						);
+#endif
 
 	musb->is_active = 0;
 	devctl = musb_readb(regs, MUSB_DEVCTL);
@@ -963,7 +964,6 @@ void musb_start(struct musb *musb)
 		else
 			devctl |= MUSB_DEVCTL_SESSION;
 #endif
-
 	} else if (is_host_enabled(musb)) {
 		/* assume ID pin is hard-wired to ground */
 		devctl |= MUSB_DEVCTL_SESSION;
@@ -1222,7 +1222,7 @@ fifo_setup(struct musb *musb, struct musb_hw_ep  *hw_ep,
 	/* EP0 reserved endpoint for control, bidirectional;
 	 * EP1 reserved for bulk, two unidirection halves.
 	 */
-	if (hw_ep->epnum == 1)
+	if (hw_ep->epnum == 1 || hw_ep->epnum == 5)
 		musb->bulk_ep = hw_ep;
 	/* REVISIT error check:  be sure ep0 can both rx and tx ... */
 	switch (cfg->style) {
@@ -1552,6 +1552,34 @@ static irqreturn_t generic_interrupt(int irq, void *__hci)
 	return retval;
 }
 
+#elif defined(CONFIG_USB_SPRD_DMA)
+static irqreturn_t generic_interrupt(int irq, void *__hci)
+{
+	unsigned long	flags;
+	irqreturn_t     retval = IRQ_NONE;
+	struct musb     *musb = __hci;
+	u32 reg_dma;
+
+	spin_lock_irqsave(&musb->lock, flags);
+
+	musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
+	musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
+	musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
+	reg_dma = musb_readl(musb->mregs, MUSB_DMA_INTR_MASK_STATUS);
+	//dev_dbg(musb->controller, "sprd_musb_interrupt usb%04x tx%04x rx%04x dma%x\n",
+			//musb->int_usb, musb->int_tx, musb->int_rx, reg_dma);
+
+	if (musb->int_usb || ((musb->int_tx & 0x01) == 0x01)) {
+		if (!reg_dma)
+			retval = musb_interrupt(musb);
+	}
+	if (reg_dma)
+		retval = sprd_dma_interrupt(musb, reg_dma);
+
+	spin_unlock_irqrestore(&musb->lock, flags);
+
+	return retval;
+}
 #else
 #define generic_interrupt	NULL
 #endif
@@ -1572,10 +1600,6 @@ irqreturn_t musb_interrupt(struct musb *musb)
 
 	devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
 	power = musb_readb(musb->mregs, MUSB_POWER);
-
-	dev_dbg(musb->controller, "** IRQ %s usb%04x tx%04x rx%04x\n",
-		(devctl & MUSB_DEVCTL_HM) ? "host" : "peripheral",
-		musb->int_usb, musb->int_tx, musb->int_rx);
 
 	/* the core can interrupt us for multiple reasons; docs have
 	 * a generic interrupt flowchart to follow
@@ -1917,22 +1941,15 @@ static void musb_free(struct musb *musb)
  * @mregs: virtual address of controller registers,
  *	not yet corrected for platform-specific offsets
  */
-#ifndef __UBOOT__
-static int __devinit
-musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
-#else
+
 struct musb *
 musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 			     void *ctrl)
-#endif
 {
 	int			status;
 	struct musb		*musb;
-#ifndef __UBOOT__
-	struct musb_hdrc_platform_data *plat = dev->platform_data;
-#else
+
 	int nIrq = 0;
-#endif
 
 	/* The driver might handle more features than the board; OK.
 	 * Fail when the board needs a feature that's not enabled.
@@ -1981,14 +1998,6 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 		goto fail2;
 	}
 
-#ifndef __UBOOT__
-	if (!musb->xceiv->io_ops) {
-		musb->xceiv->io_dev = musb->controller;
-		musb->xceiv->io_priv = musb->mregs;
-		musb->xceiv->io_ops = &musb_ulpi_access;
-	}
-#endif
-
 	pm_runtime_get_sync(musb->controller);
 
 #ifndef CONFIG_MUSB_PIO_ONLY
@@ -1997,8 +2006,6 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 
 		c = dma_controller_create(musb, musb->mregs);
 		musb->dma_controller = c;
-		if (c)
-			(void) c->start(c);
 	}
 #endif
 #ifndef __UBOOT__
@@ -2058,6 +2065,7 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 		}
 	}
 #endif
+#ifndef __UBOOT__
 
 	/* For the host-only role, we can activate right away.
 	 * (We expect the ID pin to be forcibly grounded!!)
@@ -2067,7 +2075,7 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 		struct usb_hcd	*hcd = musb_to_hcd(musb);
 
 		MUSB_HST_MODE(musb);
-#ifndef __UBOOT__
+
 		musb->xceiv->otg->default_a = 1;
 		musb->xceiv->state = OTG_STATE_A_IDLE;
 
@@ -2080,9 +2088,10 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 			(musb_readb(musb->mregs, MUSB_DEVCTL)
 					& MUSB_DEVCTL_BDEVICE
 				? 'B' : 'A'));
-#endif
+
 
 	} else /* peripheral is enabled */ {
+#endif
 		MUSB_DEV_MODE(musb);
 #ifndef __UBOOT__
 		musb->xceiv->otg->default_a = 0;
@@ -2097,9 +2106,9 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 			is_otg_enabled(musb) ? "OTG" : "PERIPHERAL",
 			status,
 			musb_readb(musb->mregs, MUSB_DEVCTL));
+	}
 #endif
 
-	}
 	if (status < 0)
 		goto fail3;
 

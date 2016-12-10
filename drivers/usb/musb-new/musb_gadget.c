@@ -50,6 +50,7 @@
 #endif
 
 #include "musb_core.h"
+#include <asm/dma-mapping.h>
 
 
 /* MUSB PERIPHERAL status 3-mar-2006:
@@ -126,21 +127,12 @@ static inline void map_dma_buffer(struct musb_request *request,
 
 	if (request->request.dma == DMA_ADDR_INVALID) {
 		request->request.dma = dma_map_single(
-				musb->controller,
 				request->request.buf,
 				request->request.length,
 				request->tx
 					? DMA_TO_DEVICE
 					: DMA_FROM_DEVICE);
 		request->map_state = MUSB_MAPPED;
-	} else {
-		dma_sync_single_for_device(musb->controller,
-			request->request.dma,
-			request->request.length,
-			request->tx
-				? DMA_TO_DEVICE
-				: DMA_FROM_DEVICE);
-		request->map_state = PRE_MAPPED;
 	}
 }
 
@@ -157,20 +149,13 @@ static inline void unmap_dma_buffer(struct musb_request *request,
 		return;
 	}
 	if (request->map_state == MUSB_MAPPED) {
-		dma_unmap_single(musb->controller,
+		dma_unmap_single(
 			request->request.dma,
 			request->request.length,
 			request->tx
 				? DMA_TO_DEVICE
 				: DMA_FROM_DEVICE);
 		request->request.dma = DMA_ADDR_INVALID;
-	} else { /* PRE_MAPPED */
-		dma_sync_single_for_cpu(musb->controller,
-			request->request.dma,
-			request->request.length,
-			request->tx
-				? DMA_TO_DEVICE
-				: DMA_FROM_DEVICE);
 	}
 	request->map_state = UN_MAPPED;
 }
@@ -1326,6 +1311,26 @@ struct free_record {
  */
 void musb_ep_restart(struct musb *musb, struct musb_request *req)
 {
+#ifdef CONFIG_USB_SPRD_DMA
+		struct dma_controller *c = musb->dma_controller;
+		struct musb_ep *musb_ep;
+		struct dma_channel *channel;
+		struct usb_request *request = &req->request;
+
+		dev_dbg(musb->controller, "musb_ep_restart %s len %u on hw_ep%d\n",
+			req->tx ? "TX/IN" : "RX/OUT",
+			req->request.length, req->epnum);
+
+		musb_ep_select(musb->mregs, req->epnum);
+		musb_ep = req->ep;
+		channel = musb_ep->dma;
+		c->channel_program(channel,
+			musb_ep->packet_sz,
+			req->tx,
+			request->buf+request->actual,
+			request->length - request->actual);
+#else
+
 	dev_dbg(musb->controller, "<== %s request %p len %u on hw_ep%d\n",
 		req->tx ? "TX/IN" : "RX/OUT",
 		&req->request, req->request.length, req->epnum);
@@ -1335,6 +1340,7 @@ void musb_ep_restart(struct musb *musb, struct musb_request *req)
 		txstate(musb, req);
 	else
 		rxstate(musb, req);
+#endif
 }
 
 static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
@@ -1913,7 +1919,7 @@ int __devinit musb_gadget_setup(struct musb *musb)
 	 */
 
 	musb->g.ops = &musb_gadget_operations;
-#ifndef __UBOOT__
+#ifdef __UBOOT__
 	musb->g.max_speed = USB_SPEED_HIGH;
 #endif
 	musb->g.speed = USB_SPEED_UNKNOWN;
