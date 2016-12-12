@@ -502,7 +502,7 @@ int _boot_load_required_image(boot_image_required_t img_info)
 		memcpy(img_info.mem_addr,(VERIFY_ADDR + SYS_HEADER_SIZE),img_info.size);
 #else
 		normal_boot_offset = get_boot_offset(img_info, 0);
-		if (0 != common_raw_read(img_info.partition, img_info.size, normal_boot_offset, (char *)img_info.mem_addr))
+		if (0 != common_raw_read(img_info.partition, img_info.size, (uint64_t)normal_boot_offset, img_info.mem_addr))
 			errorf("read %s partition fail\n", img_info.partition);
 
 #endif

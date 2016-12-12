@@ -41,12 +41,12 @@ unsigned short calc_checksum(unsigned char *dat, unsigned long len)
 	return (~chkSum);
 }
 
-unsigned char _chkNVEcc(uint8_t * buf, uint32_t size, uint32_t checksum)
+unsigned char _chkNVEcc(uint8_t *buf, uint64_t size, uint32_t checksum)
 {
 	uint16_t crc;
 
-	crc = calc_checksum(buf, size);
-	debugf("_chkNVEcc calcout 0x%lx, org 0x%llx\n", crc, checksum);
+	crc = calc_checksum(buf, (unsigned long)size);
+	debugf("_chkNVEcc calcout 0x%x, org 0x%x\n", crc, (uint16_t)checksum);
 	return (crc == (uint16_t) checksum);
 }
 

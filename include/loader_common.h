@@ -96,7 +96,7 @@ typedef struct boot_image_required {
 	uchar *partition;	//partition name record on disk
 	uchar *bak_partition;	//if no backup partition, set NULL
 	uint64_t size;	//partition size to be read
-	uint64_t mem_addr;	//target memory addr
+	char *mem_addr;	//target memory addr
 } boot_image_required_t;
 
 typedef struct _NV_HEADER {
