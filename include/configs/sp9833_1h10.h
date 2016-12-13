@@ -63,8 +63,8 @@
 
 #define LTE_GDSP_LOAD_OFFSET	0x20000
 
-#define LTE_FIXNV_SIZE 0x00088000 // 544K the max size is 768K
-#define LTE_RUNNV_SIZE 0x000a8000 // 672k the max size is 768K
+#define LTE_FIXNV_SIZE 0x000c8000 // 800K the max size is 3.75M
+#define LTE_RUNNV_SIZE 0x000e8000 // 928k the max size is 4M
 #define LTE_FIXNV_ADDR 0x8C520000
 #define LTE_RUNNV_ADDR (LTE_FIXNV_ADDR + LTE_FIXNV_SIZE)
 #define LTE_MODEM_SIZE 0x00D00000
