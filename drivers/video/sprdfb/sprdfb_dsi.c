@@ -210,6 +210,7 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 	dsih_ctrl_t* dsi_instance = &(dsi_ctx.dsi_inst);
 	dphy_t *phy = &(dsi_instance->phy_instance);
 	struct info_mipi * mipi = dev->panel->info.mipi;
+	unsigned int dsi_cycle_period_n;
 	int i = 0;
 #ifdef CONFIG_FPGA
 	int j = 0;
@@ -227,6 +228,7 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 	phy->log_error = dsi_log_error;
 	phy->log_info = NULL;
 	phy->reference_freq = DSI_PHY_REF_CLOCK;
+
 	dsi_instance->address = DSI_CTL_BEGIN;
 	dsi_instance->color_mode_polarity =mipi->color_mode_pol;
 	dsi_instance->shut_down_polarity = mipi->shut_down_pol;
@@ -236,7 +238,8 @@ int32_t sprdfb_dsi_init(struct sprdfb_device *dev)
 	dsi_instance->log_error = dsi_log_error;
 	dsi_instance->log_info = NULL;
 	/*in our rtl implementation, this is max rd time, not bta time and use 15bits*/
-	dsi_instance->max_bta_cycles = 0x6000;//10;
+	dsi_cycle_period_n = 8000 * 1000 / mipi->phy_feq;
+	dsi_instance->max_bta_cycles = (2000 + 6600) / dsi_cycle_period_n;
 	#ifndef CONFIG_DSIH_VERSION_1P21A
 	dsi_instance->max_hs_to_lp_cycles = 4;//110;
 	dsi_instance->max_lp_to_hs_cycles = 15;//10;
