@@ -44,7 +44,6 @@ extern void set_backlight(uint32_t value);
 extern void lcd_printf(const char *fmt, ...);
 extern  int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
-extern int get_sysdump_status(void);
 
 #ifdef CONFIG_ETB_DUMP
 extern unsigned char etb_dump_mem[SZ_32K];
@@ -382,38 +381,107 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 	return;
 } /* end elf_kcore_store_hdr() */
 
+#if 1 /* New method to do flag checking */
+int sysdump_flag_check(void) {
+#ifdef DEBUG /* None user (userdebug or eng) version build mode */
+	debugf("Sysdump userdebug version key detecting ... \n");
+	return 1;
+#else /* user mode, trigger VOLUMEUP into sysdump until screen light when power on */
+	#define SCREEN_WAITING_TIME 10  //  10s
+	/*change strings through command:
+				sed -i 's/SYSDUMP_CONST_OFF/SYSDUMP_CONST_OFN/' u-boot.bin*/
+	if (strcmp("SYSDUMP_CONST_OFN", "SYSDUMP_CONST_OFF") == 0) {
+		printf("Sysdump user version key detecting ... Force return 1\n");
+		return 1;
+	}
+	printf("Sysdump user version key detecting ...\n");
+	int key_code, cnt_time = 0 ,state_key = 0;
+	/*
+	New check method :
+		0.press VOL-
+		1.press VOL+
+		2.press VOL-
+		3.press VOL+
+		tips:
+		press volume in order will trigger sysdump.
+		Other key can abort what you press just now.
+	*/
+	key_code = board_key_scan();
+	if (key_code == KEY_VOLUMEUP) {
+		printf("Sysdump : KEY_VOLUMEUP is detected\n");
+		display_sysdump();
+		do {
+			key_code = board_key_scan();
+			mdelay(100);
+			cnt_time ++;
 
+			switch(state_key) {
+				/*checking KEY_VOLUMEDOWN*/
+				case 0: {
+					if (key_code == KEY_VOLUMEDOWN )
+						state_key = 1;
+					break;
+				}
+				/*checking KEY_VOLUMEUP*/
+				case 1: {
+					if (key_code == KEY_VOLUMEUP)
+						state_key = 2;
+					break;
+				}
+				/*checking KEY_VOLUMEDOWN*/
+				case 2: {
+					if (key_code == KEY_VOLUMEDOWN )
+						state_key = 3;
+					break;
+				}
+				/*checking KEY_VOLUMEUP*/
+				case 3: {
+					if (key_code == KEY_VOLUMEUP) {
+						state_key = 0;
+						printf("out key  checking\n");
+						return 1;
+					}
+					break;
+				}
+				default:
+					state_key = 0;
+					break;
+			}
+			if (cnt_time > SCREEN_WAITING_TIME*10) {
+				printf("time is up\n");
+				return -1;
+			}
+		} while(1);
+		return 1;
+	}
+	printf("Sysdump : KEY_VOLUMEUP is not detected\n");
+	return -1;
+#endif
+}
+#else
+#define PROD_PART "prodnv"
 int sysdump_flag_check(void)
 {
-	unsigned dump_status = 0;
+	char sysdump_buf[200]={0};
 
-	printf("we will check sysdump status!!!\n");
-
-	if (is_7s_reset_for_systemdump())
-	{
-		if (get_sysdump_status()) {
-			printf("uboot:7s reset do sysdump now!!!\n");
-			return 1;
-		} else {
-			printf("uboot:7s reset don't sysdump now!!!\n");
-			return -1;
-		}
+	memset(sysdump_buf,0x0,200);
+	if(!do_fs_file_read(PROD_PART, "sysdump_flag", sysdump_buf,200))
+		debugf("file: sysdump_flag is exist\n");
+	else {
+		debugf("file: sysdump_flag is not exist\n");
+#ifdef SYSDUMP_BYPASS
+		return -1;
+#else
+		return 1;
+#endif
 	}
-	else{
-		dump_status = get_sysdump_status();
-		printf("uboot:sysdump status is %x\n",dump_status);
 
-		if(dump_status) {
-			printf("uboot:start to do sysdump now!!!\n");
-			return 1;
-		}
-		else {
-			printf("uboot:don't support sysdump now!!!\n");
-			return -1;
-		}
-	}
+	if(!strncmp(sysdump_buf, "on", 2))
+		return 1;
+
+	return -1;
 }
-
+#endif
 char *rstmode[] = {
 	"undefind mode",		//CMD_UNDEFINED_MODE=0,
 	"power down",			//CMD_POWER_DOWN_DEVICE,
@@ -701,21 +769,19 @@ void write_sysdump_before_boot(int rst_mode)
 			debugf("skip sysdump because sysdump_flag is close.\n");
 			goto FINISH;
 		}
+		//MMU_DisableIDCM();
+		if (init_mmc_fat(&fs_type))
+			goto FINISH;
 
 		/* display on screen */
 		display_writing_sysdump();
 		#define CONSOLE_COLOR_RED (0x1f<<11)
 		#define CONSOLE_COLOR_GREEN 0x07e0
+	//	lcd_setfgcolor(CONSOLE_COLOR_GREEN);
 		sysdump_lcd_printf("\nReset mode: %s\n\n",GET_RST_MODE(rst_mode));
 		lcd_enable();
-
-		if (init_mmc_fat(&fs_type)) {
-			debugf("ERROR: init_mmc_fat,fs_type=%d.\n", fs_type);
-			sysdump_lcd_printf("\ninit_mmc_fat failed!!!.\nPress volume up key (Exp power key and volume down key) to continue...");
-                        lcd_enable();
-                        wait_for_keypress();
-			goto FINISH;
-		}
+	//	lcd_setfgcolor(CONSOLE_COLOR_RED);
+//		lcd_display();
 
 		if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_AP_WATCHDOG_REBOOT) || \
 			(rst_mode == CMD_UNKNOW_REBOOT_MODE) || (rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || (rst_mode == CMD_SPECIAL_MODE)) {

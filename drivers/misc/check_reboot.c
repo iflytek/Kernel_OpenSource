@@ -8,8 +8,6 @@
 #include <sprd_pmic_misc.h>
 
 extern int hw_watchdog_rst_pending(void);
-int get_sysdump_status(void);
-unsigned sysdump_flag = 0;
 
 static void rtc_domain_reg_write(uint32_t val)
 {
@@ -30,21 +28,6 @@ static uint32_t rtc_domain_reg_read(void)
 #endif
 }
 
-int get_sysdump_status(void)
-{
-	printf("get_sysdump_status:val is = %x\n",sysdump_flag);
-	if (sysdump_flag)
-	{
-		sprd_dbg("uboot: sysdump enable !!!\n");
-		return 1;
-	}
-	else
-	{
-		sprd_dbg("uboot: sysdump disable !!!\n");
-		return 0;
-	}
-}
-
 unsigned check_reboot_mode(void)
 {
 	unsigned rst_mode= 0;
@@ -59,11 +42,8 @@ unsigned check_reboot_mode(void)
 /*for download mode reboot system ---- end*/
 
 	rst_mode = ANA_REG_GET(ANA_REG_GLB_POR_RST_MONITOR);
-	sysdump_flag = rst_mode & HWRST_STATUS_SYSDUMPEN;
-	printf("check_reboot_mode:get raw rst_mode is %x and sysdump_flag is %x\n",rst_mode,sysdump_flag);
 	rst_mode &= 0xFF;
-	ANA_REG_SET(ANA_REG_GLB_POR_RST_MONITOR, rst_mode & 0x0); //clear flag
-
+	ANA_REG_SET(ANA_REG_GLB_POR_RST_MONITOR, 0); //clear flag
 	/* clear the flag which used by modem side in any scenes , prevent some errors */
 	ANA_REG_SET(ANA_REG_GLB_WDG_RST_MONITOR, 0);
 
@@ -101,7 +81,7 @@ unsigned check_reboot_mode(void)
 			return 0;
 		}
 	}else{
-		printf("is_7s_reset 0x%x, systemdump 0x%x\n", is_7s_reset(), is_7s_reset_for_systemdump());
+		debugf("is_7s_reset 0x%x, systemdump 0x%x\n", is_7s_reset(), is_7s_reset_for_systemdump());
 		debugf("is_hw_smpl_enable %d\n", is_hw_smpl_enable());
 		sprd_dbg("no hw watchdog rst int pending\n");
 		if(rst_mode == HWRST_STATUS_NORMAL2)
