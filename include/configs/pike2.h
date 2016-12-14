@@ -210,8 +210,8 @@
 #define CONFIG_MODEM_CALIBERATE
 #define CALIBRATE_ENUM_MS 3000
 #define CALIBRATE_IO_MS 2000
-//#define CONFIG_DWC_OTG
-#define CONFIG_MUSB_GADGET
+#define CONFIG_DWC_OTG
+//#define CONFIG_MUSB_GADGET
 /*lcd config*/
 //#define CONFIG_LCD
 #ifdef  CONFIG_LCD
