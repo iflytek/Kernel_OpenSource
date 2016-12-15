@@ -640,6 +640,8 @@ err0:
 int fdt_fixup_cp_coupling_info(void *blob)
 {
 	int ret;
+	uint64_t secure_boot_offset = 0;
+	uint64_t normal_boot_offset = 0;
 	union composite_header *c_header;
 	struct img_desc *i_desc;
 	struct iheader_desc *ih_desc;
@@ -661,7 +663,17 @@ int fdt_fixup_cp_coupling_info(void *blob)
 		i_info.partition = mp.partition;
 		i_info.mem_addr = (unsigned long)raw_decouple_data;
 		i_info.size = sizeof(raw_decouple_data);
-		_boot_load_required_image(i_info);
+
+#if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
+		secure_boot_offset = SYS_HEADER_SIZE;
+		normal_boot_offset = get_boot_offset(i_info, SYS_HEADER_SIZE);
+		if (0 != common_raw_read(i_info.partition, i_info.size, secure_boot_offset + normal_boot_offset, (char *)i_info.mem_addr))
+			errorf("read %s partition fail\n", i_info.partition);
+#else
+		normal_boot_offset = get_boot_offset(i_info, 0);
+		if (0 != common_raw_read(i_info.partition, i_info.size, normal_boot_offset, (char *)i_info.mem_addr))
+			errorf("read %s partition fail\n", i_info.partition);
+#endif
 	}
 
 	c_header = (union composite_header *)raw_decouple_data;
