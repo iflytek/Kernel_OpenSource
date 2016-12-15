@@ -10,7 +10,7 @@
 #define BASE_TO_APBASE(addr)	(addr)
 #endif
 
-#define CP_MEM_DECOUP_DEBUG
+//#define CP_MEM_DECOUP_DEBUG
 
 extern void of_bus_default_count_cells(void *blob, int parentoffset,
 					int *addrc, int *sizec);
@@ -231,6 +231,92 @@ static void add_fdt_total_size(uint size, struct fdt_header *fdt)
 		fdt_set_totalsize(fdt, fdt_totalsize(fdt) + size);
 	}
 
+}
+
+static int do_parse_decoup_sipc_info(struct cp_mem_coupling_info *info, struct fdt_header *fdt)
+{
+	int i;
+	int p_offs, offs;
+	uint64_t base;
+	uint32_t deta, size;
+	uint32_t na = 2, ns = 1;
+	uint32_t c_na = 2, c_ns = 1;
+	char name[64];
+	char value[64];
+	struct property reg, c_reg, ranges;
+	struct comm_info_conf *comm_info = NULL;
+
+	if(!info || !fdt) {
+		errorf("param error\n");
+		goto err;
+	}
+
+	comm_info = &info->comm_info;
+
+	strncpy(name, "sprd,decoup", sizeof(name));
+	strncpy(value, "sipc-use-decoup", sizeof(value));
+	offs = fdt_node_offset_by_prop_value(fdt, 0, name, value, strlen(value) + 1);
+	if(offs < 0) {
+		debugf("the sipc info already exist, don't need to parse\n");
+		return 1;
+	}
+
+	p_offs = fdt_parent_offset(fdt, offs);
+	if(p_offs < 0) {
+		na = 2;
+		ns = 1;
+	}
+
+	debugf("start update sipc node info\n");
+	print_fdt_node(fdt, offs);
+
+	of_bus_default_count_cells(fdt, p_offs, &na, &ns);
+	debugf("a_cells = %d, s_cells = %d\n", na, ns);
+
+	of_bus_default_count_cells(fdt, offs, &c_na, &c_ns);
+	debugf("ca_cells: %d, cs_cells: %d\n", c_na, c_ns);
+
+	prop_init("reg", 0, &c_reg);
+	prop_init("reg", offs, &reg);
+	prop_init("ranges", offs, &ranges);
+
+	for(i = 0; comm_info->res[i].size > 0; i++) {
+		base = comm_info->res[i].base;
+		size = comm_info->res[i].size;
+		deta = comm_info->res[i].base - 0x80000000;
+		debugf("%s: i = %d, base = 0x%x, size = 0x%x\n",comm_info->res[i].name, i, base, size);
+		if (i == 0) {
+			fill_reg_prop_value(base, size, na, ns, &reg);
+		}
+
+		fill_reg_prop_value(deta, size, c_na, c_ns, &c_reg);
+
+		fill_ranges_prop_value(deta, base, size, c_na, na, c_ns, &ranges);
+	}
+
+	if(do_add_prop_to_fdt(fdt, 0, &reg) < 0)
+		goto err;
+
+	if(do_add_prop_to_fdt(fdt, 1, &ranges) < 0)
+		goto err;
+
+	c_reg.offset = fdt_first_subnode(fdt, offs);
+	if(c_reg.offset < 0) {
+		errorf("the sipc child node not found\n");
+		goto err;
+	}
+
+	if(do_add_prop_to_fdt(fdt, 0, &c_reg) < 0)
+		goto err;
+
+	debugf("update sipc node info done\n");
+	print_fdt_node(fdt, offs);
+
+	return 0;
+
+err:
+	print_fdt_node(fdt, offs);
+	return -1;
 }
 
 static int create_cproc_subnode(struct fdt_header *fdt,
@@ -586,10 +672,13 @@ int fdt_fixup_cp_coupling_info(void *blob)
 
 		debugf("magic = 0x%x, it's not new format\n", ih_desc->magic);
 		decoup_data = &c_header->mem_decoup;
-		if (decoup_data->magic == DECOUPLE_MAGIC_INFO)
+		if (decoup_data->magic == DECOUPLE_MAGIC_INFO) {
+			do_parse_decoup_sipc_info(decoup_data, fdt);
 			return do_parse_decoup_info_v1(decoup_data, fdt);
-		else
+
+		} else {
 			goto err;
+		}
 	}
 
 	for (i_desc = ih_desc->desc; i_desc->size != 0; i_desc++) {
