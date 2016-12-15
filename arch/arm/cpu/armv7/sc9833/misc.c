@@ -159,10 +159,18 @@ static void sprd_get_chipid(void)
 #endif
 }
 
+static void sc9833_disable_clkautogate()
+{
+	__raw_writel(__raw_readl(REG_AP_AHB_AP_SYS_AUTO_SLEEP_CFG)
+		     & ~(BIT_AP_AHB_CA7_CORE_AUTO_GATE_EN),
+		     REG_AP_AHB_AP_SYS_AUTO_SLEEP_CFG);
+}
+
 void misc_init()
 {
 	scx35_pmu_reconfig();
 	ap_slp_cp_dbg_cfg();
+	sc9833_disable_clkautogate();
 	ap_cpll_rel_cfg();
 #ifndef  CONFIG_SPX15
 	ap_close_wpll_en();
