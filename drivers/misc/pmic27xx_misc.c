@@ -149,7 +149,7 @@ void pmic_misc_init(void)
 	sci_adi_set(ANA_REG_GLB_LDO_SHPT_PD2, BIT_LDO_VIBR_SHPT_PD);	//close vibr short protection
 #endif
 
-#ifdef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 	sci_adi_write(ANA_REG_GLB_OTP_CTRL, (BIT_OTP_EN|BITS_OTP_OP(2)), (BIT_OTP_EN|BITS_OTP_OP(3)));	//open otp and set 145C
 #endif
 

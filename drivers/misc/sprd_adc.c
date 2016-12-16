@@ -36,6 +36,8 @@ typedef unsigned int u32;
 #define ADC_INT_CLR                         (ADC_REG_BASE + 0x0054)
 #define ADC_INT_STAT                        (ADC_REG_BASE + 0x0058)
 #define ADC_INT_SRC                         (ADC_REG_BASE + 0x005C)
+#define ADC_CTL0                         	(ADC_REG_BASE + 0x00AC)
+#define ADC_CTL1                         	(ADC_REG_BASE + 0x00B0)
 
 /* ADC_CTRL */
 #define BIT_SW_CH_RUN_NUM(_X_)		((((_X_) - 1) & 0xF ) << 4)
@@ -55,6 +57,10 @@ typedef unsigned int u32;
 
 #define ADC_IRQ_RAW_BIT                     BIT_0
 #define ADC_DATA_MSK                        0xFFF
+
+#define BIT_ADC_CUR_EN             BIT(6)
+#define SC2731_ADC0_SELECT_BIT     BIT(11)
+#define BITS_AUXAD_NTC_MUX(x)      (((x) & 0x3) << 1)
 
 #define TPC_CHANNEL_X    2
 #define TPC_CHANNEL_Y    3
@@ -95,26 +101,7 @@ static struct pmic_adc_para para = {
 	.blk_width = 8,
 	.adc_data_off = 128,
 };
-#elif defined(CONFIG_ADIE_SC2731)
-
-static struct pmic_adc_para para = {
-	.small_adc_p0 = 838,
-	.small_adc_p1 = 84,
-	.small_vol_p0 = 1000,
-	.small_vol_p1 = 100,
-	.small_cal_efuse_blk = 19,
-	.small_cal_efuse_bit = 16,
-	.big_adc_p0 = 728,
-	.big_adc_p1 = 850,
-	.big_vol_p0 = 3600,
-	.big_vol_p1 = 4200,
-	.big_cal_efuse_blk = 18,
-	.small_cal_efuse_bit = 16,
-	.blk_width = 16,
-	.adc_data_off = 128,
-};
-
-#elif defined(CONFIG_ADIE_SC2721)
+#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 
 static struct pmic_adc_para para = {
 	.small_adc_p0 = 838,
@@ -224,33 +211,8 @@ static void sprd_current_source_cal(void)
 #endif
 }
 
-#if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
-
-/* BITS_AUXAD_CURRENT_IBS = (isen * 100 / 250 -1) */
-static int pmic_adc_set_current(u8 enable, int isen)
-{
-	if (enable) {
-		isen = (isen * 100 / 250 - 1);
-		if (isen > BITS_AUXAD_CURRENT_IBS(-1))
-			isen = BITS_AUXAD_CURRENT_IBS(-1);
-		sci_adi_write(ANA_REG_GLB_AUXAD_CTL,
-			      (BIT_AUXAD_CURRENTSEN_EN |
-			       BITS_AUXAD_CURRENT_IBS(isen)),
-			      BIT_AUXAD_CURRENTSEN_EN |
-			      BITS_AUXAD_CURRENT_IBS(-1));
-	} else {
-		sci_adi_clr(ANA_REG_GLB_AUXAD_CTL, BIT_AUXAD_CURRENTSEN_EN);
-	}
-
-	return 0;
-}
-
-#elif defined(CONFIG_ADIE_SC2731)
-
-#define BITS_BATDET_CUR_I(x)     (((x) & 0x7) << 1)
-
-/*for sc2731 because the current have decimal ,if set 1.25uA, parameter isen need is 125uA */
-static int sc2731_adc_isen_set(int isen)
+/*for sc2731/sc2721 if set 1.25uA, parameter isen is 125uA */
+static int pmic_adc_isen_set(int isen)
 {
 	int isen_set = 0;
 	switch (isen) {
@@ -284,11 +246,36 @@ static int sc2731_adc_isen_set(int isen)
 	}
 	return isen_set;
 }
+
+#if defined(CONFIG_ADIE_SC2723) || defined(CONFIG_ADIE_SC2723S)
+
+/* BITS_AUXAD_CURRENT_IBS = (isen * 100 / 250 -1) */
+static int pmic_adc_set_current(u8 enable, int isen)
+{
+	if (enable) {
+		isen = (isen * 100 / 250 - 1);
+		if (isen > BITS_AUXAD_CURRENT_IBS(-1))
+			isen = BITS_AUXAD_CURRENT_IBS(-1);
+		sci_adi_write(ANA_REG_GLB_AUXAD_CTL,
+			      (BIT_AUXAD_CURRENTSEN_EN |
+			       BITS_AUXAD_CURRENT_IBS(isen)),
+			      BIT_AUXAD_CURRENTSEN_EN |
+			      BITS_AUXAD_CURRENT_IBS(-1));
+	} else {
+		sci_adi_clr(ANA_REG_GLB_AUXAD_CTL, BIT_AUXAD_CURRENTSEN_EN);
+	}
+
+	return 0;
+}
+
+#elif defined(CONFIG_ADIE_SC2731)
+
+#define BITS_BATDET_CUR_I(x)     (((x) & 0x7) << 1)
 static int pmic_adc_set_current(u8 enable, int isen)
 {
 	int isen_bit;
 	if (enable) {
-		isen_bit = sc2731_adc_isen_set(isen);
+		isen_bit = pmic_adc_isen_set(isen);
 		sci_adi_set(ANA_REG_GLB_BATDET_CUR_CTRL,BIT_BATDET_CUR_EN);
 		sci_adi_set(ANA_REG_GLB_AUXAD_CTL,BIT_AUXAD_CURRENTSEN_EN);
 		sci_adi_set(ANA_REG_GLB_BATDET_CUR_CTRL,BITS_BATDET_CUR_I(isen_bit));
@@ -301,6 +288,36 @@ static int pmic_adc_set_current(u8 enable, int isen)
 	return 0;
 }
 
+#elif defined(CONFIG_ADIE_SC2721)
+
+#define BITS_BATDET_CUR(x)     (((x) & 0x7) << 10)
+static int pmic_adc_set_isen(u8 enable, int isen)
+{
+	int isen_bit;
+
+	if (enable) {
+		isen_bit = pmic_adc_isen_set(isen);
+		sci_adi_set(ANA_REG_GLB_IB_CTRL, BIT_BATDET_CUR_EN);
+		sci_adi_set(ANA_REG_GLB_IB_CTRL, BITS_BATDET_CUR(isen_bit));
+	} else {
+		sci_adi_clr(ANA_REG_GLB_IB_CTRL, BITS_BATDET_CUR(0));
+		sci_adi_clr(ANA_REG_GLB_IB_CTRL, BIT_BATDET_CUR_EN);
+	}
+	return 0;
+}
+
+static int pmic_adc_set_current(u8 enable, int isen)
+{
+	if (enable) {
+		pmic_adc_set_isen(enable, isen);
+		ANA_REG_OR(ADC_CTL0, BIT_ADC_CUR_EN);
+	} else {
+		ANA_REG_AND(ADC_CTL0, ~BIT_ADC_CUR_EN);
+		pmic_adc_set_isen(enable, isen);
+	}
+
+	return 0;
+}
 #endif
 
 int32_t pmic_adc_get_value_by_isen(uint16_t channel, int scale, uint8_t num,
@@ -398,12 +415,11 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 	case ADC_CHANNEL_ISENSE:
 		return RATIO(7, 29);
 	case ADC_CHANNEL_VCHGSEN:
-			return RATIO(375, 9000);	//ab
+			return RATIO(375, 9000);
 	case ADC_CHANNEL_VCHGBG:
 	case ADC_CHANNEL_TPYD:
 		return (scale ? RATIO(100, 125) : RATIO(1, 1));
 	case ADC_CHANNEL_DCDCCORE:
-		mux = mux >> 12;
 		switch (mux) {
 		case 1:
 		case 2:
@@ -426,7 +442,6 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 	case ADC_CHANNEL_VBATBK:
 		return RATIO(1, 3);
 	case ADC_CHANNEL_HEADMIC:
-		mux = mux >> 4;
 		switch (mux) {
 		case 1:
 		case 2:
@@ -462,73 +477,66 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 {
 	switch (channel) {
-	case ADC_CHANNEL_0:
-		return RATIO(1, 1);
-	case ADC_CHANNEL_1:
-	case ADC_CHANNEL_2:
-	case ADC_CHANNEL_3:
-	case ADC_CHANNEL_4:
-		return (scale ? RATIO(400, 1025) : RATIO(1, 1));
-	case ADC_CHANNEL_VBAT_SENSE:
-	case ADC_CHANNEL_ISENSE:
-		return RATIO(7, 29);
-	case ADC_CHANNEL_VCHGSEN:
-			return RATIO(375, 9000);	//ab
-	case ADC_CHANNEL_VCHGBG:
-	case ADC_CHANNEL_TPYD:
-		return (scale ? RATIO(100, 125) : RATIO(1, 1));
-	case ADC_CHANNEL_DCDCCORE:
-		mux = mux >> 12;
-		switch (mux) {
-		case 1:
-		case 2:
-			return (scale ? RATIO(4, 5) : RATIO(1, 1));
-		case 3:
-			return (scale ? RATIO(3, 5) : RATIO(3, 4));
-		case 4:
-			return (scale ? RATIO(49, 125) : RATIO(49, 100));
-		case 5:
-			return (scale ? RATIO(9, 20) : RATIO(9, 16));
-		case 6:
-			return (scale ? RATIO(4, 5) : RATIO(1, 1));
-		case 7:
-			return (scale ? RATIO(36, 170) : RATIO(9, 34));
-		case 8:
-			return (scale ? RATIO(4, 5) : RATIO(1, 1));
-		default:
+		case ADC_CHANNEL0:
 			return RATIO(1, 1);
-		}
-	case ADC_CHANNEL_VBATBK:
-		return RATIO(1, 3);
-	case ADC_CHANNEL_HEADMIC:
-		mux = mux >> 4;
-		switch (mux) {
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-			return (scale ? RATIO(1, 3) : RATIO(1, 1));
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-		case 9:
-		case 10:
-		case 11:
-			return (scale ? RATIO(1, 12) : RATIO(1, 4));
-		default:
+		case ADC_CHANNEL1:
+		case ADC_CHANNEL2:
+		case ADC_CHANNEL3:
+		case ADC_CHANNEL4:
+			return (scale ? RATIO(400, 1025) : RATIO(1, 1));
+		case ADC_CHANNEL5:
+			return RATIO(7, 29);
+		case ADC_CHANNEL7:
+		case ADC_CHANNEL9:
+			return (scale ? RATIO(100, 125) : RATIO(1, 1));
+		case ADC_CHANNEL8:
+		case ADC_CHANNEL15:
 			return RATIO(1, 1);
-		}
-	case ADC_CHANNEL_LDO0:
-	case ADC_CHANNEL_LDO1:
-	case ADC_CHANNEL_LDO2:
-		return RATIO(9, 25);
-	case ADC_CHANNEL_USBDP:
-	case ADC_CHANNEL_USBDM:
-		return RATIO(1, 1);
+		case ADC_CHANNEL13:
+			switch (mux) {
+			case 1:
+			case 4:
+				return (scale ? RATIO(4, 5) : RATIO(1, 1));
+			case 2:
+				return (scale ? RATIO(3, 5) : RATIO(3, 4));
+			case 3:
+				return (scale ? RATIO(49, 125) : RATIO(49, 100));
+			case 5:
+				return (scale ? RATIO(36, 170) : RATIO(9, 34));
+			default:
+				return RATIO(1, 1);
+			}
+		case ADC_CHANNEL14:
+			return RATIO(68, 900);
+		case ADC_CHANNEL16:
+			return RATIO(48, 100);
+		case ADC_CHANNEL19:
+			return RATIO(1, 3);
+		case ADC_CHANNEL20:
+			switch (mux) {
+			case 1:
+			case 2:
+			case 3:
+				return (scale ? RATIO(1, 3) : RATIO(1, 1));
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+				return (scale ? RATIO(1, 12) : RATIO(1, 4));
+			default:
+				return RATIO(1, 1);
+			}
+		case ADC_CHANNEL21:
+		case ADC_CHANNEL22:
+		case ADC_CHANNEL23:
+			return RATIO(3, 8);
+		case ADC_CHANNEL30:
+		case ADC_CHANNEL31:
+			return RATIO(1, 1);
 
-	default:
-		return RATIO(1, 1);
+		default:
+			return RATIO(1, 1);
 	}
 	return RATIO(1, 1);
 }
@@ -561,7 +569,7 @@ static int sprd_get_adc_small_scale_cal(uint32_t *p_cal_data)
 	    (((deta >> 8) & 0x00FF) + para.small_adc_p0 - para.adc_data_off) * 4;
 	debugf("1.0V adc data 0x%x\n", adc_data);
 	p_cal_data[0] = (para.small_vol_p0) | (adc_data << 16);
-#elif defined(CONFIG_ADIE_SC2731)
+#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 	/* adc 0.1V */
 	adc_data =
 		 (((deta >> 8) & 0x00FF) + para.small_adc_p1 - para.adc_data_off) * 4;
@@ -645,9 +653,6 @@ void pmic_adc_Init(void)
 	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_ADC_EN);	//ADC enable
 	ANA_REG_OR(ANA_REG_GLB_ARM_CLK_EN, BIT_CLK_AUXAD_EN | BIT_CLK_AUXADC_EN);	//enable auxad clock
 	ANA_REG_OR(ANA_REG_GLB_XTL_WAIT_CTRL, BIT_XTL_EN);	//enable clk
-#if !(defined(CONFIG_SC9001) || defined(CONFIG_SC9860) || defined(CONFIG_SC9851) || CONFIG_TARGET_SP9853I)
-		__raw_writel(__raw_readl(REG_AON_APB_SINDRV_CTRL) |BIT_SINDRV_ENA, REG_AON_APB_SINDRV_CTRL);	//enable ddie to adie clk
-#endif
 	ANA_REG_OR(ADC_CTRL, ADC_EN_BIT);
 	ANA_REG_OR(ADC_CTRL, ADC_MODE_12B);
 	ana_chip_id =
@@ -660,8 +665,12 @@ void pmic_adc_Init(void)
 	if (0 == sprd_bat_scale_adc_efuse_get())
 		debugf("sprd big scale efuse have cal\n");
 	sprd_current_source_cal();
+#if defined(CONFIG_ADIE_SC2731)
+	sci_adi_set(ANA_REG_GLB_AUXAD_CTL, SC2731_ADC0_SELECT_BIT);
+#elif defined(CONFIG_ADIE_SC2721)
+	sci_adi_set(ADC_CTL1, BITS_AUXAD_NTC_MUX(0x1));
+#endif
 }
-
 
 static int32_t sprd_small_scale_to_vol(int32_t adcvalue)
 {
