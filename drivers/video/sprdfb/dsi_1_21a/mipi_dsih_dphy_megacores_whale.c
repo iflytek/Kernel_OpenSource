@@ -350,11 +350,25 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 	u8 *val;
 
 	struct pll_regs regs;
+#ifdef CONFIG_SC9833
+	u8 regs_addr[] = {
+		0x03, 0x04, 0x06, 0x07, 0x08, 0x09,
+		0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+	};
+	u8 regs_1g[] = {
+		0x07, 0x88, 0x26, 0x60, 0xEE, 0x76,
+		0x27, 0x61, 0x00, 0x30, 0xc0, 0x81
+	};
+	u8 regs_500m[] = {
+		0x07, 0x88, 0x26, 0x60, 0xEE, 0x76,
+		0x27, 0x62, 0x00, 0x30, 0xc0, 0x81
+	};
+#else
 	u8 regs_addr[] = {
 		0x03, 0x04, 0x06, 0x07, 0x08, 0x09,
 		0x0a, 0x0b, 0x0c, 0x0d, 0x0e
 	};
-
+#endif
 	if (!pll || !pll->fvco)
 		goto FAIL;
 
@@ -386,7 +400,11 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 	regs._0e.bits.pll_pu = 0;
 	regs._0e.bits.kstep_l = pll->kstep & 0x7;
 
+#ifdef CONFIG_SC9833
+	val = (u8 *)&regs_500m;
+#else
 	val = (u8 *)&regs;
+#endif
 
 	for (i = 0; i < sizeof(regs_addr); ++i)
 		mipi_dsih_dphy_write(phy, regs_addr[i], &val[i], 1);
@@ -818,10 +836,17 @@ int mipi_dsih_dphy_wakeup_pll(dphy_t *phy)
 void mipi_dsih_dphy_stop_wait_time(dphy_t *phy,
 				u8 no_of_byte_cycles)
 {
+#if defined(CONFIG_SC9833) || defined(CONFIG_SC9851)
+	mipi_dsih_dphy_write_part(phy,
+			R_DPHY_MIN_STOP_TIME,
+			no_of_byte_cycles,
+			0, 8);
+#else
 	mipi_dsih_dphy_write_part(phy,
 			R_DPHY_IF_CFG,
 			no_of_byte_cycles,
 			8, 8);
+#endif
 }
 
 /**
