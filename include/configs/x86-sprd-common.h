@@ -38,7 +38,7 @@
 
 #define CONFIG_SYS_STACK_SIZE	(32 * 1024)
 #define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_MALLOC_LEN	0x200000
+#define CONFIG_SYS_MALLOC_LEN	0x400000
 
 /*
  * Miscellaneous configurable options
@@ -60,21 +60,21 @@
 
 /* commands */
 #define CONFIG_CMD_ZBOOT
-#if defined(CONFIG_TARGET_SP9861_FPGA) || defined(CONFIG_TARGET_SP9853I_FPGA)
-#define CONFIG_BAUDRATE		115200
+#if defined(CONFIG_TARGET_SP9861_FPGA)  || defined(CONFIG_TARGET_SP9861E_1H10) || defined(CONFIG_TARGET_SP9853I_FPGA)
+#define CONFIG_BAUDRATE                115200
 #else
-#define CONFIG_BAUDRATE		921600
+#define CONFIG_BAUDRATE                921600
 #endif
 
-#define CONFIG_BOOTDELAY	0
+#define CONFIG_BOOTDELAY       0
 
-#if defined(CONFIG_TARGET_SP9861_FPGA) || defined(CONFIG_TARGET_SP9853I_FPGA)
+#if defined(CONFIG_TARGET_SP9861_FPGA)  || defined(CONFIG_TARGET_SP9861E_1H10) || defined(CONFIG_TARGET_SP9853I_FPGA)
 #define CONFIG_BOOTARGS		"earlycon console=ttyS0,115200n8"
 #else
 #define CONFIG_BOOTARGS		"earlycon console=ttyS0,921600n8"
 #endif
 
-#if defined(CONFIG_TARGET_SP9853I_FPGA) || defined(CONFIG_TARGET_SP9853I)
+#if defined(CONFIG_TARGET_SP9853I_FPGA) || defined(CONFIG_TARGET_SP9861E_1H10) || defined(CONFIG_TARGET_SP9853I)
 #define CONFIG_BOOTCOMMAND   "zboot 35100000 800000 3b800000 800000"
 #else
 #define CONFIG_BOOTCOMMAND   "zboot 10080000 800000 15500000 800000"
@@ -82,12 +82,14 @@
 
 /* SPRD Serial Configuration */
 #define CONFIG_SPRD_UART
+#if defined(CONFIG_TARGET_SP9861E_1H10)
+#define CONFIG_CONS_INDEX		1 /* use UART0 for console */
+#else
 #define CONFIG_CONS_INDEX		0 /* use UART0 for console */
+#endif
 #define CONFIG_SPRD_UART_PORTS		{ (void *)(CONFIG_SYS_SERIAL0),(void *)(CONFIG_SYS_SERIAL1) }
 #define CONFIG_SYS_SERIAL0		0xe7000000
 #define CONFIG_SYS_SERIAL1		0xe7100000
-
-#define CONFIG_EXTRA_ENV_SETTINGS "setup_dtb_addr=0x00080000"
 
 /* S3 resume */
 #define AON_APB_DAT_1 0xe42e327c
