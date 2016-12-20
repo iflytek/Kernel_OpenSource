@@ -39,7 +39,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	      36000000,
 	      100000,
 #else
-		REG_AP_CLK_EMMC_CFG,
+		REG_AON_CLK_CGM_EMMC_2X_CFG,
 		BIT_0|BIT_1,
  	       384000000,
 		400000,
@@ -63,7 +63,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	      36000000,
 	      100000,
 #else
-		REG_AP_CLK_SDIO0_CFG,
+		REG_AON_CLK_CGM_SDIO0_2X_CFG,
 		BIT_0|BIT_1,
 		384000000,
 		400000,

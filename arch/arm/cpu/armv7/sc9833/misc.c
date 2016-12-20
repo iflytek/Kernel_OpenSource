@@ -120,18 +120,7 @@ void scx35_pmu_reconfig(void)
 #endif
 	__raw_writel(__raw_readl(REG_AON_APB_APB_EB0) | BIT_MM_EB |
 		     BIT_GPU_EB, REG_AON_APB_APB_EB0);
-#ifndef CONFIG_FPGA
-        __raw_writel(__raw_readl(REG_MM_AHB_RF_AHB_EB) | BIT_CKG_EB,
-                     REG_MM_AHB_RF_AHB_EB);
-        __raw_writel(__raw_readl(REG_MM_AHB_RF_GEN_CKG_CFG)
-                     | BIT_MM_MTX_AXI_CKG_EN | BIT_MM_AXI_CKG_EN,
-                     REG_MM_AHB_RF_GEN_CKG_CFG);
-#endif
 
-#ifndef CONFIG_FPGA
-	__raw_writel(__raw_readl(REG_MM_CLK_MM_AHB_CFG) | 0x3,
-		     REG_MM_CLK_MM_AHB_CFG);
-#endif
 }
 
 #else
