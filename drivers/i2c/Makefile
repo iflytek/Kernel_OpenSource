@@ -38,3 +38,4 @@ obj-$(CONFIG_SYS_I2C_UNIPHIER) += i2c-uniphier.o
 obj-$(CONFIG_SYS_I2C_UNIPHIER_F) += i2c-uniphier-f.o
 obj-$(CONFIG_SYS_I2C_ZYNQ) += zynq_i2c.o
 obj-$(CONFIG_SPRD_I2C) += sprd_i2c.o
+obj-$(CONFIG_SPRD_I2C_V2) += sprd_i2c_v2.o

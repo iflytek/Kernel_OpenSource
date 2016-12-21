@@ -331,6 +331,10 @@
 #define CONFIG_HW_WATCHDOG
 #define CONFIG_SPRD_WATCHDOG
 
+/*i2c driver*/
+#define CONFIG_SYS_I2C
+#define CONFIG_SPRD_I2C_V2
+
  /*Serial Info*/
 #define CONFIG_SPRD_UART		1
 #define CONFIG_SYS_SC8800X_UART1	1
