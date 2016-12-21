@@ -198,6 +198,7 @@
 #define BIT_AON_APB_AUD_EB                                       BIT(18)
 #define BIT_AON_APB_AUDIF_EB                                     BIT(17)
 #define BIT_AON_APB_ADI_EB                                       BIT(16)
+#define BIT_ADI_EB						BIT_AON_APB_ADI_EB
 #define BIT_AON_APB_INTC_EB                                      BIT(15)
 #define BIT_INTC_EB						BIT_AON_APB_INTC_EB
 #define BIT_AON_APB_EIC_EB                                       BIT(14)
@@ -284,6 +285,7 @@
 #define BIT_AON_APB_AUD_SOFT_RST                                 BIT(19)
 #define BIT_AON_APB_AUDIF_SOFT_RST                               BIT(18)
 #define BIT_AON_APB_ADI_SOFT_RST                                 BIT(17)
+#define BIT_ADI_SOFT_RST					BIT_AON_APB_ADI_SOFT_RST
 #define BIT_AON_APB_INTC_SOFT_RST                                BIT(16)
 #define BIT_AON_APB_EIC_SOFT_RST                                 BIT(15)
 #define BIT_AON_APB_EFUSE_SOFT_RST                               BIT(14)
