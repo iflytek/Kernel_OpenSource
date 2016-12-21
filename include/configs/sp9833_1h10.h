@@ -33,7 +33,7 @@
 #define CONFIG_OF_LIBFDT
 #define CONFIG_SPRD_PLATFORM
 
-#define DT_PLATFROM_ID 9833
+#define DT_PLATFROM_ID 9850
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 

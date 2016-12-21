@@ -51,7 +51,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	0X20E00004,
 	BIT_14,
 
-		"vddgen1",
+		NULL,
 		"vddemmccore",
 	},
 	{

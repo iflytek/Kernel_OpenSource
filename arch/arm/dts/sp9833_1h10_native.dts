@@ -10,11 +10,11 @@
 
 
 / {
-	model = "Spreadtrum SC9833 FPGA Board";
+	model = "Spreadtrum SP9850KA Board";
 
-	compatible = "sprd,sp9833-fpga", "sprd,sc9833";
+	compatible = "sprd,sp9850ka-1h10-native", "sprd,sc9850";
 
-	sprd,sc-id = <9833 1 0x20000>;
+	sprd,sc-id = <9850 1 0x20000>;
 
 	memory: memory@80000000 {
 		device_type = "memory";
