@@ -1168,7 +1168,7 @@ uint16_t mipi_dsih_gen_rd_packet(dsih_ctrl_t * instance, uint8_t vc, uint8_t dat
         return 0;
     }
     /* make sure command mode is on */
-    mipi_dsih_cmd_mode(instance, 1);
+    //mipi_dsih_cmd_mode(instance, 1);
     /* make sure receiving is enabled */
     mipi_dsih_hal_bta_en(instance, 1);
     /* listen to the same virtual channel as the one sent to */
@@ -1186,7 +1186,7 @@ uint16_t mipi_dsih_gen_rd_packet(dsih_ctrl_t * instance, uint8_t vc, uint8_t dat
     {
         if (instance->log_error != 0)
         {
-            instance->log_error("tx rd command timed out");
+            instance->log_error("tx rd command timed out\n");
         }
         return 0;
     }
@@ -1238,19 +1238,21 @@ uint16_t mipi_dsih_gen_rd_packet(dsih_ctrl_t * instance, uint8_t vc, uint8_t dat
                 }
                 return last_count + 1;
             }
-            else
+            else if(timeout == (DSIH_FIFO_ACTIVE_WAIT - 1))
             {
                 if (instance->log_error != 0)
                 {
-                    instance->log_error("rx buffer empty");
+                    instance->log_error("rx buffer empty\n");
                 }
                 return 0;
             }
         }
+
+	udelay(10);
     }
     if (instance->log_error != 0)
     {
-        instance->log_error("rx command timed out");
+        instance->log_error("rx command timed out\n");
     }
     return 0;
 }
