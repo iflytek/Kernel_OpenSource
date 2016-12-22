@@ -145,6 +145,36 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 	return;
 }
 
+void fdt_fixup_all_x86(u8 *fdt_blob)
+{
+	uint32_t fdt_size;
+	boot_img_hdr *hdr = raw_header;
+	int err;
+	char  *boot_mode_type_str;
+
+	if (fdt_check_header(fdt_blob) != 0) {
+		errorf("image is not a fdt\n");
+	}
+
+#ifdef CONFIG_SPLASH_SCREEN
+	fdt_fixup_lcdid(fdt_blob);
+	fdt_fixup_lcdbase(fdt_blob);
+	fdt_fixup_lcdsize(fdt_blob);
+#endif
+	/*max let cp_cmdline_fixup befor fdt_fixup_cp_boot*/
+	cp_cmdline_fixup();
+
+	fdt_fixup_cp_boot(fdt_blob);
+
+	/* for non iq mode, remove reserved iq memory from dtb */
+	fdt_fixup_iq_reserved_mem(fdt_blob);
+
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+extern int fdt_fixup_cp_coupling_info(void *blob);
+	fdt_fixup_cp_coupling_info(fdt_blob);
+#endif
+
+}
 
 static int start_linux_x86()
 {

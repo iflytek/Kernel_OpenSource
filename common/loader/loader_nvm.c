@@ -645,7 +645,9 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
 		goto error;
 	}
-#ifndef CONFIG_X86
+#ifdef CONFIG_X86
+	fdt_fixup_all_x86(fdt_blob);
+#else
 	fdt_fixup_all(fdt_blob);
 #endif
 	ret = fdt_fixup_memory_region(fdt_blob, &auto_mem_num);
