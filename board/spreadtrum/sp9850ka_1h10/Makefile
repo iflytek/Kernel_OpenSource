@@ -22,7 +22,7 @@
 #
 
 
-obj-y	= sp9833_1h10.o sprd_kp.o  sprd_bl.o pinmap-sp9630.o modem_entry.o sdio_cfg.o regulator_init.o
+obj-y	= sp9850ka_1h10.o sprd_kp.o  sprd_bl.o pinmap-sp9630.o modem_entry.o sdio_cfg.o regulator_init.o
 
 ifneq ($(CONFIG_ARCH_SCX35L2),y)
 obj-y	= ldo_sleep.o

@@ -1,7 +1,7 @@
-if TARGET_SP9833_1H10
+if TARGET_SP9850KA_1H10
 
 config SYS_BOARD
-	default "sp9833_1h10"
+	default "sp9850ka_1h10"
 
 config SYS_VENDOR
 	default "spreadtrum"
@@ -10,7 +10,7 @@ config SYS_SOC
 	default "sc9833"
 
 config SYS_CONFIG_NAME
-	default "sp9833_1h10"
+	default "sp9850ka_1h10"
 
 config SYS_TEXT_BASE
 	default 0x9f000000
