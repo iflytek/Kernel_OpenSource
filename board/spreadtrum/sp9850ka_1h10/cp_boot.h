@@ -74,16 +74,18 @@ static inline void pubcp_boot(void)
 		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
 
 	/*boot cr5 */
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT_1;   /* reset R5 */
 	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) |= BIT_10; /*cr5 core soft reset*/
+	/*power on*/
+	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_25);/* clear R5 force shutdown */
+	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_24);/* clear R5 auto shutdown */
+	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_18;   /*clear R5 force sleep */
+
 	msleep(50);
+	/*reset*/
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_1; /* pubcp soft reset */
 	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) &= ~BIT_10; /*cr5 core soft reset*/
 
-	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_18;   /*clear R5 force sleep */
-	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_25);/* clear R5 force shutdown */
-
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT_1;   /* reset R5 */
-	msleep(50);
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_1; /* pubcp soft reset */
 
 }
 /*****************************************************************************/

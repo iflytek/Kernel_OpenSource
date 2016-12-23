@@ -13,10 +13,10 @@
 #define CP1_EXEC_ADR        0x8ae00000
 
 /*add macro for memset agdsp/tddsp/ldsp share memory*/
-#define LDSP_SHARE_MEM_START 0xF2000//8k
-#define TGDSP_SHARE_MEM_START 0xF4000//4k
-#define AGDSP_SHARE_MEM_START 0xF5000//4k
-#define MULTI_MODE_MEM_START 0xF6000//4k
+#define DSP_BOOT_IRAM_START   0x5000F000//2k
+#define LDSP_SHARE_MEM_START  0x5000F800//10k
+#define TGDSP_SHARE_MEM_START 0x50012000//4k
+#define MULTI_MODE_MEM_START  0x50013000//4k
 
 #define PHYS_OFFSET_ADDR			0x80000000
 //#define TD_CP_OFFSET_ADDR			0x8000000	/*128*/
@@ -132,9 +132,9 @@ unexcepted problems.*/
 
 void memset_dsp_share_memory()
 {
-	memset((void *)LDSP_SHARE_MEM_START,0x0,0x2000);//8k
+	memset((void *)DSP_BOOT_IRAM_START,0x0,0x800);//2k
+	memset((void *)LDSP_SHARE_MEM_START,0x0,0x2800);//10k
 	memset((void *)TGDSP_SHARE_MEM_START,0x0,0x1000);//4k
-	memset((void *)AGDSP_SHARE_MEM_START,0x0,0x1000);//4k
 	memset((void *)MULTI_MODE_MEM_START,0x0,0x1000);//4k
 }
 
@@ -143,6 +143,8 @@ void modem_entry()
 
 	/*workaround,change wtlcp axi to 307.2M*/
 	//REG32(REG_AON_APB_SUB_SYS_DBG_SIG7) = 0x09;
+#if 0
+	memset_dsp_share_memory();
 
 #ifndef CONFIG_KERNEL_BOOT_CP
 	pmic_arm7_boot();
@@ -154,6 +156,7 @@ void modem_entry()
 		pmic_arm7_boot();
 		debugf("boot arm7  OK\n");
 	}
+#endif
 #endif
 }
 

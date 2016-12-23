@@ -100,15 +100,13 @@ static boot_image_required_t const s_boot_image_gsm_table[] = {
 
 #ifdef CONFIG_SUPPORT_LTE
 static boot_image_required_t const s_boot_image_lte_table[] = {
-#if !defined( CONFIG_KERNEL_BOOT_CP )
+#if (!defined( CONFIG_KERNEL_BOOT_CP )) && (!defined(CONFIG_MEM_LAYOUT_DECOUPLING))
 #ifdef CONFIG_ADVANCED_LTE
-#ifndef CONFIG_MEM_LAYOUT_DECOUPLING
 	{"l_fixnv1","l_fixnv2",LTE_FIXNV_SIZE,LTE_FIXNV_ADDR},
 	{"l_runtimenv1","l_runtimenv2",LTE_RUNNV_SIZE,LTE_RUNNV_ADDR},
 	{"l_modem",NULL,LTE_MODEM_SIZE,LTE_MODEM_ADDR},
 	{"l_tgdsp",NULL,LTE_TGDSP_SIZE ,LTE_TGDSP_ADDR}, //tddsp
 	{"l_ldsp",NULL,LTE_LDSP_SIZE ,LTE_LDSP_ADDR},
-#endif
 #else
 	{"l_fixnv1", "l_fixnv2", LTE_FIXNV_SIZE, LTE_FIXNV_ADDR},
 	{"l_runtimenv1", "l_runtimenv2", LTE_RUNNV_SIZE, LTE_RUNNV_ADDR},
