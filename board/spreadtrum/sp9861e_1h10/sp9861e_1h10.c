@@ -33,6 +33,14 @@ int misc_init_r(void)
 }
 
 void TDPllRefConfig(int ref){}
+
+void thm_overheate_en(void)
+{
+	sci_glb_set(REG_AON_APB_THERMAL_OVERHEAT_EN,
+					BIT_AON_APB_SP_THM_OVERHEAT0_EN |
+					BIT_AON_APB_SP_THM_OVERHEAT1_EN);
+}
+
 void misc_init()
 {
 	sci_glb_set(REG_AON_APB_APB_EB0, BIT_AON_APB_AON_GPU_EB);
@@ -40,6 +48,7 @@ void misc_init()
 					 BIT_AON_APB_AON_CAM_EB |
 					 BIT_AON_APB_AON_VSP_EB);
 	pmic_misc_init();
+	thm_overheate_en();
 }
 
 int board_init(void)

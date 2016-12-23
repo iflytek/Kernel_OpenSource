@@ -23,7 +23,7 @@
 typedef unsigned int u32;
 
 /* registers definitions for controller ANA_REGS_EFUSE */
-#ifdef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 #define ANA_REG_EFUSE_GLB_CTRL          SCI_ADDR(ANA_REGS_EFUSE_BASE, 0x0000)
 #define ANA_REG_EFUSE_DATA_RD           SCI_ADDR(ANA_REGS_EFUSE_BASE, 0x0004)
 #define ANA_REG_EFUSE_DATA_WR           SCI_ADDR(ANA_REGS_EFUSE_BASE, 0x0008)
@@ -97,7 +97,7 @@ u32 SCI_GetTickCount(void);
 
 #define ANA_REGS_EFUSE_BASE ANA_EFS_BASE
 #define EFUSE_BLOCK_MAX                 ( 32 )
-#ifdef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 #define EFUSE_BLOCK_WIDTH               ( 16 )	/* bit counts */
 #define VALUE_TYPE	u16
 #else
@@ -147,7 +147,7 @@ static __inline int pmic_efuse_wait_clear(u32 bits)
 	timeout = jiffies + msecs_to_jiffies(3000);
 	while (bit_status) {
 		val = sci_adi_read(ANA_REG_EFUSE_STATUS);
-#ifdef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 		bit_status = (~val) & bits;
 #else
 		bit_status = val & bits;
@@ -167,14 +167,14 @@ u32 sprd_pmic_efuse_read(int blk_index)
 	u32 val = 0;
 
 	pmic_efuse_power_on();
-#ifdef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 	if (IS_ERR_VALUE(pmic_efuse_wait_clear(BIT_STANDBY_BUSY)))
 		goto out;
 #endif
 	sci_adi_raw_write(ANA_REG_EFUSE_BLOCK_INDEX,
 			  BITS_READ_WRITE_INDEX(blk_index));
 	sci_adi_raw_write(ANA_REG_EFUSE_MODE_CTRL, BIT_RD_START);
-#ifdef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 	if (IS_ERR_VALUE(pmic_efuse_wait_clear(BIT_NORMAL_RD_DONE)))
 		goto out;
 #else
@@ -182,11 +182,11 @@ u32 sprd_pmic_efuse_read(int blk_index)
 		goto out;
 #endif
 	val = sci_adi_read(ANA_REG_EFUSE_DATA_RD);
-#ifndef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2723)
 	/* FIXME: reverse the otp value */
 	val = BITS_EFUSE_DATA_RD(~val);
 #endif
-#ifdef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 	sci_adi_clr(ANA_REG_EFUSE_STATUS, BIT_NORMAL_RD_DONE);
 #endif
 out:
