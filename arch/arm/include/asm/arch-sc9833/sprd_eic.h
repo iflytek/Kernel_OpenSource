@@ -27,7 +27,12 @@
 #define EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE        170
 #endif
 
+/*
+ * name of macro uses FUNCTION1 name from specification, which is same as name
+ * from pinmap file.
+ */
 #define SPRD_DDIE_EIC_START 0
+#define SPRD_DDIE_EIC_KEYIN0 2
 #define SPRD_DDIE_EIC_END   7
 #define SPRD_DDIE_EIC1_START 8
 #define SPRD_DDIE_EIC1_END   15

@@ -1,51 +1,100 @@
 #include <common.h>
-#include <malloc.h>
-#include "key_map.h"
+#include <linux/input.h>
+#include <linux/kernel.h>
 #include <boot_mode.h>
-#include <asm/arch/mfp.h>
 #include <asm/arch/common.h>
+#include <asm/arch/sprd_eic.h>
 
+
+enum key_type {
+	TYPE_EIC,
+	TYPE_GPIO,
+};
+
+struct key_info {
+	const char *tag;
+	const uint32_t offset;
+	const uint32_t type;
+	const uint32_t keycode;
+};
+
+/* TODO: modify keys here for different board */
+static struct key_info KEYS[] = {
+	{
+		.tag = "Volume Up",
+		.offset = EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE,
+		.type = TYPE_EIC,
+		.keycode = KEY_VOLUMEUP,
+	},
+	{
+		.tag = "Volume Down",
+		.offset = SPRD_DDIE_EIC_KEYIN0,
+		.type = TYPE_EIC,
+		.keycode = KEY_VOLUMEDOWN,
+	},
+};
+
+#if defined(CONFIG_FPGA)
 void board_keypad_init(void)
 {
-	sprd_gpio_request(NULL, 124);
-	sprd_gpio_direction_input(NULL, 124);
-
-	sprd_gpio_request(NULL, 125);
-	sprd_gpio_direction_input(NULL, 125);
-
-	printf("[gpio keys] init!\n");
-	return;
 }
+#else
+void board_keypad_init(void)
+{
+	uint32_t i;
 
+	for (i = 0; i < ARRAY_SIZE(KEYS); i++) {
+		if (KEYS[i].type == TYPE_GPIO) {
+			sprd_gpio_request(NULL, KEYS[i].offset);
+			/* a GPIO pin for key is always used as INPUT pin */
+			sprd_gpio_direction_input(NULL, KEYS[i].offset);
+		}
+	}
+
+	printf("[KEY] init!\n");
+}
+#endif
+
+#if defined(CONFIG_FPGA)
 unsigned char board_key_scan(void)
 {
-	uint32_t key_code = KEY_RESERVED;
-	int gpio_volumeup = -1;
-	int gpio_volumedown = -1;
-
-	gpio_volumedown = sprd_gpio_get(NULL, 124);
-	if(gpio_volumedown < 0)
-		errorf("[gpio keys] volumedown : sprd_gpio_get return ERROR!\n");
-
-	gpio_volumeup = sprd_gpio_get(NULL, 125);
-	if(gpio_volumeup < 0)
-		errorf("[gpio keys] volumeup : sprd_gpio_get return ERROR!\n");
-
-	if(0 == gpio_volumedown) {
-		key_code = KEY_VOLUMEDOWN;
-		debugf("[gpio keys] volumedown pressed!\n");
-		return key_code;
-	}
-
-	if(0 == gpio_volumeup) {
-		key_code = KEY_VOLUMEUP;
-		debugf("[gpio keys] volumeup pressed!\n");
-		return key_code;
-	}
-
-	debugf("[gpio keys] no key pressed!\n");
-	return key_code;
+	return KEY_RESERVED;
 }
+#else
+unsigned char board_key_scan(void)
+{
+	uint32_t i, keycode = KEY_RESERVED;
+	int val;
+
+	/* TODO: high or low */
+	for (i = 0; i < ARRAY_SIZE(KEYS); i++) {
+		if (KEYS[i].type == TYPE_GPIO) {
+			val = sprd_gpio_get(NULL, KEYS[i].offset);
+			if (val < 0)
+				errorf("[KEY] fail to get value for %s!", KEYS[i].tag);
+			else if (val == 0)
+				break;
+		} else if (KEYS[i].type == TYPE_EIC) {
+			sprd_eic_request(KEYS[i].offset);
+			udelay(3000);
+			val = sprd_eic_get(KEYS[i].offset);
+			if (val < 0)
+				errorf("[KEY] fail to get EIC value for %s!", KEYS[i].tag);
+			else if (val > 0)
+				break;
+		}
+	}
+
+	if (i == ARRAY_SIZE(KEYS)) {
+		printf("[KEY] no key pressed!\n");
+	} else {
+		printf("[KEY] %s pressed!\n", KEYS[i].tag);
+		keycode = KEYS[i].keycode;
+	}
+
+	return keycode;
+}
+#endif
 
 unsigned int check_key_boot(unsigned char key)
 {
