@@ -1,5 +1,5 @@
 /*
- * Spreadtrum SP985x board DTS file
+ * Spreadtrum SP9852 board DTS file
  *
  * Copyright (C) 2016, Spreadtrum Communications Inc.
  *
@@ -9,17 +9,20 @@
 /dts-v1/;
 
 
-/ {
-	model = "Spreadtrum SP985xsmt vdk Board";
 
-	compatible = "sprd,sc985xsmt-vdk";
+/ {
+	model = "Spreadtrum SP9852 vdk Board";
+
+	compatible = "sprd,sc9852-vdk";
 
 	sprd,sc-id = <9851 1 20000>;
+
 
 	memory{
 		device_type = "memory";
 		reg = <0x0 0x80000000 0 0x40000000>;
 	};
+
 
 };
 

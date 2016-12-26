@@ -1,5 +1,5 @@
 /*
- * Spreadtrum SP985x fpga board DTS file
+ * Spreadtrum SP9852 fpga board DTS file
  *
  * Copyright (C) 2016, Spreadtrum Communications Inc.
  *
@@ -10,9 +10,9 @@
 
 
 / {
-	model = "Spreadtrum SP985xsmt fpga Board";
+	model = "Spreadtrum SP9852smt fpga Board";
 
-	compatible = "sprd,sc985xsmt-fpga";
+	compatible = "sprd,sc9852smt-fpga";
 
 	sprd,sc-id = <9851 1 20000>;
 
