@@ -25,7 +25,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 extern void sprd_gpio_init(void);
 extern void ADI_init (void);
-extern void init_ldo_sleep_gr(void);
+extern void sprd_pmu_lowpower_init(void);
 
 phys_size_t real_ram_size = 0x40000000;
 
@@ -73,7 +73,7 @@ int board_init()
 	sprd_eic_init();
 	sprd_intc_enable();
 	sprd_gpio_init();
-	init_ldo_sleep_gr();
+	sprd_pmu_lowpower_init();
 //	TDPllRefConfig(1);
 	sprd_pmu_init();
 #endif
