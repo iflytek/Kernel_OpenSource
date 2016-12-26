@@ -161,6 +161,7 @@ void fdt_fixup_all_x86(u8 *fdt_blob)
 	fdt_fixup_lcdbase(fdt_blob);
 	fdt_fixup_lcdsize(fdt_blob);
 #endif
+	fdt_fixup_serialno(fdt_blob);
 	/*max let cp_cmdline_fixup befor fdt_fixup_cp_boot*/
 	cp_cmdline_fixup();
 
