@@ -365,8 +365,7 @@ int pin_init(void);
 
 /* bits definitions for register REG_PIN_XXX */
 #define BITS_PIN_DS(_x_)                ( ((_x_) << 19) & (BIT_19|BIT_20|BIT_21|BIT_22) )
-#define BIT_PIN_SLP_AGDSP               ( BIT_16 )
-#define BIT_PIN_SLP_TGLDSP              ( BIT_15 )
+#define BIT_PIN_SLP_WTLCP               ( BIT_15 )
 #define BIT_PIN_SLP_PUBCP               ( BIT_14 )
 #define BIT_PIN_SLP_AP                  ( BIT_13 )
 #define BIT_PIN_SLP_NONE		( (~(0xf << 13)) & (BIT_13|BIT_14|BIT_15|BIT_16) )
