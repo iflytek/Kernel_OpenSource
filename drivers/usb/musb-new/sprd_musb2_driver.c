@@ -625,7 +625,7 @@ static void usb_startup(void)
 
 	__raw_bits_or(BIT_USB_EB, REG_AP_AHB_AHB_EB);
 
-    __raw_bits_or(BIT_24, REG_AP_AHB_OTG_PHY_TEST);
+    __raw_bits_or(BIT_24|BIT_22, REG_AP_AHB_OTG_PHY_TEST);
 
     __raw_bits_or(BIT_29|BIT_30, REG_AP_AHB_OTG_PHY_CTRL);//SPRD USB PHY width: 16 bit
 
