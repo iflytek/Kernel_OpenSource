@@ -20,6 +20,11 @@
 void dsi_enable(void)
 {
 	__raw_bits_or(DSI_BIT_EB, DSI_REG_EB);
+	__raw_bits_and(~(BIT_MIPI_DSI_PS_PD_S),DPHY_PW_CONFIG_REG);
+	udelay(10);
+	__raw_bits_and(~(BIT_MIPI_DSI_PS_PD_L),DPHY_PW_CONFIG_REG);
+	__raw_bits_or(BIT_DPHY_REF_CKG_EN|BIT_DPHY_CFG_CKG_EN,DPHY_CKG_EN);
+
 }
 
 void dsi_disable(void)

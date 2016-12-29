@@ -28,7 +28,11 @@ static void pwm_write(int index, uint32_t value, uint32_t reg)
 
 void set_backlight(uint32_t brightness)
 {
-#ifndef CONFIG_FPGA
+	sprd_gpio_request(NULL, 32);
+	sprd_gpio_direction_output(NULL, 32, 1);
+	mdelay(15);
+
+/*#ifndef CONFIG_FPGA
 	int index = PWM_INDEX;
 
 	__raw_bits_or((0x1 << 0), REG_AON_CLK_PWM0_CFG + index * 4);//ext_26m select
@@ -37,7 +41,9 @@ void set_backlight(uint32_t brightness)
 		pwm_write(index, 0, PWM_PRESCALE);
 		printf("sprd backlight power off. pwm_index=%d  brightness=%d\n", index, brightness);
 	} else {
-		__raw_bits_or((0x1 << (index+4)), REG_AON_APB_APB_EB0); //PWMx EN
+		//__raw_bits_or((0x1 << (index+4)), REG_AON_APB_APB_EB0); //PWMx EN
+		__raw_bits_or((0xF << (index+4)), REG_AON_APB_APB_EB0); //PWMx EN
+
 
 		pwm_write(index, PWM2_SCALE, PWM_PRESCALE);
 		pwm_write(index, (brightness << 8) | PWM_MOD_MAX, PWM_CNT);
@@ -46,6 +52,6 @@ void set_backlight(uint32_t brightness)
 		pwm_write(index, PWM_ENABLE, PWM_PRESCALE);
 		printf("sprd backlight power on. pwm_index=%d  brightness=%d\n", index, brightness);
 	}
-#endif
+#endif*/
 	return;
 }
