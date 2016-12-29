@@ -621,6 +621,10 @@ struct regulator_desc *regulator_get(void/*struct device*/ *dev, const char *id)
 {
 	struct regulator_desc *desc =
 		(struct regulator_desc *)(&__init_begin + 1);
+
+	if(!id)
+		return 0;
+
 	while (desc < (struct regulator_desc *)&__init_end) {
 		if (0 == strcmp(desc->name, id))
 			return desc;
