@@ -446,6 +446,21 @@ void flush_dcache_range(unsigned long start, unsigned long stop)
 
 void invalidate_dcache_range(unsigned long start, unsigned long stop)
 {
+	unsigned int vaddr = MMU_ALIGN((unsigned long)start);
+	unsigned int endvaddr, align_overhead_size;
+	unsigned int cache_size = stop-start;
+
+	align_overhead_size = (unsigned long)start - vaddr;
+	cache_size = MMU_ALIGN(cache_size + align_overhead_size + MMU_ALIGNMENT - 1);
+	endvaddr = vaddr + cache_size;
+
+	asm volatile("mfence");
+	for(; vaddr < endvaddr; vaddr += MMU_ALIGNMENT)
+	{
+		asm volatile("clflush %0" : "+m"(*(volatile char *)vaddr));
+	}
+	/* memory fence for both loads and stores */
+	asm volatile("mfence");
 }
 
 void dcache_enable(void)
