@@ -40,9 +40,9 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	      100000,
 #else
 		REG_AON_CLK_CGM_EMMC_2X_CFG,
-		BIT_0|BIT_1,
+		BIT_0,
 	/*selsect 2x clock source, baseclk =( 2x clock source)/ 2*/
- 	       192000000,
+	       13000000,
 		400000,
 #endif
 	/* REG_AP_AHB_AHB_EB, */
@@ -51,6 +51,8 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	/* REG_AP_AHB_AHB_RST, */
 	0X20E00004,
 	BIT_14,
+	REG_AON_APB_CLK_EB0,
+	BIT_0|BIT_1,
 
 		NULL,
 		"vddemmccore",
@@ -77,7 +79,8 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	/* REG_AP_AHB_AHB_RST, */
 	0X20E00004,
 	BIT_11,
-
+	REG_AON_APB_CLK_EB0,
+	BIT_2|BIT_3,
 		"vddsdio",
 		"vddsdcore",
 	}

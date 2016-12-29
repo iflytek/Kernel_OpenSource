@@ -2212,9 +2212,9 @@ void board_mmc_test(void)
 		testbuf_read[i] = 0x0;
 	}
 
-	emmc_write(0, j, 1, testbuf_write);
-	emmc_erase(0, j, 1);
-	emmc_read(0, j, 1, testbuf_read);
+	mmc_bwrite(0, j, 1, testbuf_write);
+	mmc_berase(0, j, 1);
+	mmc_bread(0, j, 1, testbuf_read);
 
 	for (i = 0; i < 512; i++) {
 		if (0 != testbuf_read[i])
@@ -2227,8 +2227,8 @@ void board_mmc_test(void)
 		printf("emmc first test OK\n");
 
 	flag = 0;
-	emmc_write(0, j, 1, testbuf_write);
-	emmc_read(0, j, 1, testbuf_read);
+	mmc_bwrite(0, j, 1, testbuf_write);
+	mmc_bread(0, j, 1, testbuf_read);
 
 	for (i = 0; i < 512; i++) {
 		if (0X5a != testbuf_read[i])
@@ -2241,9 +2241,9 @@ void board_mmc_test(void)
 		debugf("emmc second test OK\n");
 
 	flag = 0;
-	emmc_write(0, 1, 10, pc_buffer);
+	mmc_bwrite(0, 1, 10, pc_buffer);
 	memset(pc_buffer, 0, 5120);
-	emmc_read(0, 1, 10, pc_buffer);
+	mmc_bread(0, 1, 10, pc_buffer);
 
 	for (i = 0; i < 5120; i++) {
 		if (0X5a != pc_buffer[i])
@@ -2272,7 +2272,6 @@ int board_mmc_init(bd_t *bis)
 	/* code as below for emmc test */
 	if (!ret) {
 		mmc_switch_part(EMMC, 0);
-		/* board_mmc_test(); */
 	}
 
 	return 0;
@@ -2300,10 +2299,14 @@ int sprd_host_init(int sdio_type)
 		    sprd_host_info->ahb_reset_bit);
 	CHIP_REG_AND(sprd_host_info->ahb_reset_reg,
 		     ~(sprd_host_info->ahb_reset_bit));
+#ifdef CONFIG_SC9833
+	CHIP_REG_OR(sprd_host_info->aon_clk_reg,
+		    sprd_host_info->aon_clk_bit);
+#endif
 	ret = sprd_sdhci_init(sprd_host_info->regbase,
 		sprd_host_info->maxclk, sprd_host_info->minclk, 0);
-	debugf("%s return %d\n", __func__, ret);
 
+	debugf("%s return %d\n", __func__, ret);
 	return ret;
 }
 
