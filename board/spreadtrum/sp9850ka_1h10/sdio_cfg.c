@@ -40,9 +40,9 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	      100000,
 #else
 		REG_AON_CLK_CGM_EMMC_2X_CFG,
-		BIT_0,
+		BIT_0|BIT_1,
 	/*selsect 2x clock source, baseclk =( 2x clock source)/ 2*/
-	       13000000,
+	       192000000,
 		400000,
 #endif
 	/* REG_AP_AHB_AHB_EB, */
