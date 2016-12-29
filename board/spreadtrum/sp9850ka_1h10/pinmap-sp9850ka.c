@@ -25,7 +25,7 @@
 static pinmap_t pinmap[]={
 {REG_PIN_CTRL0,0x00000000},
 {REG_PIN_CTRL1,0x00000240},
-{REG_PIN_CTRL2,0xa0403810},//uart5->LTEDSP'uart0   uart0->PUBCP'uart;  uart1->AP'uart1; uart2->TGDSP'uart1; uart3->GPS'uart3; 
+{REG_PIN_CTRL2,0x20403810},//uart5->LTEDSP'uart0   uart0->PUBCP'uart;  uart1->AP'uart1; uart2->TGDSP'uart1; uart3->GPS'uart3; 
 {REG_PIN_CTRL3,0x0},//IIS DEF = AP
 {REG_PIN_CTRL4,0x0000009e},//
 {REG_PIN_CTRL5,0x0},//
