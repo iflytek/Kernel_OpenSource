@@ -351,7 +351,7 @@
 /* Chip Driver Macro Definitions End*/
 
 /*active arm7 ram before access to it*/
-#define CONFIG_ARM7_RAM_ACTIVE
+//#define CONFIG_ARM7_RAM_ACTIVE
 
 #endif /* __CONFIG_H */
 
