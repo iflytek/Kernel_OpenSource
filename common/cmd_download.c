@@ -19,8 +19,9 @@
 #include "dl_cmd_def.h"
 #include <dl_cmd_proc.h>
 #include <malloc.h>
+#include <chipram_env.h>
 
-
+static int dl_times=0;
 static struct dl_cmd *cmdlist = NULL;
 
 void dl_cmd_register(enum dl_cmd_type type,
@@ -67,7 +68,17 @@ void dl_cmd_handler(void)
 
 int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-        printf("%s:enter\n", __FUNCTION__);
+	extern int autodloader_mainhandler(void);
+	boot_mode_t boot_role = get_boot_role();
+
+#ifdef CONFIG_USB_ENUM_IN_UBOOT
+if ((dl_times==0) && (boot_role == BOOTLOADER_MODE_DOWNLOAD))
+{
+        dl_times=dl_times+1;
+        autodloader_mainhandler();
+}
+#endif
+	printf("%s:enter\n", __FUNCTION__);
         dl_packet_init ();
 #ifdef CONFIG_NAND_BOOT
 	fdl_ubi_dev_init();

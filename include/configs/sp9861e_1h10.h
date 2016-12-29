@@ -6,7 +6,7 @@
 #define CONFIG_SOC_IWHALE2
 
 /*used in usb drv*/
-
+#define CONFIG_USB_ENUM_IN_UBOOT
 #define TMSC_16NM_FFPLL 0x5533166e /* USB3.0_PHY_TSMC_16NM */
 #define USB3_PHY_TUNE1 0x919e9dec
 #define USB3_PHY_TUNE2 0x0f0560fe
