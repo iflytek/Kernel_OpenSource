@@ -100,6 +100,8 @@ SECTIONS
 	}
 
 	_image_binary_end = .;
+	. = . + 53k;
+	. = ALIGN(4);
 
 	/*
 	 * Deprecated: this MMU section is used by pxa at present but
