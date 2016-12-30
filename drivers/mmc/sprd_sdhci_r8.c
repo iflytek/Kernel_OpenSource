@@ -532,15 +532,12 @@ int sdhci_query_command_backstage(struct mmc *mmc, struct mmc_data *data)
 	}
 }
 
-static int  sdhci_set_clock(struct mmc *mmc, unsigned int clock)
+static int sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 {
 	struct sdhci_host *host = mmc->priv;
 	unsigned int div, clk, timeout;
-         unsigned int  temp_reg;
 
-	temp_reg=sdhci_readl(host, SDHCI_CLOCK_CONTROL);
-	temp_reg &= 0xFFFF0000;
-	sdhci_writel(host, temp_reg, SDHCI_CLOCK_CONTROL);
+	sdhci_writew(host, 0, SDHCI_CLOCK_CONTROL);
 
 	if (clock == 0)
 		return 0;
@@ -562,7 +559,6 @@ static int  sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 				break;
 		}
 	}
-
 	div >>= 1;
 
 	if (host->set_clock)
@@ -572,9 +568,7 @@ static int  sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 	clk |= ((div & SDHCI_DIV_HI_MASK) >> SDHCI_DIV_MASK_LEN)
 	    << SDHCI_DIVIDER_HI_SHIFT;
 	clk |= SDHCI_CLOCK_INT_EN;
-	temp_reg=sdhci_readl(host, SDHCI_CLOCK_CONTROL);
-	temp_reg |= clk;
-	sdhci_writel(host, temp_reg, SDHCI_CLOCK_CONTROL);
+	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 
 	/* Wait max 20 ms */
 	timeout = 100;
@@ -590,11 +584,7 @@ static int  sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 	}
 
 	clk |= SDHCI_CLOCK_CARD_EN;
-
-	temp_reg=sdhci_readl(host, SDHCI_CLOCK_CONTROL);
-	temp_reg |= clk;
-	sdhci_writel(host, temp_reg, SDHCI_CLOCK_CONTROL);
-
+	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 	return 0;
 }
 

@@ -348,7 +348,7 @@ static inline u16 sdhci_readw(struct sdhci_host *host, int reg)
 	ofst = (reg & 0x2) << 3;
 	addr = (reg & 0xFFFFFFFC);
 	value = readl(host->ioaddr + addr);
-	temp = (u8)(value >> ofst);
+	temp = (u16)(value >> ofst);
 	return temp;
 }
 

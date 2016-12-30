@@ -8,7 +8,6 @@
 #define _SDIO_REG_V0_H_
 
 #include <sprd_regulator.h>
-#include <sprd_sdhci.h>
 
 #define EMMC	0
 #define SD	1
