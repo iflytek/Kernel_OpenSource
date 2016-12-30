@@ -249,16 +249,6 @@ struct sdhci_host;
  */
 #define SDHCI_DEFAULT_BOUNDARY_SIZE	(512 * 1024)
 #define SDHCI_DEFAULT_BOUNDARY_ARG	(7)
-struct sdhci_ops {
-#ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
-	u32	(*read_l)(struct sdhci_host *host, int reg);
-	u16	(*read_w)(struct sdhci_host *host, int reg);
-	u8	(*read_b)(struct sdhci_host *host, int reg);
-	void	(*write_l)(struct sdhci_host *host, u32 val, int reg);
-	void	(*write_w)(struct sdhci_host *host, u16 val, int reg);
-	void	(*write_b)(struct sdhci_host *host, u8 val, int reg);
-#endif
-};
 
 struct sdhci_host {
 	char *name;
@@ -268,7 +258,6 @@ struct sdhci_host {
 	unsigned int version;
 	unsigned int clock;
 	struct mmc *mmc;
-	const struct sdhci_ops *ops;
 	int index;
 
 	int bus_width;
@@ -280,93 +269,34 @@ struct sdhci_host {
 	struct mmc_config cfg;
 };
 
-#ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
+#ifndef CONFIG_MMC_SDHCI_IO_ACCESSORS
 static inline void sdhci_writel(struct sdhci_host *host, u32 val, int reg)
 {
-	if (unlikely(host->ops->write_l))
-		host->ops->write_l(host, val, reg);
-	else
-		writel(val, host->ioaddr + reg);
+	writel(val, host->ioaddr + reg);
 }
 
 static inline void sdhci_writew(struct sdhci_host *host, u16 val, int reg)
 {
-	u32 addr;
-	u32 value;
-	u32 ofst;
-
-	if (unlikely(host->ops->write_w)) {
-		host->ops->write_w(host, val, reg);
-	} else {
-		ofst = (reg & 0x2) << 3;
-		addr = (reg & 0xFFFFFFFC);
-		value = readl(host->ioaddr + addr);
-		value &= ~(0xFFFF << ofst);
-		value |= (val & 0xFFFF) << ofst;
-		writel(value, host->ioaddr + addr);
-	}
+	writew(val, host->ioaddr + reg);
 }
 
 static inline void sdhci_writeb(struct sdhci_host *host, u8 val, int reg)
 {
-	u32 addr;
-	u32 value;
-	u32 ofst;
-
-	if (unlikely(host->ops->write_b)) {
-		host->ops->write_b(host, val, reg);
-	} else {
-		ofst = (reg & 0x3) << 3;
-		addr = (reg & 0xFFFFFFFC);
-		value = readl(host->ioaddr + addr);
-		value &= ~(0xFF << ofst);
-		value |= (val & 0xFF)<<ofst;
-		writel(value, host->ioaddr + addr);
-	}
+	writeb(val, host->ioaddr + reg);
 }
-
 static inline u32 sdhci_readl(struct sdhci_host *host, int reg)
 {
-	if (unlikely(host->ops->read_l))
-		return host->ops->read_l(host, reg);
-	else
-		return readl(host->ioaddr + reg);
+	return readl(host->ioaddr + reg);
 }
 
 static inline u16 sdhci_readw(struct sdhci_host *host, int reg)
 {
-	u32 ofst;
-	u16  temp = 0;
-	u32 addr;
-	u32 value;
-
-	if (unlikely(host->ops->read_w)) {
-		return host->ops->read_w(host, reg);
-	} else {
-		ofst = (reg & 0x2) << 3;
-		addr = (reg & 0xFFFFFFFC);
-		value = readl(host->ioaddr + addr);
-		temp = (u8)(value >> ofst);
-		return temp;
-	}
+	return readw(host->ioaddr + reg);
 }
 
 static inline u8 sdhci_readb(struct sdhci_host *host, int reg)
 {
-	u32 ofst;
-	u8  temp;
-	u32 addr;
-	u32 value;
-
-	if (unlikely(host->ops->read_b)) {
-		return host->ops->read_b(host, reg);
-	} else {
-		ofst = (reg & 0x3) << 3;
-		addr = (reg & 0xFFFFFFFC);
-	    value = readl(host->ioaddr + addr);
-		temp = (u8)(value >> ofst);
-		return temp;
-	}
+	return readb(host->ioaddr + reg);
 }
 
 #else
