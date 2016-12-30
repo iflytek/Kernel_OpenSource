@@ -16,6 +16,7 @@ struct key_info {
 	const uint32_t offset;
 	const uint32_t type;
 	const uint32_t keycode;
+	const uint32_t active;
 };
 
 /* TODO: modify keys here for different board */
@@ -25,12 +26,14 @@ static struct key_info KEYS[] = {
 		.offset = EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE,
 		.type = TYPE_EIC,
 		.keycode = KEY_VOLUMEUP,
+		.active = 1,
 	},
 	{
 		.tag = "Volume Down",
 		.offset = SPRD_DDIE_EIC_KEYIN0,
 		.type = TYPE_EIC,
 		.keycode = KEY_VOLUMEDOWN,
+		.active = 0,
 	},
 };
 
@@ -70,19 +73,18 @@ unsigned char board_key_scan(void)
 	for (i = 0; i < ARRAY_SIZE(KEYS); i++) {
 		if (KEYS[i].type == TYPE_GPIO) {
 			val = sprd_gpio_get(NULL, KEYS[i].offset);
-			if (val < 0)
-				errorf("[KEY] fail to get value for %s!", KEYS[i].tag);
-			else if (val == 0)
-				break;
 		} else if (KEYS[i].type == TYPE_EIC) {
 			sprd_eic_request(KEYS[i].offset);
 			udelay(3000);
 			val = sprd_eic_get(KEYS[i].offset);
-			if (val < 0)
-				errorf("[KEY] fail to get EIC value for %s!", KEYS[i].tag);
-			else if (val > 0)
-				break;
 		}
+		debugf("[KEYS] i=%d, value=%d\n", i, val);
+		if (val < 0) {
+			errorf("[KEY] fail to get value for %s!", KEYS[i].tag);
+			continue;
+		}
+		if (!!val == KEYS[i].active)
+			break;
 	}
 
 	if (i == ARRAY_SIZE(KEYS)) {
