@@ -29,6 +29,8 @@ typedef enum {
 	CMD_IQ_REBOOT_MODE,
 	CMD_SLEEP_MODE,
 	CMD_SPRDISK_MODE,
+	CMD_VMM_PANIC_MODE,   //0x14
+	CMD_TOS_PANIC_MODE,
 
 	/*this is not a mode name ,beyond CMD_MAX_MODE means overflow*/
 	CMD_MAX_MODE
