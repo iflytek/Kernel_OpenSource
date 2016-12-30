@@ -38,13 +38,10 @@ enum {
 	FS_INVALID
 };
 
-//extern lcd_display(void);
 extern void set_backlight(uint32_t value);
-//extern void lcd_setfgcolor(int color);
 extern void lcd_printf(const char *fmt, ...);
 extern  int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
-extern int get_sysdump_status(void);
 
 #ifdef CONFIG_ETB_DUMP
 extern unsigned char etb_dump_mem[SZ_32K];
@@ -114,7 +111,6 @@ static void wait_for_keypress()
 	debugf("Pressed key: %d\n", key_code);
 	sysdump_lcd_printf("Pressed key: %d\n", key_code);
 	lcd_enable();
-//	lcd_display();
 }
 
 
@@ -187,9 +183,10 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 
 	debugf("writing 0x%lx bytes to sd file %s\n",
 		memsize, filename);
-	sysdump_lcd_printf("writing 0x%lx bytes to sd file %s\n", memsize, filename);
+	sysdump_lcd_printf("writing 0x%lx bytes to sd file %s\n",
+		memsize, filename);
 	lcd_enable();
-//	lcd_display();
+
 	unsigned long *actwrite = NULL;
 	if (fs_type==FS_FAT32)
 		ret = file_fat_write(filename, memaddr, 0, memsize, actwrite);
@@ -267,10 +264,6 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 						struct sysdump_mem *sysmem, int mem_num,
 						char *bufp, int nphdr, int dataoff)
 {
-#if 0
-	struct elf_prstatus prstatus;	/* NT_PRSTATUS */
-	struct elf_prpsinfo prpsinfo;	/* NT_PRPSINFO */
-#endif
 	struct elf_phdr *nhdr, *phdr;
 	struct elfhdr *elf;
 	struct memelfnote notes[3];
@@ -344,11 +337,6 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 	notes[0].data = &prstatus;
 
 	memset(&prstatus, 0, sizeof(struct elf_prstatus));
-	//fill_prstatus(&prstatus, current, 0);
-	//if (regs)
-	//	memcpy(&prstatus.pr_reg, regs, sizeof(*regs));
-	//else
-	//	crash_setup_regs((struct pt_regs *)&prstatus.pr_reg, NULL);
 
 	nhdr->p_filesz	= notesize(&notes[0]);
 	bufp = storenote(&notes[0], bufp);
@@ -382,56 +370,24 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 	return;
 } /* end elf_kcore_store_hdr() */
 
-
-int sysdump_flag_check(void)
-{
-	unsigned dump_status = 0;
-
-	printf("we will check sysdump status!!!\n");
-
-	if (is_7s_reset_for_systemdump())
-	{
-		if (get_sysdump_status()) {
-			printf("uboot:7s reset do sysdump now!!!\n");
-			return 1;
-		} else {
-			printf("uboot:7s reset don't sysdump now!!!\n");
-			return -1;
-		}
-	}
-	else{
-		dump_status = get_sysdump_status();
-		printf("uboot:sysdump status is %x\n",dump_status);
-
-		if(dump_status) {
-			printf("uboot:start to do sysdump now!!!\n");
-			return 1;
-		}
-		else {
-			printf("uboot:don't support sysdump now!!!\n");
-			return -1;
-		}
-	}
-}
-
 char *rstmode[] = {
-	"undefind mode",		//CMD_UNDEFINED_MODE=0,
-	"power down",			//CMD_POWER_DOWN_DEVICE,
+	"undefind mode",			//CMD_UNDEFINED_MODE=0,
+	"power down",				//CMD_POWER_DOWN_DEVICE,
 	"normal",				//CMD_NORMAL_MODE,
 	"recovery",				//CMD_RECOVERY_MODE,
 	"fastboot",				//CMD_FASTBOOT_MODE,
 	"alarm",				//CMD_ALARM_MODE,
 	"charge",				//CMD_CHARGE_MODE,
 	"engtest",				//CMD_ENGTEST_MODE,
-	"watchdog timeout",		//CMD_WATCHDOG_REBOOT ,
-	"ap watchdog timeout",	//CMD_AP_WATCHDOG_REBOOT ,
-	"framework crash",		//CMD_SPECIAL_MODE,
-	"manual dump",			//CMD_UNKNOW_REBOOT_MODE,
-	"kernel crash",			//CMD_PANIC_REBOOT,
-	"calibration",			//CMD_CALIBRATION_MODE,
-	"autodloader",			//CMD_AUTODLOADER_REBOOT,
-	"ext rstn reboot",		//CMD_EXT_RSTN_REBOOT_MODE,
-	"iq reboot",			//CMD_IQ_REBOOT_MODE,
+	"watchdog timeout",			//CMD_WATCHDOG_REBOOT ,
+	"ap watchdog timeout",			//CMD_AP_WATCHDOG_REBOOT ,
+	"framework crash",			//CMD_SPECIAL_MODE,
+	"manual dump",				//CMD_UNKNOW_REBOOT_MODE,
+	"kernel crash",				//CMD_PANIC_REBOOT,
+	"calibration",				//CMD_CALIBRATION_MODE,
+	"autodloader",				//CMD_AUTODLOADER_REBOOT,
+	"ext rstn reboot",			//CMD_EXT_RSTN_REBOOT_MODE,
+	"iq reboot",				//CMD_IQ_REBOOT_MODE,
 	"sleep",				//CMD_SLEEP_MODE,
 };
 
@@ -461,7 +417,6 @@ int read_nand_to_ram( struct mtd_info *mtd, loff_t paddr, unsigned int size, uns
 			 __func__, (unsigned int)read_addr, readsize, ret, retlen);
 			sysdump_lcd_printf("\nRead nand flash 0x%.8x error, you can dump it use download tools again!\n", read_addr);
 			lcd_enable();
-//			lcd_display();
 			break;
                 }
         }
@@ -563,35 +518,6 @@ static int fill_dump_mem(unsigned char *fdt_blob, struct sysdump_mem *sprd_dump_
 	return sprd_dump_mem_num;
 }
 
-#if 0
-static unsigned long get_sprd_sysdump_info_paddr(int nodeoffset)
-{
-	unsigned char *fdt_blob = (unsigned char *) DT_ADR;
-	unsigned long sprd_dump_magic = 0;
-	unsigned long *ptr = NULL;
-	int lenp = 0;
-
-    /*const char *prop = fdt_get_name(fdt_blob, nodeoffset, &lenp);
-	if(prop)
-	{
-		debugf("device_type is %s\n",prop);
-		debugf("device_type ptr is %p\n",prop);
-		debugf("lenp  is %d\n",lenp);
-	}*/
-
-	ptr = fdt_getprop(fdt_blob, nodeoffset, "magic-addr", &lenp);
-	if (ptr == NULL) {
-		debugf("no magic-addr property.\n");
-		return 0;
-	}
-	sprd_dump_magic = fdt_addr_to_cpu(*ptr);
-	debugf("sprd_dump_magic is 0x%lx\n", sprd_dump_magic);
-
-	return sprd_dump_magic;
-}
-
-#endif
-
 static unsigned long get_sprd_dump_size(unsigned char *fdt_blob, int nodeoffset)
 {
 	unsigned long *ptr = NULL, *ptr_end = NULL;
@@ -660,16 +586,11 @@ void write_sysdump_before_boot(int rst_mode)
 	struct rtc_time tm;
 	struct sysdump_mem *mem;
 	struct sysdump_mem sprd_dump_mem[MAX_NUM_DUMP_MEM];
-    struct sysdump_info *infop = NULL;
-    unsigned long sprd_sysdump_magic = 0;
-    int nodeoffset = 0;
-    dir_entry *dentptr = NULL;
+	struct sysdump_info *infop = NULL;
+	unsigned long sprd_sysdump_magic = 0;
+	int nodeoffset = 0;
+	dir_entry *dentptr = NULL;
 	unsigned char *dt_addr = NULL;
-
-
-    /*sprd_sysdump_magic = get_sprd_sysdump_info_paddr(nodeoffset);
-    if (sprd_sysdump_magic <= 0)
-		goto FINISH;*/
 
 	sprd_sysdump_magic = SPRD_SYSDUMP_MAGIC;
 
@@ -697,11 +618,6 @@ void write_sysdump_before_boot(int rst_mode)
 		lcd_enable();
 #endif
 
-		if(-1 == sysdump_flag_check()) {
-			debugf("skip sysdump because sysdump_flag is close.\n");
-			goto FINISH;
-		}
-
 		/* display on screen */
 		display_writing_sysdump();
 		#define CONSOLE_COLOR_RED (0x1f<<11)
@@ -711,9 +627,12 @@ void write_sysdump_before_boot(int rst_mode)
 
 		if (init_mmc_fat(&fs_type)) {
 			debugf("ERROR: init_mmc_fat,fs_type=%d.\n", fs_type);
-			sysdump_lcd_printf("\ninit_mmc_fat failed!!!.\nPress volume up key (Exp power key and volume down key) to continue...");
+			sysdump_lcd_printf("\ninit_mmc_fat failed, Please check SD Card!!!.\nPress volume up key (Exp power key and volume down key) to continue...");
                         lcd_enable();
                         wait_for_keypress();
+#ifdef CONFIG_X86
+			reset_to_normal(CMD_NORMAL_MODE);
+#endif
 			goto FINISH;
 		}
 
@@ -978,13 +897,11 @@ void write_sysdump_before_boot(int rst_mode)
 #ifdef CONFIG_NAND_BOOT
 		sysdump_lcd_printf("\nBegin to dump nand flash:\n");
 		lcd_enable();
-//		lcd_display();
 		mtd_dump(fs_type);
 #endif
 		debugf("\nwriting done.\nPress any key to continue...");
 		sysdump_lcd_printf("\nWriting done.\nPress any key (Exp power key) to continue...");
 		lcd_enable();
-//		lcd_display();
 		if(!auto_test_flag)
 			wait_for_keypress();
 	} else

@@ -5,9 +5,9 @@
 #define   HWRST_STATUS_POWERON_MASK 		(0xf0)
 
 /*
-Definition of ANA_RST_STATUS(ANA_REG_GLB_POR_RST_MONITOR) register
-bit[0..7]: Reboot mode
-bit[9]: SYSDUMP enable/disable flag
+* Definition of ANA_RST_STATUS(ANA_REG_GLB_POR_RST_MONITOR) register
+* bit[0..7]: Reboot mode
+* bit[9]: SYSDUMP enable/disable flag
 */
 
 #define   HWRST_STATUS_RECOVERY 		(0x0020)
@@ -24,6 +24,8 @@ bit[9]: SYSDUMP enable/disable flag
 #define   HWRST_STATUS_NORMAL2			(0x00f0)
 #define   HWRST_STATUS_NORMAL3			(0x00f1)
 #define   HWRST_STATUS_SYSDUMPEN		(0x200)
+#define   HWRST_STATUS_MOBILEVISOR              (0x0001)
+#define   HWRST_STATUS_SECURITY                 (0x0002)
 
 #define   HW_PBINT2_STATUS				(0x8)
 #define   HW_VCHG_STATUS				(0x20)
