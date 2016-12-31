@@ -96,6 +96,13 @@ static inline void pubcp_boot(void)
 void pmic_arm7_RAM_active(void)
 {
     u32 state;
+
+	/* sharkl2, arm7 sys hase been release by ddr, can't be reset agian, otherwise
+      the system will hung */
+	state = *((volatile u32*)REG_PMU_APB_CP_SOFT_RST);
+	if(!(state & BIT(8)))
+	  return;
+
     *((volatile u32*)REG_AON_APB_ARM7_SYS_SOFT_RST) |= BIT(0);   /* 0x402e0114*/
     msleep(50);
     *((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT(8);   /* reset arm7*/
@@ -123,32 +130,6 @@ static inline void pmic_arm7_boot(void)
     msleep(50);
 }
 
-
-/*****************************************************************************/
-//  Description:    After normal power on, the HW_RST flag should be reset in
-//                  order to judge differrent reset conditions between normal
-//                  power on reset and watchdog reset.
-//  Author:         Andrew.Yang
-//  Note:
-/*****************************************************************************/
-static inline void cp2_boot()
-{
-}
-
-/*****************************************************************************/
-//  Description:    Before watchdog reset, writting HW_RST flag is uesed to j-
-//                  udge differrent watchdog reset conditions between MCU reset
-//                  and system-halted.
-//  Author:         Andrew.Yang
-//  Note:
-/*****************************************************************************/
-static inline void cp0_arm1_boot(void)
-{
-}
-
-static inline void cp0_arm2_boot(void)
-{
-}
 
 
 /**---------------------------------------------------------------------------*
