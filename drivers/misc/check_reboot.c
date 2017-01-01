@@ -7,6 +7,9 @@
 #include <asm/arch/sprd_debug.h>
 #include <sprd_pmic_misc.h>
 
+#define KEY_PRESSED		0
+#define KEY_NOT_PRESSED	1
+
 extern int hw_watchdog_rst_pending(void);
 unsigned sysdump_flag = 0;
 
@@ -33,7 +36,7 @@ unsigned check_reboot_mode(void)
 {
 	unsigned rst_mode= 0;
 	unsigned hw_rst_mode = ANA_REG_GET(ANA_REG_GLB_POR_SRC_FLAG);
-	sprd_dbg("hw_rst_mode==%x\n", hw_rst_mode);
+	debugf("hw_rst_mode==%x\n", hw_rst_mode);
 
 /*for download mode reboot system */
 	if(HWRST_RTCSTATUS_DOWNLOAD_BOOT == rtc_domain_reg_read()) {
@@ -51,9 +54,9 @@ unsigned check_reboot_mode(void)
 	/* clear the flag which used by modem side in any scenes , prevent some errors */
 	ANA_REG_SET(ANA_REG_GLB_WDG_RST_MONITOR, 0);
 
-	sprd_dbg("rst_mode==%x\n",rst_mode);
+	debugf("rst_mode==%x\n",rst_mode);
 	if(hw_watchdog_rst_pending()){
-		sprd_dbg("hw watchdog rst int pending\n");
+		debugf("hw watchdog rst int pending\n");
 		if(rst_mode == HWRST_STATUS_RECOVERY)
 			return CMD_RECOVERY_MODE;
 		else if(rst_mode == HWRST_STATUS_FASTBOOT)
@@ -87,13 +90,13 @@ unsigned check_reboot_mode(void)
 			return sysdump_flag ? CMD_TOS_PANIC_MODE : CMD_NORMAL_MODE;
 #endif
 		else{
-			sprd_dbg(" a boot mode not supported\n");
+			debugf(" a boot mode not supported\n");
 			return 0;
 		}
 	}else{
 		printf("is_7s_reset 0x%x, systemdump 0x%x\n", is_7s_reset(), is_7s_reset_for_systemdump());
 		debugf("is_hw_smpl_enable %d\n", is_hw_smpl_enable());
-		sprd_dbg("no hw watchdog rst int pending\n");
+		debugf("no hw watchdog rst int pending\n");
 		if(rst_mode == HWRST_STATUS_NORMAL2)
 			return sysdump_flag ? CMD_UNKNOW_REBOOT_MODE : CMD_NORMAL_MODE;
 		else if(is_7s_reset_for_systemdump())
@@ -168,18 +171,33 @@ void power_down_devices(unsigned pd_cmd)
 
 int power_button_pressed(void)
 {
+	int eic_value,ret;
 //maybe get button status from eic API is batter
 	sprd_eic_request(EIC_PBINT);
 	udelay(3000);
-	sprd_dbg("power_button_pressed status %x\n", sprd_eic_get(EIC_PBINT));
-	return !sprd_eic_get(EIC_PBINT);
+	eic_value = sprd_eic_get(EIC_PBINT);
+	debugf("power_button_pressed status %x\n", eic_value);
+
+#ifdef CONFIG_POWERKEY_DEFAULT_HIGH
+	if (eic_value == 0)
+		ret = KEY_PRESSED;
+	else
+		ret = KEY_NOT_PRESSED;
+#else
+	if (eic_value == 0)
+		ret = KEY_NOT_PRESSED;
+	else
+		ret = KEY_PRESSED;
+#endif
+
+	return ret;
 }
 
 int charger_connected(void)
 {
 	sprd_eic_request(EIC_CHG_INT);
 	udelay(3000);
-	sprd_dbg("eica status %x\n", sprd_eic_get(EIC_CHG_INT));
+	debugf("eica status %x\n", sprd_eic_get(EIC_CHG_INT));
 
 	return !!sprd_eic_get(EIC_CHG_INT);
 }
@@ -187,7 +205,7 @@ int charger_connected(void)
 int alarm_triggered(void)
 {
 	//printf("ANA_RTC_INT_RSTS is 0x%x\n", ANA_RTC_INT_RSTS);
-	sprd_dbg("value of it 0x%x\n", ANA_REG_GET(ANA_RTC_INT_RSTS));
+	debugf("value of it 0x%x\n", ANA_REG_GET(ANA_RTC_INT_RSTS));
 	return ANA_REG_GET(ANA_RTC_INT_RSTS) & BIT_4;
 }
 
