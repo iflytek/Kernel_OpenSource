@@ -346,9 +346,27 @@ static uint32_t ili9881c_readid(struct panel_spec *self)
         return 0;
 }
 
+int32_t ili9881c_reset(struct panel_spec *self)
+{
+	sprd_gpio_request(NULL, LCM_GPIO_RSTN);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
+	mdelay(5);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 0);
+	mdelay(5);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
+	mdelay(5);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 0);
+	mdelay(5);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
+	mdelay(20);
+
+	return 0;
+}
+
 static struct panel_operations lcd_ili9881c_mipi_operations = {
 	.panel_init = ili9881c_mipi_init,
 	.panel_readid = ili9881c_readid,
+	.panel_reset = ili9881c_reset,
 };
 
 static struct timing_rgb lcd_ili9881c_mipi_timing = {
