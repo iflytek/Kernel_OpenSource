@@ -242,7 +242,7 @@
 #endif // CONFIG_LCD
 
 /*for sysdump*/
-//#define CONFIG_SPRD_SYSDUMP
+#define CONFIG_SPRD_SYSDUMP
 #define CONFIG_RAMDUMP_NO_SPLIT 1	/* Don't split sysdump file */
 #define SPRD_SYSDUMP_MAGIC		RAMDISK_ADR
 #define REAL_SDRAM_SIZE 0x40000000	/*dump 1G */
