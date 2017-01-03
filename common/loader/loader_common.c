@@ -181,12 +181,12 @@ static int start_linux_x86()
 {
 	struct boot_params *base_ptr;
 	struct boot_img_hdr *boot_hdr = (void *)raw_header;
-	ulong load_address;
+	uint64_t load_address;
 	char *bzImage_addr = KERNEL_ADR;
 	ulong bzImage_size = 0;
 	ulong initrd_addr = RAMDISK_ADR;
 	ulong initrd_size = PAD_SIZE(boot_hdr->ramdisk_size, KERNL_PAGE_SIZE);
-	ulong dtb_addr = 0;
+	int image_64bit = 0;
 
 	debugf("initrd_size: 0x%lx\n", initrd_size);
 	disable_interrupts();
@@ -204,13 +204,13 @@ static int start_linux_x86()
 		return -1;
 	}
 	if (setup_zimage(base_ptr, (char *)base_ptr + COMMAND_LINE_OFFSET,
-			0, initrd_addr, initrd_size, dtb_addr)) {
+			0, initrd_addr, initrd_size)) {
 		puts("Setting up boot parameters failed ...\n");
 		return -1;
 	}
-
+	image_64bit = image_check64(base_ptr);
 	/* we assume that the kernel is in place */
-	return boot_linux_kernel((ulong)base_ptr, load_address, false);
+	return boot_linux_kernel((ulong)base_ptr, load_address, image_64bit);
 }
 #ifdef CONFIG_ARM
 static int start_linux(uchar *dt_addr)
