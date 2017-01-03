@@ -14,6 +14,7 @@
 #include <otp_helper.h>
 #include <asm/arch/hardware.h>
 #include <dvfs.h>
+#include "adi_hal_internal.h"
 
 #define FUSE_LFM_MODULE0_BLKNO		55
 #define FUSE_HFM_MODULE0_BLKNO		56
@@ -172,8 +173,13 @@ static void setup_vid_table(int module)
 	value as default. will remove this if efuse supported.*/
 	v = v0 + VID_V2;
 	if(!v->avail) {
-		set_pmic_voltage(v, 750);
-		debug("no VID_V2 on efuse, write 750mv as default\n");
+		if (ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW) < 0xC003) {
+			set_pmic_voltage(v, 1200);
+			debug("no VID_V2 on efuse, write 1200mv as default\n");
+		} else {
+			set_pmic_voltage(v, 750);
+			debug("no VID_V2 on efuse, write 750mv as default\n");
+		}
 	}
 	v = v0 + VID_V7;
 	if(!v->avail) {
@@ -347,6 +353,7 @@ void change_cpu_freq()
 {
 	unsigned long long msr_bits;
 	unsigned long long msr_value;
+	unsigned long fid, vid;
 
 	/*IA32_CR_MISC_ENABLES :Enable_GS3  */
 	rdmsrl(MSR_IA32_MISC_ENABLES, msr_bits);
@@ -371,5 +378,25 @@ void change_cpu_freq()
 	msr_bits |= msr_value;
 
 	wrmsrl(MSR_IA32_PERF_CTL, msr_bits);
+
+	if (ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW) < 0xC003) {
+		rdmsrl(MSR_IA32_PERF_STATUS, msr_bits);
+		vid = (unsigned long)msr_bits & 0xff;
+		fid = (unsigned long)msr_bits >> 8;
+		while ((vid != 5) && (fid != 0x14)) {
+			rdmsrl(MSR_IA32_PERF_STATUS, msr_bits);
+			vid = (unsigned long)msr_bits & 0xff;
+			fid = (unsigned long)msr_bits >> 8;
+		}
+
+		msr_bits = 0; /* Clear the select bits  */
+		msr_value = (0x14 & 0x3F)<<8;   /* BUS_RATIO_SEL : bits [13:8] */
+		msr_bits |= msr_value;
+		msr_value = (2 & 0x7F);    /* VID_SEL : bits [6:0] */
+		msr_bits |= msr_value;
+
+		wrmsrl(MSR_IA32_PERF_CTL, msr_bits);
+	}
+
 	debug("set freq ratio and vid to:%4x\n", msr_bits & 0x3F7F);
 }
