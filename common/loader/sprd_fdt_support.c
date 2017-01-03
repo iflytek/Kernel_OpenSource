@@ -161,9 +161,9 @@ int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t 
 	uint32_t funcid;
 	mem_info mi;
 
-	smcid  = TEESMC64_SIPCALL_WITH_ARG;
+	smcid  = TEESMC_SIPCALL_WITH_ARG;
 	funcid = FUNCTYPE_SET_SECURE_RANGE_PARAM;
-	struct smc_param64 param;
+	struct smc_param param;
 	mi.type = type;
 	mi.start_high = (start >> 32);
 	mi.start_low = (start & 0xffffffff);
@@ -172,8 +172,8 @@ int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t 
 	param.a1 = funcid;
 	param.a2 = &mi;
 	param.a3 = sizeof(mem_info);
-#ifdef CONFIG_ARM64	
-	optee_smc_call64(&param);
+#ifdef CONFIG_ARM64
+	tee_smc_call(&param);
 #endif
 	ret = param.a0;
 	return ret;
