@@ -370,8 +370,8 @@ static struct panel_operations lcd_ili9881c_mipi_operations = {
 };
 
 static struct timing_rgb lcd_ili9881c_mipi_timing = {
-	.hfp = 90,  /* unit: pixel */
-	.hbp = 60,
+	.hfp = 52,  /* unit: pixel */
+	.hbp = 26,
 	.hsync = 25,
 	.vfp = 9, /*unit: line*/
 	.vbp = 5,
