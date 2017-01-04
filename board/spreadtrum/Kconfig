@@ -132,6 +132,9 @@ config TARGET_J1FPGA
 	help
 	  This is the Spreadtrum j1fpga Board
 
+config TARGET_SP9850KA_2C10
+	bool "Spreadtrum sp9850ka_2c10"
+	select CPU_V7
 endchoice
 
 source "board/spreadtrum/isharkl/Kconfig"
@@ -157,4 +160,5 @@ source "board/spreadtrum/sp9833zebu/Kconfig"
 source "board/spreadtrum/pike2/Kconfig"
 source "board/spreadtrum/j1vdk/Kconfig"
 source "board/spreadtrum/j1fpga/Kconfig"
+source "board/spreadtrum/sp9850ka_2c10/Kconfig"
 endif
