@@ -26,7 +26,11 @@
 
 #define SPRD_SYSDUMP_MAGIC    RAMDISK_ADR
 
-
+#ifdef CONFIG_X86
+#define SYSDUMP_4GB   0xFFFFFFFF
+#define SYSDUMP_256M  0x10000000
+#define SYSDUMP_512M  0x20000000
+#endif
 
 #define PAGE_SHIFT 12
 #ifndef PAGE_SIZE
@@ -37,13 +41,23 @@
 #endif
 #define SYSDUMP_FOLDER_NUM 3
 
+#ifdef CONFIG_X86
+struct sysdump_mem {
+	unsigned long long paddr;
+	unsigned long long vaddr;
+	unsigned long long soff;
+	unsigned long long size;
+	unsigned long long type;
+};
+#else
 struct sysdump_mem {
 	unsigned long paddr;
 	unsigned long vaddr;
 	unsigned long soff;
 	unsigned long size;
-	int type;
+	unsigned long type;
 };
+#endif
 
 struct sysdump_info {
 	char magic[16];
@@ -51,7 +65,11 @@ struct sysdump_info {
 	char dump_path[128];
 	int elfhdr_size;
 	int mem_num;
-	unsigned long dump_mem_paddr;
+#ifdef CONFIG_X86
+	unsigned long long dump_mem_paddr;
+#else
+        unsigned long dump_mem_paddr;
+#endif
 	int crash_key;
 };
 
@@ -167,6 +185,7 @@ struct elf_prpsinfo
 #else
 #define EM_ARM	0x28
 #endif
+#define EM_X86_64	62
 
 #define R_ARM_NONE		0
 #define R_ARM_PC24		1
@@ -188,6 +207,21 @@ struct elf_prpsinfo
  */
 
 #define PHYS_OFFSET    CONFIG_SYS_SDRAM_BASE
+
+#ifdef CONFIG_X86
+#define ELF_CLASS      ELFCLASS64
+#define Elf_Off        Elf64_Off
+#define PAGE_OFFSET    (unsigned long long)(0xffff880000000000)
+#define KERNEL_TEXT    (unsigned long long)(0xffffffff80000000)
+
+static inline unsigned long long __va( unsigned long long x ) {
+	if(((unsigned long long)(x)) >= (KERNEL_BASE) && ((unsigned long long)(x)) < (KERNEL_BASE+0x20000000)){
+		return ((unsigned long long)(x)) + KERNEL_TEXT - KERNEL_BASE;
+	} else {
+		return ((unsigned long long)(x)) + PAGE_OFFSET;
+	}
+}
+#else
 #ifdef CONFIG_ARM64
 #define ELF_CLASS      ELFCLASS64
 #define Elf_Off	       Elf64_Off
@@ -200,13 +234,19 @@ struct elf_prpsinfo
 #define PAGE_OFFSET    (0xC0000000UL)
 #define __va(x)        ((unsigned long)((x) - PHYS_OFFSET + PAGE_OFFSET))
 #endif
+#endif
 
 #ifdef __ARMEB__
 #define ELF_DATA	ELFDATA2MSB
 #else
 #define ELF_DATA	ELFDATA2LSB
 #endif
+
+#ifdef CONFIG_X86
+#define ELF_ARCH	EM_X86_64
+#else
 #define ELF_ARCH	EM_ARM
+#endif
 
 /* from linux/elf.h */
 /* 32-bit ELF base types. */

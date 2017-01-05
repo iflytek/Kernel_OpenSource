@@ -135,6 +135,7 @@ void ap_watchdog_mode(void)
 	return;
 
 }
+
 void unknow_reboot_mode(void)
 {
 	debugf("unknow_reboot_mode\n");

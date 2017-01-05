@@ -6,7 +6,7 @@
 #include <malloc.h>
 static const char MEM_REGION_STR[] = {"memory-region"};
 static const char MEM_REGION_AUTO_STR[] = {"sprd,memory-region-auto"};
-#ifdef CONFIG_ARM64
+#if (defined CONFIG_ARM64) || (defined CONFIG_X86)
 typedef uint64_t mem_addr_t;
 typedef uint64_t mem_size_t;
 #define fdt_to_cpu(reg) fdt64_to_cpu(reg)
