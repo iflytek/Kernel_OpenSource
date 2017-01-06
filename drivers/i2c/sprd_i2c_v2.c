@@ -64,7 +64,6 @@
 #define I2C_RST				BIT(0)
 
 #define CONFIG_SYS_SPRD_I2C_DEFAULT_SPEED	100000
-#define I2C_MAX_NUM				7
 #define I2C_SRC_CLK			26000000
 
 #define I2C_FIFO_DEEP	 		15
@@ -86,7 +85,7 @@ struct i2c_base_addr {
 	void * i2c_base;
 };
 
-struct i2c_base_addr i2c_apb_bit[I2C_MAX_NUM] = {
+struct i2c_base_addr i2c_apb_bit[] = {
 	BIT_AP_APB_I2C0_EB, REG_AP_APB_APB_EB, SPRD_I2C0_PHYS,
 	BIT_AP_APB_I2C1_EB, REG_AP_APB_APB_EB, SPRD_I2C1_PHYS,
 	BIT_AP_APB_I2C2_EB, REG_AP_APB_APB_EB, SPRD_I2C2_PHYS,
@@ -514,15 +513,5 @@ U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c4, sprd_i2c_init, sprd_i2c_probe,
 			 CONFIG_SYS_SPRD_I2C_DEFAULT_SPEED,
 			 NULL,
 			 4)
-U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c5, sprd_i2c_init, sprd_i2c_probe,
-			 sprd_i2c_read, sprd_i2c_write, NULL,
-			 CONFIG_SYS_SPRD_I2C_DEFAULT_SPEED,
-			 NULL,
-			 5)
-U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c6, sprd_i2c_init, sprd_i2c_probe,
-			 sprd_i2c_read, sprd_i2c_write, NULL,
-			 CONFIG_SYS_SPRD_I2C_DEFAULT_SPEED,
-			 NULL,
-			 5)
 
 
