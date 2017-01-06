@@ -9,10 +9,17 @@
 #include<asm/arch/chip_releted_def.h>
 
 typedef struct{
+#ifdef CONFIG_SC9833
+	uint32_t img_addr; //the base address of image to verify
+	uint32_t img_len; //length of image
+	uint32_t pubkeyhash;//pubkey hash for verifying image
+	uint32_t hash_len; //length of pubkeyhash
+#else
 	uint64_t img_addr; //the base address of image to verify
 	uint64_t img_len; //length of image
 	uint64_t pubkeyhash;//pubkey hash for verifying image
 	uint64_t hash_len; //length of pubkeyhash
+#endif
 	uint32_t flag;//sprd or sansa plan
 }imgToVerifyInfo;
 

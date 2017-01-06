@@ -1,6 +1,6 @@
 
-obj-$(CONFIG_SECBOOT) += trustzone_enrty.o
-obj-$(CONFIG_SECBOOT) += trustzone_init.o
+#obj-$(CONFIG_SECBOOT) += trustzone_enrty.o
+#obj-$(CONFIG_SECBOOT) += trustzone_init.o
 obj-$(CONFIG_SECBOOT) += uboot_drv_api.o
 
 obj-$(CONFIG_CPU_V7) += tee_smc_call_v7.o

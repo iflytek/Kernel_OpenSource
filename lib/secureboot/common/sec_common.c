@@ -3,7 +3,9 @@
 #include <secureboot/sec_string.h>
 #include <secureboot/sprdsha.h>
 #include <secure_verify.h>
+#ifndef CONFIG_SC9833
 #include <asm/arch/chip_drv_common_io.h>
+#endif
 #include <asm/arch/sci_types.h>
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_common.h>
@@ -11,6 +13,11 @@
 #include "sprd_common_rw.h"
 
 #define EFUSE_HASH_STARTID 2
+#ifdef TOS_TRUSTY
+#define  PAGE_ALIGN 4096
+#define  ARG_START_ADRESS 0x94000000
+imgToVerifyInfo *img_verify_info_tos = ARG_START_ADRESS;
+#endif
  imgToVerifyInfo img_verify_info = {0};
 uint8_t pubkhash[32];
 
@@ -278,9 +285,18 @@ void secboot_terminal(void)
 void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
 {
 	secure_load_partition(partition_name,size,offset,ram_addr);
+	#ifdef TOS_TRUSTY
+	secboot_param_set(VERIFY_ADDR,img_verify_info_tos);
+	img_verify_info_tos->pubkeyhash = (uint8_t*)ARG_START_ADRESS+PAGE_ALIGN;
+	secboot_get_pubkhash(UBOOT_START,img_verify_info_tos->pubkeyhash);
+	//dumpHex("PARAM",ARG_START_ADRESS,sizeof(imgToVerifyInfo));
+	printf("p1:%x, p2:%x,P3:%x,p4:%x,p5:%x\n",img_verify_info_tos->img_addr,img_verify_info_tos->img_len,img_verify_info_tos->pubkeyhash,img_verify_info_tos->hash_len,img_verify_info_tos->flag);
+	uboot_verify_img((imgToVerifyInfo*)img_verify_info_tos,sizeof(imgToVerifyInfo));
+	#else
 	secboot_param_set(VERIFY_ADDR,&img_verify_info);
 	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
 	uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+	#endif
 }
 
 void secboot_update_swVersion(void)

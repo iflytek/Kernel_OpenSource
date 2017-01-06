@@ -8,6 +8,7 @@
 /*SPL size */
 #define SPL_CHECKSUM_LEN        0x8000   /*32K*/
 #define CHIPRAM_ENV_LOCATION  0x82000000
+#define SPL_BASE_ADDR   0x50003000
 
 
 #endif
