@@ -39,7 +39,7 @@ u32 erase_rootflag(root_stat_t *stat)
 
 	debugf("Erase miscdata partition.\n");
 
-	if (0 != common_raw_write(PRODUCTINFO_FILE_PATITION, erasesize, 0, ROOT_OFFSET, buf)) {
+	if (0 != common_raw_write(PRODUCTINFO_FILE_PATITION, (uint64_t)erasesize, (uint64_t)0, ROOT_OFFSET, buf)) {
 		errorf("erase miscdata error.\n");
 		return -1;
 	}

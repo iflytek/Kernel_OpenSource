@@ -368,7 +368,7 @@ int speedup_download_process(uint16_t size, char *buf)
 				}
 
 			if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName,
-				current_buffer->used, 0, g_dl_eMMCStatus.offset, current_buffer->addr)) {
+				(uint64_t)(current_buffer->used), (uint64_t)0, (uint64_t)(g_dl_eMMCStatus.offset), current_buffer->addr)) {
 				errorf("last write fail, offset=0x%x\n", g_dl_eMMCStatus.offset);
 				return OPERATE_WRITE_ERROR;
 			}
@@ -409,7 +409,7 @@ int speedup_download_process(uint16_t size, char *buf)
 			}
 			if (0 != current_buffer->used) {
 				if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName,
-					current_buffer->used, 0, g_dl_eMMCStatus.offset, current_buffer->addr)) {
+					(uint64_t)(current_buffer->used), (uint64_t)0, (uint64_t)(g_dl_eMMCStatus.offset), current_buffer->addr)) {
 					errorf("last cross write fail, offset=0x%x\n", g_dl_eMMCStatus.offset);
 					return OPERATE_WRITE_ERROR;
 				}
@@ -464,20 +464,20 @@ OPERATE_STATUS _nv_img_write(uchar * partition, uint32_t size)
 	nv_header_p->version = NV_VERSION;
 
 	debugf("Start to write first block of NV partition(%s)\n", partition);
-	if (0 != common_raw_write(partition, NV_HEADER_SIZE, 0, 0, header_buf))
+	if (0 != common_raw_write(partition, NV_HEADER_SIZE, (uint64_t)0, (uint64_t)0, header_buf))
 		return OPERATE_WRITE_ERROR;
 
 	debugf("Start to write remain blocks of NV partition\n");
-	if (0 != common_raw_write(partition, size, 0, NV_HEADER_SIZE, g_eMMCBuf))
+	if (0 != common_raw_write(partition, (uint64_t)size, (uint64_t)0, NV_HEADER_SIZE, g_eMMCBuf))
 		return OPERATE_WRITE_ERROR;
 
 	/*write the backup partition */
 	backup_partition_name = _get_backup_partition_name(partition);
 
-	if (0 != common_raw_write(backup_partition_name, NV_HEADER_SIZE, 0, 0, header_buf))
+	if (0 != common_raw_write(backup_partition_name, NV_HEADER_SIZE, (uint64_t)0, (uint64_t)0, header_buf))
 		return OPERATE_WRITE_ERROR;
 
-	if (0 != common_raw_write(backup_partition_name, size, 0, NV_HEADER_SIZE, g_eMMCBuf))
+	if (0 != common_raw_write(backup_partition_name, (uint64_t)size, (uint64_t)0, NV_HEADER_SIZE, g_eMMCBuf))
 		return OPERATE_WRITE_ERROR;
 
 	g_status.unsave_recv_size = 0;
@@ -490,19 +490,19 @@ OPERATE_STATUS _img_write_with_backup(uchar *partition)
 
 	if (0 == strcmp("splloader",  partition)) {
 		write_size = max(g_status.total_recv_size, SPL_CHECKSUM_LEN);
-		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
+		if (0 != common_raw_write(partition, write_size, (uint64_t)0, (uint64_t)0, g_eMMCBuf))
 			return OPERATE_WRITE_ERROR;
 		strcat(partition, "_bak");
-		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
+		if (0 != common_raw_write(partition, write_size, (uint64_t)0, (uint64_t)0, g_eMMCBuf))
 			return OPERATE_WRITE_ERROR;
 	} else if (0 == strcmp("uboot",  partition)
 		|| 0 == strcmp("trustos",partition)
 		|| 0 == strcmp("sml",partition)) {
 		write_size = g_status.total_recv_size;
-		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
+		if (0 != common_raw_write(partition, write_size, (uint64_t)0, (uint64_t)0, g_eMMCBuf))
 			return OPERATE_WRITE_ERROR;
 		strcat(partition, "_bak");
-		if (0 != common_raw_write(partition, write_size, 0, 0, g_eMMCBuf))
+		if (0 != common_raw_write(partition, write_size, (uint64_t)0, (uint64_t)0, g_eMMCBuf))
 			return OPERATE_WRITE_ERROR;
 	} else {
 		return OPERATE_IGNORE;
@@ -601,8 +601,8 @@ OPERATE_STATUS _download_image(void)
 			g_status.unsave_recv_size = 0;
 		}
 	} else {
-		if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName, (uint64_t)write_size, 0,
-			g_dl_eMMCStatus.offset, write_start)) {
+		if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName, (uint64_t)write_size, (uint64_t)0,
+			(uint64_t)g_dl_eMMCStatus.offset, write_start)) {
 			errorf("write %s size 0x%x offset 0x%x fail\n", g_dl_eMMCStatus.curUserPartitionName, write_size, g_dl_eMMCStatus.offset);
 			g_status.unsave_recv_size = 0;
 			return OPERATE_WRITE_ERROR;
@@ -699,7 +699,7 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 
 	do {
 		/*read origin image header */
-		if (0 != common_raw_read(partition_name, NV_HEADER_SIZE, 0, header_buf)) {
+		if (0 != common_raw_read(partition_name, NV_HEADER_SIZE, (uint64_t)0, header_buf)) {
 			errorf("read origin nv image header failed\n");
 			status |= ORIGIN_NV_DAMAGED;
 			break;
@@ -712,7 +712,7 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 		}
 
 		/*read origin image */
-		if (0 != common_raw_read(partition_name, header_p->len, NV_HEADER_SIZE, buf)) {
+		if (0 != common_raw_read(partition_name, (uint64_t)(header_p->len), NV_HEADER_SIZE, buf)) {
 			errorf("read origin nv image failed\n");
 			status |= ORIGIN_NV_DAMAGED;
 			break;
@@ -734,7 +734,7 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 
 	do {
 		/*read backup header */
-		if (0 != common_raw_read(backup_partition_name, NV_HEADER_SIZE, 0, backup_header_buf)) {
+		if (0 != common_raw_read(backup_partition_name, NV_HEADER_SIZE, (uint64_t)0, backup_header_buf)) {
 			errorf("read backup nv image header failed\n");
 			status |= BACKUP_NV_DAMAGED;
 			break;
@@ -747,7 +747,7 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 		}
 
 		/*read bakup image */
-		if (0 != common_raw_read(backup_partition_name, backup_header_p->len, NV_HEADER_SIZE, backup_nv_buf)) {
+		if (0 != common_raw_read(backup_partition_name, (uint64_t)(backup_header_p->len), NV_HEADER_SIZE, backup_nv_buf)) {
 			errorf("read backup nv image failed\n");
 			status |= BACKUP_NV_DAMAGED;
 			break;
@@ -769,24 +769,24 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 		break;
 	case ORIGIN_NV_DAMAGED :
 		memcpy(buf, backup_nv_buf, backup_header_p->len);
-		if (0 != common_raw_write(partition_name, NV_HEADER_SIZE, 0, 0, backup_header_buf)) {
+		if (0 != common_raw_write(partition_name, NV_HEADER_SIZE, (uint64_t)0, (uint64_t)0, backup_header_buf)) {
 			ret = 0;
 			break;
 		}
 		debugf("Start to write remain blocks of origin NV partition\n");
-		if (0 != common_raw_write(partition_name, backup_header_p->len, 0, NV_HEADER_SIZE, backup_nv_buf)) {
+		if (0 != common_raw_write(partition_name, (uint64_t)(backup_header_p->len), (uint64_t)0, NV_HEADER_SIZE, backup_nv_buf)) {
 			ret = 0;
 			break;
 		}
 		ret = 1;
 		break;
 	case BACKUP_NV_DAMAGED :
-		if (0 != common_raw_write(backup_partition_name, NV_HEADER_SIZE, 0, 0, header_buf)) {
+		if (0 != common_raw_write(backup_partition_name, NV_HEADER_SIZE, (uint64_t)0, (uint64_t)0, header_buf)) {
 			ret = 0;
 			break;
 		}
 		debugf("Start to write remain blocks of backup NV partition\n");
-		if (0 != common_raw_write(backup_partition_name, header_p->len, 0, NV_HEADER_SIZE, buf)) {
+		if (0 != common_raw_write(backup_partition_name, (uint64_t)(header_p->len), (uint64_t)0, NV_HEADER_SIZE, buf)) {
 			ret = 0;
 			break;
 		}
@@ -825,7 +825,7 @@ OPERATE_STATUS dl_read_start(uchar * partition_name, uint64_t size)
 			goto err;
 		}
 
-		if (0 != common_raw_read(g_dl_eMMCStatus.curUserPartitionName, sblock_size, 1024, sblock)) {
+		if (0 != common_raw_read(g_dl_eMMCStatus.curUserPartitionName, (uint64_t)sblock_size, (uint64_t)1024, sblock)) {
 			errorf("read prodnv super block fail\n");
 			goto err;
 		}
@@ -849,7 +849,7 @@ OPERATE_STATUS dl_read_midst(uint32_t size, uint64_t off, uchar * buf)
 	if (PARTITION_PURPOSE_NV == g_dl_eMMCStatus.partitionpurpose) {
 		memcpy(buf, (uchar *) (g_eMMCBuf + off), size);
 	} else {
-		if (0 != common_raw_read(g_dl_eMMCStatus.curUserPartitionName, size, off, buf)) {
+		if (0 != common_raw_read(g_dl_eMMCStatus.curUserPartitionName, (uint64_t)size, (uint64_t)off, buf)) {
 			errorf("read error!\n");
 			return OPERATE_SYSTEM_ERROR;
 		}

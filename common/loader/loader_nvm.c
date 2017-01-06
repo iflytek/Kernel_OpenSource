@@ -231,7 +231,7 @@ int get_spl_hash(void *hash_data)
 		return ret;
 	}
 
-	if (0 != common_raw_read("splloader", size, 0, (char *) spl_data)) {
+	if (0 != common_raw_read("splloader", (uint64_t)size, (uint64_t)0, (char *) spl_data)) {
 		errorf("PARTITION_BOOT1 read error \n");
 		return ret;
 	}
@@ -271,7 +271,7 @@ int splash_screen_prepare(uchar *logo_part_name, u8 *addr)
 
 	size = lcd_get_size(&lcd_line_length) >> 1;
 	size += bmp_header_size;
-	if (0 != common_raw_read(logo_part_name, size, 0, addr)) {
+	if (0 != common_raw_read(logo_part_name, (uint64_t)size, (uint64_t)0, addr)) {
 		errorf("failed to read logo partition:%s\n", logo_part_name);
 		return -1;
 	}
@@ -296,7 +296,7 @@ int32_t _boot_read_partition_with_backup(boot_image_required_t info)
 
 	do {
 		/*read origin image header */
-		if (0 != common_raw_read(info.partition, NV_HEADER_SIZE, 0, header_buf)) {
+		if (0 != common_raw_read(info.partition, NV_HEADER_SIZE, (uint64_t)0, header_buf)) {
 			errorf("read origin <<<%s>>> image header failed\n", info.partition);
 			status |= ORIGIN_NV_DAMAGED;
 			break;
@@ -309,7 +309,7 @@ int32_t _boot_read_partition_with_backup(boot_image_required_t info)
 		}
 
 		/*read origin image */
-		if (0 != common_raw_read(info.partition, info.size, NV_HEADER_SIZE, info.mem_addr)) {
+		if (0 != common_raw_read(info.partition, (uint64_t)(info.size), NV_HEADER_SIZE, info.mem_addr)) {
 			errorf("read origin <<<%s>>> image data failed\n", info.partition);
 			status |= ORIGIN_NV_DAMAGED;
 			break;
@@ -326,7 +326,7 @@ int32_t _boot_read_partition_with_backup(boot_image_required_t info)
 
 	do {
 		/*read backup header */
-		if (0 != common_raw_read(info.bak_partition, NV_HEADER_SIZE, 0, backup_header_buf)) {
+		if (0 != common_raw_read(info.bak_partition, NV_HEADER_SIZE, (uint64_t)0, backup_header_buf)) {
 			errorf("read backup <<<%s>>> image header failed\n", info.bak_partition);
 			status |= BACKUP_NV_DAMAGED;
 			break;
@@ -339,7 +339,7 @@ int32_t _boot_read_partition_with_backup(boot_image_required_t info)
 		}
 
 		/*read bakup image */
-		if (0 != common_raw_read(info.bak_partition, info.size, NV_HEADER_SIZE, backup_nv_buf)) {
+		if (0 != common_raw_read(info.bak_partition, (uint64_t)(info.size), NV_HEADER_SIZE, backup_nv_buf)) {
 			errorf("read backup <<<%s>>> image failed\n", info.bak_partition);
 			status |= BACKUP_NV_DAMAGED;
 			break;
@@ -361,13 +361,13 @@ int32_t _boot_read_partition_with_backup(boot_image_required_t info)
 		break;
 	case ORIGIN_NV_DAMAGED :
 		memcpy(info.mem_addr, backup_nv_buf, info.size);
-		if (0 != common_raw_write(info.partition, NV_HEADER_SIZE, 0, 0, backup_header_buf)) {
+		if (0 != common_raw_write(info.partition, NV_HEADER_SIZE, (uint64_t)0, (uint64_t)0, backup_header_buf)) {
 			errorf("reapire origin <<<%s>>> image header fail\n", info.partition);
 			ret = 0;
 			break;
 		}
 
-		if (0 != common_raw_write(info.partition, info.size, 0, NV_HEADER_SIZE, backup_nv_buf)) {
+		if (0 != common_raw_write(info.partition, (uint64_t)(info.size), (uint64_t)0, NV_HEADER_SIZE, backup_nv_buf)) {
 			errorf("reapire origin <<<%s>>> image data fail\n", info.partition);
 			ret = 0;
 			break;
@@ -376,13 +376,13 @@ int32_t _boot_read_partition_with_backup(boot_image_required_t info)
 		ret = 1;
 		break;
 	case BACKUP_NV_DAMAGED :
-		if (0 != common_raw_write(info.bak_partition, NV_HEADER_SIZE, 0, 0, header_buf)) {
+		if (0 != common_raw_write(info.bak_partition, NV_HEADER_SIZE, (uint64_t)0, (uint64_t)0, header_buf)) {
 			errorf("reapire backup <<<%s>>> image header fail\n", info.bak_partition);
 			ret = 0;
 			break;
 		}
 
-		if (0 != common_raw_write(info.bak_partition, info.size, 0, NV_HEADER_SIZE, info.mem_addr)) {
+		if (0 != common_raw_write(info.bak_partition, (uint64_t)(info.size), (uint64_t)0, NV_HEADER_SIZE, info.mem_addr)) {
 			errorf("reapire backup <<<%s>>> image data fail\n", info.bak_partition);
 			ret = 0;
 			break;
@@ -411,7 +411,7 @@ uint32_t get_boot_offset(boot_image_required_t img_info, uint32_t secure_offset)
 
 	if(strstr(img_info.partition, "modem")) {
 		do {
-			if (0 != common_raw_read(img_info.partition, read_len, hdr_offset + secure_offset, (char *)hdr_buf)) {
+			if (0 != common_raw_read(img_info.partition, (uint64_t)read_len, (uint64_t)(hdr_offset + secure_offset), (char *)hdr_buf)) {
 				result = 2;
 				errorf("get modem boot hdr failed: partitionread failed !\n");
 				break;
@@ -523,7 +523,7 @@ int _boot_load_required_image(boot_image_required_t img_info)
 		memcpy(img_info.mem_addr,(VERIFY_ADDR + SYS_HEADER_SIZE),img_info.size);
 #else
 		normal_boot_offset = get_boot_offset(img_info, 0);
-		if (0 != common_raw_read(img_info.partition, img_info.size, (uint64_t)normal_boot_offset, img_info.mem_addr))
+		if (0 != common_raw_read(img_info.partition, (uint64_t)(img_info.size), (uint64_t)normal_boot_offset, img_info.mem_addr))
 			errorf("read %s partition fail\n", img_info.partition);
 
 #endif
@@ -539,7 +539,7 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 	uint32_t secure_boot_offset = 0;
 
 #ifdef CONFIG_SECURE_BOOT
-	if (0 != common_raw_read(partition, 512, 0,  (u8 *) hdr)) {
+	if (0 != common_raw_read(partition, (uint64_t)512, (uint64_t)0,  (u8 *) hdr)) {
 		errorf("%s read error!\n", partition);
 		return 0;
 	}
@@ -549,7 +549,7 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 #ifdef CONFIG_SECBOOT
 	offset = 512;/**header of image size is 512B**/
 #endif
-	if (0 != common_raw_read(partition, KERNL_PAGE_SIZE, offset, (char *)hdr)) {
+	if (0 != common_raw_read(partition, KERNL_PAGE_SIZE, (uint64_t)offset, (char *)hdr)) {
 		errorf("read %s header error!\n", partition);
 		return 0;
 	}
@@ -595,7 +595,7 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	uint32_t auto_mem_num = 0;
 
 	size = sizeof(struct dt_table);
-	if (0 != common_raw_read(partition, size, boot_img_offset.dt_offset, &table)) {
+	if (0 != common_raw_read(partition, size, (uint64_t)(boot_img_offset.dt_offset), &table)) {
 		errorf("read dt image table header fail\n");
 		goto error;
 	}
@@ -612,7 +612,7 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 		errorf("malloc size %d for dt header fail\n", size);
 		goto error;
 	}
-	if (0 != common_raw_read(partition, size,  boot_img_offset.dt_offset, header)) {
+	if (0 != common_raw_read(partition, size,  (uint64_t)(boot_img_offset.dt_offset), header)) {
 		errorf("read dt image table and entries header fail\n");
 		goto error;
 	}
@@ -628,7 +628,7 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	/* malloc reserve FDT_ADD_SIZE for fdt fixup */
 	fdt_blob = malloc(size + FDT_ADD_SIZE);
 	debugf("malloc size for fdt: 0x%lx\n", size + FDT_ADD_SIZE);
-	if (0 != common_raw_read(partition, size, (boot_img_offset.dt_offset + dt_entry_ptr->offset), (char *)fdt_blob)) {
+	if (0 != common_raw_read(partition, (uint64_t)size, (uint64_t)(boot_img_offset.dt_offset + dt_entry_ptr->offset), (char *)fdt_blob)) {
 		errorf("dt entry size read error!\n");
 		goto error;
 	}
@@ -697,7 +697,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 	}
 
 	/* read kernel image */
-	if (0 != common_raw_read(partition, size, boot_img_offset.kernel_offset , (char *)KERNEL_ADR)) {
+	if (0 != common_raw_read(partition, size, (uint64_t)(boot_img_offset.kernel_offset) , (char *)KERNEL_ADR)) {
 		errorf("%s kernel read error!\n", partition);
 		return 0;
 	}
@@ -741,7 +741,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		return 0;
 	}
 	/*read ramdisk image */
-	if (0 != common_raw_read(partition, size, boot_img_offset.ramdisk_offset, ramdisk_addr)) {
+	if (0 != common_raw_read(partition, size, (uint64_t)(boot_img_offset.ramdisk_offset), ramdisk_addr)) {
 		errorf("%s ramdisk read error!\n", partition);
 		return 0;
 	}
@@ -800,7 +800,7 @@ int _boot_load_separate_dt(void)
 	uint64_t size = 0;
 
 #ifdef CONFIG_SECURE_BOOT
-	if (0 != common_raw_read("dt", EMMC_SECTOR_SIZE, 0, &table)) {
+	if (0 != common_raw_read("dt", EMMC_SECTOR_SIZE, (uint64_t)0, &table)) {
 		errorf("dt read error!\n");
 		free(table);
 		return 0;

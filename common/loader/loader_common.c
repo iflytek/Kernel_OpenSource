@@ -60,12 +60,12 @@ char *get_product_sn(void)
 	memset(serial_number_to_transfer, 0x0, SP15_MAX_SN_LEN);
 
 	strcpy(serial_number_to_transfer, "0123456789ABCDEF");
-	if (0 != common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(magic), 0, (char *)&magic)) {
+	if (0 != common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(magic), (uint64_t)0, (char *)&magic)) {
 		errorf("read miscdata error.\n");
 		return serial_number_to_transfer;
 	}
 	if(magic == SP09_SPPH_MAGIC_NUMBER){
-		if(common_raw_read(PRODUCTINFO_FILE_PATITION,sizeof(phase_check_sp09), 0, (char *)&phase_check_sp09)){
+		if(common_raw_read(PRODUCTINFO_FILE_PATITION,sizeof(phase_check_sp09), (uint64_t)0, (char *)&phase_check_sp09)){
 			debugf("sp09 read miscdata error.\n");
 			return serial_number_to_transfer;
 		}
@@ -73,7 +73,7 @@ char *get_product_sn(void)
 			memcpy(serial_number_to_transfer, phase_check_sp09.SN1, SP09_MAX_SN_LEN);
 		}
 	}else if(magic == SP15_SPPH_MAGIC_NUMBER){
-		if(common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(phase_check_sp15), 0 ,(char *)&phase_check_sp15)){
+		if(common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(phase_check_sp15), (uint64_t)0 ,(char *)&phase_check_sp15)){
 			debugf("sp15 read miscdata error.\n");
 			return serial_number_to_transfer;
 		}

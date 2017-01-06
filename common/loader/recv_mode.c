@@ -37,7 +37,7 @@ int get_recovery_message(struct recovery_message *out)
 	}
 #endif
 
-	if (0 != common_raw_read("misc", sizeof(struct recovery_message), 0, (char *)out)) {
+	if (0 != common_raw_read("misc", sizeof(struct recovery_message), (uint64_t)0, (char *)out)) {
 		errorf("partition <misc> read error, can not get recovery message\n");
 		return -1;
 	}
@@ -48,7 +48,7 @@ int get_recovery_message(struct recovery_message *out)
 
 int set_recovery_message(const struct recovery_message *in)
 {
-	if (common_raw_write("misc", sizeof(struct recovery_message), 0, 0, (char *)in)) {
+	if (common_raw_write("misc", sizeof(struct recovery_message), (uint64_t)0, (uint64_t)0, (char *)in)) {
 		errorf("write partition <misc> fail\n");
 		return -1;
 	}

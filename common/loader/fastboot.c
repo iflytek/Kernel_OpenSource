@@ -224,10 +224,10 @@ int _fb_write_nv_img(char * partition_name, uint64_t size)
 	nv_header_p->version = NV_VERSION;
 
 	debugf("Start to write NV partition(%s)\n", partition_name);
-	if (0 != common_raw_write(partition_name, NV_HEAD_LEN, 0, 0, header_buf))
+	if (0 != common_raw_write(partition_name, NV_HEAD_LEN, (uint64_t)0, (uint64_t)0, header_buf))
 		return 0;
 
-	if (0 != common_raw_write(partition_name, size, 0, NV_HEAD_LEN, buf))
+	if (0 != common_raw_write(partition_name, size, (uint64_t)0, NV_HEAD_LEN, buf))
 		return 0;
 
 	/*write the backup partition */
@@ -237,9 +237,9 @@ int _fb_write_nv_img(char * partition_name, uint64_t size)
 		return 0;
 	}
 	debugf("Start to write backup partition(%s)\n", backup_partition_name);
-	if (0 != common_raw_write(backup_partition_name, NV_HEAD_LEN, 0, 0, header_buf))
+	if (0 != common_raw_write(backup_partition_name, NV_HEAD_LEN, (uint64_t)0, (uint64_t)0, header_buf))
 		return 0;
-	if (0 != common_raw_write(backup_partition_name, size, 0, NV_HEAD_LEN, buf))
+	if (0 != common_raw_write(backup_partition_name, size, (uint64_t)0, NV_HEAD_LEN, buf))
 		return 0;
 
 	return 1;
@@ -293,7 +293,7 @@ int _fb_download_image(char *partition_name,ulong offset)
 			return 0;
 		}
 	} else {
-		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf)) {
+		if (0 != common_raw_write(partition_name, write_size, (uint64_t)0, (uint64_t)0, buf)) {
 			errorf("write %s size 0x%llx fail\n", partition_name, write_size);
 			return 0;
 		}
@@ -308,18 +308,18 @@ OPERATE_STATUS _fb_img_write_with_backup(char *partition_name)
 	char *buf = ImageInfo.base_address;
 	if (0 == strcmp("splloader",  partition_name)) {
 		write_size = max(write_size, SPL_CHECKSUM_LEN);
-		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
+		if (0 != common_raw_write(partition_name, write_size, (uint64_t)0, (uint64_t)0, buf))
 			return OPERATE_WRITE_ERROR;
 		strcat(partition_name, "_bak");
-		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
+		if (0 != common_raw_write(partition_name, write_size, (uint64_t)0, (uint64_t)0, buf))
 			return OPERATE_WRITE_ERROR;
 	} else if (0 == strcmp("uboot",  partition_name)
 		|| 0 == strcmp("trustos",partition_name)
 		|| 0 == strcmp("sml",partition_name)) {
-		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
+		if (0 != common_raw_write(partition_name, write_size, (uint64_t)0, (uint64_t)0, buf))
 			return OPERATE_WRITE_ERROR;
 		strcat(partition_name, "_bak");
-		if (0 != common_raw_write(partition_name, write_size, 0, 0, buf))
+		if (0 != common_raw_write(partition_name, write_size, (uint64_t)0, (uint64_t)0, buf))
 			return OPERATE_WRITE_ERROR;
 	}
 	  else {

@@ -79,8 +79,9 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 		offset = 0;
 		memset(&sparse_header, 0, sizeof(sparse_header_t));
 		ret = read_all(buf, g_buf_index, &sparse_header, sizeof(sparse_header));
-		debugf("sparse_header file_hdr_sz = %d chunk_hdr_sz = %d blk_sz = %d total_blks = %d total_chunks = %d\n", 
-			sparse_header.file_hdr_sz, sparse_header.chunk_hdr_sz, sparse_header.blk_sz, 
+		debugf("sparse_header file_hdr_sz = %d chunk_hdr_sz = %d blk_sz = %d total_blks = %d total_chunks = %d\n",
+			sparse_header.file_hdr_sz, sparse_header.chunk_hdr_sz, sparse_header.blk_sz,
+
 			sparse_header.total_blks, sparse_header.total_chunks);
 		if (ret != sizeof(sparse_header)) {
 			errorf("Error reading sparse file header\n");
@@ -141,14 +142,14 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 			errorf("Error reading chunk header\n");
 			goto fail;
 		}
- 
+
 		if (sparse_header.chunk_hdr_sz > CHUNK_HEADER_LEN) {
 			/* Skip the remaining bytes in a header that is longer than
 			 * we expected.*/
-			g_buf_index += sparse_header.chunk_hdr_sz - CHUNK_HEADER_LEN;	
+			g_buf_index += sparse_header.chunk_hdr_sz - CHUNK_HEADER_LEN;
 		}
 		chunk_len = (uint64_t)chunk_header.chunk_sz * sparse_header.blk_sz;
-		
+
 		switch (chunk_header.chunk_type) {
 		case CHUNK_TYPE_RAW:
 			if (chunk_header.total_sz != (sparse_header.chunk_hdr_sz + chunk_len) ) {
@@ -156,7 +157,7 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 				goto fail;
 			}
 
-			if (0 != common_raw_write(partname, chunk_len, 0, offset, buf + g_buf_index)) {
+			if (0 != common_raw_write(partname, chunk_len, (uint64_t)0, offset, buf + g_buf_index)) {
 				errorf("Write raw chunk fail, trunk_len=0x%x!\n", chunk_len);
 				goto fail;
 			} else {
@@ -179,10 +180,10 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 
 			while (chunk_len) {
 				chunk = (chunk_len > COPY_BUF_SIZE) ? COPY_BUF_SIZE : chunk_len;
-				if (0 != common_raw_write(partname, chunk, 0, offset, copybuf)) {
+				if (0 != common_raw_write(partname, (uint64_t)chunk, (uint64_t)0, offset, copybuf)) {
 					errorf("Write fill chunk fail, trunk_len=0x%x!\n", chunk_len);
 					goto fail;
-				} 
+				}
 				crc32 = sparse_crc32(crc32, copybuf, chunk);
 				offset += chunk;
 				chunk_len -= chunk;
