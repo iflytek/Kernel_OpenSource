@@ -14,5 +14,8 @@
 #define KERNEL_ADR  0x35100000
 #define BOOTIMG_ADR 0X39000000
 
+/*for sysdump*/
+#define KERNEL_BASE    (KERNEL_ADR - 0x100000)
+
 
 #endif /* __CONFIG_H */
