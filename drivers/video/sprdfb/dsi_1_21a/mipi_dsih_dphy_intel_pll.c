@@ -223,6 +223,35 @@ static struct pll_frequency_intel pll_frequency_intel_set[] = {
 	.i_lockthreshsel = 0,
 	.i_pllwait_cntr = 0x2,
        },
+
+[8] = {
+	.phy_clk = 790*1000,
+	.div5b = 1,
+	.div2or3 = 0x0,
+	.div5bbyass = 0,
+	.i_fbdivratio = 0x7a,
+	.i_fracdiv2 = 0x25,
+	.i_fracdiv1 = 0x6a,
+	.i_fracdiv0 = 0x56,
+	.i_feedfwrdgain = 0x2,
+	.i_fracnen_h = 0x1,
+	.i_sscstepsize0 = 0,
+	.i_sscstepsize1 = 0,
+
+	.i_sscsteplength0 = 0,
+	.i_sscsteplength1 = 0,
+	.i_sscstepnum = 0,
+	.i_ssctype = 0,
+	.i_sscen_h = 0,
+	.i_prop_coeff = 0x5,
+	.i_int_coeff = 0x9,
+	.i_gainctrl = 0x1,
+	.i_tdctargetcnt0 = 0x22,
+	.i_tdctargetcnt1 = 0,
+	.i_lockthreshsel = 0,
+	.i_pllwait_cntr = 0x2,
+       },
+
 };
 
 #define PHY_OFFSET 0x0
