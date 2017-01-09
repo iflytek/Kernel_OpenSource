@@ -21,7 +21,11 @@ static unsigned long g_checksum;
 static unsigned long g_sram_addr;
 static unsigned int img_backup_flag = 0;
 
+#ifdef CONFIG_X86
+unsigned char *g_eMMCBuf = (unsigned char *)0x35000000;
+#else
 unsigned char *g_eMMCBuf = (unsigned char *)0x82000000;
+#endif
 
 /**
 	partitions not for raw data or normal usage(e.g. nv and prodinfo) should config here.
