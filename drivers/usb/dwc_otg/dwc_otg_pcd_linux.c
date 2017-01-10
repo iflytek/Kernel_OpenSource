@@ -592,7 +592,7 @@ static void usb_startup(void)
         __raw_bits_and(~BIT_USB_PHY_SOFT_RST, REG_AP_AHB_AHB_RST);
 
 
-#elif defined(CONFIG_TARGET_SP9853I)
+#elif defined(CONFIG_TARGET_SP9853I) || defined(CONFIG_TARGET_SP9853I_1H10)
 	__raw_bits_or(BIT_OTG_SOFT_RST, REG_AP_AHB_AHB_RST);
 	dwc_mdelay(5);
 	__raw_bits_and(~(BIT_OTG_SOFT_RST), REG_AP_AHB_AHB_RST);
