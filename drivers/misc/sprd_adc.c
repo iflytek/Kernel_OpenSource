@@ -36,8 +36,8 @@ typedef unsigned int u32;
 #define ADC_INT_CLR                         (ADC_REG_BASE + 0x0054)
 #define ADC_INT_STAT                        (ADC_REG_BASE + 0x0058)
 #define ADC_INT_SRC                         (ADC_REG_BASE + 0x005C)
-#define ADC_CTL0                         	(ADC_REG_BASE + 0x00AC)
-#define ADC_CTL1                         	(ADC_REG_BASE + 0x00B0)
+#define ADC_CTL0                            (ADC_REG_BASE + 0x00AC)
+#define ADC_CTL1                            (ADC_REG_BASE + 0x00B0)
 
 /* ADC_CTRL */
 #define BIT_SW_CH_RUN_NUM(_X_)		((((_X_) - 1) & 0xF ) << 4)
@@ -60,7 +60,7 @@ typedef unsigned int u32;
 
 #define BIT_ADC_CUR_EN             BIT(6)
 #define SC2731_ADC0_SELECT_BIT     BIT(11)
-#define BITS_AUXAD_NTC_MUX(x)      (((x) & 0x3) << 1)
+#define BITS_AUXAD_NTC_MUX(x)      (((x) & 0x3) << 0)
 
 #define TPC_CHANNEL_X    2
 #define TPC_CHANNEL_Y    3
@@ -653,6 +653,10 @@ void pmic_adc_Init(void)
 	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_ADC_EN);	//ADC enable
 	ANA_REG_OR(ANA_REG_GLB_ARM_CLK_EN, BIT_CLK_AUXAD_EN | BIT_CLK_AUXADC_EN);	//enable auxad clock
 	ANA_REG_OR(ANA_REG_GLB_XTL_WAIT_CTRL, BIT_XTL_EN);	//enable clk
+	ANA_REG_OR( ANA_REG_GLB_SOFT_RST0, BIT_ADC_SOFT_RST);
+	udelay(5);
+	ANA_REG_AND( ANA_REG_GLB_SOFT_RST0, ~BIT_ADC_SOFT_RST);
+
 	ANA_REG_OR(ADC_CTRL, ADC_EN_BIT);
 	ANA_REG_OR(ADC_CTRL, ADC_MODE_12B);
 	ana_chip_id =
@@ -668,7 +672,8 @@ void pmic_adc_Init(void)
 #if defined(CONFIG_ADIE_SC2731)
 	sci_adi_set(ANA_REG_GLB_AUXAD_CTL, SC2731_ADC0_SELECT_BIT);
 #elif defined(CONFIG_ADIE_SC2721)
-	sci_adi_set(ADC_CTL1, BITS_AUXAD_NTC_MUX(0x1));
+       ANA_REG_OR(ADC_CTL1, BITS_AUXAD_NTC_MUX(0x1));
+       debugf("ADC_CTL1 value of it 0x%x\n", ANA_REG_GET(ADC_CTL1));
 #endif
 }
 
