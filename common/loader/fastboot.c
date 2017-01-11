@@ -110,6 +110,12 @@ extern void power_down_devices(unsigned pd_cmd);
 extern void reboot_devices(unsigned reboot_mode);
 extern void splFillCheckData(uchar * splBuf);
 
+#ifdef CONFIG_X86
+unsigned char *g_FbBuf = (unsigned char *)0x35000000;
+#else
+unsigned char *g_FbBuf = (unsigned char *)0x82000000;
+#endif
+
 void fastboot_register(const char *prefix, void (*handle) (const char *arg, void *data, uint64_t sz))
 {
 	struct fastboot_cmd *cmd;
@@ -670,9 +676,9 @@ int do_fastboot(void)
 	if (ret < 0)
 		return ret;
 
-	ImageInfo.base_address = (uint8_t *) CONFIG_SYS_SDRAM_BASE;
+	ImageInfo.base_address = g_FbBuf;
 	/*except the u-boot occupied area , all RAM can be used as fastboot buffer */
-	ImageInfo.max_size = (uint64_t) CONFIG_SYS_TEXT_BASE - CONFIG_SYS_SDRAM_BASE;
+	ImageInfo.max_size = (uint64_t) (CONFIG_SYS_TEXT_BASE - (uint64_t)g_FbBuf);
 	ImageInfo.data_size = 0;
 
 	fastboot_register("getvar:", fb_cmd_getvar);
