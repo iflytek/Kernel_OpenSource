@@ -150,7 +150,7 @@ typedef unsigned int u32;
 #define EFUSE_BLOCK_WIDTH               ( 32 )
 
 u32 SCI_GetTickCount(void);
-#define jiffies (SCI_GetTickCount())	/* return msec count */
+#define jiffies (get_timer_masked())	/* return msec count */
 #define msecs_to_jiffies(a) (a)
 #define time_after(a,b)	((int)(b) - (int)(a) < 0)
 #define cpu_relax()
