@@ -1,3 +1,4 @@
+#include <common.h>
 #include "dl_common.h"
 
 unsigned short fdl_calc_checksum(unsigned char *data, unsigned long len)
@@ -25,7 +26,7 @@ unsigned char fdl_check_crc(uint8_t* buf, uint32_t size,uint32_t checksum)
 	uint16_t crc;
 
 	crc = fdl_calc_checksum(buf,size);
-	printf("fdl_check_crc  calcout = 0x%x,org = 0x%x\n",crc,checksum);
+	debugf("fdl_check_crc  calcout = 0x%x,org = 0x%x\n",crc,checksum);
 	return (crc == (uint16_t)checksum);
 }
 
