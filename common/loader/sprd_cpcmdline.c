@@ -67,6 +67,24 @@ static int get_adc_value_board(int channel){
 		return -1;
 	}
 
+#if defined(CONFIG_SC9833)
+	if (vol >0 && vol <= 100)
+		vol = 0;
+	if (vol > 100 && vol <= 250 )
+		vol = 1;
+	if (vol > 250 && vol <= 400)
+		vol = 2;
+	if (vol > 400 && vol <= 500)
+		vol = 3;
+	if (vol > 500 && vol <= 700)
+		vol = 4;
+	if (vol > 700 && vol <= 800)
+		vol = 5;
+	if (vol > 900 && vol <= 1000)
+		vol = 6;
+	if (vol > 1000 && vol < 1200)
+		vol = 7;
+#else
 	if (vol >0 && vol <= 100)
 		vol = 0;
 	if (vol > 100 && vol <= 300 )
@@ -81,7 +99,7 @@ static int get_adc_value_board(int channel){
 		vol = 5;
 	if (vol > 1000 && vol < 1200)
 		vol = 6;
-
+#endif
 	return vol;
 }
 
@@ -134,6 +152,26 @@ static char *cpcmdline_get_hw_info(unsigned char id, unsigned char *ptr_b32k)
 	return NULL;
 }
 
+#if defined(CONFIG_TSX_32K)
+int sprd_get32_less(void){
+
+	unsigned int gpio_val = 0;
+	unsigned char shift_bit = 0;
+
+#ifdef LB_GPIO
+	gpio_val |= gpio_state(LB_GPIO) << shift_bit;
+	shift_bit++;
+	debugf("gpio_val0: %d\n", gpio_val);
+#endif
+
+#ifdef MB_GPIO
+	gpio_val |= gpio_state(MB_GPIO) << shift_bit;
+	shift_bit++;
+	debugf("gpio_val1: %d\n", gpio_val);
+#endif
+	return gpio_val;
+}
+#endif
 
 static bool is_invalid_cmd(const char *cmd)
 {
@@ -198,9 +236,7 @@ void cp_cmdline_fixup(void)
 {
 	char *value = NULL;
 	int boardid = 0;
-#if defined(CONFIG_32K_LESS_COMPATIBLE)
 	int value_less = 0;
-#endif
 	char buf[10] = {0};
 	unsigned char v32kless;
 
@@ -257,6 +293,12 @@ void cp_cmdline_fixup(void)
 #endif
 		}
 	}
+
+#if defined(CONFIG_TSX_32K)
+	value_less=sprd_get32_less();
+	sprintf(buf,"%d",value_less);
+	cmdline_add_cp_cmdline(K32_LESS, buf);
+#endif
 
 	debugf("cp cmdline: %s\n", g_CPcmdlineBuf);
 }
