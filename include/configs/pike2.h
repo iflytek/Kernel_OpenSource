@@ -308,7 +308,7 @@
 
 /* Chip Driver Macro Definitions Start*/
 /*sprd adc*/
-#define CONFIG_SPRD_ADC
+//#define CONFIG_SPRD_ADC
 
 /*sprd adi*/
 #define CONFIG_SPRD_ADI
