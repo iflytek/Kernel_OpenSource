@@ -46,6 +46,12 @@ static inline int pbint_7s_rst_set_2keymode(uint32 mode)
 	} else {
 		sci_adi_clr(ANA_REG_GLB_SWRST_CTRL, BIT_KEY2_7S_RST_EN);
 	}
+#elif defined CONFIG_ADIE_SC2721
+	if (!mode) {
+		sci_adi_set(ANA_REG_GLB_POR_7S_CTRL, BIT_KEY2_7S_RST_EN);
+	} else {
+		sci_adi_clr(ANA_REG_GLB_POR_7S_CTRL, BIT_KEY2_7S_RST_EN);
+	}
 #else
 	if (!mode) {
 		sci_adi_set(ANA_REG_GLB_SWRST_CTRL0, BIT_KEY2_7S_RST_EN);
