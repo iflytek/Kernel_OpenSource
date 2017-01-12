@@ -12,12 +12,12 @@ void DCDC_ldo_power_on()
 	regulator_enable("vddwpa");
 	regulator_enable("vddcama");
 	regulator_enable("vddcammot");
-	regulator_enable("vddsim0");
-	regulator_enable("vddsim1");
+	//regulator_enable("vddsim0");
+	//regulator_enable("vddsim1");
 	regulator_enable("vddsim2");
 	regulator_enable("vddemmccore");
-	regulator_enable("vddsdcore");
-	regulator_enable("vddsdio");
+	regulator_disable("vddsdcore");
+	regulator_disable("vddsdio");
 	regulator_enable("vdd28");
 	regulator_enable("vddwifipa");
 	regulator_enable("vdddcxo");
@@ -187,14 +187,14 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN2,
-		BIT_LDO_SIM0_EXT_XTL0_EN |
-		BIT_LDO_SIM0_EXT_XTL1_EN |
-		BIT_LDO_SIM0_EXT_XTL2_EN |
-		BIT_LDO_SIM0_EXT_XTL3_EN |
-		BIT_LDO_SIM1_EXT_XTL0_EN |
-		BIT_LDO_SIM1_EXT_XTL1_EN |
-		BIT_LDO_SIM1_EXT_XTL2_EN |
-		BIT_LDO_SIM1_EXT_XTL3_EN |
+		//BIT_LDO_SIM0_EXT_XTL0_EN |
+		//BIT_LDO_SIM0_EXT_XTL1_EN |
+		//BIT_LDO_SIM0_EXT_XTL2_EN |
+		//BIT_LDO_SIM0_EXT_XTL3_EN |
+		//BIT_LDO_SIM1_EXT_XTL0_EN |
+		//BIT_LDO_SIM1_EXT_XTL1_EN |
+		//BIT_LDO_SIM1_EXT_XTL2_EN |
+		//BIT_LDO_SIM1_EXT_XTL3_EN |
 		0
 	);
 
@@ -235,14 +235,14 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN6,
-		BIT_LDO_SDIO_EXT_XTL0_EN |
-		BIT_LDO_SDIO_EXT_XTL1_EN |
-		BIT_LDO_SDIO_EXT_XTL2_EN |
-		BIT_LDO_SDIO_EXT_XTL3_EN |
-		BIT_LDO_SDCORE_EXT_XTL0_EN |
-		BIT_LDO_SDCORE_EXT_XTL1_EN |
-		BIT_LDO_SDCORE_EXT_XTL2_EN |
-		BIT_LDO_SDCORE_EXT_XTL3_EN |
+		//BIT_LDO_SDIO_EXT_XTL0_EN |
+		//BIT_LDO_SDIO_EXT_XTL1_EN |
+		//BIT_LDO_SDIO_EXT_XTL2_EN |
+		//BIT_LDO_SDIO_EXT_XTL3_EN |
+		//BIT_LDO_SDCORE_EXT_XTL0_EN |
+		//BIT_LDO_SDCORE_EXT_XTL1_EN |
+		//BIT_LDO_SDCORE_EXT_XTL2_EN |
+		//BIT_LDO_SDCORE_EXT_XTL3_EN |
 		0
 	);
 
