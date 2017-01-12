@@ -120,6 +120,8 @@
 #define ANA_REG_GLB_DCDC_RF_ADI         SCI_ADDR(ANA_REGS_GLB_BASE, 0x021C)
 #define ANA_REG_PIN_EXT_XTL_EN0	        SCI_ADDR(ANA_PIN_BASE, 0x0004)
 
+#define ANA_REG_GLB_SOFT_RST0   ANA_REG_GLB_ARM_RST
+
 /* bits definitions for register ANA_REG_GLB_ARM_MODULE_EN */
 #define BIT_ANA_IMPD_ADC_EN             ( BIT(12) )
 #define BIT_ANA_THM_EN                  ( BIT(11) )
@@ -179,6 +181,7 @@
 #define BIT_ANA_WDG_SOFT_RST            ( BIT(2) )
 #define BIT_ANA_RTC_SOFT_RST            ( BIT(1) )
 #define BIT_ANA_CAL_SOFT_RST            ( BIT(0) )
+#define BIT_ADC_SOFT_RST      BIT_ANA_ADC_SOFT_RST
 
 /* bits definitions for register ANA_REG_GLB_LDO_DCDC_PD */
 #define BIT_LDO_EMM_PD                  ( BIT(15) )
