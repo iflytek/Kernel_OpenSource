@@ -1,7 +1,7 @@
 #include <secureboot/sprdsec_header.h>
-#include <secureboot/sprd_rsa.h>
+#include <crypto/sprdrsa.h>
 #include <secureboot/sec_string.h>
-#include <secureboot/sprdsha.h>
+#include <crypto/sprdsha.h>
 #include <secure_verify.h>
 #ifndef CONFIG_SC9833
 #include <asm/arch/chip_drv_common_io.h>

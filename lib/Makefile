@@ -21,8 +21,6 @@ obj-$(CONFIG_USB_TTY) += circbuf.o
 obj-y += crc7.o
 obj-y += crc8.o
 obj-y += crc16.o
-obj-y += sprdsha1.o
-obj-y += sprdsha256.o
 obj-$(CONFIG_FIT) += fdtdec_common.o
 obj-$(CONFIG_OF_CONTROL) += fdtdec_common.o
 obj-$(CONFIG_OF_CONTROL) += fdtdec.o
@@ -75,5 +73,6 @@ obj-$(CONFIG_TRACE) += trace.o
 obj-$(CONFIG_LIB_UUID) += uuid.o
 obj-y += vsprintf.o
 obj-$(CONFIG_LIB_RAND) += rand.o
+obj-y += crypto/
 
 subdir-ccflags-$(CONFIG_CC_OPTIMIZE_LIBS_FOR_SPEED) += -O2

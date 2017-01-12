@@ -1,8 +1,8 @@
 
-#include <secureboot/sprd_rsa.h>
+#include <crypto/sprdrsa.h>
 #include <secureboot/sprdsec_header.h>
 #include <secureboot/sec_string.h>
-#include <secureboot/sprdsha.h>
+#include <crypto/sprdsha.h>
 #include <secureboot/sec_common.h>
 
 #define SEC_DEBUG

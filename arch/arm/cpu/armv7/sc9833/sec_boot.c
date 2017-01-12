@@ -6,7 +6,7 @@
 #include "secure_boot.h"
 #include "sha1_32.h"
 #ifndef USE_LEGENCY_RSA
-#include "rsa_sprd.h"
+#include <crypto/sprdrsa.h>
 #endif
 
 #define EFUSE_HASH_STARTID 2

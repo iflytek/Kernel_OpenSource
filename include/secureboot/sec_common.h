@@ -4,7 +4,7 @@
 #define __SEC_COMMON_H
 
 #include<secureboot/sprdsec_header.h>
-#include<secureboot/sprd_rsa.h>
+#include<crypto/sprdrsa.h>
 #include<secure_efuse.h>
 #include<asm/arch/chip_releted_def.h>
 

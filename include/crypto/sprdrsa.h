@@ -5,7 +5,7 @@
 //#include <stdio.h>
 //#include <malloc.h>
 //#include <common.h>
-#include "sec_string.h"
+//#include "sec_string.h"
 #define false 0
 #define true 1
 #ifndef NULL
@@ -21,10 +21,10 @@ typedef int bool;
 void invert_char(unsigned char *src, int len);
 
 /*****************************************************************
-RSA调用函数
-Create,		输入D和RSA运算长度(2^32进制长度)
-Encrypt,	加密,C=M^E
-Decrypt,	解密,M=C^D
+RSA璋冪敤鍑芥暟
+Create,		杈撳叆D鍜孯SA杩愮畻闀垮害(2^32杩涘埗闀垮害)
+Encrypt,	鍔犲瘑,C=M^E
+Decrypt,	瑙ｅ瘑,M=C^D
 *****************************************************************/
 /*
 generate RSA key pair , return modulus and private exponent

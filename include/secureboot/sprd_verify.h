@@ -4,7 +4,7 @@
 #define __SPRD_VERIFY_H
 
 #include "sprdsec_header.h"
-#include<secureboot/sprd_rsa.h>
+#include<crypto/sprdrsa.h>
 
 void dumpHex(const char *title, uint8_t * data, int len);
 void cal_sha256(uint8_t * input, uint32_t bytes_num, uint8_t * output);
