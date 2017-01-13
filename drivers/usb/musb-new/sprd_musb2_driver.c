@@ -22,6 +22,7 @@
 #include <linux/usb/musb.h>
 #include "musb_core.h"
 
+extern void usb_phy_init(void);
 static __inline void usb_handler (void);
 void invalidate_dcache_range(unsigned long start, unsigned long stop);
 void flush_dcache_range(unsigned long start, unsigned long stop);
@@ -624,25 +625,7 @@ static void usb_startup(void)
 	usb_ldo_switch(1);
 
 	__raw_bits_or(BIT_USB_EB, REG_AP_AHB_AHB_EB);
-
-	__raw_bits_or(BIT_24|BIT_22, REG_AP_AHB_OTG_PHY_TEST);
-
-	__raw_bits_and(~(BIT_29|BIT_30), REG_AP_AHB_OTG_PHY_CTRL);//SPRD USB PHY width: 8 bit
-
-	__raw_bits_or(BIT_20, REG_AP_AHB_OTG_CTRL1);//utmi_rst
-
-	__raw_bits_and(~BIT_AP_AHB_USB20_TUNEHSAMP(3),REG_AP_AHB_OTG_CTRL0);
-	__raw_bits_or(BIT_AP_AHB_USB20_TUNEHSAMP(2),REG_AP_AHB_OTG_CTRL0);
-	__raw_bits_and(~BIT_AP_AHB_USB20_TUNEOTG(7),REG_AP_AHB_OTG_CTRL0);
-
-	__raw_bits_and(~BIT_AP_AHB_USB20_TFREGRES(0x3F),REG_AP_AHB_OTG_CTRL1);
-	__raw_bits_or(BIT_AP_AHB_USB20_TFREGRES(7),REG_AP_AHB_OTG_CTRL1);
-	__raw_bits_or(BIT_AP_AHB_USB20_TFHSRES(0x1F),REG_AP_AHB_OTG_CTRL1);
-
-	__raw_bits_or(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST|BIT_OTG_PHY_SOFT_RST, REG_AP_AHB_AHB_RST);
-	Musb_mdelay(5);
-	__raw_bits_and(~(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST|BIT_OTG_PHY_SOFT_RST),REG_AP_AHB_AHB_RST);
-
+	usb_phy_init();
 	Musb_mdelay(5);
 }
 void udc_power_on(void)

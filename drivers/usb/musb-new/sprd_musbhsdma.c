@@ -93,7 +93,7 @@ static struct dma_channel *sprd_dma_channel_allocate(struct dma_controller *c,
 	channel->desired_mode = transmit;
 	channel->actual_len = 0;
 
-	dev_info(musb->controller, "sprd_dma_channel_allocate %d,0x%p\n",
+	dev_dbg(musb->controller, "sprd_dma_channel_allocate %d,0x%p\n",
 			transmit, musb_channel);
 
 	return channel;
@@ -163,7 +163,7 @@ static int sprd_dma_channel_program(struct dma_channel *channel,
 	unsigned long cache_end = 0;
 	u32 length;
 
-	dev_info(musb->controller, "ep%d-%s pkt_sz %d, dma_addr 0x%x length %d, mode %d\n",
+	dev_dbg(musb->controller, "ep%d-%s pkt_sz %d, dma_addr 0x%x length %d, mode %d\n",
 		musb_channel->ep_num,
 		musb_channel->transmit ? "Tx" : "Rx",
 		packet_sz, dma_addr, len, mode);
@@ -353,11 +353,11 @@ irqreturn_t sprd_dma_interrupt(struct musb *musb, u32 int_hsdma)
 		int_hsdma = int_hsdma >> 1;
 
 		intr = musb_readl(mbase, MUSB_DMA_CHN_INTR(bchannel));
-		dev_info(musb->controller, "sprd_dma_interrupt is 0x%x, %d , %d\n",
+		dev_dbg(musb->controller, "sprd_dma_interrupt is 0x%x, %d , %d\n",
 				intr, bchannel, int_dma);
 
 		if (intr & CHN_START_INT_MASK_STATUS) {
-			dev_info(musb->controller, "DMA request is NULL\n");
+			dev_dbg(musb->controller, "DMA request is NULL\n");
 
 			/* clear interrupt */
 			intr |= CHN_START_INT_CLR;
