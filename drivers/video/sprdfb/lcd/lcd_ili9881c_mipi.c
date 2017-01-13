@@ -354,10 +354,6 @@ int32_t ili9881c_reset(struct panel_spec *self)
 	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 0);
 	mdelay(5);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
-	mdelay(5);
-	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 0);
-	mdelay(5);
-	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
 	mdelay(20);
 
 	return 0;
