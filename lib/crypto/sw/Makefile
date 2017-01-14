@@ -1,5 +1,5 @@
 #
-# The MIT License (MIT) 
+# The MIT License (MIT)
 # Copyright (c) 2008-2015 Travis Geiselbrecht
 # Copyright (c) 2016, Spreadtrum Communications.
 #
