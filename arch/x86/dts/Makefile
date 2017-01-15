@@ -8,6 +8,8 @@ dtb-y += chromebook_link.dtb \
 	isharkl.dtb \
 	sp9861e_1h10.dtb \
 	sp9861e_1h10_vmm.dtb \
+	sp9861e_2h10.dtb \
+	sp9861e_2h10_vmm.dtb \
 	sp9861-fpga-douchannel.dtb \
 	sp9861-fpga-sinchannel.dtb \
 	sp9861-fpga-vmm.dtb \
