@@ -219,6 +219,7 @@
 #define CONFIG_USB_SPRD_DMA
 #define CONFIG_USB_GADGET_MUSB_HDRC
 #define CONFIG_USB_ENUM_IN_UBOOT
+#define CONFIG_USB_PHY_SPRD
 /*lcd config*/
 #define CONFIG_LCD
 #ifdef  CONFIG_LCD
