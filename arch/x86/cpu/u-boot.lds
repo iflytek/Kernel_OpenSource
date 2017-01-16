@@ -53,8 +53,8 @@ SECTIONS
 	__rel_dyn_end = .;
 	. = ALIGN(4);
 	_end = .;
-
-	.bss __rel_dyn_start (OVERLAY) : {
+	. = . + 53k;
+	.bss  : {
 		__bss_start = .;
 		*(.bss)
 		*(COM*)

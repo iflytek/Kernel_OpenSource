@@ -619,6 +619,7 @@ UBOOTINCLUDE    := \
 		-Iinclude \
 		$(if $(KBUILD_SRC), -I$(srctree)/include) \
 		-I$(srctree)/arch/$(ARCH)/include \
+		-I$(srctree)/arch/$(ARCH)/lib/mv \
 		-include $(srctree)/include/linux/kconfig.h
 
 NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
@@ -680,9 +681,12 @@ libs-y += drivers/usb/phy/
 libs-y += drivers/usb/ulpi/
 libs-y += common/
 
-libs-y += lib/trustzone/
 libs-$(CONFIG_SECBOOT) += lib/secureboot/
-
+ifdef CONFIG_X86
+libs-$(CONFIG_SECBOOT) += lib/sec_vm/
+else
+libs-y += lib/trustzone/
+endif
 libs-$(CONFIG_API) += api/
 libs-$(CONFIG_HAS_POST) += post/
 libs-y += common/loader/

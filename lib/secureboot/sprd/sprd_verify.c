@@ -35,6 +35,18 @@ uint32_t Non_Trusted_update_index = 0;
 uint32_t spl_anti_rollback = 0;
 /*####for anti-rollback end######*/
 uint8_t to[RSA_KEY_BYTE_LEN_MAX] = { 0 };	// store RSA_PubDec  result
+#define MODEM_MAGIC		"SCI1"
+#define MODEM_HDR_SIZE		12
+#define MODEM_IMG_HDR		0x1
+#define MODEM_LAST_HDR		0x100
+#define MODEM_SHA1_HDR		0x400
+#define MODEM_SHA1_SIZE		20
+
+typedef struct {
+	unsigned int type_flags;
+	unsigned int offset;
+	unsigned int length;
+} data_block_header_t;
 
 void dumpHex(const char *title, uint8_t * data, int len)
 {
@@ -224,6 +236,74 @@ bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t *
 	return ret;
 }
 
+
+/*
+ *  this function compare the first four bytes in image and return 1 if equals to
+ *  MODEM_MAGIC
+ */
+static int is_packed_modem_image(uint8_t *data)
+{
+	if (sec_memcmp(data, (uint8_t*)MODEM_MAGIC, sizeof(MODEM_MAGIC)))
+		return 0;
+	return 1;
+}
+
+/*
+ *  this function parse new packed modem image and return modem code offset and length
+ */
+static void get_modem_info(uint8_t *data, uint32_t *code_offset, uint32_t *code_len)
+{
+	uint32_t offset = 0, hdr_offset = 0, length = 0;
+	uint8_t hdr_buf[MODEM_HDR_SIZE << 3] = {0};
+	uint8_t read_len;
+	uint8_t result = 0; // 0:OK, 1:not find, 2:some error occur
+	data_block_header_t *hdr_ptr = NULL;
+
+	read_len = sizeof(hdr_buf);
+	sec_memcpy(hdr_buf, data, read_len);
+
+		do {
+			if(!hdr_offset) {
+				hdr_ptr = (data_block_header_t*)hdr_buf + 1;
+				hdr_offset = MODEM_HDR_SIZE;
+			} else {
+				hdr_ptr = (data_block_header_t*)hdr_buf;
+			}
+
+			while(!(hdr_ptr->type_flags & MODEM_IMG_HDR)) {
+				hdr_ptr ++;
+				hdr_offset += MODEM_HDR_SIZE;
+				if(read_len == ((unsigned char*)hdr_ptr - hdr_buf)) {
+					result = 1;
+					break;
+				}
+
+				if(hdr_ptr->type_flags & MODEM_LAST_HDR) {
+					result = 2;
+					secf("no modem image, error image header!!!\n");
+					break;
+				}
+			};
+
+			if(result != 1) {
+				break;
+			}
+
+		} while(1);
+
+		if(!result) {
+			offset = hdr_ptr->offset;
+			if(hdr_ptr->type_flags & MODEM_SHA1_HDR) {
+				offset += MODEM_SHA1_SIZE;
+			}
+			length = hdr_ptr->length;
+		}
+
+	*code_offset = offset;
+	*code_len = length;
+}
+
+
 /*
 uint8_t *hash_key_precert: hash of of pub key in pre cert or OTP, used to verify the pub key in current image
 uint8_t *imgbuf: current image need to verify
@@ -257,8 +337,15 @@ bool sprd_verify_img(uint8_t * hash_key_precert, uint8_t * imgbuf)
 {
 	sprdsignedimageheader *imghdr = (sprdsignedimageheader *) sprd_get_sechdr_addr(imgbuf);
 	uint8_t *code_addr = sprd_get_code_addr(imgbuf);
-	uint8_t soft_hash_data[HASH_BYTE_LEN];
-
+	if (is_packed_modem_image(code_addr)) {
+		secf("the image is new packed modem image\n");
+		uint32_t modem_offset = 0;
+		uint32_t modem_len = 0;
+		get_modem_info(code_addr, &modem_offset, &modem_len);
+		secf("modem offset: %d, length: %d\n", modem_offset, modem_len);
+		code_addr += modem_offset;
+	}
+	uint8_t soft_hash_data[HASH_BYTE_LEN] = {0};
 	cal_sha256(code_addr, imghdr->payload_size, soft_hash_data);
 	uint8_t *curcertptr = sprd_get_cert_addr(imgbuf);
 

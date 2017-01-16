@@ -3,9 +3,6 @@
 #include <secureboot/sec_string.h>
 #include <crypto/sprdsha.h>
 #include <secure_verify.h>
-#ifndef CONFIG_SC9833
-#include <asm/arch/chip_drv_common_io.h>
-#endif
 #include <asm/arch/sci_types.h>
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_common.h>
@@ -25,6 +22,11 @@ static uchar *const s_force_secure_check[] = {
     "splloader",
 	"sml",
 	"trustos",
+#ifdef CONFIG_X86
+	"mobilevisor",
+	"mvconfig",
+	"secvm",
+#endif
 	"uboot",
 	"boot",
 	"recovery",
@@ -155,7 +157,7 @@ int secure_efuse_program(void)
 #endif
 
 #if defined(CONFIG_SPRD_SECBOOT)
-			ret = secure_efuse_program_sprd();
+			//ret = secure_efuse_program_sprd(); /*wait for efuse driver ready*/
 #endif
 
 #if defined(CONFIG_SECURE_BOOT)
@@ -186,7 +188,10 @@ VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
 		dl_secure_verify("splloader0", buf, 0);
 	}
 #ifdef CONFIG_SECBOOT
-	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))){
+	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))
+				||(SEC_TRUE == strcmp("mobilevisor",part_name))
+				||(SEC_TRUE == strcmp("mvconfig",part_name))
+				||(SEC_TRUE == strcmp("secvm",part_name))){
 			dl_secure_verify("fdl1",buf,0);
 	}
 #endif
@@ -285,7 +290,7 @@ void secboot_terminal(void)
 void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
 {
 	secure_load_partition(partition_name,size,offset,ram_addr);
-	#ifdef TOS_TRUSTY
+	#if defined (TOS_TRUSTY)
 	secboot_param_set(VERIFY_ADDR,img_verify_info_tos);
 	img_verify_info_tos->pubkeyhash = (uint8_t*)ARG_START_ADRESS+PAGE_ALIGN;
 	secboot_get_pubkhash(UBOOT_START,img_verify_info_tos->pubkeyhash);

@@ -32,6 +32,7 @@
 #define _UBOOT_SEC_DRV_H_
 
 #include <common.h>
+#include "secureboot/sec_common.h"
 
 #define TEESMC_32                       0
 #define TEESMC_64                       0x40000000
