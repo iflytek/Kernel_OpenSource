@@ -403,14 +403,17 @@ char *rstmode[] = {
 	"kernel crash",				//CMD_PANIC_REBOOT,
 	"vmm panic",				//CMD_VMM_PANIC_MODE
 	"tos panic",				//CMD_TOS_PANIC_MODE
+	"ext rstn reboot",                      //CMD_EXT_RSTN_REBOOT_MODE,
 	"calibration",				//CMD_CALIBRATION_MODE,
+	"factory test",				//CMD_FACTORYTEST_MODE,
 	"autodloader",				//CMD_AUTODLOADER_REBOOT,
-	"ext rstn reboot",			//CMD_EXT_RSTN_REBOOT_MODE,
+	"autotest",				//CMD_AUTOTEST_MODE,
 	"iq reboot",				//CMD_IQ_REBOOT_MODE,
 	"sleep",				//CMD_SLEEP_MODE,
+	"sprd disk",				//CMD_SPRDISK_MODE,
 };
 
-#define GET_RST_MODE(x) rstmode[(x) < 20 ? (x) : 0]
+#define GET_RST_MODE(x) rstmode[(x) < 23 ? (x) : 0]
 
 #ifdef CONFIG_NAND_BOOT
 /*Copy the data saved in nand flash to ram*/
