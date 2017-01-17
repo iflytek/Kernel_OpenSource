@@ -790,8 +790,8 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, struct sysdump_mem *s
 		ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region-se", &lenp);
 		__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "memory-region-se", &size);
 		if (list == NULL) {
-			debugf("no memory-region1 property.\n");
-			return 0;
+			debugf("no memory-region-se property.\n");
+			goto memory_done;
 		}
 		__be32 *list_end = list + size / sizeof(*list);
 
@@ -800,8 +800,10 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, struct sysdump_mem *s
 			phandle = be32_to_cpup(list++);
 			lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
 			ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
-			if (ptr == NULL)
-				debugf("no reg property.\n");
+			if (ptr == NULL) {
+				debugf("no reg property in memory-region-se.\n");
+				goto memory_done;
+			}
 			else {
 				ptr_end = ptr + lenp / (sizeof(unsigned long long));
 				while (ptr < ptr_end) {
@@ -833,7 +835,7 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, struct sysdump_mem *s
 		}
 		debugf("reserved-memory num is %d\n.", num);
 
-		/* reorder array by addr */
+		/* reorder reserved-memory by addr */
 		reorder_reserved_memory_by_addr(mem_res_arry, num);
 
 		/* calculate linux memory region */
@@ -912,8 +914,44 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, struct sysdump_mem *s
 				}
 			}
 		}
+
+		/* calculate specific reserved-memory*/
+		ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region-re", &lenp);
+		__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "memory-region-re", &size);
+		if (list == NULL) {
+			debugf("no memory-region-re property.\n");
+			goto memory_done;
+		}
+
+		__be32 *list_end = list + size / sizeof(*list);
+
+		while (list < list_end) {
+			debugf("memory-region-re 1.\n");
+			phandle = be32_to_cpup(list++);
+			lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
+			ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
+			if (ptr == NULL) {
+				debugf("no reg property in memory-region-re.\n");
+				goto memory_done;
+			}
+			else {
+				ptr_end = ptr + lenp / (sizeof(unsigned long long));
+				while (ptr < ptr_end) {
+					debugf("memory-region-re 2.\n");
+					sprd_dump_mem[i].paddr = fdt_addr_to_cpu (*ptr ++);
+					sprd_dump_mem[i].paddr = (sprd_dump_mem[i].paddr<<32) | fdt_addr_to_cpu(*ptr ++);
+					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
+					sprd_dump_mem[i].size  = fdt_size_to_cpu (*ptr ++);
+					sprd_dump_mem[i].size  = (sprd_dump_mem[i].size<<32) | fdt_addr_to_cpu(*ptr ++);
+					sprd_dump_mem[i].soff  = 0xffffffff;
+					sprd_dump_mem[i].type  = SYSDUMP_RAM;
+					i ++;
+				}
+			}
+		}
 	}
 
+memory_done:
 	/* step4: return */
 	sprd_dump_mem_num = i;
 	debugf("auto sprd_dump_mem_num is %d\n", sprd_dump_mem_num);
