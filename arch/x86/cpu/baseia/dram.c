@@ -145,11 +145,11 @@ static void dram_configure_bridge_perf(void)
 	uncore_register_set_bits(0x1B, 0x1, BIT(16), BIT(16));
 
 	/*
-	 * Disable Non-posted writes
+	 * Enable Non-posted writes
 	 * Bit[0]
-	 * Clear last bit
+	 * Enable last bit
 	 */
-	uncore_register_set_bits(0x14, 0x10, BIT(0), 0);
+	uncore_register_set_bits(0x14, 0x10, BIT(0), BIT(0));
 
 	/* ackgate bit 0-22 */
 	uncore_register_set_bits(0x00, 0x18, 0x007FFFFF, 0x007FFFFF);
