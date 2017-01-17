@@ -47,7 +47,7 @@
 //  Note:
 /*****************************************************************************/
 
-#define PUBCP_IRAM_ADDRESS 0x1a000
+#define PUBCP_IRAM_ADDRESS 0xe6022000
 
 static u32 g_loader[] = {
 	0xee110f10, 0xe3c00005, 0xe3c00a01, 0xf57ff04f,
@@ -58,60 +58,86 @@ static u32 g_loader[] = {
 	0xe3a0103f, 0xee061f51, 0xe3a01f42, 0xee061f91,
 	0xee110f30, 0xe3c00802, 0xe3c00801, 0xe3c00902,
 	0xee010f30, 0xee110f10, 0xe3800001, 0xf57ff04f,
-	0xee010f10, 0xf57ff06f, 0xe51ff004, 0x8b800000
+	0xee010f10, 0xf57ff06f, 0xe51ff004, 0x83000600
 };
+
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+extern int load_cp_boot_code(void *loader);
+#else
+inline int load_cp_boot_code(void *loader)
+{
+	return -1;
+}
+#endif
 
 static inline void pubcp_boot(void)
 {
+	if(load_cp_boot_code((void*)PUBCP_IRAM_ADDRESS))
+		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
 
-    u32 state;
-	memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
-	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) |= BIT_10; /*cr5 core soft reset*/
+	/* hold cr5 */
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= BIT_COM_PMU_APB_PUBCP_SYS_SRST;
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= BIT_COM_PMU_APB_PUBCP_CR5_CORE_SRST;
+
+	/* clear r5 sleep */
+	*((volatile u32*)REG_PMU_APB_PUBCP_SYS_SLEEP_CTRL) &= ~BIT_PMU_APB_PUBCP_SYS_FORCE_DEEP_SLEEP;
+	*((volatile u32*)REG_PMU_APB_PUBCP_SYS_SLEEP_CTRL) &= ~BIT_PMU_APB_PUBCP_SYS_FORCE_LIGHT_SLEEP0;
+	*((volatile u32*)REG_PMU_APB_PUBCP_SYS_SLEEP_CTRL) &= ~BIT_PMU_APB_PUBCP_SYS_FORCE_DOZE_SLEEP;
+	*((volatile u32*)REG_PMU_APB_PUBCP_SYS_SLEEP_CTRL) &= ~BIT_PMU_APB_PUBCP_SYS_FORCE_PUB_DEEP_SLEEP0;
+
+	/* power up */
+	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_PWR_CFG) &= ~(BIT_PMU_APB_PD_PUBCP_SYS_AUTO_SHUTDOWN_EN | BIT_PMU_APB_PD_PUBCP_SYS_FORCE_SHUTDOWN);
+
+	/* release cr5 */
 	msleep(50);
-	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) &= ~BIT_10; /*cr5 core soft reset*/
-
-	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~(BIT_19|BIT_20);   /*clear R5 force sleep */
-	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_24 | BIT_25);/* clear R5 force shutdown */
-
-	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST)|= BIT_2;   /* reset R5 */
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) &= ~BIT_COM_PMU_APB_PUBCP_SYS_SRST;
 	msleep(50);
-    *((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_2; /* pubcp soft reset */
-
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) &= ~BIT_COM_PMU_APB_PUBCP_CR5_CORE_SRST;
 }
 
-/*****************************************************************************/
-//  Description:    Gets the current reset mode.
-//  Author:         Andrew.Yang
-//  Note:
-/*****************************************************************************/
+/*Just for iwhale2 bringup --from Sheng.Zhu advice*/
+void ag_tg_ldsp_hold()
+{
+	/* hold tg&ag&ldsp */
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= (BIT_COM_PMU_APB_WTLCP_TGDSP_SRST|BIT_COM_PMU_APB_WTLCP_LDSP_SRST|BIT_COM_PMU_APB_AGCP_DSP_SRST);
+}
+
+/* activation of PARM related iram  */
 void pmic_arm7_RAM_active(void)
 {
-	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) |= BIT_1;   /* reset M3 */
+#ifdef CONFIG_SOC_IWHALE2
+	/*Just for iwhale2 bringup --from Sheng.Zhu advice*/
+	ag_tg_ldsp_hold();
+#endif
+
+	/* enable ap access to cm4 permissions */
+	*((volatile u32*)REG_COMMON_APB_SP_CFG_BUS) &= ~BIT_COMMON_APB_SP_CFG_BUS_SLEEP;
+	/* hold cm4 */
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= (BIT_COM_PMU_APB_CM4_CORE_SRST | BIT_COM_PMU_APB_CM4_SYS_SRST);
+	/* clear cm4 force sleep */
+	*((volatile u32*)REG_PMU_APB_CM4_SYS_SLEEP_CTRL) &= ~(BIT_PMU_APB_CM4_SYS_FORCE_DEEP_SLEEP | BIT_PMU_APB_CM4_SYS_FORCE_DOZE_SLEEP);
 }
 
-/*****************************************************************************/
-//  Description:    Gets the current reset mode.
-//  Author:         Andrew.Yang
-//  Note:
-/*****************************************************************************/
-static inline void pmic_arm_m3_boot(void)
+static inline void parm_modem_boot(void)
 {
-    u32 state;
-    *((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_23;   /*clear M3 force sleep */
-  *((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_1;   /* reset M3 */
-    msleep(50);
+	/*clear M4 software interrupt */
+	*((volatile u32*)REG_COMMON_APB_SP_CFG_BUS) &= ~BIT_COMMON_APB_INT_REQ_CM4_SOFT;
+	/* release cm4 */
+	msleep(50);
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) &= ~(BIT_COM_PMU_APB_CM4_CORE_SRST | BIT_COM_PMU_APB_CM4_SYS_SRST);
 }
 
 static inline void agdsp_boot(void)
 {
-   *((volatile u32*)REG_PMU_APB_PD_AGCP_SYS_CFG) &= ~BIT_25;
-   *((volatile u32*)REG_PMU_APB_PD_AGCP_DSP_CFG) &= ~BIT_25;
-   *((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_28;
-   *((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~(BIT_19 | BIT_21);
-   *((volatile u32*)REG_AON_APB_AGCP_BOOT_PROT) |= BITS_AON_APB_AGCP_REG_PROT_VAL(0x9620);
-   *((volatile u32*)REG_AON_APB_AGCP_DSP_CTRL0) = BITS_AON_APB_AGCP_DSP_BOOT_VECTOR(0x449d0040);
-   *((volatile u32*)REG_AON_APB_AGCP_CTRL) |= BIT_0;
-   *((volatile u32*)REG_AON_APB_AGCP_SOFT_RESET) &= ~BIT_1;
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= (BIT_COM_PMU_APB_AGCP_DSP_SRST | BIT_COM_PMU_APB_AGCP_DSP_SYS_SRST);
+	*((volatile u32*)REG_PMU_APB_PD_AGCP_SYS_PWR_CFG) &= ~BIT_PMU_APB_PD_AGCP_SYS_FORCE_SHUTDOWN;
+	*((volatile u32*)REG_PMU_APB_PD_AGCP_DSP_PWR_CFG) &= ~BIT_PMU_APB_PD_AGCP_DSP_FORCE_SHUTDOWN;
+	*((volatile u32*)REG_PMU_APB_AGCP_SYS_SLEEP_CTRL) &= ~(BIT_PMU_APB_AGCP_SYS_FORCE_LIGHT_SLEEP0 | BIT_PMU_APB_AGCP_SYS_FORCE_DEEP_SLEEP | BIT_PMU_APB_AGCP_SYS_FORCE_DOZE_SLEEP);
+	*((volatile u32*)REG_AON_APB_AGCP_BOOT_PROT) |= BIT_AON_APB_AGCP_REG_PROT_VAL(0x9620);
+	*((volatile u32*)REG_AON_APB_AGCP_DSP_CTRL0) = BIT_AON_APB_AGCP_DSP_BOOT_VECTOR(0x40450040);
+	*((volatile u32*)REG_AON_APB_AGCP_DSP_CTRL1) |= BIT_AON_APB_AGCP_DSP_BOOT;
+	*((volatile u32*)REG_AON_APB_AGCP_CTRL) |= BIT_AON_APB_AGCP_TOP_ACCESS_EN;
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) &= ~(BIT_COM_PMU_APB_AGCP_DSP_SRST | BIT_COM_PMU_APB_AGCP_DSP_SYS_SRST | BIT_COM_PMU_APB_AGCP_SYS_SRST);
 }
 
 /*****************************************************************************/

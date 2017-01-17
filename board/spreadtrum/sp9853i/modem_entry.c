@@ -11,6 +11,12 @@ void modem_entry()
 	parm_modem_boot();
 	pubcp_boot();
 	debugf("boot CP1 OK\n");
+#else
+	extern unsigned int g_charger_mode;
+	if(g_charger_mode) {
+		parm_modem_boot();
+		printf("boot CM4 OK\n");
+	}
 #endif
 }
 
