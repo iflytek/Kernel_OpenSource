@@ -189,4 +189,9 @@
 #define DFS_SIZE			(256*1024) //256K
 
 #define CONFIG_ARM7_RAM_ACTIVE	//active the cm4 iram
+/* This is the offset from SRAM base address to save the
+   vid values in order to program the vid registers on the
+   resume path
+*/
+#define CONFIG_VID_OFFSET	0x1F00
 
