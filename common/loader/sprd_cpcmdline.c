@@ -213,7 +213,8 @@ static void cmdline_prepare(void)
 	g_CPcmdlineBuf = (char*)CALIBRATION_FLAG_CP1;
 #endif
 #endif
-	memset(g_CPcmdlineBuf, 0, MAX_CP_CMDLINE_LEN);
+	if (g_CPcmdlineBuf)
+		memset(g_CPcmdlineBuf, 0, MAX_CP_CMDLINE_LEN);
 	debugf("g_CPcmdlineBuf = 0x%p\n" , g_CPcmdlineBuf);
 }
 
@@ -224,6 +225,9 @@ static cmdline_add_cp_cmdline(char *cmd, char* value)
 	//printf("add cmd, cmd = %s, value = %s\n", cmd, value);
 
 	if(!is_invalid_cmd(cmd))return;
+
+	if (NULL == g_CPcmdlineBuf)
+		return;
 
 	len = strlen(g_CPcmdlineBuf);
 	p = g_CPcmdlineBuf + len;
