@@ -156,6 +156,7 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9852-vdk-smt.dtb \
 	sp9852-vdk.dtb \
 	sp9852-fpga.dtb \
+	sp9852-zebu.dtb \
 	sp9852-fpga-smt.dtb
 
 targets += $(dtb-y)

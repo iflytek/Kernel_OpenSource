@@ -96,7 +96,7 @@ boot_mode_enum_type get_mode_from_bat_low(void)
 	return CMD_UNDEFINED_MODE;
 }
 
-
+#ifndef CONFIG_ZEBU
 boot_mode_enum_type write_sysdump_before_boot_extend(void)
 {
 	unsigned rst_mode = reboot_mode_check();
@@ -104,7 +104,7 @@ boot_mode_enum_type write_sysdump_before_boot_extend(void)
 	write_sysdump_before_boot(rst_mode);
 	return CMD_UNDEFINED_MODE;
 }
-
+#endif
 /*1 get mode from file, just for recovery mode now*/
 boot_mode_enum_type get_mode_from_file_extend(void)
 {
@@ -230,11 +230,9 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 
 	if(argc > 2)
 		return CMD_RET_USAGE;
-
-#if defined CONFIG_AUTOLOAD_MODE
+#ifdef CONFIG_AUTOLOAD_MODE
 	autoload_mode();
 #endif
-
 #if defined CONFIG_AUTOBOOT
 	if (reboot_mode_check() == CMD_AUTODLOADER_REBOOT)
 		autodloader_mode();

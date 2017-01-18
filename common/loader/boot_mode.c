@@ -1,4 +1,4 @@
-
+#include <common.h>
 #include "loader_common.h"
 #include <libfdt.h>
 #include "dev_tree.h"
@@ -6,7 +6,7 @@
 extern unsigned int g_charger_mode;
 void lcd_enable(void);
 
-#if defined CONFIG_AUTOLOAD_MODE
+#ifdef CONFIG_AUTOLOAD_MODE
 
 void autoload_mode(void)
 {

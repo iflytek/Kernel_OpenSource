@@ -572,12 +572,12 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #if defined(CONFIG_CMD_ONENAND)
 	onenand_init();
 #endif
-
+#ifndef CONFIG_ZEBU
 #ifdef CONFIG_GENERIC_MMC
 	puts("MMC:   ");
 	mmc_initialize(gd->bd);
 #endif
-
+#endif
 #ifdef CONFIG_UFS
 	ufs_init();
 #endif

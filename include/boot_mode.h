@@ -1,6 +1,6 @@
 #ifndef _BOOT_MODE_H_
 #define _BOOT_MODE_H_
-
+#include <common.h>
 
 #define BACKLIGHT_ON 25
 #define BACKLIGHT_OFF 0
@@ -56,7 +56,7 @@ int read_adc_calibration_data(char *buffer,int size);
 int pctool_mode_detect_uart(void);
 int sprdisk_mode_detect(void);
 
-#if defined CONFIG_AUTOLOAD_MODE
+#ifdef CONFIG_AUTOLOAD_MODE
 void autoload_mode(void);
 #endif
 
