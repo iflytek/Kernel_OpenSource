@@ -320,11 +320,6 @@
 #define MB_GPIO 			141
 #endif
 
-/*sprd charge*/
-#define CONFIG_SPRD_EXT_IC_POWER
-#define CONFIG_SPRD2700_CHARGE_IC
-#define CONFIG_SPRDCHG_I2C_BUS 1
-
 /* Chip Driver Macro Definitions Start*/
 /*sprd adc*/
 #define CONFIG_SPRD_ADC
