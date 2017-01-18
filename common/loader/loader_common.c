@@ -174,6 +174,7 @@ void fdt_fixup_all_x86(u8 *fdt_blob)
 extern int fdt_fixup_cp_coupling_info(void *blob);
 	fdt_fixup_cp_coupling_info(fdt_blob);
 #endif
+	fdt_fixup_pmic_wa(fdt_blob);
 
 }
 

@@ -10,6 +10,8 @@
 #include "sprd_cpcmdline.h"
 #include "sysdump.h"
 #include "sprd_common_rw.h"
+#include <adi_hal_internal.h>
+#include <asm/arch/sprd_reg.h>
 #include <uboot_sec_drv.h>
 #include <fdtdec.h>
 
@@ -339,6 +341,94 @@ int fdt_chosen_bootargs_replace(void *fdt, char *old_args, char *new_args)
 	}
 
 	return err;
+}
+
+void fdt_fixup_pmic_wa(void *fdt)
+{
+	int cpunode, vddnode;
+	u32 cpureg;
+	int vddarm0_node, vddarm1_node;
+	u32 vddarm0_phandle, vddarm1_phandle;
+	char buf[16];
+	int str_len;
+	int ret;
+
+	if (ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW) >= 0xC003) {
+		debugf("2731 later than CE version, skip pmic wa\n");
+		return;
+	}
+
+	vddarm0_node = fdt_node_offset_by_prop_value(fdt, -1, "regulator-name", "vddarm0", 8);
+	if (vddarm0_node == -FDT_ERR_NOTFOUND) {
+		errorf("vddarm0 not found\n");
+		return;
+	} else
+		vddarm0_phandle = fdt_get_phandle(fdt, vddarm0_node);
+
+	vddarm1_node = fdt_node_offset_by_prop_value(fdt, -1, "regulator-name", "vddarm1", 8);
+	if (vddarm1_node == -FDT_ERR_NOTFOUND)
+		return;
+	else
+		vddarm1_phandle = fdt_get_phandle(fdt, vddarm1_node);
+
+	debugf("vddarm0 phandle 0x%x, vddarm1 phandle 0x%x\n", vddarm0_phandle, vddarm1_phandle);
+
+	cpunode = fdt_node_offset_by_prop_value(fdt, 0, "device_type", "cpu", 4);
+	if (cpunode < 0) {
+		errorf("cannot find bullhill cpu\n");
+		/* Exit if there is no CPU devices but this should never happen */
+		return;
+	} else {
+		while (cpunode != -FDT_ERR_NOTFOUND) {
+			u32 *reg = (u32 *)fdt_getprop(fdt, cpunode, "reg", 0);
+			if (reg) {
+				cpureg = *reg >> 24;
+				if (cpureg == 0) {
+					debugf("add vddarm0 to cpu0\n");
+					vddnode = fdt_appendprop_u32(fdt, cpunode, "cpu0-supply", vddarm0_phandle);
+					if (vddnode < 0) {
+						char s[64];
+						fdt_get_path(fdt, cpunode, s, sizeof(s));
+						debugf("could not add vddarm0 node to %s, %s\n", s,
+								fdt_strerror(vddnode));
+					}
+					vddnode = fdt_appendprop(fdt, cpunode, "dual-phase-supply", NULL, 0);
+					if (vddnode < 0) {
+						char s[64];
+						fdt_get_path(fdt, cpunode, s, sizeof(s));
+						debugf("could not add dual phase supply node to %s, %s\n", s,
+								fdt_strerror(vddnode));
+					}
+				} else if (cpureg == 4) {
+					debugf("add vddarm1 to cpu2\n");
+					vddnode = fdt_appendprop_u32(fdt, cpunode, "cpu1-supply", vddarm1_phandle);
+					if (vddnode < 0) {
+						char s[64];
+						fdt_get_path(fdt, cpunode, s, sizeof(s));
+						debugf("could not add vddarm1 node to %s, %s\n", s,
+								fdt_strerror(vddnode));
+					}
+					vddnode = fdt_appendprop(fdt, cpunode, "dual-phase-supply", NULL, 0);
+					if (vddnode < 0) {
+						char s[64];
+						fdt_get_path(fdt, cpunode, s, sizeof(s));
+						debugf("could not add dual phase supply node to %s, %s\n", s,
+								fdt_strerror(vddnode));
+					}
+				}
+			}
+			cpunode = fdt_node_offset_by_prop_value(fdt, cpunode, "device_type", "cpu", 4);
+		}
+	}
+
+	/* append bootargs if all above dts edits sucess */
+	memset(buf, 0, 16);
+	sprintf(buf, "pmic2731_wa");
+	str_len = strlen(buf);
+	buf[str_len] = '\0';
+	fdt_chosen_bootargs_append(fdt, buf, 1);
+
+	return;
 }
 
 int fdt_fixup_iq_reserved_mem(void *fdt)
