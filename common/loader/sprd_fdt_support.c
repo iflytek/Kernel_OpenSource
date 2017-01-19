@@ -801,7 +801,8 @@ int fdt_fixup_ddr_size(void *fdt)
 	phys_size_t ddr_size = get_real_ram_size();
 
 	nodeoffset = fdt_path_offset(fdt, "/memory");
-	debugf("nodeoffset = %d\n", nodeoffset);
+	debugf("/memory nodeoffset = %d, ddr_base: 0x%x, ddr_size: 0x%x\n",
+		nodeoffset, ddr_base, ddr_size);
 	if (nodeoffset < 0) {
 	    errorf("ERROR: device tree must have /memory node %s.\n", fdt_strerror(nodeoffset));
 	    return nodeoffset;

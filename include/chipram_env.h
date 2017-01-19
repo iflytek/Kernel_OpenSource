@@ -15,6 +15,9 @@ typedef struct chipram_env {
 	u32 dram_size; //MB
 	u64 vol_para_addr;
 	u32 keep_charge;
+	u32 cs_number;
+	u32 cs0_size;
+	u32 cs1_size;
 	u32 reserved;
 }chipram_env_t;
 
@@ -31,7 +34,6 @@ typedef struct ddr_info {
 	u32 section_number;
 	struct section_info sec_info[max_sec_number];
 }ddr_info_t;
-
 chipram_env_t* get_chipram_env(void);
 boot_mode_t get_boot_role(void);
 
