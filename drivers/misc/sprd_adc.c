@@ -58,7 +58,7 @@ typedef unsigned int u32;
 #define ADC_IRQ_RAW_BIT                     BIT_0
 #define ADC_DATA_MSK                        0xFFF
 
-#define BIT_ADC_CUR_EN             BIT(6)
+#define BIT_ADC_CUR_EN             BIT(0)
 #define SC2731_ADC0_SELECT_BIT     BIT(11)
 #define BITS_AUXAD_NTC_MUX(x)      (((x) & 0x3) << 0)
 
