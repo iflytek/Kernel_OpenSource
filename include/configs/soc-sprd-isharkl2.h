@@ -141,10 +141,10 @@
 /*sprd gpio*/
 #define CONFIG_SPRD_GPIO
 
+#define CONFIG_CONS_INDEX		0 /* use UART0 for console */
+
 /*sprd rtc*/
 #define CONFIG_RTC_SPRD
-
-#define CONFIG_FPGA
 
 /*sprd watchdog*/
 #define CONFIG_HW_WATCHDOG

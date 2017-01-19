@@ -263,11 +263,6 @@ config TARGET_SP9861_FPGA
     help
       use for fpga board
 
-config TARGET_SP9853I_FPGA
-    bool "switch for fpga board"
-    default n
-    help
-      use for fpga board
 
 config TARGET_SP9861_FPGA_SIN
     bool "switch for fpga ddr single channel board"

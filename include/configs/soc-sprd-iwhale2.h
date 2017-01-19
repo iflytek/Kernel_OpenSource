@@ -127,6 +127,8 @@
 #define CONFIG_SPRD_EIC_EXT1
 #define CONFIG_SPRD_EIC_EXT2
 
+#define CONFIG_CONS_INDEX		1 /* use UART1 for console */
+
 /*sprd rtc*/
 #define CONFIG_RTC_SPRD
 

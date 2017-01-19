@@ -147,6 +147,18 @@ config TARGET_SP9850KA_2C10
 	select CPU_V7
 endchoice
 
+config ZEBU
+	bool "zebu board"
+	default n
+	help
+	  This  option specifies some special control for zebu board.
+
+config FPGA
+	bool "fpga board"
+	default n
+	help
+	  This  option specifies some special control for fpga board.
+
 source "board/spreadtrum/isharkl/Kconfig"
 source "board/spreadtrum/sp9861/Kconfig"
 source "board/spreadtrum/sp9861_vp/Kconfig"
