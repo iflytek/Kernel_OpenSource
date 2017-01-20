@@ -683,7 +683,7 @@ libs-y += common/
 
 libs-$(CONFIG_SECBOOT) += lib/secureboot/
 ifdef CONFIG_X86
-libs-$(CONFIG_SECBOOT) += lib/sec_vm/
+libs-y += lib/sec_vm/
 else
 libs-y += lib/trustzone/
 endif

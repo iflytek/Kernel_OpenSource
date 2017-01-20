@@ -4,67 +4,45 @@
 #include "mv_gal.h"
 #include "mv_svc_hypercalls.h"
 
+#define SEC_VERIFY_CMD 0x1
 
-static int init_flag = 0;
-static int tos_flag = 0;
 int uboot_verify_img(uint64_t start_addr,uint64_t lenth)
 {
-	struct mv_shared_data *shared_data;
-	volatile unsigned int *ptr;
 	unsigned int result = 0;
 	imgToVerifyInfo *info = (imgToVerifyInfo *)start_addr;
 
-	if (!init_flag) {
-		printf("init flag=%d\n", init_flag);
-		mv_init();
-		init_flag = 1;
-	}
 
 	printf("image addr=%p, size=%d\n", info->img_addr, info->img_len);
 	printf("pubkey hash addr=%p, size=%d\n", info->pubkeyhash, info->hash_len);
+	volatile unsigned int *share_data;
+	tee_call_request(&share_data);/*check tos status and send cmd to tos, tos return share memory point*/
 
-
-	shared_data = mv_gal_get_shared_data();
-	ptr = (unsigned int *)shared_data->pal_shared_mem_data;
-	/*check tos status,if tos is ready,it will put 0xa5a5 at ptr[2]*/
-	puts("## Wait for tos ready ...\n");
-	ptr[3] = 0x5a5a;/*send check cmd*/
-	if(!tos_flag){
-	   if(mv_svc_ivmc_request(3) != 0){
-		while(1) {
-				printf("tos is not ready,status: 0x%x\n",ptr[2]);
-				if(ptr[2] == 0xa5a5)/*tos return status val at ptr[2]*/
-				{
-					tos_flag = 1;
-					break;
-				}
-				mdelay(200);
-			 }
-		    }
-		}
+	printf("##%s:%d---vm=%d,cpu=%d,result: %d\n", __func__, __LINE__,
+	       share_data[0], share_data[1], share_data[2]);
 	puts("## Start verify image ...\n");
-	ptr[2] = result;
-	ptr[3] = info->img_addr&0xFFFFFFFF;
-	ptr[4] = info->img_len&0xFFFFFFFF;
-	ptr[5] = info->pubkeyhash&0xFFFFFFFF;
-	ptr[6] = info->hash_len&0xFFFFFFFF;
-	ptr[7] = info->flag;
-	printf("%s:%d---vm=%d,cpu=%d,result: %d\n", __func__, __LINE__,
-	       ptr[0], ptr[1], ptr[2]);
+	share_data[2] = result;
+	share_data[3] = SEC_VERIFY_CMD; /*cmd, other feature add own cmd*/
+	share_data[4] = info->img_addr&0xFFFFFFFF;
+	share_data[5] = info->img_len&0xFFFFFFFF;
+	share_data[6] = info->pubkeyhash&0xFFFFFFFF;
+	share_data[7] = info->hash_len&0xFFFFFFFF;
+	share_data[8] = info->flag;
 
+	printf("##cmd:0x%x,img_addr:0x%x,img_len:0x%x,pubkhash:0x%x,hashlen:0x%x",share_data[3],share_data[4],share_data[5],share_data[6],share_data[7]);
     /* secvm id: 3 */
 	if (mv_svc_ivmc_request(3) != 0) {
 		printf("## Waiting for response ...\n");
 		while (1) {
 			/* check the return value of ptr[2] */
-			if (ptr[2] != result) {
+			if (share_data[2] != result) {
 				printf("%s:%d---vm=%u,cpu=%u,result: %u\n",__func__, __LINE__,
-				       ptr[0], ptr[1], ptr[2]);
+				       share_data[0], share_data[1], share_data[2]);
 				break;
 			}
+			mdelay(200);
 		}
 	} else {
 		printf("## Verify request failed");
 	}
-	return ptr[2];
+	return share_data[2];
 }

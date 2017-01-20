@@ -971,6 +971,10 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 #endif
 	set_vibrator(0);
 
+#if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SOC_IWHALE2) && (defined CONFIG_SECBOOT)
+        tos_status_check();
+#endif
+
 #if defined(CONFIG_SECURE_BOOT)||defined(CONFIG_SECBOOT)
 	if (0 == memcmp(kernel_pname, RECOVERY_PART, strlen(RECOVERY_PART))) {
 		partition = "recovery";
