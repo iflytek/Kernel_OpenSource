@@ -267,7 +267,7 @@ static struct panel_operations lcd_otm1283a_mipi_operations = {
 };
 
 static struct timing_rgb lcd_otm1283a_mipi_timing = {
-	.hfp = 32,
+	.hfp = 74,
 	.hbp = 4,
 	.hsync =8,
 	.vfp = 17,
