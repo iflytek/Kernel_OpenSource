@@ -349,11 +349,51 @@ void dvfs_init(void)
 	adi_hwchannel_set(REG_ADI_CHNL11,DCDC_ARM1_VOL_ADI_ADDR);
 
 }
+
+/* For VMM build microcode is not patched during download
+ * skip p-state change if ucode version is zero in this case
+ */
+static inline uint32_t microcode_read_rev(void)
+{
+	/*
+	 * Some Intel CPUs can be very finicky about the CPUID sequence used.
+	 * So this is implemented in assembly so that it works reliably.
+	 */
+	uint32_t low, high;
+
+	asm volatile (
+		"xorl %%eax, %%eax\n"
+		"xorl %%edx, %%edx\n"
+		"movl %2, %%ecx\n"
+		"wrmsr\n"
+		"movl $0x01, %%eax\n"
+		"cpuid\n"
+		"movl %2, %%ecx\n"
+		"rdmsr\n"
+		: /* outputs */
+		"=a" (low), "=d" (high)
+		: /* inputs */
+		"i" (MSR_IA32_UCODE_REV)
+		: /* clobbers */
+		 "ebx", "ecx"
+	);
+
+	return high;
+}
+
 void change_cpu_freq()
 {
 	unsigned long long msr_bits;
 	unsigned long long msr_value;
 	unsigned long fid, vid;
+	int rev;
+
+	/* if ucode is not patched
+	 * return directly
+	 */
+	rev = microcode_read_rev();
+	if (rev == 0)
+		return;
 
 	/*IA32_CR_MISC_ENABLES :Enable_GS3  */
 	rdmsrl(MSR_IA32_MISC_ENABLES, msr_bits);
