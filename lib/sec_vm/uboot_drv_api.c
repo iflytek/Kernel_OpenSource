@@ -6,13 +6,13 @@
 
 
 static int init_flag = 0;
-
+static int tos_flag = 0;
 int uboot_verify_img(uint64_t start_addr,uint64_t lenth)
 {
 	struct mv_shared_data *shared_data;
-	unsigned int *ptr;
+	volatile unsigned int *ptr;
 	unsigned int result = 0;
-	imgToVerifyInfo *info = (imgToVerifyInfo *)&start_addr;
+	imgToVerifyInfo *info = (imgToVerifyInfo *)start_addr;
 
 	if (!init_flag) {
 		printf("init flag=%d\n", init_flag);
@@ -23,10 +23,26 @@ int uboot_verify_img(uint64_t start_addr,uint64_t lenth)
 	printf("image addr=%p, size=%d\n", info->img_addr, info->img_len);
 	printf("pubkey hash addr=%p, size=%d\n", info->pubkeyhash, info->hash_len);
 
-	puts("## Start verify image ...\n");
 
 	shared_data = mv_gal_get_shared_data();
 	ptr = (unsigned int *)shared_data->pal_shared_mem_data;
+	/*check tos status,if tos is ready,it will put 0xa5a5 at ptr[2]*/
+	puts("## Wait for tos ready ...\n");
+	ptr[3] = 0x5a5a;/*send check cmd*/
+	if(!tos_flag){
+	   if(mv_svc_ivmc_request(3) != 0){
+		while(1) {
+				printf("tos is not ready,status: 0x%x\n",ptr[2]);
+				if(ptr[2] == 0xa5a5)/*tos return status val at ptr[2]*/
+				{
+					tos_flag = 1;
+					break;
+				}
+				mdelay(200);
+			 }
+		    }
+		}
+	puts("## Start verify image ...\n");
 	ptr[2] = result;
 	ptr[3] = info->img_addr&0xFFFFFFFF;
 	ptr[4] = info->img_len&0xFFFFFFFF;
