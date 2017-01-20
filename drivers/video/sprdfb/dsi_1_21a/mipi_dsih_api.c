@@ -113,9 +113,13 @@ dsih_error_t mipi_dsih_open(dsih_ctrl_t * instance)
 
     //err = mipi_dsih_phy_hs2lp_config(instance, instance->max_hs_to_lp_cycles);//tianci 1.21a modify
     //err |=  mipi_dsih_phy_lp2hs_config(instance, instance->max_lp_to_hs_cycles);//tianci 1.21a modify
-
+#ifdef CONFIG_DSIH_INTER_PHY
+    mipi_dsih_hal_int_mask_0(instance, 0x0);
+    mipi_dsih_hal_int_mask_1(instance, 0x0);
+#else
     mipi_dsih_hal_int_mask_0(instance, 0xffffff);//tianci 1.21a modify
     mipi_dsih_hal_int_mask_1(instance, 0xffffff);//tianci 1.21a modify
+#endif
     err = mipi_dsih_phy_bta_time(instance, instance->max_bta_cycles);
     if (err)
     {
@@ -180,8 +184,13 @@ dsih_error_t mipi_dsih_close(dsih_ctrl_t * instance)
     {
         return ERR_DSI_INVALID_INSTANCE;
     }
+#ifdef CONFIG_DSIH_INTER_PHY
+    mipi_dsih_hal_int_mask_0(instance, 0x0);
+    mipi_dsih_hal_int_mask_1(instance, 0x0);
+#else
     mipi_dsih_hal_int_mask_0(instance, 0xffffff);
     mipi_dsih_hal_int_mask_1(instance, 0xffffff);
+#endif
     mipi_dsih_dphy_close(&(instance->phy_instance));
     mipi_dsih_hal_power(instance, 0);
     instance->status = NOT_INITIALIZED;
@@ -1457,8 +1466,13 @@ dsih_error_t mipi_dsih_unregister_all_events(dsih_ctrl_t * instance)
     {
         instance->event_registry[i] = 0;
     }
+#ifdef CONFIG_DSIH_INTER_PHY
+    mipi_dsih_hal_int_mask_0(instance, 0x0);
+    mipi_dsih_hal_int_mask_1(instance, 0x0);
+#else
     mipi_dsih_hal_int_mask_0(instance, 0xffffff);
     mipi_dsih_hal_int_mask_1(instance, 0xffffff);
+#endif
     /* automatically disable CRC reporting */
     mipi_dsih_hal_gen_crc_rx_en(instance, 0);
     return OK;
