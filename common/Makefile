@@ -288,5 +288,6 @@ obj-y += cmd_disk.o
 
 obj-y += sprd_common_rw.o
 obj-$(CONFIG_UFS) += cmd_ufs.o
+obj-$(CONFIG_SOC_IWHALE2) += low_power_wa.o
 
 CFLAGS_env_embedded.o := -Wa,--no-warn -DENV_CRC=$(shell tools/envcrc 2>/dev/null)

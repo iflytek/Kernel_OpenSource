@@ -16,6 +16,9 @@
 #ifdef CONFIG_ARM7_RAM_ACTIVE
     extern void pmic_arm7_RAM_active(void);
 #endif
+#ifdef CONFIG_SOC_IWHALE2
+extern void aon_lpc_config();
+#endif
 
 #ifdef CONFIG_MINI_TRUSTZONE
 #include "trustzone_def.h"
@@ -948,6 +951,10 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	int j = 0;
 	int ret = 0;
 	uchar *dt_adr = DT_ADR;
+
+#ifdef CONFIG_SOC_IWHALE2
+	aon_lpc_config();
+#endif
 
 #ifdef CONFIG_SPLASH_SCREEN
 	if(lcd_enable) {
