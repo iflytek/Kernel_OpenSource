@@ -263,7 +263,7 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 			     SDHCI_MAKE_BLKSZ(SDHCI_DEFAULT_BOUNDARY_ARG,
 			     data->blocksize),
 			     SDHCI_BLOCK_SIZE);
-		sdhci_writew(host, data->blocks, SDHCI_BLOCK_COUNT);
+		sdhci_writel(host, data->blocks, SDHCI_BLOCK_COUNT);
 		ultemp = mode | (SDHCI_MAKE_CMD(cmd->cmdidx, flags) << 16);
 	} else {
 		ultemp = SDHCI_DEFAULT_TR_MODE;
@@ -433,7 +433,7 @@ int sdhci_send_command_backstage(struct mmc *mmc, struct mmc_cmd *cmd,
 			     SDHCI_MAKE_BLKSZ(SDHCI_DEFAULT_BOUNDARY_ARG,
 			     data->blocksize),
 			     SDHCI_BLOCK_SIZE);
-		sdhci_writew(host, data->blocks, SDHCI_BLOCK_COUNT);
+		sdhci_writel(host, data->blocks, SDHCI_BLOCK_COUNT);
 		ultemp = mode | (SDHCI_MAKE_CMD(cmd->cmdidx, flags) << 16);
 	} else {
 		ultemp = SDHCI_DEFAULT_TR_MODE;
