@@ -364,5 +364,8 @@
 /*active arm7 ram before access to it*/
 #define CONFIG_ARM7_RAM_ACTIVE
 
+/* coresight dump ETB data */
+#define CONFIG_ETB_DUMP
+
 #endif /* __CONFIG_H */
 
