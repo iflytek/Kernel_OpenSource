@@ -54,10 +54,6 @@ int sprd_jtag_disable()
 	}
 }
 
-static void ap_slp_cp_dbg_cfg()
-{
-	*((volatile unsigned int *)(REG_AP_AHB_MCU_PAUSE)) |= BIT_MCU_SLEEP_FOLLOW_CA7_EN; //when ap sleep, cp can continue debug
-}
 
 static void ap_cpll_rel_cfg()
 {
@@ -158,7 +154,6 @@ static void sc9833_disable_clkautogate()
 void misc_init()
 {
 	scx35_pmu_reconfig();
-	ap_slp_cp_dbg_cfg();
 	sc9833_disable_clkautogate();
 	ap_cpll_rel_cfg();
 #ifndef  CONFIG_SPX15
