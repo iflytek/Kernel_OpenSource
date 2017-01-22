@@ -17,5 +17,5 @@
 /*for sysdump*/
 #define KERNEL_BASE    (KERNEL_ADR - 0x100000)
 
-
+#define CONFIG_MISC_INIT_R
 #endif /* __CONFIG_H */

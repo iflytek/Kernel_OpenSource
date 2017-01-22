@@ -18,7 +18,7 @@
 /*
  * SPREADTRUM BIGPHONE board - SoC Configuration
  */
-#define CONFIG_ADIE_SC2723
+#define CONFIG_ADIE_SC2731
 #define PHYS_SDRAM_1		0x80000000
 
 
@@ -31,7 +31,7 @@
  */
 #define CONFIG_MMC			1
 #define CONFIG_MMC_SDMA			1
-#define CONFIG_EMMC_VERSION_R7P0
+#define CONFIG_EMMC_VERSION_R8P0
 #define CONFIG_EMMC_RST_N_FUNCTION
 /*#define CONFIG_MMC_TRACE*/
 
@@ -72,8 +72,6 @@
 #define CONFIG_SYS_SDRAM_BASE 0x0
 #define CONFIG_SYS_SDRAM_END (CONFIG_SYS_SDRAM_BASE + PHYS_SDRAM_1_SIZE)
 
-#define CONFIG_DDR_AUTO_DETECT
-#define CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM    0x1C00   /* IRAM store ddr info */
 
 /* U-Boot general configuration */
 #define CONFIG_SYS_PROMPT	"=> "	/* Monitor Command Prompt */

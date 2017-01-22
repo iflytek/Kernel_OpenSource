@@ -1,7 +1,7 @@
 if TARGET_SP9853I_1H10
 
 config SYS_BOARD
-	default "sp9853i"
+	default "sp9853i_1h10"
 
 config SYS_VENDOR
 	default "spreadtrum"
@@ -11,7 +11,7 @@ config SYS_SOC
 
 config SYS_CONFIG_NAME
 	string "Board Config Header file"
-	default "sp9853i"
+	default "sp9853i_1h10"
 	help
 	  This option selects the board config file in
 	  include/configs/ directory to be used to build U-Boot.
@@ -25,14 +25,14 @@ config BOARD_SPECIFIC_OPTIONS # dummy
 
 config DEFAULT_DEVICE_TREE
 	string "Board Device Tree Source (dts) file"
-	default "sp9853i"
+	default "sp9853i_1h10"
 	help
 	  This option selects the board Device Tree Source (dts) file in
 	  arch/x86/dts/ directory to be used to build U-Boot.
 
 config SYS_CAR_ADDR
 	hex "Board specific Cache-As-RAM (CAR) address"
-	default 0x19200000
+	default 0x7f000000
 	help
 	  This option specifies the board specific Cache-As-RAM (CAR) address.
 

@@ -20,23 +20,22 @@
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x80000000;
 
+void TDPllRefConfig(int ref){}
 
 int board_init(void)
 {
-	printf("Board_init:\n");
+	setup_chipram_env();
 	sprd_timer_init();
 #ifndef CONFIG_FPGA
-	/*get env transfer from chipram*/
-	setup_chipram_env();
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
-	ADI_init();
-	misc_init();
-	LDO_Init();
+	//ADI_init();
+	//misc_init();
 	pmic_adc_Init();
-	pin_init();
+	//pin_init();
 	sprd_eic_init();
 	sprd_gpio_init();
-	sprd_pmu_lowpower_init();
+	//regulator_init();
+	//sprd_pmu_lowpower_init();
 	TDPllRefConfig(1);
 #endif
 	return 0;
