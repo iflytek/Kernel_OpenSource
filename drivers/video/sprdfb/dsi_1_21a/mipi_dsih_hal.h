@@ -140,6 +140,9 @@
 	#define R_DSI_HOST_INT_MSK0     		(0xC4)
 	#define R_DSI_HOST_INT_MSK1     		(0xC8)
 	#define R_DSI_HOST_PHY_STATUS			(0xB0)
+#ifdef CONFIG_DSIH_INTER_PHY
+	#define R_DSI_HOST_PHY_TMR_RD_CFG               (0xF4)
+#endif
 #endif
 
 

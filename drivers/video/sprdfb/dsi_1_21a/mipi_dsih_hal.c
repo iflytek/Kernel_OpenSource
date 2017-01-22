@@ -1202,6 +1202,8 @@ dsih_error_t mipi_dsih_phy_bta_time(dsih_ctrl_t * instance, uint16_t no_of_byte_
         //mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 0, 12);
 #ifdef CONFIG_MIPI_DSIH_SPRD
 		mipi_dsih_write_part(instance, R_DSI_HOST_PHY_MX_RD_TM, no_of_byte_cycles, 0, 16);
+#elif defined CONFIG_DSIH_INTER_PHY
+		mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_RD_CFG, no_of_byte_cycles, 0, 15);
 #else
 		mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 0, 15);
 #endif
