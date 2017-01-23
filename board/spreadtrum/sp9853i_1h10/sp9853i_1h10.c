@@ -25,6 +25,7 @@ void TDPllRefConfig(int ref){}
 int board_init(void)
 {
 	setup_chipram_env();
+	setup_chipram_ddr_range();
 	sprd_timer_init();
 #ifndef CONFIG_FPGA
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;

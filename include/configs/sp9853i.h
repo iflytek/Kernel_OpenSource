@@ -17,5 +17,6 @@
 /*for sysdump*/
 #define KERNEL_BASE    (KERNEL_ADR - 0x100000)
 
-
+/**********vmm related***********/
+#define VMM_RESERVE_SIZE 0
 #endif /* __CONFIG_H */

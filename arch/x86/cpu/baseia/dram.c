@@ -65,7 +65,6 @@ unsigned install_e820_map(unsigned max_entries, struct e820entry *entries)
 	return e820_entries > max_entries ? max_entries : e820_entries;
 }
 
-#ifdef CONFIG_SOC_IWHALE2
 void setup_chipram_ddr_range(void)
 {
 	ddr_info_t * env = CHIPRAM_DDR_RANGE_LOCATION;
@@ -103,7 +102,6 @@ unsigned install_e820_map_auto_detect(unsigned max_entries, struct e820entry *en
 	}
 	return e820_entries_dts+e820_entries_detect;
 }
-#endif
 
 static void dram_configure_bridge_perf(void)
 {

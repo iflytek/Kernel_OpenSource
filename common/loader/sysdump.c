@@ -58,8 +58,6 @@ enum {
 	FS_INVALID
 };
 
-extern void set_backlight(uint32_t value);
-extern void lcd_printf(const char *fmt, ...);
 extern  int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
 
@@ -70,9 +68,13 @@ extern void sprd_etb_dump (void);
 #endif
 
 #ifdef CONFIG_SPLASH_SCREEN
+	extern void set_backlight(uint32_t value);
+	extern void lcd_printf(const char *fmt, ...);
+	extern void lcd_enable(void);
 	#define sysdump_lcd_printf(fmt, args...)   lcd_printf(fmt, ##args)
 #else
 	#define sysdump_lcd_printf(fmt, args...)
+	#define lcd_enable(void)
 #endif
 extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
 extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
@@ -1005,7 +1007,6 @@ void write_sysdump_before_boot(int rst_mode)
 
 #ifdef CONFIG_SPLASH_SCREEN
 		extern int drv_lcd_init(void);
-		extern void lcd_enable(void);
 		drv_lcd_init();
 		lcd_splash(LOGO_PART);
 		lcd_enable();
