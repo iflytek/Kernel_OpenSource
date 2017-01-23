@@ -21,54 +21,54 @@
 #include <asm/arch/common.h>
 
 
-const struct sdio_base_info  sdio_ctrl_info[2] =
+const struct sdio_base_info  sdio_ctrl_info[2] = {
 {
-	{
-		EMMC,
-		SPRD_EMMC_BASE,
+	EMMC,
+	SPRD_EMMC_BASE,
 #ifdef CONFIG_FPGA
-             NULL,
-             NULL,
-	      36000000,
-	      100000,
+	NULL,
+	NULL,
+	36000000,
+	100000,
 #else
-		//REG_AP_CLK_EMMC_CFG,
-		0XE42D0324,
-		0X0400,
-   		384000000,
-		400000,
+	REG_CLKTOP_CGM_EMMC_2X_CFG,
+	0,
+	/* selsect 2x clock source, baseclk = freq / 2 */
+	192000000,
+	400000,
 #endif
-		REG_AP_AHB_AHB_EB,
-		BIT_10,
-		REG_AP_AHB_AHB_RST,
-		BIT_11,
+	REG_AP_AHB_AHB_EB,
+	BIT_10,
+	REG_AP_AHB_AHB_RST,
+	BIT_11,
 
-		"vddgen",
-		"vddemmccore",
-	},
-	{
-		SD,
-		0X20300000,
+	"vddgen",
+	"vddemmccore",
+},
+{
+	SD,
+	SPRD_SDIO0_BASE,
 #ifdef CONFIG_FPGA
-             NULL,
-             NULL,
-	      36000000,
-	      100000,
+	NULL,
+	NULL,
+	36000000,
+	100000,
 #else
-		REG_AP_CLK_SDIO0_CFG,
-		BIT_0|BIT_1,
-   		384000000,
-		400000,
+	REG_CLKTOP_CGM_SDIO0_2X_CFG,
+	0,
+	/* selsect 2x clock source, baseclk = freq / 2 */
+	192000000,
+	400000,
 #endif
 
-		REG_AP_AHB_AHB_EB,
-		BIT_7,
-		REG_AP_AHB_AHB_RST,
-		BIT_8,
+	REG_AP_AHB_AHB_EB,
+	BIT_7,
+	REG_AP_AHB_AHB_RST,
+	BIT_8,
 
-		"vddsdio",
-		"vddsdcore",
-	}
+	"vddsdio",
+	"vddsdcore",
+}
 };
 
 struct sdio_base_info*  get_sdcontrol_info(uint32_t device_type)
