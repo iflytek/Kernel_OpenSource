@@ -162,6 +162,14 @@ struct pll_regs {
 		} bits;
 		u8 val;
 	} _0e;
+	union __reg_0f__ {
+		struct __0f {
+			u8 det_delay:2;
+			u8 reserved1: 3;
+			u8 ldo0p4:3;
+		} bits;
+		u8 val;
+	} _0f;
 };
 
 struct dphy_pll {
@@ -185,6 +193,7 @@ struct dphy_pll {
 	u8 lpf_sel; /* low pass filter control */
 	u8 out_sel; /* post divider control */
 	u8 vco_band; /* vco range */
+	u8 det_delay;
 };
 
 /**
@@ -245,7 +254,7 @@ static inline int mipi_dsih_if_dphy_keep_work(dphy_t *phy)
 #define VCO_BAND_MID	1800
 #define VCO_BAND_HIGH	2500
 #else
-/* pike, whale */
+/* pike, whale sharkl2*/
 #define VCO_BAND_LOW	750
 #define VCO_BAND_MID	1100
 #define VCO_BAND_HIGH	1500
@@ -256,7 +265,11 @@ extern uint32_t mipi_dsih_current_versions;
 static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 {
 	int i;
+#ifdef CONFIG_SC9833
+	const u32 hopping_period = 15;
+#else
 	const u32 hopping_period = 200;
+#endif
 	const u32 khz = 1000;
 	const u32 mhz = 1000000;
 	int delta_freq;
@@ -305,19 +318,22 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 	tmp *= BIT(20);
 	do_div(tmp, 100000000);
 	pll->kint = (u32)tmp;
+#ifdef CONFIG_SC9833
+	pll->refin = 3;
+#else
 	if(0x100 == mipi_dsih_current_versions)
 		pll->refin = 0; /* pre-divider bypass */
 	else
 		pll->refin = 3;
+#endif
+
 	pll->sdm_en = TRUE; /* use fraction N PLL */
 	pll->fdk_s = 0x1; /* fraction */
 	pll->cp_s = 0x0;
 	pll->mod_en = FALSE;
+	pll->det_delay = 0x1;
 
-	if (0)
-		pll->hop_en = TRUE;
-	else
-		pll->hop_en = FALSE;
+	pll->hop_en = FALSE;
 
 	if (pll->hop_en) {
 		if (origin_freq == 0)
@@ -328,9 +344,15 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 			delta_freq = - delta_freq;
 			pll->sign = TRUE;
 		}
+#ifdef CONFIG_SC9833
+		delta_freq = delta_freq / khz * (i + 1);
+		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
+		pll->kdelta = (((1 << 20) * delta_freq / pll->ref_clk / pll->kstep) -3) / 4;
+#else
 		pll->kstep = pll->ref_clk * hopping_period;
 		pll->kdelta = (1 << 20) * delta_freq * pll->out_sel
 				/ pll->kstep / pll->ref_clk;
+#endif
 	} else
 		origin_freq = pll->freq;
 
@@ -354,14 +376,6 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 	u8 regs_addr[] = {
 		0x03, 0x04, 0x06, 0x07, 0x08, 0x09,
 		0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-	};
-	u8 regs_1g[] = {
-		0x07, 0x88, 0x26, 0x60, 0xEE, 0x76,
-		0x27, 0x61, 0x00, 0x30, 0xc0, 0x81
-	};
-	u8 regs_500m[] = {
-		0x07, 0x88, 0x26, 0x60, 0xEE, 0x76,
-		0x27, 0x62, 0x00, 0x30, 0xc0, 0x81
 	};
 #else
 	u8 regs_addr[] = {
@@ -399,12 +413,10 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 	regs._0e.bits.pll_pu_byp = 0;
 	regs._0e.bits.pll_pu = 0;
 	regs._0e.bits.kstep_l = pll->kstep & 0x7;
+	regs._0f.bits.det_delay = pll->det_delay;
+	regs._0f.bits.ldo0p4 = 1 << 2;
 
-#ifdef CONFIG_SC9833
-	val = (u8 *)&regs_500m;
-#else
 	val = (u8 *)&regs;
-#endif
 
 	for (i = 0; i < sizeof(regs_addr); ++i)
 		mipi_dsih_dphy_write(phy, regs_addr[i], &val[i], 1);
