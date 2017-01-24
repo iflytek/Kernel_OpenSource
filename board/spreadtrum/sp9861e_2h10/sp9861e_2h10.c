@@ -110,19 +110,19 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 #if !defined(CONFIG_FPGA)
 	get_mode_from_bat_low,
 	write_sysdump_before_boot_extend,
-	/* 1 get mode from file*/
+	/* 2 get mode from file*/
 	get_mode_from_file_extend,
-	/* 2 get mode from watch dog*/
+	/* 3 get mode from watch dog*/
 	get_mode_from_watchdog,
-	/*3 get mode from alarm register*/
+	/* 4 get mode from alarm register*/
 	get_mode_from_alarm_register,
-	/*0 get mode from calibration detect*/
+	/* 5 get mode from calibration detect*/
 	get_mode_from_pctool,
-	/*4 get mode from charger*/
-	get_mode_from_charger,
-	/*5 get mode from keypad*/
+	/* 6 get mode from keypad*/
 	get_mode_from_keypad,
-	/*6 get mode from gpio*/
+	/* 7 get mode from charger*/
+	get_mode_from_charger,
+	/* 8 get mode from gpio*/
 	//get_mode_from_gpio_extend,
 
 	/*shutdown device*/
