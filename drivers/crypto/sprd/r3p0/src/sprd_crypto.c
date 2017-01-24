@@ -21,9 +21,9 @@
 
 #define SPRD_CRYPTO_ARGCHK(x)   if (!(x)) return SPRD_CRYPTO_INVALID_ARG;
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_crypto_process(sprd_crypto_context_t *context) {
-	sprd_crypto_result_t err;
+	sprd_crypto_err_t err;
 
 	SPRD_CRYPTO_LOG_TRACE("in = %p, in_len = %d\n", context->in, context->in_len);
 	SPRD_CRYPTO_LOG_TRACE("out = %p, out_len = %d\n", context->out, context->out_len);
@@ -88,7 +88,7 @@ void sprd_crypto_polling (void) {
 	sprd_ce_polling();
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_crypto_open(sprd_crypto_context_t* context) {
 	sprd_ce_init();
 	sprd_ce_open();
@@ -96,7 +96,7 @@ sprd_crypto_open(sprd_crypto_context_t* context) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_crypto_close(sprd_crypto_context_t* context) {
 	sprd_ce_close();
 	sprd_ce_terminal();

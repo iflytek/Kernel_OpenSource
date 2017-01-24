@@ -49,7 +49,7 @@
 #endif
 
 #ifdef SPRD_TEST_MULTITASK
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_multitask_test (void *args) {
 #ifdef SPRD_TEST_HASH
 	static const struct {
@@ -437,7 +437,7 @@ sprd_multitask_test (void *args) {
 	};
 #endif
 
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 #ifdef SPRD_TEST_HASH
 	sprd_crypto_context_t *sha_512 = NULL;
 	uint8_t *hash_temp = NULL;
@@ -861,7 +861,7 @@ failed:
 	return err;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_multitask_test_special (void *args) {
 	static struct {
 		uint32_t data_len;
@@ -1009,7 +1009,7 @@ sprd_multitask_test_special (void *args) {
 		  0xDB, 0x4B, 0xA8, 0xC1, 0x1D, 0x4F, 0xAB, 0xF2, 0x7E, 0x34, 0xA6, 0xE7, 0x0E, 0xC0, 0xF4, 0x21, },
 	};
 
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	uint8_t *rsa_temp = NULL;
 	int32_t thread_count = *(int32_t*)args;
 
@@ -1038,7 +1038,7 @@ failed:
 #endif
 
 #ifdef SPRD_TEST_MULTITHREAD
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_multithread_test (void) {
 	sprd_pal_thread_t *thread0, *thread1, *thread2, *thread3, *thread4, *thread5,
 			*thread6, *thread7, *thread8, *thread9;
@@ -1103,7 +1103,7 @@ sprd_multithread_test (void) {
 #endif
 
 long sprd_crypto_test (void) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	int32_t i = 0;
 
 	SPRD_CRYPTO_LOG_ERR("test ERR\n");

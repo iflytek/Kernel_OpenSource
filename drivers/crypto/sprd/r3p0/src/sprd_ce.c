@@ -27,7 +27,7 @@ static void* s_ce_vaddr;
 
 static uint32_t get_paddr_hi (void *vaddr){
 #ifdef SPRD_PAL_64BIT
-	void *paddr = sprd_pal_paddr_to_vaddr(vaddr);
+	void *paddr = sprd_pal_vaddr_to_paddr(vaddr);
 	return (uint32_t)(((uint64_t)paddr & 0xF00000000) >> 32);
 #else
 	return 0;
@@ -35,7 +35,7 @@ static uint32_t get_paddr_hi (void *vaddr){
 };
 
 static uint32_t get_paddr_lo (void *vaddr){
-	void *paddr = sprd_pal_paddr_to_vaddr(vaddr);
+	void *paddr = sprd_pal_vaddr_to_paddr(vaddr);
 #ifdef SPRD_PAL_64BIT
 	return (uint32_t)((uint64_t)paddr & 0xFFFFFFFF);
 #else
@@ -44,7 +44,7 @@ static uint32_t get_paddr_lo (void *vaddr){
 };
 
 static uint32_t get_pka_paddr_hi (uint8_t *vaddr){
-	void *paddr = sprd_pal_paddr_to_vaddr(vaddr);
+	void *paddr = sprd_pal_vaddr_to_paddr(vaddr);
 #ifdef SPRD_PAL_64BIT
 	return (uint32_t)(((uint64_t)paddr & 0xFFFFE0000) >> 17);
 #else
@@ -53,7 +53,7 @@ static uint32_t get_pka_paddr_hi (uint8_t *vaddr){
 };
 
 static uint32_t get_pka_paddr_lo (uint8_t *vaddr){
-	void *paddr = sprd_pal_paddr_to_vaddr(vaddr);
+	void *paddr = sprd_pal_vaddr_to_paddr(vaddr);
 #ifdef SPRD_PAL_64BIT
 	return (uint32_t)(((uint64_t)paddr & 0x1FFFF));
 #else
@@ -189,7 +189,7 @@ void sprd_ce_write_cmd_rsa(sprd_crypto_context_t* context) {
 		sprd_pka_load(SPRD_CE_PKA_LEN_0, SPRD_CE_PKA_REG_0, 1, (uint8_t*)get_pka_paddr_lo(context->info.rsa.key_n));
 	context->info.rsa.pka_cmd[1] =
 			sprd_pka_stop();
-	sprd_pal_clean_by_vaddr(context->info.rsa.pka_cmd, SPRD_CRYPTO_PKA_CMD_LEN);
+	sprd_pal_clean_by_vaddr(context->info.rsa.pka_cmd, SPRD_CRYPTO_PKA_CMD_LEN*4);
 	sprd_ce_write_cmd_start(&start_param);
 	sprd_ce_polling();
 
@@ -200,7 +200,7 @@ void sprd_ce_write_cmd_rsa(sprd_crypto_context_t* context) {
 			sprd_pka_load(SPRD_CE_PKA_LEN_0, SPRD_CE_PKA_REG_2, 1, (uint8_t*)get_pka_paddr_lo(context->info.rsa.key_eod));
 	context->info.rsa.pka_cmd[1] =
 			sprd_pka_stop();
-	sprd_pal_clean_by_vaddr(context->info.rsa.pka_cmd, SPRD_CRYPTO_PKA_CMD_LEN);
+	sprd_pal_clean_by_vaddr(context->info.rsa.pka_cmd, SPRD_CRYPTO_PKA_CMD_LEN*4);
 	sprd_ce_write_cmd_start(&start_param);
 	sprd_ce_polling();
 
@@ -215,7 +215,7 @@ void sprd_ce_write_cmd_rsa(sprd_crypto_context_t* context) {
 		sprd_pka_store(SPRD_CE_PKA_LEN_0, SPRD_CE_PKA_REG_3, 1, (uint8_t*)get_pka_paddr_lo(context->out));
 	context->info.rsa.pka_cmd[3] =
 		sprd_pka_stop();
-	sprd_pal_clean_by_vaddr(context->info.rsa.pka_cmd, SPRD_CRYPTO_PKA_CMD_LEN);
+	sprd_pal_clean_by_vaddr(context->info.rsa.pka_cmd, SPRD_CRYPTO_PKA_CMD_LEN*4);
 	sprd_ce_write_cmd_start(&start_param);
 }
 
@@ -229,7 +229,7 @@ void sprd_ce_write_cmd_rng(sprd_crypto_context_t* context) {
 	context->info.rng.pka_cmd[1] =
 		sprd_pka_store(SPRD_CE_PKA_LEN_0, SPRD_CE_PKA_REG_0, 1, (uint8_t*)get_pka_paddr_lo(context->out));
 	context->info.rng.pka_cmd[2] = sprd_pka_stop();
-	sprd_pal_clean_by_vaddr(context->info.rng.pka_cmd, SPRD_CRYPTO_PKA_CMD_LEN);
+	sprd_pal_clean_by_vaddr(context->info.rng.pka_cmd, SPRD_CRYPTO_PKA_CMD_LEN*4);
 
 	pka_reg_len01 = context->out_len;
 	sprd_ce_write_cmd_cfg(CE_PKA_REG_LEN01, 1, &pka_reg_len01);

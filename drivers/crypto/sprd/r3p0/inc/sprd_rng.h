@@ -19,8 +19,8 @@
 #include <sprd_crypto.h>
 
 /* random generator */
-sprd_crypto_result_t sprd_rng_gen(uint8_t *out, uint32_t out_len);
+sprd_crypto_err_t sprd_rng_gen(uint8_t *out, uint32_t out_len);
 
-sprd_crypto_result_t sprd_rng_test (void);
+sprd_crypto_err_t sprd_rng_test (void);
 
 #endif  /* SPRD_RNG_H */

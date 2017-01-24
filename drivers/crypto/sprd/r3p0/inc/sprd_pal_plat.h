@@ -35,7 +35,9 @@ extern "C"
 *
 */
 
-//#define SPRD_PAL_64BIT
+#if defined(CONFIG_X86) | defined(CONFIG_ARM64)
+#define SPRD_PAL_64BIT
+#endif
 
 #ifdef CONFIG_SYS_CACHELINE_SIZE
 #define SPRD_PAL_CACHE_LINE	(CONFIG_SYS_CACHELINE_SIZE)

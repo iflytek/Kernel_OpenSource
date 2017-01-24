@@ -403,9 +403,9 @@ static struct {
 		  0xDB, 0x4B, 0xA8, 0xC1, 0x1D, 0x4F, 0xAB, 0xF2, 0x7E, 0x34, 0xA6, 0xE7, 0x0E, 0xC0, 0xF4, 0x21, },
 	},
 };
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_rsa_test_enc (void) {
-	sprd_crypto_result_t err;
+	sprd_crypto_err_t err;
 	int32_t i;
 	uint8_t out_temp[512];
 	sprd_rsa_pubkey_t pub_key;
@@ -431,9 +431,9 @@ sprd_rsa_test_enc (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_rsa_test_dec (void) {
-	sprd_crypto_result_t err;
+	sprd_crypto_err_t err;
 	int32_t i;
 	uint8_t in_temp[512];
 	sprd_rsa_keypair_t priv_key;
@@ -459,9 +459,9 @@ sprd_rsa_test_dec (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_rsa_test_key_gen (void) {
-	sprd_crypto_result_t err;
+	sprd_crypto_err_t err;
 	int32_t i;
 	uint8_t temp[512];
 	sprd_rsa_pubkey_t pub_key;
@@ -508,9 +508,9 @@ sprd_rsa_test_key_gen (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_rsa_test_sign_verify (void) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	uint32_t in_len, out_len, i;
 	int32_t result1, result2, result3;
 	sprd_rsa_padding_t padding;
@@ -584,9 +584,9 @@ failed:
 	return err;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_rsa_test (void) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	int32_t rsa_enc = 0, rsa_dec = 0, rsa_sign_verify = 0;
 
 	err = sprd_rsa_test_enc();

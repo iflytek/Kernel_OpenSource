@@ -39,7 +39,7 @@ uint32_t sprd_pkcs1_v1_5_encode(const uint8_t *msg,
 {
 	uint32_t ps_len, i, j;
 	uint8_t rng[512];
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 
 	/* valid block_type? */
 	if ((block_type != SPRD_PKCS_1_EMSA)
@@ -128,7 +128,7 @@ uint32_t sprd_pkcs1_v1_5_decode(const uint8_t *msg,
 				      int32_t *is_valid)
 {
 	uint32_t ps_len, i;
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 
 	if (msg == NULL || msglen == 0) {
 		SPRD_CRYPTO_LOG_ERR("msg is %p or msglen is %d\n", msg, msglen);

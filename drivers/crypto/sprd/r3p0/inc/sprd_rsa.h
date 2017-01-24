@@ -92,13 +92,13 @@ typedef struct {
  * keybits[in]: key length in bits
  * size[out]:   total size in bytes of rsa keypair
  */
-sprd_crypto_result_t sprd_rsa_get_keypair_size(int32_t keybits, uint32_t *size);
+sprd_crypto_err_t sprd_rsa_get_keypair_size(int32_t keybits, uint32_t *size);
 
 /*
  * keybits[in]: key length in bits
  * size[out]:   total size in bytes of rsa public key
  */
-sprd_crypto_result_t sprd_rsa_get_pubkey_size(int32_t keybits, uint32_t *size);
+sprd_crypto_err_t sprd_rsa_get_pubkey_size(int32_t keybits, uint32_t *size);
 
 /*
  * Initialize RSA keypair
@@ -114,7 +114,7 @@ sprd_crypto_result_t sprd_rsa_get_pubkey_size(int32_t keybits, uint32_t *size);
  * dq/dq_size[in]: rsa coefficient data and size in bits, may be NULL/0
  * keypair[out]:   output buffer, which is used to save initialized rsa key pair
  */
-sprd_crypto_result_t sprd_rsa_init_keypair(int32_t keybits,
+sprd_crypto_err_t sprd_rsa_init_keypair(int32_t keybits,
                       const uint8_t *n, uint32_t n_size,
                       const uint8_t *e, uint32_t e_size,
                       const uint8_t *d, uint32_t d_size,
@@ -133,7 +133,7 @@ sprd_crypto_result_t sprd_rsa_init_keypair(int32_t keybits,
  * e/e_size[in]:   rsa public exponent data and size in bytes
  * pubkey[out]:    output buffer, which is used to save initialized rsa public key
  */
-sprd_crypto_result_t sprd_rsa_init_pubkey(int32_t keybits,
+sprd_crypto_err_t sprd_rsa_init_pubkey(int32_t keybits,
                       const uint8_t *n, uint32_t n_size,
                       const uint8_t *e, uint32_t e_size,
                       sprd_rsa_pubkey_t *pubkey);
@@ -146,11 +146,11 @@ sprd_crypto_result_t sprd_rsa_init_pubkey(int32_t keybits,
  * e_size[in]:    optional, public exponent size in bytes
  * keypair[out]:  output buffer, which is used to save generated rsa key pair
  */
-sprd_crypto_result_t sprd_rsa_gen_keypair(int32_t keybits,
+sprd_crypto_err_t sprd_rsa_gen_keypair(int32_t keybits,
                       const uint8_t *e, uint32_t e_size,
                       sprd_rsa_keypair_t *keypair);
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_rsa_key_gen(uint8_t* key_e, uint32_t key_e_len, int32_t key_len, uint8_t *key_n, uint8_t *key_d);
 
 /*
@@ -161,14 +161,14 @@ sprd_rsa_key_gen(uint8_t* key_e, uint32_t key_e_len, int32_t key_len, uint8_t *k
  * buffer[out]:   buffer, which is used to save required attribute
  * size[in/out]:  buffer max size and key attribute actual size in bytes
  */
-sprd_crypto_result_t sprd_rsa_get_key_attr(sprd_rsa_key_attr_t attr,
+sprd_crypto_err_t sprd_rsa_get_key_attr(sprd_rsa_key_attr_t attr,
                       sprd_rsa_keypair_t *keypair, void *buffer, uint32_t *size);
 
-sprd_crypto_result_t sprd_rsa_public_encrypt(const sprd_rsa_pubkey_t *pub_key,
+sprd_crypto_err_t sprd_rsa_public_encrypt(const sprd_rsa_pubkey_t *pub_key,
                       const uint8_t *src, uint32_t src_size,
                       uint8_t *dst, uint32_t *dst_size,
                       sprd_rsa_padding_t padding);
-sprd_crypto_result_t sprd_rsa_private_decrypt(const sprd_rsa_keypair_t *priv_key,
+sprd_crypto_err_t sprd_rsa_private_decrypt(const sprd_rsa_keypair_t *priv_key,
                       const uint8_t *src, uint32_t src_size,
                       uint8_t *dst, uint32_t *dst_size,
                       sprd_rsa_padding_t padding);
@@ -179,7 +179,7 @@ sprd_crypto_result_t sprd_rsa_private_decrypt(const sprd_rsa_keypair_t *priv_key
  * sig[out]:         the signature data
  * sig_size[in/out]: the buffer size and resulting size of signature
  */
-sprd_crypto_result_t sprd_rsa_sign(const sprd_rsa_keypair_t *priv_key,
+sprd_crypto_err_t sprd_rsa_sign(const sprd_rsa_keypair_t *priv_key,
                       const uint8_t *dig, uint32_t dig_size,
                       uint8_t *sig, uint32_t *sig_size, sprd_rsa_padding_t padding);
 
@@ -189,12 +189,12 @@ sprd_crypto_result_t sprd_rsa_sign(const sprd_rsa_keypair_t *priv_key,
  * sig[in]:      the signature data
  * sig_size[in]: the length of the signature data (byte)
  */
-sprd_crypto_result_t sprd_rsa_verify(const sprd_rsa_pubkey_t *pub_key,
+sprd_crypto_err_t sprd_rsa_verify(const sprd_rsa_pubkey_t *pub_key,
                       const uint8_t *dig, uint32_t dig_size,
                       const uint8_t *sig, uint32_t sig_size,
                       sprd_rsa_padding_t padding, int32_t *result);
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_rsa_test (void);
 
 #endif /* SPRD_RSA_H */

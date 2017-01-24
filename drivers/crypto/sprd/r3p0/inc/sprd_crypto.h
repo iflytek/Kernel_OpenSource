@@ -23,12 +23,16 @@
 #define SPRD_CRYPTO_MAX_DATA_LEN	0xFFFFF8
 
 #define SPRD_CRYPTO_HASH_BUF_LEN	128
-#define SPRD_CRYPTO_PKA_CMD_LEN		32 //size of item is 4 bytes.
-#define SPRD_CRYPTO_MAX_RNG_SIZE	128
+#define SPRD_CRYPTO_PKA_CMD_LEN		16 //size of item is 4 bytes.
+#define SPRD_CRYPTO_MAX_RNG_SIZE	512
 #define SPRD_CRYPTO_DUMP_SIZE		128
 #define SPRD_CRYPTO_RSA_BUF_SIZE	512
 
-typedef int32_t				sprd_crypto_result_t;
+#ifdef SPRD_PAL_64BIT
+typedef int64_t			sprd_crypto_err_t;
+#else
+typedef int32_t			sprd_crypto_err_t;
+#endif
 
 enum sprd_crypto_status {
 	SPRD_CRYPTO_SUCCESS = 0,		/* Success */
@@ -131,9 +135,9 @@ enum sprd_crypto {
 };
 
 enum sprd_verify_res {
-	SPRD_VERIFY_SUCCESS = 0,
-	SPRD_VERIFY_FAILED,
-	SPRD_VERIFY_NONE
+	SPRD_VERIFY_FAILED = -1,
+	SPRD_VERIFY_SUCCESS = 0
+	//All values bigger than 0 should be special for secure boot.
 };
 
 typedef struct {
@@ -169,13 +173,13 @@ typedef struct {
 	uint32_t out_len;
 } sprd_crypto_context_t;
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_crypto_process (sprd_crypto_context_t *context);
 
 void sprd_crypto_polling (void);
 
-sprd_crypto_result_t sprd_crypto_open (sprd_crypto_context_t* constext);
-sprd_crypto_result_t sprd_crypto_close (sprd_crypto_context_t* constext);
+sprd_crypto_err_t sprd_crypto_open (sprd_crypto_context_t* constext);
+sprd_crypto_err_t sprd_crypto_close (sprd_crypto_context_t* constext);
 
 void sprd_crypto_init (void);
 void sprd_crypto_terminal(void);

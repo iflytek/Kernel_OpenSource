@@ -19,14 +19,14 @@
 static uint8_t buf[SPRD_CRYPTO_HASH_BUF_LEN] __attribute__ ((aligned(SPRD_PAL_CACHE_LINE)));
 static uint8_t dump[SPRD_CRYPTO_DUMP_SIZE] __attribute__ ((aligned(SPRD_PAL_CACHE_LINE)));
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_get_context_size(sprd_crypto_algo_t algo, uint32_t *size) {
 	return sizeof(sprd_crypto_context_t);
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_init(sprd_crypto_algo_t algo, sprd_crypto_context_t *context) {
-	sprd_crypto_result_t err;
+	sprd_crypto_err_t err;
 
 	SPRD_CRYPTO_LOG_TRACE("algo = 0x%x context = %p\n", algo, context);
 
@@ -45,9 +45,9 @@ sprd_hash_init(sprd_crypto_algo_t algo, sprd_crypto_context_t *context) {
 }
 
 //precondition
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_update(sprd_crypto_context_t *context, const uint8_t *in, uint32_t in_len) {
-	sprd_crypto_result_t err;
+	sprd_crypto_err_t err;
 	uint8_t *in_temp;
 	uint32_t in_len_sum;
 
@@ -111,9 +111,9 @@ failed:
 	return err;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_final(sprd_crypto_context_t *context, uint8_t *digest) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 
 	SPRD_CRYPTO_LOG_TRACE("context = %p digest = %p!\n", context, digest);
 	if (digest != NULL) {

@@ -16,8 +16,8 @@
 #include <sprd_crypto.h>
 #include <sprd_rng.h>
 
-sprd_crypto_result_t sprd_rng_test (void) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+sprd_crypto_err_t sprd_rng_test (void) {
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	static uint8_t buf[8192];
 	uint32_t len[] = {511, 512, 2047, 2048, 4095, 4096, 6143, 6144, 8191, 8192, 0};
 	uint32_t i = 0, len_temp;

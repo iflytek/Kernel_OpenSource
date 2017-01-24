@@ -19,13 +19,13 @@
 
 static uint8_t buf[SPRD_CRYPTO_RSA_BUF_SIZE] __attribute__ ((aligned(SPRD_PAL_CACHE_LINE)));
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_rsa_nopad(uint32_t encrypt,
 		     uint8_t *key1, uint32_t key1_len,
 		     uint8_t *key2, uint32_t key2_len,
 		     uint8_t *in, uint32_t in_len,
 		     uint8_t *out, uint32_t *out_len) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	sprd_crypto_context_t context;
 
 	SPRD_CRYPTO_LOG_TRACE("key1 = %p, key1_len = %d!\n", key1, key1_len);
@@ -101,7 +101,7 @@ failed:
 	return err;
 }
 
-sprd_crypto_result_t sprd_rsa_public_encrypt(const sprd_rsa_pubkey_t *pub_key,
+sprd_crypto_err_t sprd_rsa_public_encrypt(const sprd_rsa_pubkey_t *pub_key,
                       const uint8_t *src, uint32_t src_size,
                       uint8_t *dst, uint32_t *dst_size,
                       sprd_rsa_padding_t padding) {
@@ -137,7 +137,7 @@ sprd_crypto_result_t sprd_rsa_public_encrypt(const sprd_rsa_pubkey_t *pub_key,
 			dst, dst_size);
 }
 
-sprd_crypto_result_t sprd_rsa_private_decrypt(const sprd_rsa_keypair_t *priv_key,
+sprd_crypto_err_t sprd_rsa_private_decrypt(const sprd_rsa_keypair_t *priv_key,
                       const uint8_t *src, uint32_t src_size,
                       uint8_t *dst, uint32_t *dst_size,
                       sprd_rsa_padding_t padding) {
@@ -174,10 +174,10 @@ sprd_crypto_result_t sprd_rsa_private_decrypt(const sprd_rsa_keypair_t *priv_key
 			dst, dst_size);
 }
 
-sprd_crypto_result_t sprd_rsa_sign(const sprd_rsa_keypair_t *priv_key,
+sprd_crypto_err_t sprd_rsa_sign(const sprd_rsa_keypair_t *priv_key,
                       const uint8_t *dig, uint32_t dig_size,
                       uint8_t *sig, uint32_t *sig_size, sprd_rsa_padding_t padding) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	uint8_t *temp, buf[512];
 	uint32_t temp_len;
 	if (priv_key == NULL) {
@@ -226,11 +226,11 @@ sprd_crypto_result_t sprd_rsa_sign(const sprd_rsa_keypair_t *priv_key,
 			sig, sig_size);
 }
 
-sprd_crypto_result_t sprd_rsa_verify(const sprd_rsa_pubkey_t *pub_key,
+sprd_crypto_err_t sprd_rsa_verify(const sprd_rsa_pubkey_t *pub_key,
                       const uint8_t *dig, uint32_t dig_size,
                       const uint8_t *sig, uint32_t sig_size,
                       sprd_rsa_padding_t padding, int32_t *result) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	uint8_t temp1[512], temp2[512];
 	uint32_t temp1_len, temp2_len;
 	int32_t is_valid;
@@ -271,7 +271,7 @@ sprd_crypto_result_t sprd_rsa_verify(const sprd_rsa_pubkey_t *pub_key,
 	case SPRD_RSA_NOPAD:
 		if (dig_size == 0) {
 			sprd_pal_memcpy((uint8_t *)dig, temp1, temp1_len);
-			*result = SPRD_VERIFY_NONE;
+			*result = temp1_len;
 		} else {
 			if (sprd_pal_memcmp(temp1, dig, dig_size) != 0) {
 				*result = SPRD_VERIFY_FAILED;
@@ -295,7 +295,7 @@ sprd_crypto_result_t sprd_rsa_verify(const sprd_rsa_pubkey_t *pub_key,
 
 		if (dig_size == 0) {
 			sprd_pal_memcpy((uint8_t*)dig, temp2, temp2_len);
-			*result = SPRD_VERIFY_NONE;
+			*result = temp2_len;
 		} else {
 			if (temp2_len != dig_size || sprd_pal_memcmp(temp2, dig, dig_size) != 0) {
 				SPRD_CRYPTO_LOG_ERR("temp_len(%d) is not equal dig_size(%d) or memcmp is failed\n", temp2_len, dig_size);

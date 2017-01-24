@@ -16,7 +16,7 @@
 #include <sprd_crypto.h>
 #include <sprd_hash.h>
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test_md5 (void) {
 	static struct {
 		const char* msg;
@@ -87,7 +87,7 @@ sprd_hash_test_md5 (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test_sha1 (void) {
 	static const struct {
 		const char *msg;
@@ -132,7 +132,7 @@ sprd_hash_test_sha1 (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test_sha224 (void) {
 	static const struct {
 		const char *msg;
@@ -178,7 +178,7 @@ sprd_hash_test_sha224 (void) {
 }
 
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test_sha256 (void) {
 	static const struct {
 		const char *msg;
@@ -223,7 +223,7 @@ sprd_hash_test_sha256 (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test_sha384 (void) {
 	static const struct {
 		const char *msg;
@@ -274,7 +274,7 @@ sprd_hash_test_sha384 (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test_sha512 (void) {
 	static const struct {
 		const char *msg;
@@ -331,7 +331,7 @@ sprd_hash_test_sha512 (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test_sha512_224 (void) {
 	static const struct {
 		const char *msg;
@@ -376,7 +376,7 @@ sprd_hash_test_sha512_224 (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test_sha512_256 (void) {
 	static const struct {
 		const char *msg;
@@ -421,9 +421,9 @@ sprd_hash_test_sha512_256 (void) {
 	return SPRD_CRYPTO_SUCCESS;
 }
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test (void) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	int32_t md5 = 0, sha1 = 0, sha224 = 0, sha256 = 0, sha384 = 0, sha512 = 0, sha512_224 = 0, sha512_256 = 0;
 
 	SPRD_CRYPTO_LOG_ERR("SPRD_CRYPTO_HASH_MD5 is %d\n", SPRD_HASH_SIZE(SPRD_CRYPTO_HASH_MD5));

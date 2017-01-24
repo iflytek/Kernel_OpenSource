@@ -39,28 +39,28 @@ enum {
 				(((type) == SPRD_CRYPTO_HASH_SHA512_224) ? (SPRD_HASH_SHA512_224_SIZE) : \
 				(((type) == SPRD_CRYPTO_HASH_SHA512_256) ? (SPRD_HASH_SHA512_256_SIZE) : (0))))))))
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_get_context_size(sprd_crypto_algo_t algo, uint32_t *size);
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_init(sprd_crypto_algo_t algo, sprd_crypto_context_t *context);
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_update(sprd_crypto_context_t *context, const uint8_t *in, uint32_t in_len);
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_final(sprd_crypto_context_t *context, uint8_t *digest);
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_reset(sprd_crypto_context_t *context);
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_copy_context(sprd_crypto_context_t *dst_ctx, sprd_crypto_context_t *src_ctx);
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_digest(sprd_crypto_algo_t type, const uint8_t *in, uint32_t in_len, uint8_t *digest);
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_hash_test (void);
 
 #endif /* SPRD_HASH_H */

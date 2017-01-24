@@ -17,9 +17,9 @@
 
 static uint8_t buf[SPRD_CRYPTO_MAX_RNG_SIZE] __attribute__ ((aligned(SPRD_PAL_CACHE_LINE)));
 
-sprd_crypto_result_t
+sprd_crypto_err_t
 sprd_rng_gen(uint8_t *out, uint32_t out_len) {
-	sprd_crypto_result_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	sprd_crypto_context_t context;
 	uint8_t *out_temp;
 	uint32_t count, len_temp;
