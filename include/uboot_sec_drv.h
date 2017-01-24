@@ -71,6 +71,9 @@
 TEESMC_CALL_VAL(TEESMC_32, TEESMC_FAST_CALL, TEESMC_OWNER_SIP, \
 TEESMC_FUNCID_SIPCALL_WITH_ARG)
 
+#ifdef CONFIG_X86
+#define SEC_FIREWALL_CMD 	0x02
+#else
 #define FUNCTYPE_VERIFY_IMG               0x01
 #define FUNCTYPE_PROGRAM_EFUSE            0x02
 #define FUNCTYPE_GET_SOCID                0x03
@@ -83,6 +86,7 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 
 #define BLOCK_NUM_3                      (0x03)
 #define DISABLE_DX_DEBUG_CONTROL         (0x20000000)
+#endif
 
 typedef struct smc_param {
         uint32_t a0;

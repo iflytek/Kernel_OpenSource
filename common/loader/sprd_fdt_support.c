@@ -22,6 +22,7 @@ extern uint32_t load_lcd_hight_to_kernel();
 extern int get_dram_cs_number(void);
 extern int get_dram_cs0_size(void);
 extern char *get_product_sn(void);
+extern void tee_call_request(unsigned int **mem_ptr);
 
 /*for verified boot*/
 enVerifiedState g_verifiedbootstate = v_state_green;
@@ -40,7 +41,13 @@ void *harsh_data = harsh_data_buf;
 #endif
 
 typedef enum {
+#ifdef CONFIG_SOC_IWHALE2
+	DDR_HOLLOW0 = 0,
+	DDR_HOLLOW1,
+	TOS_MEMORY,
+#else
 	TOS_MEMORY = 0,
+#endif
 	MULTIMEDIA,
 	AUDIO_MEMORY,
 	SIPC_MEMORY,
@@ -221,6 +228,60 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 	return err;
 }
 
+#ifdef CONFIG_X86
+int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t size){
+	mem_info mi;
+	unsigned int result = 0;
+	unsigned int *share_data;
+
+	printf("type1=%d, start1= 0x%x size1=0x%x\n",type,start,size);
+
+	mi.type = type;
+	mi.start_high = (start >> 32);
+	mi.start_low = (start & 0xffffffff);
+	mi.size = size;
+
+	printf("##%s:%d---mi->type=0x%x\n", __func__, __LINE__,
+	       mi.type);
+
+	printf("##%s:%d---mi->start_high=0x%x mi->start_low=0x%x mi->size=0x%x \n", __func__, __LINE__,
+	       mi.start_high,mi.start_low,mi.size);
+
+	printf("##%s:%d---&mi=0x%x \n", __func__, __LINE__,
+	       &mi);
+
+	tee_call_request(&share_data);/*check tos status and send cmd to tos, tos return share memory point*/
+
+
+	printf("##%s:%d---vm=%d,cpu=%d,result: %d\n", __func__, __LINE__,
+	       share_data[0], share_data[1], share_data[2]);
+
+	puts("## Start firewall config ...\n");
+	share_data[2] = result;
+	share_data[3] = SEC_FIREWALL_CMD; /*cmd, other feature add own cmd*/
+	share_data[4] = ((unsigned int)&mi)&0xFFFFFFFF;
+	share_data[5] = sizeof(mem_info);
+
+	printf("##cmd:0x%x,mem_info_addr:0x%x,mem_info_len:0x%x",share_data[3],share_data[4],share_data[5]);
+    /* secvm id: 3 */
+	if (mv_svc_ivmc_request(3) != 0) {
+		printf("## Waiting for response ...\n");
+		while (1) {
+			/* check the return value of ptr[2] */
+			if (share_data[2] != result) {
+				printf("%s:%d---vm=%u,cpu=%u,result: %u\n",__func__, __LINE__,
+				       share_data[0], share_data[1], share_data[2]);
+				break;
+			}
+
+			mdelay(200);
+		}
+	} else {
+		printf("## Verify request failed");
+	}
+	return share_data[2];
+}
+#else
 int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t size){
 	uint32_t ret;
 	uint32_t smcid;
@@ -242,6 +303,7 @@ int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t 
 	ret = param.a0;
 	return ret;
 }
+#endif
 
 int fdt_reserved_mem_multimedia_parse(void*fdt)
 {
@@ -259,18 +321,24 @@ int fdt_reserved_mem_multimedia_parse(void*fdt)
 	char value[64];
 
 	strncpy(name, "sprd,decoup", sizeof(name));
+	/*check cproc-use-decoup*/
 	strncpy(value, "cproc-use-decoup", sizeof(value));
 	offset = fdt_node_offset_by_prop_value(fdt, 0, name, value, strlen(value) + 1);
 	if(offset < 0) {
-		debugf("the sipc info already exist, don't need to parse\n");
-		return -1;
+		/*check cproc-use-decoup-v1*/
+		strncpy(value, "cproc-use-decoup-v1", sizeof(value));
+		offset = fdt_node_offset_by_prop_value(fdt, 0, name, value, strlen(value) + 1);
+		if(offset < 0)
+		{
+			debugf("the sipc info already exist, don't need to parse\n");
+			return -1;
+		}
 	}
-	if(fdtdec_decode_region_private(fdt, offset, "reg", &s_addr, &s_size,0) < 0)
+	if(0 == (fdtdec_decode_region_private(fdt, offset, "reg", &s_addr, &s_size,0)))
 	{
-		debugf("can not find reg prop, go to next node.\n" );
-		return -1;
+		/*find reg prop ok*/
+		uboot_set_secure_range_paraneters(CP_MODEM,s_addr,s_size);
 	}
-	uboot_set_secure_range_paraneters(CP_MODEM,s_addr,s_size);
 	parentoffset = fdt_path_offset(fdt, "/reserved-memory");
 	if (parentoffset < 0) {
 		errorf("fdt_reserved_mem_multimedia_parse: cann't find mm_reserved \n");
