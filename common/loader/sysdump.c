@@ -824,7 +824,7 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, struct sysdump_mem *s
 	}
 
 	/* step3: auto calculate linux memory region */
-	if ((reset_mode != CMD_TOS_PANIC_MODE) && (reset_mode != CMD_VMM_PANIC_MODE)) {
+	if (reset_mode != CMD_TOS_PANIC_MODE) {
 		/* save reserved-memory region to array */
 		num = 0;
 		for (offset = fdt_first_subnode(fdt_blob, ofs_remem); offset >= 0; offset = fdt_next_subnode(fdt_blob, offset)) {
