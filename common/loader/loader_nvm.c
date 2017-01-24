@@ -956,6 +956,7 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 #ifdef CONFIG_SOC_IWHALE2
 	aon_lpc_config();
 #endif
+	wakeup_source_enable();
 
 #ifdef CONFIG_SPLASH_SCREEN
 	if(lcd_enable) {
