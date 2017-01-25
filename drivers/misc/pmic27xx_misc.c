@@ -159,5 +159,8 @@ void pmic_misc_init(void)
 	sci_adi_write(ANA_REG_GLB_OTP_CTRL, (BIT_OTP_EN|BITS_OTP_OP(2)), (BIT_OTP_EN|BITS_OTP_OP(3)));	//open otp and set 145C
 #endif
 
+#ifdef CONFIG_ADIE_SC2721
+	printf("last shutdown flag ANA_REG_GLB_POR_OFF_FLAG:0x%x\n",ANA_REG_GET(ANA_REG_GLB_POR_OFF_FLAG));
+#endif
 }
 
