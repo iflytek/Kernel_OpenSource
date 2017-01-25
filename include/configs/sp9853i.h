@@ -5,7 +5,6 @@
 #include <configs/x86-sprd-common.h>
 
 #define CONFIG_SPRD_SOC_SP9853I
-
 #define SETUP_DATA_OFFSET 0x10
 #define DEFAULT_SETUP_BASE 0x350c0000
 #define DEFAULT_SETUP_DTB_ADDR 0x3b000000
@@ -19,4 +18,8 @@
 
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0
+
+/**********add for zebu and vp*******/
+#define CONFIG_ZEBU
+
 #endif /* __CONFIG_H */

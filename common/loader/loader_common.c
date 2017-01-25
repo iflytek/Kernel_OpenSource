@@ -192,8 +192,10 @@ static int start_linux_x86()
 	debugf("initrd_size: 0x%lx\n", initrd_size);
 	disable_interrupts();
 
+#ifndef CONFIG_ZEBU
 	/*start modem CP */
 	modem_entry();
+#endif
 
 	/* Setup board for maximum PC/AT Compatibility */
 	setup_pcat_compatibility();

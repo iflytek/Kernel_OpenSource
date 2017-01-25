@@ -886,7 +886,7 @@ int secure_verify_partition(block_dev_desc_t * dev, uchar * partition_name, void
 #ifdef CONFIG_ZEBU
 void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
 {
-    struct boot_img_hdr *boot_hdr;
+    struct boot_img_hdr *boot_hdr = (void *) raw_header;
     ulong bzImage_size = 0;
     ulong initrd_size = 0;
     ulong dtb_size = 0;
@@ -897,6 +897,7 @@ void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
     /* load bootimg to RAM  */
     boot_hdr = malloc(512*4);
     memcpy((void *)boot_hdr,(const void *)BOOTIMG_ADR,512*4);
+    memcpy((void *)raw_header,(const void *)BOOTIMG_ADR,512*4);
     if (!memcmp(boot_hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
 	bzImage_size = (boot_hdr->kernel_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
 	initrd_size = (boot_hdr->ramdisk_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
