@@ -26,39 +26,23 @@ static void* s_ce_vaddr;
 #define REG_GET_VAL(__base, __offset)		 (*(volatile uint32_t *)((__base) + (__offset)))
 
 static uint32_t get_paddr_hi (void *vaddr){
-#ifdef SPRD_PAL_64BIT
 	void *paddr = sprd_pal_vaddr_to_paddr(vaddr);
-	return (uint32_t)(((uint64_t)paddr & 0xF00000000) >> 32);
-#else
-	return 0;
-#endif
+	return (uint32_t)(((uintptr_t)paddr & 0xF00000000ULL) >> 32);
 };
 
 static uint32_t get_paddr_lo (void *vaddr){
 	void *paddr = sprd_pal_vaddr_to_paddr(vaddr);
-#ifdef SPRD_PAL_64BIT
-	return (uint32_t)((uint64_t)paddr & 0xFFFFFFFF);
-#else
-	return (uint32_t)paddr;
-#endif
+	return (uint32_t)((uintptr_t)paddr & 0xFFFFFFFFULL);
 };
 
 static uint32_t get_pka_paddr_hi (uint8_t *vaddr){
 	void *paddr = sprd_pal_vaddr_to_paddr(vaddr);
-#ifdef SPRD_PAL_64BIT
-	return (uint32_t)(((uint64_t)paddr & 0xFFFFE0000) >> 17);
-#else
-	return ((uint32_t)paddr & 0xFFFE0000) >> 17;
-#endif
+	return (uint32_t)(((uintptr_t)paddr & 0xFFFFE0000ULL) >> 17);
 };
 
 static uint32_t get_pka_paddr_lo (uint8_t *vaddr){
 	void *paddr = sprd_pal_vaddr_to_paddr(vaddr);
-#ifdef SPRD_PAL_64BIT
-	return (uint32_t)(((uint64_t)paddr & 0x1FFFF));
-#else
-	return ((uint32_t)paddr & 0x1FFFF);
-#endif
+	return (uint32_t)(((uintptr_t)paddr & 0x1FFFFULL));
 };
 
 void sprd_crypto_init_ce_cfg(sprd_ce_cfg_t* ce_cfg) {

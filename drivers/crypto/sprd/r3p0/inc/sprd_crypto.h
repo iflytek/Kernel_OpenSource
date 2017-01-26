@@ -28,11 +28,7 @@
 #define SPRD_CRYPTO_DUMP_SIZE		128
 #define SPRD_CRYPTO_RSA_BUF_SIZE	512
 
-#ifdef SPRD_PAL_64BIT
-typedef int64_t			sprd_crypto_err_t;
-#else
-typedef int32_t			sprd_crypto_err_t;
-#endif
+typedef int32_t		sprd_crypto_err_t;
 
 enum sprd_crypto_status {
 	SPRD_CRYPTO_SUCCESS = 0,		/* Success */
@@ -184,6 +180,6 @@ sprd_crypto_err_t sprd_crypto_close (sprd_crypto_context_t* constext);
 void sprd_crypto_init (void);
 void sprd_crypto_terminal(void);
 
-long sprd_crypto_test (void);
+sprd_crypto_err_t sprd_crypto_test (void);
 
 #endif /* SPRD_CRYPTO_H */

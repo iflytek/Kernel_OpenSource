@@ -1102,7 +1102,7 @@ sprd_multithread_test (void) {
 }
 #endif
 
-long sprd_crypto_test (void) {
+sprd_crypto_err_t sprd_crypto_test (void) {
 	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
 	int32_t i = 0;
 

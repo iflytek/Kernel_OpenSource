@@ -30,13 +30,13 @@ typedef enum {
 } sprd_rsa_key_attr_t;
 
 typedef enum {
-	SPRD_RSA_NOPAD		= 0,
+	SPRD_RSA_NOPAD			= 0,
 
-	SPRD_RSAES_PKCS1_V1_5	= 10,
-	SPRD_RSAES_PKCS1_OAEP	= 11,
+	SPRD_RSAES_PKCS1_V1_5		= 10,
+	SPRD_RSAES_PKCS1_OAEP_MGF1	= 11,
 
-	SPRD_RSASSA_PKCS1_V1_5	= 20,
-	SPRD_RSASSA_PKCS1_PSS	= 21,
+	SPRD_RSASSA_PKCS1_V1_5		= 20,
+	SPRD_RSASSA_PKCS1_PSS_MGF1	= 21,
 } sprd_rsa_pad_type_t;
 
 typedef struct {

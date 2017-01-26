@@ -58,12 +58,12 @@ int RSA_PubDec(unsigned char *pub_E, unsigned char *mod_N, int bitLen_N, unsigne
 			padding, &result);
 	if (err != SPRD_CRYPTO_SUCCESS) {
 		errorf("sprd_rsa_verify fail(%08x)\n", err);
-		return err;
+		return -1;
 	}
 
 	if (result <= SPRD_VERIFY_SUCCESS) {
 		errorf("sprd_rsa_verify result(%08x)\n", result);
-		return SPRD_CRYPTO_INVALID_PACKET;
+		return -1;
 	}
 
 	return result;
@@ -158,7 +158,7 @@ int sprd_crypto_special_test(void) {
 	uint8_t hash_temp[32];
 	uint8_t rsa_temp[32];
 
-	sha256_csum_wd(test_hash.msg, strlen(test_hash.msg), hash_temp, 0);
+	sha256_csum_wd((const unsigned char*)test_hash.msg, strlen(test_hash.msg), (unsigned char*)hash_temp, 0);
 	if (memcmp(test_hash.hash, hash_temp, 32)) {
 		errorf("sha256_csum_wd failed!\n");
 		return -1;
@@ -170,6 +170,16 @@ int sprd_crypto_special_test(void) {
 			 test_rsa_pkcs1.dout, rsa_temp);
 	if (err != test_rsa_pkcs1.data_len || memcmp(test_rsa_pkcs1.din, rsa_temp, err)){
 		errorf("RSA_PubDec failed!\n");
+		return -1;
+	}
+
+	test_rsa_pkcs1.dout[0] += 1;
+	err = RSA_PubDec(test_rsa_pkcs1.key_e,
+			 test_rsa_pkcs1.key_n,
+			 test_rsa_pkcs1.key_len * 8,
+			 test_rsa_pkcs1.dout, rsa_temp);
+	if (err != -1){
+		errorf("RSA_PubDec should be failed!\n");
 		return -1;
 	}
 

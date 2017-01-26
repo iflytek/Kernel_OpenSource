@@ -20,7 +20,7 @@ sprd_crypto_err_t
 sprd_hash_test_md5 (void) {
 	static struct {
 		const char* msg;
-		const int8_t hash[16];
+		const uint8_t hash[16];
 	} tests[] = {//0, 128, 131, 256, 260, 5, 384 389
 		{ "",//0
 		  { 0xd4, 0x1d, 0x8c, 0xd9, 0x8f, 0x00, 0xb2, 0x04,
@@ -76,7 +76,7 @@ sprd_hash_test_md5 (void) {
 
 	for (i = 0; tests[i].msg != NULL; i++) {
 		sprd_hash_init(SPRD_CRYPTO_HASH_MD5, &md5);
-		sprd_hash_update(&md5, (uint8_t *)tests[i].msg, (uint32_t)sprd_pal_strlen(tests[i].msg));
+		sprd_hash_update(&md5, (const uint8_t*)tests[i].msg, (uint32_t)sprd_pal_strlen(tests[i].msg));
 		sprd_hash_final(&md5, tmp);
 		if (sprd_pal_memcmp(tmp, tests[i].hash, 16) != 0) {
 			SPRD_CRYPTO_LOG_DEBUG("md5 test[%d] FAILED\n", i);

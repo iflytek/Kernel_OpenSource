@@ -124,7 +124,7 @@ sprd_crypto_err_t sprd_rsa_public_encrypt(const sprd_rsa_pubkey_t *pub_key,
 		break;
 
 	case SPRD_RSAES_PKCS1_V1_5:
-	case SPRD_RSAES_PKCS1_OAEP:
+	case SPRD_RSAES_PKCS1_OAEP_MGF1:
 	default:
 		SPRD_CRYPTO_LOG_ERR("Bad padding type(%d)!\n", padding.type);
 		return SPRD_CRYPTO_INVALID_PADDING;
@@ -161,7 +161,7 @@ sprd_crypto_err_t sprd_rsa_private_decrypt(const sprd_rsa_keypair_t *priv_key,
 		break;
 
 	case SPRD_RSAES_PKCS1_V1_5:
-	case SPRD_RSAES_PKCS1_OAEP:
+	case SPRD_RSAES_PKCS1_OAEP_MGF1:
 	default:
 		SPRD_CRYPTO_LOG_ERR("Bad padding type(%d)!\n", padding.type);
 		return SPRD_CRYPTO_INVALID_PADDING;
@@ -213,7 +213,7 @@ sprd_crypto_err_t sprd_rsa_sign(const sprd_rsa_keypair_t *priv_key,
 		}
 		break;
 
-	case SPRD_RSASSA_PKCS1_PSS:
+	case SPRD_RSASSA_PKCS1_PSS_MGF1:
 	default:
 		SPRD_CRYPTO_LOG_ERR("Bad padding type(%d)!\n", padding.type);
 		return SPRD_CRYPTO_INVALID_PADDING;
@@ -307,7 +307,7 @@ sprd_crypto_err_t sprd_rsa_verify(const sprd_rsa_pubkey_t *pub_key,
 		break;
 
 
-	case SPRD_RSASSA_PKCS1_PSS:
+	case SPRD_RSASSA_PKCS1_PSS_MGF1:
 	default:
 		SPRD_CRYPTO_LOG_ERR("Bad padding type(%d)!\n", padding.type);
 		err = SPRD_CRYPTO_INVALID_PADDING;
