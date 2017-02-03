@@ -36,9 +36,37 @@ static const char *cmd_arr[] = {
 	RF_HW_INFO,
 	K32_LESS,
 	AUTO_TEST,
+#ifdef CONFIG_TSX_32K
+	CRYSTAL_TYPE,
+#endif
 	NULL
 };
 
+#ifdef CONFIG_TSX_32K
+typedef enum k_less {
+	K32 = 0,
+	K_LESS,
+}k_less_t;
+
+typedef enum crystal_type {
+	VCTCXO = 0,
+	DCXO,
+	TSX,
+	TCXO,
+}crystal_type_t;
+
+struct tsx_32k_table {
+	k_less_t k32_less_data;
+	crystal_type_t crystal_data;
+};
+
+static const struct tsx_32k_table tsx_32k_table[] = {
+	{K_LESS, TSX},
+	{K_LESS, DCXO},
+	{K_LESS, TSX},
+	{K32, TCXO},
+};
+#endif
 static unsigned int gpio_state(unsigned int GPIO_NUM){
 	int value = 0 ;
 	sprd_gpio_request(NULL, GPIO_NUM);
@@ -300,8 +328,10 @@ void cp_cmdline_fixup(void)
 
 #if defined(CONFIG_TSX_32K)
 	value_less=sprd_get32_less();
-	sprintf(buf,"%d",value_less);
+	sprintf(buf,"%d",(int)tsx_32k_table[value_less].k32_less_data);
 	cmdline_add_cp_cmdline(K32_LESS, buf);
+	sprintf(buf,"%d",(int)tsx_32k_table[value_less].crystal_data);
+	cmdline_add_cp_cmdline(CRYSTAL_TYPE, buf);
 #endif
 
 	debugf("cp cmdline: %s\n", g_CPcmdlineBuf);
