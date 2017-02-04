@@ -260,7 +260,7 @@ static LCM_Init_Code init_data[] = {
         {LCM_SEND(2),{0x11, 0x00}},
         {LCM_SLEEP(50)},
         {LCM_SEND(2),{0x29, 0x00}},
-	    //{LCM_SLEEP(200)},
+	{LCM_SLEEP(200)},
 #endif
 };
 
