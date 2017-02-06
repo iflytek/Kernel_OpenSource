@@ -19,7 +19,4 @@
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0
 
-/**********add for zebu and vp*******/
-#define CONFIG_ZEBU
-
 #endif /* __CONFIG_H */
