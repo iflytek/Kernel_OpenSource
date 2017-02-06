@@ -117,8 +117,8 @@ dsih_error_t mipi_dsih_open(dsih_ctrl_t * instance)
     mipi_dsih_hal_int_mask_0(instance, 0x0);
     mipi_dsih_hal_int_mask_1(instance, 0x0);
 #else
-    mipi_dsih_hal_int_mask_0(instance, 0xffffff);//tianci 1.21a modify
-    mipi_dsih_hal_int_mask_1(instance, 0xffffff);//tianci 1.21a modify
+    mipi_dsih_hal_int_mask_0(instance, 0xffffffff);
+    mipi_dsih_hal_int_mask_1(instance, 0xffffffff);
 #endif
     err = mipi_dsih_phy_bta_time(instance, instance->max_bta_cycles);
     if (err)
@@ -188,8 +188,8 @@ dsih_error_t mipi_dsih_close(dsih_ctrl_t * instance)
     mipi_dsih_hal_int_mask_0(instance, 0x0);
     mipi_dsih_hal_int_mask_1(instance, 0x0);
 #else
-    mipi_dsih_hal_int_mask_0(instance, 0xffffff);
-    mipi_dsih_hal_int_mask_1(instance, 0xffffff);
+    mipi_dsih_hal_int_mask_0(instance, 0xffffffff);
+    mipi_dsih_hal_int_mask_1(instance, 0xffffffff);
 #endif
     mipi_dsih_dphy_close(&(instance->phy_instance));
     mipi_dsih_hal_power(instance, 0);
@@ -1470,8 +1470,8 @@ dsih_error_t mipi_dsih_unregister_all_events(dsih_ctrl_t * instance)
     mipi_dsih_hal_int_mask_0(instance, 0x0);
     mipi_dsih_hal_int_mask_1(instance, 0x0);
 #else
-    mipi_dsih_hal_int_mask_0(instance, 0xffffff);
-    mipi_dsih_hal_int_mask_1(instance, 0xffffff);
+    mipi_dsih_hal_int_mask_0(instance, 0xffffffff);
+    mipi_dsih_hal_int_mask_1(instance, 0xffffffff);
 #endif
     /* automatically disable CRC reporting */
     mipi_dsih_hal_gen_crc_rx_en(instance, 0);
