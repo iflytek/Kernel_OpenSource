@@ -5,4 +5,8 @@
 #include "sec_iefuse.h"
 #endif
 
+#ifdef CONFIG_SC9833
+#include "sec_efuse_sharkl2.h"
+#endif
+
 #endif

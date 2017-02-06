@@ -36,7 +36,7 @@ Efuse_Result_Ret sprd_ce_efuse_program(unsigned int blocked_id, unsigned int pWr
 
 Efuse_Result_Ret sprd_ce_efuse_huk_program(void);
 
-Efuse_Result_Ret sprd_get_lock_bits(unsigned int start_id, unsigned int end_id, unsigned int *bits_data);
+Efuse_Result_Ret sprd_get_lock_bits(unsigned int start_id, unsigned int end_id, unsigned int *bits_data, unsigned int *bits_data1);
 
 unsigned int sprd_get_secure_boot_enable(void);
 

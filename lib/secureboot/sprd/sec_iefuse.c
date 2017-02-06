@@ -2,7 +2,7 @@
 #include <linux/types.h>
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
-#include <secureboot/sec_iefuse.h>
+#include <secureboot/sec_efuse.h>
 
 #define REG_READ(reg_addr,value)\
 do{\
@@ -400,12 +400,12 @@ Efuse_Result_Ret sprd_ce_efuse_huk_program(void)
 }
 
 /* 64bits per lock bit */
-Efuse_Result_Ret sprd_get_lock_bits(unsigned int start_id, unsigned int end_id, unsigned int *bits_data)
+Efuse_Result_Ret sprd_get_lock_bits(unsigned int start_id, unsigned int end_id, unsigned int *bits_data, unsigned int *bits_data1)
 {
     unsigned int i;
     unsigned int start_bit, end_bit;
 
-	if (bits_data == NULL)
+	if ((bits_data == NULL) || (bits_data1 == NULL))
 		return EFUSE_PARAM_ERROR;
 
     start_bit = (start_id + 1) / 2;
@@ -418,6 +418,8 @@ Efuse_Result_Ret sprd_get_lock_bits(unsigned int start_id, unsigned int end_id, 
     {
         *bits_data |= 1 << i;
     }
+
+    *bits_data1 = 0;
 
 	return EFUSE_RESULT_SUCCESS;
 }

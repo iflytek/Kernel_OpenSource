@@ -54,15 +54,16 @@ static int sec_efuse_write(unsigned int block_id, unsigned int write_data)
 {
     unsigned int ret = 0;
     unsigned int read_data;
+    unsigned int wd_data;
 
     ret = sprd_ce_efuse_read(block_id, &read_data);
     if (ret)
         return ret;
 
-    write_data &= (~read_data);
+    wd_data = write_data & (~read_data);
 
     /* write secure efuse block */
-    ret = sprd_ce_efuse_program(block_id, write_data);
+    ret = sprd_ce_efuse_program(block_id, wd_data);
     if (ret)
         return SEC_EFUSE_WRITE_FAIL_ERR;
 
@@ -95,31 +96,46 @@ static unsigned int sec_efuse_write_and_check(unsigned int block_id, unsigned in
 }
 
 /* write Lock bits */
-static unsigned int set_lock_bits(int start_id, int end_id)
+static unsigned int set_lock_bits(unsigned int start_id, unsigned int end_id)
 {
     unsigned int ret = 0;
     unsigned int start_bit, end_bit;
-    unsigned int bits_data = 0;
+    unsigned int bits_data0 = 0;
+    unsigned int bits_data1 = 0;
     unsigned int read_data;
 
     /* check input variables */
-    if (end_id == 0 && start_id < end_id)
+    if (start_id > end_id)
         return SEC_EFUSE_ILLEGAL_INPUT_PARAM_ERR;
 
-	ret = sprd_get_lock_bits(start_id, end_id, &bits_data);
-	if (ret)
-		return SEC_EFUSE_LOCK_BIT_ERR;
+    ret = sprd_get_lock_bits(start_id, end_id, &bits_data0, &bits_data1);
+    if (ret)
+        return SEC_EFUSE_LOCK_BIT_ERR;
 
-    return sec_efuse_write(LOCK_BIT_BLOCK, bits_data);
+    if(bits_data0)
+    {
+        ret = sec_efuse_write(LOCK_BIT_BLOCK, bits_data0);
+        if(ret)
+        {
+            return ret;
+        }
+    }
+
+    if(bits_data1)
+    {
+        ret = sec_efuse_write(LOCK_BIT_BLOCK+1, bits_data1);
+    }
+
+    return ret;
 }
 
 /*
  * write Write multiple continuous blocks
  */
-static unsigned int sec_efuse_write_blocks(int start_id, int end_id, unsigned int *pwrite_data)
+static unsigned int sec_efuse_write_blocks(unsigned int start_id, unsigned int end_id, unsigned int *pwrite_data)
 {
     unsigned int ret = 0;
-    int block_id;
+    unsigned int block_id;
     unsigned int* write_ptr = NULL;
 
     /* check input variables */
@@ -145,10 +161,10 @@ static unsigned int sec_efuse_write_blocks(int start_id, int end_id, unsigned in
 /*
  * write Write multiple continuous blocks and check if it is written correctly
  */
-static unsigned int sec_efuse_write_blocks_and_check(int start_id, int end_id, unsigned int *pwrite_data)
+static unsigned int sec_efuse_write_blocks_and_check(unsigned int start_id, unsigned int end_id, unsigned int *pwrite_data)
 {
     unsigned int ret = 0;
-    int block_id;
+    unsigned int block_id;
     unsigned int* write_ptr = NULL;
 
     /* check input variables */
