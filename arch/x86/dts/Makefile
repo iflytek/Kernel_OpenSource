@@ -22,7 +22,8 @@ dtb-y += chromebook_link.dtb \
 	sp9853i-vdk.dtb \
 	sp9853i-vdk-4g.dtb \
 	sp9853i-vmm.dtb \
-	sp9853i_1h10.dtb
+	sp9853i_1h10.dtb \
+	sp9853i_1h10_vmm.dtb
 
 targets += $(dtb-y)
 
