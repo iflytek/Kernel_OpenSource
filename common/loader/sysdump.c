@@ -11,12 +11,9 @@
  * GNU General Public License for more details.
  */
 
-//#include "normal_mode.h"
 #include <rtc.h>
-//#include <asm/sizes.h>
 #include <boot_mode.h>
 #include <common.h>
-
 #include <linux/input.h>
 #include "sysdump.h"
 #include <linux/mtd/mtd.h>
@@ -41,12 +38,6 @@
 #define LLX			"0x%08llx"
 #define SYSDUMP_LONG		unsigned long long
 #define U32_T_U64(val1,val2)	(u64)((((u64)(val1))<<32)|((u64)(val2)))
-#define RESERVED_MEMORY_COUNT	25
-struct mem_reserved{
-        unsigned long long addr;
-        unsigned long long size;
-};
-static struct mem_reserved mem_res_arry[RESERVED_MEMORY_COUNT];
 #else
 #define LLX			"0x%08lx"
 #define SYSDUMP_LONG		unsigned long
@@ -58,8 +49,18 @@ enum {
 	FS_INVALID
 };
 
-extern  int sprd_host_init(int sdio_type);
+int dump_rst_mode;
+struct sysdump_memory {
+	SYSDUMP_LONG addr;
+	SYSDUMP_LONG size;
+};
+static struct sysdump_memory reserved_memory[25];
+static struct sysdump_memory linux_memory[5];
+
+extern int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
+extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
+extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
 
 #ifdef CONFIG_ETB_DUMP
 extern unsigned char etb_dump_mem[SZ_32K];
@@ -76,8 +77,6 @@ extern void sprd_etb_dump (void);
 	#define sysdump_lcd_printf(fmt, args...)
 	#define lcd_enable(void)
 #endif
-extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
-extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
 
 void display_writing_sysdump(void)
 {
@@ -126,7 +125,6 @@ static void wait_for_keypress()
 	do {
 		udelay(50 * 1000);
 		key_code = board_key_scan();
-		//printf("key_code: %d, (vd:%d,vu:%d,p:%d)\n", key_code, KEY_VOLUMEDOWN, KEY_VOLUMEUP, KEY_POWER);
 		if (key_code == KEY_VOLUMEDOWN || key_code == KEY_VOLUMEUP || key_code == KEY_HOME)
 			break;
 	} while (1);
@@ -134,8 +132,6 @@ static void wait_for_keypress()
 	sysdump_lcd_printf("Pressed key: %d\n", key_code);
 	lcd_enable();
 }
-
-
 
 int init_mmc_fat(int *fs_type)
 {
@@ -198,6 +194,7 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 	void *memaddr, unsigned long memsize)
 {
 	int ret;
+	unsigned long *actwrite = NULL;
 
 	if (path) {
 		do {} while (0); /* TODO: jianjun.he */
@@ -209,7 +206,6 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 		memsize, filename);
 	lcd_enable();
 
-	unsigned long *actwrite = NULL;
 	if (fs_type==FS_FAT32)
 		ret = file_fat_write(filename, memaddr, 0, memsize, actwrite);
 	else if (fs_type==FS_EXFAT)
@@ -217,8 +213,8 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 	else
 		ret = -1;
 
-	if (ret <= 0) {
-		debugf("sd file write error %d\n", ret);
+	if (ret < 0) {
+		debugf("ERROR: SD Card file write %d !!!\n", ret);
 	}
 
 	return;
@@ -292,11 +288,11 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 
 	/* setup ELF header */
 	elf = (struct elfhdr *) bufp;
-	bufp += sizeof(struct elfhdr); //printk("sizeof(struct elfhdr): %d\n");
-	offset += sizeof(struct elfhdr); //printk("sizeof(struct elfhdr): %d\n");
-	memcpy(elf->e_ident, ELFMAG, SELFMAG); //printk("ELFMAG: %s, SELFMAG:%d\n", ELFMAG, SELFMAG);
-	elf->e_ident[EI_CLASS]	= ELF_CLASS;//printk("EI_CLASS:%d, ELF_CLASS: %d", EI_CLASS, ELF_CLASS);
-	elf->e_ident[EI_DATA]	= ELF_DATA;//printk("EI_DATA:%");
+	bufp += sizeof(struct elfhdr);
+	offset += sizeof(struct elfhdr);
+	memcpy(elf->e_ident, ELFMAG, SELFMAG);
+	elf->e_ident[EI_CLASS]	= ELF_CLASS;
+	elf->e_ident[EI_DATA]	= ELF_DATA;
 	elf->e_ident[EI_VERSION]= EV_CURRENT;
 	elf->e_ident[EI_OSABI] = ELF_OSABI;
 	memset(elf->e_ident+EI_PAD, 0, EI_NIDENT-EI_PAD);
@@ -323,7 +319,10 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 	nhdr->p_vaddr	= 0;
 	nhdr->p_paddr	= 0;
 	nhdr->p_filesz	= 0;
-	nhdr->p_memsz	= 0;
+	if ((dump_rst_mode == CMD_WATCHDOG_REBOOT) || (dump_rst_mode == CMD_AP_WATCHDOG_REBOOT) || \
+		(dump_rst_mode == CMD_UNKNOW_REBOOT_MODE) || (dump_rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || \
+		(dump_rst_mode == CMD_SPECIAL_MODE) || (dump_rst_mode == CMD_VMM_PANIC_MODE) || (dump_rst_mode == CMD_TOS_PANIC_MODE))
+		nhdr->p_memsz = 0;
 	nhdr->p_flags	= 0;
 	nhdr->p_align	= 0;
 
@@ -367,10 +366,8 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 	notes[1].data	= &prpsinfo;
 
 	memset(&prpsinfo, 0, sizeof(struct elf_prpsinfo));
-	//fill_psinfo(&prpsinfo, current, current->mm);
 
 	strcpy(prpsinfo.pr_fname, "vmlinux");
-	//strncpy(prpsinfo.pr_psargs, saved_command_line, ELF_PRARGSZ);
 
 	nhdr->p_filesz	+= notesize(&notes[1]);
 	bufp = storenote(&notes[1], bufp);
@@ -381,13 +378,18 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 	notes[2].datasz	= sizeof(struct task_struct);
 	notes[2].data	= current;
 
-	printk("%s: data size is %d, data addr is %p",__func__,notes[2].datasz,notes[2].data);
+	printf("%s: data size is %d, data addr is %p",__func__,notes[2].datasz,notes[2].data);
 
 	nhdr->p_filesz	+= notesize(&notes[2]);
 	bufp = storenote(&notes[2], bufp);
 #endif
+	if (nhdr->p_memsz == 0)
+		nhdr->p_offset  = 0;
+	else
+		nhdr->p_offset  = offset;
+
 	return;
-} /* end elf_kcore_store_hdr() */
+}
 
 char *rstmode[] = {
 	"undefind mode",			//CMD_UNDEFINED_MODE=0,
@@ -437,7 +439,7 @@ int read_nand_to_ram( struct mtd_info *mtd, loff_t paddr, unsigned int size, uns
 
                 ret = mtd->read(mtd, read_addr, readsize, &retlen, read_buf);
                 if(ret != 0 && retlen != readsize) {
-                        printf("%s, read addr: 0x%.8x len: 0x%.8x 's value err, ret: %d, retlen: 0x%.8x\n",\
+                        printf("%s, read addr: 0x%.8x len: 0x%.8x 's value error, ret: %d, retlen: 0x%.8x\n",\
 			 __func__, (unsigned int)read_addr, readsize, ret, retlen);
 			sysdump_lcd_printf("\nRead nand flash 0x%.8x error, you can dump it use download tools again!\n", read_addr);
 			lcd_enable();
@@ -496,14 +498,6 @@ unsigned char *get_dt_addr(void)
 	return dt_addr;
 }
 
-static int check_dts_sysdump_node(unsigned char *fdt_blob)
-{
-	int nodeoffset = fdt_path_offset(fdt_blob, "/sprd-sysdump");
-	debugf("sysdump nodeoffset = %d\n", nodeoffset);
-
-	return nodeoffset;
-}
-
 static int check_dts_reserved_mem_node(unsigned char *fdt_blob)
 {
 	int nodeoffset = fdt_path_offset(fdt_blob, "/reserved-memory");
@@ -513,32 +507,73 @@ static int check_dts_reserved_mem_node(unsigned char *fdt_blob)
 	return nodeoffset;
 }
 
-static int fill_dump_mem(unsigned char *fdt_blob, struct sysdump_mem *sprd_dump_mem, int nodeoffset)
+static int get_dts_version(unsigned char *fdt_blob, int nodeoffset)
 {
-	int sprd_dump_mem_num, lenp, size, offset, phandle, lookup;
-	unsigned long *ptr = NULL, *ptr_end = NULL;
-	int i = 0;
+	__be32 *list = NULL;
+	int lenp, version;
 
-	ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
-	__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &size);
+	list = fdt_getprop(fdt_blob, nodeoffset, "version", &lenp);
 	if (list == NULL) {
-		debugf("no memory-region property.\n");
+		debugf("no version property in sysdump node.\n");
+		version = 0;
+	} else {
+		version = fdt_size_to_cpu(*list);
+	}
+
+	debugf("dts sysdump version is 0x%x.\n", version);
+	return version;
+}
+
+static int check_dts_sysdump_node(unsigned char *fdt_blob)
+{
+	int nodeoffset = fdt_path_offset(fdt_blob, "/sprd-sysdump");
+
+	debugf("sysdump nodeoffset = %d\n", nodeoffset);
+	return nodeoffset;
+}
+
+static unsigned long get_sprd_dump_size_auto(struct sysdump_mem *sysmem, int mem_num)
+{
+	int i;
+	SYSDUMP_LONG size = 0;
+
+	for(i=0; i<mem_num; i++) {
+		size += sysmem[i].size;
+	}
+#ifdef CONFIG_X86
+	debugf("sysdump total size is 0x%llx !!!\n", size);
+#else
+	debugf("sysdump total size is 0x%lx !!!\n", size);
+#endif
+	return size;
+}
+
+static int fill_mem_from_dts(unsigned char *fdt_blob, int nodeoffset, const char *name, struct sysdump_mem *sprd_dump_mem)
+{
+	int i = 0;
+	int lenp, size, phandle, lookup;
+	unsigned long *ptr = NULL, *ptr_end = NULL;
+
+	ptr = fdt_getprop(fdt_blob, nodeoffset, name, &lenp);
+	__be32 *list = fdt_getprop(fdt_blob, nodeoffset, name, &size);
+	if (list == NULL) {
+		debugf("ERROR: no %s property !!!\n", name);
 		return 0;
 	}
 	__be32 *list_end = list + size / sizeof(*list);
 
 	while (list < list_end) {
-		debugf("while 1.\n");
 		phandle = be32_to_cpup(list++);
 		lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
 
 		ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
-		if (ptr == NULL)
-			debugf("no memory-region property.\n");
+		if (ptr == NULL) {
+			debugf("ERROR: no reg in %s property !!!\n", name);
+			return 0;
+		}
 		else {
 			ptr_end = ptr + lenp / (sizeof(SYSDUMP_LONG));
 			while (ptr < ptr_end) {
-				debugf("while 2.\n");
 				sprd_dump_mem[i].paddr = fdt_addr_to_cpu (*ptr ++);
 #ifdef CONFIG_X86
 				sprd_dump_mem[i].paddr = (sprd_dump_mem[i].paddr<<32) | fdt_addr_to_cpu(*ptr ++);
@@ -550,109 +585,260 @@ static int fill_dump_mem(unsigned char *fdt_blob, struct sysdump_mem *sprd_dump_
 #endif
 				sprd_dump_mem[i].soff  = 0xffffffff;
 				sprd_dump_mem[i].type  = SYSDUMP_RAM;
-				debugf("sprd_dump_mem[%d].paddr is %lx\n", i, sprd_dump_mem[i].paddr);
-				debugf("sprd_dump_mem[%d].size  is %lx\n", i, sprd_dump_mem[i].size);
-				i ++;
-			}
-		}
-	}
-	sprd_dump_mem_num = i;
-	return sprd_dump_mem_num;
-}
-
-static int get_dts_version(unsigned char *fdt_blob, int nodeoffset)
-{
-	__be32 *list = NULL;
-	int lenp, version;
-
-	list = fdt_getprop(fdt_blob, nodeoffset, "version", &lenp);
-	if (list == NULL) {
-		debugf("no version property in sysdump.\n");
-		version = 0;
-	} else {
-		version = fdt_size_to_cpu(*list);
-	}
-	debugf("dts sysdump version is 0x%x.\n", version);
-	return version;
-}
-
-static unsigned long get_sprd_dump_size_auto(struct sysdump_mem *sysmem, int mem_num)
-{
-	int i;
-	SYSDUMP_LONG size = 0;
-
-	for(i=0; i<mem_num; i++) {
-		size += sysmem[i].size;
-	}
-	debugf("max size is %llx.\n", size);
-	return size;
-}
-
-static unsigned long get_sprd_dump_size(unsigned char *fdt_blob, int nodeoffset)
-{
-	unsigned long *ptr = NULL, *ptr_end = NULL;
-	__be32 *list = NULL, *list_end = NULL;
-	SYSDUMP_LONG size = 0, temp;
-	int lenp, phandle, lookup;
-
-	list = fdt_getprop(fdt_blob, nodeoffset, "memory-region", &lenp);
-	if (list == NULL)
-		debugf("no memory-region property.\n");
-	else {
-		list_end = list + lenp / sizeof(*list);
-		while (list < list_end) {
-			phandle = be32_to_cpup(list++);
-			lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
-
-			ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
-			if (ptr == NULL) {
-				debugf("no memory-region reg property.\n");
-				break;
-			}
-			else {
-				ptr_end = ptr + lenp / (sizeof(SYSDUMP_LONG));
-				while (ptr < ptr_end) {
-					ptr ++;
 #ifdef CONFIG_X86
-					ptr ++;
+				debugf("sprd_dump_mem[%d].paddr is 0x%llx\n", i, sprd_dump_mem[i].paddr);
+				debugf("sprd_dump_mem[%d].size  is 0x%llx\n", i, sprd_dump_mem[i].size);
+#else
+				debugf("sprd_dump_mem[%d].paddr is 0x%lx\n", i, sprd_dump_mem[i].paddr);
+				debugf("sprd_dump_mem[%d].size  is 0x%lx\n", i, sprd_dump_mem[i].size);
 #endif
-					temp = fdt_size_to_cpu(*ptr++);
-#ifdef CONFIG_X86
-					temp = (temp<<32)|fdt_size_to_cpu(*ptr++);
-#endif
-					size += temp;
-					debugf("size is %lx\n",size);
-				}
+				i++;
 			}
 		}
 	}
-	list = fdt_getprop(fdt_blob, nodeoffset, "iomem", &lenp);
-	if (list == NULL)
-		debugf("no iomem property.\n");
-	else {
-		list_end = list + lenp / sizeof(*list);
-		while (list < list_end) {
-			phandle = be32_to_cpup(list++);
-			lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
 
-			ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
-			if (ptr == NULL) {
-				debugf("no iomem reg property.\n");
-				break;
+	debugf(" the %s memory num is %d\n", name, i);
+	return i;
+}
+
+static void reorder_reserved_memory_by_addr(struct sysdump_memory *memArray, int size)
+{
+	int i, j, min;
+	struct sysdump_memory temp;
+
+	for (i=0; i<size; i++) {
+		min = i;
+		for (j=i+1; j<size; j++) {
+			if (memArray[min].addr > memArray[j].addr) {
+				min = j;
 			}
-			else {
-				ptr_end = ptr + lenp / (sizeof(unsigned long));
-				while (ptr < ptr_end) {
-					ptr ++;
-					size += fdt_size_to_cpu(*ptr);
-					ptr ++;
-					debugf("size is %lx\n",size);
+		}
+
+		if (min != i) {
+			temp.addr = memArray[min].addr;
+			temp.size = memArray[min].size;
+			memArray[min].addr = memArray[i].addr;
+			memArray[min].size = memArray[i].size;
+			memArray[i].addr = temp.addr;
+			memArray[i].size = temp.size;
+		}
+	}
+
+	return;
+}
+
+#ifdef CONFIG_X86
+static u32 e820_map_auto_detect(struct e820entry *entries)
+{
+	extern ddr_info_t* get_ddr_range(void);
+	u32 e820_entries_detect = 0;
+	int i = 0;
+	ddr_info_t* ddr_info = get_ddr_range();
+	e820_entries_detect = ddr_info->section_number;
+
+	entries->addr = U32_T_U64(ddr_info->sec_info[0].start_address_high,ddr_info->sec_info[0].start_address_low)+VMM_RESERVE_SIZE;
+	entries->size  = U32_T_U64(ddr_info->sec_info[0].end_address_high,ddr_info->sec_info[0].end_address_low)-entries->addr;
+	entries->type  = E820_RAM;
+	debugf("e820 entry addr = 0x%08llx, entry size = 0x%llx !!!\n", entries->addr, entries->size);
+	entries++;
+
+	for (i = 1; i < e820_entries_detect; i++) {
+		entries->addr = U32_T_U64(ddr_info->sec_info[i].start_address_high,ddr_info->sec_info[i].start_address_low);
+		entries->size  = U32_T_U64(ddr_info->sec_info[i].end_address_high,ddr_info->sec_info[i].end_address_low)-entries->addr;
+		entries->type  = E820_RAM;
+		debugf("e820 entry addr = 0x%08llx, entry size = 0x%llx !!!\n", entries->addr, entries->size);
+		entries++;
+	}
+
+	debugf("e820 total num is %d !!!\n", e820_entries_detect);
+	return e820_entries_detect;
+}
+#endif
+
+static int recalculate_kernel_memory(unsigned char *fdt_blob, int nodeoffset, int ofs_remem, int dts_version, struct sysdump_mem *sprd_dump_mem)
+{
+
+	struct sysdump_memory *entries = NULL;
+	int re_num = 0, j = 0, mem_used = 0, mem_num = 0, i = 0, k, offset;
+	SYSDUMP_LONG maddr, msize, base_addr;
+	SYSDUMP_LONG old_addr = 0, old_size=0;
+
+	/* get linux memory region */
+#ifdef CONFIG_X86
+	struct e820entry x86_entries[5] = {0};
+
+	if (dts_version == 0xa1)
+		mem_num = e820_map_auto_detect(x86_entries);
+	for (k = 0; k < mem_num; k++) {
+		linux_memory[k].addr = x86_entries[k].addr;
+		linux_memory[k].size = x86_entries[k].size;
+		debugf("linux memory addr = 0x%llx, size = 0x%llx !!!\n", linux_memory[k].addr, linux_memory[k].size);
+	}
+#else
+	struct sysdump_mem arm_entries[5] = {0};
+
+	mem_num = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region", arm_entries);
+	for (k = 0; k < mem_num; k++) {
+		linux_memory[k].addr = arm_entries[k].paddr;
+		linux_memory[k].size = arm_entries[k].size - 1;
+		debugf("linux memory addr = 0x%lx, size = 0x%lx!!!\n", linux_memory[k].addr, linux_memory[k].size);
+	}
+#endif
+
+	/* get linux reserved-memory region */
+	for (offset = fdt_first_subnode(fdt_blob, ofs_remem); offset >= 0; offset = fdt_next_subnode(fdt_blob, offset)) {
+		fdt_get_addr_size(fdt_blob, offset, "reg", &maddr, &msize);
+		reserved_memory[re_num].addr = maddr;
+		reserved_memory[re_num].size = msize;
+#ifdef CONFIG_X86
+		//	debugf("reserved-memory addr is %llx\n", reserved_memory[re_num].addr);
+		//	debugf("reserved-memory size is %llx\n", reserved_memory[re_num].size);
+#else
+		//	debugf("reserved-memory addr is %lx\n", reserved_memory[re_num].addr);
+		//	debugf("reserved-memory size is %lx\n", reserved_memory[re_num].size);
+#endif
+		re_num++;
+	}
+	debugf("reserved-memory num is %d !!!\n", re_num);
+
+	/* reorder reserved-memory by addr */
+	reorder_reserved_memory_by_addr(reserved_memory, re_num);
+
+	entries = linux_memory;
+#ifdef CONFIG_X86
+	base_addr = VMM_RESERVE_SIZE;
+#else
+	base_addr = linux_memory[0].addr;
+#endif
+	for (k = 0; k < re_num; k++) {
+		maddr = reserved_memory[k].addr;
+		msize = reserved_memory[k].size;
+#ifdef CONFIG_X86
+		debugf("base_addr is 0x%llx\n", base_addr);
+		debugf("fdt addr is 0x%llx\n", maddr);
+		debugf("fdt size is 0x%llx\n", msize);
+#else
+		debugf("base_addr is 0x%lx\n", base_addr);
+		debugf("fdt addr is 0x%lx\n", maddr);
+		debugf("fdt size is 0x%lx\n", msize);
+#endif
+
+		if ((maddr + msize) > (entries->addr + entries->size +1)) {  //next entry
+			base_addr = entries->addr + entries->size + 1;
+			entries++;  mem_used++;
+
+			if (base_addr == old_addr+old_size) {
+				base_addr = entries->addr;
+			} else if (base_addr > old_addr+old_size) {
+				debugf("d1\n");
+				sprd_dump_mem[i].paddr = old_addr + old_size;
+				sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
+				sprd_dump_mem[i].size  = base_addr - sprd_dump_mem[i].paddr;
+				sprd_dump_mem[i].soff  = 0xffffffff;
+				sprd_dump_mem[i].type  = SYSDUMP_RAM;
+				base_addr = entries->addr;
+				i++;
+			}
+
+			if(maddr == base_addr) {
+				base_addr += msize;
+			} else if (maddr > base_addr) {
+				debugf("d2\n");
+				sprd_dump_mem[i].paddr = base_addr;
+				sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
+				sprd_dump_mem[i].size  = maddr - base_addr;
+				sprd_dump_mem[i].soff  = 0xffffffff;
+				sprd_dump_mem[i].type  = SYSDUMP_RAM;
+				base_addr = maddr + msize;
+				i++;
+			}
+		} else {   //this entry
+			if (maddr == base_addr) {
+				base_addr += msize;
+			} else if (maddr > base_addr) {
+				debugf("d3\n");
+				sprd_dump_mem[i].paddr = base_addr;
+				sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
+				sprd_dump_mem[i].size  = maddr - base_addr;
+				sprd_dump_mem[i].soff  = 0xffffffff;
+				sprd_dump_mem[i].type  = SYSDUMP_RAM;
+				base_addr = maddr + msize;
+				i++;
+			} else {
+				debugf("ERROR: maddr < base_addr !!!\n");
+				return 0;
+			}
+		}
+
+			old_addr = maddr;
+			old_size = msize;
+	}
+
+	if (mem_used <= mem_num-1) {
+		for (j=mem_used; j<=mem_num-1; j++) {
+			if (j == mem_used) {
+				if ((maddr+msize) < (entries->addr + entries->size + 1)) {
+					debugf("d4\n");
+					sprd_dump_mem[i].paddr = maddr+msize;
+					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
+					sprd_dump_mem[i].size  = entries->addr + entries->size + 1 - sprd_dump_mem[i].paddr;
+					sprd_dump_mem[i].soff  = 0xffffffff;
+					sprd_dump_mem[i].type  = SYSDUMP_RAM;
+					i++;
 				}
+				entries++;
+			} else {
+				debugf("d5\n");
+				sprd_dump_mem[i].paddr = entries->addr;
+				sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
+				sprd_dump_mem[i].size  = entries->size + 1;
+				sprd_dump_mem[i].soff  = 0xffffffff;
+				sprd_dump_mem[i].type  = SYSDUMP_RAM;
+				i++;
+				entries++;
 			}
 		}
 	}
-	return size;
+
+	debugf(" linux memory need dump %d region !!!\n", i);
+	return i;
 }
+
+#ifdef CONFIG_ARM
+static int fill_dump_mem_auto_arm(unsigned char *fdt_blob, int nodeoffset, int ofs_remem,
+				int dts_version, struct sysdump_mem *sprd_dump_mem)
+{
+	int ret = 0, i = 0;
+	int arm_dump_mem_num = 0;
+	 struct sysdump_mem *temp_mem = sprd_dump_mem;
+
+	/* calculate linux memory region */
+	ret = recalculate_kernel_memory(fdt_blob, nodeoffset, ofs_remem, dts_version, sprd_dump_mem);
+	if (ret == 0)
+		debugf("ERROR: ARM: linux memory recalculation failed !!!\n");
+	else {
+		i += ret;
+		temp_mem += ret;
+	}
+
+	/* calculate specific reserved-memory*/
+	ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-re", temp_mem);
+	if (ret == 0)
+		debugf("ERROR: ARM: memory-region-re dump failed !!!\n");
+	else
+		i += ret;
+
+	arm_dump_mem_num = i;
+	debugf("auto arm_dump_mem_num is %d\n", arm_dump_mem_num);
+
+	for (i = 0; i < arm_dump_mem_num; i++) {
+		debugf("auto arm_dump_mem[%d].paddr is 0x%lx\n", i, sprd_dump_mem[i].paddr);
+		debugf("auto arm_dump_mem[%d].size  is 0x%lx\n", i, sprd_dump_mem[i].size);
+	}
+
+	return arm_dump_mem_num;
+}
+#endif
 
 /* i: memory region form dts */
 static void write_to_mmc(char *path, char *filename, int fs_type,
@@ -719,63 +905,11 @@ static void write_to_mmc_x86(char *path, char *filename, int fs_type,
 #endif
 }
 
-static u32 e820_map_auto_detect(struct e820entry *entries)
+static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int ofs_remem,
+				int dts_version, struct sysdump_mem *sprd_dump_mem)
 {
-	extern ddr_info_t* get_ddr_range(void);
-	u32 e820_entries_detect = 0;
-	int i=0;
-	ddr_info_t* ddr_info = get_ddr_range();
-	e820_entries_detect = ddr_info->section_number;
-
-	entries->addr = U32_T_U64(ddr_info->sec_info[0].start_address_high,ddr_info->sec_info[0].start_address_low)+VMM_RESERVE_SIZE;
-	entries->size  = U32_T_U64(ddr_info->sec_info[0].end_address_high,ddr_info->sec_info[0].end_address_low)-entries->addr;
-	entries->type  = E820_RAM;
-	debugf("e820 addr = 0x%08llx, size = 0x%lx.\n", entries->addr, entries->size);
-	entries++;
-
-	for (i = 1; i < e820_entries_detect; i++) {
-		entries->addr = U32_T_U64(ddr_info->sec_info[i].start_address_high,ddr_info->sec_info[i].start_address_low);
-		entries->size  = U32_T_U64(ddr_info->sec_info[i].end_address_high,ddr_info->sec_info[i].end_address_low)-entries->addr;
-		entries->type  = E820_RAM;
-		debugf("e820 addr = 0x%08llx, size = 0x%lx.\n", entries->addr, entries->size);
-		entries++;
-	}
-	debugf("e820 num is %d.\n", e820_entries_detect);
-	return e820_entries_detect;
-}
-
-static void reorder_reserved_memory_by_addr(struct mem_reserved *memArray, int size)
-{
-	int i, j, min;
-	struct mem_reserved temp;
-
-	for (i=0; i<size; i++) {
-		min = i;
-		for (j=i+1; j<size; j++) {
-			if (memArray[min].addr > memArray[j].addr) {
-				min = j;
-			}
-		}
-		if (min != i) {
-			temp.addr = memArray[min].addr;
-			temp.size = memArray[min].size;
-			memArray[min].addr = memArray[i].addr;
-			memArray[min].size = memArray[i].size;
-			memArray[i].addr = temp.addr;
-			memArray[i].size = temp.size;
-		}
-	}
-	return;
-}
-
-static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, struct sysdump_mem *sprd_dump_mem,
-					int nodeoffset, int ofs_remem, int e820_num, struct e820entry *entries, int reset_mode)
-{
-	int sprd_dump_mem_num, lenp, size, phandle, lookup, num;
-	unsigned long *ptr = NULL, *ptr_end = NULL;
-	int i = 0, reserve_num = 0, j = 0, e820_used = 0, k;
-	int offset;
-	unsigned long long maddr, msize, base_addr, old_addr=0, old_size=0;
+	int x86_dump_mem_num, ret, i = 0;
+	struct sysdump_mem *temp_mem = sprd_dump_mem; 
 
 	/* step1: vmm region */
 	if (VMM_RESERVE_SIZE) {
@@ -785,183 +919,51 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, struct sysdump_mem *s
 		sprd_dump_mem[0].soff  = 0xffffffff;
 		sprd_dump_mem[0].type  = SYSDUMP_RAM;
 		i++;
+		temp_mem++;
 	}
 
-	/* step2: memory region from kernel dts */
-	if (reset_mode == CMD_TOS_PANIC_MODE) {
-		ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region-se", &lenp);
-		__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "memory-region-se", &size);
-		if (list == NULL) {
-			debugf("no memory-region-se property.\n");
-			goto memory_done;
-		}
-		__be32 *list_end = list + size / sizeof(*list);
+	debugf("dump reset mode is 0x%x\n", dump_rst_mode);
 
-		while (list < list_end) {
-			debugf("while 1.\n");
-			phandle = be32_to_cpup(list++);
-			lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
-			ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
-			if (ptr == NULL) {
-				debugf("no reg property in memory-region-se.\n");
-				goto memory_done;
-			}
-			else {
-				ptr_end = ptr + lenp / (sizeof(unsigned long long));
-				while (ptr < ptr_end) {
-					debugf("while 2.\n");
-					sprd_dump_mem[i].paddr = fdt_addr_to_cpu (*ptr ++);
-					sprd_dump_mem[i].paddr = (sprd_dump_mem[i].paddr<<32) | fdt_addr_to_cpu(*ptr ++);
-					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
-					sprd_dump_mem[i].size  = fdt_size_to_cpu (*ptr ++);
-					sprd_dump_mem[i].size  = (sprd_dump_mem[i].size<<32) | fdt_addr_to_cpu(*ptr ++);
-					sprd_dump_mem[i].soff  = 0xffffffff;
-					sprd_dump_mem[i].type  = SYSDUMP_RAM;
-					i ++;
-				}
-			}
+	/* step2: memory region from kernel dts */
+	if (dump_rst_mode == CMD_TOS_PANIC_MODE) {
+		ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-se", temp_mem);
+		if (ret == 0)
+			debugf("ERROR: X86: memory-region-se dump failed !!!\n");
+		else {
+			i += ret;
+			temp_mem += ret;
 		}
 	}
 
 	/* step3: auto calculate linux memory region */
-	if (reset_mode != CMD_TOS_PANIC_MODE) {
-		/* save reserved-memory region to array */
-		num = 0;
-		for (offset = fdt_first_subnode(fdt_blob, ofs_remem); offset >= 0; offset = fdt_next_subnode(fdt_blob, offset)) {
-			fdt_get_addr_size(fdt_blob, offset, "reg", &maddr, &msize);
-			mem_res_arry[num].addr = maddr;
-			mem_res_arry[num].size = msize;
-		//	debugf("reserved-memory addr is %llx\n", mem_res_arry[num].addr);
-		//	debugf("reserved-memory size is %llx\n", mem_res_arry[num].size);
-			num++;
-		}
-		debugf("reserved-memory num is %d\n.", num);
-
-		/* reorder reserved-memory by addr */
-		reorder_reserved_memory_by_addr(mem_res_arry, num);
-
+	if (dump_rst_mode != CMD_TOS_PANIC_MODE) {
 		/* calculate linux memory region */
-		base_addr = VMM_RESERVE_SIZE;
-		for (k=0; k<num; k++) {
-			maddr = mem_res_arry[k].addr;
-			msize = mem_res_arry[k].size;
-			debugf("base_addr is 0x%llx.\n", base_addr);
-			debugf("fdt addr is %llx\n", maddr);
-			debugf("fdt size is %llx\n", msize);
-
-			if ((maddr + msize) > (entries->addr + entries->size +1)) {  //next entry
-				base_addr = entries->addr + entries->size + 1;
-				entries++;  e820_used++;
-				if (base_addr > old_addr+old_size) {
-					debugf("d1\n");
-					sprd_dump_mem[i].paddr = old_addr + old_size;
-					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
-					sprd_dump_mem[i].size  = base_addr - sprd_dump_mem[i].paddr;
-					sprd_dump_mem[i].soff  = 0xffffffff;
-					sprd_dump_mem[i].type  = SYSDUMP_RAM;
-					i++;
-				}
-				if (maddr > entries->addr) {
-					debugf("d2\n");
-					sprd_dump_mem[i].paddr = entries->addr;
-					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
-					sprd_dump_mem[i].size  = maddr - entries->addr;
-					sprd_dump_mem[i].soff  = 0xffffffff;
-					sprd_dump_mem[i].type  = SYSDUMP_RAM;
-					i++;
-				}
-			} else {   //this entry
-				if (maddr == base_addr) {
-					base_addr += msize;
-				} else if (maddr > base_addr) {
-					debugf("d3\n");
-					sprd_dump_mem[i].paddr = base_addr;
-					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
-					sprd_dump_mem[i].size  = maddr - base_addr;
-					sprd_dump_mem[i].soff  = 0xffffffff;
-					sprd_dump_mem[i].type  = SYSDUMP_RAM;
-					base_addr = maddr + msize;
-					i++;
-				} else {
-					debugf("error: maddr < base_addr.\n");
-				}
-			}
-
-			old_addr = maddr;
-			old_size = msize;
-		}
-
-		if (e820_used <= e820_num-1) {
-			for (j=e820_used; j<=e820_num-1; j++) {
-				if (j == e820_used) {
-					if ((maddr+msize) < (entries->addr + entries->size + 1)) {
-						debugf("d4\n");
-						sprd_dump_mem[i].paddr = maddr+msize;
-						sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
-						sprd_dump_mem[i].size  = entries->addr + entries->size + 1 - sprd_dump_mem[i].paddr;
-						sprd_dump_mem[i].soff  = 0xffffffff;
-						sprd_dump_mem[i].type  = SYSDUMP_RAM;
-						i++;
-					}
-					entries++;
-				} else {
-					debugf("d5\n");
-					sprd_dump_mem[i].paddr = entries->addr;
-					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
-					sprd_dump_mem[i].size  = entries->size + 1;
-					sprd_dump_mem[i].soff  = 0xffffffff;
-					sprd_dump_mem[i].type  = SYSDUMP_RAM;
-					i++;
-					entries++;
-				}
-			}
+		ret = recalculate_kernel_memory(fdt_blob, nodeoffset, ofs_remem, dts_version, temp_mem);
+		if (ret == 0)
+			debugf("ERROR: x86: linux memory recalculation failed !!!\n");
+		else {
+			i += ret;
+			temp_mem += ret;
 		}
 
 		/* calculate specific reserved-memory*/
-		ptr = fdt_getprop(fdt_blob, nodeoffset, "memory-region-re", &lenp);
-		__be32 *list = fdt_getprop(fdt_blob, nodeoffset, "memory-region-re", &size);
-		if (list == NULL) {
-			debugf("no memory-region-re property.\n");
-			goto memory_done;
-		}
-
-		__be32 *list_end = list + size / sizeof(*list);
-
-		while (list < list_end) {
-			debugf("memory-region-re 1.\n");
-			phandle = be32_to_cpup(list++);
-			lookup = fdt_node_offset_by_phandle(fdt_blob, phandle);
-			ptr = fdt_getprop(fdt_blob, lookup, "reg", &lenp);
-			if (ptr == NULL) {
-				debugf("no reg property in memory-region-re.\n");
-				goto memory_done;
-			}
-			else {
-				ptr_end = ptr + lenp / (sizeof(unsigned long long));
-				while (ptr < ptr_end) {
-					debugf("memory-region-re 2.\n");
-					sprd_dump_mem[i].paddr = fdt_addr_to_cpu (*ptr ++);
-					sprd_dump_mem[i].paddr = (sprd_dump_mem[i].paddr<<32) | fdt_addr_to_cpu(*ptr ++);
-					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
-					sprd_dump_mem[i].size  = fdt_size_to_cpu (*ptr ++);
-					sprd_dump_mem[i].size  = (sprd_dump_mem[i].size<<32) | fdt_addr_to_cpu(*ptr ++);
-					sprd_dump_mem[i].soff  = 0xffffffff;
-					sprd_dump_mem[i].type  = SYSDUMP_RAM;
-					i ++;
-				}
-			}
+		ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-re", temp_mem);
+		if (ret == 0)
+			debugf("ERROR: x86: memory-region-re dump failed !!!\n");
+		else {
+			i += ret;
 		}
 	}
 
-memory_done:
 	/* step4: return */
-	sprd_dump_mem_num = i;
-	debugf("auto sprd_dump_mem_num is %d\n", sprd_dump_mem_num);
-	for (i=0; i<sprd_dump_mem_num; i++) {
-		debugf("auto sprd_dump_mem[%d].paddr is %llx\n", i, sprd_dump_mem[i].paddr);
-		debugf("auto sprd_dump_mem[%d].size  is %llx\n", i, sprd_dump_mem[i].size);
+	x86_dump_mem_num = i;
+	debugf("auto x86_dump_mem_num is %d\n", x86_dump_mem_num);
+	for (i = 0; i < x86_dump_mem_num; i++) {
+		debugf("auto x86_dump_mem[%d].paddr is 0x%llx\n", i, sprd_dump_mem[i].paddr);
+		debugf("auto x86_dump_mem[%d].size  is 0x%llx\n", i, sprd_dump_mem[i].size);
 	}
-	return sprd_dump_mem_num;
+
+	 return x86_dump_mem_num;
 }
 #endif
 
@@ -969,6 +971,7 @@ void write_sysdump_before_boot(int rst_mode)
 {
 	int i, j, k, sprd_dump_mem_num, ret, fs_type;
 	int auto_test_flag = 0;
+	char info[1000] = {0};
 	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr;
 	struct rtc_time tm;
 	struct sysdump_mem *mem;
@@ -982,14 +985,14 @@ void write_sysdump_before_boot(int rst_mode)
 
 #ifdef CONFIG_X86
 	unsigned long mem_virt;
-	int e820_num;
-	struct e820entry eny[10];
 #endif
+	dump_rst_mode = rst_mode;
 	sprd_sysdump_magic = SPRD_SYSDUMP_MAGIC;
-
 	infop = (struct sysdump_info *)sprd_sysdump_magic;
+
 	debugf("rst_mode:0x%x, Check if need to write sysdump info of 0x%08lx to file...\n", rst_mode,
 	sprd_sysdump_magic);
+
 	if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_AP_WATCHDOG_REBOOT) || (rst_mode == CMD_UNKNOW_REBOOT_MODE) || \
 		(rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || ((rst_mode == CMD_PANIC_REBOOT) && !memcmp(infop->magic, SYSDUMP_MAGIC, sizeof(infop->magic))) \
 		|| (rst_mode == CMD_SPECIAL_MODE) || (rst_mode == CMD_VMM_PANIC_MODE) || (rst_mode == CMD_TOS_PANIC_MODE)) {
@@ -999,9 +1002,10 @@ void write_sysdump_before_boot(int rst_mode)
 		dt_addr = get_dt_addr();
 		nodeoffset = check_dts_sysdump_node(dt_addr);
 		if (nodeoffset < 0) {
-			debugf("ERROR: device tree must have /sprd-sysdump node %s.\n", fdt_strerror(nodeoffset));
+			debugf("ERROR: device tree must have /sprd-sysdump node %s !!!\n", fdt_strerror(nodeoffset));
 			goto FINISH;
 		}
+
 		dts_version = get_dts_version(dt_addr, nodeoffset);
 		memset(infop->magic, 0, sizeof(infop->magic));
 
@@ -1019,6 +1023,9 @@ void write_sysdump_before_boot(int rst_mode)
 		sysdump_lcd_printf("\nReset mode: %s\n\n",GET_RST_MODE(rst_mode));
 		lcd_enable();
 
+		memset(infop->reason, '\0', sizeof(infop->reason));
+		memcpy(infop->reason, GET_RST_MODE(rst_mode), strlen(GET_RST_MODE(rst_mode)));
+
 		if (init_mmc_fat(&fs_type)) {
 			debugf("ERROR: init_mmc_fat,fs_type=%d.\n", fs_type);
 			sysdump_lcd_printf("\ninit_mmc_fat failed, Please check SD Card!!!.\nPress volume up key (Exp power key) to continue...");
@@ -1027,58 +1034,34 @@ void write_sysdump_before_boot(int rst_mode)
 			goto FINISH;
 		}
 
-		if (dts_version == 0xA1) {
-			debugf("Dts new version, auto memory region.\n");
-			ofs_remem = check_dts_reserved_mem_node(dt_addr);
-			if (ofs_remem < 0) {
-				debugf("ERROR: device tree must have /reserved-memory node %s.\n", fdt_strerror(ofs_remem));
-				goto FINISH;
-			}
+		ofs_remem = check_dts_reserved_mem_node(dt_addr);
+		if (ofs_remem < 0) {
+			debugf("ERROR: device tree must have /reserved-memory node %s.\n", fdt_strerror(ofs_remem));
+			goto FINISH;
+		}
+
 #ifdef CONFIG_X86
-			e820_num = e820_map_auto_detect(eny);
-			infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
-
-			sprd_dump_mem_num = fill_dump_mem_auto_x86(dt_addr, sprd_dump_mem, nodeoffset, ofs_remem, e820_num, eny, rst_mode);
-			infop->mem_num = sprd_dump_mem_num;
-			infop->elfhdr_size = get_elfhdr_size(infop->mem_num);
-
-			if (rst_mode == CMD_VMM_PANIC_MODE) {
-				strcpy(infop->time, "vmm_panic");
-			} else if (rst_mode == CMD_TOS_PANIC_MODE) {
-				strcpy(infop->time, "tos_panic");
-			}
-
-			memset((char *)infop + sizeof(*infop), 0, infop->elfhdr_size);
-			sysdump_fill_core_hdr(NULL, sprd_dump_mem,	sprd_dump_mem_num,
-					(char *)infop + sizeof(*infop), infop->mem_num + 1, infop->elfhdr_size);
+		sprd_dump_mem_num = fill_dump_mem_auto_x86(dt_addr, nodeoffset, ofs_remem, dts_version, sprd_dump_mem);
+		infop->dump_mem_paddr = (unsigned long long)sprd_dump_mem;
 #else
+		sprd_dump_mem_num = fill_dump_mem_auto_arm(dt_addr, nodeoffset, ofs_remem, 0, sprd_dump_mem);
+		infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
 #endif
-		} else if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_AP_WATCHDOG_REBOOT) || \
-			(rst_mode == CMD_UNKNOW_REBOOT_MODE) || (rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || \
-			(rst_mode == CMD_SPECIAL_MODE) || (rst_mode == CMD_VMM_PANIC_MODE) || (rst_mode == CMD_TOS_PANIC_MODE)) {
 
-			infop->dump_path[0] = '\0';
-
-			sprd_dump_mem_num = fill_dump_mem(dt_addr, sprd_dump_mem, nodeoffset);
-			infop->mem_num = sprd_dump_mem_num;
-			infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
-			if (rst_mode == CMD_VMM_PANIC_MODE) {
-				strcpy(infop->time, "vmm_panic");
-			} else if (rst_mode == CMD_TOS_PANIC_MODE) {
-				strcpy(infop->time, "tos_panic");
-			} else {
-				strcpy(infop->time, "hw_watchdog");
-			}
-			infop->elfhdr_size = get_elfhdr_size(infop->mem_num);
-			infop->crash_key = 0;
-
-			sysdump_fill_core_hdr(NULL,
+		infop->mem_num = sprd_dump_mem_num;
+		infop->elfhdr_size = get_elfhdr_size(infop->mem_num);
+		memset((char *)infop + sizeof(*infop), 0, infop->elfhdr_size);
+		sysdump_fill_core_hdr(NULL,
 					sprd_dump_mem,
 					sprd_dump_mem_num,
 					(char *)infop + sizeof(*infop),
 					infop->mem_num + 1,
 					infop->elfhdr_size);
-		}
+
+		if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_AP_WATCHDOG_REBOOT) || \
+			(rst_mode == CMD_UNKNOW_REBOOT_MODE) || (rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || \
+			(rst_mode == CMD_SPECIAL_MODE) || (rst_mode == CMD_VMM_PANIC_MODE) || (rst_mode == CMD_TOS_PANIC_MODE))
+			infop->crash_key = 0;
 
 		if (strlen(infop->dump_path))
 			path = infop->dump_path;
@@ -1089,26 +1072,22 @@ void write_sysdump_before_boot(int rst_mode)
 		int mod, key_code;
 		unsigned long max_size = 0;
 
-		debugf("FileSystem is FAT32!!\n");
-		if (dts_version == 0xA1) {
-			max_size = get_sprd_dump_size_auto(sprd_dump_mem, sprd_dump_mem_num);
-		} else {
-			max_size = get_sprd_dump_size(dt_addr, nodeoffset);
-		}
+		debugf("FileSystem is FAT32 !!!\n");
+		max_size = get_sprd_dump_size_auto(sprd_dump_mem, sprd_dump_mem_num);
+		max_size += (unsigned long)infop->elfhdr_size;
 		debugf("FAT32 max space size is %lx\n",max_size);
 
 		mod = fat_checksys(max_size);
 		if (mod &(FSFATAL | FSNOSPACE)) {
 			int nospace_flag = 1;
 			if (mod & FSFATAL) {
-				sysdump_lcd_printf("\ndetect sd is demaged");
+				sysdump_lcd_printf("\nHello Baby: SD Card is demaged !!!");
 				lcd_enable();
 			}
 			else if (mod & FSNOSPACE) {
 				for (i = 1; i <= SYSDUMP_FOLDER_NUM; i++) {
 					sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", i);
 					fnbuf[strlen(fnbuf)] = '\0';
-					//debugf("fnbuf is %s\n",fnbuf);
 					dentptr = check_folder_flag(fnbuf);
 					if(dentptr == NULL)
 						break;
@@ -1119,7 +1098,7 @@ void write_sysdump_before_boot(int rst_mode)
 						fnbuf[strlen(fnbuf)] = '\0';
 						ret = delete_folder(fnbuf);
 						if(ret == -1) {
-							debugf("Error: delete files or folder\n");
+							debugf("ERROR: delete files or folder failed !!!\n");
 							goto FINISH;
 						}
 						mod = fat_checksys(max_size);
@@ -1130,12 +1109,12 @@ void write_sysdump_before_boot(int rst_mode)
 					}
 				}
 				if (nospace_flag) {
-					sysdump_lcd_printf("\ndetect sd have not enough space");
+					sysdump_lcd_printf("\nHello Baby: SD Card have not enough space !!!");
 					lcd_enable();
 				}
 			}
 			if (nospace_flag) {
-				sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
+				sysdump_lcd_printf("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump !!!\n");
 				lcd_enable();
 
 				do {
@@ -1151,32 +1130,31 @@ void write_sysdump_before_boot(int rst_mode)
 		}
 
 		if(do_new_folder(SYSDUMP_FOLDER_NAME)) {
-			debugf("Error: creat %s folder failed\n", SYSDUMP_FOLDER_NAME);
+			debugf("ERROR: creat %s folder failed !!!\n", SYSDUMP_FOLDER_NAME);
 			goto FINISH;
 		}
 
 		if(check_folder_flag(SYSDUMP_AUTO_TEST)) {
 			auto_test_flag = 1;
-			debugf("there existed sysdump_auto_test.txt, so jump wait_for_keypress.\n");
+			debugf("Now has existed sysdump_auto_test.txt, so jump wait_for_keypress !!!\n");
 		}
 
 		for (i = 1; i <= SYSDUMP_FOLDER_NUM; i++) {
 			sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", i);
 			fnbuf[strlen(fnbuf)] = '\0';
-			//debugf("fnbuf is %s\n",fnbuf);
 			dentptr = check_folder_flag(fnbuf);
 			if(dentptr == NULL)
 				break;
 		}
 
 		if (i > SYSDUMP_FOLDER_NUM) {
-			debugf("there existed %d history log.\n", SYSDUMP_FOLDER_NUM);
+			debugf("there existed %d history log !!!\n", SYSDUMP_FOLDER_NUM);
 			i --;
 			sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", i);
 			fnbuf[strlen(fnbuf)] = '\0';
 			ret = delete_folder(fnbuf);
 			if(ret == -1) {
-				debugf("Error: delete files or folder.\n");
+				debugf("ERROR: delete files or folder failed !!!\n");
 				goto FINISH;
 			}
 		}
@@ -1186,10 +1164,10 @@ void write_sysdump_before_boot(int rst_mode)
 				fnbuf[strlen(fnbuf)] = '\0';
 				sprintf(fnbuf_rename, SYSDUMP_FOLDER_NAME"/%d", j);
 				fnbuf_rename[strlen(fnbuf_rename)] ='\0';
-				debugf("rename folder from %s to %s.\n", fnbuf, fnbuf_rename);
+				debugf("rename folder from %s to %s !!!\n", fnbuf, fnbuf_rename);
 				ret = rename_folder(fnbuf, fnbuf_rename);
 				if (ret == -1) {
-					debugf("Error: rename folder !\n");
+					debugf("ERROR: rename folder failed !!!\n");
 					break;
 				}
 			}
@@ -1197,7 +1175,7 @@ void write_sysdump_before_boot(int rst_mode)
 		sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", 1);
 
 		if(do_new_folder(fnbuf)) {
-			debugf("Error: creat %s folder failed\n", fnbuf);
+			debugf("ERROR: creat %s folder failed !!!\n", fnbuf);
 			goto FINISH;
 		}
 	}
@@ -1205,45 +1183,42 @@ void write_sysdump_before_boot(int rst_mode)
 		int mod, key_code;
 		unsigned long max_size;
 
-		debugf("FileSystem is ExFAT!!\n");
-		if (dts_version == 0xA1) {
-			max_size = get_sprd_dump_size_auto(sprd_dump_mem, sprd_dump_mem_num);
-		} else {
-			max_size = get_sprd_dump_size(dt_addr, nodeoffset);
-		}
+		debugf("FileSystem is exFAT !!!\n");
+		max_size = get_sprd_dump_size_auto(sprd_dump_mem, sprd_dump_mem_num);
+		max_size += (unsigned long)infop->elfhdr_size;
 		debugf("ExFAT max space size is %lx\n",max_size);
 
 		mod = exfat_checksys(max_size);
 		if (mod & FSSMSIZE) {
-			debugf("SD card volume size is smaller then dumped size. Skip sysdump.\n");
+			debugf("SD card volume size is smaller then dumped size. Skip sysdump !!!\n");
 			goto FINISH;
 		}
 
 		if (mod &(FSFATAL | FSNOSPACE)) {
 			if (mod & FSFATAL)
-				sysdump_lcd_printf("\ndetect sd is demaged");
+				sysdump_lcd_printf("\nHello Baby: SD Card is demaged !!!");
 			else if (mod & FSNOSPACE)
-				sysdump_lcd_printf("\ndetect sd have not enough space");
+				sysdump_lcd_printf("\nHello Baby: SD Card has not enough space !!!");
 
-			sysdump_lcd_printf("\npress volumedown to format sd\notherwise press volumeup to skip sysdump\n");
+			sysdump_lcd_printf("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump !!!\n");
 			lcd_enable();
 			do {
 				udelay(50 * 1000);
 				key_code = board_key_scan();
 				if (key_code == KEY_VOLUMEDOWN) {
 					int ret;
-					sysdump_lcd_printf("\nvolumedown key is pressed.\nSD Card format starts........\n");
+					sysdump_lcd_printf("\nNow volumedown key is pressed !!!\nSD Card format starts........\n");
 					lcd_enable();
 					ret = exfat_format();
 					if (ret != 0) {
-						sysdump_lcd_printf("\nSD Card format failed. Skip sysdump.\n");
+						sysdump_lcd_printf("\nSD Card format failed !!! Skip sysdump !!!\n");
 						lcd_enable();
 						goto FINISH;
 					}
-					debugf("SD Card formatting done.\n");
+					debugf("SD Card formatting done !!!\n");
 					break;
 				} else if(key_code == KEY_VOLUMEUP) {
-					sysdump_lcd_printf("\nvolumedup key is pressed and don't format SD Card. sysdump will be skipped.\n");
+					sysdump_lcd_printf("\nvolumedup key is pressed and don't format SD Card !!!\nsysdump will be skipped !!!\n");
 					lcd_enable();
 					goto FINISH;
 				}
@@ -1251,12 +1226,15 @@ void write_sysdump_before_boot(int rst_mode)
 		}
 	}
 	else {
-		sysdump_lcd_printf("Invalid file system.  Sysdump will be skipped.  \n");
+		sysdump_lcd_printf("Invalid file system... Sysdump will be skipped !!!\n");
 		lcd_enable();
 		goto FINISH;
 	}
 
 		tm = get_time_by_sec();
+		sprintf(infop->time, "%04d-%02d-%02d_%02d:%02d:%02d",
+			tm.tm_year, tm.tm_mon, tm.tm_mday, \
+			tm.tm_hour,tm.tm_min, tm.tm_sec);
 
 		debugf("time is %04d.%02d.%02d_%02d:%02d:%02d\n", tm.tm_year, tm.tm_mon, \
 			tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
@@ -1265,10 +1243,11 @@ void write_sysdump_before_boot(int rst_mode)
 			tm.tm_year, tm.tm_mon, tm.tm_mday, \
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-		char info[1000] = {0};
-		sprintf(info,"-%s%s\n-%s%s\n-%s%d\n-%s%d\n-%s"LLX"\n-%s%d\n",
+		sprintf(info,"-%s%s\n-%s%s\n-%s%s\n-%s%d\n-%s%d\n-%s"LLX"\n-%s%d\n",
 			"time is ",
 			infop->time,
+			"reason is ",
+			infop->reason,
 			"dump_path is ",
 			infop->dump_path,
 			"elfhdr_size is ",
@@ -1285,7 +1264,6 @@ void write_sysdump_before_boot(int rst_mode)
 		write_mem_to_mmc(path, fnbuf, fs_type,
 			(char *)infop + sizeof(*infop), infop->elfhdr_size);
 
-#if 1 /* TODO: jianjun.he */
 		mem = (struct sysdump_mem *)infop->dump_mem_paddr;
 		for (i = 0; i < infop->mem_num; i++) {
 			if (0xffffffff != mem[i].soff)
@@ -1319,52 +1297,24 @@ void write_sysdump_before_boot(int rst_mode)
 						}
 						goto FINISH_write_mmc;
 					}
-			} else
+				} else
 #endif
-			{
-				waddr = mem[i].paddr;
-			}
-		}
-		write_to_mmc(path, fnbuf, fs_type, waddr, mem, i);
-		/*
-		#ifdef CONFIG_RAMDUMP_NO_SPLIT
-				sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT"_0x%08lx-0x%08lx_dump.lst", i + 1, mem[i].paddr, mem[i].paddr + mem[i].size -1);
-				write_mem_to_mmc(path, fnbuf, fs_type, waddr, mem[i].size);
-		#else
-			if (mem[i].size <= SZ_8M) {
-				sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT, i + 1);
-				write_mem_to_mmc(path, fnbuf, fs_type, waddr, mem[i].size);
-			} else {
-				for (j = 0; j < mem[i].size / SZ_8M; j++) {
-					sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT"_%03d",
-						i + 1, j);
-					write_mem_to_mmc(path, fnbuf, fs_type, waddr + j * SZ_8M, SZ_8M);
+				{
+					waddr = mem[i].paddr;
 				}
 
-				if (mem[i].size % SZ_8M) {
-					sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT"_%03d",
-						i + 1, j);
-					write_mem_to_mmc(path, fnbuf, fs_type, waddr + j * SZ_8M,
-									(mem[i].size % SZ_8M));
-				}
 			}
-		#endif
-		*/
+
+			write_to_mmc(path, fnbuf, fs_type, waddr, mem, i);
 		}
-#else
-		for (i = 0; i < infop->mem_num; i++) {
-			sprintf(fnbuf, SYSDUMP_CORE_NAME_FMT, /*infop->time,*/ i + 1);
-			write_mem_to_mmc(path, fnbuf, fs_type, mem[i].paddr, mem[i].size);
-		}
-#endif
 
 FINISH_write_mmc:
 #ifdef CONFIG_ETB_DUMP
-		debugf ("\n Start to dump ETB trace data.\n");
+		debugf ("\n Start to dump ETB trace data\n");
 		sprd_etb_hw_dis();
 		sprd_etb_dump();
 		write_mem_to_mmc(0, "etbdata_uboot.bin", fs_type, &etb_dump_mem[0], SZ_32K);
-		debugf ("\n Dump ETB data finished.\n");
+		debugf ("\n Dump ETB data finished\n");
 #endif
 
 #ifdef CONFIG_NAND_BOOT
@@ -1378,7 +1328,7 @@ FINISH_write_mmc:
 		if(!auto_test_flag)
 			wait_for_keypress();
 FINISH:
-		debugf ("sysdump  finish or happen abnormally!!!.\n");
+		debugf ("sysdump  finish or happen abnormally!!!\n");
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR)
 		reset_to_normal(CMD_NORMAL_MODE);
 #endif

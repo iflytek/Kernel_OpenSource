@@ -62,6 +62,7 @@ struct sysdump_mem {
 struct sysdump_info {
 	char magic[16];
 	char time[32];
+	char reason[32];
 	char dump_path[128];
 	int elfhdr_size;
 	int mem_num;
