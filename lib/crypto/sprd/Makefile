@@ -25,6 +25,6 @@
 
 obj-y += sprd_crypto.o
 
-ifneq ($(CONFIG_SC9833)$(CONFIG_SC9851),)
+ifneq ($(CONFIG_SC9833)$(CONFIG_SC9851)$(CONFIG_SPRD_SOC_SP9853I),)
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r3p0/inc
 endif
