@@ -1,8 +1,6 @@
 #include "sprd_cpcmdline.h"
 #include "loader_common.h"
-
-
-
+#include "otp_helper.h"
 
 char *g_CPcmdlineBuf = NULL;
 #if defined( CONFIG_KERNEL_BOOT_CP )
@@ -39,6 +37,7 @@ static const char *cmd_arr[] = {
 #ifdef CONFIG_TSX_32K
 	CRYSTAL_TYPE,
 #endif
+	CHIPUID,
 	NULL
 };
 
@@ -269,7 +268,7 @@ void cp_cmdline_fixup(void)
 	char *value = NULL;
 	int boardid = 0;
 	int value_less = 0;
-	char buf[10] = {0};
+	char buf[30] = {0};
 	unsigned char v32kless;
 
 	cmdline_prepare();
@@ -304,6 +303,14 @@ void cp_cmdline_fixup(void)
 		cmdline_add_cp_cmdline(LTE_MODE, value);
 	}
 
+	//chip uid
+	{   
+		unsigned int block0;
+		unsigned int block1;
+		get_efuse_uid_ex(&block0,&block1);
+		sprintf(buf,"0x%08x,0x%08x",block0,block1);
+		cmdline_add_cp_cmdline(CHIPUID,buf);
+	}
 	//rf borad id
 	boardid = Sprd_getHWRFboardID();
 	if (INVALID_BOARD_ID != boardid)

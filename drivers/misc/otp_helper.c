@@ -28,6 +28,13 @@
 #define BIN_BLOCK13 13
 #define BIN_BLOCK15 15
 
+void get_efuse_uid_ex(unsigned int* block0,unsigned int* block1)
+{
+	*block0 = sprd_ap_efuse_read(BLK_UID_DETA_START);
+	*block1 = sprd_ap_efuse_read(BLK_UID_DETA_END);
+	printf("efuse uid is %08x%08x\n", *block0, *block1);
+}
+
 void get_efuse_uid(void)
 {
 	unsigned int block0, block1;

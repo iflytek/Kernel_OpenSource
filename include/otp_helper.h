@@ -11,5 +11,5 @@ extern void sprd_uid_bin_info(void);
 extern void ap_sansa_efuse_prog_power_on(void);
 extern void ap_sansa_efuse_power_off(void);
 extern void sansa_enable_efuse_EB(void);
-
+extern void get_efuse_uid_ex(unsigned int* block0,unsigned int* block1);
 #endif

@@ -22,6 +22,7 @@
 #define CRYSTAL_TYPE    "crystal"
 #endif
 
+#define CHIPUID          "chip.uid"
 #define INVALID_BOARD_ID 0xFF
 
 void cp_cmdline_fixup(void);
