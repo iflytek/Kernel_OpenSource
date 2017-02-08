@@ -27,6 +27,12 @@ typedef struct{
 #define SANSA_FLAG 2
 
 extern imgToVerifyInfo img_verify_info;
+#ifdef TOS_TRUSTY
+extern imgToVerifyInfo *img_verify_info_tos;
+#define  PAGE_ALIGN 4096
+#define  ARG_START_ADRESS 0x94000000
+#endif
+
 /*this two marco is diffent among products, pls check it!*/
 #define SIMG_BUF     0x2E00000
 #define CERT_SIZE    0x1000

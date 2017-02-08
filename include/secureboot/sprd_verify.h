@@ -17,4 +17,5 @@ bool sprd_verify_img(uint8_t * hash_key_precert, uint8_t * imgbuf);
 void sprd_secure_check(uint8_t * current_img_addr,uint8_t * data_header);
 void sprd_dl_check(uint8_t * hash,uint8_t * data_header);
 void sprd_dl_verify(uint8_t *name,uint8_t * header,uint8_t *code);
+void sprd_calc_hbk(void);
 #endif	/* !HEADER_AES_H */

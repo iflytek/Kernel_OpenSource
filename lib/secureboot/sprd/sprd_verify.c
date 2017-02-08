@@ -4,6 +4,7 @@
 #include <secureboot/sec_string.h>
 #include <crypto/sprdsha.h>
 #include <secureboot/sec_common.h>
+#include <secureboot/sec_efuse_api.h>
 
 #define SEC_DEBUG
 
@@ -14,25 +15,19 @@
 #endif
 
 /*####for anti-rollback######*/
-#define Trusted_Firmware 0
-#define Non_Trusted_Firmware 1
-#define CHECK_BINARY_NUM	20
-#ifdef CONFIG_WHALE2
-#define Trusted_VERSION_MAX  31
-#define Non_Trusted_VERSION_MAX 31*7
-#else
-#define Trusted_VERSION_MAX  20
-#define Non_Trusted_VERSION_MAX 31
-#endif
-uint32_t Trusted_rollback_version = 0;
-uint32_t Non_Trusted_rollback_version = 0;
+#define TRUSTED_VERSION_MAX  31
+#define NON_TRUSTED_VERSION_MAX 223
+#define TRUSTED_FIRMWARE 1
+#define NON_TRUSTED_FIRMWARE 0
+#define VERSION_INIT_VALUE 0xFFFF//to mark read efuse first time
+static uint32_t Trusted_rollback_version = VERSION_INIT_VALUE;
+static uint32_t Non_Trusted_rollback_version = VERSION_INIT_VALUE;
+#define CHECK_BINARY_NUM	10
+static uint32_t Trusted_update_version[CHECK_BINARY_NUM] = {0};
+static uint32_t Non_Trusted_update_version[CHECK_BINARY_NUM] = {0};
+static uint32_t Trusted_update_index = 0;
+static uint32_t Non_Trusted_update_index = 0;
 
-uint32_t Trusted_update_version[CHECK_BINARY_NUM] = {0};
-uint32_t Non_Trusted_update_version[CHECK_BINARY_NUM] = {0};
-uint32_t Trusted_update_index = 0;
-uint32_t Non_Trusted_update_index = 0;
-
-uint32_t spl_anti_rollback = 0;
 /*####for anti-rollback end######*/
 uint8_t to[RSA_KEY_BYTE_LEN_MAX] = { 0 };	// store RSA_PubDec  result
 #define MODEM_MAGIC		"SCI1"
@@ -89,52 +84,70 @@ uint32_t check_rollback_version(uint32_t version)
 	return 0;
 }
 
-uint32_t update_sec_version(uint32_t Binary_type)
+void update_sec_version(void)
 {
 	int i;
-	uint32_t secure_update_version = 0;
 	uint32_t nosecure_update_version = 0;
 
-	if (Binary_type == Trusted_Firmware)
+	if(Non_Trusted_update_index)
 	{
-		if(Trusted_update_index)//binary version is changed
+		nosecure_update_version = Non_Trusted_update_version[0];
+		for(i=1;i<Non_Trusted_update_index;i++)
 		{
-			secure_update_version = Trusted_update_version[0];
-			for(i=1;i<Trusted_update_index;i++)
+			if(nosecure_update_version != Non_Trusted_update_version[i])
 			{
-				if(secure_update_version != Trusted_update_version[i])
-				{
-					secf("\r\sec rollback version not unified\n");
-					return 0;
-				}
+				secf("\r\Nosec rollback version not unified\n");
 			}
-			//if(check_rollback_version(secure_update_version))
-			if(secure_update_version>Trusted_rollback_version)
-			efuse_rollback_version_write(Trusted_Firmware,secure_update_version);
-			Trusted_update_index = 0;
-			Trusted_rollback_version = 0;
+		}
+		//if(check_rollback_version(nosecure_update_version))
+		if(nosecure_update_version>Non_Trusted_rollback_version)
+		sprd_set_version(SW_VERSION_COUNTER2,nosecure_update_version);
+		Non_Trusted_update_index = 0;
+		Non_Trusted_rollback_version = 0;
+	}
+}
+
+bool sprd_anti_rollback(uint32_t certtype,uint32_t certversion)
+{
+	if(certtype == TRUSTED_FIRMWARE)
+	{
+		if(Trusted_rollback_version == VERSION_INIT_VALUE){
+			sprd_get_version(SW_VERSION_COUNTER1,&Trusted_rollback_version);
+			secf("Trusted_rollback_version %d\n", Trusted_rollback_version);
+		}
+		//version_efuse = version_convert_efuse(curcertptr->version);
+		if((certversion < Trusted_rollback_version)||(certversion>TRUSTED_VERSION_MAX)){
+			secf("SEC ANTI_ROLLBACK ERR version = %x\n",certversion);
+			return false;
+		}else{
+			Trusted_update_version[Trusted_update_index] = certversion;
+			Trusted_update_index++;
 		}
 	}
 	else
 	{
-		if(Non_Trusted_update_index)
+		if(certtype == NON_TRUSTED_FIRMWARE)
 		{
-			nosecure_update_version = Non_Trusted_update_version[0];
-			for(i=1;i<Non_Trusted_update_index;i++)
-			{
-				if(nosecure_update_version != Non_Trusted_update_version[i])
-				{
-					secf("\r\Nosec rollback version not unified\n");
-					return 0;
-				}
+			if(Non_Trusted_rollback_version == VERSION_INIT_VALUE){
+			sprd_get_version(SW_VERSION_COUNTER2,&Non_Trusted_rollback_version);
+			secf("Non_Trusted_rollback_version %d\n", Non_Trusted_rollback_version);
 			}
-			//if(check_rollback_version(nosecure_update_version))
-			if(nosecure_update_version>Non_Trusted_rollback_version)
-			efuse_rollback_version_write(Non_Trusted_Firmware,nosecure_update_version);
-			Non_Trusted_update_index = 0;
-			Non_Trusted_rollback_version = 0;
+			//version_efuse = version_convert_efuse(curcertptr->version);
+			if((certversion < Non_Trusted_rollback_version)||(certversion>NON_TRUSTED_VERSION_MAX)){
+			secf("NOSEC ANTI_ROLLBACK ERR version = %x\n",certversion);
+			return false;
+			}else{
+			secf("version_efuse %d\n", certversion);
+			Non_Trusted_update_version[Non_Trusted_update_index] = certversion;
+			Non_Trusted_update_index++;
+			}
+		}
+		else
+		{
+			return false;
 		}
 	}
+	return true;
 }
 
 bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t * certptr)
@@ -151,18 +164,6 @@ bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t *
 
 			sprd_keycert *curcertptr = (sprd_keycert *) certptr;
 
-			if(!Trusted_rollback_version){
-				Trusted_rollback_version = efuse_rollback_version_read(Trusted_Firmware);
-				secf("Trusted_rollback_version %d\n", Trusted_rollback_version);
-			}
-			//version_efuse = version_convert_efuse(curcertptr->version);
-			if((curcertptr->version < Trusted_rollback_version)||(curcertptr->version>Trusted_VERSION_MAX)){
-				secf("SEC ANTI_ROLLBACK ERR version = %x\n",curcertptr->version);
-				return false;
-			}else{
-				Trusted_update_version[Trusted_update_index] = curcertptr->version;
-				Trusted_update_index++;
-			}
 			cal_sha256((uint8_t *) & (curcertptr->pubkey), SPRD_RSAPUBKLEN, temphash_data);
 
 			if (sec_memcmp(hash_data, curcertptr->hash_data, HASH_BYTE_LEN)
@@ -183,27 +184,12 @@ bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t *
 				secf("\nRSA verify err\n");
 				return false;
 			}
-
+			ret = sprd_anti_rollback(curcertptr->type,curcertptr->version);
 		}
 
 		else if(certtype ==  CERTTYPE_CONTENT) {		//certtype is content
 
 			sprd_contentcert *curcertptr = (sprd_contentcert *) certptr;
-
-			if(!Non_Trusted_rollback_version){
-				Non_Trusted_rollback_version = efuse_rollback_version_read(Non_Trusted_Firmware);
-				secf("Non_Trusted_rollback_version %d\n", Non_Trusted_rollback_version);
-			}
-
-			//version_efuse = version_convert_efuse(curcertptr->version);
-			if((curcertptr->version < Non_Trusted_rollback_version)||(curcertptr->version>Non_Trusted_VERSION_MAX)){
-				secf("NOSEC ANTI_ROLLBACK ERR version = %x\n",curcertptr->version);
-				return false;
-			}else{
-				secf("version_efuse %d\n", curcertptr->version);
-				Non_Trusted_update_version[Non_Trusted_update_index] = curcertptr->version;
-				Non_Trusted_update_index++;
-			}
 
 			cal_sha256((uint8_t *) & (curcertptr->pubkey), SPRD_RSAPUBKLEN, temphash_data);
 
@@ -225,7 +211,7 @@ bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t *
 				secf("\nRSA verify Failed\n");
 				return false;
 			}
-
+			ret = sprd_anti_rollback(curcertptr->type,curcertptr->version);
 		}
 
 	} else {
@@ -479,3 +465,33 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 		}
 	}
 }
+
+void sprd_calc_hbk(void)
+{
+	unsigned int t_readValue = 0;
+	char  *boot_mode_type_str;
+
+  	boot_mode_type_str = getenv("bootmode");
+  	if (NULL != boot_mode_type_str)
+  	{
+		if(!strncmp(boot_mode_type_str, "cali", 4))
+		{
+		/**read spl image**/
+		#ifdef TOS_TRUSTY
+		img_verify_info_tos->img_addr= (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
+		memcpy((unsigned char *)img_verify_info_tos->img_addr,IRAM_BEGIN,SPL_IMAGE_SIZE);
+		//common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)img_verify_info_tos->img_addr);
+		img_verify_info_tos->img_len = SPL_IMAGE_SIZE;
+		img_verify_info_tos->flag = SPRD_FLAG;
+		printf("sprd_calc_hbk p1:%x, p2:%x,P3:%x\n",img_verify_info_tos->img_addr,img_verify_info_tos->img_len,img_verify_info_tos->flag);
+		uboot_get_hbk(img_verify_info_tos,sizeof(imgToVerifyInfo));
+		#else
+		#endif
+		}
+		else
+		{
+		printf("no calibration mode\n");
+		}
+  	}
+}
+

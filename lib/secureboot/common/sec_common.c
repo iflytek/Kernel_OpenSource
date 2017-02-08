@@ -11,8 +11,6 @@
 
 #define EFUSE_HASH_STARTID 2
 #ifdef TOS_TRUSTY
-#define  PAGE_ALIGN 4096
-#define  ARG_START_ADRESS 0x94000000
 imgToVerifyInfo *img_verify_info_tos = ARG_START_ADRESS;
 #endif
  imgToVerifyInfo img_verify_info = {0};
@@ -281,6 +279,10 @@ void secboot_init(void)
 #if defined (CONFIG_SANSA_SECBOOT)
 	sansa_calc_hbk();
 #endif
+#if defined (CONFIG_SPRD_SECBOOT)
+	sprd_calc_hbk();
+#endif
+
 }
 
 void secboot_terminal(void)
