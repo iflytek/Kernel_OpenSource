@@ -578,12 +578,12 @@ void usb_init(unsigned int autodl_mode)
 {
 	usb_core_init(autodl_mode);
 }
-static void __raw_bits_and(unsigned int v, unsigned int a)
+ void __raw_bits_and(unsigned int v, unsigned int a)
 {
 	__raw_writel((__raw_readl(a) & v), a);
 }
 
-static void __raw_bits_or(unsigned int v, unsigned int a)
+void __raw_bits_or(unsigned int v, unsigned int a)
 {
 	__raw_writel((__raw_readl(a) | v), a);
 }
