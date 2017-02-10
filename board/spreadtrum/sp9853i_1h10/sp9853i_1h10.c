@@ -44,7 +44,9 @@ int board_init(void)
 
 int misc_init_r(void)
 {
-/*reserver for future use*/
+	dvfs_init();
+	init_vid_table();
+	change_cpu_freq();
 	return 0;
 }
 
