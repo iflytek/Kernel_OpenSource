@@ -20,6 +20,16 @@
 #include <dl_crc.h>
 #include <asm/arch/sci_types.h>
 
+static void __raw_bits_and(unsigned int v, unsigned int a)
+{
+	__raw_writel((__raw_readl(a) & v), a);
+}
+
+static void __raw_bits_or(unsigned int v, unsigned int a)
+{
+	__raw_writel((__raw_readl(a) | v), a);
+}
+
 void usb_phy_init(void)
 {
 	__raw_bits_or(BIT_24|BIT_22, REG_AP_AHB_OTG_PHY_TEST);
