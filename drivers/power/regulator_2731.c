@@ -306,10 +306,10 @@ struct regulator_desc {
 		.regs = &REGS_##VDD,					\
 	};										\
 
-struct regulator_desc __init0 __init_begin = {0};
+static struct regulator_desc __init0 __init_begin = {0};
 
 #include "__sc2731r_regulator_map.h"
-struct regulator_desc __init2 __init_end = {0};
+static struct regulator_desc __init2 __init_end = {0};
 
 
 /* standard dcdc ops*/
