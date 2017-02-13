@@ -87,7 +87,6 @@ void display_writing_sysdump(void)
 	sysdump_lcd_printf("   -------------------------------  \n"
 		   "   Sysdumpping now, keep power on.  \n"
 		   "   -------------------------------  \n");
-	lcd_enable();
 	set_backlight(255);
 	set_vibrator(0);
 #endif
@@ -101,7 +100,6 @@ void display_special_mode(void)
 	sysdump_lcd_printf("   -------------------------------  \n"
 		   "   Restart now, keep power on.  \n"
 		   "   -------------------------------  \n");
-	lcd_enable();
 	set_backlight(255);
 	set_vibrator(0);
 #endif
@@ -130,7 +128,6 @@ static void wait_for_keypress()
 	} while (1);
 	debugf("Pressed key: %d\n", key_code);
 	sysdump_lcd_printf("Pressed key: %d\n", key_code);
-	lcd_enable();
 }
 
 int init_mmc_fat(int *fs_type)
@@ -204,7 +201,6 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 		memsize, filename);
 	sysdump_lcd_printf("writing 0x%lx bytes to sd file %s\n",
 		memsize, filename);
-	lcd_enable();
 
 	if (fs_type==FS_FAT32)
 		ret = file_fat_write(filename, memaddr, 0, memsize, actwrite);
@@ -442,7 +438,6 @@ int read_nand_to_ram( struct mtd_info *mtd, loff_t paddr, unsigned int size, uns
                         printf("%s, read addr: 0x%.8x len: 0x%.8x 's value error, ret: %d, retlen: 0x%.8x\n",\
 			 __func__, (unsigned int)read_addr, readsize, ret, retlen);
 			sysdump_lcd_printf("\nRead nand flash 0x%.8x error, you can dump it use download tools again!\n", read_addr);
-			lcd_enable();
 			break;
                 }
         }
@@ -1021,7 +1016,6 @@ void write_sysdump_before_boot(int rst_mode)
 		#define CONSOLE_COLOR_RED (0x1f<<11)
 		#define CONSOLE_COLOR_GREEN 0x07e0
 		sysdump_lcd_printf("\nReset mode: %s\n\n",GET_RST_MODE(rst_mode));
-		lcd_enable();
 
 		memset(infop->reason, '\0', sizeof(infop->reason));
 		memcpy(infop->reason, GET_RST_MODE(rst_mode), strlen(GET_RST_MODE(rst_mode)));
@@ -1029,7 +1023,6 @@ void write_sysdump_before_boot(int rst_mode)
 		if (init_mmc_fat(&fs_type)) {
 			debugf("ERROR: init_mmc_fat,fs_type=%d.\n", fs_type);
 			sysdump_lcd_printf("\ninit_mmc_fat failed, Please check SD Card!!!.\nPress volume up key (Exp power key) to continue...");
-                        lcd_enable();
                         wait_for_keypress();
 			goto FINISH;
 		}
@@ -1082,7 +1075,6 @@ void write_sysdump_before_boot(int rst_mode)
 			int nospace_flag = 1;
 			if (mod & FSFATAL) {
 				sysdump_lcd_printf("\nHello Baby: SD Card is demaged !!!");
-				lcd_enable();
 			}
 			else if (mod & FSNOSPACE) {
 				for (i = 1; i <= SYSDUMP_FOLDER_NUM; i++) {
@@ -1110,12 +1102,10 @@ void write_sysdump_before_boot(int rst_mode)
 				}
 				if (nospace_flag) {
 					sysdump_lcd_printf("\nHello Baby: SD Card have not enough space !!!");
-					lcd_enable();
 				}
 			}
 			if (nospace_flag) {
 				sysdump_lcd_printf("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump !!!\n");
-				lcd_enable();
 
 				do {
 					udelay(50 * 1000);
@@ -1201,25 +1191,21 @@ void write_sysdump_before_boot(int rst_mode)
 				sysdump_lcd_printf("\nHello Baby: SD Card has not enough space !!!");
 
 			sysdump_lcd_printf("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump !!!\n");
-			lcd_enable();
 			do {
 				udelay(50 * 1000);
 				key_code = board_key_scan();
 				if (key_code == KEY_VOLUMEDOWN) {
 					int ret;
 					sysdump_lcd_printf("\nNow volumedown key is pressed !!!\nSD Card format starts........\n");
-					lcd_enable();
 					ret = exfat_format();
 					if (ret != 0) {
 						sysdump_lcd_printf("\nSD Card format failed !!! Skip sysdump !!!\n");
-						lcd_enable();
 						goto FINISH;
 					}
 					debugf("SD Card formatting done !!!\n");
 					break;
 				} else if(key_code == KEY_VOLUMEUP) {
 					sysdump_lcd_printf("\nvolumedup key is pressed and don't format SD Card !!!\nsysdump will be skipped !!!\n");
-					lcd_enable();
 					goto FINISH;
 				}
 			} while (1);
@@ -1227,7 +1213,6 @@ void write_sysdump_before_boot(int rst_mode)
 	}
 	else {
 		sysdump_lcd_printf("Invalid file system... Sysdump will be skipped !!!\n");
-		lcd_enable();
 		goto FINISH;
 	}
 
@@ -1319,12 +1304,10 @@ FINISH_write_mmc:
 
 #ifdef CONFIG_NAND_BOOT
 		sysdump_lcd_printf("\nBegin to dump nand flash:\n");
-		lcd_enable();
 		mtd_dump(fs_type);
 #endif
 		debugf("\nwriting done.\nPress any key to continue...");
 		sysdump_lcd_printf("\nWriting done.\nPress any key (Exp power key) to continue...");
-		lcd_enable();
 		if(!auto_test_flag)
 			wait_for_keypress();
 FINISH:
