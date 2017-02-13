@@ -9,11 +9,11 @@
 /dts-v1/;
 
 / {
-	model = "Spreadtrum SP9852 zebu Board";
+	model = "Spreadtrum SP9850j fpga Board";
 
-	compatible = "sprd,sc9852-zebu";
+	compatible = "sprd,sc9850j-fpga";
 
-	sprd,sc-id = <9851 1 20000>;
+	sprd,sc-id = <9850 1 20000>;
 
 	memory{
 		device_type = "memory";
@@ -21,7 +21,7 @@
 	};
 
 	chosen {
-		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=8 androidboot.hardware=j1zebu memblock=debug bootmem_debug=1";
+		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=8 androidboot.hardware=j1fpga memblock=debug bootmem_debug=1";
 		linux,initrd-start = <0x0 0x85500000>; /* this val will be changed by uboot  */
 		linux,initrd-end = <0x0 0x855a3212>; /* this val will be changed by uboot  */
 	};

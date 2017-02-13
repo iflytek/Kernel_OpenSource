@@ -287,7 +287,7 @@
 
 
 /*for device tree*/
-#define DT_PLATFROM_ID 9852
+#define DT_PLATFROM_ID 9850
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 

@@ -1,5 +1,5 @@
 /*
- * Spreadtrum SP9852 board DTS file
+ * Spreadtrum SP9852 fpga board DTS file
  *
  * Copyright (C) 2016, Spreadtrum Communications Inc.
  *
@@ -10,11 +10,11 @@
 
 
 / {
-	model = "Spreadtrum SP9852smt vdk Board";
+	model = "Spreadtrum SP9850jsmt fpga Board";
 
-	compatible = "sprd,sc9852smt-vdk";
+	compatible = "sprd,sc9850jsmt-fpga";
 
-	sprd,sc-id = <9851 1 20000>;
+	sprd,sc-id = <9850 1 20000>;
 
 	memory{
 		device_type = "memory";
