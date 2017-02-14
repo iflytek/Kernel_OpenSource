@@ -353,8 +353,14 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 		pll->kdelta = (1 << 20) * delta_freq * pll->out_sel
 				/ pll->kstep / pll->ref_clk;
 #endif
-	} else
+	} else {
 		origin_freq = pll->freq;
+#ifdef CONFIG_SC9833
+		delta_freq = pll->freq / khz * 0.015 *2 * (i + 1);
+		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
+		pll->kdelta = (((1 << 20) * delta_freq / pll->ref_clk / pll->kstep) -3) / 4;
+#endif
+	}
 
 	return 0;
 
