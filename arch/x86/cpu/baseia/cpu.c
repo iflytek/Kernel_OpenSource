@@ -19,7 +19,10 @@
 
 #ifdef CONFIG_BASEIA_S3
 #define RESERVED_RAM_SIZE 0x10000
-extern char _resume_start[], _resume_end[];
+#define RESUME_ENTRY_P (CONFIG_BASEIA_SRAM + 0x1FF8)
+/* Macro for translating address to the copy in SRAM */
+#define SRAM_ADDRESS(x) (x - _resume_start) + CONFIG_BASEIA_SRAM
+extern char _resume_start[], _resume_entry[], _resume_end[];
 extern int _resume_cpus;
 #endif
 
@@ -118,10 +121,12 @@ int x86_init_cpus(void)
 			_resume_end - _resume_start);
 
 	/*
-	 *  Write resume entry point address to the DAT1 register
-	 *  On CPU reset, the boot ROM will jump there if DAT0 [0] = 1
+	 *  Write resume entry point address to SRAM and store it there, kernel
+	 *  will read it from SRAM and programe it to AON_APB_DAT_1 at late
+	 *  stage of S3. On CPU reset, the boot ROM will jump there if reset
+	 *  reason is S3.
 	 */
-	writel(CONFIG_BASEIA_SRAM, AON_APB_DAT_1);
+	writel(SRAM_ADDRESS(_resume_entry), RESUME_ENTRY_P);
 
 	/* Copy CPU microcode data into the reserved DRAM area */
 	if (gd->arch.microcode_size <= RESERVED_RAM_SIZE) {

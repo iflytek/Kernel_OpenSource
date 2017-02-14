@@ -9,6 +9,7 @@
 
 .global _resume_cpus
 .global _resume_start
+.global _resume_entry
 .global _resume_end
 
 #include <config.h>
@@ -71,7 +72,10 @@
  */
 
 _resume_start:
-
+_unexpected_wake:
+	jmp	_unexpected_wake
+_resume_entry:
+	movl	$SRAM_ADDRESS(_unexpected_wake), AON_APB_DAT_1
 	movl	$SRAM_ADDRESS(_set_stack), %ebp
 	jmp	mtrr_setup
 
