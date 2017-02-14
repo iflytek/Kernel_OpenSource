@@ -60,10 +60,6 @@ static void ap_slp_cp_dbg_cfg()
 //	*((volatile unsigned int *)(REG_AP_AHB_MCU_PAUSE)) |= BIT_MCU_SLEEP_FOLLOW_APCPU_EN; //when ap sleep, cp can continue debug
 }
 
-static void ap_cpll_rel_cfg()
-{
-}
-
 static void bb_bg_auto_en()
 {
 	*((volatile unsigned int *)(REG_AON_APB_RES_REG0)) |= 1<<8;
@@ -186,7 +182,6 @@ void misc_init()
 {
 	scx35_pmu_reconfig();
 	ap_slp_cp_dbg_cfg();
-	ap_cpll_rel_cfg();
 #ifndef  CONFIG_SPX15
 	ap_close_wpll_en();
 	ap_close_cpll_en();

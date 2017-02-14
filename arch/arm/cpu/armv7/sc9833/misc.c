@@ -54,14 +54,6 @@ int sprd_jtag_disable()
 	}
 }
 
-
-static void ap_cpll_rel_cfg()
-{
-#if !defined(CONFIG_ARCH_SCX35L)
-	*((volatile unsigned int *)(REG_PMU_APB_CPLL_REL_CFG)) |= BIT_CPLL_AP_SEL;
-#endif
-}
-
 static void bb_bg_auto_en()
 {
 	*((volatile unsigned int *)(REG_AON_APB_RES_REG0)) |= 1<<8;
@@ -155,7 +147,6 @@ void misc_init()
 {
 	scx35_pmu_reconfig();
 	sc9833_disable_clkautogate();
-	ap_cpll_rel_cfg();
 #ifndef  CONFIG_SPX15
 	ap_close_wpll_en();
 	ap_close_cpll_en();
