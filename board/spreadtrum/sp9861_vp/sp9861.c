@@ -61,7 +61,6 @@ int board_init(void)
 	sprd_gpio_init();
 	/*FPGA forbiden*/
 	init_ldo_sleep_gr();
-	TDPllRefConfig(1);
 	boot_pwr_check();
 	return 0;
 #else

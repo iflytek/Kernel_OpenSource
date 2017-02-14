@@ -32,8 +32,6 @@ int misc_init_r(void)
 	return 0;
 }
 
-void TDPllRefConfig(int ref){}
-
 void thm_overheate_en(void)
 {
 	sci_glb_set(REG_AON_APB_THERMAL_OVERHEAT_EN,
@@ -69,7 +67,6 @@ int board_init(void)
 	regulator_init();
 	/*FPGA forbiden*/
 	sprd_pmu_lowpower_init();
-	TDPllRefConfig(1);
 #endif
 	return 0;
 }

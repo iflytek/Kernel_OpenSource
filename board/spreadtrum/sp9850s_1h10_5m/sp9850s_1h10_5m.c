@@ -39,7 +39,6 @@ int board_init(void)
 	sprd_led_init();
 	/*FPGA forbiden*/
 	sprd_pmu_lowpower_init();
-	TDPllRefConfig(1);
 #endif
 	return 0;
 }

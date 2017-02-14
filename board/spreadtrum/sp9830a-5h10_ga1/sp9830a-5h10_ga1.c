@@ -71,7 +71,6 @@ int board_init()
 	sprd_intc_enable();
 	sprd_gpio_init();
 	init_ldo_sleep_gr();
-//	TDPllRefConfig(1);
 	sprd_pmu_init();
 	return 0;
 }

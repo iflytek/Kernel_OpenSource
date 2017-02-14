@@ -61,19 +61,6 @@ void CHIP_ResetMCU (void)  //reset interrupt disable??
     }
 }
 
-
-/************************************************************
-*select TDPLL's reference crystal,
-*(1)--RF0---------xtlbuf0-----------
-*                               -?-tdpll_ref_sel-----TDPLL
-*(2)--RF1---------xtlbuf1-----------
-1)rf_id = 0,TDPLL will select (1), or select (2)
-************************************************************/
-PUBLIC uint32 TDPllRefConfig(TDPLL_REF_T rf_id)
-{
-    return 0;
-}
-
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/

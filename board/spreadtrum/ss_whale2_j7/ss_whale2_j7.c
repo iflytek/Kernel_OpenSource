@@ -37,7 +37,6 @@ int board_init(void)
 	sprd_gpio_init();
 	/*FPGA forbiden*/
 	sprd_pmu_lowpower_init();
-	TDPllRefConfig(1);
 #endif
 	return 0;
 }

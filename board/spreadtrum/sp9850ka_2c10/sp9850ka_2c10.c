@@ -74,7 +74,6 @@ int board_init()
 	sprd_intc_enable();
 	sprd_gpio_init();
 	sprd_pmu_lowpower_init();
-//	TDPllRefConfig(1);
 	sprd_pmu_init();
 #endif
 	return 0;
