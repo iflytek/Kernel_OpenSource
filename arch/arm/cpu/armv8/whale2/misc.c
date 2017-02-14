@@ -65,20 +65,6 @@ static void bb_bg_auto_en()
 	*((volatile unsigned int *)(REG_AON_APB_RES_REG0)) |= 1<<8;
 }
 
-
-static void ap_close_wpll_en()
-{
-}
-
-static void ap_close_cpll_en()
-{
-}
-
-static void ap_close_wifipll_en()
-{
-}
-
-
 static void bb_ldo_auto_en()
 {
 	*((volatile unsigned int *)(REG_AON_APB_RES_REG0)) |= 1<<9;
@@ -180,11 +166,7 @@ void misc_init()
 {
 	scx35_pmu_reconfig();
 	ap_slp_cp_dbg_cfg();
-#ifndef  CONFIG_SPX15
-	ap_close_wpll_en();
-	ap_close_cpll_en();
-	ap_close_wifipll_en();
-#endif
+
 	bb_bg_auto_en();
 	bb_ldo_auto_en();
 
