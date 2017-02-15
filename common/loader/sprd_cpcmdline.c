@@ -304,13 +304,15 @@ void cp_cmdline_fixup(void)
 	}
 
 	//chip uid
-	{   
+#ifdef CONFIG_READ_UID
+	{
 		unsigned int block0;
 		unsigned int block1;
 		get_efuse_uid_ex(&block0,&block1);
 		sprintf(buf,"0x%08x,0x%08x",block0,block1);
 		cmdline_add_cp_cmdline(CHIPUID,buf);
 	}
+#endif
 	//rf borad id
 	boardid = Sprd_getHWRFboardID();
 	if (INVALID_BOARD_ID != boardid)
