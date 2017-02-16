@@ -77,6 +77,7 @@ void dispc_early_configs(void)
 			BIT_DISP_AHB_DISPC_NOC_FORCE_CKG_EN, REG_DISP_AHB_GEN_CKG_CFG);
 	reg =  __raw_readl(REG_DISP_AHB_GEN_CKG_CFG);
 	printf("DISPC REG_DISP_AHB_GEN_CKG_CFG %x %x\n",REG_DISP_AHB_GEN_CKG_CFG,reg);
+	__raw_bits_and(~BIT_COM_PMU_APB_CAM_PUB0_FRC_LSLP, REG_COM_PMU_APB_AON_PUB_FRC_SLP_CTRL);
 }
 
 void dispc_print_clk(void)
