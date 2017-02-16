@@ -29,4 +29,7 @@
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0
 
+/* coresight dump ETB data */
+#define CONFIG_ETB_DUMP
+
 #endif /* __CONFIG_H */
