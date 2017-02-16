@@ -68,7 +68,7 @@ static int dl_secure_verify(void *partition_name,void *header,void *code)
 static void fb_secure_verify(void *partition_name,void *header,void *code)
 {
 #ifdef CONFIG_SPRD_SECBOOT
-	//sprd_fb__secure_verify(partition_name, header, code);
+	sprd_fb_secure_verify(partition_name, header, code);
 #elif defined CONFIG_SANSA_SECBOOT
 	sansa_fb_secure_verify(partition_name,header,code);
 #else

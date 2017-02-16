@@ -428,43 +428,43 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 	uint8_t hash[HASH_BYTE_LEN] = {0};
 
 	//printf("%s,name: %s enter\r\n",__FUNCTION__,name);
-
 	secf("name: %s enter\r\n",name);
 	if(name){/*splloader is spl partiton, uboot is uboot partition which img the pubk hash stored*/
-		if(strcmp("splloader",name) == 0 || strcmp("fdl1",name) == 0){
-		load_spl();
-		#if defined (TOS_VERIFY_SEC)
+	#ifdef TOS_TRUSTY
+		secboot_param_set(header,img_verify_info_tos);
+	#else
 		secboot_param_set(header,&img_verify_info);
-		sprd_get_hash_key(IRAM_BEGIN,img_verify_info.pubkeyhash);
-		uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+	#endif
+		if(strcmp("splloader",name) == 0 || strcmp("fdl1",name) == 0){
+		#ifdef TOS_TRUSTY
+		img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
+		sprd_get_hash_key(IRAM_BEGIN,img_verify_info_tos->pubkeyhash);
 		#else
-		sprd_secure_check(IRAM_BEGIN,header);
+		sprd_get_hash_key(IRAM_BEGIN,img_verify_info.pubkeyhash);
 		#endif
 		}else if(strcmp("fdl2",name) == 0|| strcmp("uboot",name) == 0){
-			load_uboot();
-			#if defined (TOS_VERIFY_SEC)
-			secboot_param_set(header,&img_verify_info);
-			sprd_get_hash_key((CONFIG_SYS_TEXT_BASE - 0x200),img_verify_info.pubkeyhash);
-			uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+			#ifdef TOS_TRUSTY
+			img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
+			sprd_get_hash_key((CONFIG_SYS_TEXT_BASE - 0x200),img_verify_info_tos->pubkeyhash);
 			#else
-			sprd_secure_check((CONFIG_SYS_TEXT_BASE - 0x200),header);// first para is the addr
+			sprd_get_hash_key((CONFIG_SYS_TEXT_BASE - 0x200),img_verify_info.pubkeyhash);
 			#endif
 		}else if(strcmp("splloader0",name) == 0){
-			/*if secboot is enable, the romcode will verify fdl1's pubk,sectool sign spl and fdl1 use the same pubkkey,so wo can use the pubk's hash to verify spl's pubk*/
-			load_spl();
-			#if defined (TOS_VERIFY_SEC)
-			secboot_param_set(header,&img_verify_info);
-			sprd_get_pubk(IRAM_BEGIN, pubk);
-			cal_sha256(pubk, SPRD_RSAPUBKLEN, img_verify_info.pubkeyhash);
-			uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+			#ifdef TOS_TRUSTY
+			img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
+			memset(img_verify_info_tos->pubkeyhash,0xff,HASH_BYTE_LEN);
 			#else
-			sprd_get_pubk(IRAM_BEGIN, pubk);
-			cal_sha256(pubk, SPRD_RSAPUBKLEN, hash);
-			sprd_dl_check(hash,header);
+			memset(img_verify_info.pubkeyhash,0xff,HASH_BYTE_LEN);
 			#endif
 		}
+	#ifdef TOS_TRUSTY
+		uboot_verify_img((imgToVerifyInfo*)img_verify_info_tos,sizeof(imgToVerifyInfo));
+	#else
+		uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+	#endif
 	}
 }
+
 
 void sprd_calc_hbk(void)
 {
