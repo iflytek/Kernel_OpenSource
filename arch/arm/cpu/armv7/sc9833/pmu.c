@@ -32,11 +32,13 @@ extern   "C"
 #ifndef CONFIG_FPGA
 void pmu_commom_config(void)
 {
+	uint32_t reg_val;
+
 	CHIP_REG_SET(REG_PMU_APB_PD_CA7_TOP_CFG,
 		//BIT_PMU_APB_PD_CA7_TOP_DBG_SHUTDOWN_EN |
 		BIT_PMU_APB_PD_CA7_TOP_PD_SEL |
 		//BIT_PMU_APB_PD_CA7_TOP_FORCE_SHUTDOWN |
-		//BIT_PMU_APB_PD_CA7_TOP_AUTO_SHUTDOWN_EN |
+		BIT_PMU_APB_PD_CA7_TOP_AUTO_SHUTDOWN_EN |
 		BIT_PMU_APB_PD_CA7_TOP_PWR_ON_DLY(0x01) |
 		BIT_PMU_APB_PD_CA7_TOP_PWR_ON_SEQ_DLY(0x02) |
 		BIT_PMU_APB_PD_CA7_TOP_ISO_ON_DLY(0x00) |
@@ -47,7 +49,7 @@ void pmu_commom_config(void)
 		//BIT_PMU_APB_PD_CA7_C0_DBG_SHUTDOWN_EN |
 		BIT_PMU_APB_PD_CA7_C0_PD_SEL |
 		//BIT_PMU_APB_PD_CA7_C0_FORCE_SHUTDOWN |
-		//BIT_PMU_APB_PD_CA7_C0_AUTO_SHUTDOWN_EN |
+		BIT_PMU_APB_PD_CA7_C0_AUTO_SHUTDOWN_EN |
 		BIT_PMU_APB_PD_CA7_C0_PWR_ON_DLY(0x01) |
 		BIT_PMU_APB_PD_CA7_C0_PWR_ON_SEQ_DLY(0x10) |
 		BIT_PMU_APB_PD_CA7_C0_ISO_ON_DLY(0x00) |
@@ -93,7 +95,7 @@ void pmu_commom_config(void)
 	);
 	CHIP_REG_SET(REG_PMU_APB_PD_AP_SYS_CFG,
 		//BIT_PMU_APB_PD_AP_SYS_FORCE_SHUTDOWN |
-		//BIT_PMU_APB_PD_AP_SYS_AUTO_SHUTDOWN_EN |
+		BIT_PMU_APB_PD_AP_SYS_AUTO_SHUTDOWN_EN |
 		BIT_PMU_APB_PD_AP_SYS_PWR_ON_DLY(0x01) |
 		BIT_PMU_APB_PD_AP_SYS_PWR_ON_SEQ_DLY(0x00) |
 		BIT_PMU_APB_PD_AP_SYS_ISO_ON_DLY(0x00) |
@@ -208,6 +210,8 @@ void pmu_commom_config(void)
 		BIT_PMU_APB_PD_WTLCP_LTE_P4_ISO_ON_DLY(0x00) |
 		0
 	);
+	/*PUB_SYS for DDR*/
+	reg_val = CHIP_REG_GET(REG_PMU_APB_PD_PUB_SYS_CFG) & 0xff000000;
 	CHIP_REG_SET(REG_PMU_APB_PD_PUB_SYS_CFG,
 		//BIT_PMU_APB_PD_PUB_SYS_FORCE_SHUTDOWN |
 		//BIT_PMU_APB_PD_PUB_SYS_AUTO_SHUTDOWN_EN |
@@ -252,11 +256,20 @@ void pmu_commom_config(void)
 	);
 }
 
+/*deep_sleep: 0.8V, normal: 1.05V; OD: 1.2V*/
+static void dcdc_core_ds_config(uint32_t core_cal_para, uint32_t core_ctrl_para)
+{
+	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1,
+			BITS_DCDC_CORE_CAL_DS_SW(core_cal_para)|
+			BITS_DCDC_CORE_CTRL_DS_SW(core_ctrl_para)
+	);
+}
 
 void CSP_Init(uint32_t gen_para)
 {
 	//uint32_t reg_val;
 	pmu_commom_config();
+	dcdc_core_ds_config(0,4);
 }
 #endif
 
