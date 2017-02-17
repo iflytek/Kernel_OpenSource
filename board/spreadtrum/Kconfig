@@ -29,6 +29,11 @@ config TARGET_SP9861E_1H10
 	help
 	  This is the Spreadtrum iWhaleL2 mobile phone Board
 
+config TARGET_SP9861E_1H11
+        bool "Spreadtrum iwhale2"
+        help
+          This is the Spreadtrum iWhaleL2 mobile phone Board
+
 config TARGET_SP9861E_2H10
 	bool "Spreadtrum iwhale2"
 	help
@@ -167,6 +172,7 @@ source "board/spreadtrum/isharkl/Kconfig"
 source "board/spreadtrum/sp9861/Kconfig"
 source "board/spreadtrum/sp9861_vp/Kconfig"
 source "board/spreadtrum/sp9861e_1h10/Kconfig"
+source "board/spreadtrum/sp9861e_1h11/Kconfig"
 source "board/spreadtrum/sp9861e_2h10/Kconfig"
 source "board/spreadtrum/sp9853i/Kconfig"
 source "board/spreadtrum/sp9853i_1h10/Kconfig"
