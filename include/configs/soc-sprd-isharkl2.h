@@ -174,6 +174,7 @@
 #define FIXNV_SIZE			LTE_FIXNV_SIZE
 
 #define LTE_CP_CMDLINE_ADDR		0x04150000
+#define CALIBRATION_FLAG_CP1  LTE_CP_CMDLINE_ADDR
 
 /* sprd cm4 boot related macro definitions */
 #define CONFIG_DFS_ENABLE
