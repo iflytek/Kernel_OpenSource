@@ -184,8 +184,8 @@ static void dram_configure_bridge_perf(void)
 	/* balimit3 */
 	uncore_register_set_bits(0x03, 0x0E, 0x3F3F3F3F, 0x1F1F1F1F);
 
-	/* bmisc ??? */
-	uncore_register_set_bits(0x03, 0x28, 0x7<<6, 0x7<<6);
+	/* bmisc, mask as RO */
+	/* uncore_register_set_bits(0x03, 0x28, 0x7<<6, 0x7<<6); */
 
 	/* bctrl 0,1,2,3 11,12 */
 	uncore_register_set_bits(0x03, 0x3D, 0xF|BIT(11)|BIT(12), 0xF|BIT(11)|BIT(12));
@@ -193,8 +193,8 @@ static void dram_configure_bridge_perf(void)
 	/* cunit_ssa_regional_trunkgate_ctl */
 	uncore_register_set_bits(0x08, 0x43, 0xFF|BIT(16)|BIT(18), 0x08|BIT(16)|BIT(18));
 
-	/* t_ctl */
-	uncore_register_set_bits(0x02, 0x03, BIT(10)|BIT(16), BIT(10));
+	/* t_ctl, mask now, break s3 in some devices */
+	/* uncore_register_set_bits(0x02, 0x03, BIT(10)|BIT(16), BIT(10)); */
 
 	/* t_misc_ctl */
 	uncore_register_set_bits(0x02, 0x04, 0xF<<1, 0x6<<1);
