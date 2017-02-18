@@ -18,6 +18,9 @@ unsigned char raw_header[8192];
 unsigned int g_charger_mode = 0;
 char serial_number_to_transfer[SP15_MAX_SN_LEN];
 
+/*for verified boot*/
+unsigned int g_fb_lockflag = 0;
+
 extern int charger_connected(void);
 extern void modem_entry(void);
 
@@ -126,6 +129,10 @@ void fdt_fixup_all(u8 *fdt_blob)
 			fdt_fixup_memleakon(fdt_blob);
 		}
 	}
+
+	/*for verified boot*/
+	fdt_fixup_verified_boot(fdt_blob);
+	fdt_fixup_flash_lock_state(fdt_blob);
 
 	fdt_fixup_serialno(fdt_blob);
 	fdt_fixup_chosen_bootargs_board_private(fdt_blob);

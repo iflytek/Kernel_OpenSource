@@ -30,6 +30,7 @@
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_efuse.h>
 
+#define efuse_printf(fmt, args...)
 #if 0
 #include <common.h>
 #include <linux/types.h>
@@ -424,4 +425,29 @@ unsigned int sprd_get_secure_boot_enable(void)
     read_bit &= 1;
 
     return read_bit;
+}
+
+/*
+*Warning: This api can not be used except in test condition.
+*for dev test only
+*/
+void sec_efuse_test(void)
+{
+	uint32_t ce_reg_data;
+	uint32_t block_id = 0;
+	int ret = 0;
+	unsigned int test_data[8] = {0x5050a0a0, 0x5050a0a0, 0x5050a0a0, 0x5050a0a0,
+						      0x5050a0a0, 0x5050a0a0, 0x5050a0a0, 0x5050a0a0};
+
+	ret = sprd_kce_program(test_data);
+	if(ret == 0)
+		efuse_printf("enter sprd_kce_program ret ok \r\n");
+
+	for(block_id=SEC_EFUSE_BLOCK_ENRD_START_ID; block_id<=SEC_EFUSE_PROT_BLOCK_MAX_ID; block_id++)
+	{
+		ce_reg_data = 0x5a5a0000;
+		ret = sec_efuse_write_blocks_and_check(block_id, block_id, &ce_reg_data);
+		if(ret == 0)
+			efuse_printf("enter efuse_write ret ok \r\n");
+	}
 }

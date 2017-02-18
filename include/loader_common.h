@@ -55,6 +55,20 @@ extern unsigned char raw_header[8192];
 #define SP09_SPPH_MAGIC_NUMBER          (0X53503039)	// "SP09"
 #define SP09_MAX_LAST_DESCRIPTION_LEN   (32)
 
+/*for verified boot*/
+typedef enum verified_state{
+	v_state_green = 0,
+	v_state_yellow = 1,
+	v_state_orange = 2,
+	v_state_red = 3
+}enVerifiedState;
+
+typedef enum verified_ret{
+	v_state_ok = 0,
+	v_state_failed = 1,
+	v_state_initial = 10
+}enVerifiedRet;
+
 typedef struct _tagSP09_PHASE_CHECK {
 	uint32_t Magic;	// "SP09"
 	char SN1[SP09_MAX_SN_LEN];	// SN , SN_LEN=24

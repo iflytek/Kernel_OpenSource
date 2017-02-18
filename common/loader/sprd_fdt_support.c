@@ -23,6 +23,10 @@ extern int get_dram_cs_number(void);
 extern int get_dram_cs0_size(void);
 extern char *get_product_sn(void);
 
+/*for verified boot*/
+enVerifiedState g_verifiedbootstate = v_state_green;
+extern unsigned int g_fb_lockflag;
+
 #ifdef CONFIG_SECURE_BOOT
 #define CMDLINE_BUF_SIZE	(1024)
 unsigned spl_data_buf[0x2000] __attribute__ ((align(4))) = {
@@ -51,6 +55,66 @@ typedef struct {
 	uint32_t start_low;
 	uint32_t size;
 } mem_info;
+
+int fdt_fixup_verified_boot(void *fdt)
+{
+	int ret = 0;
+	char buf[64];
+	int str_len;
+	memset(buf, 0, 64);
+
+	switch(g_verifiedbootstate)
+	{
+		case v_state_green:
+			sprintf(buf,"androidboot.verifiedbootstate=green");
+			break;
+		case v_state_yellow:
+			sprintf(buf,"androidboot.verifiedbootstate=yellow");
+			break;
+		case v_state_orange:
+			sprintf(buf,"androidboot.verifiedbootstate=orange");
+			break;
+		case v_state_red:
+			sprintf(buf,"androidboot.verifiedbootstate=red");
+			break;
+		default:
+			sprintf(buf,"androidboot.verifiedbootstate=green");
+			break;
+	}
+
+	str_len = strlen(buf);
+	buf[str_len] = '\0';
+	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
+
+	return ret;
+}
+
+int fdt_fixup_flash_lock_state(void *fdt)
+{
+	int ret = 0;
+	char buf[64];
+	int str_len;
+	memset(buf, 0, 64);
+
+	switch(g_fb_lockflag)
+	{
+		case 1:
+			sprintf(buf,"androidboot.flash.locked=0");
+			break;
+		case 0:
+			sprintf(buf,"androidboot.flash.locked=1");
+			break;
+		default:
+			sprintf(buf,"androidboot.flash.locked=1");
+			break;
+	}
+
+	str_len = strlen(buf);
+	buf[str_len] = '\0';
+	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
+
+	return ret;
+}
 
 int fdt_initrd_norsvmem(void *fdt, ulong initrd_start, ulong initrd_end, int force)
 {
