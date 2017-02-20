@@ -157,14 +157,23 @@ config TARGET_J1FPGA
 	select ARM64
 	help
 	  This is the Spreadtrum j1fpga Board
+
 config TARGET_J1ZEBU
 	bool "Spreadtrum j1zebu"
 	select ARM64
 	help
 	  This is the Spreadtrum j1zebu Board
+
 config TARGET_SP9850KA_2C10
 	bool "Spreadtrum sp9850ka_2c10"
 	select CPU_V7
+
+config TARGET_SP9xxx_HAPS
+	bool "Spreadtrum sharkle"
+	select ARM64
+	help
+	  This is the Spreadtrum sharkle Board
+
 endchoice
 
 config ZEBU
@@ -209,4 +218,5 @@ source "board/spreadtrum/j1vdk/Kconfig"
 source "board/spreadtrum/j1fpga/Kconfig"
 source "board/spreadtrum/j1zebu/Kconfig"
 source "board/spreadtrum/sp9850ka_2c10/Kconfig"
+source "board/spreadtrum/sp9xxx_HAPS/Kconfig"
 endif

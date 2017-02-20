@@ -158,7 +158,9 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9850j-fpga.dtb \
 	sp9850j-zebu.dtb \
 	sp9850j-fpga-smt.dtb \
-	sp7700_fpga.dtb
+        sp7700_fpga.dtb \
+        sp9xxx_HAPS.dtb
+
 
 targets += $(dtb-y)
 

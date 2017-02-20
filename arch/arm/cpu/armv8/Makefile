@@ -19,3 +19,4 @@ obj-$(CONFIG_FSL_LSCH3) += fsl-lsch3/
 obj-$(CONFIG_TARGET_XILINX_ZYNQMP) += zynqmp/
 obj-$(CONFIG_SC9860) += whale2/
 obj-$(CONFIG_SC9851) += sc9851/
+obj-$(CONFIG_SC9835) += sc9835/
