@@ -64,7 +64,9 @@ void dl_cmd_handler(void)
 	return 0;
 }
 
-
+#ifdef CONFIG_DL_POWER_CONTROL
+extern void dl_power_control(void);
+#endif
 
 int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
@@ -84,6 +86,10 @@ if ((dl_times==0) && (boot_role == BOOTLOADER_MODE_DOWNLOAD))
 	fdl_ubi_dev_init();
 #endif
 	sprd_clean_rtc();
+
+#ifdef CONFIG_DL_POWER_CONTROL
+	dl_power_control();
+#endif
 
 	/* register all cmd process functions */
 	dl_cmd_register(BSL_CMD_START_DATA, dl_cmd_write_start);

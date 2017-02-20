@@ -477,3 +477,15 @@ void sprd_pmu_lowpower_init(void)
 	//pll_sel_config(0x00000000);
 	CSP_Init(0x50001800);
 }
+
+#ifdef CONFIG_DL_POWER_CONTROL
+#define VDDGPU_EN_GPIO   163
+void dl_power_control(void)
+{
+	ANA_REG_OR(ANA_REG_GLB_DCDC_WPA_REG2, BIT_DCDC_WPA_PD);  //shutdown VDDWPA
+	ANA_REG_OR(ANA_REG_GLB_LDO_VLDO_PD_REG, BIT_LDO_VLDO_PD); //shutdown VDDSIM2
+
+	sprd_gpio_request(NULL, VDDGPU_EN_GPIO);                 //shutdown VDDGPU
+	sprd_gpio_direction_output(NULL, VDDGPU_EN_GPIO, 0);
+}
+#endif
