@@ -5,6 +5,7 @@
  */
 
 #include <common.h>
+#include <asm/arch/sprd_reg.h>
 #include <asm/ibmpc.h>
 #include <asm/pnp_def.h>
 #include <netdev.h>
@@ -20,6 +21,15 @@
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x80000000;
 
+void misc_init()
+{
+	sci_glb_set(REG_AON_APB_APB_EB0, BIT_AON_APB_AON_GPU_EB);
+	sci_glb_set(REG_AON_APB_APB_EB1, BIT_AON_APB_AON_DISP_EB |
+					 BIT_AON_APB_AON_CAM_EB |
+					 BIT_AON_APB_AON_VSP_EB);
+}
+
+
 int board_init(void)
 {
 	setup_chipram_env();
@@ -28,7 +38,7 @@ int board_init(void)
 #ifndef CONFIG_FPGA
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 	//ADI_init();
-	//misc_init();
+	misc_init();
 	pmic_adc_Init();
 	//pin_init();
 	sprd_eic_init();
