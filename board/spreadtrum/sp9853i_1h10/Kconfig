@@ -17,7 +17,7 @@ config SYS_CONFIG_NAME
 	  include/configs/ directory to be used to build U-Boot.
 
 config SYS_TEXT_BASE
-	default 0x7ec00000
+	default 0x5ec00000
 
 config BOARD_SPECIFIC_OPTIONS # dummy
 	def_bool y
@@ -32,7 +32,7 @@ config DEFAULT_DEVICE_TREE
 
 config SYS_CAR_ADDR
 	hex "Board specific Cache-As-RAM (CAR) address"
-	default 0x7f000000
+	default 0x5f000000
 	help
 	  This option specifies the board specific Cache-As-RAM (CAR) address.
 

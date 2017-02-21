@@ -13,6 +13,15 @@
 #define KERNEL_ADR  0x35100000
 #define BOOTIMG_ADR 0X39000000
 
+/*******DDR CONFIG************************/
+#ifdef CONFIG_SP9853I_DDR4G
+#define CONFIG_NR_DRAM_BANKS   4
+#define PHYS_SDRAM_1_SIZE      0x40000000
+#else
+#define CONFIG_NR_DRAM_BANKS   1
+#define PHYS_SDRAM_1_SIZE      0x80000000
+#endif
+
 /*for sysdump*/
 #define KERNEL_BASE    (KERNEL_ADR - 0x100000)
 

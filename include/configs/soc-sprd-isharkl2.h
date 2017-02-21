@@ -7,14 +7,6 @@
 
 #define CONFIG_SILENT_CONSOLE
 
-#ifdef CONFIG_SP9853I_DDR4G
-#define CONFIG_NR_DRAM_BANKS	4
-#define PHYS_SDRAM_1_SIZE	0x40000000
-#else
-#define CONFIG_NR_DRAM_BANKS	1
-#define PHYS_SDRAM_1_SIZE	0x80000000
-#endif
-
 /*
  * SPREADTRUM BIGPHONE board - SoC Configuration
  */
