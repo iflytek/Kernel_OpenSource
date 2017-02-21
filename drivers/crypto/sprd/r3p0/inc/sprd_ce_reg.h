@@ -228,7 +228,7 @@
 #define CE_FINISH_CMD_CNT		(0x514)
 
 /* 112 words*/
-#define CE_CMD_FIFO_LEN			(112)
+#define CE_CMD_FIFO_LEN			(109)
 
 /*
  * CE_START				(0x28)

@@ -23,7 +23,7 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-ifneq ($(CONFIG_SC9833),)
+ifneq ($(CONFIG_SC9833)$(CONFIG_SC9851),)
 obj-y += sprd/
 else
 obj-y += sw/

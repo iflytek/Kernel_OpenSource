@@ -67,13 +67,13 @@ sprd_pka_stop (void) {
 }
 
 uint32_t
-sprd_pka_load (uint32_t len_index, uint32_t reg_index, uint8_t endian, uint8_t *data) {
-	return SPRD_CRYPTO_PKA_TRANS(SPRD_PKA_OP_LOAD, len_index, reg_index, endian, (uint32_t)data);
+sprd_pka_load (uint32_t len_index, uint32_t reg_index, uint8_t endian, uint32_t data_addr_low) {
+	return SPRD_CRYPTO_PKA_TRANS(SPRD_PKA_OP_LOAD, len_index, reg_index, endian, data_addr_low);
 }
 
 uint32_t
-sprd_pka_store (uint32_t len_index, uint32_t reg_index, uint8_t endian, uint8_t *data) {
-	return SPRD_CRYPTO_PKA_TRANS(SPRD_PKA_OP_STORE, len_index, reg_index, endian, (uint32_t)data);
+sprd_pka_store (uint32_t len_index, uint32_t reg_index, uint8_t endian, uint32_t data_addr_low) {
+	return SPRD_CRYPTO_PKA_TRANS(SPRD_PKA_OP_STORE, len_index, reg_index, endian, data_addr_low);
 }
 
 uint32_t
