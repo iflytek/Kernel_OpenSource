@@ -38,7 +38,7 @@
 /* I2C_CTL */
 #define STP_EN				BIT(20)
 #define FIFO_AF_LVL			(16)
-#define FIFO_AE_LVL			(15)
+#define FIFO_AE_LVL			(12)
 #define I2C_DMA_EN			BIT(11)
 #define FULL_INTEN			BIT(10)
 #define EMPTY_INTEN			BIT(9)
@@ -279,10 +279,10 @@ static int sprd_set_bus_speed(struct i2c_adapter *adap, int speed)
 	void * i2c_base = sprd_get_base(adap);
 	u32 APB_clk = I2C_SRC_CLK;
 	u32 i2c_dvd = APB_clk / (4 * speed) - 1;
-	u32 low = ((i2c_dvd << 2)*3) / 10;
-	u32 high = ((i2c_dvd << 3)) / 10;
-	u32 div0 = (low & 0xffff) << 16 | (high & 0xffff);
-	u32 div1 =  (low >> 16) | (high & 0xffff0000);
+	u32 high = ((i2c_dvd << 1) * 2) / 5;
+	u32 low = ((i2c_dvd << 1) * 3) / 5;
+	u32 div0 = (high & 0xffff) << 16 | (low & 0xffff);
+	u32 div1 =  (high & 0xffff0000) | ((low & 0xffff0000) >> 16);
 
 	writel(div0, i2c_base + ADDR_DVD0);
 	writel(div1, i2c_base + ADDR_DVD1);
