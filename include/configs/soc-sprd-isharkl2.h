@@ -112,6 +112,8 @@
 #define CONFIG_PREBOOT "role"
 #define CONFIG_BOARD_LATE_INIT
 
+/*sprd ap iefuse*/
+#define CONFIG_SPRD_AP_IEFUSE_R1P0
 
 /* Chip Driver Macro Definitions Start*/
 /*sprd adc*/
