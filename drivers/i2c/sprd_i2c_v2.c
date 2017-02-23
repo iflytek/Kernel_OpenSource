@@ -89,7 +89,11 @@ struct i2c_base_addr i2c_apb_bit[] = {
 	BIT_AP_APB_I2C0_EB, REG_AP_APB_APB_EB, SPRD_I2C0_PHYS,
 	BIT_AP_APB_I2C1_EB, REG_AP_APB_APB_EB, SPRD_I2C1_PHYS,
 	BIT_AP_APB_I2C2_EB, REG_AP_APB_APB_EB, SPRD_I2C2_PHYS,
+	#if !defined(CONFIG_TARGET_SP9853I) && !defined(CONFIG_TARGET_SP9853I_1H10)
 	BIT_AP_APB_I2C3_EB, REG_AP_APB_APB_EB, SPRD_I2C3_PHYS,
+	#else
+	0,0,NULL,
+	#endif
 	BIT_AP_APB_I2C4_EB, REG_AP_APB_APB_EB, SPRD_I2C4_PHYS,
 };
 
@@ -503,11 +507,15 @@ U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c2, sprd_i2c_init, sprd_i2c_probe,
 			 CONFIG_SYS_SPRD_I2C_DEFAULT_SPEED,
 			 NULL,
 			 2)
+
+#if !defined(CONFIG_TARGET_SP9853I) && !defined(CONFIG_TARGET_SP9853I_1H10)
 U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c3, sprd_i2c_init, sprd_i2c_probe,
 			 sprd_i2c_read, sprd_i2c_write, NULL,
 			 CONFIG_SYS_SPRD_I2C_DEFAULT_SPEED,
 			 NULL,
 			 3)
+#endif
+
 U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c4, sprd_i2c_init, sprd_i2c_probe,
 			 sprd_i2c_read, sprd_i2c_write, NULL,
 			 CONFIG_SYS_SPRD_I2C_DEFAULT_SPEED,

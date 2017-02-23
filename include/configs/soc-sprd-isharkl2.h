@@ -105,7 +105,9 @@
 #define CONFIG_7S_RST_SHORT_MODE	1
 #define CONFIG_7S_RST_2KEY_MODE		0
 #define CONFIG_7S_RST_THRESHOLD		7
-
+/*i2c driver*/
+#define CONFIG_SYS_I2C
+#define CONFIG_SPRD_I2C_V2
 
 /* SPRD VP DEBUG ANDROID     */
 #define CONFIG_VP_DEBUG
@@ -127,7 +129,7 @@
 /*sprd gpio*/
 #define CONFIG_SPRD_GPIO
 
-#define CONFIG_CONS_INDEX		0 /* use UART0 for console */
+#define CONFIG_CONS_INDEX		1 /* use UART1 for console */
 
 /*sprd rtc*/
 #define CONFIG_RTC_SPRD
