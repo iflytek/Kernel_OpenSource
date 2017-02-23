@@ -16,7 +16,7 @@
 #include <libfdt.h>
 #include <fdt_support.h>
 #include <exports.h>
-
+#include <fdtdec.h>
 /**
  * fdt_getprop_u32_default_node - Return a node's property or a default
  *
@@ -1613,4 +1613,31 @@ int fdt_fixup_display(void *blob, const char *path, const char *display)
 			return fdt_setprop_u32(blob, toff, "native-mode", h);
 	}
 	return toff;
+}
+int fdtdec_decode_region_private(const void *blob, int node, const char *prop_name,
+			 fdt_addr_t *basep, fdt_size_t *sizep)
+{
+	const fdt_addr_t *cell;
+	int len;
+
+	 debug("%s: %s: %s\n", __func__, fdt_get_name(blob, node, NULL),
+	      prop_name);
+	cell = fdt_getprop(blob, node, prop_name, &len);
+	if (!cell || (len < sizeof(fdt_addr_t) * 2)) {
+		debug("cell=%p, len=%d\n", cell, len);
+		return -1;
+	}
+        if(len > sizeof(fdt_addr_t) * 2) {
+		*basep = fdt_addr_to_cpu(cell[2]);
+		*sizep = fdt_size_to_cpu(cell[3]);
+		debug("-%s: base=%08lx, size=%lx\n", __func__, (ulong)*basep,
+		      (ulong)*sizep);
+
+	} else {
+		*basep = fdt_addr_to_cpu(*cell);
+		*sizep = fdt_size_to_cpu(cell[1]);
+		debug("=%s: base=%08lx, size=%lx\n", __func__, (ulong)*basep,
+		      (ulong)*sizep);
+	}
+	return 0;
 }

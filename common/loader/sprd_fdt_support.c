@@ -225,7 +225,7 @@ int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t 
 	uint32_t ret;
 	uint32_t smcid;
 	uint32_t funcid;
-	mem_info mi;
+	mem_info mi __attribute__((aligned(4096)));
 
 	smcid  = TEESMC_SIPCALL_WITH_ARG;
 	funcid = FUNCTYPE_SET_SECURE_RANGE_PARAM;
@@ -238,9 +238,7 @@ int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t 
 	param.a1 = funcid;
 	param.a2 = &mi;
 	param.a3 = sizeof(mem_info);
-#ifdef CONFIG_ARM64
 	tee_smc_call(&param);
-#endif
 	ret = param.a0;
 	return ret;
 }
@@ -257,7 +255,22 @@ int fdt_reserved_mem_multimedia_parse(void*fdt)
 	fdt_addr_t  s_size ;
 	char *pStr=NULL;
 	mem_info mi;
+	char name[64];
+	char value[64];
 
+	strncpy(name, "sprd,decoup", sizeof(name));
+	strncpy(value, "cproc-use-decoup", sizeof(value));
+	offset = fdt_node_offset_by_prop_value(fdt, 0, name, value, strlen(value) + 1);
+	if(offset < 0) {
+		debugf("the sipc info already exist, don't need to parse\n");
+		return -1;
+	}
+	if(fdtdec_decode_region_private(fdt, offset, "reg", &s_addr, &s_size,0) < 0)
+	{
+		debugf("can not find reg prop, go to next node.\n" );
+		return -1;
+	}
+	uboot_set_secure_range_paraneters(CP_MODEM,s_addr,s_size);
 	parentoffset = fdt_path_offset(fdt, "/reserved-memory");
 	if (parentoffset < 0) {
 		errorf("fdt_reserved_mem_multimedia_parse: cann't find mm_reserved \n");
@@ -295,15 +308,6 @@ int fdt_reserved_mem_multimedia_parse(void*fdt)
 			}
 			uboot_set_secure_range_paraneters(AUDIO_MEMORY,s_addr,s_size);
 		}
-		pStr = strstr(nodename,"cp-modem");
-		if(pStr){
-			if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
-			{
-				debugf("cannot find reg prop, go to next node.\n" );
-				goto next;
-			}
-			uboot_set_secure_range_paraneters(CP_MODEM,s_addr,s_size);
-		}
 		pStr = strstr(nodename,"framebuffer");
 		if(pStr){
 			if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
@@ -324,6 +328,7 @@ int fdt_reserved_mem_multimedia_parse(void*fdt)
 		}
 next:;
 	}
+	return 0;
 }
 
 int fdt_chosen_bootargs_replace(void *fdt, char *old_args, char *new_args)
