@@ -16,7 +16,7 @@
 #ifndef _PINMAP_H_
 #define _PINMAP_H_
 
-#include "sci_types.h"
+#include <linux/types.h>
 #include "sprd_reg.h"
 #include "adi.h"
 

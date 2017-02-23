@@ -8,7 +8,6 @@
 
 #include <config.h>
 #include "hardware.h"
-#include "sci_types.h"
 #include "sprd_module_config.h"
 #include <power/sprd_pmic/pmic_glb_reg.h>
 

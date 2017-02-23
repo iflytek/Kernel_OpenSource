@@ -94,7 +94,7 @@ int dram_init(void)
 	real_ram_size = 0;
 	ulong bank_cnt = CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM;
 
-	for (i = 1; i <= *(volatile uint32 *)CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM; i++) {
+	for (i = 1; i <= *(volatile uint32_t *)CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM; i++) {
 			real_ram_size += *(volatile ulong *)((volatile ulong *)CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM + i);
 	}
 

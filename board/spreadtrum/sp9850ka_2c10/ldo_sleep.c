@@ -1,7 +1,6 @@
-#include <asm/arch/sci_types.h>
-#include <adi_hal_internal.h>
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_reg.h>
+#include <adi_hal_internal.h>
 
 #define IS_32K 3
 #define W_EFFUSE_2721 0x0
@@ -44,7 +43,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 {
 	unsigned int cpu_pd_mode;
 	unsigned int feature_32k_less = sprd_get32_less();
-	cpu_pd_mode = sprd_pmic_efuse_read(CPU_PD_BLOCK) & Bit(CPU_PD_BIT);
+	cpu_pd_mode = sprd_pmic_efuse_read(CPU_PD_BLOCK) & BIT(CPU_PD_BIT);
 
 #if defined(CONFIG_ADIE_SC2721)
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE,0x6e7f);

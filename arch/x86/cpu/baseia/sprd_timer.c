@@ -1,5 +1,6 @@
 #include "asm/arch/sprd_reg.h"
 #include <asm/io.h>
+#include <linux/types.h>
 
 int sprd_timer_init(void)
 {

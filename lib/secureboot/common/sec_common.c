@@ -1,9 +1,9 @@
+#include <linux/types.h>
 #include <secureboot/sprdsec_header.h>
 #include <crypto/sprdrsa.h>
 #include <secureboot/sec_string.h>
 #include <crypto/sprdsha.h>
 #include <secure_verify.h>
-#include <asm/arch/sci_types.h>
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>

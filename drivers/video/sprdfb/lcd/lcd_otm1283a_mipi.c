@@ -203,7 +203,7 @@ static uint32_t otm1283a_readid(struct panel_spec *self)
 {
 	/*Jessica TODO: need read id*/
 	int32_t i = 0;
-	uint32 j =0;
+	uint32_t j =0;
 	LCM_Force_Cmd_Code * rd_prepare = rd_prep_code;
 	uint8_t read_data[5] = {0};
 	int32_t read_rtn = 0;

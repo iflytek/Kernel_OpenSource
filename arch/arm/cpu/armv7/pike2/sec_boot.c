@@ -2,7 +2,6 @@
 #include <malloc.h>
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_reg.h>
-#include <asm/arch/sci_types.h>
 #include "secure_boot.h"
 #include "sha1_32.h"
 #ifndef USE_LEGENCY_RSA

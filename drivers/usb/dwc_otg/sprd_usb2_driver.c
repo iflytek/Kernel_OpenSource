@@ -16,7 +16,6 @@
 #include <dl_crc.h>
 #include "sprd_usb2_def.h"
 #include <usb/sprd_usb_drv.h>
-#include <asm/arch/sci_types.h>
 
 #define FDL2_MODULE	1
 
@@ -37,19 +36,19 @@ static __inline void usb_handler (void);
  **---------------------------------------------------------------------------*/
 
 static int currentDmaBufferIndex = 0;
-LOCAL __align(64) uint32_t    s_setup_packet[8] = {0};
+LOCAL __attribute__((aligned (64))) uint32_t    s_setup_packet[8] = {0};
 LOCAL uint32_t    enum_speed = 0;
 LOCAL uint32_t    recv_length = 0;
 LOCAL uint32_t nIndex = 0;
 LOCAL uint32_t readIndex = 0;
 
-PUBLIC __align (64)  unsigned char usb_out_endpoint_buf[2] [MAX_RECV_LENGTH];
+PUBLIC __attribute__((aligned (64))) unsigned char usb_out_endpoint_buf[2] [MAX_RECV_LENGTH];
 
 
 int error_count = 0;
 
 /*--------------------------- Local Data ------------------------------------*/
-static __align (4) const uint8_t DeviceDescrSerial[] =
+static __attribute__((aligned (4))) const uint8_t DeviceDescrSerial[] =
 {
     0x12, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x40,
     0x82, 0x17, 0x00, 0x4d, 0x02, 0x02, 0x00, 0x00,
@@ -57,7 +56,7 @@ static __align (4) const uint8_t DeviceDescrSerial[] =
     0x00, 0x00  // insert 2byte to becom one multip 4byte packet
 };
 
-static __align (4) const uint8_t ConfigDescrSerial_64[]  =
+static __attribute__((aligned (64))) const uint8_t ConfigDescrSerial_64[]  =
 {
     0x09,0x02,0x20,0x00,0x01,0x01,0x00,0xc0,
     0x32,

@@ -4,7 +4,7 @@
  */
 #include "sprdfb.h"
 
-#define REG32(x)              (*((volatile uint32 *)(x)))
+#define REG32(x)              (*((volatile uint32_t *)(x)))
 
 
  SPI_INIT_PARM spi_int_parm[] =
@@ -88,8 +88,8 @@ static void SPI_Read( uint32_t* data)
 void SPI_PinCfg( void )
 {
 	/*enable access the spi reg*/
-	*((volatile uint32 *)(0x4b000008)) |= BIT_1;
-	*((volatile uint32 *)(0x4b0000c0)) |= BIT_0;
+	*((volatile uint32_t *)(0x4b000008)) |= BIT_1;
+	*((volatile uint32_t *)(0x4b0000c0)) |= BIT_0;
 /*
 	//select spi0_2
 	CHIP_REG_SET (PIN_LCD_D6_REG, (PIN_FPD_EN | PIN_FUNC_1 | PIN_O_EN)); //SPI0_2_CD
@@ -130,8 +130,8 @@ BOOLEAN sprdfb_spi_init(struct sprdfb_device *dev)
 	SPI_PinCfg();
 
 	/*reset the spi2*/
-	*((volatile uint32 *)(0x4b00004c))|= BIT_31;
-	*((volatile uint32 *)(0x4b00004c)) &= ~BIT_31;
+	*((volatile uint32_t *)(0x4b00004c))|= BIT_31;
+	*((volatile uint32_t *)(0x4b00004c)) &= ~BIT_31;
 
 #endif
 

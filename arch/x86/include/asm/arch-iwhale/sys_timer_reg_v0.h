@@ -37,7 +37,7 @@ extern   "C"
 #define SYS_CTL                         (SYSTIMER_BASE + 0x0008)
 #define SYS_VLAUE_SHDW                  (SYSTIMER_BASE + 0x000C)
 
-#define SYSTEM_CURRENT_CLOCK (*((volatile uint32 *)SYS_CNT0) & 0xFFFFFFFF)
+#define SYSTEM_CURRENT_CLOCK (*((volatile uint32_t *)SYS_CNT0) & 0xFFFFFFFF)
 /**----------------------------------------------------------------------------*
 **                         Local Function Prototype                           **
 **----------------------------------------------------------------------------*/

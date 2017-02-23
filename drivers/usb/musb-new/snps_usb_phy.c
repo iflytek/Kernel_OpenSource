@@ -18,7 +18,6 @@
 #include <usb/usb200_fdl.h>
 #include <packet.h>
 #include <dl_crc.h>
-#include <asm/arch/sci_types.h>
 
 static void __raw_bits_and(unsigned int v, unsigned int a)
 {

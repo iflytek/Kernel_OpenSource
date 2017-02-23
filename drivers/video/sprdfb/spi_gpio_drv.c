@@ -32,21 +32,21 @@
 #define DELAY_CNT 10
 
 struct gpio_ctrl_reg {
-	volatile uint32 data; /* bits data */
-	volatile uint32 msk; /* bits data mask */
-	volatile uint32 dir; /* bits data direction */
-	volatile uint32 is; /* bits interrupt sense */
-	volatile uint32 ibe; /* bits both edges interrupt */
-	volatile uint32 iev; /* bits interrupt event */
-	volatile uint32 ie; /* bits interrupt enable */
-	volatile uint32 ris; /* bits raw interrupt status */
-	volatile uint32 mis; /* bits masked interrupt status */
-	volatile uint32 inen; /* input enable */
+	volatile uint32_t data; /* bits data */
+	volatile uint32_t msk; /* bits data mask */
+	volatile uint32_t dir; /* bits data direction */
+	volatile uint32_t is; /* bits interrupt sense */
+	volatile uint32_t ibe; /* bits both edges interrupt */
+	volatile uint32_t iev; /* bits interrupt event */
+	volatile uint32_t ie; /* bits interrupt enable */
+	volatile uint32_t ris; /* bits raw interrupt status */
+	volatile uint32_t mis; /* bits masked interrupt status */
+	volatile uint32_t inen; /* input enable */
 };
 
-static int gpio_spi_write(uint32 index, uint8 len_i, uint32 data, uint8 len_d)
+static int gpio_spi_write(uint32_t index, uint8 len_i, uint32_t data, uint8 len_d)
 {
-	uint32 i, reg_val;
+	uint32_t i, reg_val;
 	volatile struct gpio_ctrl_reg *regs =
 			(volatile struct gpio_ctrl_reg *)
 			(GPIO_BASE_ADDR + GPIO_LVDSCHIP_OFFSET);
@@ -98,12 +98,12 @@ static int gpio_spi_write(uint32 index, uint8 len_i, uint32 data, uint8 len_d)
 	return 0;
 }
 
-static int gpio_spi_read(uint32 index, uint8 len_i, uint32 data, uint8 len_d)
+static int gpio_spi_read(uint32_t index, uint8 len_i, uint32_t data, uint8 len_d)
 {
-	uint32 i, reg_val = 0, rd_val = 0;
-	uint32 rd_reg[16] = { 0 };
-	uint32 rd_reg1[16] = { 0 };
-	uint32 rd_reg2[16] = { 0 };
+	uint32_t i, reg_val = 0, rd_val = 0;
+	uint32_t rd_reg[16] = { 0 };
+	uint32_t rd_reg1[16] = { 0 };
+	uint32_t rd_reg2[16] = { 0 };
 	volatile struct gpio_ctrl_reg *regs =
 			(volatile struct gpio_ctrl_reg *)
 			(GPIO_BASE_ADDR + GPIO_LVDSCHIP_OFFSET);
@@ -175,7 +175,7 @@ static int gpio_spi_read(uint32 index, uint8 len_i, uint32 data, uint8 len_d)
 
 int sprdchip_lvds_init(void)
 {
-	uint32 i, rd_val1, rd_val2;
+	uint32_t i, rd_val1, rd_val2;
 	for (i = 0; i < 50; ++i) {
 		gpio_spi_write(27, 18, 0, 16);
 		rd_val1 = gpio_spi_read(63, 18, 27, 16);

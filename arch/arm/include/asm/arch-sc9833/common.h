@@ -21,7 +21,6 @@
 #include "stdarg.h"
 #include "linux/string.h"
 #include <linux/types.h>
-#include "migrate.h"
 #include "sprd_debug.h"
 
 /**---------------------------------------------------------------------------*
@@ -34,8 +33,11 @@ extern   "C"
 /**----------------------------------------------------------------------------*
 **                               Micro Define                                 **
 **----------------------------------------------------------------------------*/
+#define	LOCAL		static
+#define PUBLIC
+#define TRUE   1   /* Boolean true value. */
+#define FALSE  0   /* Boolean false value. */
 
-//#define REG32(x)                                    (*((volatile uint32 *)(x)))
 /*
     Bit define
 */

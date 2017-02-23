@@ -18,7 +18,7 @@
 #include <dl_crc.h>
 #include "sprd_musb2_def.h"
 #include <linux/usb/ch9.h>
-#include <asm/arch/sci_types.h>
+#include <asm/arch/common.h>
 #include <linux/usb/musb.h>
 #include "musb_core.h"
 
@@ -32,33 +32,33 @@ void flush_dcache_range(unsigned long start, unsigned long stop);
  **---------------------------------------------------------------------------*/
 #define MAX_RECV_LENGTH     0xffc0 //(64k-64)
 #define USB_TIMEOUT             (1000)
-#define REG32(x)     (*((volatile uint32 *)(x)))
+#define REG32(x)     (*((volatile uint32_t *)(x)))
 /**---------------------------------------------------------------------------*
  **                         Data Structures                                   *
  **---------------------------------------------------------------------------*/
 
 static int currentDmaBufferIndex;
-static uint32    enum_speed;
-static uint32    recv_length;
-static uint32 nIndex, readIndex;
-PUBLIC __align(64)  unsigned char usb_out_endpoint_buf[MAX_RECV_LENGTH];
+static uint32_t    enum_speed;
+static uint32_t    recv_length;
+static uint32_t nIndex, readIndex;
+PUBLIC __attribute__((aligned (64)))  unsigned char usb_out_endpoint_buf[MAX_RECV_LENGTH];
 volatile unsigned char    s_setup_packet[8] __attribute__((aligned (64)));
 struct linklist_node_s dma_linklist_tx __attribute__((aligned (64)));
 struct linklist_node_s dma_linklist_rx __attribute__((aligned (64)));
 
-__align (64) unsigned char linklist_ram_tx[12];
-__align (64) unsigned char linklist_ram_rx[12];
-__align (4) unsigned char DeviceStatus[] =
+__attribute__((aligned (64))) unsigned char linklist_ram_tx[12];
+__attribute__((aligned (64))) unsigned char linklist_ram_rx[12];
+__attribute__((aligned (4))) unsigned char DeviceStatus[] =
 {
 	0x00,0x00
 };
-static __align(4) uint8 dev_desc[] =
+static __attribute__((aligned (4))) uint8_t dev_desc[] =
 {
 	0x12, 0x01, 0x00, 0x02, 0x00, 0x00, 0x00, 0x40,
 	0x82, 0x17, 0x00, 0x4d, 0xff, 0xff, 0x00, 0x00,
 	0x00, 0x01
 };
-static __align(4) uint8 config_desc[] =
+static __attribute__((aligned (4))) uint8_t config_desc[] =
 {
 	0x09, 0x02, 0x20, 0x00, 0x01, 0x01, 0x00, 0xc0,0x32,
 	0x09, 0x04, 0x00, 0x00, 0x02, 0xff, 0x00, 0x00, 0x00,
@@ -110,7 +110,7 @@ void configure_ep(void)
 //  Author:        chunhou.wang
 //  Note:
 /*****************************************************************************/
-int prepare_linklist_node (uint32 dir,int ep, unsigned int transfer_size, unsigned int *buffer)
+int prepare_linklist_node (uint32_t dir,int ep, unsigned int transfer_size, unsigned int *buffer)
 {
 	volatile unsigned char *q;
 	volatile unsigned char *p;
@@ -156,7 +156,7 @@ int prepare_linklist_node (uint32 dir,int ep, unsigned int transfer_size, unsign
 		//enable linklist end interrupt
 		REG32(MUSB_DMA_CHN_INTR(rx_ch)) |=0x14;
 		//set linklist pointer
-		REG32(MUSB_DMA_CHN_LLIST_PTR(rx_ch)) = (uint32)linklist_ram_rx;
+		REG32(MUSB_DMA_CHN_LLIST_PTR(rx_ch)) = (uint32_t)linklist_ram_rx;
 		//enable channel and trigger rx dma transfer
 		REG32(MUSB_DMA_CHN_CFG(rx_ch)) |=0x1;
 	}else{
@@ -207,13 +207,13 @@ int prepare_linklist_node (uint32 dir,int ep, unsigned int transfer_size, unsign
 /*****************************************************************************/
 LOCAL void usb_get_descriptor (USB_REQUEST_1_U *request1, USB_REQUEST_2_U *request2)
 {
-	uint32 len, length = 0;
-	uint8   *send_data = NULL;
-	uint32 i;
+	uint32_t len, length = 0;
+	uint8_t   *send_data = NULL;
+	uint32_t i;
 
 	(*(volatile unsigned char*)Mentor_USB_CSR0L) |= BIT_6;
 
-	length = (uint32) request2->mBits.length_l;
+	length = (uint32_t) request2->mBits.length_l;
 
 	switch (request1->mBits.value_m)
 	{
@@ -258,7 +258,7 @@ LOCAL void usb_setup_handle (void)
 	volatile unsigned int i;
 	USB_REQUEST_1_U   *request1;
 	USB_REQUEST_2_U   *request2;
-	uint32 length =0;
+	uint32_t length =0;
 	unsigned long cache_start = 0;
 	unsigned long cache_end = 0;
 
@@ -305,7 +305,7 @@ LOCAL void usb_setup_handle (void)
 
 			case USB_REQUEST_GET_STATUS:
 				(*(volatile unsigned char*)Mentor_USB_CSR0L) |= BIT_6;
-				length = (uint32)(request2->mBits.length_l | (request2->mBits.length_m<<8));
+				length = (uint32_t)(request2->mBits.length_l | (request2->mBits.length_m<<8));
 				for(i=0;i<length;i++)
 					*(volatile unsigned char*)Mentor_USB_EP0_FIFO = DeviceStatus[i];
 				(*(volatile unsigned char*)Mentor_USB_CSR0L) |= (BIT_1 | BIT_3);
@@ -358,8 +358,8 @@ LOCAL void usb_setup_handle (void)
 LOCAL void USB_EPxSendData (char ep_id,unsigned char* pBuf,int len)
 {
 	int tx_ch;
-	volatile uint32 reg32;
-	volatile uint32 i;
+	volatile uint32_t reg32;
+	volatile uint32_t i;
 
 	tx_ch = ep_id;
 
@@ -368,7 +368,7 @@ LOCAL void USB_EPxSendData (char ep_id,unsigned char* pBuf,int len)
 	//enable linklist end interrupt
 	REG32(MUSB_DMA_CHN_INTR(tx_ch)) |=0x04;
 	//set linklist pointer
-	REG32(MUSB_DMA_CHN_LLIST_PTR(tx_ch)) = (uint32)linklist_ram_tx;
+	REG32(MUSB_DMA_CHN_LLIST_PTR(tx_ch)) = (uint32_t)linklist_ram_tx;
 	//enable channel and trigger rx dma transfer
 	REG32(MUSB_DMA_CHN_CFG(tx_ch)) |=0x1;
 
@@ -412,7 +412,7 @@ LOCAL void usb_EP_out_handle (void)
 	//enable linklist end interrupt
 	REG32(MUSB_DMA_CHN_INTR(rx_ch)) |=0x14;
 	//set linklist pointer
-	REG32(MUSB_DMA_CHN_LLIST_PTR(rx_ch)) = (uint32)linklist_ram_rx;
+	REG32(MUSB_DMA_CHN_LLIST_PTR(rx_ch)) = (uint32_t)linklist_ram_rx;
 	//enable channel and trigger rx dma transfer
 	REG32(MUSB_DMA_CHN_CFG(rx_ch)) |=0x1;
 

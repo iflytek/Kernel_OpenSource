@@ -6,27 +6,27 @@
 
 #define REG_READ(reg_addr,value)\
 do{\
-	value = *(volatile uint32*)(reg_addr);\
+	value = *(volatile uint32_t*)(reg_addr);\
 }while(0)
 
 #define REG_WRITE(reg_addr,value)\
 do{\
-	*(volatile uint32*)(reg_addr) = (value);\
+	*(volatile uint32_t*)(reg_addr) = (value);\
 }while(0)
 
 #define REG_OR(reg_addr,or_mask)\
 do{\
-	*(volatile uint32*)(reg_addr) |= (or_mask);\
+	*(volatile uint32_t*)(reg_addr) |= (or_mask);\
 }while(0)
 
 #define REG_AND(reg_addr,and_mask)\
 do{\
-	*(volatile uint32*)(reg_addr) &= (and_mask);\
+	*(volatile uint32_t*)(reg_addr) &= (and_mask);\
 }while(0)
 
 #define REG_BIT(reg_addr,bit,value)\
 do{\
-	*(volatile uint32*)(reg_addr) |= ((value)<<(bit));\
+	*(volatile uint32_t*)(reg_addr) |= ((value)<<(bit));\
 }while(0)
 
 #ifndef BIT
@@ -241,56 +241,56 @@ static Efuse_Result_Ret ce_efuse_program(unsigned int block_id, unsigned int pWr
 	unsigned int pCeDataAddr = SEC_EFUSE_BASE_ADDR;//block base addr
 
 	/*enable CE0, CE1, CE_EFS*/
-	*(volatile uint32*)(AP_AHB_EB_REG) |= (0x7<<24);//en_clk
+	*(volatile uint32_t*)(AP_AHB_EB_REG) |= (0x7<<24);//en_clk
 
 	/*set ce efuse delay time*/
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_1) = 0x03400040;//adjust efuse clk
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_2) = 0x00400300;//adjust efuse clk
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_3) = 0x002000ff;//adjust efuse clk
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_4) = 0x00000010;//adjust efuse clk
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_5) = 0x00600060;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_1) = 0x03400040;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_2) = 0x00400300;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_3) = 0x002000ff;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_4) = 0x00000010;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_5) = 0x00600060;//adjust efuse clk
 
 	/*reset ce efuse controller*/
-	*(volatile uint32*)(AP_AHB_RST_REG) = 0x08000000;
-	*(volatile uint32*)(AP_AHB_RST_REG) = 0x00000000;
+	*(volatile uint32_t*)(AP_AHB_RST_REG) = 0x08000000;
+	*(volatile uint32_t*)(AP_AHB_RST_REG) = 0x00000000;
 
 	msleep(10);//delay 10ms
 
 	/*Auto trigger writting operation when up voltage time out*/
-	*(volatile uint32*)(EFUSE_LDO_VOL_UP_TIMEOUT)   = 0x001f4000;//adjust efuse clk
+	*(volatile uint32_t*)(EFUSE_LDO_VOL_UP_TIMEOUT)   = 0x001f4000;//adjust efuse clk
 	/*Auto trigger finish writting operation when down voltage time out*/
-	*(volatile uint32*)(EFUSE_LDO_VOL_DOWN_TIMEOUT) = 0x001f4000;//adjust efuse clk
+	*(volatile uint32_t*)(EFUSE_LDO_VOL_DOWN_TIMEOUT) = 0x001f4000;//adjust efuse clk
 
 	/*open efuse LDO*/
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x0068) &= ~(0x1 << 7);
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x006C) &= ~(0x1 << 7);
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x0078) |= ((0x1 << 5)|(0x1 << 7));
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x0068) &= ~(0x1 << 7);
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x006C) &= ~(0x1 << 7);
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x0078) |= ((0x1 << 5)|(0x1 << 7));
 
-	*(volatile uint32*)(REG_EFUSE_SECURE_STS) = 0x180;//clear efuse status
+	*(volatile uint32_t*)(REG_EFUSE_SECURE_STS) = 0x180;//clear efuse status
 
-	*(volatile uint32*)(pCeDataAddr+(block_id<<0x2)) = pWriteData;//write data
+	*(volatile uint32_t*)(pCeDataAddr+(block_id<<0x2)) = pWriteData;//write data
 
-	*(volatile uint32*)(REG_CE_SECURE_KEY_START_END_SYNC_ADDR) = ((block_id<<0x8)|block_id);//sync block
+	*(volatile uint32_t*)(REG_CE_SECURE_KEY_START_END_SYNC_ADDR) = ((block_id<<0x8)|block_id);//sync block
 
-	*(volatile uint32*)(REG_CE_SECURE_KEY_USE_WAY) = 0x60000000;//enable efuse write
+	*(volatile uint32_t*)(REG_CE_SECURE_KEY_USE_WAY) = 0x60000000;//enable efuse write
 
-	*(volatile uint32*)(REG_CE_SECURE_KEY_USE_WAY) = 0x20000000;//enable efuse write
+	*(volatile uint32_t*)(REG_CE_SECURE_KEY_USE_WAY) = 0x20000000;//enable efuse write
 
-	while(((*(volatile uint32*)(REG_EFUSE_SECURE_STS))&0x01) != 0x01);
+	while(((*(volatile uint32_t*)(REG_EFUSE_SECURE_STS))&0x01) != 0x01);
 
-	*(volatile uint32*)(REG_EFUSE_SECURE_STS) = 0x180;//clear efuse status
+	*(volatile uint32_t*)(REG_EFUSE_SECURE_STS) = 0x180;//clear efuse status
 
-	*(volatile uint32*)(REG_CE_SECURE_KEY_USE_WAY) = 0x40000000;//restoring independence status
+	*(volatile uint32_t*)(REG_CE_SECURE_KEY_USE_WAY) = 0x40000000;//restoring independence status
 
 	msleep(10);//delay 10ms
 
 	/*close efuse LDO*/
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x0068) |= (0x1 << 7);
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x006C) |= (0x1 << 7);
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x0078) &= ~((0x1 << 5)|(0x1 << 7));
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x0068) |= (0x1 << 7);
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x006C) |= (0x1 << 7);
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x0078) &= ~((0x1 << 5)|(0x1 << 7));
 
 	/*disable CE0, CE1, CE_EFS*/
-	*(volatile uint32*)(AP_AHB_EB_REG) &= ~(0x7<<24);//dis_clk
+	*(volatile uint32_t*)(AP_AHB_EB_REG) &= ~(0x7<<24);//dis_clk
 
 	return EFUSE_RESULT_SUCCESS;
 }
@@ -331,57 +331,57 @@ static Efuse_Result_Ret ce_efuse_huk_program(void)
 {
 	unsigned int pCeDataAddr = SEC_EFUSE_BASE_ADDR;//block base addr
 
-	*(volatile uint32*)(AP_AHB_EB_REG) |= (0x7<<24);//en_clk
+	*(volatile uint32_t*)(AP_AHB_EB_REG) |= (0x7<<24);//en_clk
 
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_1) = 0x03400040;//adjust efuse clk
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_2) = 0x00400300;//adjust efuse clk
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_3) = 0x002000ff;//adjust efuse clk
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_4) = 0x00000010;//adjust efuse clk
-	*(volatile uint32*)(CE_EFUSE_LDO_DELAY_5) = 0x00600060;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_1) = 0x03400040;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_2) = 0x00400300;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_3) = 0x002000ff;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_4) = 0x00000010;//adjust efuse clk
+	*(volatile uint32_t*)(CE_EFUSE_LDO_DELAY_5) = 0x00600060;//adjust efuse clk
 
 	//reset efuse controller
-	*(volatile uint32*)(AP_AHB_RST_REG) = 0x08000000;
-	*(volatile uint32*)(AP_AHB_RST_REG) = 0x00000000;
+	*(volatile uint32_t*)(AP_AHB_RST_REG) = 0x08000000;
+	*(volatile uint32_t*)(AP_AHB_RST_REG) = 0x00000000;
 
 	msleep(10);//delay 10ms
 
 	/*Auto trigger writting operation when up voltage time out*/
-	*(volatile uint32*)(EFUSE_LDO_VOL_UP_TIMEOUT) = 0x001f4000;//adjust efuse clk
+	*(volatile uint32_t*)(EFUSE_LDO_VOL_UP_TIMEOUT) = 0x001f4000;//adjust efuse clk
 	/*Auto trigger finish writting operation when down voltage time out*/
-	*(volatile uint32*)(EFUSE_LDO_VOL_DOWN_TIMEOUT) = 0x001f4000;//adjust efuse clk
+	*(volatile uint32_t*)(EFUSE_LDO_VOL_DOWN_TIMEOUT) = 0x001f4000;//adjust efuse clk
 
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x0068) &= ~(0x1 << 7);
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x006C) &= ~(0x1 << 7);
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x0078) |= ((0x1 << 5)|(0x1 << 7));
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x0068) &= ~(0x1 << 7);
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x006C) &= ~(0x1 << 7);
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x0078) |= ((0x1 << 5)|(0x1 << 7));
 
-	*(volatile uint32*)(REG_EFUSE_SECURE_STS) = 0x180;//clear efuse status
+	*(volatile uint32_t*)(REG_EFUSE_SECURE_STS) = 0x180;//clear efuse status
 
-	*(volatile uint32*)(CE_CLK_EB_REG) = 0x20; //enable trng clk
-	*(volatile uint32*)(CE_RNG_EB_REG) = 0x02; //only enable trng ring
-	*(volatile uint32*)(CE_RNG_EB_REG) = 0x03; //enable trng module
+	*(volatile uint32_t*)(CE_CLK_EB_REG) = 0x20; //enable trng clk
+	*(volatile uint32_t*)(CE_RNG_EB_REG) = 0x02; //only enable trng ring
+	*(volatile uint32_t*)(CE_RNG_EB_REG) = 0x03; //enable trng module
 
-	*(volatile uint32*)(CE_SEC_KEY_USE_WAY_REG) |= (0x1<<31);//enable ce secure key trng write
+	*(volatile uint32_t*)(CE_SEC_KEY_USE_WAY_REG) |= (0x1<<31);//enable ce secure key trng write
 
-	while(((*(volatile uint32*)(CE_SEC_KEY_USE_WAY_REG))&(0x1<<31)) != 0x0);//wait for 0
+	while(((*(volatile uint32_t*)(CE_SEC_KEY_USE_WAY_REG))&(0x1<<31)) != 0x0);//wait for 0
 
-	*(volatile uint32*)(CE_RNG_EB_REG) = 0x0; //disable trng ring
+	*(volatile uint32_t*)(CE_RNG_EB_REG) = 0x0; //disable trng ring
 
-	*(volatile uint32*)(CE_CLK_EB_REG) = 0x0;//disable trng clk
+	*(volatile uint32_t*)(CE_CLK_EB_REG) = 0x0;//disable trng clk
 
 
-	while(((*(volatile uint32*)(REG_EFUSE_SECURE_STS))&0x01) != 0x01);
+	while(((*(volatile uint32_t*)(REG_EFUSE_SECURE_STS))&0x01) != 0x01);
 
-	*(volatile uint32*)(REG_EFUSE_SECURE_STS) = 0x180;//clear efuse status
+	*(volatile uint32_t*)(REG_EFUSE_SECURE_STS) = 0x180;//clear efuse status
 
-	*(volatile uint32*)(REG_CE_SECURE_KEY_USE_WAY) = 0x40000000;//restoring independence status
+	*(volatile uint32_t*)(REG_CE_SECURE_KEY_USE_WAY) = 0x40000000;//restoring independence status
 
 	msleep(10);//delay 10ms
 
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x0068) |= (0x1 << 7);
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x006C) |= (0x1 << 7);
-	*(volatile uint32*)(CTL_AP_BASE_LDO + 0x0078) &= ~((0x1 << 5)|(0x1 << 7));
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x0068) |= (0x1 << 7);
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x006C) |= (0x1 << 7);
+	*(volatile uint32_t*)(CTL_AP_BASE_LDO + 0x0078) &= ~((0x1 << 5)|(0x1 << 7));
 
-	*(volatile uint32*)(AP_AHB_RST_REG) &= ~(0x7<<24);//dis_clk
+	*(volatile uint32_t*)(AP_AHB_RST_REG) &= ~(0x7<<24);//dis_clk
 
     return EFUSE_RESULT_SUCCESS;
 }

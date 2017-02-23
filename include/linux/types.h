@@ -154,5 +154,7 @@ struct ustat {
 	char			f_fname[6];
 	char			f_fpack[6];
 };
+typedef unsigned char	BOOLEAN;
+#define	VOLATILE volatile
 
 #endif /* _LINUX_TYPES_H */

@@ -1,7 +1,6 @@
-#include <asm/arch/sci_types.h>
-#include "adi_hal_internal.h"
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_reg.h>
+#include <adi_hal_internal.h>
 
 /***************************************************************************************************************************/
 /*     VDD18 VDD28 VDD25 RF0 RF1 RF2 EMMCIO EMMCCORE DCDCARM DCDCWRF DCDCWPA DCDCGEN DCDCOTP AVDD18 SD SIM0 SIM1 SIM2 CAMA */

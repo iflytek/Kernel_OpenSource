@@ -16,7 +16,6 @@
 #include <asm/io.h>
 #include <linux/types.h>
 #include <asm/arch/sprd_reg.h>
-#include "asm/arch/sci_types.h"
 #include "asm/arch/common.h"
 
 void sprd_intc_enable(void)

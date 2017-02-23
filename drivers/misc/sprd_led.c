@@ -1,4 +1,3 @@
-#include <asm/arch/sci_types.h>
 #include <asm/arch/sprd_reg.h>
 #include <adi_hal_internal.h>
 #include <sprd_led.h>

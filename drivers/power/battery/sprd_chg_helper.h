@@ -1,6 +1,5 @@
-#include <asm/arch/sci_types.h>
-#include <sprd_battery.h>
 #include <common.h>
+#include <sprd_battery.h>
 #include <i2c.h>
 typedef unsigned char BYTE;
 

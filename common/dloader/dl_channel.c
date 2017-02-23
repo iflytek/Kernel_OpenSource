@@ -6,8 +6,6 @@
 #define BOOT_FLAG_UART1                 (0x6A)
 #define BOOT_FLAG_UART0                 (0x7A)
 
-//extern uint32 FDL_GetBootMode (void);
-//#define FDL_UART0_CHANNEL_USE
 
 /******************************************************************************/
 //  Description:    find a useable channel

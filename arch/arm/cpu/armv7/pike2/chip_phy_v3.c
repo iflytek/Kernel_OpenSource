@@ -68,7 +68,7 @@ void CHIP_ResetMCU (void)  //reset interrupt disable??
 {
     // This loop is very important to let the reset process work well on V3 board
     // @Richard
-    uint32 i = 10000;
+    uint32_t i = 10000;
 
 	start_watchdog(5);
 
@@ -77,8 +77,8 @@ void CHIP_ResetMCU (void)  //reset interrupt disable??
     wdt_reset_MCU();
 
     {
-        volatile uint32 tick1 = SCI_GetTickCount();
-        volatile uint32 tick2 = SCI_GetTickCount();
+        volatile uint32_t tick1 = SCI_GetTickCount();
+        volatile uint32_t tick2 = SCI_GetTickCount();
 
         while ( (tick2 - tick1) < 500)
         {
@@ -605,14 +605,14 @@ struct dcdc_sleep_reg_ctrl ds_cfg=
 static void dcdc_core_ds_config(unsigned int para)
 {
 #if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723)
-	uint32 reg_val = 0;
-	uint32 dcdc_core_ctl_ds = -1;
-	uint32 dcdc_core_cal_ds = -1;
-	uint32 dcdc_core_cal_adi = 0;
-	uint32 dcdc_core_ctl_adi = -1;
-	uint32 reg_val_cal = 0;
-	static uint32 step_cal = 3;
-	uint32 step_cal_flag = 0;
+	uint32_t reg_val = 0;
+	uint32_t dcdc_core_ctl_ds = -1;
+	uint32_t dcdc_core_cal_ds = -1;
+	uint32_t dcdc_core_cal_adi = 0;
+	uint32_t dcdc_core_ctl_adi = -1;
+	uint32_t reg_val_cal = 0;
+	static uint32_t step_cal = 3;
+	uint32_t step_cal_flag = 0;
 
 	static struct dcdc_core_ds_step_info step_info[5]={
 		{ANA_REG_GLB_DCDC_SLP_CTRL2, 0,		ANA_REG_GLB_DCDC_SLP_CTRL4, 0},
@@ -624,9 +624,9 @@ static void dcdc_core_ds_config(unsigned int para)
 
 	static char dcdc_core_down_volt[]={4,1,1,2,3,5,0,6};
 	static char dcdc_core_up_volt[]={6,2,3,4,0,1,7,7};
-	uint32 i;
+	uint32_t i;
 	/*1100,700,800,900,1000,650,1200,1300*/
-	static uint32 step_ratio[]={8,8,4,4,4};
+	static uint32_t step_ratio[]={8,8,4,4,4};
 
 	/*sleep dcdc cal transformer for sc2723*/
 	dcdc_core_cal_adi = (ANA_REG_GET(ANA_REG_GLB_DCDC_CORE_ADI)) & 0x1F;

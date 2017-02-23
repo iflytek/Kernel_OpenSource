@@ -17,11 +17,9 @@
  **                         Dependencies                                      *
  **-------------------------------------------------------------------------- */
 
-//#include "stdio.h"
 #include "stdarg.h"
 #include "linux/string.h"
 #include <linux/types.h>
-#include "migrate.h"
 #include "sprd_debug.h"
 
 /**---------------------------------------------------------------------------*
@@ -34,8 +32,12 @@ extern   "C"
 /**----------------------------------------------------------------------------*
 **                               Micro Define                                 **
 **----------------------------------------------------------------------------*/
+#define	LOCAL		static
+#define PUBLIC
+#define TRUE   1   /* Boolean true value. */
+#define FALSE  0   /* Boolean false value. */
 
-//#define REG32(x)                                    (*((volatile uint32 *)(x)))
+
 /*
     Bit define
 */
@@ -72,9 +74,6 @@ extern   "C"
 #define BIT_30              0x40000000
 #define BIT_31              0x80000000
 
-
-
-//#define REG32(ChipReg)        ( *((volatile ChipRegT*) (ChipReg)))
 #define REG32(x)                                    (*((volatile uint32_t *)(x)))
 
 
@@ -84,11 +83,6 @@ extern   "C"
 #define CHIP_REG_GET(reg_addr)          (*(volatile u32 *)(reg_addr))
 #define CHIP_REG_SET(reg_addr, value)   (*(volatile u32 *)(reg_addr)  = (u32)(value))
 
-
-//Debug info Function and MacroS.
-
-#define CHIP_DRV_ASSERT SCI_ASSERT
-#define CHIP_DRV_PASSERT SCI_PASSERT
 
 typedef enum{
 TYPE_RESET = 0,           //bit[4:0]

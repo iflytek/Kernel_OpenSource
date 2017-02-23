@@ -18,6 +18,7 @@
 **                               Micro Define                                **
 **---------------------------------------------------------------------------*/
 #include "asm/arch/sprd_reg.h"
+#include <asm/arch/common.h>
 
 ////
 /*----------Real Timer Counter Register----------*/

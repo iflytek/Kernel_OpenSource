@@ -18,7 +18,6 @@
 #include <usb/usb200_fdl.h>
 #include <packet.h>
 #include <dl_crc.h>
-#include <asm/arch/sci_types.h>
 
 void usb_phy_init(void)
 {

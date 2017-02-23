@@ -34,7 +34,6 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <asm/arch/sci_types.h>
 #include <sprd_regulator.h>
 #include <asm/arch/sprd_reg.h>
 /*

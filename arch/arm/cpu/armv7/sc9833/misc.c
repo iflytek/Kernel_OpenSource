@@ -1,7 +1,6 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
-#include <asm/arch/sci_types.h>
 #include "adi_hal_internal.h"
 #include <asm/arch/common.h>
 #include <sprd_pmic_misc.h>
@@ -135,9 +134,9 @@ void misc_init()
 
 typedef struct mem_cs_info
 {
-	uint32 cs_number;
-	uint32 cs0_size;//bytes
-	uint32 cs1_size;//bytes
+	uint32_t cs_number;
+	uint32_t cs0_size;//bytes
+	uint32_t cs1_size;//bytes
 }mem_cs_info_t;
 PUBLIC int get_dram_cs_number(void)
 {

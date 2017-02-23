@@ -96,8 +96,8 @@ extern   "C"
 **                               Macro Define for adc/tpc                    **
 **---------------------------------------------------------------------------*/
 
-#define ADC_SCALE_3V        SCI_FALSE
-#define ADC_SCALE_1V2       SCI_TRUE
+#define ADC_SCALE_3V        0
+#define ADC_SCALE_1V2       1
 //
 #define TPC_CHANNEL_X       2
 #define TPC_CHANNEL_Y       3

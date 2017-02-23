@@ -21,7 +21,6 @@
 #define  _ADI_HAL_INTERNAL_H_
 
 #include "adi.h"
-#include <asm/arch/sci_types.h>
 
 #define		ADI_init	sci_adi_init
 

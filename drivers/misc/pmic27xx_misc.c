@@ -1,7 +1,6 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
-#include <asm/arch/sci_types.h>
 #include "adi_hal_internal.h"
 #include <asm/arch/common.h>
 #include <otp_helper.h>
@@ -28,7 +27,7 @@ int is_7s_reset_for_systemdump(void)
 	return (val == PBINT_7S_SW_FLAG);
 }
 
-static inline int pbint_7s_rst_disable(uint32 disable)
+static inline int pbint_7s_rst_disable(uint32_t disable)
 {
 	if (disable) {
 		sci_adi_set(ANA_REG_GLB_POR_7S_CTRL, BIT_PBINT_7S_RST_DISABLE);
@@ -38,7 +37,7 @@ static inline int pbint_7s_rst_disable(uint32 disable)
 	return 0;
 }
 
-static inline int pbint_7s_rst_set_2keymode(uint32 mode)
+static inline int pbint_7s_rst_set_2keymode(uint32_t mode)
 {
 #if defined CONFIG_ADIE_SC2723S || defined CONFIG_ADIE_SC2723
 	if (!mode) {
@@ -61,7 +60,7 @@ static inline int pbint_7s_rst_set_2keymode(uint32 mode)
 #endif
 	return 0;
 }
-static inline int pbint_7s_rst_set_sw(uint32 mode)
+static inline int pbint_7s_rst_set_sw(uint32_t mode)
 {
 	if (mode) {
 		sci_adi_set(ANA_REG_GLB_POR_7S_CTRL, BIT_PBINT_7S_RST_MODE);
@@ -71,7 +70,7 @@ static inline int pbint_7s_rst_set_sw(uint32 mode)
 	return 0;
 }
 
-static inline int pbint_7s_rst_set_swmode(uint32 mode)
+static inline int pbint_7s_rst_set_swmode(uint32_t mode)
 {
 	if (mode) {
 		sci_adi_set(ANA_REG_GLB_POR_7S_CTRL, BIT_PBINT_7S_RST_SWMODE);
@@ -81,7 +80,7 @@ static inline int pbint_7s_rst_set_swmode(uint32 mode)
 	return 0;
 }
 
-static inline int pbint_7s_rst_set_threshold(uint32 th)
+static inline int pbint_7s_rst_set_threshold(uint32_t th)
 {
 #if defined CONFIG_ADIE_SC2723S || defined CONFIG_ADIE_SC2723
 	th = (th - 1)/2;
@@ -92,7 +91,7 @@ static inline int pbint_7s_rst_set_threshold(uint32 th)
 	return 0;
 }
 
-int pbint_7s_rst_cfg(uint32 en, uint32 sw_rst, uint32 short_rst)
+int pbint_7s_rst_cfg(uint32_t en, uint32_t sw_rst, uint32_t short_rst)
 {
 	pbint_7s_flag = sci_adi_read(ANA_REG_GLB_POR_SRC_FLAG);
 	sci_adi_set(ANA_REG_GLB_POR_7S_CTRL, BIT_PBINT_7S_FLAG_CLR);

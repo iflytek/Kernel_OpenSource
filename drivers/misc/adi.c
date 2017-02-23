@@ -367,11 +367,11 @@ int adi_hwchannel_set(unsigned int chn, unsigned int config)
 
 	if (chn < 32) {
 		val = __raw_readl(REG_ADI_CHNL_EN0);
-		val |= Bit(chn);
+		val |= BIT(chn);
 		__raw_writel(val, REG_ADI_CHNL_EN0);
 	} else if (chn < HW_CHN_CNT) {
 		val = __raw_readl(REG_ADI_CHNL_EN1);
-		val |= Bit(chn - 32);
+		val |= BIT(chn - 32);
 		__raw_writel(val, REG_ADI_CHNL_EN1);
 	} else {
 		return -1;

@@ -458,7 +458,6 @@ OPERATE_STATUS _nv_img_write(uchar * partition, uint32_t size)
 	uchar *backup_partition_name = NULL;
 	uint8_t header_buf[NV_HEADER_SIZE];
 	nv_header_t *nv_header_p = NULL;
-	//uint32 checksum = 0;
 
 	memset(header_buf, 0x00, NV_HEADER_SIZE);
 	nv_header_p = header_buf;

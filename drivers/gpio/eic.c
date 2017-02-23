@@ -14,7 +14,6 @@
 #include <config.h>
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
-#include <asm/arch/sci_types.h>
 #include <asm/arch/sprd_eic.h>
 #include "adi_hal_internal.h"
 #include <asm/arch/common.h>

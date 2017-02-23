@@ -40,7 +40,6 @@
 #include <div64.h>
 #include <asm/io.h>
 #include <linux/types.h>
-#include "asm/arch/sci_types.h"
 #include "asm/arch/common.h"
 #include "asm/arch/sys_timer_reg_v5.h"
 #include "asm/arch/timer_reg_r4p0.h"
@@ -158,7 +157,7 @@ void __udelay (unsigned long usec)
 	REG32 (TM2_CTL) &=~ (BIT_TIMER_RUN);//timer stops
 }
 
-uint32 SCI_GetTickCount(void)
+uint32_t SCI_GetTickCount(void)
 {
 	return SYSTEM_CURRENT_CLOCK;
 }

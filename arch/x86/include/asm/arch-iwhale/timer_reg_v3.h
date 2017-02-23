@@ -66,10 +66,10 @@ extern   "C"
 //the structure of Timer register group.
 typedef struct timer_tag
 {
-    VOLATILE uint32 load;
-    VOLATILE uint32 value;
-    VOLATILE uint32 ctl;
-    VOLATILE uint32 clr;
+	volatile uint32_t load;
+	volatile uint32_t value;
+	volatile uint32_t ctl;
+	volatile uint32_t clr;
 } timer_s;
 
 /**----------------------------------------------------------------------------*
