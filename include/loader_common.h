@@ -35,6 +35,9 @@ extern unsigned char raw_header[8192];
 #define PRODUCTINFO_FILE_PATITION  "miscdata"
 #define DT_PART "dt"
 
+#define PDT_INFO_LOCK_FLAG_OFFSET (8*1024)
+#define PDT_INFO_LOCK_FLAG_SECTION_SIZE (512)
+
 /*FDT_ADD_SIZE used to describe the size of the new bootargs items*/
 
 /*include lcd id, lcd base, etc*/

@@ -87,6 +87,65 @@ char *get_product_sn(void)
 	return serial_number_to_transfer;
 }
 
+/*
+* flag:1 means jump secure check or verify.
+* flag:0 means normal check
+* default: 0
+*/
+unsigned int get_fblockflag(void)
+{
+	unsigned char tmp_buffer[512];
+
+	memset(tmp_buffer, 0, sizeof(tmp_buffer));
+	if (common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(tmp_buffer), PDT_INFO_LOCK_FLAG_OFFSET, (char *)tmp_buffer)) {
+		debugf("read miscdata error.\n");
+	}
+
+	if (!strcmp("VerifiedBoot-LOCK", tmp_buffer)) {
+		g_fb_lockflag = 0;
+	}
+	else if (!strcmp("VerifiedBoot-UNLOCK", tmp_buffer)) {
+		g_fb_lockflag = 1;
+	}
+	else {
+		debugf("flag data invalid:%s\n", tmp_buffer);
+		g_fb_lockflag = 0; /*default lock status.*/
+	}
+	//g_fb_lockflag = tmp_buffer[0];
+	return g_fb_lockflag;
+}
+
+int set_fblockflag(unsigned int flag)
+{
+	unsigned char tmp_buffer[512];
+	unsigned int fb_lockflag_old = 0;
+	unsigned int fb_lockflag_new = 0;
+
+	memset(tmp_buffer, 0, sizeof(tmp_buffer));
+	if (flag == 1) {
+		strcat(tmp_buffer, "VerifiedBoot-UNLOCK");
+	}
+	else if(flag == 0) {
+		strcat(tmp_buffer, "VerifiedBoot-LOCK");
+	}
+	else {
+		debugf("lockflag is invalid.\n");
+		return -2;
+	}
+
+	fb_lockflag_old = get_fblockflag();
+
+	if (common_raw_write(PRODUCTINFO_FILE_PATITION, sizeof(tmp_buffer), sizeof(tmp_buffer), PDT_INFO_LOCK_FLAG_OFFSET, (unsigned char *)tmp_buffer)) {
+		debugf("write miscdata error.\n");
+		return -1;
+	}
+
+	fb_lockflag_new = get_fblockflag();
+
+	debugf("old value:%d, new value:%d\n", fb_lockflag_old, fb_lockflag_new);
+	return 0;
+}
+
 void fdt_fixup_all(u8 *fdt_blob)
 {
 	uint32_t fdt_size;

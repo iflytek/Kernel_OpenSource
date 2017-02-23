@@ -47,6 +47,7 @@ extern uchar *_get_backup_partition_name(uchar * partition_name);
 #ifdef CONFIG_SECURE_BOOT
 #include "secure_verify.h"
 #endif
+#define FLASHING_LOCK_PARA_LEN (8)
 
 #ifdef CONFIG_NAND_BOOT
 #include <nand.h>
@@ -109,6 +110,10 @@ extern int fb_usb_read(void *_buf, unsigned len);
 extern void power_down_devices(unsigned pd_cmd);
 extern void reboot_devices(unsigned reboot_mode);
 extern void splFillCheckData(uchar * splBuf);
+
+/*for fastboot flashing cmd*/
+extern unsigned int get_fblockflag(void);
+extern int set_fblockflag(unsigned int flag);
 
 #ifdef CONFIG_X86
 unsigned char *g_FbBuf = (unsigned char *)0x35000000;
@@ -564,8 +569,66 @@ void boot_linux(unsigned kaddr, unsigned taddr)
 	theKernel(DT_ADR, 0, 0, 0);
 }
 
-extern unsigned char raw_header[8192];
+void fb_cmd_getlockflag(const char *arg, void *data, uint64_t sz)
+{
+	unsigned int fb_cmdtmpflag = 0;
 
+	fb_cmdtmpflag = get_fblockflag();
+
+	if(fb_cmdtmpflag == 0)
+		debugf("lock flag is lock.\n");
+	else
+		debugf("lock flag is unlock.\n");
+
+	fastboot_okay("");
+}
+
+void fb_cmd_setlockflag(const char *arg, void *data, uint64_t sz)
+{
+	char * search = arg;
+	unsigned int fb_cmdtmpflag = 0;
+	int tmp_ret = 0;
+	char flag_name[FLASHING_LOCK_PARA_LEN];
+	int i;
+
+	debugf("arg#%s#, data: %p, sz: 0x%x\n", arg, data, sz);
+
+	memset(flag_name, 0, sizeof(flag_name));
+	for (i = 0; i < FLASHING_LOCK_PARA_LEN; i++) {
+		flag_name[i] = arg[i];
+		if (0 == arg[i])
+			break;
+	}
+
+	debugf("flag_name#%s#\n", flag_name);
+
+	/*check bootimage(recoveryimage) when flash or bootup*/
+	if(0 == strcmp(" lock", flag_name))	{
+		/*normal secure check*/
+		fb_cmdtmpflag = 0;
+	}
+	else if(0 == strcmp(" unlock", flag_name)) {
+		/*jump secure check*/
+		fb_cmdtmpflag = 1;
+	}
+	else	{
+		fastboot_fail("invalid arg.");
+		return;
+	}
+
+	tmp_ret = set_fblockflag(fb_cmdtmpflag);
+	if(tmp_ret)
+		debugf("set_fblockflag failed, ret:%d\n", tmp_ret);
+
+	if(fb_cmdtmpflag == 0)
+		debugf("set lock flag to lock.\n");
+	else
+		debugf("set lock flag to unlock.\n");
+
+	fastboot_okay("");
+}
+
+extern unsigned char raw_header[8192];
 void fb_cmd_boot(const char *arg, void *data, uint64_t sz)
 {
 	boot_img_hdr *hdr = (boot_img_hdr *)raw_header;
@@ -694,6 +757,8 @@ int do_fastboot(void)
 	fastboot_register("powerdown", fb_cmd_powerdown);
 	fastboot_register("continue", fb_cmd_continue);
 	fastboot_register("reboot-bootloader", fb_cmd_reboot_bootloader);
+	fastboot_register("flashing", fb_cmd_setlockflag);
+	fastboot_register("getflag", fb_cmd_getlockflag);
 
 	fastboot_handler(0);
 
