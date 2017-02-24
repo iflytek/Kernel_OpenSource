@@ -21,7 +21,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x80000000;
 
-void misc_init()
+void subsys_clk_enable()
 {
 	sci_glb_set(REG_AON_APB_APB_EB0, BIT_AON_APB_AON_GPU_EB);
 	sci_glb_set(REG_AON_APB_APB_EB1, BIT_AON_APB_AON_DISP_EB |
@@ -38,7 +38,7 @@ int board_init(void)
 #ifndef CONFIG_FPGA
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 	//ADI_init();
-	misc_init();
+	subsys_clk_enable();
 	pmic_adc_Init();
 	//pin_init();
 	sprd_eic_init();
