@@ -465,7 +465,6 @@ int pctool_mode_detect(void)
 	cali_usb_debug(pctool_cmd_buf);
 #endif
 	ret = cali_usb_enum();
-	dcache_enable();
 	if (!ret)
 		return -1;
 	ret = cali_get_cmd(pctool_cmd_buf, CALIBERATE_STRING_LEN );
@@ -482,6 +481,7 @@ int pctool_mode_detect(void)
 	if(!ret)
 		return -1;
 
+	dcache_enable();
 	if (CALIBERATE_COMMAND_PROGRAMKEY == command)
 	{
 		ret = cali_get_cmd(pctool_cmd_buf, CALIBERATE_STRING_LEN_14);
