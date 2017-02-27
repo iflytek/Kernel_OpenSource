@@ -20,8 +20,7 @@
 
 		/* element array: addr(64), size(64), type*/
 		e820_map =  <0x00000000 0x00000000 0x00000000 0x00800000 E820_RESERVED>, /* vmm reserve */
-			<0x00000000 0xfe000000 0x00000000 0x01000000 E820_RESERVED>, /* reserve */
-			<0x00000000 0x00800000 0x00000000 0x7F800000 E820_RAM>; /* vmm end to DRAM end */
+			<0x00000000 0xfe000000 0x00000000 0x01000000 E820_RESERVED>; /* reserve */
 	};
 
 };

@@ -90,7 +90,7 @@ unsigned install_e820_map_auto_detect(unsigned max_entries, struct e820entry *en
 	e820_entries_detect=ddr_info->section_number;
 	/*the first part of ddr,may be reserved for vmm in vmm board*/
 	e820_entries_dts = install_e820_map_fdt(max_entries, entries);
-	entries++;
+	entries = entries + e820_entries_dts;
 	entries->addr = U32_TO_U64(ddr_info->sec_info[0].start_address_high,ddr_info->sec_info[0].start_address_low)+VMM_RESERVE_SIZE;
 	entries->size  = U32_TO_U64(ddr_info->sec_info[0].end_address_high,ddr_info->sec_info[0].end_address_low)-entries->addr+0x1;
 	entries->type  = E820_RAM;
