@@ -139,7 +139,14 @@ int x86_init_cpus(void)
 	}
 
 #endif
-
+#ifndef CONFIG_MOBILEVISOR
+	/* enable lbr */
+	{
+		unsigned low, high;
+		rdmsr(MSR_IA32_DEBUGCTLMSR, low, high);
+		wrmsr(MSR_IA32_DEBUGCTLMSR, low | DEBUGCTLMSR_LBR, high);
+	}
+#endif
 	return 0;
 }
 
