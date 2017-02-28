@@ -739,13 +739,25 @@ static int recalculate_kernel_memory(unsigned char *fdt_blob, int nodeoffset, in
 				base_addr += msize;
 			} else if (maddr > base_addr) {
 				debugf("d2\n");
-				sprd_dump_mem[i].paddr = base_addr;
-				sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
-				sprd_dump_mem[i].size  = maddr - base_addr;
-				sprd_dump_mem[i].soff  = 0xffffffff;
-				sprd_dump_mem[i].type  = SYSDUMP_RAM;
-				base_addr = maddr + msize;
-				i++;
+				if (maddr <= (entries->size + 1)) {
+					sprd_dump_mem[i].paddr = base_addr;
+					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
+					sprd_dump_mem[i].size  = maddr - base_addr;
+					sprd_dump_mem[i].soff  = 0xffffffff;
+					sprd_dump_mem[i].type  = SYSDUMP_RAM;
+					base_addr = maddr + msize;
+					i++;
+				} else {
+					sprd_dump_mem[i].paddr = base_addr;
+					sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
+					sprd_dump_mem[i].size  = entries->addr + entries->size - base_addr + 1;
+					sprd_dump_mem[i].soff  = 0xffffffff;
+					sprd_dump_mem[i].type  = SYSDUMP_RAM;
+					i++;
+					entries++;
+					mem_used++;
+					base_addr = entries->addr;
+				}
 			}
 		} else {   //this entry
 			if (maddr == base_addr) {
