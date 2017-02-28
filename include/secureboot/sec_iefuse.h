@@ -22,6 +22,8 @@
 
 #define PUBLIC_EFUSE_BLOCK2  (2)
 
+#define RMA_MODE_BIT         (0)
+
 typedef enum {
 	EFUSE_RESULT_SUCCESS = 0,
 	EFUSE_RD_ERROR,

@@ -59,19 +59,9 @@ unsigned int sprd_set_version(sw_version_id_t counterId, unsigned int swVersion)
 unsigned int sprd_rotpk1_program(unsigned int* pArotpkData);
 
 /*
- * enable rotpk1.
- */
-unsigned int sprd_set_rotpk1_enable(void);
-
-/*
  * write endorsement key.
  */
 unsigned int sprd_endorkey_program(unsigned int* pEndorkeyData);
-
-/*
- * set lifecycle rma.
- */
-unsigned int sprd_set_rma_mode(void);
 
 /*
  * get device life cycle state.
@@ -86,7 +76,32 @@ unsigned int sprd_reserved_efuse_program(unsigned int start_id, unsigned int end
 /*
  * read efuse blocks.
  */
-unsigned int sprd_secure_efuse_blocks_read(unsigned int start_id, unsigned int end_id, unsigned int *readData);
+unsigned int sprd_sec_efuse_blocks_read(unsigned int start_id, unsigned int end_id, unsigned int *readData);
+
+/*
+ * read rotpk0 blocks
+ */
+unsigned int sprd_sec_efuse_rotpk0_read(unsigned int *readData);
+
+/*
+ * read rotpk1 blocks
+ */
+unsigned int sprd_sec_efuse_rotpk1_read(unsigned int *readData);
+
+/*
+ * read endorkey blocks
+ */
+unsigned int sprd_sec_efuse_endorkey_read(unsigned int *readData);
+
+/*
+ * read reserverd blocks
+ */
+unsigned int sprd_sec_efuse_reserverd_read(unsigned int startOffset, unsigned int *readData, unsigned int len);
+
+/*
+ * read eotpk select blocks
+ */
+unsigned int sprd_sec_efuse_rotpk_select(unsigned int *rpkFlag);
 
 
 #ifdef __cplusplus

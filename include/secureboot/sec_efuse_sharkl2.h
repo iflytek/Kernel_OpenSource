@@ -109,6 +109,7 @@
 #define PUBLIC_EFUSE_BLOCK2  (2)
 //end of add for adapt platform api
 
+#define RMA_MODE_BIT         (0)
 typedef enum sec_efuse_test_type{
 	WRITE_HUK = 0x1,
 	WRITE_KCE = 0x2,

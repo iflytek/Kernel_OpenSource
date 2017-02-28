@@ -247,15 +247,6 @@ unsigned int sprd_rotpk1_program(unsigned int* pArotpkData)
     return sec_efuse_write_blocks_and_check(ROTPK1_BLOCK_START, ROTPK1_BLOCK_END, pArotpkData);
 }
 
-/*
- * enable rotpk1
- */
-unsigned int sprd_set_rotpk1_enable(void)
-{
-    /* set Device life cycle state register's 1 bit */
-    return sec_efuse_set_bit(CYCLE_STATE_BLOCK, 1);
-}
-
 unsigned int sprd_get_version(sw_version_id_t counterId, unsigned int* swVersion)
 {
     unsigned int i, reg_value, ret = 0;
@@ -348,14 +339,6 @@ unsigned int sprd_endorkey_program(unsigned int* pEndorkeyData)
     return sec_efuse_write_blocks_and_check(ENDORKEY_BLOCK_START, ENDORKEY_BLOCK_END, pEndorkeyData);
 }
 
-/*
- * set lifecycle rma
- **/
-unsigned int sprd_set_rma_mode(void)
-{
-    return sec_efuse_set_bit(CYCLE_STATE_BLOCK, 0);
-}
-
 static unsigned int is_secure_boot_enable(void)
 {
     return sprd_get_secure_boot_enable();
@@ -397,7 +380,7 @@ unsigned int sprd_get_lcs(unsigned *pLcs)
         *pLcs = SECURE_LCS;
 
     /* check lifecycle is rma */
-    ret = sec_efuse_get_bit(CYCLE_STATE_BLOCK, 1, &rma_bit);
+    ret = sec_efuse_get_bit(CYCLE_STATE_BLOCK, RMA_MODE_BIT, &rma_bit);
     if (ret)
         return ret;
 
@@ -417,7 +400,7 @@ unsigned int sprd_reserved_efuse_program(unsigned int start_id, unsigned int end
 	return sec_efuse_write_blocks_and_check(start_id, end_id, pReservedData);
 }
 
-unsigned int sprd_secure_efuse_blocks_read(unsigned int start_id, unsigned int end_id, unsigned int *readData)
+unsigned int sprd_sec_efuse_blocks_read(unsigned int start_id, unsigned int end_id, unsigned int *readData)
 {
 	unsigned int ret = 0;
 	int block_id;
@@ -437,11 +420,56 @@ unsigned int sprd_secure_efuse_blocks_read(unsigned int start_id, unsigned int e
 		if (read_ptr == NULL)
 			return SEC_EFUSE_POINTER_ERR;
 
-		ret = sec_efuse_read(block_id, read_ptr);
-		if (ret)
-			return ret;
-		read_ptr++;
-	}
+        ret = sec_efuse_read(block_id, read_ptr);
+        if (ret)
+            return ret;
+        read_ptr++;
+    }
 
-	return ret;
+    return ret;
 }
+
+unsigned int sprd_sec_efuse_rotpk0_read(unsigned int *readData)
+{
+        return sprd_sec_efuse_blocks_read(ROTPK0_BLOCK_START, ROTPK0_BLOCK_END, readData);
+}
+
+unsigned int sprd_sec_efuse_rotpk1_read(unsigned int *readData)
+{
+        return sprd_sec_efuse_blocks_read(ROTPK1_BLOCK_START, ROTPK1_BLOCK_END, readData);
+}
+
+unsigned int sprd_sec_efuse_endorkey_read(unsigned int *readData)
+{
+        return sprd_sec_efuse_blocks_read(ENDORKEY_BLOCK_START, ENDORKEY_BLOCK_END, readData);
+}
+
+unsigned int sprd_sec_efuse_reserverd_read(unsigned int startOffset, unsigned int *readData, unsigned int len)
+{
+        int i, ret = 0;
+        int start_block_id = RESERVED_BLOCK_START + startOffset;
+        int end_offset = (len + ALL_ONES_NUM_BITS - 1)  / ALL_ONES_NUM_BITS - 1;
+        int end_block_id = start_block_id + end_offset;
+        int bit_mask = 0;
+        int tmp_len = len % ALL_ONES_NUM_BITS;
+
+        if ((len == 0) || (readData == NULL))
+                return SEC_EFUSE_ILLEGAL_INPUT_PARAM_ERR;
+
+        ret = sprd_sec_efuse_blocks_read(start_block_id, end_block_id, readData);
+        if (ret)
+                return ret;
+
+        for (i = 0; i < tmp_len; i++)
+        {
+                bit_mask |= 1 << i;
+        }
+        readData[end_offset] &= bit_mask;
+        return ret;
+}
+
+unsigned int sprd_sec_efuse_rotpk_select(unsigned int *rpkFlag)
+{
+    return sec_efuse_get_bit(CYCLE_STATE_BLOCK, 1, rpkFlag);
+}
+
