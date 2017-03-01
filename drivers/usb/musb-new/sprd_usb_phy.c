@@ -19,11 +19,25 @@
 #include <packet.h>
 #include <dl_crc.h>
 
+static void __raw_bits_and(unsigned int v, unsigned int a)
+{
+	__raw_writel((__raw_readl(a) & v), a);
+}
+
+static void __raw_bits_or(unsigned int v, unsigned int a)
+{
+	__raw_writel((__raw_readl(a) | v), a);
+}
+
 void usb_phy_init(void)
 {
 	__raw_bits_or(BIT_24|BIT_22, REG_AP_AHB_OTG_PHY_TEST);
 
+#ifdef CONFIG_FPGA
+	__raw_bits_or((BIT_29|BIT_30), REG_AP_AHB_OTG_PHY_CTRL);//Tiger PHY width: 16 bit
+#else
 	__raw_bits_and(~(BIT_29|BIT_30), REG_AP_AHB_OTG_PHY_CTRL);//SPRD USB PHY width: 8 bit
+#endif
 
 	__raw_bits_or(BIT_20, REG_AP_AHB_OTG_CTRL1);//utmi_rst
 

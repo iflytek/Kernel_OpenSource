@@ -616,8 +616,13 @@ static void usb_enable_module(int en)
 void Musb_mdelay(uint32_t msecs)
 {
 	//mdelay(msecs);
+#ifdef CONFIG_FPGA
+	udelay(msecs * 10);
+#else
 	udelay(msecs * 1000);
+#endif
 }
+
 static void usb_startup(void)
 {
 	usb_enable_module(1);
