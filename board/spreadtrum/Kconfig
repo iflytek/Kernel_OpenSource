@@ -135,6 +135,12 @@ config TARGET_PIKE2
 	help
 	  This is the Spreadtrum pike2 Board
 
+config TARGET_SP7700_FPGA
+	bool "Spreadtrum sp7700_fpga"
+	select CPU_V7
+	help
+	  This is the Spreadtrum pike2 FPGA Board
+
 config TARGET_J1VDK
 	bool "Spreadtrum j1vdk"
 	select ARM64
@@ -192,6 +198,7 @@ source "board/spreadtrum/sp9860g_4h10_5m/Kconfig"
 source "board/spreadtrum/sp9850ka_1h10/Kconfig"
 source "board/spreadtrum/sp9833zebu/Kconfig"
 source "board/spreadtrum/pike2/Kconfig"
+source "board/spreadtrum/sp7700_fpga/Kconfig"
 source "board/spreadtrum/j1vdk/Kconfig"
 source "board/spreadtrum/j1fpga/Kconfig"
 source "board/spreadtrum/j1zebu/Kconfig"
