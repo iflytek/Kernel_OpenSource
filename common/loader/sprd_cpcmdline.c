@@ -36,6 +36,7 @@ static const char *cmd_arr[] = {
 	AUTO_TEST,
 #ifdef CONFIG_TSX_32K
 	CRYSTAL_TYPE,
+	RF_HW_ID,
 #endif
 	CHIPUID,
 	NULL
@@ -337,6 +338,9 @@ void cp_cmdline_fixup(void)
 
 #if defined(CONFIG_TSX_32K)
 	value_less=sprd_get32_less();
+
+	sprintf(buf,"%d",value_less);
+	cmdline_add_cp_cmdline(RF_HW_ID, buf);
 	sprintf(buf,"%d",(int)tsx_32k_table[value_less].k32_less_data);
 	cmdline_add_cp_cmdline(K32_LESS, buf);
 	sprintf(buf,"%d",(int)tsx_32k_table[value_less].crystal_data);

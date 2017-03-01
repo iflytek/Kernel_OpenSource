@@ -20,6 +20,7 @@
 #define AUTO_TEST        "autotest"
 #ifdef CONFIG_TSX_32K
 #define CRYSTAL_TYPE    "crystal"
+#define RF_HW_ID       "rfhw.id"
 #endif
 
 #define CHIPUID          "chip.uid"
