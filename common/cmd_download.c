@@ -21,6 +21,11 @@
 #include <malloc.h>
 #include <chipram_env.h>
 
+#ifdef CONFIG_SOC_IWHALE2
+#include <asm/arch/chip_id.h>
+#endif
+
+
 static int dl_times=0;
 static struct dl_cmd *cmdlist = NULL;
 
@@ -72,16 +77,22 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	extern int autodloader_mainhandler(void);
 	boot_mode_t boot_role = get_boot_role();
+	int chip_version = 0;
+
+#ifdef CONFIG_SOC_IWHALE2
+	chip_version = get_chip_version();
+#endif
 
 #ifdef CONFIG_USB_ENUM_IN_UBOOT
-if ((dl_times==0) && (boot_role == BOOTLOADER_MODE_DOWNLOAD))
+if ((dl_times==0) && (boot_role == BOOTLOADER_MODE_DOWNLOAD) && (0 == chip_version))
 {
         dl_times=dl_times+1;
         autodloader_mainhandler();
 }
 #endif
+
 	printf("%s:enter\n", __FUNCTION__);
-        dl_packet_init ();
+	dl_packet_init ();
 #ifdef CONFIG_NAND_BOOT
 	fdl_ubi_dev_init();
 #endif
