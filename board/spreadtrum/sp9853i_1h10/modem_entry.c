@@ -6,7 +6,6 @@
 
 void modem_entry()
 {
-	agdsp_boot();
 #ifndef CONFIG_KERNEL_BOOT_CP
 	parm_modem_boot();
 	pubcp_boot();

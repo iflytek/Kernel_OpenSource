@@ -76,7 +76,7 @@ static inline void pubcp_boot(void)
 		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
 
 	/* hold cr5 */
-	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= BIT_COM_PMU_APB_PUBCP_SYS_SRST;
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= (BIT_COM_PMU_APB_PUBCP_SYS_SRST|BIT_COM_PMU_APB_PUBCP_CR5_SRST);
 	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= BIT_COM_PMU_APB_PUBCP_CR5_CORE_SRST;
 
 	/* clear r5 sleep */
@@ -90,24 +90,14 @@ static inline void pubcp_boot(void)
 
 	/* release cr5 */
 	msleep(50);
-	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) &= ~BIT_COM_PMU_APB_PUBCP_SYS_SRST;
+	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) &= ~(BIT_COM_PMU_APB_PUBCP_SYS_SRST|BIT_COM_PMU_APB_PUBCP_CR5_SRST);
 	msleep(50);
 	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) &= ~BIT_COM_PMU_APB_PUBCP_CR5_CORE_SRST;
-}
-
-/*Just for iwhale bringup --from Sheng.Zhu advice*/
-void ag_tg_ldsp_hold()
-{
-	/* hold tg&ag&ldsp */
-	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= (BIT_COM_PMU_APB_WTLCP_TGDSP_SRST|BIT_COM_PMU_APB_WTLCP_LDSP_SRST|BIT_COM_PMU_APB_AGCP_DSP_SRST);
 }
 
 /* activation of PARM related iram  */
 void pmic_arm7_RAM_active(void)
 {
-	/*Just for iwhale bringup --from Sheng.Zhu advice*/
-	ag_tg_ldsp_hold();
-
 	/* enable ap access to cm4 permissions */
 	*((volatile u32*)REG_COMMON_APB_SP_CFG_BUS) &= ~BIT_COMMON_APB_SP_CFG_BUS_SLEEP;
 	/* hold cm4 */
@@ -123,21 +113,6 @@ static inline void parm_modem_boot(void)
 	/* release cm4 */
 	msleep(50);
 	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) &= ~(BIT_COM_PMU_APB_CM4_CORE_SRST | BIT_COM_PMU_APB_CM4_SYS_SRST);
-}
-
-static inline void agdsp_boot(void)
-{
-#if 0
-	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) |= (BIT_COM_PMU_APB_AGCP_DSP_SRST | BIT_COM_PMU_APB_AGCP_DSP_SYS_SRST);
-	*((volatile u32*)REG_PMU_APB_PD_AGCP_SYS_PWR_CFG) &= ~BIT_PMU_APB_PD_AGCP_SYS_FORCE_SHUTDOWN;
-	*((volatile u32*)REG_PMU_APB_PD_AGCP_DSP_PWR_CFG) &= ~BIT_PMU_APB_PD_AGCP_DSP_FORCE_SHUTDOWN;
-	*((volatile u32*)REG_PMU_APB_AGCP_SYS_SLEEP_CTRL) &= ~(BIT_PMU_APB_AGCP_SYS_FORCE_LIGHT_SLEEP0 | BIT_PMU_APB_AGCP_SYS_FORCE_DEEP_SLEEP | BIT_PMU_APB_AGCP_SYS_FORCE_DOZE_SLEEP);
-	*((volatile u32*)REG_AON_APB_AGCP_BOOT_PROT) |= BIT_AON_APB_AGCP_REG_PROT_VAL(0x9620);
-	*((volatile u32*)REG_AON_APB_AGCP_DSP_CTRL0) = BIT_AON_APB_AGCP_DSP_BOOT_VECTOR(0x40450040);
-	*((volatile u32*)REG_AON_APB_AGCP_DSP_CTRL1) |= BIT_AON_APB_AGCP_DSP_BOOT;
-	*((volatile u32*)REG_AON_APB_AGCP_CTRL) |= BIT_AON_APB_AGCP_TOP_ACCESS_EN;
-	*((volatile u32*)REG_COM_PMU_APB_SYS_SOFT_RESET) &= ~(BIT_COM_PMU_APB_AGCP_DSP_SRST | BIT_COM_PMU_APB_AGCP_DSP_SYS_SRST | BIT_COM_PMU_APB_AGCP_SYS_SRST);
-#endif
 }
 
 /**---------------------------------------------------------------------------*
