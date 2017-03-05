@@ -4,6 +4,8 @@
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_efuse.h>
 
+typedef unsigned int uint32;
+
 #define REG_READ(reg_addr,value)\
 do{\
 	value = *(volatile uint32*)(reg_addr);\
