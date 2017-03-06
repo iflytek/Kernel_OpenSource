@@ -36,4 +36,7 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+/* for power detect, default high */
+#define CONFIG_POWERKEY_DEFAULT_HIGH
+
 #endif /* __CONFIG_H */
