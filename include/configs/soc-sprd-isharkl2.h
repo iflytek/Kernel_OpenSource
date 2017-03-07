@@ -4,6 +4,7 @@
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 
+#define CONFIG_IDENT_STRING            "isharkl2"
 
 #define CONFIG_SILENT_CONSOLE
 

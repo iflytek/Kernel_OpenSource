@@ -28,7 +28,6 @@ int board_init(void)
 #ifndef CONFIG_FPGA
 	/*get env transfer from chipram*/
 	setup_chipram_env();
-	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 	ADI_init();
 	misc_init();
 	LDO_Init();
