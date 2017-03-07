@@ -1,0 +1,148 @@
+/dts-v1/;
+
+#include <dt-bindings/e820/e820.h>
+
+/ {
+	model = "SpreadTrum iWhale2 SoC (x86 based)";
+	compatible = "sprd,iwhale2";
+
+	#address-cells = <1>;
+	#size-cells = <1>;
+	interrupt-parent = <&pic>;
+
+	#include "irq-hirq.dtsi"
+
+	chosen {
+		linux,stdout-path = &uart0;
+		bootargs = "earlycon mobilevisor mce=off no_timer_check";
+	};
+
+	aliases {
+		serial0 = &uart0;
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			device_type = "cpu";
+			compatible = "intel,bullhill";
+			reg = <0>;
+		};
+
+		cpu@1 {
+			device_type = "cpu";
+			compatible = "intel,bullhill";
+			reg = <1>;
+		};
+
+		cpu@2 {
+			device_type = "cpu";
+			compatible = "intel,bullhill";
+			reg = <2>;
+		};
+
+		cpu@3 {
+			device_type = "cpu";
+			compatible = "intel,bullhill";
+			reg = <3>;
+		};
+
+		cpu@4 {
+			device_type = "cpu";
+			compatible = "intel,bullhill";
+			reg = <4>;
+		};
+
+		cpu@5 {
+			device_type = "cpu";
+			compatible = "intel,bullhill";
+			reg = <5>;
+		};
+
+		cpu@6 {
+			device_type = "cpu";
+			compatible = "intel,bullhill";
+			reg = <6>;
+		};
+
+		cpu@7 {
+			device_type = "cpu";
+			compatible = "intel,bullhill";
+			reg = <7>;
+		};
+	};
+
+	e820_map {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		compatible = "intel,e820_map";
+
+		/* element array: addr(64), size(64), type*/
+		e820_map = <0x00000000 0x00000000 0x00000000 0x00800000 E820_RESERVED>, /* vmm reserve */
+			   <0x00000000 0xfe000000 0x00000000 0x01000000 E820_RESERVED>;
+	};
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "simple-bus";
+		ranges;
+
+		pic: interrupt-controller {
+			compatible = "intel,mv-vpic";
+			#interrupt-cells = <2>;
+			interrupt-controller;
+			reg = <0xfec00000 0x2000>,
+				<0xfec01000 0x1000>;
+			intel,vpic-irqs = < 256 >;
+		};
+
+		lapic:interrupt-controller@fee00000{
+			compatible = "intel,x86-lapic";
+			reg = <0xfee00000 0x1000>;
+			no_pic_mode;
+			no_apic_setup;
+		};
+
+		timer@fed00000 {
+			compatible = "intel,x86-hpet";
+			reg = <0xfed00000 0x400>;
+		};
+
+		uart0: uart@e7000000 {
+			compatible  = "sprd,sc9836-uart";
+			interrupt-parent = <&pic>;
+			interrupts = <35 2>; /* irq 27, active high */
+			reg = <0xe7000000 0x1000>;
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+                #size-cells = <2>;
+                ranges;
+		/* fb */
+		fb_reserved: fb@45b00000 {
+		     reg = <0x0 0x45b00000 0x0 0x1800000>;
+		 };
+	};
+
+	ion {
+		compatible = "sprd,ion";
+		#address-cells = <1>;
+                #size-cells = <0>;
+		heap@3 {
+			reg = <3>;
+			label = "carveout_fb";
+			type = <2>;
+			memory-region = <&fb_reserved>;
+		};
+	};
+
+	mobilevisor {
+		compatible = "intel,mobilevisor";
+		interrupt-parent = <&hirq>;
+	};
+};

@@ -8,6 +8,8 @@ dtb-y += chromebook_link.dtb \
 	isharkl.dtb \
 	sp9861e_1h10.dtb \
 	sp9861e_1h10_vmm.dtb \
+	sp9861e_3h10.dtb \
+	sp9861e_3h10_vmm.dtb \
 	sp9861e_1h11.dtb \
 	sp9861e_2h10.dtb \
 	sp9861e_2h10_vmm.dtb \
