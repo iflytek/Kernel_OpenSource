@@ -36,6 +36,8 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+#define CONFIG_USB_UTMI_WIDTH_8
+
 /* for power detect, default high */
 #define CONFIG_POWERKEY_DEFAULT_HIGH
 

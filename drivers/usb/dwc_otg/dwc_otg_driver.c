@@ -655,8 +655,8 @@ static int dwc_otg_driver_probe(void)
 	 * 0x45F42XXX, which corresponds to "OT2", as in "OTG version 2.XX".
 	 */
 
-	if ((dwc_otg_get_gsnpsid(dwc_otg_device->core_if) & 0xFFFFF000) !=
-	    0x4F542000) {
+	if ((dwc_otg_get_gsnpsid(dwc_otg_device->core_if) & 0xFFFF0000) !=
+	    0x4F540000) {
 		dwc_debug("Bad value for SNPSID: 0x%08x\n",
 			dwc_otg_get_gsnpsid(dwc_otg_device->core_if));
 		dwc_otg_cil_remove(dwc_otg_device->core_if);

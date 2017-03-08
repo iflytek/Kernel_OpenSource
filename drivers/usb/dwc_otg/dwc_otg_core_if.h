@@ -308,7 +308,11 @@ extern int32_t dwc_otg_get_param_phy_type(dwc_otg_core_if_t * core_if);
 extern int dwc_otg_set_param_phy_utmi_width(dwc_otg_core_if_t * core_if,
 					    int32_t val);
 extern int32_t dwc_otg_get_param_phy_utmi_width(dwc_otg_core_if_t * core_if);
+#ifdef CONFIG_USB_UTMI_WIDTH_8
+#define dwc_param_phy_utmi_width_default 8
+#else
 #define dwc_param_phy_utmi_width_default 16
+#endif
 
 /**
  * Specifies whether the ULPI operates at double or single

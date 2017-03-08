@@ -6,5 +6,6 @@
 /**********vmm related***********/
 #undef VMM_RESERVE_SIZE
 #define VMM_RESERVE_SIZE 0x800000
+#define CONFIG_USB_UTMI_WIDTH_8
 
 #endif /* __CONFIG_H */

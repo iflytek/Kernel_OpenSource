@@ -546,6 +546,8 @@ static void __raw_bits_or(unsigned int v, unsigned int a)
 #define LDO_LDO_USB "vddusb"
 #endif
 
+#define ISHARKL2_USB_PHY_BASE	0xE41500AC
+
 static inline
 void    usb_ldo_switch(int flag)
 {
@@ -596,6 +598,10 @@ static void usb_startup(void)
 	__raw_bits_or(BIT_OTG_SOFT_RST, REG_AP_AHB_AHB_RST);
 	dwc_mdelay(5);
 	__raw_bits_and(~(BIT_OTG_SOFT_RST), REG_AP_AHB_AHB_RST);
+#ifndef CONFIG_FPGA
+	__raw_bits_or(BIT_23,ISHARKL2_USB_PHY_BASE);	//init the intel usb phy
+#endif
+
 #else
 	__raw_bits_or(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST|BIT_OTG_PHY_SOFT_RST, REG_AP_AHB_AHB_RST);
 	dwc_mdelay(5);

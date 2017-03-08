@@ -657,7 +657,7 @@ void dwc_otg_core_init(dwc_otg_core_if_t * core_if)
 
 	case DWC_INT_DMA_ARCH:
 		DWC_DEBUGPL(DBG_CIL, "Internal DMA Mode\n");
-		ahbcfg.b.hburstlen = DWC_GAHBCFG_INT_DMA_BURST_INCR;
+		ahbcfg.b.hburstlen = DWC_GAHBCFG_INT_DMA_BURST_INCR;	//DWC_GAHBCFG_INT_DMA_BURST_INCR16 minicode
 		core_if->dma_enable = (core_if->core_params->dma_enable != 0);
 		core_if->dma_desc_enable =
 		    (core_if->core_params->dma_desc_enable != 0);
