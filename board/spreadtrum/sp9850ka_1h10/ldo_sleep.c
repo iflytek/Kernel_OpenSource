@@ -26,7 +26,7 @@ void DCDC_ldo_power_on()
 	//regulator_enable("vddcammot");
 	//regulator_enable("vddsim0");
 	//regulator_enable("vddsim1");
-	//regulator_enable("vddsim2");
+	regulator_enable("vddsim2");
 	//regulator_enable("vddemmccore");
 	regulator_disable("vddsdcore");
 	regulator_disable("vddsdio");
@@ -278,7 +278,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN3,
 		//BIT_LDO_SIM2_EXT_XTL0_EN |
 		//BIT_LDO_SIM2_EXT_XTL1_EN |
-		//BIT_LDO_SIM2_EXT_XTL2_EN |
+		BIT_LDO_SIM2_EXT_XTL2_EN |
 		//BIT_LDO_SIM2_EXT_XTL3_EN |
 		BIT_LDO_MEM_EXT_XTL0_EN |
 		//BIT_LDO_MEM_EXT_XTL1_EN |
