@@ -333,6 +333,8 @@ struct sprdchg_ic_operations sprd_extic_op ={
 	.timer_callback = chg_bq25896_reset_timer,
 	.chg_cmd = chg_bq25896_cmd,
 };
-struct sprdchg_ic_operations *sprdchg_ic_ops_get(void){
-	return &sprd_extic_op;
+
+void sprdchg_bq25896_init(void)
+{
+	sprdchg_register_ops(&sprd_extic_op);
 }

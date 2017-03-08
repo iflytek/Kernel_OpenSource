@@ -30,6 +30,17 @@ int sprdbat_is_battery_connected(void);
 void sprdbat_show_chglogo(void);
 void sprdbat_chg_led(int on);
 uint32_t sprdbat_get_aux_vbatvol(void);
+void sprdchg_common_cfg(void);
+
+/* ext chg ic init function*/
+void sprdchg_fan54015_init(void);
+void sprdchg_bq25896_init(void);
+void sprdchg_2700_init(void);
+void sprdchg_2701_init(void);
+void sprdchg_2731_init(void);
+void sprdchg_2721_init(void);
+void sprdchg_2723_init(void);
+
 
 #endif
 

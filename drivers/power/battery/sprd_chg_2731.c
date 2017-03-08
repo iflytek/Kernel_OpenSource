@@ -155,11 +155,10 @@ static struct sprdchg_ic_operations sprd_chg2731_op ={
 	.chg_cmd = sprd2731_chg_cmd,
 };
 
-#ifndef CONFIG_SPRD_EXT_IC_POWER
-struct sprdchg_ic_operations *sprdchg_ic_ops_get(void){
-	return &sprd_chg2731_op;
+void sprdchg_2731_init(void)
+{
+	sprdchg_register_ops(&sprd_chg2731_op);
 }
-#endif
 
 int sprdchg_charger_is_adapter(void)
 {

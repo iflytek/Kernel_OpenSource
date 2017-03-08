@@ -324,6 +324,7 @@
 /*sprd charge*/
 #define CONFIG_SPRD_EXT_IC_POWER
 #define CONFIG_SPRD2700_CHARGE_IC
+#define CONFIG_FAN54015_CHARGE_IC
 #define CONFIG_SPRDCHG_I2C_BUS 1
 
 /* Chip Driver Macro Definitions Start*/

@@ -29,11 +29,14 @@ extern void power_down_devices(unsigned pd_cmd);
 
 static enum sprd_adapter_type adp_type;
 static int chg_cur,limit_cur,fast_chg;
-static struct sprdchg_ic_operations *sprd_chg_ic_op;
+static const struct sprdchg_ic_operations *sprd_chg_ic_op;
 static int count;
 
 static void sprdchg_timer_callback(void)
 {
+	if (!sprd_chg_ic_op)
+		return;
+
 	count ++;
 	if(count == 50){
 		count = 0;
@@ -45,6 +48,9 @@ void sprdbat_lowbat_chg(void)
 {
 	enum sprd_adapter_type charger = sprdchg_charger_is_adapter();
 	unsigned int vbat_vol = sprdbat_get_aux_vbatvol();
+
+	if (!sprd_chg_ic_op)
+		return;
 
 	if (charger == ADP_TYPE_DCP) {
 		limit_cur = DCP_LIMIT_CUR;
@@ -75,6 +81,16 @@ void sprdbat_lowbat_chg(void)
 	sprdchg_timer_callback();
 }
 
+void sprdchg_register_ops(const struct sprdchg_ic_operations *ops)
+{
+	sprd_chg_ic_op = ops;
+}
+
+const struct sprdchg_ic_operations *sprdchg_ic_ops_get(void)
+{
+	return sprd_chg_ic_op;
+}
+
 void sprdbat_init(void)
 {
 	boot_mode_t boot_role;
@@ -84,10 +100,6 @@ void sprdbat_init(void)
 
 	boot_role = cr_env->mode;
 	keep_charge = cr_env->keep_charge;
-
-	sprdchg_common_cfg();
-
-	sprd_chg_ic_op = sprdchg_ic_ops_get();
 
 	if (!sprd_chg_ic_op) {
 		printf("ERR!!!:chg op is NULL....\n");

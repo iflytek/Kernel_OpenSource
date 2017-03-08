@@ -12,6 +12,7 @@
 #include <chipram_env.h>
 #include <sprd_adc.h>
 #include <sprd_led.h>
+#include <sprd_battery.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x40000000;
@@ -70,6 +71,13 @@ int misc_init_r(void)
 	return 0;
 }
 
+static void battery_init(void)
+{
+	sprdchg_common_cfg();
+	sprdchg_2731_init();
+	sprdbat_init();
+}
+
 int board_late_init(void)
 {
 
@@ -86,7 +94,7 @@ int board_late_init(void)
 	nand_ubi_dev_init();
 	debugf("nand ubi init OK!\n");
 #endif
-	sprdbat_init();
+	battery_init();
 	debugf("CHG init OK!\n");
 	if (sprdbat_get_vbatauxadc_caltype() != 0) {
 		/*fix me*/

@@ -215,7 +215,7 @@ void  sprd_2701_sw_reset(void)
 	sprd_2701_set_value(POWER_ON_CTL, SW_RESET_BIT, SW_RESET_SHIFT, 1);
 }
 
-void sprdchg_2701_init(void)
+void sprdchg_2701_ic_init(void)
 {
 	BYTE data = 0;
 	int i = 0;
@@ -260,12 +260,15 @@ static int sprdchg_2701_cmd(enum sprdchg_cmd cmd,int value)
 }
 
 struct sprdchg_ic_operations sprd_extic_op ={
-	.ic_init = sprdchg_2701_init,
+	.ic_init = sprdchg_2701_ic_init,
 	.chg_start = sprdchg_2701_start_chg,
 	.chg_stop = sprdchg_2701_stop_charging,
 	.timer_callback = sprdchg_2701_reset_timer,
 	.chg_cmd = sprdchg_2701_cmd,
 };
-struct sprdchg_ic_operations *sprdchg_ic_ops_get(void){
-	return &sprd_extic_op;
+
+void sprdchg_2701_init(void)
+{
+	sprdchg_register_ops(&sprd_extic_op);
 }
+

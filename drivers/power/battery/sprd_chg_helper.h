@@ -24,5 +24,5 @@ int sprdchg_charger_is_adapter(void);
 void chg_low_bat_chg(void);
 void sprdbat_help_init(void);
 void sprdfgu_init(void);
-void sprdchg_common_cfg(void);
-struct sprdchg_ic_operations *sprdchg_ic_ops_get(void);
+const struct sprdchg_ic_operations *sprdchg_ic_ops_get(void);
+void sprdchg_register_ops(const struct sprdchg_ic_operations* ops);

@@ -19,6 +19,7 @@
 #include <chipram_env.h>
 #include <asm/arch/sprd_reg.h>
 #include <sprd_adc.h>
+#include <sprd_battery.h>
 
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -168,6 +169,13 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 	return ;
 }
 
+static void battery_init(void)
+{
+	sprdchg_common_cfg();
+	sprdchg_2721_init();
+	sprdbat_init();
+}
+
 int board_late_init(void)
 {
 	boot_mode_t boot_role;
@@ -185,8 +193,7 @@ int board_late_init(void)
 #endif
 
 #endif
-	extern void sprdbat_init(void);
-	sprdbat_init();
+	battery_init();
 	debugf("CHG init OK!\n");
 	if (sprdbat_get_vbatauxadc_caltype() != 0) {
 		/*fix me*/

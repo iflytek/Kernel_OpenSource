@@ -91,17 +91,9 @@ void sprdchg_2700_stop_chg(int value)
 		CHG_EN_SHIFT, CHG_DISABLE_VAL);
 }
 
-void sprdchg_2700_init(void)
+void sprdchg_2700_ic_init(void)
 {
-	BYTE data = 0;
-	int i = 0;
 
-	debugf("2700init\n");
-	sprd_2700_i2c_init();
-	for(i = 0;  i < 5;  i++){
-		sprd_2700_read_reg(i, &data);
-		debugf("sprd_2700_ReadReg i = %d, data = %x\n",i,data);
-	}
 }
 
 void sprd_2700_termina_cur_set(BYTE reg_val)
@@ -154,14 +146,36 @@ static int sprdchg_2700_cmd(enum sprdchg_cmd cmd,int value)
 	return 0;
 }
 
-struct sprdchg_ic_operations sprd_extic_op = {
-	.ic_init = sprdchg_2700_init,
+static struct sprdchg_ic_operations sprd_extic_op = {
+	.ic_init = sprdchg_2700_ic_init,
 	.chg_start = sprdchg_2700_start_chg,
 	.chg_stop = sprdchg_2700_stop_chg,
 	.timer_callback = sprdchg_2700_reset_timer,
 	.chg_cmd = sprdchg_2700_cmd,
 };
 
-struct sprdchg_ic_operations *sprdchg_ic_ops_get(void) {
-	return &sprd_extic_op;
+void sprdchg_2700_init(void)
+{
+	BYTE data = 0;
+	int i = 0;
+
+	debugf("2700init\n");
+	sprd_2700_i2c_init();
+
+	/* identify device*/
+	sprd_2700_read_reg(2, &data);
+
+	if (data != 0x23) {
+		printf("sc2700 is not found,not register ops!!!\n");
+		return;
+	}
+
+	for(i = 0;  i < 5;  i++){
+		sprd_2700_read_reg(i, &data);
+		debugf("sprd_2700_ReadReg i = %d, data = %x\n",i,data);
+	}
+
+	printf("sc2700 register charge ops\n");
+	sprdchg_register_ops(&sprd_extic_op);
 }
+

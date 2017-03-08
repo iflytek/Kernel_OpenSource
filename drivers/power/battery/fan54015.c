@@ -297,21 +297,8 @@ void  fan54015_sw_reset(void)
 	printf("fan54015_sw_reset\n");
 	fan54015_set_value(FAN5405_REG_IBAT, FAN5405_RESET, FAN5405_RESET_SHIFT, 1);
 }
-void sprdchg_fan54015_init(void)
+void sprdchg_fan54015_ic_init(void)
 {
-	printf("fan5405init\n");
-	sprd_fan54015_i2c_init();
-//reg 6
-	fan54015_set_value(FAN5405_REG_SAFETY, FAN5405_VSAFE,FAN5405_VSAFE_SHIFT, VSAFE4P38);  // VSAFE = 4.38V
-	fan54015_set_value(FAN5405_REG_SAFETY, FAN5405_ISAFE, FAN5405_ISAFE_SHIFT, ISAFE1450);  // ISAFE = 1450mA (68mOhm)
-	fan54015_sw_reset();
-//reg 1
-	fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_VLOWV, FAN5405_VLOWV_SHIFT,VLOWV3P4);  // VLOWV = 3.4V
-	fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_IINLIM, FAN5405_IINLIM_SHIFT,IINLIM500);  // INLIM = 500mA
-//reg 2
-	fan54015_set_value(FAN5405_REG_OREG, FAN5405_OREG,FAN5405_OREG_SHIFT, VOREG4P2);  //OREG = 4.20V
-//reg 5
-	fan54015_set_value(FAN5405_REG_SP_CHARGER, FAN5405_IO_LEVEL,FAN5405_IO_LEVEL_SHIFT, ENIOLEVEL);  //IO_LEVEL is 0. Output current is controlled by IOCHARGE bits.
 
 }
 
@@ -408,13 +395,42 @@ static int sprdchg_fan54015_cmd(enum sprdchg_cmd cmd,int value)
 	return 0;
 }
 
-struct sprdchg_ic_operations sprd_extic_op ={
-	.ic_init = sprdchg_fan54015_init,
+static struct sprdchg_ic_operations sprd_extic_op ={
+	.ic_init = sprdchg_fan54015_ic_init,
 	.chg_start = sprdchg_fan54015_start_chg,
 	.chg_stop = sprdchg_fan54015_stop_charging,
 	.timer_callback = sprdchg_fan54015_reset_timer,
 	.chg_cmd = sprdchg_fan54015_cmd,
 };
-struct sprdchg_ic_operations *sprdchg_ic_ops_get(void){
-	return &sprd_extic_op;
+
+void sprdchg_fan54015_init(void)
+{
+	BYTE data = 0;
+	unsigned char vendor_id = 0;
+
+	printf("fan5405init\n");
+
+	sprd_fan54015_i2c_init();
+
+	vendor_id = fan54015_get_vendor_id();
+	if ((vendor_id != VENDOR_FAN54015)
+	    && (vendor_id != VENDOR_TQ24157)) {
+		printf("fan54015 is not found,not register ops!!!\n");
+		return;
+	}
+//reg 6
+	fan54015_set_value(FAN5405_REG_SAFETY, FAN5405_VSAFE,FAN5405_VSAFE_SHIFT, VSAFE4P38);  // VSAFE = 4.38V
+	fan54015_set_value(FAN5405_REG_SAFETY, FAN5405_ISAFE, FAN5405_ISAFE_SHIFT, ISAFE1450);	// ISAFE = 1450mA (68mOhm)
+	fan54015_sw_reset();
+//reg 1
+	fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_VLOWV, FAN5405_VLOWV_SHIFT,VLOWV3P4);	// VLOWV = 3.4V
+	fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_IINLIM, FAN5405_IINLIM_SHIFT,IINLIM500);  // INLIM = 500mA
+//reg 2
+	fan54015_set_value(FAN5405_REG_OREG, FAN5405_OREG,FAN5405_OREG_SHIFT, VOREG4P2);  //OREG = 4.20V
+//reg 5
+	fan54015_set_value(FAN5405_REG_SP_CHARGER, FAN5405_IO_LEVEL,FAN5405_IO_LEVEL_SHIFT, ENIOLEVEL);  //IO_LEVEL is 0. Output current is controlled by IOCHARGE bits.
+
+	printf("fan54015 register charge ops!\n");
+	sprdchg_register_ops(&sprd_extic_op);
 }
+
