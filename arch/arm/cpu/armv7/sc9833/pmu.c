@@ -265,11 +265,51 @@ static void dcdc_core_ds_config(uint32_t core_cal_para, uint32_t core_ctrl_para)
 	);
 }
 
+static void clk_auto_gate_enable(void)
+{
+       /* Set 0x20e00060~0x20e0009C as 0x500ff */
+       /* AP main matrix LPC */
+       CHIP_REG_SET(REG_AP_AHB_M0_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_M1_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_M2_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_M3_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_M4_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_M5_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_M6_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_M7_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_M8_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_M9_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_MAIN_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_S0_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_S1_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_S2_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_S3_LPC,0x500ff);
+       CHIP_REG_SET(REG_AP_AHB_S4_LPC,0x500ff);
+
+       /* SET BIT[18,16] */
+       /* TOP reg slice LPC */
+       CHIP_REG_OR(REG_AON_APB_TOP_LPC0,BIT_AON_APB_TOP_LPC0_ACTIVE_SYNC_SEL | BIT_AON_APB_TOP_LPC0_EB);
+       CHIP_REG_OR(REG_AON_APB_TOP_LPC1,BIT_AON_APB_TOP_LPC1_ACTIVE_SYNC_SEL | BIT_AON_APB_TOP_LPC1_EB);
+       CHIP_REG_OR(REG_AON_APB_TOP_LPC2,BIT_AON_APB_TOP_LPC2_ACTIVE_SYNC_SEL | BIT_AON_APB_TOP_LPC2_EB);
+       CHIP_REG_OR(REG_AON_APB_TOP_LPC3,BIT_AON_APB_TOP_LPC3_ACTIVE_SYNC_SEL | BIT_AON_APB_TOP_LPC3_EB);
+
+       /* SET BIT[19:16] as 0xC [3:0] as 0xF */
+       /* EMC CLK AUTO GATE Enable  */
+	   CHIP_REG_OR(REG_AON_APB_EMC_AUTO_GATE_EN,BIT_AON_APB_PUBCP_PUB_AUTO_GATE_EN | BIT_AON_APB_WTLCP_PUB_AUTO_GATE_EN);
+
+       /* SET BIT[1] */
+       /* WCDMA CLK AUTO GATE Enable */
+	   CHIP_REG_OR(REG_AON_APB_GLB_WCDMA_CTRL,BIT_AON_APB_PUBCP_WCDMA_AUTO_GATE_EN);
+
+}
+
+
 void CSP_Init(uint32_t gen_para)
 {
 	//uint32_t reg_val;
 	pmu_commom_config();
 	dcdc_core_ds_config(0,4);
+	clk_auto_gate_enable();
 }
 #endif
 
