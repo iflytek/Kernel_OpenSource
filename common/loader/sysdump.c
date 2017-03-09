@@ -49,13 +49,14 @@ enum {
 	FS_INVALID
 };
 
-int dump_rst_mode;
 struct sysdump_memory {
 	SYSDUMP_LONG addr;
 	SYSDUMP_LONG size;
 };
-static struct sysdump_memory reserved_memory[25];
+
+int mem_num = 0, re_num = 0, dump_rst_mode;
 static struct sysdump_memory linux_memory[5];
+static struct sysdump_memory reserved_memory[25];
 
 extern int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
@@ -199,6 +200,7 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 
 	debugf("writing 0x%lx bytes to sd file %s\n",
 		memsize, filename);
+
 	sysdump_lcd_printf("writing 0x%lx bytes to sd file %s\n",
 		memsize, filename);
 
@@ -654,7 +656,7 @@ static int recalculate_kernel_memory(unsigned char *fdt_blob, int nodeoffset, in
 {
 
 	struct sysdump_memory *entries = NULL;
-	int re_num = 0, j = 0, mem_used = 0, mem_num = 0, i = 0, k, offset;
+	int j = 0, mem_used = 0, i = 0, k, offset;
 	SYSDUMP_LONG maddr, msize, base_addr;
 	SYSDUMP_LONG old_addr = 0, old_size=0;
 
@@ -977,9 +979,9 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 void write_sysdump_before_boot(int rst_mode)
 {
 	int i, j, k, sprd_dump_mem_num, ret, fs_type;
-	int auto_test_flag = 0;
-	char info[1000] = {0};
-	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr;
+	int auto_test_flag = 0, s_length =0, test_num = 0;
+	char txt_info[1500] = {0};
+	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr, *string;
 	struct rtc_time tm;
 	struct sysdump_mem *mem;
 	struct sysdump_mem sprd_dump_mem[MAX_NUM_DUMP_MEM];
@@ -1070,8 +1072,10 @@ void write_sysdump_before_boot(int rst_mode)
 
 		if (strlen(infop->dump_path))
 			path = infop->dump_path;
-		else
+		else {
 			path = NULL;
+			memset(infop->dump_path, '\0', sizeof(infop->dump_path));
+                }
 
 	if (fs_type == FS_FAT32) {
 		int mod, key_code;
@@ -1240,9 +1244,12 @@ void write_sysdump_before_boot(int rst_mode)
 			tm.tm_year, tm.tm_mon, tm.tm_mday, \
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-		sprintf(info,"-%s%s\n-%s%s\n-%s%s\n-%s%d\n-%s%d\n-%s"LLX"\n-%s%d\n",
+		string = txt_info;
+		s_length = sprintf(txt_info,"-%s%s\n-%s%x\n-%s%s\n-%s%s\n-%s%d\n-%s%d\n-%s%d\n-%s"LLX"\n",
 			"time is ",
 			infop->time,
+			"reset mode is ",
+			dump_rst_mode,
 			"reason is ",
 			infop->reason,
 			"dump_path is ",
@@ -1255,7 +1262,33 @@ void write_sysdump_before_boot(int rst_mode)
 			infop->dump_mem_paddr,
 			"crash_key is ",
 			infop->crash_key);
-		write_mem_to_mmc(path, fnbuf, fs_type, (char *)(info), strlen(info));
+
+		/* record linux memory & reserved memory & dump memory to txt file */
+		string += s_length;
+		test_num += s_length;
+		for(i = 0; i < mem_num; i++) {
+			s_length = sprintf(string, "linux memory %d: "LLX"-"LLX"\n", i + 1,
+				linux_memory[i].addr, linux_memory[i].addr + linux_memory[i].size);
+			string += s_length;
+			test_num += s_length;
+		}
+
+		for(i = 0; i < re_num; i++) {
+			s_length = sprintf(string, "reserved memory %d: "LLX"-"LLX"\n", i + 1,
+				reserved_memory[i].addr, reserved_memory[i].addr + reserved_memory[i].size);
+			string += s_length;
+			test_num += s_length;
+		}
+
+		for(i = 0; i < sprd_dump_mem_num; i++) {
+			s_length = sprintf(string, "sprd dump memory %d: "LLX"-"LLX"\n", i + 1,
+				sprd_dump_mem[i].paddr, sprd_dump_mem[i].paddr + sprd_dump_mem[i].size -1);
+			string += s_length;
+			test_num += s_length;
+		}
+		debugf("txt_info is 0x%x and test_num is 0x%x\n", strlen(txt_info),test_num);
+		write_mem_to_mmc(path, fnbuf, fs_type, (char *)(txt_info), test_num);
+		/* record memory finished */
 
 		sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT, 0);
 		write_mem_to_mmc(path, fnbuf, fs_type,
