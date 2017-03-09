@@ -145,4 +145,10 @@
 		compatible = "intel,mobilevisor";
 		interrupt-parent = <&hirq>;
 	};
+
+        microcode {
+                update@0 {
+#include "microcode/MU_00_01_00070658_80000805.SIGNED.dtsi"
+                };
+        };
 };

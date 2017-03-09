@@ -17,6 +17,8 @@
 #include <asm/processor.h>
 #include <asm/microcode.h>
 
+#include <asm/mv/mobilevisor.h>
+
 /**
  * struct microcode_update - standard microcode header from Intel
  *
@@ -123,6 +125,11 @@ int microcode_update(void)
 	int node;
 	int ret;
 	int rev;
+
+	if (is_x86_mobilevisor()) {
+		debug("%s: skip as in vmm guest\n", __func__);
+		return -EINVAL;
+	}
 
 	microcode_read_cpu(&cpu);
 	node = 0;
