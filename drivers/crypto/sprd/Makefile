@@ -28,3 +28,10 @@ ccflags-y := -I$(srctree)/drivers/crypto/sprd/r3p0/inc
 
 obj-y += r3p0/
 endif
+
+
+ifneq ($(CONFIG_SOC_IWHALE2),)
+ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0/inc
+
+obj-y += r2p0/
+endif

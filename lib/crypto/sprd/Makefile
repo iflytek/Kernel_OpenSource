@@ -23,8 +23,12 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-obj-y += sprd_crypto.o
-
 ifneq ($(CONFIG_SC9833)$(CONFIG_SC9851)$(CONFIG_SPRD_SOC_SP9853I),)
+obj-y += sprd_crypto.o
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r3p0/inc
+endif
+
+ifneq ($(CONFIG_SOC_IWHALE2),)
+obj-y += sprd_crypto_r2p0.o
+ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0/inc
 endif
