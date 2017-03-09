@@ -16,6 +16,7 @@
 #include <asm/msr.h>
 #include <asm/bootparam.h>
 #include <asm/microcode.h>
+#include <asm/mv/mobilevisor.h>
 
 #ifdef CONFIG_BASEIA_S3
 #define RESERVED_RAM_SIZE 0x10000
@@ -105,6 +106,9 @@ static void bios_reset_done(void)
 
 int x86_init_cpus(void)
 {
+	printf("U-boot run in %s mode\n",
+		is_x86_mobilevisor()?"vmm guest":"native");
+
 	if (microcode_update() >= 0)
 		bios_reset_done();
 

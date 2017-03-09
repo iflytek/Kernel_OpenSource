@@ -36,6 +36,9 @@
 #include <asm/bootparam.h>
 #include <linux/compiler.h>
 
+#include <asm/control_regs.h>
+#include <asm/processor-flags.h>
+
 #include "mv_hypercalls.h"
 #include "mv_service_list.h"
 #include "mv_gal.h"
@@ -117,5 +120,11 @@ int mv_init(void)
 	mv_gal_init(shmem);
 
 	return 0;
+}
+
+int is_x86_mobilevisor(void)
+{
+	unsigned long cr4 = read_cr4();
+	return (cr4 & X86_CR4_VMXE)?1:0;
 }
 
