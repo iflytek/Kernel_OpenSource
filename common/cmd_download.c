@@ -79,16 +79,13 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	boot_mode_t boot_role = get_boot_role();
 	int chip_version = 0;
 
-#ifdef CONFIG_SOC_IWHALE2
-	chip_version = get_chip_version();
-#endif
-
 #ifdef CONFIG_USB_ENUM_IN_UBOOT
-if ((dl_times==0) && (boot_role == BOOTLOADER_MODE_DOWNLOAD) && (0 == chip_version))
-{
-        dl_times=dl_times+1;
-        autodloader_mainhandler();
-}
+	chip_version = sprd_get_chip_version();
+	if ((dl_times==0) && (boot_role == BOOTLOADER_MODE_DOWNLOAD) && (0 == chip_version))
+	{
+		dl_times=dl_times+1;
+		autodloader_mainhandler();
+	}
 #endif
 
 	printf("%s:enter\n", __FUNCTION__);
