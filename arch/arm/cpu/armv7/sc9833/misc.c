@@ -98,7 +98,6 @@ void sprd_get_chipid(void)
 {
 	unsigned int chip_id0 = 0, chip_id1 = 0;
 
-	chipid->ver_id = __raw_readl((void *)REG_AON_APB_AON_VER_ID);
 	for(chiptype = 0;chiptype < CHIP_TYPE_MAX;chiptype ++){
 
 		chip_id0 = __raw_readl((void *)REG_AON_APB_AON_CHIP_ID0);
@@ -107,6 +106,7 @@ void sprd_get_chipid(void)
 
 		if((chip_id0 == chipid[chiptype].chipid_0)
 			&& (chip_id1 == chipid[chiptype].chipid_1)){
+			chipid[chiptype].ver_id = __raw_readl((void *)REG_AON_APB_AON_VER_ID);
 			debugf("chip id = %s\n",chipid[chiptype].name);
 			break;
 		}
