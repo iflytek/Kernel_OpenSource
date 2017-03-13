@@ -167,12 +167,8 @@ int boot_load_recovery_in_sd(boot_img_hdr * hdr)
 
 int load_sd_ramdisk(void* buf,int size)
 {
-	struct mmc *mmc;
-	block_dev_desc_t *dev_desc=NULL;
 	int ret = 0;
 	char bufread[10];
-
-	_sd_fat_mount();
 
 	printf("%s: start, tick=%ld\n",__func__,get_ticks());
 	ret = file_fat_read(TEST_VERIFY_FILE, bufread, 10);

@@ -755,7 +755,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 	{
 		if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
 			int ramdisk_size;
-			ramdisk_size = boot_sprdisk(size, ramdisk_addr, 0);
+			ramdisk_size = boot_sprdisk(0, ramdisk_addr);
 			if (ramdisk_size > 0) {
 				hdr->ramdisk_size = ramdisk_size;
 				if (RAMDISK_ADR != ramdisk_addr) {
@@ -765,7 +765,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 					hdr->ramdisk_addr = ramdisk_addr;
 				}
 				fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+hdr->ramdisk_size , 1);
-				boot_sprdisk(ramdisk_size, ramdisk_addr, 1);
+				boot_sprdisk(ramdisk_size, ramdisk_addr);
 			} else {
 				errorf("%s, sprdisk mode failure!\n", __FUNCTION__);
 			}
@@ -783,6 +783,7 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		size = TDDSP_ADR - RAMDISK_ADR;
 #endif
 		if (size > 0)
+			_sd_fat_mount();
 			sd_ramdisk_size = load_sd_ramdisk((void *) RAMDISK_ADR, size);
 		if (sd_ramdisk_size > 0)
 			hdr->ramdisk_size = sd_ramdisk_size;
