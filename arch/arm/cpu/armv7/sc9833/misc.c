@@ -93,10 +93,10 @@ void scx35_pmu_reconfig(void) {}
 #endif
 
 
-static enum chip_type sprd_get_chipid(void)
+static enum chip_type chiptype;
+void sprd_get_chipid(void)
 {
 	unsigned int chip_id0 = 0, chip_id1 = 0;
-	enum chip_type chiptype;
 
 	chipid->ver_id = __raw_readl((void *)REG_AON_APB_AON_VER_ID);
 	for(chiptype = 0;chiptype < CHIP_TYPE_MAX;chiptype ++){
@@ -113,24 +113,21 @@ static enum chip_type sprd_get_chipid(void)
 	}
 	if(chiptype == CHIP_TYPE_MAX)
 		debugf("unknown chip\n");
-
-	return chiptype;
 }
 
-
-uint32_t sprd_get_chipid_h(enum chip_type chiptype)
+uint32_t sprd_get_chipid_h(void)
 {
 	if(chiptype != CHIP_TYPE_MAX)
 		return chipid[chiptype].chipid_1;
 }
 
-uint32_t sprd_get_chipid_l(enum chip_type chiptype)
+uint32_t sprd_get_chipid_l(void)
 {
 	if(chiptype != CHIP_TYPE_MAX)
 		return chipid[chiptype].chipid_0;
 }
 
-uint32_t sprd_get_chip_version(enum chip_type chiptype)
+uint32_t sprd_get_chip_version(void)
 {
 	if(chiptype != CHIP_TYPE_MAX)
 		return chipid[chiptype].ver_id;
@@ -146,7 +143,6 @@ static void sc9833_disable_clkautogate()
 void misc_init()
 {
 	int chipid_l,chipid_h,version_id;
-	enum chip_type chiptype;
 	scx35_pmu_reconfig();
 	sc9833_disable_clkautogate();
 
@@ -155,10 +151,10 @@ void misc_init()
 
 	pmic_misc_init();
 
-	chiptype = sprd_get_chipid();
-	chipid_l = sprd_get_chipid_l(chiptype);
-	chipid_h = sprd_get_chipid_h(chiptype);
-	version_id = sprd_get_chip_version(chiptype);
+	sprd_get_chipid();
+	chipid_l = sprd_get_chipid_l();
+	chipid_h = sprd_get_chipid_h();
+	version_id = sprd_get_chip_version();
 	debugf("chipid_l = 0x%x chipid_h = 0x%x version_id = 0x%x\n",chipid_l,chipid_h,version_id);
 }
 

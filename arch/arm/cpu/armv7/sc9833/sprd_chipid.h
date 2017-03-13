@@ -61,7 +61,8 @@ struct chipid chipid[CHIP_TYPE_MAX] = {
 	{G,NEMO,0,"NEMOG"},
 	{KLJ1,SHAR,0,"sharklj1"},
 };
-extern uint32_t sprd_get_chipid_h(enum chip_type chiptype);
-extern uint32_t sprd_get_chipid_l(enum chip_type chiptype);
-extern uint32_t sprd_get_chip_version(enum chip_type chiptype);
+extern void sprd_get_chipid(void);
+extern uint32_t sprd_get_chipid_h(void);
+extern uint32_t sprd_get_chipid_l(void);
+extern uint32_t sprd_get_chip_version(void);
 #endif
