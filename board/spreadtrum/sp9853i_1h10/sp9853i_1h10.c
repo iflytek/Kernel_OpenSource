@@ -40,7 +40,7 @@ int board_init(void)
 	ADI_init();
 	subsys_clk_enable();
 	pmic_adc_Init();
-	//pin_init();
+	pin_init();
 	sprd_eic_init();
 	sprd_gpio_init();
 	//regulator_init();
