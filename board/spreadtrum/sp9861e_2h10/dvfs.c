@@ -14,6 +14,7 @@
 #include <otp_helper.h>
 #include <asm/arch/hardware.h>
 #include <dvfs.h>
+#include "adi_hal_internal.h"
 
 #define FUSE_LFM_MODULE0_BLKNO		55
 #define FUSE_HFM_MODULE0_BLKNO		56
@@ -21,13 +22,18 @@
 #define FUSE_HFM_MODULE1_BLKNO		58
 #define FUSE_IDV_BLKNO			59
 
+#define VID_TABLE_DATA (CONFIG_BASEIA_SRAM + CONFIG_VID_OFFSET)
+
 static void *dvfs_mod0 = (void *)ADDR_DVFS_EN_MOD0;
 static void *dvfs_mod1 = (void *)ADDR_DVFS_EN_MOD1;
 static struct pmic_vid *vt_mod0 = (struct pmic_vid *)VT_MOD0;
 static struct pmic_vid *vt_mod1 = (struct pmic_vid *)VT_MOD1;
-static unsigned int hfm_vid_mod0, hfm_vid_mod1;
+static unsigned short hfm_vid_mod0, hfm_vid_mod1;
 
 static u32 freq[] = {0, 936, 1248, 1560, 1872, 0};
+u32 vmi_offsets [] = {0x0, 0x14, 0x20, 0x24, 0x28, 0x2c, 0x30,
+			0x34, 0x38, 0x3c, 0x60, 0x64};
+
 
 /** Host Bus Frequency
  * In intel platforms MSR 0xcd is used to calculate the FSB.
@@ -167,15 +173,21 @@ static void setup_vid_table(int module)
 	value as default. will remove this if efuse supported.*/
 	v = v0 + VID_V2;
 	if(!v->avail) {
-		set_pmic_voltage(v, 750);
-		debug("no VID_V2 on efuse, write 750mv as default\n");
+		if (ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW) < 0xC003) {
+			set_pmic_voltage(v, 1200);
+			debug("no VID_V2 on efuse, write 1200mv as default\n");
+		} else {
+			set_pmic_voltage(v, 750);
+			debug("no VID_V2 on efuse, write 750mv as default\n");
+		}
 	}
 	v = v0 + VID_V7;
 	if(!v->avail) {
 		set_pmic_voltage(v, 1200);
 		debug("no VID_V7 on efuse, write 1200mv as default\n");
 	}
-	/* WA end */
+	/*Programme the V0 to 750mv	*/
+	set_pmic_voltage(v0 + VID_V0, 750);
 
 	mv_v2 = get_pmic_min_voltage(module);
 	mv_v7 = get_pmic_max_voltage(module);
@@ -207,8 +219,22 @@ static void dump_table(int module)
 		      v0 + i, *(v0 + i), mv);
 	}
 }
+
+static void dump_vmi(void)
+{
+	int i;
+	u32 no_entries = sizeof(vmi_offsets) / sizeof(u32);
+	u32 *tbl0 = (u32*)VID_TABLE_DATA;
+	u32 *tbl1 = tbl0 + no_entries;
+
+	for (i = 0; i < no_entries; i++) {
+		debug("module 0 vmi_offset %x %x\n", vmi_offsets[i], *(tbl0 + i));
+		debug("module 1 vmi_offset %x %x\n", vmi_offsets[i], *(tbl1 + i));
+	}
+}
 #else
 static void dump_table(int module) {}
+static void dump_vmi(void) {}
 #endif
 
 void init_vid_table(void)
@@ -235,11 +261,12 @@ static void populate_min_max_voltage(void)
 	block = sprd_ap_efuse_read(FUSE_HFM_MODULE0_BLKNO);
 	v = (u32 *)(vt_mod0 + VID_V7);
 	*v = block;
-	hfm_vid_mod0 = block;
+	hfm_vid_mod0 = block & 0xFFFF;
 	if(hfm_vid_mod0 == 0)
 	{
-		hfm_vid_mod0 = 0xBAD;
-		debug("no efuse value\n");
+		/* Set this 1200mv	*/
+		hfm_vid_mod0 = 0x100;
+		printf("no efuse value\n");
 	}
 	debug("FUSE HFM MODULE0 # %x\n", block);
 
@@ -251,16 +278,46 @@ static void populate_min_max_voltage(void)
 	block = sprd_ap_efuse_read(FUSE_HFM_MODULE1_BLKNO);
 	v = (u32 *)(vt_mod1 + VID_V7);
 	*v = block;
-	hfm_vid_mod1 = block;
+	hfm_vid_mod1 = block & 0xFFFF;
 	if(hfm_vid_mod1 == 0)
 	{
-		hfm_vid_mod1 = 0xBAD;
-		debug("no efuse value\n");
+		/* Set this 1200mv	*/
+		hfm_vid_mod1 = 0x100;
+		printf("no efuse value\n");
 	}
 	debug("FUSE HFM MODULE1 # %x\n", block);
 
 	block = sprd_ap_efuse_read(FUSE_IDV_BLKNO);
 	debug("FUSE IDV %x\n", block);
+}
+
+/* 0xe44b0000/0xe44c0000 VMI control
+   0xe44b0014/0xe44c0014 VMI delay1 (DVFS delay)
+   0xe44b0020/0xe44c0020 VMI table
+   0xe44b0024/0xe44c0024
+   0xe44b0028/0xe44c0028
+   0xe44b002C/0xe44c002c
+   0xe44b0030/0xe44c0030
+   0xe44b0034/0xe44c0034
+   0xe44b0038/0xe44c0038
+   0xe44b003C/0xe44c003c
+   0xe44b0060/0xe44c0060 VMI delay 2 VDDCPU close ramp down to 0V delay
+   0xe44b0064/0xe44c0064 VMI delay 3 VDDCPU open ramp up to VID2 delay
+*/
+
+
+void save_vids(void)
+{
+	int i;
+	u32 no_entries = sizeof(vmi_offsets) / sizeof(u32);
+	u32 *tbl0 = (u32*)VID_TABLE_DATA;
+	u32 *tbl1 = tbl0 + no_entries;
+
+	for (i = 0; i < no_entries; i++) {
+		*(tbl0 + i) = *(u32 *)(dvfs_mod0 + vmi_offsets[i]);
+		*(tbl1 + i) = *(u32 *)(dvfs_mod1 + vmi_offsets[i]);
+	}
+	dump_vmi();
 }
 
 void dvfs_init(void)
@@ -278,11 +335,11 @@ void dvfs_init(void)
 
 	populate_min_max_voltage();
 
-	dvfs_enable = (hfm_vid_mod0 & 0xFFFF) << BAD_CFG_BIT ;
+	dvfs_enable = (hfm_vid_mod0) << BAD_CFG_BIT ;
 	dvfs_enable |= DVFS_ENABLE | ADI_MODE_EN;
 	writel(dvfs_enable, dvfs_mod0);
 
-	dvfs_enable = (hfm_vid_mod1 & 0xFFFF) << BAD_CFG_BIT ;
+	dvfs_enable = (hfm_vid_mod1) << BAD_CFG_BIT ;
 	dvfs_enable |= DVFS_ENABLE | ADI_MODE_EN;
 	writel(dvfs_enable, dvfs_mod1);
 
@@ -292,10 +349,51 @@ void dvfs_init(void)
 	adi_hwchannel_set(REG_ADI_CHNL11,DCDC_ARM1_VOL_ADI_ADDR);
 
 }
+
+/* For VMM build microcode is not patched during download
+ * skip p-state change if ucode version is zero in this case
+ */
+static inline uint32_t microcode_read_rev(void)
+{
+	/*
+	 * Some Intel CPUs can be very finicky about the CPUID sequence used.
+	 * So this is implemented in assembly so that it works reliably.
+	 */
+	uint32_t low, high;
+
+	asm volatile (
+		"xorl %%eax, %%eax\n"
+		"xorl %%edx, %%edx\n"
+		"movl %2, %%ecx\n"
+		"wrmsr\n"
+		"movl $0x01, %%eax\n"
+		"cpuid\n"
+		"movl %2, %%ecx\n"
+		"rdmsr\n"
+		: /* outputs */
+		"=a" (low), "=d" (high)
+		: /* inputs */
+		"i" (MSR_IA32_UCODE_REV)
+		: /* clobbers */
+		 "ebx", "ecx"
+	);
+
+	return high;
+}
+
 void change_cpu_freq()
 {
 	unsigned long long msr_bits;
 	unsigned long long msr_value;
+	unsigned long fid, vid;
+	int rev;
+
+	/* if ucode is not patched
+	 * return directly
+	 */
+	rev = microcode_read_rev();
+	if (rev == 0)
+		return;
 
 	/*IA32_CR_MISC_ENABLES :Enable_GS3  */
 	rdmsrl(MSR_IA32_MISC_ENABLES, msr_bits);
@@ -320,6 +418,25 @@ void change_cpu_freq()
 	msr_bits |= msr_value;
 
 	wrmsrl(MSR_IA32_PERF_CTL, msr_bits);
+
+	if (ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW) < 0xC003) {
+		rdmsrl(MSR_IA32_PERF_STATUS, msr_bits);
+		vid = (unsigned long)msr_bits & 0xff;
+		fid = (unsigned long)msr_bits >> 8;
+		while ((vid != 5) && (fid != 0x14)) {
+			rdmsrl(MSR_IA32_PERF_STATUS, msr_bits);
+			vid = (unsigned long)msr_bits & 0xff;
+			fid = (unsigned long)msr_bits >> 8;
+		}
+
+		msr_bits = 0; /* Clear the select bits  */
+		msr_value = (0x14 & 0x3F)<<8;   /* BUS_RATIO_SEL : bits [13:8] */
+		msr_bits |= msr_value;
+		msr_value = (2 & 0x7F);    /* VID_SEL : bits [6:0] */
+		msr_bits |= msr_value;
+
+		wrmsrl(MSR_IA32_PERF_CTL, msr_bits);
+	}
 
 	debug("set freq ratio and vid to:%4x\n", msr_bits & 0x3F7F);
 }
