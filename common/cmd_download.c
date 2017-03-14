@@ -81,7 +81,7 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 #ifdef CONFIG_USB_ENUM_IN_UBOOT
 	chip_version = sprd_get_chip_version();
-	if ((dl_times==0) && (boot_role == BOOTLOADER_MODE_DOWNLOAD) && (0 == chip_version))
+	if ((dl_times==0) && (boot_role == BOOTLOADER_MODE_DOWNLOAD) && (chip_version < USB_FIX_VERSION))
 	{
 		dl_times=dl_times+1;
 		autodloader_mainhandler();

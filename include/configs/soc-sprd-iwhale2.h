@@ -180,4 +180,5 @@
    resume path
 */
 #define CONFIG_VID_OFFSET	0x1F00
+#define USB_FIX_VERSION 1
 
