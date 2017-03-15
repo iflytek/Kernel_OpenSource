@@ -6,6 +6,7 @@
 #include <ext4fs.h>
 #include <linux/sizes.h>
 #include "dl_operate.h"
+#include "sci_img.h"
 #include "sprd_common_rw.h"
 
 #include <secureboot/sprdsec_header.h>
@@ -43,7 +44,7 @@ extern int get_dt_end_addr(void *fdt, uchar **addr);
 #define MODEM_HDR_SIZE		(12 * 512) //size of a block
 #define SCI_TYPE_MODEM_BIN	1
 #define SCI_TYPE_PARSING_LIB	2
-#define MODEM_LAST_HDR		0x100
+#define SCI_LAST_HDR		0x100
 #define MODEM_SHA1_HDR		0x400
 #define MODEM_SHA1_SIZE		20
 
@@ -403,92 +404,82 @@ int32_t _boot_read_partition_with_backup(boot_image_required_t info)
 	return ret;
 }
 
-uint32_t get_boot_offset(boot_image_required_t img_info, uint32_t secure_offset)
-{
-	uint32_t offset = 0;
-	uint32_t hdr_offset = 0;
-	data_block_header_t hdr_buf[8]  __attribute__ ((packed));
-	uint32_t read_len = sizeof(hdr_buf);
-	uint8_t result = 0; // 0:OK, 1:not find, 2:some error occur
-	data_block_header_t* hdr_ptr = NULL;
+unsigned get_modem_img_info(const boot_image_required_t* img_info,
+			    unsigned secure_offset,
+			    int* is_sci,
+			    size_t* total_len,
+			    size_t* modem_exe_size) {
+	unsigned offset = 0;
 
-	if(strstr(img_info.partition, "modem")) {
-		do {
-			if (0 != common_raw_read(img_info.partition, (uint64_t)read_len, (uint64_t)(hdr_offset + secure_offset), (char *)hdr_buf)) {
-				result = 2;
-				errorf("get modem boot hdr failed: partitionread failed !\n");
-				break;
-			}
+	if(!strstr((const char*)img_info->partition, "modem")) {
+		*is_sci = 0;
+		*total_len = img_info->size;
+		*modem_exe_size = img_info->size;
+		return 0;
+	}
 
-			if(!hdr_offset) {
-				if(memcmp((uint8_t*)hdr_buf, MODEM_MAGIC, strlen(MODEM_MAGIC))) {
-					result = 2;
-					debugf("old image format!\n");
-					break;
-				}
+	/* Only support 10 effective headers at most for now. */
+	data_block_header_t hdr_buf[11] __attribute__ ((__packed__));
+	size_t read_len = sizeof(hdr_buf);
 
-				hdr_ptr = hdr_buf + 1;
-				hdr_offset = MODEM_HDR_SIZE;
-			} else {
-				hdr_ptr = hdr_buf;
-			}
+	if (common_raw_read(img_info->partition,
+			    read_len,
+			    secure_offset,
+			    (char*)hdr_buf)) {
+		debugf("Read MODEM image header failed!\n");
+		return 0;
+	}
 
-			size_t n = sizeof hdr_buf / sizeof(data_block_header_t);
-			data_block_header_t* startp = hdr_ptr;
-			data_block_header_t* endp = hdr_buf + n;
-			int found = 0;
+	/* Check whether it's SCI image. */
+	if (memcmp(hdr_buf, MODEM_MAGIC, strlen(MODEM_MAGIC))) {
+		/* Not SCI format. */
+		*is_sci = 0;
+		*total_len = img_info->size;
+		*modem_exe_size = img_info->size;
 
-			while (hdr_ptr < endp) {
-				uint32_t type = (hdr_ptr->type_flags & 0xff);
-				if (SCI_TYPE_MODEM_BIN == type) {
-					// MODEM image
-					found = 1;
-					break;
-				}
-				// To work with both the right SCI headers
-				// and the wrong SCI headers, comment out
-				// the following.
-				// This is just a workaround rather than a
-				// formal fix. After the MODEM SCI image
-				// generator is fixed, uncomment it.
-#if 0
-				if(hdr_ptr->type_flags & MODEM_LAST_HDR) {
-					// No MODEM image
-					result = 2;
-					debugf("no modem image, error image header!!!\n");
-					break;
-				}
-#endif
-				++hdr_ptr;
-			}
-			if (!found) {  // No MODEM image found
-				if (hdr_ptr == endp) {  // Need to read more SCI headers
-					hdr_offset += (hdr_ptr - startp);
-					result = 1;
-				} else {
-					result = 2;
-					debugf("no modem image, error image header!!!\n");
-				}
-			}
+		debugf("Not SCI image.\n");
 
-			if(result != 1) {
-				break;
-			}
+		return 0;
+	}
 
-		} while(1);
+	/* SCI image. Parse the headers */
+	*is_sci = 1;
 
-		if(!result) {
-			offset = hdr_ptr->offset;
+	unsigned i;
+	data_block_header_t* hdr_ptr;
+	int modem_offset = -1;
+	int image_len = -1;
+
+	for (i = 1, hdr_ptr = hdr_buf + 1;
+	     i < sizeof hdr_buf / sizeof hdr_buf[0];
+	     ++i, ++hdr_ptr) {
+		unsigned type = (hdr_ptr->type_flags & 0xff);
+		if (SCI_TYPE_MODEM_BIN == type) {
+			modem_offset = (int)hdr_ptr->offset;
+			*modem_exe_size = hdr_ptr->length;
 			if(hdr_ptr->type_flags & MODEM_SHA1_HDR) {
-				offset += MODEM_SHA1_SIZE;
+				modem_offset += MODEM_SHA1_SIZE;
+				*modem_exe_size -= MODEM_SHA1_SIZE;
 			}
+		}
+		if (hdr_ptr->type_flags & SCI_LAST_HDR) {
+			image_len = (int)(hdr_ptr->offset + hdr_ptr->length);
+			break;
 		}
 	}
 
-	debugf("Modem offset Bytes: 0x%x!\n",offset);
+	if (-1 == modem_offset) {
+		debugf("No MODEM image found in SCI image!\n");
+	} else if (-1 == image_len) {
+		debugf("SCI header too long!\n");
+	} else {
+		*total_len = image_len;
+		offset = modem_offset;
+	}
+
+	debugf("Modem SCI offset: 0x%x!\n", (unsigned)offset);
 
 	return offset;
-
 }
 
 /**
@@ -497,7 +488,10 @@ uint32_t get_boot_offset(boot_image_required_t img_info, uint32_t secure_offset)
 int _boot_load_required_image(boot_image_required_t img_info)
 {
 	uint32_t secure_boot_offset = 0;
-	uint32_t normal_boot_offset = 0;
+	int is_sci;
+	size_t total_len;
+	size_t exe_size;
+	unsigned exe_offset;
 
 	debugf("load %s to addr 0x%08x\n", img_info.partition, img_info.mem_addr);
 
@@ -506,28 +500,43 @@ int _boot_load_required_image(boot_image_required_t img_info)
 		_boot_read_partition_with_backup(img_info);
 	} else {
 #if defined (CONFIG_SECURE_BOOT)
-		if (!_boot_partition_read(dev, img_info.partition, 0, SEC_HEADER_MAX_SIZE, header_buf)) {
+		if (common_raw_read(img_info.partition,
+				    SEC_HEADER_MAX_SIZE,
+				    0,
+				    (char*)header_buf)) {
 			debugf("%s:%s read error!\n", img_info.partition);
 			return 0;
 		}
-		//if(header_parser(header_buf) )
 		secure_boot_offset = get_code_offset(header_buf);
-		normal_boot_offset = get_boot_offset(dev, img_info, secure_boot_offset);
+		exe_offset = get_modem_img_info(&img_info,
+						secure_boot_offset * EMMC_SECTOR_SIZE,
+						&is_sci,
+						&total_len,
+						&exe_size);
 
-		/*_boot_partition_read(dev, img_info.partition, normal_boot_offset + secure_boot_offset, img_info.size, (u8 *) img_info.mem_addr);*/
-		_boot_partition_read(dev, img_info.partition, secure_boot_offset, img_info.size + (normal_boot_offset * EMMC_SECTOR_SIZE), (u8 *)FREE_RAM_SPACE_ADDR);
+		common_raw_read(img_info.partition,
+				exe_size,
+				secure_boot_offset * EMMC_SECTOR_SIZE + exe_offset,
+				(char*)FREE_RAM_SPACE_ADDR);
 
-		/*secure_verify("uboot", header_buf, img_info.mem_addr);*/
 		secure_verify("uboot", header_buf, (u8 *)FREE_RAM_SPACE_ADDR);
-		memcpy((u8 *)img_info.mem_addr, (u8 *)FREE_RAM_SPACE_ADDR + (normal_boot_offset * EMMC_SECTOR_SIZE), img_info.size);
+		memcpy((void *)img_info.mem_addr,
+		       (void*)FREE_RAM_SPACE_ADDR,
+		       exe_size);
 #elif defined (CONFIG_SECBOOT)
 		/***secboot 2nd step***/
 		secboot_secure_process_flow(img_info.partition,(img_info.size + CERT_SIZE),0,(char *)VERIFY_ADDR);
 		memcpy(img_info.mem_addr,(VERIFY_ADDR + SYS_HEADER_SIZE),img_info.size);
-#else
-		normal_boot_offset = get_boot_offset(img_info, 0);
-		if (0 != common_raw_read(img_info.partition, (uint64_t)(img_info.size), (uint64_t)normal_boot_offset, img_info.mem_addr))
+#else  // Secure boot is not turned on
+		exe_offset = get_modem_img_info(&img_info, 0,
+						&is_sci, &total_len,
+						&exe_size);
+		if (common_raw_read(img_info.partition,
+				    exe_size,
+				    exe_offset,
+				    img_info.mem_addr)) {
 			errorf("read %s partition fail\n", img_info.partition);
+		}
 
 #endif
 	}

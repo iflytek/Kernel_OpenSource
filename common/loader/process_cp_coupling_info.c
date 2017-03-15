@@ -4,6 +4,7 @@
 #include <libfdt.h>
 #include "cp_mem_decoupling.h"
 #include "loader_common.h"
+#include "sci_img.h"
 #include <secureboot/sec_common.h>
 
 #ifndef BASE_TO_APBASE
@@ -664,15 +665,35 @@ int fdt_fixup_cp_coupling_info(void *blob)
 		i_info.mem_addr = (unsigned long)raw_decouple_data;
 		i_info.size = sizeof(raw_decouple_data);
 
+		int is_sci;
+		size_t total_len;
+		size_t exe_size;
+
 #if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
 		secure_boot_offset = SYS_HEADER_SIZE;
-		normal_boot_offset = get_boot_offset(i_info, SYS_HEADER_SIZE);
-		if (0 != common_raw_read(i_info.partition, i_info.size, secure_boot_offset + normal_boot_offset, (char *)i_info.mem_addr))
+		normal_boot_offset = get_modem_img_info(&i_info,
+							SYS_HEADER_SIZE,
+							&is_sci,
+							&total_len,
+							&exe_size);
+		if (0 != common_raw_read(i_info.partition,
+					 i_info.size,
+					 secure_boot_offset + normal_boot_offset,
+					 (char *)i_info.mem_addr)) {
 			errorf("read %s partition fail\n", i_info.partition);
+		}
 #else
-		normal_boot_offset = get_boot_offset(i_info, 0);
-		if (0 != common_raw_read(i_info.partition, i_info.size, normal_boot_offset, (char *)i_info.mem_addr))
+		normal_boot_offset = get_modem_img_info(&i_info,
+							0,
+							&is_sci,
+							&total_len,
+							&exe_size);
+		if (0 != common_raw_read(i_info.partition,
+					 i_info.size,
+					 normal_boot_offset,
+					 (char *)i_info.mem_addr)) {
 			errorf("read %s partition fail\n", i_info.partition);
+		}
 #endif
 	}
 
