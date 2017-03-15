@@ -20,7 +20,7 @@
 #include <sprd_crypto_log.h>
 
 #define SPRD_CRYPTO_MIN_DATA_LEN	0x8
-#define SPRD_CRYPTO_MAX_DATA_LEN	0xFFFFF8
+#define SPRD_CRYPTO_MAX_DATA_LEN	0xFFF000
 
 #define SPRD_CRYPTO_HASH_BUF_LEN	128
 #define SPRD_CRYPTO_PKA_CMD_LEN		16 //size of item is 4 bytes.

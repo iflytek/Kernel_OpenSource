@@ -56,7 +56,7 @@ static uchar *const s_force_secure_check[] = {
 static int dl_secure_verify(void *partition_name,void *header,void *code)
 {
 #ifdef CONFIG_SPRD_SECBOOT
-	//sprd_dl_verify(partition_name, header, code);
+	sprd_dl_verify(partition_name, header, code);
 #elif defined CONFIG_SANSA_SECBOOT
 	sansa_enable_efuse_EB();
 	sansa_dl_secure_verify(partition_name,header,code);
