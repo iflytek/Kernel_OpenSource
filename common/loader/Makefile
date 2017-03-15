@@ -12,6 +12,7 @@ obj-y += autodloader_mode.o
 #obj-y += secure_verify.o
 obj-y += vbat_check.o
 obj-$(CONFIG_SPRD_SYSDUMP) += sysdump.o
+obj-$(CONFIG_X86) += crashlog.o
 obj-y += sd_operate.o
 obj-y += sprd_cpcmdline.o
 obj-y += sprdisk.o

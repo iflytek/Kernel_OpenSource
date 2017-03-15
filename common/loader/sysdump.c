@@ -32,6 +32,7 @@
 #ifdef CONFIG_X86
 #include <asm/e820.h>
 #include <chipram_env.h>
+#include "crashlog.h"
 #endif
 
 #ifdef CONFIG_X86
@@ -1003,6 +1004,8 @@ void write_sysdump_before_boot(int rst_mode)
 
 #ifdef CONFIG_X86
 	unsigned long mem_virt;
+        int m = 0, n = 0, n_max = 1024;
+        uint32_t crash_data[n_max];
 #endif
 	dump_rst_mode = rst_mode;
 	sprd_sysdump_magic = SPRD_SYSDUMP_MAGIC;
@@ -1253,6 +1256,24 @@ void write_sysdump_before_boot(int rst_mode)
 		debugf("time is %04d.%02d.%02d_%02d:%02d:%02d\n", tm.tm_year, tm.tm_mon, \
 			tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
+#ifdef CONFIG_X86
+	n = crash_data_receive(crash_data, n_max);
+	char info_crash_data[9216] = {0};/* info_crash_data's size = n_max*sizeof("%08X\n") */
+	if (n < 0) {
+		debugf("error receiving crash log\n");
+	}else{
+		debugf("crash log size: %d words\n", n);
+		for (m = 0; m < n; m += 1) {
+			debugf("%08X\n", crash_data[m]);
+			snprintf(info_crash_data+9*m,9216,"%08X\n",crash_data[m]);
+		}
+		sprintf(fnbuf,SYSDUMP_FOLDER_NAME"/1/Crashlog_%04d_%02d_%02d_%02d_%02d_%02d.txt", \
+			tm.tm_year, tm.tm_mon, tm.tm_mday, \
+			tm.tm_hour, tm.tm_min, tm.tm_sec);
+		write_mem_to_mmc(path, fnbuf, fs_type, (char *)(info_crash_data), strlen(info_crash_data));
+	}
+	 sysdump_lcd_printf("BIA Crash log data size = %d\n", n);
+#endif
 		sprintf(fnbuf,SYSDUMP_FOLDER_NAME"/1/%04d_%02d_%02d_%02d_%02d_%02d.txt", \
 			tm.tm_year, tm.tm_mon, tm.tm_mday, \
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
