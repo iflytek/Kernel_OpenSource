@@ -233,6 +233,10 @@ void fdt_fixup_all_x86(u8 *fdt_blob)
 
 	fdt_fixup_cp_boot(fdt_blob);
 
+	/*for verified boot*/
+	fdt_fixup_verified_boot(fdt_blob);
+	fdt_fixup_flash_lock_state(fdt_blob);
+
 	/* for non iq mode, remove reserved iq memory from dtb */
 	fdt_fixup_iq_reserved_mem(fdt_blob);
 
