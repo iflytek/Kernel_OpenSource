@@ -5,10 +5,11 @@
 #include "cp_boot.h"
 
 /*add macro for memset agdsp/tddsp/ldsp share memory*/
-#define LDSP_SHARE_MEM_START 0xF2000//8k
-#define TGDSP_SHARE_MEM_START 0xF4000//4k
-#define AGDSP_SHARE_MEM_START 0xF5000//4k
-#define MULTI_MODE_MEM_START 0xF6000//4k
+#define DSP_BOOT_IRAM_START   0x20000//2k
+#define LDSP_SHARE_MEM_START  0x20800//10k
+#define TGDSP_SHARE_MEM_START 0x23000//4k
+#define MULTI_MODE_MEM_START  0x24000//4k
+
 
 /*bug:533275  memset tg/l/agdsp share memory
 root cause: In agdsp share IRAM memory ,this area exits command for agdsp,when interunpt happens
@@ -18,14 +19,26 @@ unexcepted problems.*/
 
 void memset_dsp_share_memory()
 {
-	memset((void *)LDSP_SHARE_MEM_START,0x0,0x2000);//8k
+	memset((void *)DSP_BOOT_IRAM_START,0x0,0x800);//2k
+	memset((void *)LDSP_SHARE_MEM_START,0x0,0x2800);//10k
 	memset((void *)TGDSP_SHARE_MEM_START,0x0,0x1000);//4k
-	memset((void *)AGDSP_SHARE_MEM_START,0x0,0x1000);//4k
 	memset((void *)MULTI_MODE_MEM_START,0x0,0x1000);//4k
 }
 
 void modem_entry()
 {
+	memset_dsp_share_memory();
 
+#ifndef CONFIG_KERNEL_BOOT_CP
+	pmic_arm7_boot();
+	pubcp_boot();
+	debugf("boot CP1 OK\n");
+#else
+	extern unsigned int g_charger_mode;
+	if(g_charger_mode) {
+		pmic_arm7_boot();
+		debugf("boot arm7  OK\n");
+	}
+#endif
 }
 
