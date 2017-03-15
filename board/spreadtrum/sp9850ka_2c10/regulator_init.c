@@ -8,8 +8,17 @@ static int power_on_voltage_init(void)
 	return 0;
 }
 
+static int regulator_mode_init(void)
+{
+	/*
+	 * fix dcdc_wpa ripple over 70mv during a conversation
+	 */
+	sci_adi_raw_write(ANA_REG_GLB_DCDC_WPA_REG3,0x898);
+}
+
 int regulator_init(void)
 {
 	power_on_voltage_init();
+	regulator_mode_init();
 	return 0;
 }
