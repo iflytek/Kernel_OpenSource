@@ -48,12 +48,16 @@ static inline int host_bus_freq(void)
 
 static inline int get_guar_ratio(void)
 {
+	/*
 	u32 low, high;
 
 	rdmsr(MSR_IACORE_RATIOS, low, high);
 	low >>= 16;
 	low &= 0xFF;
 	return low;
+	*/
+	/*workaround,set max freq to be 2028*/
+	return 26;
 }
 
 static inline int get_lfm_ratio(void)
