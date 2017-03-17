@@ -27,6 +27,8 @@ typedef struct {
 
 int pin_init(void);
 
+int pin_init_a0chip(void);
+
 #if defined(CONFIG_SOC_IWHALE2)
 #define CTL_PIN_BASE			(SPRD_PIN_BASE)
 

@@ -52,8 +52,15 @@ void misc_init()
 	thm_overheate_en();
 }
 
+#ifdef CONFIG_SOC_IWHALE2
+#include <asm/arch/chip_id.h>
+#endif
+
 int board_init(void)
 {
+	int chip_version = 0;
+	chip_version = sprd_get_chip_version();
+
 	setup_chipram_env();
 	setup_chipram_ddr_range();
 #ifndef CONFIG_FPGA
@@ -64,7 +71,15 @@ int board_init(void)
 	misc_init();
 	pmic_adc_Init();
 	/*FPGA forbiden*/
-	pin_init();
+	/*workaround*/
+	if (1 == chip_version)
+	{
+		pin_init();
+	}
+	else if (0 == chip_version)
+	{
+		pin_init_a0chip();
+	}
 	sprd_eic_init();
 	sprd_gpio_init();
 	regulator_init();
