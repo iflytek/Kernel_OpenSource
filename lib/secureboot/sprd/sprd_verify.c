@@ -30,12 +30,15 @@ static uint32_t Non_Trusted_update_index = 0;
 
 /*####for anti-rollback end######*/
 uint8_t to[RSA_KEY_BYTE_LEN_MAX] = { 0 };	// store RSA_PubDec  result
-#define MODEM_MAGIC		"SCI1"
-#define MODEM_HDR_SIZE		12
-#define MODEM_IMG_HDR		0x1
-#define MODEM_LAST_HDR		0x100
-#define MODEM_SHA1_HDR		0x400
-#define MODEM_SHA1_SIZE		20
+
+// for dat modem
+#define MODEM_MAGIC           "SCI1"
+#define MODEM_HDR_SIZE        12  // size of a block
+#define SCI_TYPE_MODEM_BIN    1
+#define SCI_TYPE_PARSING_LIB  2
+#define MODEM_LAST_HDR        0x100
+#define MODEM_SHA1_HDR        0x400
+#define MODEM_SHA1_SIZE       20
 
 typedef struct {
 	unsigned int type_flags;
@@ -248,42 +251,61 @@ static void get_modem_info(uint8_t *data, uint32_t *code_offset, uint32_t *code_
 	read_len = sizeof(hdr_buf);
 	sec_memcpy(hdr_buf, data, read_len);
 
-		do {
-			if(!hdr_offset) {
-				hdr_ptr = (data_block_header_t*)hdr_buf + 1;
-				hdr_offset = MODEM_HDR_SIZE;
-			} else {
-				hdr_ptr = (data_block_header_t*)hdr_buf;
-			}
+    do {
+      if (!hdr_offset) {
+        if (memcmp(hdr_buf, MODEM_MAGIC, sizeof(MODEM_MAGIC))) {
+          result = 2;
+          secf("old image format!\n");
+          break;
+        }
 
-			while(!(hdr_ptr->type_flags & MODEM_IMG_HDR)) {
-				hdr_ptr ++;
-				hdr_offset += MODEM_HDR_SIZE;
-				if(read_len == ((unsigned char*)hdr_ptr - hdr_buf)) {
-					result = 1;
-					break;
-				}
+        hdr_ptr = (data_block_header_t *)hdr_buf + 1;
+        hdr_offset = MODEM_HDR_SIZE;
+      } else {
+        hdr_ptr = (data_block_header_t *)hdr_buf;
+      }
 
-				if(hdr_ptr->type_flags & MODEM_LAST_HDR) {
-					result = 2;
-					secf("no modem image, error image header!!!\n");
-					break;
-				}
-			};
+      data_block_header_t* endp
+          = (data_block_header_t*)(hdr_buf + sizeof hdr_buf);
+      int found = 0;
+      while (hdr_ptr < endp) {
+        uint32_t type = (hdr_ptr->type_flags & 0xff);
+        if (SCI_TYPE_MODEM_BIN == type) {
+          found = 1;
+          break;
+        }
 
-			if(result != 1) {
-				break;
-			}
+        /*  There is a bug (622472) in MODEM image generator.
+         *  To recognize wrong SCI headers and correct SCI headers,
+         *  we devise the workaround.
+         *  When the MODEM image generator is fixed, remove #if 0.
+         */
+#if 0
+        if (hdr_ptr->type_flags & MODEM_LAST_HDR) {
+          result = 2;
+          MODEM_LOGE("no modem image, error image header!!!\n");
+          break;
+        }
+#endif
+        hdr_ptr++;
+      }
+      if (!found) {
+        result = 2;
+        secf("no MODEM exe found in SCI header!");
+      }
 
-		} while(1);
+      if (result != 1) {
+        break;
+      }
+    } while (1);
 
-		if(!result) {
-			offset = hdr_ptr->offset;
-			if(hdr_ptr->type_flags & MODEM_SHA1_HDR) {
-				offset += MODEM_SHA1_SIZE;
-			}
-			length = hdr_ptr->length;
-		}
+    if (!result) {
+      offset = hdr_ptr->offset;
+      if (hdr_ptr->type_flags & MODEM_SHA1_HDR) {
+        offset += MODEM_SHA1_SIZE;
+      }
+      length = hdr_ptr->length;
+    }
 
 	*code_offset = offset;
 	*code_len = length;
