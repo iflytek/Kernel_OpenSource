@@ -437,7 +437,7 @@ void pmu_common_config(void)
 	);
 
 	CHIP_REG_SET(REG_PMU_APB_PWR_WAIT_CNT_CFG0,
-		BIT_PMU_APB_PUBCP_SYS_PWR_WAIT_CNT(0x00) |
+		BIT_PMU_APB_PUBCP_SYS_PWR_WAIT_CNT(0x01) |
 		0
 	);
 
