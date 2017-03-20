@@ -93,7 +93,7 @@ void sprdchg_2700_stop_chg(int value)
 
 void sprdchg_2700_ic_init(void)
 {
-
+	sprd_2700_i2c_init();
 }
 
 void sprd_2700_termina_cur_set(BYTE reg_val)

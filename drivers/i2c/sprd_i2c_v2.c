@@ -411,6 +411,7 @@ static int sprd_i2c_write(struct i2c_adapter *adap, uchar chip, uint addr,
 	uchar *p_buf = buffer;
 
 	i2c_base = sprd_get_base(adap);
+	sprd_i2c_reset_fifo(adap);
 	writel(chip << 1, i2c_base + I2C_ADDR_CFG);
 	sprd_i2c_opt_mode(i2c_base, 0);
 	res = sprd_i2c_write_byte(i2c_base, &addr, 1);
@@ -457,6 +458,7 @@ static int sprd_i2c_read(struct i2c_adapter *adap, uchar chip, uint addr,
 	uchar *p_buf = buffer;
 
 	i2c_base = sprd_get_base(adap);
+	sprd_i2c_reset_fifo(adap);
 	writel(chip << 1, i2c_base + I2C_ADDR_CFG);
 
 	sprd_i2c_opt_mode(i2c_base, 0);
