@@ -65,9 +65,9 @@ unsigned check_reboot_mode(void)
 		else if(rst_mode == HWRST_STATUS_NORMAL)
 			return CMD_NORMAL_MODE;
 		else if(rst_mode == HWRST_STATUS_NORMAL2)
-			return sysdump_flag ? CMD_WATCHDOG_REBOOT : CMD_NORMAL_MODE;
+			return CMD_WATCHDOG_REBOOT;
 		else if(rst_mode == HWRST_STATUS_NORMAL3)
-			return sysdump_flag ? CMD_AP_WATCHDOG_REBOOT : CMD_NORMAL_MODE;
+			return CMD_AP_WATCHDOG_REBOOT;
 		else if(rst_mode == HWRST_STATUS_ALARM)
 			return CMD_ALARM_MODE;
 		else if(rst_mode == HWRST_STATUS_SLEEP)
@@ -75,9 +75,9 @@ unsigned check_reboot_mode(void)
 		else if(rst_mode == HWRST_STATUS_CALIBRATION)
 			return CMD_CALIBRATION_MODE;
 		else if(rst_mode == HWRST_STATUS_PANIC)
-			return sysdump_flag ? CMD_PANIC_REBOOT : CMD_NORMAL_MODE;
+			return CMD_PANIC_REBOOT;
 		else if(rst_mode == HWRST_STATUS_SPECIAL)
-			return sysdump_flag ? CMD_SPECIAL_MODE : CMD_NORMAL_MODE;
+			return CMD_SPECIAL_MODE;
 		else if(rst_mode == HWRST_STATUS_AUTODLOADER)
 			return CMD_AUTODLOADER_REBOOT;
 		else if(rst_mode == HWRST_STATUS_IQMODE)
@@ -86,9 +86,9 @@ unsigned check_reboot_mode(void)
 			return CMD_SPRDISK_MODE;
 #ifdef CONFIG_X86
 		else if(rst_mode == HWRST_STATUS_MOBILEVISOR)
-			return sysdump_flag ? CMD_VMM_PANIC_MODE : CMD_NORMAL_MODE;
+			return CMD_VMM_PANIC_MODE;
 		else if(rst_mode == HWRST_STATUS_SECURITY)
-			return sysdump_flag ? CMD_TOS_PANIC_MODE : CMD_NORMAL_MODE;
+			return CMD_TOS_PANIC_MODE;
 #endif
 		else{
 			debugf(" a boot mode not supported\n");
@@ -99,13 +99,13 @@ unsigned check_reboot_mode(void)
 		debugf("is_hw_smpl_enable %d\n", is_hw_smpl_enable());
 		debugf("no hw watchdog rst int pending\n");
 		if(rst_mode == HWRST_STATUS_NORMAL2)
-			return sysdump_flag ? CMD_UNKNOW_REBOOT_MODE : CMD_NORMAL_MODE;
+			return CMD_UNKNOW_REBOOT_MODE;
 		else if(is_7s_reset_for_systemdump())
-			return sysdump_flag ? CMD_UNKNOW_REBOOT_MODE : CMD_NORMAL_MODE;
+			return CMD_UNKNOW_REBOOT_MODE;
 		else if(is_7s_reset())
 			return CMD_NORMAL_MODE;
 		else if(hw_rst_mode & SW_EXT_RSTN_STATUS)
-			return sysdump_flag ? CMD_EXT_RSTN_REBOOT_MODE : CMD_NORMAL_MODE;
+			return CMD_EXT_RSTN_REBOOT_MODE;
 #ifndef CONFIG_SS_FUNCTION
 		else if(is_smpl_bootup()) {
 			debugf("SMPL bootup!\n");

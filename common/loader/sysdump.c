@@ -58,6 +58,7 @@ int mem_num = 0, re_num = 0, dump_rst_mode;
 static struct sysdump_memory linux_memory[5];
 static struct sysdump_memory reserved_memory[25];
 
+extern unsigned sysdump_flag;
 extern int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
 extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
@@ -551,6 +552,7 @@ static int fill_mem_from_dts(unsigned char *fdt_blob, int nodeoffset, const char
 	int lenp, size, phandle, lookup;
 	unsigned long *ptr = NULL, *ptr_end = NULL;
 
+	debugf("Now read dts %s property in the sysdump node !!!\n", name);
 	ptr = fdt_getprop(fdt_blob, nodeoffset, name, &lenp);
 	__be32 *list = fdt_getprop(fdt_blob, nodeoffset, name, &size);
 	if (list == NULL) {
@@ -822,6 +824,7 @@ static int fill_dump_mem_auto_arm(unsigned char *fdt_blob, int nodeoffset, int o
 	 struct sysdump_mem *temp_mem = sprd_dump_mem;
 
 	/* calculate linux memory region */
+	debugf("calculate linux memory region !!!\n");
 	ret = recalculate_kernel_memory(fdt_blob, nodeoffset, ofs_remem, dts_version, sprd_dump_mem);
 	if (ret == 0)
 		debugf("ERROR: ARM: linux memory recalculation failed !!!\n");
@@ -831,6 +834,7 @@ static int fill_dump_mem_auto_arm(unsigned char *fdt_blob, int nodeoffset, int o
 	}
 
 	/* calculate specific reserved-memory*/
+	debugf("read reserved-memory region from sysdump node !!!\n");
 	ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-re", temp_mem);
 	if (ret == 0)
 		debugf("ERROR: ARM: memory-region-re dump failed !!!\n");
@@ -922,6 +926,7 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 
 	/* step1: vmm region */
 	if (VMM_RESERVE_SIZE) {
+		debugf("dump vmm memory region !!!\n");
 		sprd_dump_mem[0].paddr = 0;
 		sprd_dump_mem[0].vaddr = 0;
 		sprd_dump_mem[0].size  = VMM_RESERVE_SIZE;
@@ -935,6 +940,7 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 
 	/* step2: memory region from kernel dts */
 	if (dump_rst_mode == CMD_TOS_PANIC_MODE) {
+		debugf("read security memory region from sysdump node !!!\n");
 		ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-se", temp_mem);
 		if (ret == 0)
 			debugf("ERROR: X86: memory-region-se dump failed !!!\n");
@@ -947,6 +953,7 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 	/* step3: auto calculate linux memory region */
 	if (dump_rst_mode != CMD_TOS_PANIC_MODE) {
 		/* calculate linux memory region */
+		debugf("calculate linux memory region !!!\n");
 		ret = recalculate_kernel_memory(fdt_blob, nodeoffset, ofs_remem, dts_version, temp_mem);
 		if (ret == 0)
 			debugf("ERROR: x86: linux memory recalculation failed !!!\n");
@@ -956,6 +963,7 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 		}
 
 		/* calculate specific reserved-memory*/
+		debugf("read reserved-memory region from sysdump node !!!\n");
 		ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-re", temp_mem);
 		if (ret == 0)
 			debugf("ERROR: x86: memory-region-re dump failed !!!\n");
@@ -1001,6 +1009,9 @@ void write_sysdump_before_boot(int rst_mode)
 
 	debugf("rst_mode:0x%x, Check if need to write sysdump info of 0x%08lx to file...\n", rst_mode,
 	sprd_sysdump_magic);
+
+	if (!sysdump_flag)
+		rst_mode = CMD_NORMAL_MODE;
 
 	if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_AP_WATCHDOG_REBOOT) || (rst_mode == CMD_UNKNOW_REBOOT_MODE) || \
 		(rst_mode == CMD_EXT_RSTN_REBOOT_MODE) || ((rst_mode == CMD_PANIC_REBOOT) && !memcmp(infop->magic, SYSDUMP_MAGIC, sizeof(infop->magic))) \
@@ -1258,10 +1269,10 @@ void write_sysdump_before_boot(int rst_mode)
 			infop->elfhdr_size,
 			"mem_num is ",
 			infop->mem_num,
-			"dump_mem_paddr is ",
-			infop->dump_mem_paddr,
 			"crash_key is ",
-			infop->crash_key);
+			infop->crash_key,
+			"dump_mem_paddr is ",
+			infop->dump_mem_paddr);
 
 		/* record linux memory & reserved memory & dump memory to txt file */
 		string += s_length;
@@ -1361,7 +1372,7 @@ FINISH:
 		reset_to_normal(CMD_NORMAL_MODE);
 #endif
 	} else
-		debugf("no need.\n");
+		debugf("no need dump memory !!!\n");
 
 	return;
 }
