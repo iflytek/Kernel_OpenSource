@@ -15,7 +15,7 @@ unsigned sysdump_flag = 0;
 
 static void rtc_domain_reg_write(uint32_t val)
 {
-#if defined(CONFIG_ADIE_SC2723)||defined(CONFIG_ADIE_SC2731)
+#if  !defined(CONFIG_ADIE_SC2713S)  &&  !defined(CONFIG_ADIE_SC2713)
 	sci_adi_write(ANA_REG_GLB_RTC_RST1, (~val),(~0)); //clear status reg
 	sci_adi_write(ANA_REG_GLB_RTC_RST0, (val),(~0));  //set status reg
 #else
@@ -25,7 +25,7 @@ static void rtc_domain_reg_write(uint32_t val)
 
 static uint32_t rtc_domain_reg_read(void)
 {
-#if defined(CONFIG_ADIE_SC2723)||defined(CONFIG_ADIE_SC2731)
+#if  !defined(CONFIG_ADIE_SC2713S)  &&  !defined(CONFIG_ADIE_SC2713)
 	return sci_adi_read(ANA_REG_GLB_RTC_RST2);  //read
 #else
 	return 0;
@@ -40,6 +40,7 @@ unsigned check_reboot_mode(void)
 
 /*for download mode reboot system */
 	if(HWRST_RTCSTATUS_DOWNLOAD_BOOT == rtc_domain_reg_read()) {
+		debugf("rtc_domain_reg get reboot normal mode \n");
 		rtc_domain_reg_write(HWRST_RTCSTATUS_DEFAULT);
 		return CMD_NORMAL_MODE;
 	}
@@ -132,7 +133,7 @@ void reset_to_normal(unsigned reboot_mode)
 {
 	unsigned rst_mode = 0;
 
-#if defined(CONFIG_ADIE_SC2723)||defined(CONFIG_ADIE_SC2731)
+#if  !defined(CONFIG_ADIE_SC2713S)  &&  !defined(CONFIG_ADIE_SC2713)
 	if (CMD_NORMAL_MODE == reboot_mode) {
 		rtc_domain_reg_write(HWRST_RTCSTATUS_DOWNLOAD_BOOT);
 		udelay(300);
