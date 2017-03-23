@@ -707,3 +707,28 @@ int calibrate_register_callback(void* callback_fun)
 		return -1;
 }
 
+int regulator_pmic_init(void)
+{
+	unsigned int efuse_data;
+
+	efuse_data = sprd_pmic_efuse_read(16);
+	if ( efuse_data & BIT(15)){
+		unsigned int temp = efuse_data & 0x0F;
+
+		ANA_REG_SET(ANA_REG_GLB_LDO_VLG_SEL1, 0x0140);
+
+		if( temp > 2)
+			efuse_data = 0xD0 + temp - 2;
+		else
+			efuse_data = 0xD0;
+
+		ANA_REG_SET(ANA_REG_GLB_DCDC_GEN_REG2,efuse_data);
+	}else{
+		ANA_REG_SET(ANA_REG_GLB_LDO_VLG_SEL1, 0x07C0);
+		ANA_REG_SET(ANA_REG_GLB_DCDC_GEN_REG2,0x00D6);
+	}
+
+		ANA_REG_SET(ANA_REG_GLB_DCDC_WPA_REG3,0x0891);
+
+	return 0;
+}

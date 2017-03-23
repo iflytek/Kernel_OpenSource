@@ -161,5 +161,6 @@ void pmic_misc_init(void)
 #ifdef CONFIG_ADIE_SC2721
 	printf("last shutdown flag ANA_REG_GLB_POR_OFF_FLAG:0x%x\n",ANA_REG_GET(ANA_REG_GLB_POR_OFF_FLAG));
 #endif
+	regulator_pmic_init();
 }
 

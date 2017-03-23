@@ -10,10 +10,7 @@ static int power_on_voltage_init(void)
 
 static int regulator_mode_init(void)
 {
-	/*
-	 * fix dcdc_wpa ripple over 70mv during a conversation
-	 */
-	sci_adi_raw_write(ANA_REG_GLB_DCDC_WPA_REG3,0x898);
+	return 0;
 }
 
 int regulator_init(void)

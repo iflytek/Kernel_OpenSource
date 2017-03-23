@@ -940,3 +940,7 @@ int calibrate_register_callback(void* callback_fun)
 		return -1;
 }
 
+int regulator_pmic_init(void)
+{
+	return 0;
+}
