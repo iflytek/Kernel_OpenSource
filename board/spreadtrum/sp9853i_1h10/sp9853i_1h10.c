@@ -43,7 +43,7 @@ int board_init(void)
 	pin_init();
 	sprd_eic_init();
 	sprd_gpio_init();
-	//regulator_init();
+	regulator_init();
 	sprd_pmu_lowpower_init();
 #endif
 	return 0;
