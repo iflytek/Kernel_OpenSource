@@ -14,6 +14,7 @@
 #include <otp_helper.h>
 #include <asm/arch/hardware.h>
 #include <dvfs.h>
+#include <asm/arch/sprd_reg.h>
 #include "adi_hal_internal.h"
 
 #define FUSE_LFM_MODULE0_BLKNO		55
@@ -324,6 +325,41 @@ void save_vids(void)
 	dump_vmi();
 }
 
+static void mpll_auto_close(void)
+{
+	unsigned int var;
+
+	/*MPLL0*/
+	var = readl(REG_PMU_APB_MPLL0_REL_CFG);
+	var &= 0xfffffeff;
+	var |= 0x1;
+	writel(var, REG_PMU_APB_MPLL0_REL_CFG);
+	/*MPLL1*/
+	var = readl(REG_PMU_APB_MPLL1_REL_CFG);
+	var &= 0xfffffeff;
+	var |= 0x1;
+	writel(var, REG_PMU_APB_MPLL1_REL_CFG);
+	/*CTRL PLL NO PD*/
+	var = readl(0xe4270000);
+	var &= 0xffffffef;
+	writel(var, 0xe4270000);
+	/*Pll_disconnect4_num*/
+	var = readl(0xe4270008);
+	var &= 0x2020ffff;
+	var |= 0x20200000;
+	writel(var, 0xe4270008);
+	/*MPLL_PWR_THM0*/
+	var = readl(REG_COM_PMU_APB_MPLL0_LP_CTRL0);
+	var &= 0xfff0000f;
+	var |= 0x02060;
+	writel(var, REG_COM_PMU_APB_MPLL0_LP_CTRL0);
+	/*MPLL_PWR_THM1*/
+	var = readl(REG_COM_PMU_APB_MPLL1_LP_CTRL0);
+	var &= 0xfff0000f;
+	var |= 0x02060;
+	writel(var, REG_COM_PMU_APB_MPLL1_LP_CTRL0);
+}
+
 void dvfs_init(void)
 {
 	unsigned int dvfs_enable;
@@ -351,6 +387,8 @@ void dvfs_init(void)
 	adi_hwchannel_set(REG_ADI_CHNL2,LDO_SRAM_PD_ADI_ADDR);
 	adi_hwchannel_set(REG_ADI_CHNL5,DCDC_ARM0_VOL_ADI_ADDR);
 	adi_hwchannel_set(REG_ADI_CHNL11,DCDC_ARM1_VOL_ADI_ADDR);
+
+	mpll_auto_close();
 
 }
 
