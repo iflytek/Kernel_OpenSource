@@ -8,10 +8,11 @@
 #include <sprd_pmic_misc.h>
 
 #define KEY_PRESSED		0
-#define KEY_NOT_PRESSED	1
+#define KEY_NOT_PRESSED		1
 
-extern int hw_watchdog_rst_pending(void);
+unsigned reboot_reg = 0;
 unsigned sysdump_flag = 0;
+extern int hw_watchdog_rst_pending(void);
 
 static void rtc_domain_reg_write(uint32_t val)
 {
@@ -46,7 +47,7 @@ unsigned check_reboot_mode(void)
 	}
 /*for download mode reboot system ---- end*/
 
-	rst_mode = ANA_REG_GET(ANA_REG_GLB_POR_RST_MONITOR);
+	reboot_reg = rst_mode = ANA_REG_GET(ANA_REG_GLB_POR_RST_MONITOR);
 	sysdump_flag = rst_mode & HWRST_STATUS_SYSDUMPEN;
 	printf("check_reboot_mode:get raw rst_mode is %x and sysdump_flag is %x\n",rst_mode,sysdump_flag);
 	rst_mode &= 0xFF;

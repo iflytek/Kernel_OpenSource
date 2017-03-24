@@ -58,6 +58,7 @@ int mem_num = 0, re_num = 0, dump_rst_mode;
 static struct sysdump_memory linux_memory[5];
 static struct sysdump_memory reserved_memory[25];
 
+extern unsigned reboot_reg;
 extern unsigned sysdump_flag;
 extern int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
@@ -988,7 +989,7 @@ void write_sysdump_before_boot(int rst_mode)
 {
 	int i, j, k, sprd_dump_mem_num, ret, fs_type;
 	int auto_test_flag = 0, s_length =0, test_num = 0;
-	char txt_info[1500] = {0};
+	char txt_info[2000] = {0};
 	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr, *string;
 	struct rtc_time tm;
 	struct sysdump_mem *mem;
@@ -1084,6 +1085,7 @@ void write_sysdump_before_boot(int rst_mode)
 		if (strlen(infop->dump_path))
 			path = infop->dump_path;
 		else {
+			debugf("sysdump use default path !!!\n");
 			path = NULL;
 			memset(infop->dump_path, '\0', sizeof(infop->dump_path));
                 }
@@ -1256,9 +1258,11 @@ void write_sysdump_before_boot(int rst_mode)
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
 
 		string = txt_info;
-		s_length = sprintf(txt_info,"-%s%s\n-%s%x\n-%s%s\n-%s%s\n-%s%d\n-%s%d\n-%s%d\n-%s"LLX"\n",
+		s_length = sprintf(txt_info,"-%s%s\n-%s%x\n-%s%x\n-%s%s\n-%s%s\n-%s%d\n-%s%d\n-%s%d\n-%s"LLX"\n\n",
 			"time is ",
 			infop->time,
+			"reboot reg is ",
+			reboot_reg,
 			"reset mode is ",
 			dump_rst_mode,
 			"reason is ",
