@@ -30,6 +30,7 @@ static struct sprdfb_device s_sprdfb_dev = {0};
 static uint32_t lcd_id_to_kernel = 0;
 static uint32_t lcd_width_to_kernel = 0;
 static uint32_t lcd_hight_to_kernel = 0;
+static void *bmp;
 
 
 void save_lcd_id_to_kernel(uint32_t id)
@@ -158,7 +159,6 @@ void lcd_enable(void)
 void lcd_ctrl_init(void *lcdbase)
 {
 	int size;
-	void *bmp;
 	char *s;
 	ulong addr;
 	u32 bmp_header_size = 8192;
