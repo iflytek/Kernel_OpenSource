@@ -67,7 +67,7 @@ unsigned char board_key_scan(void)
 unsigned char board_key_scan(void)
 {
 	uint32_t i, keycode = KEY_RESERVED;
-	int val;
+	int val = 0;
 
 	/* TODO: high or low */
 	for (i = 0; i < ARRAY_SIZE(KEYS); i++) {

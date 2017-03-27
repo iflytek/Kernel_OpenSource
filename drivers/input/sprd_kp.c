@@ -4,8 +4,10 @@
 #if !defined(CONFIG_FPGA)
 void sprd_kp_init(struct key_info *keys)
 {
-	if (!keys)
+	if (!keys) {
 		errorf("[KEY] no key defined!\n");
+		return;
+	}
 
 	while (keys->keycode != KEY_RESERVED) {
 		if (keys->type == TYPE_GPIO) {
@@ -20,7 +22,7 @@ void sprd_kp_init(struct key_info *keys)
 }
 unsigned char sprd_kp_scan(struct key_info *keys)
 {
-	int val;
+	int val = 0;
 
 	while (keys->keycode != KEY_RESERVED) {
 		if (keys->type == TYPE_GPIO) {
