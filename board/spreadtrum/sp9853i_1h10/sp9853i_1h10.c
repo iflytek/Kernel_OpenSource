@@ -30,6 +30,11 @@ void subsys_clk_enable()
 					 BIT_AON_APB_AON_VSP_EB);
 }
 
+static void thm_overheate_en(void)
+{
+	sci_glb_set(REG_AON_APB_THERMAL_OVERHEAT_EN,
+					BIT_AON_APB_DPLL_THM_OVERHEAT_EN);
+}
 
 int board_init(void)
 {
@@ -45,6 +50,7 @@ int board_init(void)
 	sprd_gpio_init();
 	regulator_init();
 	sprd_pmu_lowpower_init();
+	thm_overheate_en();
 #endif
 	return 0;
 }
