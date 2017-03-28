@@ -12,7 +12,7 @@
 #include "asm/arch/check_reboot.h"
 #include "otp_helper.h"
 #include "asm/arch/common.h"
-
+#include <malloc.h>
 
 #include "root_inspect.h"
 
@@ -344,6 +344,27 @@ int dl_cmd_get_uid(dl_packet_t *packet, void *arg)
 	uid ++;
 	*uid = efuse_blk1;
 	dl_send_packet (packet);
+	return 0;
+}
+
+int dl_cmd_read_ref_info(dl_packet_t *packet, void *arg)
+{
+	debugf("begin\n");
+	char *buf = NULL;
+	unsigned short size = packet->body.size;
+	packet->body.type = BSL_REP_READ_REFINFO;
+	buf = malloc((size_t)size);
+	if (buf == NULL) {
+		errorf("malloc error, size = 0x%x \n", size);
+	} else {
+		memcpy(buf, packet->body.content, (size_t)size);
+		debugf("memcpy\n");
+		dl_read_ref_info("miscdata", size, (uint64_t)REF_INFO_OFF, buf,
+			(uchar *)(packet->body.content));
+	}
+	dl_send_packet (packet);
+	if(buf != NULL)
+		free(buf);
 	return 0;
 }
 

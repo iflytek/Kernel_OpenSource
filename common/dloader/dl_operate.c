@@ -992,4 +992,16 @@ OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_nu
 		return OPERATE_SYSTEM_ERROR;
 }
 
+OPERATE_STATUS dl_read_ref_info(char *part_name, uint16_t size, uint64_t offset,
+	uchar *receive_buf, uchar  *transmit_buf)
+{
+	if(0 != common_raw_read(part_name, (uint64_t)size, offset, transmit_buf)) {
+		/* read old info from flash fail, transmit the receive info back to tool */
+		debugf("read old info from flash fail\n");
+		memcpy(transmit_buf, receive_buf, (size_t)size);
+	}
+	/* update receive ref info to flash */
+	common_raw_write(part_name, (uint64_t)size, (uint64_t)0, offset, receive_buf);
+	return OPERATE_SUCCESS;
+}
 

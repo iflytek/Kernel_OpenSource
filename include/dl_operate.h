@@ -90,6 +90,8 @@ OPERATE_STATUS dl_read_end(void);
 OPERATE_STATUS dl_erase(uchar * partition_name, uint64_t size);
 OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_num,
 									uchar version, uchar size_unit);
+OPERATE_STATUS dl_read_ref_info(char *part_name, uint16_t size, uint64_t offset,
+	uchar *receive_buf, uchar  *transmit_buf);
 
 
 #endif //_FDL_EMMC_OPERATE_H

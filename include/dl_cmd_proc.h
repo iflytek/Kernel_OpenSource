@@ -12,7 +12,7 @@
 
 #define REPARTITION_UNIT_LENGTH    (MAX_PARTITION_NAME_SIZE *2 + PARTITION_SIZE_LENGTH)
 #define REPARTITION_UNIT_LENGTH_V1    (MAX_PARTITION_NAME_SIZE *2 +  PARTITION_SIZE_LENGTH_V1 + GAP_SIZE_LENGTH)
-
+#define REF_INFO_OFF 0XFA000
 
 typedef enum OPERATE_STATUS {
 	OPERATE_SUCCESS = 1,
@@ -53,5 +53,6 @@ int dl_cmd_read_mcptype(dl_packet_t * packet, void *arg);
 int dl_cmd_check_rootflag(dl_packet_t * packet, void *arg);
 int dl_cmd_get_uid(dl_packet_t *packet, void *arg);
 int dl_cmd_end_process(dl_packet_t *packet, void *arg);
+int dl_cmd_read_ref_info(dl_packet_t *packet, void *arg);
 
 #endif /*DL_CMD_PROC_H */
