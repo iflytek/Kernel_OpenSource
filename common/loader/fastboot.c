@@ -91,7 +91,7 @@ struct fastboot_var {
 
 static struct fastboot_cmd *cmdlist;
 struct dl_image_inf ImageInfo;
-
+unsigned int fastboot_image_size = 0;
 static unsigned char buffer[4096] __attribute__((aligned(64)));
 
 typedef enum {
@@ -216,6 +216,7 @@ static void fb_cmd_download(const char *arg, void *data, uint64_t sz)
 		return;
 	}
 	ImageInfo.data_size = len;
+	fastboot_image_size = ImageInfo.data_size;
 	fastboot_okay("");
 }
 

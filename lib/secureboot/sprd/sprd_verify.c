@@ -46,6 +46,8 @@ typedef struct {
 	unsigned int length;
 } data_block_header_t;
 
+extern fastboot_image_size;
+
 void dumpHex(const char *title, uint8_t * data, int len)
 {
 	int i, j;
@@ -462,7 +464,9 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 		img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
 		sprd_get_hash_key(IRAM_BEGIN,img_verify_info_tos->pubkeyhash);
 		#else
-		sprd_get_hash_key(IRAM_BEGIN,img_verify_info.pubkeyhash);
+		if(0 !=common_raw_read("splloader",(uint64_t)SPL_IMAGE_SIZE, (uint64_t)0, (unsigned char *)(header+fastboot_image_size)))
+			secf("splloader read error");
+		sprd_get_hash_key((uint8_t *)(header+fastboot_image_size),img_verify_info.pubkeyhash);
 		#endif
 		}else if(strcmp("fdl2",name) == 0|| strcmp("uboot",name) == 0){
 			#ifdef TOS_TRUSTY
