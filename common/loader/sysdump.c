@@ -28,6 +28,7 @@
 #include <fdt.h>
 #include <linux/ctype.h>
 #include <fdtdec.h>
+#include <u-boot/sha1.h>
 
 #ifdef CONFIG_X86
 #include <asm/e820.h>
@@ -195,7 +196,7 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 	void *memaddr, unsigned long memsize)
 {
 	int ret;
-	unsigned long *actwrite = NULL;
+	unsigned long actwrite = 0;
 
 	if (path) {
 		do {} while (0); /* TODO: jianjun.he */
@@ -208,7 +209,7 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 		memsize, filename);
 
 	if (fs_type==FS_FAT32)
-		ret = file_fat_write(filename, memaddr, 0, memsize, actwrite);
+		ret = file_fat_write(filename, memaddr, 0, memsize, &actwrite);
 	else if (fs_type==FS_EXFAT)
 		ret = file_exfat_write(filename, memaddr, memsize);
 	else
@@ -996,19 +997,22 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 
 void write_sysdump_before_boot(int rst_mode)
 {
-	int i, j, k, sprd_dump_mem_num, ret, fs_type;
-	int auto_test_flag = 0, s_length =0, test_num = 0;
-	char txt_info[2000] = {0};
-	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr, *string;
+	sha1_context ctx;
 	struct rtc_time tm;
+	int dts_version = 0;       /* 0:old version, memory region transfer by DTS;  0xA1: auto calculate linux memory region */
 	struct sysdump_mem *mem;
-	struct sysdump_mem sprd_dump_mem[MAX_NUM_DUMP_MEM];
-	struct sysdump_info *infop = NULL;
-	unsigned long sprd_sysdump_magic = 0;
-	int nodeoffset = 0, ofs_remem = 0;
+	char txt_info[2000] = {0};
+	unsigned char sha1sum[20];
 	dir_entry *dentptr = NULL;
 	unsigned char *dt_addr = NULL;
-	int dts_version=0;	 /* 0:old version, memory region transfer by DTS;  0xA1: auto calculate linux memory region */
+	struct sysdump_info *infop = NULL;
+	int nodeoffset = 0, ofs_remem = 0;
+	unsigned long sprd_sysdump_magic = 0;
+	unsigned char sysdump_checksum[1000] = {0};
+	int i, j, k, sprd_dump_mem_num, ret, fs_type;
+	struct sysdump_mem sprd_dump_mem[MAX_NUM_DUMP_MEM];
+	int auto_test_flag = 0, s_length =0, chk_length = 0;
+	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr, *string, *check_sum;
 
 #ifdef CONFIG_X86
 	unsigned long mem_virt;
@@ -1093,9 +1097,10 @@ void write_sysdump_before_boot(int rst_mode)
 			(rst_mode == CMD_SPECIAL_MODE) || (rst_mode == CMD_VMM_PANIC_MODE) || (rst_mode == CMD_TOS_PANIC_MODE))
 			infop->crash_key = 0;
 
-		if (strlen(infop->dump_path))
+		if (strlen(infop->dump_path)) {
+			debugf("sysdump path length is %d !!!\n", strlen(infop->dump_path));
 			path = infop->dump_path;
-		else {
+		} else {
 			debugf("sysdump use default path !!!\n");
 			path = NULL;
 			memset(infop->dump_path, '\0', sizeof(infop->dump_path));
@@ -1308,35 +1313,38 @@ void write_sysdump_before_boot(int rst_mode)
 			infop->dump_mem_paddr);
 
 		/* record linux memory & reserved memory & dump memory to txt file */
-		string += s_length;
-		test_num += s_length;
 		for(i = 0; i < mem_num; i++) {
-			s_length = sprintf(string, "linux memory %d: "LLX"-"LLX"\n", i + 1,
+			s_length += sprintf(string + s_length, "linux memory %d: "LLX"-"LLX"\n", i + 1,
 				linux_memory[i].addr, linux_memory[i].addr + linux_memory[i].size);
-			string += s_length;
-			test_num += s_length;
 		}
 
 		for(i = 0; i < re_num; i++) {
-			s_length = sprintf(string, "reserved memory %d: "LLX"-"LLX"\n", i + 1,
+			s_length += sprintf(string + s_length, "reserved memory %d: "LLX"-"LLX"\n", i + 1,
 				reserved_memory[i].addr, reserved_memory[i].addr + reserved_memory[i].size);
-			string += s_length;
-			test_num += s_length;
 		}
 
 		for(i = 0; i < sprd_dump_mem_num; i++) {
-			s_length = sprintf(string, "sprd dump memory %d: "LLX"-"LLX"\n", i + 1,
+			s_length += sprintf(string + s_length, "sprd dump memory %d: "LLX"-"LLX"\n", i + 1,
 				sprd_dump_mem[i].paddr, sprd_dump_mem[i].paddr + sprd_dump_mem[i].size -1);
-			string += s_length;
-			test_num += s_length;
 		}
-		debugf("txt_info is 0x%x and test_num is 0x%x\n", strlen(txt_info),test_num);
-		write_mem_to_mmc(path, fnbuf, fs_type, (char *)(txt_info), test_num);
+		debugf("txt_info is 0x%x and s_length is 0x%x\n", strlen(txt_info),s_length);
+		write_mem_to_mmc(path, fnbuf, fs_type, (char *)(txt_info), s_length);
 		/* record memory finished */
 
 		sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/1/"SYSDUMP_CORE_NAME_FMT, 0);
 		write_mem_to_mmc(path, fnbuf, fs_type,
 			(char *)infop + sizeof(*infop), infop->elfhdr_size);
+
+		/*sysdump header checksum start*/
+		check_sum = sysdump_checksum;
+		sha1_starts(&ctx);
+		sha1_update(&ctx, (char *)infop + sizeof(*infop), infop->elfhdr_size);
+		sha1_finish(&ctx,sha1sum);
+		chk_length += sprintf(check_sum + chk_length, SYSDUMP_CORE_NAME_FMT" ", 0);
+		for(j = 0; j < 20; j++)
+			chk_length += sprintf(check_sum + chk_length, "%02x", sha1sum[j]);
+		chk_length += sprintf(check_sum + chk_length, "\n");
+		/*sysdump header checksum end*/
 
 		mem = (struct sysdump_mem *)infop->dump_mem_paddr;
 		for (i = 0; i < infop->mem_num; i++) {
@@ -1379,10 +1387,34 @@ void write_sysdump_before_boot(int rst_mode)
 
 			}
 
+			/*dump memory checksum start*/
+			if(((unsigned int)waddr < CONFIG_SYS_TEXT_BASE) && (((unsigned int)waddr + mem[i].size) > CONFIG_SYS_TEXT_BASE))
+				debugf("this memory section include uboot image, don't verify memory !!!\n");
+			else {
+				debugf("calculate dump memory "LLX"-"LLX" sha1 checksum !!!\n",(SYSDUMP_LONG)waddr, (SYSDUMP_LONG)waddr + mem[i].size - 1);
+				sha1_starts(&ctx);
+				sha1_update(&ctx, waddr, mem[i].size);
+				sha1_finish(&ctx,sha1sum);
+				chk_length += sprintf(check_sum + chk_length, SYSDUMP_CORE_NAME_FMT"_"LLX"-"LLX"_dump.lst ",
+						i + 1, mem[i].paddr, mem[i].paddr + mem[i].size -1);
+				for(j = 0; j < 20; j++)
+					chk_length += sprintf(check_sum + chk_length, "%02x", sha1sum[j]);
+				chk_length += sprintf(check_sum + chk_length, "\n");
+			}
+			/*dump memory checksum end*/
+
 			write_to_mmc(path, fnbuf, fs_type, waddr, mem, i);
 		}
 
 FINISH_write_mmc:
+		/* write dump memory checksum to sd card*/
+		debugf(" writing dump memory checksum to sd card !!!\n");
+		sprintf(fnbuf,SYSDUMP_FOLDER_NAME"/1/sysdump-checksum.txt", \
+                        tm.tm_year, tm.tm_mon, tm.tm_mday, \
+                        tm.tm_hour, tm.tm_min, tm.tm_sec);
+		debugf("sysdump_checksum is 0x%x and check_length is 0x%x\n", strlen(sysdump_checksum), chk_length);
+		write_mem_to_mmc(path, fnbuf, fs_type, (char *)(sysdump_checksum), chk_length);
+
 #ifdef CONFIG_ETB_DUMP
 		debugf ("\n Start to dump ETB trace data\n");
 		sprd_etb_hw_dis();
