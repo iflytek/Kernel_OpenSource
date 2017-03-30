@@ -938,7 +938,9 @@ static init_fnc_t init_sequence_f[] = {
 	copy_uboot_to_ram,
 #endif
 	clear_bss,
+#ifndef CONFIG_NO_RELOCATION
 	do_elf_reloc_fixups,
+#endif
 #endif
 #if !defined(CONFIG_ARM) && !defined(CONFIG_SANDBOX)
 	jump_to_copy,
