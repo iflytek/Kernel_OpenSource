@@ -718,7 +718,7 @@ void show_boot_progress(int val)
 		gd->arch.tsc_prev = now;
 	}
 #endif
-	outb(val, POST_PORT);
+	post_code(val);
 }
 
 #ifndef CONFIG_SYS_COREBOOT

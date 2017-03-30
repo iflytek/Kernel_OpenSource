@@ -38,16 +38,23 @@
 
 /* Output a post code using al - value must be 0 to 0xff */
 #ifdef __ASSEMBLY__
+#ifdef CONFIG_X86_POST_CODE
 #define post_code(value) \
 	movb	$value, %al; \
 	outb	%al, $POST_PORT
 #else
+#define post_code(value)
+#endif
+#else
 #include <asm/io.h>
-
+#ifdef CONFIG_X86_POST_CODE
 static inline void post_code(int code)
 {
 	outb(code, POST_PORT);
 }
+#else
+static inline void post_code(int code) {}
+#endif
 #endif
 
 #endif
