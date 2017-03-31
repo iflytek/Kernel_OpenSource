@@ -330,9 +330,10 @@ sprd_i2c_opt_mode(void *i2c_base, int rw)
 static void sprd_i2c_init(struct i2c_adapter *adap, int speed, int slaveadd)
 {
 	void * i2c_base = sprd_get_base(adap);
-	unsigned int tmp = readl(i2c_base + I2C_CTL);
+	unsigned int tmp = 0;
 
 	sprd_i2c_apb_enable(adap);
+	tmp = readl(i2c_base + I2C_CTL);
 	tmp = tmp & ~(I2C_EN | I2C_TRIM_OPT | (0xF << FIFO_AF_LVL) |
 		(0xF << FIFO_AE_LVL));
 	tmp |= I2C_TRIM_OPT | I2C_INT_EN;
