@@ -178,13 +178,12 @@ bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t *
 				return false;
 			}
 
-			int ret = RSA_PubDec((uint8_t *) & (curcertptr->pubkey.e),
+			RSA_PubDec((uint8_t *) & (curcertptr->pubkey.e),
 					     curcertptr->pubkey.mod, curcertptr->pubkey.keybit_len,
 					     curcertptr->signature, to);
 
 			if (!sec_memcmp(curcertptr->hash_data, to, KEYCERT_HASH_LEN)) {
 				secf("\nRSA verify Success\n");
-				return true;
 			} else {
 				secf("\nRSA verify err\n");
 				return false;
@@ -205,13 +204,12 @@ bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t *
 				return false;
 			}
 
-			int ret = RSA_PubDec((uint8_t *) & (curcertptr->pubkey.e),
+			int len = RSA_PubDec((uint8_t *) & (curcertptr->pubkey.e),
 					     curcertptr->pubkey.mod, curcertptr->pubkey.keybit_len,
 					     curcertptr->signature, to);
 
-			if (!sec_memcmp(curcertptr->hash_data, to, ret)) {
+			if (!sec_memcmp(curcertptr->hash_data, to, len)) {
 				secf("\nRSA verify Success\n");
-				return true;
 			} else {
 				secf("\nRSA verify Failed\n");
 				return false;
