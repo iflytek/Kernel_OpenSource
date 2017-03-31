@@ -182,18 +182,25 @@ static void setup_vid_table(int module)
 			set_pmic_voltage(v, 1200);
 			debug("no VID_V2 on efuse, write 1200mv as default\n");
 		} else {
-			set_pmic_voltage(v, 750);
-			debug("no VID_V2 on efuse, write 750mv as default\n");
+			set_pmic_voltage(v, 840);
+			debug("no VID_V2 on efuse, write 840mv as default\n");
 		}
 	}
 	v = v0 + VID_V7;
 	if(!v->avail) {
-		set_pmic_voltage(v, 1200);
-		debug("no VID_V7 on efuse, write 1200mv as default\n");
+		set_pmic_voltage(v, 1233);
+		debug("no VID_V7 on efuse, write 1233mv as default\n");
 	}
-	/*Programme the V0 to 750mv	*/
-	set_pmic_voltage(v0 + VID_V0, 750);
-
+	/*Programme the V0 to 840mv	*/
+	set_pmic_voltage(v0 + VID_V0, 840);
+	set_pmic_voltage(v0 + VID_V1, 840);
+	set_pmic_voltage(v0 + VID_V2, 840);
+	set_pmic_voltage(v0 + VID_V3, 840);
+	set_pmic_voltage(v0 + VID_V4, 947);
+	set_pmic_voltage(v0 + VID_V5, 1061);
+	set_pmic_voltage(v0 + VID_V6, 1176);
+	set_pmic_voltage(v0 + VID_V7, 1233);
+#if 0
 	mv_v2 = get_pmic_min_voltage(module);
 	mv_v7 = get_pmic_max_voltage(module);
 
@@ -208,6 +215,7 @@ static void setup_vid_table(int module)
 		set_pmic_voltage(v, mv);
 		v++;
 	}
+#endif
 }
 
 #ifdef DEBUG
