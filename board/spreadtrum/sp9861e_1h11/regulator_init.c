@@ -28,6 +28,7 @@ static int power_on_voltage_init(void)
 	power_on_gpu();
 	regulator_set_voltage("dcdcrf",1500);
 	regulator_set_voltage("vddvldo",2800);
+	regulator_set_voltage("vddcon",1250);
 	return 0;
 }
 
