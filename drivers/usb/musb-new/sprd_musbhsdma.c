@@ -93,7 +93,7 @@ static struct dma_channel *sprd_dma_channel_allocate(struct dma_controller *c,
 	channel->desired_mode = transmit;
 	channel->actual_len = 0;
 
-	dev_dbg(musb->controller, "sprd_dma_channel_allocate %d,0x%p\n",
+	dev_vdbg(musb->controller, "sprd_dma_channel_allocate %d,0x%p\n",
 			transmit, musb_channel);
 
 	return channel;
@@ -163,7 +163,7 @@ static int sprd_dma_channel_program(struct dma_channel *channel,
 	unsigned long cache_end = 0;
 	u32 length;
 
-	dev_dbg(musb->controller, "ep%d-%s pkt_sz %d, dma_addr 0x%x length %d, mode %d\n",
+	dev_vdbg(musb->controller, "ep%d-%s pkt_sz %d, dma_addr 0x%x length %d, mode %d\n",
 		musb_channel->ep_num,
 		musb_channel->transmit ? "Tx" : "Rx",
 		packet_sz, dma_addr, len, mode);
@@ -250,9 +250,10 @@ static int sprd_dma_channel_program(struct dma_channel *channel,
 		cache_end = cache_start + 64;
 		flush_dcache_range(cache_start, cache_end);
 	} else {
-		cache_start = (unsigned long)(&musb_channel);
+		cache_start = (unsigned long)(&musb_channel) & 0xffffff40;
 		cache_end = cache_start + 64;
 		invalidate_dcache_range(cache_start, cache_end);
+		dev_dbg(musb->controller,"%p\n",&musb_channel);
 
 		cache_start = (unsigned long)(&linklist_rx);
 		cache_end = cache_start + 64;
@@ -353,7 +354,7 @@ irqreturn_t sprd_dma_interrupt(struct musb *musb, u32 int_hsdma)
 		int_hsdma = int_hsdma >> 1;
 
 		intr = musb_readl(mbase, MUSB_DMA_CHN_INTR(bchannel));
-		dev_dbg(musb->controller, "sprd_dma_interrupt is 0x%x, %d , %d\n",
+		dev_vdbg(musb->controller, "sprd_dma_interrupt is 0x%x, %d , %d\n",
 				intr, bchannel, int_dma);
 
 		if (intr & CHN_START_INT_MASK_STATUS) {

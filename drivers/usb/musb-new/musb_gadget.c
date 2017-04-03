@@ -200,11 +200,11 @@ __acquires(ep->musb->lock)
 	spin_unlock(&musb->lock);
 	unmap_dma_buffer(req, musb);
 	if (request->status == 0)
-		dev_dbg(musb->controller, "%s done request %p,  %d/%d\n",
+		dev_vdbg(musb->controller, "%s done request %p,  %d/%d\n",
 				ep->end_point.name, request,
 				req->request.actual, req->request.length);
 	else
-		dev_dbg(musb->controller, "%s request %p, %d/%d fault %d\n",
+		dev_vdbg(musb->controller, "%s request %p, %d/%d fault %d\n",
 				ep->end_point.name, request,
 				req->request.actual, req->request.length,
 				request->status);
@@ -1317,7 +1317,7 @@ void musb_ep_restart(struct musb *musb, struct musb_request *req)
 		struct dma_channel *channel;
 		struct usb_request *request = &req->request;
 
-		dev_dbg(musb->controller, "musb_ep_restart %s len %u on hw_ep%d\n",
+		dev_vdbg(musb->controller, "musb_ep_restart %s len %u on hw_ep%d\n",
 			req->tx ? "TX/IN" : "RX/OUT",
 			req->request.length, req->epnum);
 
@@ -1366,7 +1366,7 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
 	if (request->ep != musb_ep)
 		return -EINVAL;
 
-	dev_dbg(musb->controller, "<== to %s request=%p\n", ep->name, req);
+	//dev_dbg(musb->controller, "<== to %s request=%p\n", ep->name, req);
 
 	/* request is mine now... */
 	request->request.actual = 0;
