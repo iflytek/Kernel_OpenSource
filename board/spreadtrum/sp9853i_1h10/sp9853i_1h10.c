@@ -36,6 +36,13 @@ static void thm_overheate_en(void)
 					BIT_AON_APB_DPLL_THM_OVERHEAT_EN);
 }
 
+static void pmic_thm_otp(void)
+{
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
+	sci_adi_write(ANA_REG_GLB_OTP_CTRL, (BIT_OTP_EN|BITS_OTP_OP(0)), (BIT_OTP_EN|BITS_OTP_OP(3)));	//open otp and set 135C
+#endif
+}
+
 int board_init(void)
 {
 	setup_chipram_env();
@@ -51,6 +58,7 @@ int board_init(void)
 	regulator_init();
 	sprd_pmu_lowpower_init();
 	thm_overheate_en();
+	pmic_thm_otp();
 #endif
 	return 0;
 }
