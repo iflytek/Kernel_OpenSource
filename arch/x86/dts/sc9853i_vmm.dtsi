@@ -27,6 +27,28 @@
 		serial0 = &uart0;
 	};
 
+	reserved-memory {
+		#address-cells = <2>;
+                #size-cells = <2>;
+                ranges;
+		/* fb */
+		fb_reserved: fb-mem@5ca88000{
+			reg = <0 0x5ca88000 0 0x017bc000>;
+		};
+	};
+
+	ion {
+		compatible = "sprd,ion";
+		#address-cells = <1>;
+                #size-cells = <0>;
+		heap@3 {
+			reg = <3>;
+			label = "carveout_fb";
+			type = <2>;
+			memory-region = <&fb_reserved>;
+		};
+	};
+
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
