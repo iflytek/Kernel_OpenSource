@@ -38,7 +38,4 @@
 
 #define CONFIG_USB_UTMI_WIDTH_8
 
-/* for power detect, default high */
-#define CONFIG_POWERKEY_DEFAULT_HIGH
-
 #endif /* __CONFIG_H */
