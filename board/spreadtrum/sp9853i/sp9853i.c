@@ -45,6 +45,7 @@ int misc_init_r(void)
 {
 	dvfs_init();
 	init_vid_table();
+	save_vids();
 	change_cpu_freq();
 	return 0;
 }
