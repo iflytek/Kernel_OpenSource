@@ -19,11 +19,7 @@ SECTIONS
 	. = ALIGN(4);
 
 	. = ALIGN(4);
-	.u_boot_list : {
-		KEEP(*(SORT(.u_boot_list*)));
-	}
 
-	. = ALIGN(4);
 	.rodata : { *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) }
 
 	. = ALIGN(4);
@@ -46,11 +42,10 @@ SECTIONS
 	.dynsym : { *(.dynsym*) }
 
 	. = ALIGN(4);
-	__rel_dyn_start = .;
-	.rel.dyn : {
-		*(.rel*)
+	.u_boot_list : {
+		KEEP(*(SORT(.u_boot_list*)));
 	}
-	__rel_dyn_end = .;
+
 	. = ALIGN(4);
 	_end = .;
 	. = . + 53k;
