@@ -598,6 +598,7 @@ static void usb_startup(void)
 	__raw_bits_or(BIT_OTG_SOFT_RST, REG_AP_AHB_AHB_RST);
 	dwc_mdelay(5);
 	__raw_bits_and(~(BIT_OTG_SOFT_RST), REG_AP_AHB_AHB_RST);
+	__raw_bits_or(BIT_AP_AHB_OTG_IDDIG, REG_AP_AHB_USB2_CTRL);
 #ifndef CONFIG_FPGA
 	__raw_bits_or(BIT_23,ISHARKL2_USB_PHY_BASE);	//init the intel usb phy
 #endif
