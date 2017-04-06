@@ -262,12 +262,17 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
 
 #if 1
     //uint32_t fbdivratio,fracdiv,fracnen,div5bbypass,div5b,div2or3;
-    __raw_bits_and(~(1<<11),0xe4109000);
+#ifdef CONFIG_SPRD_SOC_SP9853I
+	#define ANLG_PHY_ANALOG_REG0 REG_ANLG_PHY_G2_ANALOG_DSI_0_CTRL_REG0
+#else //iwhale2
+	#define ANLG_PHY_ANALOG_REG0 REG_ANLG_PHY_G8_ANALOG_DSI_0_CTRL_REG0
+#endif
+    __raw_bits_and(~(1<<11),ANLG_PHY_ANALOG_REG0);
     /******fwen,sys_rst,apb_rst*************/
-    __raw_bits_or(1<<1, 0xe4109000); //pgen reset ?
-    __raw_bits_or(1<<2, 0xe4109000);
-    __raw_bits_or(1<<20, 0xe4109000);
-    __raw_bits_or(1<<21, 0xe4109000);
+    __raw_bits_or(1<<1, ANLG_PHY_ANALOG_REG0); //pgen reset ?
+    __raw_bits_or(1<<2, ANLG_PHY_ANALOG_REG0);
+    __raw_bits_or(1<<20, ANLG_PHY_ANALOG_REG0);
+    __raw_bits_or(1<<21, ANLG_PHY_ANALOG_REG0);
 
     /*******VREG and ref enable*********/
     __raw_writel(0x40000020,0xe41b0058);
@@ -275,10 +280,11 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     phy_bios_programming();
 
     __raw_bits_or(1<<3, 0xd39000a0);//force pll
+    //__raw_bits_or(1 << 19, ANLG_PHY_ANALOG_REG0);
     /****latchreset,latchen****/
-    __raw_bits_or(1<<13, 0xe4109000);
-    __raw_bits_or(1<<14, 0xe4109000);
-    printf("0xe4109000 = 0x%x\n", __raw_readl(0xe4109000));
+    __raw_bits_or(1<<13, ANLG_PHY_ANALOG_REG0);
+    __raw_bits_or(1<<14, ANLG_PHY_ANALOG_REG0);
+    printf("0x%x = 0x%x\n", ANLG_PHY_ANALOG_REG0, __raw_readl(ANLG_PHY_ANALOG_REG0));
     /***********enable dsi**************/
 #define PHY_OFFSET 0x0
     __raw_writel(0x0,0xe41b0014+PHY_OFFSET);
@@ -298,6 +304,7 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     set_pll_frequency(output_freq);
     __raw_bits_or(1<<0, 0xe41b0120+PHY_OFFSET);
     __raw_bits_or(1<<3, 0xd39000a0);//force pll
+    //__raw_bits_or(1 << 19, ANLG_PHY_ANALOG_REG0);
 
     /************set hs prepare/zero/trail time*************/
     writel_nbits(0x6,8,0,0xe41b00e4);

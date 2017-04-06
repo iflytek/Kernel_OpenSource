@@ -29,6 +29,24 @@
 #define SYSDUMP_MAPPING_ADDR  0x60000000
 #define SPLIT_MEM_REGION 0
 
+/*lcd config*/
+#define CONFIG_LCD
+#ifdef CONFIG_LCD
+#define CONFIG_FB_ADDR 0x0
+#define CONFIG_DSIH_INTER_PHY
+#define CONFIG_DSIH_VERSION_1P21A
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_CMD_BMP
+#define CONFIG_BMP_16BPP
+#define LCD_BPP LCD_COLOR16
+#define CONFIG_FB_LCD_NT35532_2_MIPI
+#define LCM_NT35532_2_I2C_BUS_NUM  3
+#define LCM_GPIO_AVDDEN 31
+#define LCM_GPIO_AVEEEN 32
+#define LCM_GPIO_RSTN   126
+#define CONFIG_LCD_1080P
+#endif
+
 #define CONFIG_MISC_INIT_R
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0

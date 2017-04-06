@@ -39,7 +39,7 @@ void dispc_pll_clk_set(unsigned int clk_src, unsigned int clk_div)
 	__raw_bits_set_value(DISPC_PLL_DIV_CFG, clk_div, BITS_DISPC_PLL_DIV_CFG, BIT_DISPC_PLL_DIV_MSK);
 #endif
 }
-#ifndef CONFIG_SOC_IWHALE2
+#if !(defined(CONFIG_SOC_IWHALE2) || defined(CONFIG_SPRD_SOC_SP9853I))
 void dispc_dbi_clk_set(unsigned int clk_src, unsigned int clk_div)
 {
 #ifndef CONFIG_FPGA

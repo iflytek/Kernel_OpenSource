@@ -30,15 +30,14 @@ static struct sprdfb_device s_sprdfb_dev = {0};
 static uint32_t lcd_id_to_kernel = 0;
 static uint32_t lcd_width_to_kernel = 0;
 static uint32_t lcd_hight_to_kernel = 0;
-static void *bmp;
 
 
-void save_lcd_id_to_kernel(uint32_t id)
+void inline save_lcd_id_to_kernel(uint32_t id)
 {
 	lcd_id_to_kernel = id;
 }
 
-uint32_t load_lcd_id_to_kernel(void)
+uint32_t inline load_lcd_id_to_kernel(void)
 {
 	return lcd_id_to_kernel;
 }
@@ -134,7 +133,6 @@ static int sprdfb_probe(void *lcdbase)
 		errorf("Failed to decode reg property \n");
 		return -EINVAL;
 	}
-
 	gd->fb_base = base + (size / 3) * 2;
 	dev->smem_start = gd->fb_base;
 	dev->ctrl->init(dev);
@@ -159,6 +157,7 @@ void lcd_enable(void)
 void lcd_ctrl_init(void *lcdbase)
 {
 	int size;
+	void *bmp;
 	char *s;
 	ulong addr;
 	u32 bmp_header_size = 8192;

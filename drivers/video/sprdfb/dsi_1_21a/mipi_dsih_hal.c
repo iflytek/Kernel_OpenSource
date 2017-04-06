@@ -1124,7 +1124,7 @@ int mipi_dsih_hal_gen_cmd_fifo_empty(dsih_ctrl_t * instance)
  */
 dsih_error_t mipi_dsih_phy_hs2lp_config(dsih_ctrl_t * instance, uint8_t no_of_byte_cycles)
 {
-#ifndef CONFIG_SOC_IWHALE2
+#if !(defined(CONFIG_SOC_IWHALE2) || defined(CONFIG_SPRD_SOC_SP9853I))
 #ifdef CONFIG_MIPI_DSIH_SPRD
 	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 16, 16);
 #else
@@ -1144,7 +1144,7 @@ dsih_error_t mipi_dsih_phy_hs2lp_config(dsih_ctrl_t * instance, uint8_t no_of_by
  */
 dsih_error_t mipi_dsih_phy_lp2hs_config(dsih_ctrl_t * instance, uint8_t no_of_byte_cycles)
 {
-#ifndef CONFIG_SOC_IWHALE2
+#if !(defined(CONFIG_SOC_IWHALE2) || defined(CONFIG_SPRD_SOC_SP9853I))
 #ifdef CONFIG_MIPI_DSIH_SPRD
 	mipi_dsih_write_part(instance, R_DSI_HOST_PHY_TMR_CFG, no_of_byte_cycles, 0, 16);
 #else

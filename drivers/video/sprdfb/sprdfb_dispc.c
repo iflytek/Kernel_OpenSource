@@ -75,7 +75,7 @@ static void dispc_set_exp_mode(uint16_t exp_mode)
 static void dispc_module_enable(void)
 {
 	FB_PRINT("sprdfb:[%s]\n",__FUNCTION__);
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 	/*dispc module enable */
 	dispc_write((1<<0), DISPC_CTRL);
 #endif
@@ -93,7 +93,7 @@ static inline int32_t  dispc_set_disp_size(struct sprdfb_device *dev)
 
 	FB_PRINT("sprdfb:[%s]\n",__FUNCTION__);
 	if (SPRDFB_MIPI_MODE_VIDEO == dev->panel->info.mipi->work_mode) {
-#ifdef CONFIG_SOC_IWHALE2
+#if (defined(CONFIG_SOC_IWHALE2) || defined(CONFIG_SPRD_SOC_SP9853I))
 		width_strike = WIDTH_ALIGN(dev->panel->width, 1);
 #else
 		width_strike = WIDTH_ALIGN(dev->panel->width, 16);
@@ -108,7 +108,14 @@ static inline int32_t  dispc_set_disp_size(struct sprdfb_device *dev)
 
 	return 0;
 }
-
+enum {
+	DPU_LAYER_FORMAT_YUV422,
+	DPU_LAYER_FORMAT_YUV420,
+	DPU_LAYER_FORMAT_ARGB888,
+	DPU_LAYER_FORMAT_RGB565,
+	DPU_LAYER_FORMAT_AFBC,
+	DPU_LAYER_FORMAT_MAX_TYPES,
+};
 static void dispc_layer_init(struct sprdfb_device *dev)
 {
 	uint32_t reg_val = 0;
@@ -128,29 +135,37 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 	/* alpha mode select  - block alpha*/
 	reg_val |= (1 << 2);
 
+#if (defined(CONFIG_SPRD_SOC_SP9853I))
+	reg_val |= (DPU_LAYER_FORMAT_RGB565 << 4);
+#else
 	/* data format */
 	/* RGB565 */
 	reg_val |= (5 << 4);
+#endif
 	/* B2B3B0B1 */
 	reg_val |= (2 << 8);
 
 	dispc_write(reg_val, DISPC_OSD_CTRL);
 
 	/* OSD layer alpha value */
-	dispc_write(0xff, DISPC_OSD_ALPHA);
+	dispc_write(0xFF, DISPC_OSD_ALPHA);
 
 	/* OSD layer size */
 #ifdef CONFIG_FB_LOW_RES_SIMU
 #ifndef CONFIG_SC8830
-	if((0 != dev->panel->display_width) && (0 != dev->panel->display_height)){
-		 reg_val = ( dev->panel->display_width& 0xfff) | ((dev->panel->display_height & 0xfff) << 16);
+	if((0 != dev->panel->display_width)
+	   && (0 != dev->panel->display_height)){
+		reg_val = ( dev->panel->display_width& 0xfff)
+			| ((dev->panel->display_height & 0xfff) << 16);
 #else
 	if((0 != dev->display_width) && (0 != dev->display_height)){
-		reg_val = ( dev->display_width& 0xfff) | ((dev->display_height & 0xfff ) << 16);
+		reg_val = ( dev->display_width& 0xfff)
+			| ((dev->display_height & 0xfff ) << 16);
 #endif
 	}else
  #endif
-	reg_val = ( dev->panel->width& 0xfff) | ((dev->panel->height & 0xfff ) << 16);
+	reg_val = ( dev->panel->width& 0xfff)
+		| ((dev->panel->height & 0xfff ) << 16);
 	dispc_write(reg_val, DISPC_OSD_SIZE_XY);
 
 	/* OSD layer start position */
@@ -341,7 +356,7 @@ static int32_t sprdfb_dispc_early_init(struct sprdfb_device *dev)
 	gsp_iommu_workaround();
 #endif
 	dispc_pll_clk_set(DISPC_PLL_SEL_DEFAULT, 0);
-#ifndef	CONFIG_SOC_IWHALE2
+#if !(defined(CONFIG_SOC_IWHALE2) || defined(CONFIG_SPRD_SOC_SP9853I))
         dispc_dbi_clk_set(DISPC_DBI_SEL_DEFAULT, 0);
 #endif
 	dispc_dpi_clk_set(DISPC_DPI_SEL_DEFAULT, 0);
@@ -374,15 +389,15 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 			return -1;
 		}
 	}
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 	misc_noc_ctrl(REG_AON_APB_DISP_NOC_CTRL,
 			dev->smem_start > 0x400000000 ? FULL_MODE : NORMAL_MODE,
 			SIZE_64);
 #endif
 	/*set bg color*/
 //	dispc_set_bg_color(0xFFFFFFFF);
-	dispc_set_bg_color(0x0);
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+	dispc_set_bg_color(0xFF);
+#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 	/*enable dithering*/
 	dispc_dithering_enable(1);
 #endif
@@ -396,14 +411,14 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 	if(SPRDFB_PANEL_IF_DPI == dev->panel_if_type){
 		if(is_first_frame){
 			/*set dpi register update only with SW*/
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 			dispc_set_bits((1<<4), DISPC_DPI_CTRL);
 #else
 			dispc_set_bits((1<<4), DISPC_CTRL);
 #endif
 		}else{
 			/*set dpi register update with SW & VSYNC*/
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 			dispc_clear_bits((1<<4), DISPC_DPI_CTRL);
 #else
 			dispc_clear_bits((1<<4), DISPC_CTRL);
@@ -419,7 +434,9 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 		{/*for debug*/
 			int32_t i;
 			for(i=0x20800000;i<0x208000c0;i+=16){
-				FB_PRINT("sprdfb: %x: 0x%x, 0x%x, 0x%x, 0x%x\n", i, __raw_readl(i), __raw_readl(i+4), __raw_readl(i+8), __raw_readl(i+12));
+				FB_PRINT("sprdfb: %x: 0x%x, 0x%x, 0x%x, 0x%x\n",
+					 i, __raw_readl(i), __raw_readl(i+4),
+					 __raw_readl(i+8), __raw_readl(i+12));
 			}
 			FB_PRINT("**************************************\n");
 		}
@@ -450,7 +467,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 
 	if(SPRDFB_PANEL_IF_DPI == dev->panel_if_type){
 		/*dpi register update*/
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 		dispc_set_bits((1<<5), DISPC_DPI_CTRL);
 #else
 		dispc_set_bits((1<<5), DISPC_CTRL);
@@ -458,7 +475,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 		if(is_first_frame){
 			udelay(30);
 			/*dpi register update with SW and VSync*/
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)))
+#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 			dispc_clear_bits((1<<4), DISPC_DPI_CTRL);
 			/* start refresh */
 			dispc_set_bits((1 << 4), DISPC_CTRL);
@@ -508,10 +525,10 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 
 struct display_ctrl sprdfb_dispc_ctrl = {
 	.name		= "dispc",
-	.early_init		= sprdfb_dispc_early_init,
-	.init		 	= sprdfb_dispc_init,
+	.early_init	= sprdfb_dispc_early_init,
+	.init		= sprdfb_dispc_init,
 	.uninit		= sprdfb_dispc_uninit,
-	.refresh		= sprdfb_dispc_refresh,
+	.refresh	= sprdfb_dispc_refresh,
 	.update_clk     = dispc_update_clock,
 };
 

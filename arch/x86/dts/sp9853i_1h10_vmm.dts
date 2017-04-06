@@ -23,5 +23,25 @@
 			<0x00000000 0xfe000000 0x00000000 0x01000000 E820_RESERVED>, /* reserve */
 			<0x00000000 0x00800000 0x00000000 0x7F800000 E820_RAM>; /* vmm end to DRAM end */
 	};
+	reserved-memory {
+		#address-cells = <2>;
+                #size-cells = <2>;
+                ranges;
+		/* fb */
+		fb_reserved: fb-mem@5ca88000{
+			reg = <0 0x5ca88000 0 0x017bc000>;
+		};
+	};
 
+	ion {
+		compatible = "sprd,ion";
+		#address-cells = <1>;
+                #size-cells = <0>;
+		heap@3 {
+			reg = <3>;
+			label = "carveout_fb";
+			type = <2>;
+			memory-region = <&fb_reserved>;
+		};
+	};
 };

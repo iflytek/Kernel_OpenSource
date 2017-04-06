@@ -599,12 +599,16 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2),{0x51,0xFF}},
 {LCM_SEND(2),{0x53,0x2C}},
 {LCM_SEND(2),{0x36,0x00}},
-
+#if 1
 {LCM_SEND(1),{0x11}},
 {LCM_SLEEP(120)},
 
 {LCM_SEND(1),{0x29}},
 {LCM_SLEEP(50)},
+#else
+{LCM_SEND(2),{0xFF, 0x05}},
+{LCM_SEND(2),{0xEC, 0x21}},
+#endif
 };
 
 
@@ -674,8 +678,11 @@ static uint32_t nt35532_readid(struct panel_spec *self)
 		if(0x32 == read_data[0]){
 			printk("lcd_nt35532_mipi read id success!\n");
 			mipi_eotp_set(1,1);
-			i2c_set_bus_num(5);
-			if (0x0A != i2c_reg_read(0x3E, 0x00)) {
+			i2c_set_bus_num(3); //iwhale2 5
+			read_rtn = i2c_reg_read(0x3E, 0x00);
+			printk("lcd_nt35532_mipi read i2c read_rtn 0x%x\n", read_rtn);
+			
+			if (0x0A != read_rtn) {
 				i2c_reg_write(0x3E, 0x00, 0x0A);
 				i2c_reg_write(0x3E, 0x01, 0x0A);
 				i2c_reg_write(0x3E, 0x03, 0x03);
@@ -693,6 +700,10 @@ int32_t nt35532_reset(struct panel_spec *self)
 {
 	sprd_gpio_request(NULL, LCM_GPIO_AVDDEN);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_AVDDEN, 1);
+	mdelay(10);
+	#define LCD_ID_GPIO 90
+	sprd_gpio_request(NULL, LCD_ID_GPIO);
+	sprd_gpio_direction_output(NULL, LCD_ID_GPIO, 1);
 	mdelay(10);
 
 	sprd_gpio_request(NULL, LCM_GPIO_AVEEEN);

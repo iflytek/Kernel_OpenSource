@@ -24,7 +24,7 @@
 # obj-$(CONFIG_LCD) += sprdfb_backlight.o
 
 ## basic fb driver
-obj-$(CONFIG_LCD) += sprdfb_main.o sprdfb_panel.o sprdfb_dispc.o
+obj-$(CONFIG_LCD) += sprdfb_main.o sprdfb_panel.o sprdfb_dispc.o sprdfb_chip_common.o
 obj-$(CONFIG_LCD) += sprdfb_rgb.o sprdfb_mipi.o sprdfb_dsi.o
 
 ## old panel interface
@@ -33,7 +33,6 @@ obj-$(CONFIG_I2C) += sprdfb_mcu.o sprdfb_i2c.o
 obj-$(CONFIG_SPI) += sprdfb_spi.o
 endif
 
-obj-$(CONFIG_LCD) += sprdfb_chip_common.o
 ## related to specific chip
 ifeq ($(CONFIG_LCD), y)
 obj-$(CONFIG_SC9836A) += sprdfb_chip_9630.o
@@ -44,7 +43,9 @@ obj-$(CONFIG_SC9001) += sprdfb_chip_9001.o
 obj-$(CONFIG_SC9860) += sprdfb_chip_9860.o
 obj-$(CONFIG_SC9833) += sprdfb_chip_9833.o
 obj-$(CONFIG_SC9851) += sprdfb_chip_9851.o
+
 obj-$(CONFIG_SOC_IWHALE2) += sprdfb_chip_9861.o
+obj-$(CONFIG_SPRD_SOC_SP9853I) += sprdfb_chip_9853i.o
 endif
 
 ## only related to FPGA
