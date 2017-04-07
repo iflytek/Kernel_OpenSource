@@ -631,6 +631,7 @@ static void reorder_reserved_memory_by_addr(struct sysdump_memory *memArray, int
 #ifdef CONFIG_X86
 static u32 e820_map_auto_detect(struct e820entry *entries)
 {
+#ifdef CONFIG_E820_AUTO_DETECT
 	extern ddr_info_t* get_ddr_range(void);
 	u32 e820_entries_detect = 0;
 	int i = 0;
@@ -652,6 +653,13 @@ static u32 e820_map_auto_detect(struct e820entry *entries)
 	}
 
 	debugf("e820 total num is %d !!!\n", e820_entries_detect);
+#else
+	u32 e820_entries_detect = 1;
+	entries->addr = VMM_RESERVE_SIZE;
+	entries->size = 0x7fffffff;
+	entries->type  = E820_RAM;
+	debugf("e820 entry addr = 0x%08llx, entry size = 0x%llx !!!\n", entries->addr, entries->size);
+#endif
 	return e820_entries_detect;
 }
 #endif
