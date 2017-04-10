@@ -1139,6 +1139,9 @@ void dwc_otg_core_dev_init(dwc_otg_core_if_t * core_if)
 		dwc_modify_reg32(&dev_if->dev_global_regs->dctl, 0, dctl.d32);
 	}
 	dctl.d32 = dwc_read_reg32(&dev_if->dev_global_regs->dctl);
+	dctl.b.sftdiscon = 1;
+	dwc_write_reg32(&dev_if->dev_global_regs->dctl, dctl.d32);
+	dwc_mdelay(100);
 	dctl.b.sftdiscon = 0;
 	dwc_write_reg32(&dev_if->dev_global_regs->dctl, dctl.d32);
 }
