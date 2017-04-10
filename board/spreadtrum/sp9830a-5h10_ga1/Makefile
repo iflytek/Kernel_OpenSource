@@ -22,6 +22,4 @@
 #
 
 
-obj-y	= sp9830a-5h10_ga1.o sprd_kp.o ldo_sleep.o sprd_bl.o pinmap-sp9630.o modem_entry.o sdio_cfg.o
-
-
+obj-y	= sp9830a-5h10_ga1.o sprd_kp.o ldo_sleep.o sprd_bl.o pinmap-sp9630.o modem_entry.o sdio_cfg.o lcd_printf.o

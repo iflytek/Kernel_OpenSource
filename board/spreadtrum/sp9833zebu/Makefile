@@ -22,8 +22,9 @@
 #
 
 
-obj-y	= sp9833zebu.o sprd_kp.o sprd_bl.o pinmap-sp9630.o sdio_cfg.o modem_entry.o
+obj-y	= sp9833zebu.o sprd_kp.o sprd_bl.o pinmap-sp9630.o sdio_cfg.o modem_entry.o lcd_printf.o
 
 ifneq ($(CONFIG_ARCH_SCX35L2),y)
 obj-y	= ldo_sleep.o
 endif
+

@@ -5,6 +5,13 @@
 
 extern unsigned int g_charger_mode;
 void lcd_enable(void);
+extern void fastboot_lcd_printf(void);
+
+void __attribute__((weak)) fastboot_lcd_printf(void)
+{
+	lcd_printf("   fastboot mode");
+	return;
+}
 
 #ifdef CONFIG_AUTOLOAD_MODE
 
@@ -168,8 +175,7 @@ extern int drv_lcd_init (void);
 	set_vibrator(1);
 
 	extern void set_backlight(uint32_t value);
-	lcd_printf("   fastboot mode");
-
+	fastboot_lcd_printf();
 	set_backlight(255);
 	mdelay(400);
 	set_vibrator(0);
