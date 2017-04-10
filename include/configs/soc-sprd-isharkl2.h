@@ -96,16 +96,16 @@
 #define PHYS_OFFSET_ADDR			0x80000000
 
 /*7S reset config*/
-#define CONFIG_7S_RST_MODULE_EN		1
+#define CONFIG_7S_RST_MODULE_EN		1	/* 0:disable module; 1:enable module */
 
 #ifdef DEBUG
-#define CONFIG_7S_RST_SW_MODE	1	//0:hw reset,1:arm reset,power keep on	//soft for debug version
+#define CONFIG_7S_RST_SW_MODE	1	/* 0:hw reset,1:arm reset,power keep on, soft for debug version */
 #else
-#define CONFIG_7S_RST_SW_MODE	0	//0:hw reset,1:arm reset,power keep on	//hard for user version
+#define CONFIG_7S_RST_SW_MODE	0	/* 0:hw reset,1:arm reset,power keep on, hard for user version */
 #endif
-#define CONFIG_7S_RST_SHORT_MODE	1
-#define CONFIG_7S_RST_2KEY_MODE		0
-#define CONFIG_7S_RST_THRESHOLD		7
+#define CONFIG_7S_RST_SHORT_MODE	1	/* 0:long press then release key to trigger;1:press key some time to trigger */
+#define CONFIG_7S_RST_2KEY_MODE		1	/* 0:1Key--Normal mode; 1:2KEY */
+#define CONFIG_7S_RST_THRESHOLD		7	/* 7S, hold key down for this time to trigger */
 /*i2c driver*/
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C_V2
