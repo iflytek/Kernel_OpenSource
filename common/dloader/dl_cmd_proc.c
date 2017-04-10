@@ -326,6 +326,33 @@ int dl_cmd_check_rootflag(dl_packet_t *packet, void *arg)
 	return 1;
 }
 
+#ifdef CONFIG_X86
+int dl_cmd_get_uid_x86(dl_packet_t *packet, void *arg)
+{
+	uint32_t block0, block1, block5, block;
+	uint32_t block0_int, block0_bit, block1_int, block1_bit;
+	char *p = packet->body.content;
+
+	block0 = sprd_ap_efuse_read(0);
+	block1 = sprd_ap_efuse_read(1);
+	block5 = sprd_ap_efuse_read(5);
+	block0_int = (block0 >> 2) & 0xffffff;
+	block0_bit = ((block0 & 0x3)<<2);
+	block1_int = block1 & 0xfffffff;
+	block1_bit = (block1 & 0x30000000) >> 28;
+	block = block0_bit | block1_bit;
+	block5 &= 0xfff;
+
+	debugf("uid is %x%x%x%x\n", block5, block0_int, block, block1_int);
+	sprintf(p, "%03x%06x%01x%07x", block5, block0_int, block, block1_int);
+
+	packet->body.type = BSL_REP_READ_CHIP_UID;
+	packet->body.size = strlen(p);
+	dl_send_packet (packet);
+	return 0;
+}
+
+#else
 int dl_cmd_get_uid(dl_packet_t *packet, void *arg)
 {
 	uint32_t efuse_blk0 = 0;
@@ -346,6 +373,7 @@ int dl_cmd_get_uid(dl_packet_t *packet, void *arg)
 	dl_send_packet (packet);
 	return 0;
 }
+#endif
 
 int dl_cmd_read_ref_info(dl_packet_t *packet, void *arg)
 {
