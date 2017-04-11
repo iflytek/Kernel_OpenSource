@@ -510,6 +510,12 @@ void sprd_calc_hbk(void)
 		printf("sprd_calc_hbk p1:%x, p2:%x,P3:%x\n",img_verify_info_tos->img_addr,img_verify_info_tos->img_len,img_verify_info_tos->flag);
 		uboot_get_hbk(img_verify_info_tos,sizeof(imgToVerifyInfo));
 		#else
+		//memcpy((unsigned char *)img_verify_info.img_addr,IRAM_BEGIN,SPL_IMAGE_SIZE);
+		common_raw_read("splloader", (uint64_t)SPL_IMAGE_SIZE, (uint64_t)0, (unsigned char *)img_verify_info.img_addr);
+		img_verify_info.img_len = SPL_IMAGE_SIZE;
+		img_verify_info.flag = SPRD_FLAG;
+		printf("sprd_calc_hbk p1:%x, p2:%x,P3:%x\n",img_verify_info.img_addr,img_verify_info.img_len,img_verify_info.flag);
+		uboot_get_hbk(&img_verify_info,sizeof(imgToVerifyInfo));
 		#endif
 		}
 		else
