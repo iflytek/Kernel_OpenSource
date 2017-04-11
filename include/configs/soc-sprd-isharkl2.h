@@ -29,11 +29,6 @@
 /*#define CONFIG_MMC_TRACE*/
 
 /* file system config */
-#define CONFIG_FS_EXT4
-#define CONFIG_EXT4_WRITE
-#define CONFIG_CMD_EXT4
-#define CONFIG_CMD_EXT4_WRITE
-#define CONFIG_CMD_FAT			1
 #define CONFIG_FAT_WRITE		1
 
 #define CONFIG_DOS_PARTITION		1

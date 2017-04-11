@@ -23,9 +23,6 @@
 
 /*file system config*/
 #define CONFIG_FAT_WRITE
-#define CONFIG_FS_EXT4
-#define CONFIG_CMD_EXT4
-#define CONFIG_CMD_FAT
 
 /*partition type*/
 #define CONFIG_DOS_PARTITION
