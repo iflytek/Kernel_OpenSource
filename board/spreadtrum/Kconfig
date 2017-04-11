@@ -188,6 +188,12 @@ config FPGA
 	help
 	  This  option specifies some special control for fpga board.
 
+config SPRD_WCN
+	bool "sprd wcn board"
+	default n
+	help
+	  This  option specifies some special control for zebu/fpga wcn board.
+
 source "board/spreadtrum/isharkl/Kconfig"
 source "board/spreadtrum/sp9861/Kconfig"
 source "board/spreadtrum/sp9861_vp/Kconfig"
