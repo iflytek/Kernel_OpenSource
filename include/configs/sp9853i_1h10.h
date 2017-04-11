@@ -7,7 +7,7 @@
 #define CONFIG_SPRD_SOC_SP9853I
 
 /*******DDR CONFIG************************/
-/*#define CONFIG_E820_AUTO_DETECT*/
+#define CONFIG_E820_AUTO_DETECT
 #define CONFIG_NR_DRAM_BANKS	1
 /* PHYS_SDRAM_1_SIZE =1.5G -3M, reserve 3M for ddr traning*/
 #define PHYS_SDRAM_1_SIZE	0x5fd00000
