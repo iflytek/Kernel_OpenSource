@@ -138,6 +138,7 @@
 
 /* sprd modem&dsp boot related macro definitions */
 /* #define CONFIG_KERNEL_BOOT_CP */
+#define CONFIG_KERNEL_BOOT_CP
 #define CONFIG_MEM_LAYOUT_DECOUPLING
 
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
