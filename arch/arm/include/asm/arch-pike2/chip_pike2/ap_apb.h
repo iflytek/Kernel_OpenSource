@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Spreadtrum Communications Inc.
+ * Copyright (C) 2017 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
@@ -12,32 +12,27 @@
 #ifndef _AP_APB_REG_H
 #define _AP_APB_REG_H
 
-#define CTL_BASE_AP_APB SPRD_APBREG_PHYS
+#define CTL_BASE_AP_APB 0x71300000
 
 
 #define REG_AP_APB_APB_EB         ( CTL_BASE_AP_APB + 0x0000 )
 #define REG_AP_APB_APB_RST        ( CTL_BASE_AP_APB + 0x0004 )
 #define REG_AP_APB_APB_MISC_CTRL  ( CTL_BASE_AP_APB + 0x0008 )
+#define REG_AP_APB_AP_DUMMY_REG4  ( CTL_BASE_AP_APB + 0x000C )
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_APB_APB_EB
 // Register Offset : 0x0000
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_APB_INTC3_EB                        BIT(22)
 #define BIT_AP_APB_INTC2_EB                        BIT(21)
 #define BIT_AP_APB_INTC1_EB                        BIT(20)
 #define BIT_AP_APB_INTC0_EB                        BIT(19)
-#define BIT_INTC0_EB				BIT_AP_APB_INTC0_EB
-#define BIT_INTC1_EB				BIT_AP_APB_INTC1_EB
-#define BIT_INTC2_EB				BIT_AP_APB_INTC2_EB
-#define BIT_INTC3_EB				BIT_AP_APB_INTC3_EB
 #define BIT_AP_APB_SIM0_32K_EB                     BIT(18)
 #define BIT_AP_APB_UART1_EB                        BIT(14)
 #define BIT_AP_APB_UART0_EB                        BIT(13)
-#define BIT_UART0_EB				BIT_AP_APB_UART0_EB
-#define BIT_UART1_EB				BIT_AP_APB_UART1_EB
 #define BIT_AP_APB_I2C2_EB                         BIT(10)
 #define BIT_AP_APB_I2C1_EB                         BIT(9)
 #define BIT_AP_APB_I2C0_EB                         BIT(8)
@@ -48,7 +43,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_APB_APB_RST
 // Register Offset : 0x0004
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_APB_INTC3_SOFT_RST                  BIT(22)
@@ -68,11 +63,19 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_APB_APB_MISC_CTRL
 // Register Offset : 0x0008
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_AP_APB_SIM_CLK_POLARITY                BIT(1)
 #define BIT_AP_APB_FMARK_POLARITY_INV              BIT(0)
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_APB_AP_DUMMY_REG4
+// Register Offset : 0x000C
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_APB_AP_DUMMY_REG4_H16(x)            (((x) & 0xFFFF) << 16)
+#define BIT_AP_APB_AP_DUMMY_REG4_L16(x)            (((x) & 0xFFFF))
 
 
 #endif // _AP_APB_REG_H

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Spreadtrum Communications Inc.
+ * Copyright (C) 2017 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
@@ -12,7 +12,7 @@
 #ifndef _AP_AHB_REG_H
 #define _AP_AHB_REG_H
 
-#define CTL_BASE_AP_AHB SPRD_AHB_PHYS
+#define CTL_BASE_AP_AHB 0x20E00000
 
 
 #define REG_AP_AHB_AHB_EB                             ( CTL_BASE_AP_AHB + 0x0000 )
@@ -38,7 +38,6 @@
 #define REG_AP_AHB_CA7_C3_AUTO_FORCE_SHUTDOWN_EN      ( CTL_BASE_AP_AHB + 0x0050 )
 #define REG_AP_AHB_CA7_CKG_SEL_CFG                    ( CTL_BASE_AP_AHB + 0x0054 )
 #define REG_AP_AHB_MST_FRC_LSLP                       ( CTL_BASE_AP_AHB + 0x0058 )
-#define REG_AP_AHB_MST_PUB_FRC_DSLP                   ( CTL_BASE_AP_AHB + 0x005C )
 #define REG_AP_AHB_M0_LPC                             ( CTL_BASE_AP_AHB + 0x0060 )
 #define REG_AP_AHB_M9_LPC                             ( CTL_BASE_AP_AHB + 0x0084 )
 #define REG_AP_AHB_S0_LPC                             ( CTL_BASE_AP_AHB + 0x008C )
@@ -54,7 +53,17 @@
 #define REG_AP_AHB_CA7_TOP_M0_LPC                     ( CTL_BASE_AP_AHB + 0x00C0 )
 #define REG_AP_AHB_CA7_TOP_S1_LPC                     ( CTL_BASE_AP_AHB + 0x00C4 )
 #define REG_AP_AHB_CA7_TOP_S2_LPC                     ( CTL_BASE_AP_AHB + 0x00C8 )
+#define REG_AP_AHB_CA7_ABRG_S0_LPC                    ( CTL_BASE_AP_AHB + 0x00CC )
 #define REG_AP_AHB_TEE_AHB_EB                         ( CTL_BASE_AP_AHB + 0x00D0 )
+#define REG_AP_AHB_USB_AHBM2AXI_S0_LPC                ( CTL_BASE_AP_AHB + 0x00D4 )
+#define REG_AP_AHB_CA7_EMC_REG_SLICE_LPC              ( CTL_BASE_AP_AHB + 0x00D8 )
+#define REG_AP_AHB_AP_DUMMY_REG0                      ( CTL_BASE_AP_AHB + 0x0100 )
+#define REG_AP_AHB_AP_DUMMY_REG1                      ( CTL_BASE_AP_AHB + 0x0104 )
+#define REG_AP_AHB_AP_DUMMY_REG2                      ( CTL_BASE_AP_AHB + 0x0108 )
+#define REG_AP_AHB_AP_DUMMY_REG3                      ( CTL_BASE_AP_AHB + 0x010C )
+#define REG_AP_AHB_CA7_DUMMY_REG0                     ( CTL_BASE_AP_AHB + 0x0120 )
+#define REG_AP_AHB_CA7_DUMMY_REG1                     ( CTL_BASE_AP_AHB + 0x0124 )
+#define REG_AP_AHB_CA7_CORE_INT_DISABLE_EN            ( CTL_BASE_AP_AHB + 0x0128 )
 #define REG_AP_AHB_CA7_STANDBY_STATUS                 ( CTL_BASE_AP_AHB + 0x3008 )
 #define REG_AP_AHB_AP_QOS_CFG                         ( CTL_BASE_AP_AHB + 0x301C )
 #define REG_AP_AHB_OTG_PHY_TUNE                       ( CTL_BASE_AP_AHB + 0x3020 )
@@ -67,7 +76,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AHB_EB
 // Register Offset : 0x0000
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_NANDC_ECC_EB                               BIT(30)
@@ -80,7 +89,6 @@
 #define BIT_AP_AHB_CE_PUB_EB                                  BIT(6)
 #define BIT_AP_AHB_REE_DMA_EB                                 BIT(5)
 #define BIT_AP_AHB_OTG_EB                                     BIT(4)
-#define BIT_USB_EB					BIT_AP_AHB_OTG_EB
 #define BIT_AP_AHB_GSP_EB                                     BIT(3)
 #define BIT_AP_AHB_DISPC_EB                                   BIT(1)
 #define BIT_AP_AHB_DSI_EB                                     BIT(0)
@@ -88,7 +96,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AHB_RST
 // Register Offset : 0x0004
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CE_SEC_SOFT_RST                            BIT(15)
@@ -98,11 +106,8 @@
 #define BIT_AP_AHB_CE_PUB_SOFT_RST                            BIT(9)
 #define BIT_AP_AHB_DMA_SOFT_RST                               BIT(8)
 #define BIT_AP_AHB_OTG_PHY_SOFT_RST                           BIT(6)
-#define BIT_OTG_PHY_SOFT_RST				BIT_AP_AHB_OTG_PHY_SOFT_RST
 #define BIT_AP_AHB_OTG_UTMI_SOFT_RST                          BIT(5)
-#define BIT_OTG_UTMI_SOFT_RST				BIT_AP_AHB_OTG_UTMI_SOFT_RST
 #define BIT_AP_AHB_OTG_SOFT_RST                               BIT(4)
-#define BIT_OTG_SOFT_RST				BIT_AP_AHB_OTG_SOFT_RST
 #define BIT_AP_AHB_GSP_SOFT_RST                               BIT(3)
 #define BIT_AP_AHB_DISP_MTX_SOFT_RST                          BIT(2)
 #define BIT_AP_AHB_DISPC_SOFT_RST                             BIT(1)
@@ -111,7 +116,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_RST_SET
 // Register Offset : 0x0008
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_CS_DBG_SOFT_RST                        BIT(14)
@@ -124,9 +129,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AP_SYS_FORCE_SLEEP_CFG
 // Register Offset : 0x000C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_MCU_LIGHT_SLEEP_EN_FORCE                   BIT(20)
 #define BIT_AP_AHB_AP_DISP_ASYNC_SLEEP                        BIT(18)
 #define BIT_AP_AHB_AP_GSP_MTX_SLEEP                           BIT(17)
 #define BIT_AP_AHB_AP_IMC_MTX_SLEEP                           BIT(16)
@@ -149,13 +155,19 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AP_SYS_AUTO_SLEEP_CFG
 // Register Offset : 0x0010
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_CLKCORE_CHIP_DEEP_SLEEP_EN                 BIT(20)
+#define BIT_AP_AHB_USB_AHBM2AXI_S0_LP_DISABLE                 BIT(19)
+#define BIT_AP_AHB_AP_MAINMTX_M9_LP_DISABLE                   BIT(18)
+#define BIT_AP_AHB_AP_MAINMTX_M_SYNC_LP_DISABLE               BIT(17)
+#define BIT_AP_AHB_AP_MAINMTX_M1_LP_DISABLE                   BIT(16)
+#define BIT_AP_AHB_AP_MAINMTX_M0_LP_DISABLE                   BIT(15)
+#define BIT_AP_AHB_CA7_TOPMTX_LP_DISABLE                      BIT(14)
 #define BIT_AP_AHB_AP_DISPASYNC_LP_DISABLE                    BIT(13)
 #define BIT_AP_AHB_AP_GSPMTX_LP_DISABLE                       BIT(12)
 #define BIT_AP_AHB_AP_IMCMTX_LP_DISABLE                       BIT(11)
-#define BIT_AP_AHB_CACTIVE_APGSP_S0_WAKEUP_EN                 BIT(10)
 #define BIT_AP_AHB_GSP_CKG_FORCE_EN                           BIT(9)
 #define BIT_AP_AHB_GSP_AUTO_GATE_EN                           BIT(8)
 #define BIT_AP_AHB_LP_AUTO_CTRL_EN                            BIT(7)
@@ -170,7 +182,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_HOLDING_PEN
 // Register Offset : 0x0014
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_HOLDING_PEN(x)                             (((x) & 0xFFFFFFFF))
@@ -178,7 +190,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_JMP_ADDR_CA7_C0
 // Register Offset : 0x0018
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_JMP_ADDR_CA7_C0(x)                         (((x) & 0xFFFFFFFF))
@@ -186,7 +198,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_JMP_ADDR_CA7_C1
 // Register Offset : 0x001C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_JMP_ADDR_CA7_C1(x)                         (((x) & 0xFFFFFFFF))
@@ -194,7 +206,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_JMP_ADDR_CA7_C2
 // Register Offset : 0x0020
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_JMP_ADDR_CA7_C2(x)                         (((x) & 0xFFFFFFFF))
@@ -202,7 +214,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_JMP_ADDR_CA7_C3
 // Register Offset : 0x0024
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_JMP_ADDR_CA7_C3(x)                         (((x) & 0xFFFFFFFF))
@@ -210,7 +222,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_C0_PU_LOCK
 // Register Offset : 0x0028
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_C0_PU_LOCK                             BIT(0)
@@ -218,7 +230,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_C1_PU_LOCK
 // Register Offset : 0x002C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_C1_PU_LOCK                             BIT(0)
@@ -226,7 +238,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_C2_PU_LOCK
 // Register Offset : 0x0030
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_C2_PU_LOCK                             BIT(0)
@@ -234,7 +246,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_C3_PU_LOCK
 // Register Offset : 0x0034
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_C3_PU_LOCK                             BIT(0)
@@ -242,7 +254,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_CKG_DIV_CFG
 // Register Offset : 0x0038
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_DBG_CKG_DIV(x)                         (((x) & 0x7) << 16)
@@ -252,13 +264,13 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_MCU_PAUSE
 // Register Offset : 0x003C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_AP_AHB_MMTX_DEEP_STOP_EN                          BIT(6)
-#define BIT_AP_AHB_DMA_ACT_LIGHT_EN                           BIT(5)
+#define BIT_AP_AHB_CA7_TOP_MTX_SLEEP                          BIT(7)
+#define BIT_AP_AHB_GSP_SLEEP_FOLLOW_CA7_EN                    BIT(6)
+#define BIT_AP_AHB_DMA_SLEEP_FOLLOW_CA7_EN                    BIT(5)
 #define BIT_AP_AHB_MCU_SLEEP_FOLLOW_CA7_EN                    BIT(4)
-#define BIT_MCU_SLEEP_FOLLOW_CA7_EN			BIT_AP_AHB_MCU_SLEEP_FOLLOW_CA7_EN
 #define BIT_AP_AHB_MCU_LIGHT_SLEEP_EN                         BIT(3)
 #define BIT_AP_AHB_MCU_DEEP_SLEEP_EN                          BIT(2)
 #define BIT_AP_AHB_MCU_SYS_SLEEP_EN                           BIT(1)
@@ -267,19 +279,18 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_MISC_CKG_EN
 // Register Offset : 0x0040
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_ASHB_CA7_DBG_VLD                           BIT(9)
 #define BIT_AP_AHB_ASHB_CA7_DBG_EN                            BIT(8)
-#define BIT_AP_AHB_DISP_TMC_CKG_EN                            BIT(4)
 #define BIT_AP_AHB_DPHY_REF_CKG_EN                            BIT(1)
 #define BIT_AP_AHB_DPHY_CFG_CKG_EN                            BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_C0_AUTO_FORCE_SHUTDOWN_EN
 // Register Offset : 0x0044
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_C0_AUTO_FORCE_SHUTDOWN_EN              BIT(0)
@@ -287,7 +298,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_C1_AUTO_FORCE_SHUTDOWN_EN
 // Register Offset : 0x0048
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_C1_AUTO_FORCE_SHUTDOWN_EN              BIT(0)
@@ -295,7 +306,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_C2_AUTO_FORCE_SHUTDOWN_EN
 // Register Offset : 0x004C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_C2_AUTO_FORCE_SHUTDOWN_EN              BIT(0)
@@ -303,7 +314,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_C3_AUTO_FORCE_SHUTDOWN_EN
 // Register Offset : 0x0050
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_C3_AUTO_FORCE_SHUTDOWN_EN              BIT(0)
@@ -311,7 +322,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_CKG_SEL_CFG
 // Register Offset : 0x0054
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_MCU_CKG_SEL(x)                         (((x) & 0x7))
@@ -319,9 +330,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_MST_FRC_LSLP
 // Register Offset : 0x0058
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_CA7_TOP_M0_FRC_LSLP                        BIT(17)
 #define BIT_AP_AHB_AP_DISP_MAIN_FRC_LSLP                      BIT(16)
 #define BIT_AP_AHB_AP_IMC_MAIN_FRC_LSLP                       BIT(15)
 #define BIT_AP_AHB_AP_GSP_GPV_FRC_LSLP                        BIT(14)
@@ -339,26 +351,12 @@
 #define BIT_AP_AHB_MST0_FRC_LSLP                              BIT(0)
 
 /*---------------------------------------------------------------------------
-// Register Name   : REG_AP_AHB_MST_PUB_FRC_DSLP
-// Register Offset : 0x005C
-// Description     : 
----------------------------------------------------------------------------*/
-
-#define BIT_AP_AHB_MST9_PUB_FRC_DSLP                          BIT(9)
-#define BIT_AP_AHB_MST8_PUB_FRC_DSLP                          BIT(8)
-#define BIT_AP_AHB_MST7_PUB_FRC_DSLP                          BIT(7)
-#define BIT_AP_AHB_MST6_PUB_FRC_DSLP                          BIT(6)
-#define BIT_AP_AHB_MST4_PUB_FRC_DSLP                          BIT(4)
-#define BIT_AP_AHB_MST2_PUB_FRC_DSLP                          BIT(2)
-#define BIT_AP_AHB_MST1_PUB_FRC_DSLP                          BIT(1)
-#define BIT_AP_AHB_MST0_PUB_FRC_DSLP                          BIT(0)
-
-/*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_M0_LPC
 // Register Offset : 0x0060
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_M0_FORCE_ACK                               BIT(19)
 #define BIT_AP_AHB_M0_LP_STAT                                 BIT(18)
 #define BIT_AP_AHB_M0_LP_FORCE                                BIT(17)
 #define BIT_AP_AHB_M0_LP_EB                                   BIT(16)
@@ -367,9 +365,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_M9_LPC
 // Register Offset : 0x0084
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_M9_FORCE_ACK                               BIT(19)
 #define BIT_AP_AHB_M9_LP_STAT                                 BIT(18)
 #define BIT_AP_AHB_M9_LP_FORCE                                BIT(17)
 #define BIT_AP_AHB_M9_LP_EB                                   BIT(16)
@@ -378,9 +377,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_S0_LPC
 // Register Offset : 0x008C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_S0_FORCE_ACK                               BIT(19)
 #define BIT_AP_AHB_S0_LP_STAT                                 BIT(18)
 #define BIT_AP_AHB_S0_LP_FORCE                                BIT(17)
 #define BIT_AP_AHB_S0_LP_EB                                   BIT(16)
@@ -389,9 +389,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_S1_LPC
 // Register Offset : 0x0090
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_S1_FORCE_ACK                               BIT(19)
 #define BIT_AP_AHB_S1_LP_STAT                                 BIT(18)
 #define BIT_AP_AHB_S1_LP_FORCE                                BIT(17)
 #define BIT_AP_AHB_S1_LP_EB                                   BIT(16)
@@ -400,9 +401,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_M_SYNC_LPC
 // Register Offset : 0x00A0
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_M_SYNC_FORCE_ACK                           BIT(19)
 #define BIT_AP_AHB_M_SYNC_LP_STAT                             BIT(18)
 #define BIT_AP_AHB_M_SYNC_LP_FORCE                            BIT(17)
 #define BIT_AP_AHB_M_SYNC_LP_EB                               BIT(16)
@@ -411,9 +413,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_S_SYNC_LPC
 // Register Offset : 0x00A4
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_S_SYNC_FORCE_ACK                           BIT(19)
 #define BIT_AP_AHB_S_SYNC_LP_STAT                             BIT(18)
 #define BIT_AP_AHB_S_SYNC_LP_FORCE                            BIT(17)
 #define BIT_AP_AHB_S_SYNC_LP_EB                               BIT(16)
@@ -422,9 +425,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AP_GSP_GPV_LPC
 // Register Offset : 0x00A8
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_AP_GSP_GPV_FORCE_ACK                       BIT(19)
 #define BIT_AP_AHB_AP_GSP_GPV_LP_STAT                         BIT(18)
 #define BIT_AP_AHB_AP_GSP_GPV_LP_FORCE                        BIT(17)
 #define BIT_AP_AHB_AP_GSP_GPV_LP_EB                           BIT(16)
@@ -433,9 +437,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AP_GSP_M0_LPC
 // Register Offset : 0x00AC
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_AP_GSP_M0_FORCE_ACK                        BIT(19)
 #define BIT_AP_AHB_AP_GSP_M0_LP_STAT                          BIT(18)
 #define BIT_AP_AHB_AP_GSP_M0_LP_FORCE                         BIT(17)
 #define BIT_AP_AHB_AP_GSP_M0_LP_EB                            BIT(16)
@@ -444,9 +449,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AP_GSP_M1_LPC
 // Register Offset : 0x00B0
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_AP_GSP_M1_FORCE_ACK                        BIT(19)
 #define BIT_AP_AHB_AP_GSP_M1_LP_STAT                          BIT(18)
 #define BIT_AP_AHB_AP_GSP_M1_LP_FORCE                         BIT(17)
 #define BIT_AP_AHB_AP_GSP_M1_LP_EB                            BIT(16)
@@ -455,9 +461,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AP_GSP_S0_LPC
 // Register Offset : 0x00B4
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_AP_GSP_S0_FORCE_ACK                        BIT(19)
 #define BIT_AP_AHB_AP_GSP_S0_LP_STAT                          BIT(18)
 #define BIT_AP_AHB_AP_GSP_S0_LP_FORCE                         BIT(17)
 #define BIT_AP_AHB_AP_GSP_S0_LP_EB                            BIT(16)
@@ -466,9 +473,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AP_IMC_MAIN_LPC
 // Register Offset : 0x00B8
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_AP_IMC_MAIN_FORCE_ACK                      BIT(19)
 #define BIT_AP_AHB_AP_IMC_MAIN_LP_STAT                        BIT(18)
 #define BIT_AP_AHB_AP_IMC_MAIN_LP_FORCE                       BIT(17)
 #define BIT_AP_AHB_AP_IMC_MAIN_LP_EB                          BIT(16)
@@ -477,9 +485,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AP_DISP_MAIN_LPC
 // Register Offset : 0x00BC
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_AP_DISP_MAIN_FORCE_ACK                     BIT(19)
 #define BIT_AP_AHB_AP_DISP_MAIN_LP_STAT                       BIT(18)
 #define BIT_AP_AHB_AP_DISP_MAIN_LP_FORCE                      BIT(17)
 #define BIT_AP_AHB_AP_DISP_MAIN_LP_EB                         BIT(16)
@@ -488,9 +497,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_TOP_M0_LPC
 // Register Offset : 0x00C0
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_CA7_TOP_M0_FORCE_ACK                       BIT(19)
 #define BIT_AP_AHB_CA7_TOP_M0_LP_STAT                         BIT(18)
 #define BIT_AP_AHB_CA7_TOP_M0_LP_FORCE                        BIT(17)
 #define BIT_AP_AHB_CA7_TOP_M0_LP_EB                           BIT(16)
@@ -499,9 +509,10 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_TOP_S1_LPC
 // Register Offset : 0x00C4
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_CA7_TOP_S1_FORCE_ACK                       BIT(19)
 #define BIT_AP_AHB_CA7_TOP_S1_LP_STAT                         BIT(18)
 #define BIT_AP_AHB_CA7_TOP_S1_LP_FORCE                        BIT(17)
 #define BIT_AP_AHB_CA7_TOP_S1_LP_EB                           BIT(16)
@@ -510,26 +521,124 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_TOP_S2_LPC
 // Register Offset : 0x00C8
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
+#define BIT_AP_AHB_CA7_TOP_S2_FORCE_ACK                       BIT(19)
 #define BIT_AP_AHB_CA7_TOP_S2_LP_STAT                         BIT(18)
 #define BIT_AP_AHB_CA7_TOP_S2_LP_FORCE                        BIT(17)
 #define BIT_AP_AHB_CA7_TOP_S2_LP_EB                           BIT(16)
 #define BIT_AP_AHB_CA7_TOP_S2_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_CA7_ABRG_S0_LPC
+// Register Offset : 0x00CC
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_CA7_ABRG_S0_FORCE_ACK                      BIT(19)
+#define BIT_AP_AHB_CA7_ABRG_S0_LP_STAT                        BIT(18)
+#define BIT_AP_AHB_CA7_ABRG_S0_LP_FORCE                       BIT(17)
+#define BIT_AP_AHB_CA7_ABRG_S0_LP_EB                          BIT(16)
+#define BIT_AP_AHB_CA7_ABRG_S0_LP_NUM(x)                      (((x) & 0xFFFF))
+
+/*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_TEE_AHB_EB
 // Register Offset : 0x00D0
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_TEE_DMA_EB                                 BIT(0)
 
 /*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_USB_AHBM2AXI_S0_LPC
+// Register Offset : 0x00D4
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_USB_AHBM2AXI_S0_FORCE_ACK                  BIT(19)
+#define BIT_AP_AHB_USB_AHBM2AXI_S0_LP_STAT                    BIT(18)
+#define BIT_AP_AHB_USB_AHBM2AXI_S0_LP_FORCE                   BIT(17)
+#define BIT_AP_AHB_USB_AHBM2AXI_S0_LP_EB                      BIT(16)
+#define BIT_AP_AHB_USB_AHBM2AXI_S0_LP_NUM(x)                  (((x) & 0xFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_CA7_EMC_REG_SLICE_LPC
+// Register Offset : 0x00D8
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_CA7_EMC_REG_SLICE_FORCE_ACK                BIT(19)
+#define BIT_AP_AHB_CA7_EMC_REG_SLICE_LP_STAT                  BIT(18)
+#define BIT_AP_AHB_CA7_EMC_REG_SLICE_LP_FORCE                 BIT(17)
+#define BIT_AP_AHB_CA7_EMC_REG_SLICE_LP_EB                    BIT(16)
+#define BIT_AP_AHB_CA7_EMC_REG_SLICE_LP_NUM(x)                (((x) & 0xFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_AP_DUMMY_REG0
+// Register Offset : 0x0100
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_AP_DUMMY_REG0_H16(x)                       (((x) & 0xFFFF) << 16)
+#define BIT_AP_AHB_AP_DUMMY_REG0_L16(x)                       (((x) & 0xFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_AP_DUMMY_REG1
+// Register Offset : 0x0104
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_AP_DUMMY_REG1(x)                           (((x) & 0xFFFFFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_AP_DUMMY_REG2
+// Register Offset : 0x0108
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_AP_DUMMY_REG2(x)                           (((x) & 0xFFFFFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_AP_DUMMY_REG3
+// Register Offset : 0x010C
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_AP_DUMMY_REG3(x)                           (((x) & 0xFFFFFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_CA7_DUMMY_REG0
+// Register Offset : 0x0120
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_CA7_DUMMY_REG0_H16(x)                      (((x) & 0xFFFF) << 16)
+#define BIT_AP_AHB_CA7_DUMMY_REG0_L16(x)                      (((x) & 0xFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_CA7_DUMMY_REG1
+// Register Offset : 0x0124
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_CA7_DUMMY_REG1(x)                          (((x) & 0xFFFFFFFF))
+
+/*---------------------------------------------------------------------------
+// Register Name   : REG_AP_AHB_CA7_CORE_INT_DISABLE_EN
+// Register Offset : 0x0128
+// Description     :
+---------------------------------------------------------------------------*/
+
+#define BIT_AP_AHB_CA7_C3_CORE_INT_DISABLE_EN                 BIT(3)
+#define BIT_AP_AHB_CA7_C2_CORE_INT_DISABLE_EN                 BIT(2)
+#define BIT_AP_AHB_CA7_C1_CORE_INT_DISABLE_EN                 BIT(1)
+#define BIT_AP_AHB_CA7_C0_CORE_INT_DISABLE_EN                 BIT(0)
+
+/*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CA7_STANDBY_STATUS
 // Register Offset : 0x3008
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CA7_STANDBYWFIL2                           BIT(12)
@@ -540,18 +649,17 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AP_QOS_CFG
 // Register Offset : 0x301C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_AP_AHB_QOS_R_TMC(x)                               (((x) & 0xF) << 20)
-#define BIT_AP_AHB_QOS_W_TMC(x)                               (((x) & 0xF) << 16)
-#define BIT_AP_AHB_QOS_R_DISPC(x)                             (((x) & 0xF) << 4)
-#define BIT_AP_AHB_QOS_W_DISPC(x)                             (((x) & 0xF))
+#define BIT_AP_AHB_HPROT_OTG(x)                               (((x) & 0xF) << 8)
+#define BIT_AP_AHB_ARQOS_AP_GSP_M0(x)                         (((x) & 0xF) << 4)
+#define BIT_AP_AHB_AWQOS_AP_GSP_M0(x)                         (((x) & 0xF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_OTG_PHY_TUNE
 // Register Offset : 0x3020
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_OTG_TXPREEMPPULSETUNE                      BIT(20)
@@ -566,7 +674,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_OTG_PHY_TEST
 // Register Offset : 0x3024
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_OTG_ATERESET                               BIT(31)
@@ -585,7 +693,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_OTG_PHY_CTRL
 // Register Offset : 0x3028
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_USB2_CON_TESTMODE                          BIT(31)
@@ -604,7 +712,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_OTG_CTRL0
 // Register Offset : 0x302C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_USB20_TUNEHSAMP(x)                         (((x) & 0x3) << 30)
@@ -618,7 +726,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_OTG_CTRL1
 // Register Offset : 0x3030
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_USB20_BIST_MODE(x)                         (((x) & 0x1F) << 23)
@@ -635,7 +743,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_CHIP_ID
 // Register Offset : 0x30FC
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_AP_AHB_CHIP_ID(x)                                 (((x) & 0xFFFFFFFF))

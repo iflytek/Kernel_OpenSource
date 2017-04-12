@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Spreadtrum Communications Inc.
+ * Copyright (C) 2017 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
@@ -12,7 +12,7 @@
 #ifndef _SERDES_APB_REG_H
 #define _SERDES_APB_REG_H
 
-#define CTL_BASE_SERDES_APB SPRD_SERDES_CTL_PHYS
+#define CTL_BASE_SERDES_APB 0x40470000
 
 
 #define REG_SERDES_APB_FUNC_EN          ( CTL_BASE_SERDES_APB + 0x0000 )
@@ -24,7 +24,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SERDES_APB_FUNC_EN
 // Register Offset : 0x0000
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SERDES_APB_FUNC_EN_FUNC_EN                                  BIT(0)
@@ -32,7 +32,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SERDES_APB_CH_EN
 // Register Offset : 0x0004
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SERDES_APB_CH_EN_CH_EN(x)                                   (((x) & 0xFFFF))
@@ -40,7 +40,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SERDES_APB_FUNNEL_EN
 // Register Offset : 0x0008
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SERDES_APB_FUNNEL_EN_FUNNEL_EN                              BIT(0)
@@ -48,7 +48,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SERDES_APB_FUNNEL_OVERFLOW
 // Register Offset : 0x000C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SERDES_APB_FUNNEL_OVERFLOW_FUNNEL_OVERFLOW                  BIT(0)
@@ -56,7 +56,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SERDES_APB_FSM_CUT_OFF_LEN
 // Register Offset : 0x0010
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SERDES_APB_FSM_CUT_OFF_LEN_FSM_CUT_OFF(x)                   (((x) & 0xFFFF))

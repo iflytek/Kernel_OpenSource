@@ -26,6 +26,6 @@
 #include "rtc_reg_v3.h"
 
 
-#include "chip_pike2/__hardware-sc98xx.h"
+#include "chip_pike2/__hardware-pike2.h"
 
 #endif /* __ASM_ARCH_SCI_HARDWAREs_H */
