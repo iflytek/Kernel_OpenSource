@@ -28,8 +28,10 @@ uint16_t sprdbat_auxadc2vbatvol(uint16_t adcvalue)
 	debugf("uboot battery voltage:%d,adc4200:%d,adc3600:%d\n",
 	       temp + adc_voltage_table[0][1], adc_voltage_table[0][0],
 	       adc_voltage_table[1][0]);
-
-	return temp + adc_voltage_table[0][1];
+	temp = temp + adc_voltage_table[0][1];
+	if (temp < 0)
+		temp = 0;
+	return temp;
 }
 
 #define SAMPLE_CNT 5

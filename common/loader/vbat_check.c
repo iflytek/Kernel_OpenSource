@@ -41,9 +41,9 @@ int32_t ADC_GetValue(unsigned int id, bool scale)
 
 int is_bat_low(void)
 {
-	int adc_value = 0;
-	unsigned int comp_vbat = 0;
-	unsigned int vol_vbat;
+	int32_t adc_value = 0;
+	uint16_t comp_vbat = 0;
+	uint16_t vol_vbat;
 	int i;
 
 	if (charger_connected()) {
