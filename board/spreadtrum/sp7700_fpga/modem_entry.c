@@ -2,36 +2,31 @@
 #include <asm/arch/sprd_reg.h>
 #include "cp_boot.h"
 
+#define DSP_BOOT_IRAM_START		0x5000f000
+#define TGDSP_SHARE_MEM_START	0x5000e000
+#define MULTI_MODE_MEM_START	0x50010000
 
-void cp_adr_remap(u32 cp_kernel_exec_addr, u32 cp_zero_map_addr)
+
+void memset_dsp_share_memory()
 {
-    u32 data[3] = {0xe59f0000, 0xe12fff10,   cp_kernel_exec_addr};
-    memcpy( cp_zero_map_addr, data, sizeof(data));      /* copy cp0 source code */
+	memset((void *)DSP_BOOT_IRAM_START,0x0,0x1000);//4k
+	memset((void *)TGDSP_SHARE_MEM_START,0x0,0x1000);//4k
+	memset((void *)MULTI_MODE_MEM_START,0x0,0x800);//2k
 }
 
 void modem_entry()
 {
-	sipc_addr_reset();
+	memset_dsp_share_memory();
 
-#if !defined( CONFIG_KERNEL_BOOT_CP )
+#ifndef CONFIG_KERNEL_BOOT_CP
 	pmic_arm7_boot();
-
-	cp_adr_remap(CP1_EXEC_ADR, CP1_ZERO_MAP_ADR);
-	cp1_boot();
+	pubcp_boot();
+	debugf("boot CP1 OK\n");
+#else
+	extern unsigned int g_charger_mode;
+	if(g_charger_mode) {
+		pmic_arm7_boot();
+		debugf("boot arm7  OK\n");
+	}
 #endif
 }
-
-
-void sipc_addr_reset()
-{
-
-	/*to be fill in*/
-	//memset((void *)SIPC_GGE_APCP_START_ADDR, 0x0, SIPC_APCP_RESET_ADDR_SIZE);
-	memset((void *)SIPC_LTE_APCP_START_ADDR, 0x0, SIPC_APCP_RESET_ADDR_SIZE);
-	memset((void *)SIPC_PMIC_SIPC_START_ADDR, 0x0, 0x2000);
-	return;
-
-}
-
-
-
