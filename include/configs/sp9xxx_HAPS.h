@@ -80,7 +80,6 @@
 #define CONFIG_SPRD_UART_PORTS	{ (void *) (CONFIG_SYS_SERIAL0), (void *) (CONFIG_SYS_SERIAL1) }
 #define CONFIG_SYS_SERIAL0		0x70000000
 #define CONFIG_SYS_SERIAL1		0x70100000
-#define CONFIG_UART_DOWNLOAD
 
 /* Default baud rate */
 #define CONFIG_BAUDRATE		115200
@@ -272,6 +271,7 @@
 #define CONFIG_SPRD_SYSDUMP
 #define CONFIG_RAMDUMP_NO_SPLIT 1 /* Don't split sysdump file */
 #define REAL_SDRAM_SIZE 0x40000000  /*dump 1G*/
+#define CONFIG_SHA1
 
 #define PWR_KEY_DETECT_CNT  2
 #define ALARM_LEAD_SET_MS 0 /* time set for alarm boot in advancd */
