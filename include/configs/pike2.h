@@ -238,6 +238,7 @@
 #define CONFIG_RAMDUMP_NO_SPLIT 1	/* Don't split sysdump file */
 #define SPRD_SYSDUMP_MAGIC		RAMDISK_ADR
 #define REAL_SDRAM_SIZE 0x40000000	/*dump 1G */
+#define CONFIG_SHA1
 
 
 //#define LOW_BAT_ADC_LEVEL 782 /*phone battery adc value low than this value will not boot up*/
