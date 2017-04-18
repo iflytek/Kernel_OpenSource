@@ -275,7 +275,7 @@ static Efuse_Result_Ret ce_efuse_program(unsigned int block_id, unsigned int pWr
 	REG_WRITE(pCeDataAddr+(block_id<<0x2), pWriteData);
 
 	/*sync block*/
-	REG_OR(REG_CE_SECURE_KEY_START_END_SYNC_ADDR, ((block_id<<0x8) | block_id));
+	REG_WRITE(REG_CE_SECURE_KEY_START_END_SYNC_ADDR, ((block_id<<0x8) | block_id));
 
 	/*enable efuse write*/
 	REG_WRITE(REG_CE_SECURE_KEY_USE_WAY, 0x20000000);

@@ -7,6 +7,7 @@ extern "C"
 #endif
 
 /* error definition - per bit */
+#define SEC_EFUSE_OK                               0x00
 #define SEC_EFUSE_BASE_ERROR                       0xFFFF0000
 #define SEC_EFUSE_ILLEGAL_INPUT_PARAM_ERR          SEC_EFUSE_BASE_ERROR + 0x00000001
 #define SEC_EFUSE_WRITE_FAIL_ERR                   SEC_EFUSE_BASE_ERROR + 0x00000002
@@ -16,6 +17,12 @@ extern "C"
 #define SEC_EFUSE_POINTER_ERR                      SEC_EFUSE_BASE_ERROR + 0x00000006
 #define SECURE_BOOT_DISABLE_ERR                    SEC_EFUSE_BASE_ERROR + 0x00000010
 
+/* Life cycle state definitions */
+#define CHIP_MANUFACTURE_LCS     0x0
+#define DEVICE_MANUFACTURE_LCS   0x1
+#define SECURITY_DISABLED_LCS    0x3
+#define SECURE_LCS               0x5
+#define RMA_LCS                  0x7
 /*---------------------------
         PUBLIC FUNCTIONS
 ----------------------------------*/
