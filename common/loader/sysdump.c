@@ -67,6 +67,10 @@ extern struct rtc_time get_time_by_sec(void);
 extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
 extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
 
+#ifdef CONFIG_X86
+extern ddr_info_t* get_ddr_range(void);
+#endif
+
 #ifdef CONFIG_ETB_DUMP
 extern unsigned char etb_dump_mem[SZ_32K];
 extern void sprd_etb_hw_dis(void);
@@ -195,7 +199,7 @@ int init_mmc_fat(int *fs_type)
 void write_mem_to_mmc(char *path, char *filename, int fs_type,
 	void *memaddr, unsigned long memsize)
 {
-	int ret;
+	int ret = 0;
 	unsigned long actwrite = 0;
 
 	if (path) {
@@ -215,8 +219,8 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 	else
 		ret = -1;
 
-	if (ret < 0) {
-		debugf("ERROR: SD Card file write %d !!!\n", ret);
+	if (ret != 0) {
+		debugf("write file %s to SD Card error, and ret = %d !!!\n", filename, ret);
 	}
 
 	return;
@@ -632,8 +636,6 @@ static void reorder_reserved_memory_by_addr(struct sysdump_memory *memArray, int
 #ifdef CONFIG_X86
 static u32 e820_map_auto_detect(struct e820entry *entries)
 {
-#ifdef CONFIG_E820_AUTO_DETECT
-	extern ddr_info_t* get_ddr_range(void);
 	u32 e820_entries_detect = 0;
 	int i = 0;
 	ddr_info_t* ddr_info = get_ddr_range();
@@ -654,13 +656,6 @@ static u32 e820_map_auto_detect(struct e820entry *entries)
 	}
 
 	debugf("e820 total num is %d !!!\n", e820_entries_detect);
-#else
-	u32 e820_entries_detect = 1;
-	entries->addr = VMM_RESERVE_SIZE;
-	entries->size = 0x7fffffff;
-	entries->type  = E820_RAM;
-	debugf("e820 entry addr = 0x%08llx, entry size = 0x%llx !!!\n", entries->addr, entries->size);
-#endif
 	return e820_entries_detect;
 }
 #endif
@@ -1285,7 +1280,6 @@ void write_sysdump_before_boot(int rst_mode)
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
 		write_mem_to_mmc(path, fnbuf, fs_type, (char *)(info_crash_data), strlen(info_crash_data));
 	}
-	 sysdump_lcd_printf("BIA Crash log data size = %d\n", n);
 #endif
 		sprintf(fnbuf,SYSDUMP_FOLDER_NAME"/1/%04d_%02d_%02d_%02d_%02d_%02d.txt", \
 			tm.tm_year, tm.tm_mon, tm.tm_mday, \
