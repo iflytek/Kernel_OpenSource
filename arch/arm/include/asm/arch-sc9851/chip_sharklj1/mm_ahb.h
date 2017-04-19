@@ -12,7 +12,7 @@
 #ifndef _MM_AHB_REG_H
 #define _MM_AHB_REG_H
 
-#define CTL_BASE_MM_AHB SPRD_MMAHB_BASE
+#define CTL_BASE_MM_AHB 0x60D00000
 
 
 #define REG_MM_AHB_AHB_EB              ( CTL_BASE_MM_AHB + 0x0000 )
@@ -33,150 +33,150 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_AHB_EB
 // Register Offset : 0x0000
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CBM_EB                                BIT(8)
-#define BIT_MM_AHB_CPP_EB                                BIT(7)
-#define BIT_MM_AHB_CKG_EB                                BIT(6)
-#define BIT_MM_AHB_JPG_EB                                BIT(5)
-#define BIT_MM_AHB_CSI_S_EB                              BIT(4)
-#define BIT_MM_AHB_CSI_EB                                BIT(3)
-#define BIT_MM_AHB_VSP_EB                                BIT(2)
-#define BIT_MM_AHB_ISP_EB                                BIT(1)
-#define BIT_MM_AHB_DCAM_EB                               BIT(0)
+#define BIT_MM_AHB_CBM_EB                                   BIT(8)
+#define BIT_MM_AHB_CPP_EB                                   BIT(7)
+#define BIT_MM_AHB_CKG_EB                                   BIT(6)
+#define BIT_MM_AHB_JPG_EB                                   BIT(5)
+#define BIT_MM_AHB_CSI_S_EB                                 BIT(4)
+#define BIT_MM_AHB_CSI_EB                                   BIT(3)
+#define BIT_MM_AHB_VSP_EB                                   BIT(2)
+#define BIT_MM_AHB_ISP_EB                                   BIT(1)
+#define BIT_MM_AHB_DCAM_EB                                  BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_AHB_RST
 // Register Offset : 0x0004
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_ISP_FMCU_SOFT_RST                     BIT(15)
-#define BIT_MM_AHB_AXI_MTX_VSP_SOFT_RST                  BIT(14)
-#define BIT_MM_AHB_AXI_MTX_CAM_SOFT_RST                  BIT(13)
-#define BIT_MM_AHB_MIPI_S_SOFT_RST                       BIT(12)
-#define BIT_MM_AHB_CSI_IDI_SW_SOFT_RST                   BIT(11)
-#define BIT_MM_AHB_CSI_S_SOFT_RST                        BIT(10)
-#define BIT_MM_AHB_CPP_SOFT_RST                          BIT(9)
-#define BIT_MM_AHB_CKG_SOFT_RST                          BIT(8)
-#define BIT_MM_AHB_CAM0_SOFT_RST                         BIT(7)
-#define BIT_MM_AHB_JPG_SOFT_RST                          BIT(6)
-#define BIT_MM_AHB_CSI_SOFT_RST                          BIT(5)
-#define BIT_MM_AHB_VSP_SOFT_RST                          BIT(4)
-#define BIT_MM_AHB_ISP_CFG_SOFT_RST                      BIT(3)
-#define BIT_MM_AHB_ISP_LOG_SOFT_RST                      BIT(2)
-#define BIT_MM_AHB_MIPI_SOFT_RST                         BIT(1)
-#define BIT_MM_AHB_DCAM_SOFT_RST                         BIT(0)
+#define BIT_MM_AHB_ISP_FMCU_SOFT_RST                        BIT(15)
+#define BIT_MM_AHB_AXI_MTX_VSP_SOFT_RST                     BIT(14)
+#define BIT_MM_AHB_AXI_MTX_CAM_SOFT_RST                     BIT(13)
+#define BIT_MM_AHB_MIPI_S_SOFT_RST                          BIT(12)
+#define BIT_MM_AHB_CSI_IDI_SW_SOFT_RST                      BIT(11)
+#define BIT_MM_AHB_CSI_S_SOFT_RST                           BIT(10)
+#define BIT_MM_AHB_CPP_SOFT_RST                             BIT(9)
+#define BIT_MM_AHB_CKG_SOFT_RST                             BIT(8)
+#define BIT_MM_AHB_CAM0_SOFT_RST                            BIT(7)
+#define BIT_MM_AHB_JPG_SOFT_RST                             BIT(6)
+#define BIT_MM_AHB_CSI_SOFT_RST                             BIT(5)
+#define BIT_MM_AHB_VSP_SOFT_RST                             BIT(4)
+#define BIT_MM_AHB_ISP_CFG_SOFT_RST                         BIT(3)
+#define BIT_MM_AHB_ISP_LOG_SOFT_RST                         BIT(2)
+#define BIT_MM_AHB_MIPI_SOFT_RST                            BIT(1)
+#define BIT_MM_AHB_DCAM_SOFT_RST                            BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_GEN_CKG_CFG
 // Register Offset : 0x0008
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_MIPI_CSI_S_CKG_EN                     BIT(5)
-#define BIT_MM_AHB_MIPI_CSI_CKG_EN                       BIT(4)
-#define BIT_MM_AHB_ISP_AXI_CKG_EN                        BIT(3)
-#define BIT_MM_AHB_SENSOR1_CKG_EN                        BIT(2)
-#define BIT_MM_AHB_SENSOR0_CKG_EN                        BIT(1)
-#define BIT_MM_AHB_CPHY_CFG_CKG_EN                       BIT(0)
+#define BIT_MM_AHB_MIPI_CSI_S_CKG_EN                        BIT(5)
+#define BIT_MM_AHB_MIPI_CSI_CKG_EN                          BIT(4)
+#define BIT_MM_AHB_ISP_AXI_CKG_EN                           BIT(3)
+#define BIT_MM_AHB_SENSOR1_CKG_EN                           BIT(2)
+#define BIT_MM_AHB_SENSOR0_CKG_EN                           BIT(1)
+#define BIT_MM_AHB_CPHY_CFG_CKG_EN                          BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_MIPI_CSI2_CTRL
 // Register Offset : 0x000C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CSI_2P2L_TESTDOUT_MS_SEL              BIT(1)
-#define BIT_MM_AHB_MIPI_CPHY_SEL                         BIT(0)
+#define BIT_MM_AHB_CSI_2P2L_TESTDOUT_MS_SEL                 BIT(1)
+#define BIT_MM_AHB_MIPI_CPHY_SEL                            BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CSI_IDI_SW_CFG
 // Register Offset : 0x0010
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_AUTO_SMOOTH_SW                        BIT(1)
-#define BIT_MM_AHB_FORCE_TO_CSI1                         BIT(0)
+#define BIT_MM_AHB_AUTO_SMOOTH_SW                           BIT(1)
+#define BIT_MM_AHB_FORCE_TO_CSI1                            BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CSI_IDI_SW_INT_EN
 // Register Offset : 0x0014
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CSI_IDI_SW_INT_EN                     BIT(0)
+#define BIT_MM_AHB_CSI_IDI_SW_INT_EN                        BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CSI_IDI_SW_INT_CLR
 // Register Offset : 0x0018
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CSI_IDI_SW_INT_CLR                    BIT(0)
+#define BIT_MM_AHB_CSI_IDI_SW_INT_CLR                       BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CSI_IDI_SW_STATE
 // Register Offset : 0x001C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CSI_IDI_SW_STATE(x)                   (((x) & 0x7))
+#define BIT_MM_AHB_CSI_IDI_SW_STATE(x)                      (((x) & 0x7))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CSI_IDI_SW_INT
 // Register Offset : 0x0020
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CSI_IDI_SW_DONE_STS                   BIT(1)
-#define BIT_MM_AHB_CSI_IDI_SW_DONE_RAW                   BIT(0)
+#define BIT_MM_AHB_CSI_IDI_SW_DONE_STS                      BIT(1)
+#define BIT_MM_AHB_CSI_IDI_SW_DONE_RAW                      BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CGM_ISP_FDIV
 // Register Offset : 0x0024
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CGM_ISP_FDIV_NUM(x)                   (((x) & 0xF) << 16)
-#define BIT_MM_AHB_CGM_ISP_FDIV_DENOM(x)                 (((x) & 0xF))
+#define BIT_MM_AHB_CGM_ISP_FDIV_NUM(x)                      (((x) & 0xF) << 16)
+#define BIT_MM_AHB_CGM_ISP_FDIV_DENOM(x)                    (((x) & 0xF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CGM_DCAM_FDIV
 // Register Offset : 0x0028
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CGM_DCAM_FDIV_NUM(x)                  (((x) & 0xF) << 16)
-#define BIT_MM_AHB_CGM_DCAM_FDIV_DENOM(x)                (((x) & 0xF))
+#define BIT_MM_AHB_CGM_DCAM_FDIV_NUM(x)                     (((x) & 0xF) << 16)
+#define BIT_MM_AHB_CGM_DCAM_FDIV_DENOM(x)                   (((x) & 0xF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CGM_CPP_FDIV
 // Register Offset : 0x002C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CGM_CPP_FDIV_NUM(x)                   (((x) & 0xF) << 16)
-#define BIT_MM_AHB_CGM_CPP_FDIV_DENOM(x)                 (((x) & 0xF))
+#define BIT_MM_AHB_CGM_CPP_FDIV_NUM(x)                      (((x) & 0xF) << 16)
+#define BIT_MM_AHB_CGM_CPP_FDIV_DENOM(x)                    (((x) & 0xF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CGM_JPG_FDIV
 // Register Offset : 0x0030
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CGM_JPG_FDIV_NUM(x)                   (((x) & 0xF) << 16)
-#define BIT_MM_AHB_CGM_JPG_FDIV_DENOM(x)                 (((x) & 0xF))
+#define BIT_MM_AHB_CGM_JPG_FDIV_NUM(x)                      (((x) & 0xF) << 16)
+#define BIT_MM_AHB_CGM_JPG_FDIV_DENOM(x)                    (((x) & 0xF))
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_MM_AHB_CGM_VSP_FDIV
 // Register Offset : 0x0034
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_MM_AHB_CGM_VSP_FDIV_NUM(x)                   (((x) & 0xF) << 16)
-#define BIT_MM_AHB_CGM_VSP_FDIV_DENOM(x)                 (((x) & 0xF))
+#define BIT_MM_AHB_CGM_VSP_FDIV_NUM(x)                      (((x) & 0xF) << 16)
+#define BIT_MM_AHB_CGM_VSP_FDIV_DENOM(x)                    (((x) & 0xF))
 
 
 #endif // _MM_AHB_REG_H

@@ -12,7 +12,7 @@
 #ifndef _PRE_DIV_CLK_GEN_REG_H
 #define _PRE_DIV_CLK_GEN_REG_H
 
-#define CTL_BASE_PRE_DIV_CLK_GEN SPRD_AONCKG_BASE
+#define CTL_BASE_PRE_DIV_CLK_GEN 0x402D0000
 
 
 #define REG_PRE_DIV_CLK_GEN_SOFT_CNT_DONE0_CFG                 ( CTL_BASE_PRE_DIV_CLK_GEN + 0x0020 )
@@ -42,7 +42,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_SOFT_CNT_DONE0_CFG
 // Register Offset : 0x0020
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_SOFT_CNT_DONE0_CFG_GPLL_SOFT_CNT_DONE                                                BIT(16)
@@ -66,7 +66,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_PLL_WAIT_SEL0_CFG
 // Register Offset : 0x0024
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_PLL_WAIT_SEL0_CFG_GPLL_WAIT_AUTO_GATE_SEL                                            BIT(16)
@@ -90,7 +90,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_PLL_WAIT_SW_CTL0_CFG
 // Register Offset : 0x0028
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_PLL_WAIT_SW_CTL0_CFG_GPLL_WAIT_FORCE_EN                                              BIT(16)
@@ -114,7 +114,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_DIV_EN_SEL0_CFG
 // Register Offset : 0x002C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_DIV_EN_SEL0_CFG_GPLL_DIV_40M6_AUTO_GATE_SEL                                          BIT(31)
@@ -153,7 +153,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_DIV_EN_SEL1_CFG
 // Register Offset : 0x0030
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_DIV_EN_SEL1_CFG_TWPLL_DIV_768M_192M_AUTO_GATE_SEL                                    BIT(11)
@@ -172,7 +172,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_DIV_EN_SW_CTL0_CFG
 // Register Offset : 0x0034
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_DIV_EN_SW_CTL0_CFG_GPLL_DIV_40M6_FORCE_EN                                            BIT(31)
@@ -211,7 +211,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_DIV_EN_SW_CTL1_CFG
 // Register Offset : 0x0038
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_DIV_EN_SW_CTL1_CFG_TWPLL_DIV_768M_192M_FORCE_EN                                      BIT(11)
@@ -230,7 +230,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_GATE_EN_SEL0_CFG
 // Register Offset : 0x003C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_GATE_EN_SEL0_CFG_CGM_26M_AP_AUTO_GATE_SEL                                            BIT(31)
@@ -269,7 +269,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_GATE_EN_SEL1_CFG
 // Register Offset : 0x0040
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_GATE_EN_SEL1_CFG_CGM_LTEPLL_614M4_AON_AUTO_GATE_SEL                                  BIT(31)
@@ -308,7 +308,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_GATE_EN_SEL2_CFG
 // Register Offset : 0x0044
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_GATE_EN_SEL2_CFG_CGM_6M5_AON_AUTO_GATE_SEL                                           BIT(31)
@@ -347,7 +347,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_GATE_EN_SEL3_CFG
 // Register Offset : 0x0048
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_GATE_EN_SEL3_CFG_CGM_TWPLL_153M6_PUBCP_AUTO_GATE_SEL                                 BIT(7)
@@ -362,7 +362,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_GATE_EN_SW_CTL0_CFG
 // Register Offset : 0x004C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_GATE_EN_SW_CTL0_CFG_CGM_26M_AP_FORCE_EN                                              BIT(31)
@@ -401,7 +401,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_GATE_EN_SW_CTL1_CFG
 // Register Offset : 0x0050
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_GATE_EN_SW_CTL1_CFG_CGM_LTEPLL_614M4_AON_FORCE_EN                                    BIT(31)
@@ -440,7 +440,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_GATE_EN_SW_CTL2_CFG
 // Register Offset : 0x0054
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_GATE_EN_SW_CTL2_CFG_CGM_6M5_AON_FORCE_EN                                             BIT(31)
@@ -479,7 +479,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_GATE_EN_SW_CTL3_CFG
 // Register Offset : 0x0058
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_GATE_EN_SW_CTL3_CFG_CGM_TWPLL_153M6_PUBCP_FORCE_EN                                   BIT(7)
@@ -494,7 +494,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_OUTPUT_CLOCK_MUX_SEL0_CFG
 // Register Offset : 0x005C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_OUTPUT_CLOCK_MUX_SEL0_CFG_CGM_TWPLL_192M_AP_SEL                                      BIT(16)
@@ -518,7 +518,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_MONITOR_WAIT_EN_STATUS0_CFG
 // Register Offset : 0x0060
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_MONITOR_WAIT_EN_STATUS0_CFG_MONITOR_WAIT_EN_STATUS(x)                                (((x) & 0x1FFFF))
@@ -526,7 +526,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_MONITOR_DIV_AUTO_EN_STATUS00_CFG
 // Register Offset : 0x0064
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_MONITOR_DIV_AUTO_EN_STATUS00_CFG_MONITOR_DIV_AUTO_EN_STATUS0(x)                      (((x) & 0xFFFFFFFF))
@@ -534,7 +534,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_MONITOR_DIV_AUTO_EN_STATUS10_CFG
 // Register Offset : 0x0068
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_MONITOR_DIV_AUTO_EN_STATUS10_CFG_MONITOR_DIV_AUTO_EN_STATUS1(x)                      (((x) & 0xFFF))
@@ -542,7 +542,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_MONITOR_GATE_AUTO_EN_STATUS00_CFG
 // Register Offset : 0x006C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_MONITOR_GATE_AUTO_EN_STATUS00_CFG_MONITOR_GATE_AUTO_EN_STATUS0(x)                    (((x) & 0xFFFFFFFF))
@@ -550,7 +550,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_MONITOR_GATE_AUTO_EN_STATUS10_CFG
 // Register Offset : 0x0070
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_MONITOR_GATE_AUTO_EN_STATUS10_CFG_MONITOR_GATE_AUTO_EN_STATUS1(x)                    (((x) & 0xFFFFFFFF))
@@ -558,7 +558,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_MONITOR_GATE_AUTO_EN_STATUS20_CFG
 // Register Offset : 0x0074
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_MONITOR_GATE_AUTO_EN_STATUS20_CFG_MONITOR_GATE_AUTO_EN_STATUS2(x)                    (((x) & 0xFFFFFFFF))
@@ -566,7 +566,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_PRE_DIV_CLK_GEN_MONITOR_GATE_AUTO_EN_STATUS30_CFG
 // Register Offset : 0x0078
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_PRE_DIV_CLK_GEN_MONITOR_GATE_AUTO_EN_STATUS30_CFG_MONITOR_GATE_AUTO_EN_STATUS3(x)                    (((x) & 0xFF))

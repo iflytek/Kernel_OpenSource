@@ -90,8 +90,6 @@ int timer_init(void)
 	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_SYST_EB, REG_AON_APB_APB_EB0);
 	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_SYST_RTC_EB, REG_AON_APB_APB_RTC_EB);
 
-	/* enable aon timer2 26M clk source */
-	writel(readl(REG_AON_APB_CGM_REG1) | BIT_AON_APB_CGM_CM3_TMR2_EN, REG_AON_APB_CGM_REG1);
 
 	/* enable ts clk output to arch timer */
 	writel(0x1, SPRD_APCPUTS0_BASE);

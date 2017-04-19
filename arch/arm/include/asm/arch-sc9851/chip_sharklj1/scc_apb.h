@@ -12,7 +12,7 @@
 #ifndef _SCC_APB_REG_H
 #define _SCC_APB_REG_H
 
-#define CTL_BASE_SCC_APB SPRD_SCC_BASE
+#define CTL_BASE_SCC_APB 0x403B0000
 
 
 #define REG_SCC_APB_SCC_TUNE_LMT_CFG   ( CTL_BASE_SCC_APB + 0x0000 )
@@ -56,7 +56,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_TUNE_LMT_CFG
 // Register Offset : 0x0000
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_TUNE_LMT_CFG_VOLT_TUNE_VAL_MAX(x)                   (((x) & 0xFF) << 8)
@@ -65,7 +65,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_TUNE_STATUS
 // Register Offset : 0x0004
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_TUNE_STATUS_VOLT_TUNE_VAL(x)                        (((x) & 0xFF) << 8)
@@ -74,7 +74,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_CFG
 // Register Offset : 0x0008
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_CFG_VOLT0_SELECT_OVERRIDE                           BIT(31)
@@ -86,7 +86,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_TUNE_STEP_CFG
 // Register Offset : 0x000C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_TUNE_STEP_CFG_VOLT_TUNE_DOWN_STEP(x)                (((x) & 0x1FF) << 16)
@@ -95,7 +95,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_WAIT_CFG
 // Register Offset : 0x0010
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_WAIT_CFG_RND_INTVAL_WAIT_NUM(x)                     (((x) & 0xFFFF) << 16)
@@ -104,7 +104,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_INT_CFG
 // Register Offset : 0x0014
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_INT_CFG_SCC_TUNE_DONE_INT_MASK_STATUS               BIT(13)
@@ -119,7 +119,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_TUNE_MARK
 // Register Offset : 0x0024
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_TUNE_MARK_SCC_TUNE_DWN_MARK(x)                      (((x) & 0xFFFF) << 16)
@@ -128,7 +128,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_FSM_STS
 // Register Offset : 0x0028
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_FSM_STS_SCC_FSM_STS(x)                              (((x) & 0x1F))
@@ -136,7 +136,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_ROSC_MODE
 // Register Offset : 0x0100
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_ROSC_MODE_SCC_IDLE_MODE                             BIT(31)
@@ -154,7 +154,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_ROSC_CFG
 // Register Offset : 0x0104
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_ROSC_CFG_SCC_ROSC_DURATION(x)                       (((x) & 0xFFFFF) << 12)
@@ -165,7 +165,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_ROSC_CTRL
 // Register Offset : 0x0108
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_ROSC_CTRL_SCC_RPT_READ_NXT                          BIT(31)
@@ -175,7 +175,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_SCC_ROSC_RPT
 // Register Offset : 0x010C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_SCC_ROSC_RPT_SCC_INIT_PAT_FAIL                          BIT(31)
@@ -186,7 +186,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_0
 // Register Offset : 0x0200
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_0_HWM2_DRDY_0_0                                BIT(31)
@@ -203,7 +203,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_1
 // Register Offset : 0x0204
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_1_HWM1_DRDY_2_0                                BIT(31)
@@ -220,7 +220,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_2
 // Register Offset : 0x0208
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_2_HWM1_DRDY_6_0                                BIT(31)
@@ -237,7 +237,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_3
 // Register Offset : 0x020C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_3_HWM1_DRDY_7_0                                BIT(31)
@@ -254,7 +254,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_4
 // Register Offset : 0x0210
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_4_HWM2_DRDY_1_0                                BIT(31)
@@ -271,7 +271,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_5
 // Register Offset : 0x0214
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_5_HWM2_DRDY_1_1                                BIT(31)
@@ -288,7 +288,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_6
 // Register Offset : 0x0218
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_6_HWM2_DRDY_3_0                                BIT(31)
@@ -305,7 +305,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_7
 // Register Offset : 0x021C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_7_HWM2_DRDY_4_0                                BIT(31)
@@ -322,7 +322,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_8
 // Register Offset : 0x0220
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_8_HWM2_DRDY_5_0                                BIT(31)
@@ -339,7 +339,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_9
 // Register Offset : 0x0224
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_9_HWM2_DRDY_6_1                                BIT(31)
@@ -356,7 +356,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_CTRL_10
 // Register Offset : 0x0228
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_CTRL_10_HWM2_DRDY_6_2                               BIT(31)
@@ -373,7 +373,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_RPT_SEL
 // Register Offset : 0x0300
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_RPT_SEL_HWM_SHFT_CNT(x)                             (((x) & 0xFFFF) << 16)
@@ -383,7 +383,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM_RPT
 // Register Offset : 0x0304
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM_RPT_HWM_RPT(x)                                      (((x) & 0xFFFFFFFF))
@@ -391,7 +391,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM3S_RPT0
 // Register Offset : 0x0400
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM3S_RPT0_HWM3S_ERR_0_0(x)                             (((x) & 0x1F) << 27)
@@ -403,7 +403,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM3S_RPT1
 // Register Offset : 0x0404
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM3S_RPT1_HWM3S_ERR_4_0(x)                             (((x) & 0x1F) << 27)
@@ -415,7 +415,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM3H_RPT0
 // Register Offset : 0x0408
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM3H_RPT0_HWM3H_ERR_0_0(x)                             (((x) & 0x1F) << 27)
@@ -427,7 +427,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM3H_RPT1
 // Register Offset : 0x040C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM3H_RPT1_HWM3H_ERR_4_0(x)                             (((x) & 0x1F) << 27)
@@ -439,7 +439,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM4S_RPT0
 // Register Offset : 0x0500
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM4S_RPT0_HWM4S_ERR_0_0                                BIT(31)
@@ -478,7 +478,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM4S_RPT1
 // Register Offset : 0x0504
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM4S_RPT1_HWM4S_ERR_1_24                               BIT(31)
@@ -517,7 +517,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM4S_RPT2
 // Register Offset : 0x0508
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM4S_RPT2_HWM4S_ERR_2_24                               BIT(31)
@@ -556,7 +556,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM4S_RPT3
 // Register Offset : 0x050C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM4S_RPT3_HWM4S_ERR_6_0                                BIT(31)
@@ -595,7 +595,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM4H_RPT0
 // Register Offset : 0x0600
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM4H_RPT0_HWM4H_ERR_0_0                                BIT(31)
@@ -634,7 +634,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM4H_RPT1
 // Register Offset : 0x0604
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM4H_RPT1_HWM4H_ERR_1_24                               BIT(31)
@@ -673,7 +673,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM4H_RPT2
 // Register Offset : 0x0608
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM4H_RPT2_HWM4H_ERR_2_24                               BIT(31)
@@ -712,7 +712,7 @@
 /*---------------------------------------------------------------------------
 // Register Name   : REG_SCC_APB_HWM4H_RPT3
 // Register Offset : 0x060C
-// Description     : 
+// Description     :
 ---------------------------------------------------------------------------*/
 
 #define BIT_SCC_APB_HWM4H_RPT3_HWM4H_ERR_6_0                                BIT(31)
