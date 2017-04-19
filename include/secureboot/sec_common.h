@@ -38,7 +38,7 @@ extern imgToVerifyInfo *img_verify_info_tos;
 #define CERT_SIZE    0x1000
 #define SYS_HEADER_SIZE 0x200
 #define RESERVE_SIZE 0x3000000
-#ifdef CONFIG_SOC_IWHALE2
+#if defined (CONFIG_SOC_IWHALE2)||defined (CONFIG_SPRD_SOC_SP9853I)
 #define IRAM_BEGIN   0xe6000000
 #else
 #define IRAM_BEGIN   (SPL_BASE_ADDR - SYS_HEADER_SIZE)
