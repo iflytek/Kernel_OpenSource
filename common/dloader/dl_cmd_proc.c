@@ -344,7 +344,7 @@ int dl_cmd_get_uid_x86(dl_packet_t *packet, void *arg)
 	block5 &= 0xfff;
 
 	debugf("uid is %x%x%x%x\n", block5, block0_int, block, block1_int);
-	sprintf(p, "%03x%06x%01x%07x", block5, block0_int, block, block1_int);
+	sprintf(p, "%03x%06x%01x%07x0", block5, block0_int, block, block1_int);//add the 0 to the end for checksum
 
 	packet->body.type = BSL_REP_READ_CHIP_UID;
 	packet->body.size = strlen(p);
