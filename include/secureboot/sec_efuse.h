@@ -1,7 +1,7 @@
 #ifndef _SEC_EFUSE_H_
 #define _SEC_EFUSE_H_
 
-#ifdef CONFIG_SOC_IWHALE2
+#if defined(CONFIG_SOC_IWHALE2) || defined(CONFIG_SPRD_SOC_SP9853I)
 #include "sec_iefuse.h"
 #endif
 
