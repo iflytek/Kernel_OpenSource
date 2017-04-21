@@ -22,6 +22,11 @@
 #define SDP_CHG_CUR	450
 #define FAST_CHG_VOL 3000
 
+/* 30min = 30*60*1000ms*/
+#define DEAD_DETECT_MS	(30 * 60 * 1000)
+#define DEAD_DETECT_CNT	((DEAD_DETECT_MS) / (SPRDBAT_CHG_POLLING_T))
+#define DEAD_DETECT_VOL	2000	/* 2000mv */
+
 extern chipram_env_t* get_chipram_env(void);
 extern int charger_connected(void);
 
@@ -48,6 +53,8 @@ void sprdbat_lowbat_chg(void)
 {
 	enum sprd_adapter_type charger = sprdchg_charger_is_adapter();
 	unsigned int vbat_vol = sprdbat_get_aux_vbatvol();
+	static unsigned int polling_cnt = 0;
+	static int dead_bat_flag = 0;
 
 	if (!sprd_chg_ic_op)
 		return;
@@ -79,6 +86,27 @@ void sprdbat_lowbat_chg(void)
 	}
 	debugf("chg_cur:%d,limit_cur:%d\n",chg_cur,limit_cur);
 	sprdchg_timer_callback();
+
+	debugf("vbat_vol:%d\n", vbat_vol);
+
+	/* dead battery detect */
+	if (dead_bat_flag) {
+		printf("ERR!!!:Dead battery,disable charge!!!\n");
+	} else {
+		polling_cnt ++;
+
+		if (vbat_vol > DEAD_DETECT_VOL) {
+			debugf("polling_cnt:%d clear,DEAD_DETECT_VOL:%d\n",
+			    polling_cnt,DEAD_DETECT_VOL);
+			polling_cnt = 0;
+		}
+
+		if(polling_cnt > DEAD_DETECT_CNT) {
+			printf("ERR!!!:Dead battery shutdown charge now!!!\n");
+			dead_bat_flag = 1;
+			sprd_chg_ic_op->chg_stop(1);
+		}
+	}
 }
 
 void sprdchg_register_ops(const struct sprdchg_ic_operations *ops)

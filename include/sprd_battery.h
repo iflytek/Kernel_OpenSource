@@ -13,6 +13,9 @@
 
 #ifndef _SPRD_BATTERY_H_
 #define _SPRD_BATTERY_H_
+
+#define SPRDBAT_CHG_POLLING_T	200
+
 enum sprd_adapter_type {
 	ADP_TYPE_UNKNOW = 0,	//unknow adapter type
 	ADP_TYPE_CDP = 1,	//Charging Downstream Port,USB&standard charger

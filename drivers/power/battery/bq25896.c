@@ -254,8 +254,12 @@ void chg_bq25896_start_chg(int type)
  void chg_bq25896_stop_charging(int value)
 {	
 	printf("stop charge\n");
-	bq25896_set_value(REG03, CHG_CONFIG_BIT , CHG_CONFIG_SHIFT, CHG_DISABLE_VAL);
-	bq25896_set_value(REG00, EN_HIZ_BIT, EN_HIZ_SHIFT, 1);
+	if (value) {
+		bq25896_set_value(REG03, CHG_CONFIG_BIT , CHG_CONFIG_SHIFT, CHG_DISABLE_VAL);
+	} else {
+		bq25896_set_value(REG03, CHG_CONFIG_BIT , CHG_CONFIG_SHIFT, CHG_DISABLE_VAL);
+		bq25896_set_value(REG00, EN_HIZ_BIT, EN_HIZ_SHIFT, 1);
+	}
 }
 void  bq25896_sw_reset(void)
 {

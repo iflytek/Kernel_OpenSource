@@ -170,8 +170,13 @@ void sprdchg_2701_start_chg(int value)
 void sprdchg_2701_stop_charging(int value)
 {
 	debugf("stop charge\n");
-	sprd_2701_set_value(TIMER_CTL, WATCH_DOG_TIMER_BIT,WATCH_DOG_TIMER_SHIFT, 0x00);
-	sprd_2701_set_value(POWER_ON_CTL, CHG_EN_BIT , CHG_EN_SHIFT, CHG_DISABLE_VAL);
+	if (value) {
+		/* disable BATFET */
+		sprd_2701_set_value(POWER_ON_CTL, CHG_EN_BIT , CHG_EN_SHIFT, 0x0);
+	} else {
+		sprd_2701_set_value(TIMER_CTL, WATCH_DOG_TIMER_BIT,WATCH_DOG_TIMER_SHIFT, 0x00);
+		sprd_2701_set_value(POWER_ON_CTL, CHG_EN_BIT , CHG_EN_SHIFT, CHG_DISABLE_VAL);
+	}
 }
 
 static void sprdchg_2701_chg_current_limit(uint32_t cur)

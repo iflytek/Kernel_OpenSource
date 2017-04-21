@@ -85,7 +85,7 @@ boot_mode_enum_type get_mode_from_bat_low(void)
 		  debugf("cboot:low battery,charging...\n");
 		  sprdbat_show_chglogo();
 		  sprdbat_lowbat_chg();
-		  mdelay(200);
+		  mdelay(SPRDBAT_CHG_POLLING_T);
 	  }else{
 		  debugf("cboot:low battery and shutdown\n");
 		  return CMD_POWER_DOWN_DEVICE;
