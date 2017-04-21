@@ -569,6 +569,8 @@ static void usb_enable_module(int en)
 }
 static void usb_startup(void)
 {
+	if (CALIBRATE_ENUM_MS == 10000)
+		dwc_mdelay(16000);
 	usb_enable_module(1);
 	dwc_mdelay(10);
 	usb_ldo_switch(1);

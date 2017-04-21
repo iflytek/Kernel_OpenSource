@@ -465,7 +465,7 @@ dwc_spinlock_t *DWC_SPINLOCK_ALLOC(void)
 }
 
 void DWC_SPINLOCK_FREE(dwc_spinlock_t *lock)
-{	
+{
 #if defined(CONFIG_PREEMPT) || (defined(CONFIG_SMP) && (!defined(CONFIG_X86)))
 	DWC_FREE(lock);
 #endif
@@ -665,7 +665,7 @@ void DWC_TIMER_FREE(dwc_timer_t *timer)
 void DWC_TIMER_SCHEDULE(dwc_timer_t *timer, uint32_t time)
 {
 	dwc_debug("NO SUPPORT %s\r\n", __func__);
-	
+
 #if 0
 	if (!get_scheduled(timer)) {
 		set_scheduled(timer, 1);
@@ -740,8 +740,7 @@ void DWC_UDELAY(uint32_t usecs)
 
 void DWC_MDELAY(uint32_t msecs)
 {
-	//mdelay(msecs);
-	udelay(msecs * 1000);
+	mdelay(msecs);
 }
 
 void DWC_MSLEEP(uint32_t msecs)
@@ -814,7 +813,7 @@ int32_t DWC_WAITQ_WAIT(dwc_waitq_t *wq, dwc_waitq_condition_t condition, void *d
 	int result = wait_event_interruptible(wq->queue,
 						  condition(data) || wq->abort);
 	return check_result(wq, result);
-#endif 
+#endif
 	return 0;
 }
 
