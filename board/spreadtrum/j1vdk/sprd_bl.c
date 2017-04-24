@@ -29,7 +29,7 @@ static void pwm_write(int index, uint32_t value, uint32_t reg)
 void set_backlight(uint32_t brightness)
 {
 	int index = PWM_INDEX;
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
 	__raw_bits_or((0x1 << 0), REG_AON_CLK_CORE_clk_pwm0_cfg + index * 4);//ext_26m select
 #endif
 

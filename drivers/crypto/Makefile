@@ -8,6 +8,6 @@
 obj-$(CONFIG_EXYNOS_ACE_SHA)	+= ace_sha.o
 obj-y += rsa_mod_exp/
 obj-y += fsl/
-ifneq ($(CONFIG_SC9833)$(CONFIG_SC9851)$(CONFIG_SPRD_SOC_SP9853I)$(CONFIG_SOC_IWHALE2),)
+ifneq ($(CONFIG_SC9833)$(CONFIG_SOC_SHARKLJ1)$(CONFIG_SPRD_SOC_SP9853I)$(CONFIG_SOC_IWHALE2),)
 obj-y += sprd/
 endif

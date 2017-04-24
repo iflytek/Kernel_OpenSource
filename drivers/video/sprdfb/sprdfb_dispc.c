@@ -75,7 +75,7 @@ static void dispc_set_exp_mode(uint16_t exp_mode)
 static void dispc_module_enable(void)
 {
 	FB_PRINT("sprdfb:[%s]\n",__FUNCTION__);
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
+#if !((defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 	/*dispc module enable */
 	dispc_write((1<<0), DISPC_CTRL);
 #endif
@@ -389,7 +389,7 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 			return -1;
 		}
 	}
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
+#if !((defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 	misc_noc_ctrl(REG_AON_APB_DISP_NOC_CTRL,
 			dev->smem_start > 0x400000000 ? FULL_MODE : NORMAL_MODE,
 			SIZE_64);
@@ -397,7 +397,7 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 	/*set bg color*/
 //	dispc_set_bg_color(0xFFFFFFFF);
 	dispc_set_bg_color(0xFF);
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
+#if !((defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 	/*enable dithering*/
 	dispc_dithering_enable(1);
 #endif
@@ -411,14 +411,14 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 	if(SPRDFB_PANEL_IF_DPI == dev->panel_if_type){
 		if(is_first_frame){
 			/*set dpi register update only with SW*/
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
+#if !((defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 			dispc_set_bits((1<<4), DISPC_DPI_CTRL);
 #else
 			dispc_set_bits((1<<4), DISPC_CTRL);
 #endif
 		}else{
 			/*set dpi register update with SW & VSYNC*/
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
+#if !((defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 			dispc_clear_bits((1<<4), DISPC_DPI_CTRL);
 #else
 			dispc_clear_bits((1<<4), DISPC_CTRL);
@@ -467,7 +467,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 
 	if(SPRDFB_PANEL_IF_DPI == dev->panel_if_type){
 		/*dpi register update*/
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
+#if !((defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 		dispc_set_bits((1<<5), DISPC_DPI_CTRL);
 #else
 		dispc_set_bits((1<<5), DISPC_CTRL);
@@ -475,7 +475,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 		if(is_first_frame){
 			udelay(30);
 			/*dpi register update with SW and VSync*/
-#if !((defined(CONFIG_SC9851)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
+#if !((defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)))
 			dispc_clear_bits((1<<4), DISPC_DPI_CTRL);
 			/* start refresh */
 			dispc_set_bits((1 << 4), DISPC_CTRL);

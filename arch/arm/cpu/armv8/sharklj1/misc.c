@@ -77,7 +77,7 @@ void scx35_pmu_reconfig(void)
 	 * turn on gpu/mm domain for clock device initcall, and then turn off asap.
 	 */
 	REG32(REG_AON_APB_APB_EB0) |= BIT_AON_APB_GPU_EB;
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
 	REG32(REG_AON_APB_APB_EB1) |= BIT_AON_APB_DISP_EB;
 	REG32(REG_AON_APB_APB_EB1) |= BIT_AON_APB_CAM_EB;
 	REG32(REG_AON_APB_APB_EB1) |= BIT_AON_APB_VSP_EB;

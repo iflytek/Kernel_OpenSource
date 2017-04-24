@@ -42,7 +42,7 @@ obj-$(CONFIG_SC8830) += sprdfb_chip_8830.o
 obj-$(CONFIG_SC9001) += sprdfb_chip_9001.o
 obj-$(CONFIG_SC9860) += sprdfb_chip_9860.o
 obj-$(CONFIG_SC9833) += sprdfb_chip_9833.o
-obj-$(CONFIG_SC9851) += sprdfb_chip_9851.o
+obj-$(CONFIG_SOC_SHARKLJ1) += sprdfb_chip_9851.o
 
 obj-$(CONFIG_SOC_IWHALE2) += sprdfb_chip_9861.o
 obj-$(CONFIG_SPRD_SOC_SP9853I) += sprdfb_chip_9853i.o

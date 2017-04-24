@@ -10,7 +10,6 @@
 #include "sprd_module_config.h"
 #include <power/sprd_pmic/pmic_glb_reg.h>
 
-#if defined(CONFIG_SC9851)
 #include "./chip_sharklj1/aon_clk_core.h"
 #include "./chip_sharklj1/ap_clk_core.h"
 #include "./chip_sharklj1/mm_clk_core.h"
@@ -32,7 +31,6 @@
 #include "./chip_sharklj1/scc_apb.h"
 #include "./chip_sharklj1/serdes_apb.h"
 #include "./chip_sharklj1/redefine.h"
-#endif
 
 #endif
 

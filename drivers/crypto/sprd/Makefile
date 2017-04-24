@@ -23,7 +23,7 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-ifneq ($(CONFIG_SC9833)$(CONFIG_SC9851)$(CONFIG_SPRD_SOC_SP9853I),)
+ifneq ($(CONFIG_SC9833)$(CONFIG_SOC_SHARKLJ1)$(CONFIG_SPRD_SOC_SP9853I),)
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r3p0/inc
 
 obj-y += r3p0/

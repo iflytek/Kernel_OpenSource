@@ -752,7 +752,7 @@ int mipi_dsih_dphy_wakeup_pll(dphy_t * instance)
  */
 void mipi_dsih_dphy_stop_wait_time(dphy_t * instance, uint8_t no_of_byte_cycles)
 {
-#if defined(CONFIG_SC9833) || defined(CONFIG_SC9851)
+#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1)
     mipi_dsih_dphy_write_part(instance, R_DPHY_MIN_STOP_TIME, no_of_byte_cycles, 0, 8);
 #else
     mipi_dsih_dphy_write_part(instance, R_DPHY_IF_CFG, no_of_byte_cycles, 8, 8);

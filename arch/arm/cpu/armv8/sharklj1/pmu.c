@@ -65,7 +65,7 @@ struct dcdc_core_ds_step_info{
 void pmu_commom_config(void)
 {
 	uint32_t reg_val;
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
 	#ifdef CONFIG_PMU_CLK_4M
 	#ifdef CONFIG_PMU_CLK_XTL_4M
 	CHIP_REG_SET(REG_PMU_APB_CGM_PMU_SEL,
@@ -1001,7 +1001,7 @@ void pmu_commom_config(void)
 
 static void setup_autopd_mode(void)
 {
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
 	/*enable the emc auto gate en*/
 	CHIP_REG_SET(REG_AON_APB_EMC_AUTO_GATE_EN,
 		BIT_AON_APB_PUBCP_AON_AUTO_GATE_EN |

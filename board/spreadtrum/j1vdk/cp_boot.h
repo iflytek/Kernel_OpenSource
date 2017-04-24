@@ -90,7 +90,7 @@ static inline void pubcp_boot(void)
 
 	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~(BIT_19|BIT_20);   /*clear R5 force sleep */
 	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_24 | BIT_25);/* clear R5 force shutdown */
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
 	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST)|= BIT_2;   /* reset R5 */
 	msleep(50);
 	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_2; /* pubcp soft reset */
@@ -105,7 +105,7 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
 	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) |= BIT_1;   /* reset M4 */
 #endif
 }
@@ -119,7 +119,7 @@ static inline void pmic_arm_m4_boot(void)
 {
     u32 state;
 	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_23;   /*clear M4 force sleep */
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
 	*((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~(BIT_1 | BIT_21);   /* reset M4 */
 #endif
     msleep(50);
@@ -127,7 +127,7 @@ static inline void pmic_arm_m4_boot(void)
 
 static inline void agdsp_boot(void)
 {
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
    *((volatile u32*)REG_PMU_APB_PD_AGCP_SYS_CFG) &= ~BIT_25;
    *((volatile u32*)REG_PMU_APB_PD_AGCP_DSP_CFG) &= ~BIT_25;
    *((volatile u32*)REG_PMU_APB_SYS_SOFT_RST) &= ~BIT_28;

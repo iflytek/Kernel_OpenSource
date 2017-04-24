@@ -54,7 +54,7 @@
 #include "sprdfb_chip_9833.h"
 #endif
 
-#ifdef CONFIG_SC9851
+#ifdef CONFIG_SOC_SHARKLJ1
 #include "sprdfb_chip_9851.h"
 #endif
 

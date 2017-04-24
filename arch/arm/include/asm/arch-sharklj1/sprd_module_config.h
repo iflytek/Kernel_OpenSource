@@ -27,7 +27,7 @@ extern   "C"
 /**---------------------------------------------------------------------------*
 **                               Macro Define                                **
 **---------------------------------------------------------------------------*/
-#define WDG_INIT_COUNT          (0x0009FFFF) //uint : 1/32768s 
+#define WDG_INIT_COUNT          (0x0009FFFF) //uint : 1/32768s
 /**---------------------------------------------------------------------------*
 **                               Macro Define for bus monitor                       **
 **---------------------------------------------------------------------------*/
@@ -37,7 +37,7 @@ extern   "C"
 **                               Macro Define for kpd                        **
 **---------------------------------------------------------------------------*/
 #define KPD_ROW_NUM                     8               // KPD_ROW_MIN_NUM <= value <= KPD_ROW_MAX_NUM   changed by yong.zou
-#define KPD_COL_NUM                     8           // KPD_COL_MIN_NUM <= value <= KPD_COL_MAX_NUM   changed by yong.zou    
+#define KPD_COL_NUM                     8           // KPD_COL_MIN_NUM <= value <= KPD_COL_MAX_NUM   changed by yong.zou   
 
 #define CFG_ROW_POLARITY    (0x00FF & KPDPOLARITY_ROW)
 #define CFG_COL_POLARITY    (0xFF00 & KPDPOLARITY_COL)
@@ -74,7 +74,7 @@ extern   "C"
 #define SPI_TX_WATERMARK            0x28
 #define SPI_RX_WATERMARK            0x28
 
-#define SPI_TX_CHANNEL             19 
+#define SPI_TX_CHANNEL             19
 #define SPI_RX_CHANNEL              20
 
 #define SPI_DMA_TIME_OUT            0x80000

@@ -29,8 +29,4 @@
 #include "chip_whale2/__hardware-whale2.h"
 #endif
 
-#if defined(CONFIG_SC9851)
-#include "chip_whale2/__hardware-whale2.h"
-#endif
-
 #endif

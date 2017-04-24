@@ -718,8 +718,8 @@
 #define BIT_AON_APB_PUB_REG_EB                                        BIT(6)
 #define BIT_AON_APB_DMC_EB                                            BIT(5)
 #define BIT_AON_APB_CSSYS_EB                                          BIT(4)
-#define BIT_AON_APBTI_RX_EB                                        BIT(3)
-#define BIT_AON_APBTI_TX_EB                                        BIT(2)
+#define BIT_AON_APB_RFTI_RX_EB                                        BIT(3)
+#define BIT_AON_APB_RFTI_TX_EB                                        BIT(2)
 #define BIT_AON_APB_WCDMA_ICI_EB                                      BIT(1)
 #define BIT_AON_APB_WCDMA_EB                                          BIT(0)
 
@@ -973,10 +973,10 @@
 #define BIT_AON_APB_NANDC_ASYNC_EB                                    BIT(19)
 #define BIT_AON_APB_ALL_PLL_TEST_EB                                   BIT(18)
 #define BIT_AON_APB_LVDSRF_CALI_EB                                    BIT(17)
-#define BIT_AON_APBTI2_XO_EB                                       BIT(15)
-#define BIT_AON_APBTI_LTH_EB                                       BIT(14)
-#define BIT_AON_APBTI1_XO_EB                                       BIT(13)
-#define BIT_AON_APBTI_SBI_EB                                       BIT(12)
+#define BIT_AON_APB_RFTI2_XO_EB                                       BIT(15)
+#define BIT_AON_APB_RFTI_LTH_EB                                       BIT(14)
+#define BIT_AON_APB_RFTI1_XO_EB                                       BIT(13)
+#define BIT_AON_APB_RFTI_SBI_EB                                       BIT(12)
 #define BIT_AON_APB_TMR_EB                                            BIT(11)
 #define BIT_AON_APB_DET_32K_EB                                        BIT(10)
 #define BIT_AON_APB_AP_HS_SPI_EB                                      BIT(9)
@@ -1410,8 +1410,8 @@
 ---------------------------------------------------------------------------*/
 
 #define BIT_AON_APB_LVDSRF_CALI_SOFT_RST                              BIT(3)
-#define BIT_AON_APBTI_LTH_SOFT_RST                                 BIT(1)
-#define BIT_AON_APBTI_SBI_SOFT_RST                                 BIT(0)
+#define BIT_AON_APB_RFTI_LTH_SOFT_RST                                 BIT(1)
+#define BIT_AON_APB_RFTI_SBI_SOFT_RST                                 BIT(0)
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AON_APB_GLB_WCDMA_CTRL
@@ -1557,7 +1557,7 @@
 // Description     :
 ---------------------------------------------------------------------------*/
 
-#define BIT_AON_APB_LTE_PCCSCCTI_CLK_SW_CFG(x)                     (((x) & 0xFF) << 24)
+#define BIT_AON_APB_LTE_PCCSCC_RFTI_CLK_SW_CFG(x)                     (((x) & 0xFF) << 24)
 #define BIT_AON_APB_LPLL1_CLKOUT_SW                                   BIT(23)
 #define BIT_AON_APB_LPLL0_CLKOUT_SW                                   BIT(22)
 

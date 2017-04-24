@@ -7,7 +7,7 @@ config SYS_VENDOR
 	default "spreadtrum"
 
 config SYS_SOC
-	default "sc9851"
+	default "sharklj1"
 
 config SYS_CONFIG_NAME
 	default "j1vdk"

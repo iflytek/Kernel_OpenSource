@@ -34,7 +34,7 @@ static struct dwc3_device dwc3_dev = {
 static void usb_clk_enable(u32 is_on)
 {
 	u32 val;
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
 	val = readl(REG_AP_AHB_AHB_EB);
 	if (is_on)
 		writel(val | (BIT_AP_AHB_USB3_EB | BIT_AP_AHB_USB3_SUSPEND_EB
@@ -54,7 +54,7 @@ static void usb_phy_enable(u32 is_on)
 {
 	u32 val, val1;
 
-#ifndef CONFIG_SC9851
+#ifndef CONFIG_SOC_SHARKLJ1
 	if (is_on) {
 		/* regulator_set_voltage(LDO_USB3, vol); */
 		regulator_enable(LDO_USB3);
