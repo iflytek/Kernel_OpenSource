@@ -121,7 +121,9 @@ static boot_image_required_t const s_boot_image_lte_table[] = {
 #endif
 #endif
 #ifdef  CONFIG_ADVANCED_LTE
+#if !defined(CONFIG_NO_AGDSP)
 	{"l_agdsp",NULL,LTE_AGDSP_SIZE ,LTE_AGDSP_ADDR}, //agdsp now is boot by uboot
+#endif// end CONFIG_NO_AGDSP
 #endif
 	{NULL, NULL, 0, 0}
 };
