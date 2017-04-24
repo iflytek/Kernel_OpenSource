@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Spreadtrum Communications Inc.
- * 
+ *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
  * may be copied, distributed, and modified under those terms.
@@ -25,8 +25,6 @@
 #include "sprd_eic.h"
 #include "rtc_reg_v3.h"
 
-#if defined(CONFIG_SC9851)
-#include "chip_sharklj1/__hardware-sharklj1.h"
-#endif
+#include "chip_sharklj1/hardware.h"
 
 #endif
