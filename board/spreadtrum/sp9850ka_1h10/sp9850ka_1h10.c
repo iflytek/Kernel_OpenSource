@@ -109,8 +109,7 @@ int dram_init(void)
 	real_ram_size = REAL_SDRAM_SIZE;
 #endif
 
-        gd->ram_size = get_ram_size((volatile void *)PHYS_SDRAM_1,
-                        PHYS_SDRAM_1_SIZE);
+        gd->ram_size = PHYS_SDRAM_1_SIZE;
 
         return 0;
 }
