@@ -514,7 +514,7 @@ void sprd_calc_hbk(void)
 		common_raw_read("splloader", (uint64_t)SPL_IMAGE_SIZE, (uint64_t)0, (unsigned char *)img_verify_info.img_addr);
 		img_verify_info.img_len = SPL_IMAGE_SIZE;
 		img_verify_info.flag = SPRD_FLAG;
-		printf("sprd_calc_hbk p1:%x, p2:%x,P3:%x\n",img_verify_info.img_addr,img_verify_info.img_len,img_verify_info.flag);
+		printf("sprd_calc_hbk p1:%llx, p2:%llx,P3:%x\n",img_verify_info.img_addr,img_verify_info.img_len,img_verify_info.flag);
 		uboot_get_hbk(&img_verify_info,sizeof(imgToVerifyInfo));
 		#endif
 		}

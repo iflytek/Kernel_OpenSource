@@ -283,6 +283,9 @@ void secboot_init(void)
 
 void secboot_terminal(void)
 {
+	#if defined (CONFIG_SPRD_SECBOOT)
+	sprd_calc_hbk();
+	#endif
 }
 
 void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
@@ -300,9 +303,6 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
 	uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
 	#endif
-	#if defined (CONFIG_SPRD_SECBOOT)
-	sprd_calc_hbk();
-    #endif
 }
 
 void secboot_update_swVersion(void)
