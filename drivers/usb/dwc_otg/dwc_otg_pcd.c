@@ -1140,6 +1140,8 @@ dwc_otg_pcd_t *dwc_otg_pcd_init(dwc_otg_core_if_t * core_if)
 			dwc_free(pcd);
 			return NULL;
 		}
+		pcd->status_buf = ((((uint32_t)pcd->status_buf+63)/64)*64);
+		pcd->status_buf_dma_handle = pcd->status_buf;
 
 		if (GET_CORE_IF(pcd)->dma_desc_enable) {
 			dev_if->setup_desc_addr[0] =
