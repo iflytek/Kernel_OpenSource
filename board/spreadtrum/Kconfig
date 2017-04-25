@@ -54,6 +54,11 @@ config TARGET_SP9853I_1H10
 	help
 	  This is the Spreadtrum isharkl2 mobile phone board
 
+config TARGET_SP9853I_3C10
+	bool "Spreadtrum sp9853i"
+	help
+	  This is the Spreadtrum isharkl2 mobile phone board
+
 config TARGET_SP9830A_5H10_GA1
 	bool "Spreadtrum sp9830a-5h10_ga1"
 	select CPU_V7
@@ -203,6 +208,7 @@ source "board/spreadtrum/sp9861e_2h10/Kconfig"
 source "board/spreadtrum/sp9861e_3h10/Kconfig"
 source "board/spreadtrum/sp9853i/Kconfig"
 source "board/spreadtrum/sp9853i_1h10/Kconfig"
+source "board/spreadtrum/sp9853i_3c10/Kconfig"
 source "board/spreadtrum/sp9830a-5h10_ga1/Kconfig"
 source "board/spreadtrum/sp9830a-7h10_ga1/Kconfig"
 source "board/spreadtrum/sp9850s_1h10_5m/Kconfig"
