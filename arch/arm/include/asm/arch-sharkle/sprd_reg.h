@@ -10,7 +10,7 @@
 #include "sprd_module_config.h"
 #include <power/sprd_pmic/pmic_glb_reg.h>
 
-#if defined(CONFIG_SC9835)
+#if defined(CONFIG_SOC_SHARKLE)
 #include "./chip_sharkle/__regs_anlg_phy_g1.h"
 #include "./chip_sharkle/__regs_anlg_phy_g2.h"
 #include "./chip_sharkle/__regs_anlg_phy_g3.h"
