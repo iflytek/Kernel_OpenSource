@@ -24,9 +24,6 @@
 #include "regs_adi.h"
 #include "sprd_eic.h"
 #include "rtc_reg_v3.h"
-
-#if defined(CONFIG_SOC_SHARKLE)
-#include "chip_sharkle/__hardware-sharkle.h"
-#endif
+#include "chip_sharkle/hardware.h"
 
 #endif

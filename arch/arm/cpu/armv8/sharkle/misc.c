@@ -25,12 +25,6 @@
 *************************************************/
 int sprd_jtag_enable()
 {
-	if (*((volatile unsigned int *)(REG_AON_APB_BOND_OPT0)) & 1)
-	{
-		*((volatile unsigned int *)(REG_AON_APB_BOND_OPT1)) = 1;
-		if (!((*(volatile unsigned int *)(REG_AON_APB_BOND_OPT1)) & 1))
-			return 0;
-	}
 	return 1;
 }
 
@@ -40,18 +34,6 @@ int sprd_jtag_enable()
 *************************************************/
 int sprd_jtag_disable()
 {
-	if (!(*((volatile unsigned int *)(REG_AON_APB_BOND_OPT0)) & 1))
-	{
-		return 0;
-	}
-	else
-	{
-		*((volatile unsigned int *)(REG_AON_APB_BOND_OPT1)) = 0;
-		if (*((volatile unsigned int *)(REG_AON_APB_BOND_OPT1)) & 1)
-			return 0;
-		else
-			return 1;
-	}
 }
 
 static void ap_slp_cp_dbg_cfg()
