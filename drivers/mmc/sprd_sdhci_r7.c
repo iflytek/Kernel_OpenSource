@@ -29,9 +29,11 @@ void *aligned_buffer;
 static void sdhci_reset(struct sdhci_host *host, u8 mask)
 {
 	unsigned long timeout;
-
+	u8 tmp = 0;
 	/* Wait max 100 ms */
 	timeout = 100;
+	tmp = sdhci_readb(host, SDHCI_SOFTWARE_RESET);
+	tmp |= mask;
 	sdhci_writeb(host, mask, SDHCI_SOFTWARE_RESET);
 	while (sdhci_readb(host, SDHCI_SOFTWARE_RESET) & mask) {
 		if (timeout == 0) {
