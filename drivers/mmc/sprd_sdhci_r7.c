@@ -34,7 +34,7 @@ static void sdhci_reset(struct sdhci_host *host, u8 mask)
 	timeout = 100;
 	tmp = sdhci_readb(host, SDHCI_SOFTWARE_RESET);
 	tmp |= mask;
-	sdhci_writeb(host, mask, SDHCI_SOFTWARE_RESET);
+	sdhci_writeb(host, tmp, SDHCI_SOFTWARE_RESET);
 	while (sdhci_readb(host, SDHCI_SOFTWARE_RESET) & mask) {
 		if (timeout == 0) {
 			printf("%s: Reset 0x%x never completed.\n",
