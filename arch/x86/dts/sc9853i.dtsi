@@ -119,7 +119,7 @@
 
 	microcode {
 		update@0 {
-			#include "microcode/MU_00_01_0007065A_80000A01.SIGNED.DTSI"
+			#include "microcode/MU_00_01_0007065A_80000A03.SIGNED.dtsi"
 		};
 	};
 
