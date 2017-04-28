@@ -157,12 +157,15 @@ int sprd_crypto_special_test(void) {
 	int err = 0;
 	uint8_t hash_temp[32];
 	uint8_t rsa_temp[32];
+#define SPRD_TEST_ADDR 0x96000000
 
 	sha256_csum_wd((const unsigned char*)test_hash.msg, strlen(test_hash.msg), (unsigned char*)hash_temp, 0);
 	if (memcmp(test_hash.hash, hash_temp, 32)) {
 		errorf("sha256_csum_wd failed!\n");
+	*((volatile unsigned int*)(SPRD_TEST_ADDR + 0x10)) = 0x11111111;
 		return -1;
 	}
+	*((volatile unsigned int*)(SPRD_TEST_ADDR + 0x10)) = 0xAAAAAAAA;
 
 	err = RSA_PubDec(test_rsa_pkcs1.key_e,
 			 test_rsa_pkcs1.key_n,
@@ -170,8 +173,10 @@ int sprd_crypto_special_test(void) {
 			 test_rsa_pkcs1.dout, rsa_temp);
 	if (err != test_rsa_pkcs1.data_len || memcmp(test_rsa_pkcs1.din, rsa_temp, err)){
 		errorf("RSA_PubDec failed!\n");
+	*((volatile unsigned int*)(SPRD_TEST_ADDR + 0x20)) = 0x22222222;
 		return -1;
 	}
+	*((volatile unsigned int*)(SPRD_TEST_ADDR + 0x20)) = 0xBBBBBBBB;
 
 	test_rsa_pkcs1.dout[0] += 1;
 	err = RSA_PubDec(test_rsa_pkcs1.key_e,
@@ -180,8 +185,10 @@ int sprd_crypto_special_test(void) {
 			 test_rsa_pkcs1.dout, rsa_temp);
 	if (err != -1){
 		errorf("RSA_PubDec should be failed!\n");
+	*((volatile unsigned int*)(SPRD_TEST_ADDR + 0x30)) = 0x33333333;
 		return -1;
 	}
+	*((volatile unsigned int*)(SPRD_TEST_ADDR + 0x30)) = 0xCCCCCCCC;
 
 	errorf("sprd_crypto_special_test pass!\n");
 	return 0;

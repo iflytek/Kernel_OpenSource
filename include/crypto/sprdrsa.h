@@ -92,3 +92,4 @@ bytes length of clear data in "to" buffer, MAX is  bitLen_N>>3-11
 int RSA_PrvDec(unsigned char *prvExp, unsigned char *mod_N, int bitLen_N, unsigned char *from, unsigned char *to);
 
 int sprd_crypto_api_test(void);
+int sprd_crypto_special_test(void);

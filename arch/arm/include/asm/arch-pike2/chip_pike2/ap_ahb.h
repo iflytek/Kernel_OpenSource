@@ -72,6 +72,9 @@
 #define REG_AP_AHB_OTG_CTRL0                          ( CTL_BASE_AP_AHB + 0x302C )
 #define REG_AP_AHB_OTG_CTRL1                          ( CTL_BASE_AP_AHB + 0x3030 )
 #define REG_AP_AHB_CHIP_ID                            ( CTL_BASE_AP_AHB + 0x30FC )
+/* for CE */
+#define REG_AP_AHB_CE_SEC_EB                        REG_AP_AHB_AHB_EB
+#define REG_AP_AHB_CE_SEC_SOFT_RST                  REG_AP_AHB_AHB_RST
 
 /*---------------------------------------------------------------------------
 // Register Name   : REG_AP_AHB_AHB_EB

@@ -28,6 +28,11 @@ obj-y += sprd_crypto.o
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r3p0/inc
 endif
 
+ifneq ($(CONFIG_SOC_PIKE2)$(CONFIG_SOC_SHARKLE),)
+obj-y += sprd_crypto.o
+ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0lite/inc
+endif
+
 ifneq ($(CONFIG_SOC_IWHALE2),)
 obj-y += sprd_crypto_r2p0.o
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0/inc
