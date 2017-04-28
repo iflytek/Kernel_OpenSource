@@ -80,3 +80,6 @@ SECTIONS
 #endif
 
 }
+#ifdef CONFIG_BASEIA_S3
+ASSERT(_resume_end - _resume_start < CONFIG_VID_OFFSET, "Resume SRAM code overflow!!");
+#endif

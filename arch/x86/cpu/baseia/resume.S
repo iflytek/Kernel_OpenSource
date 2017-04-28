@@ -77,6 +77,69 @@ _unexpected_wake:
 	jmp	_unexpected_wake
 _resume_entry:
 	movl	$SRAM_ADDRESS(_unexpected_wake), AON_APB_DAT_1
+
+#port 0x1b
+# reg-mask-val = <0x0 0x00000014 0x00000014>
+#		<0x1 0x00010000 0x00010000>
+#needs further opt if this is final solution
+_set_pmi2axi:
+	mov    $0x800000d0,%esi
+	mov    $0xcf8,%ebx
+	mov    %esi,%eax
+	mov    %ebx,%edx
+	out    %eax,(%dx)
+	mov    $0xcfc,%ecx
+	mov    $0x61b00f0,%eax
+	mov    %ecx,%edx
+	out    %eax,(%dx)
+	mov    $0x800000d4,%edi
+	mov    %edi,%eax
+	mov    %ebx,%edx
+	out    %eax,(%dx)
+	mov    %ecx,%edx
+	in     (%dx),%eax
+	and    $0xffffffeb,%eax
+	mov    %eax,%ebp
+	mov    %edi,%eax
+	mov    %ebx,%edx
+	out    %eax,(%dx)
+	mov    %ebp,%eax
+	or     $0x14,%eax
+	mov    %ecx,%edx
+	out    %eax,(%dx)
+	mov    %esi,%eax
+	mov    %ebx,%edx
+	out    %eax,(%dx)
+	mov    $0x71b00f0,%eax
+	mov    %ecx,%edx
+	out    %eax,(%dx)
+	mov    %esi,%eax
+	mov    %ebx,%edx
+	out    %eax,(%dx)
+	mov    $0x61b01f0,%eax
+	mov    %ecx,%edx
+	out    %eax,(%dx)
+	mov    %edi,%eax
+	mov    %ebx,%edx
+	out    %eax,(%dx)
+	mov    %ecx,%edx
+	in     (%dx),%eax
+	and    $0xfffeffff,%eax
+	mov    %eax,%ebp
+	mov    %edi,%eax
+	mov    %ebx,%edx
+	out    %eax,(%dx)
+	mov    %ebp,%eax
+	or     $0x10000,%eax
+	mov    %ecx,%edx
+	out    %eax,(%dx)
+	mov    %esi,%eax
+	mov    %ebx,%edx
+	out    %eax,(%dx)
+	mov    $0x71b01f0,%eax
+	mov    %ecx,%edx
+	out    %eax,(%dx)
+
 	movl	$SRAM_ADDRESS(_set_stack), %ebp
 	jmp	mtrr_setup
 
