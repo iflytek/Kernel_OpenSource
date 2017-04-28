@@ -33,7 +33,7 @@ static pinmap_t pinmap[]={
 {REG_PIN_CTRL_REG3,0x0},        //
 {REG_PIN_CTRL_REG4,0x00000200}, //I2C3 for LCD Driver,I2C2 for CM4,  I2C4 for AP I2C5 Controller?  0000 0000 0000 0000 0000 0010 0000 0000
 {REG_PIN_CTRL_REG5,0x0},        //
-{REG_GROUP_PIN_SIM_MS,0x24},      //sim0_ret=1'h1,sim1_ret=1'h1             0000 0000 0000 0000 0000 0000 0010 0100
+{REG_GROUP_PIN_SIM_MS,0x2},      //sim0_ret=1'h1,sim1_ret=1'h1             0000 0000 0000 0000 0000 0000 0010 0100
 {REG_GROUP_PIN_SD_MS,0x0},     //0000 0000 0000 0000 0000 0000 0000 0100
 {REG_GROUP_PIN_CLK_AUX0_SEL,0x1},//Marlin2 Deep sleep 32K input always
 {REG_GROUP_PIN_CLK_AUX1_SEL,0x0},
