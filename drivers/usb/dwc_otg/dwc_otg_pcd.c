@@ -1132,7 +1132,7 @@ dwc_otg_pcd_t *dwc_otg_pcd_init(dwc_otg_core_if_t * core_if)
 		pcd->setup_pkt = ((((uint32_t)pcd->setup_pkt+63)/64)*64);
 		pcd->setup_pkt_dma_handle = pcd->setup_pkt;
 		pcd->status_buf =
-		    dwc_dma_alloc(sizeof(uint16_t),
+		    dwc_dma_alloc(128,
 				  &pcd->status_buf_dma_handle);
 		if (pcd->status_buf == 0) {
 			dwc_dma_free(sizeof(*pcd->setup_pkt) * 5,
