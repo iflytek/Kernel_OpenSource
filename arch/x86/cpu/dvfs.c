@@ -16,6 +16,7 @@
 #include <dvfs.h>
 #include <asm/arch/sprd_reg.h>
 #include "adi_hal_internal.h"
+#include <chipram_env.h>
 
 #define FUSE_LFM_MODULE0_BLKNO		55
 #define FUSE_HFM_MODULE0_BLKNO		56
@@ -441,6 +442,10 @@ void change_cpu_freq()
 	unsigned long long msr_value;
 	unsigned long fid, vid;
 	int rev;
+	boot_mode_t boot_role;
+	chipram_env_t* cr_env = get_chipram_env();
+
+	boot_role = cr_env->mode;
 
 	/* if ucode is not patched
 	 * return directly
@@ -465,11 +470,19 @@ void change_cpu_freq()
 	/* CLOCK_CR_GEYSIII_CONTROL  */
 	rdmsrl(MSR_IA32_PERF_CTL, msr_bits);
 	msr_bits &= 0xffffffffffffc080; /* Clear the select bits  */
-	/*  set module0 default freq 1560M(0x1405),0x1c07 : 2184M */
-	msr_value = (0x14 & 0x3F)<<8;   /* BUS_RATIO_SEL : bits [13:8] */
-	msr_bits |= msr_value;
-	msr_value = (5 & 0x7F);    /* VID_SEL : bits [6:0] */
-	msr_bits |= msr_value;
+	if(boot_role == BOOTLOADER_MODE_DOWNLOAD){
+		/*  set module0 default freq 624M(0x0802)*/
+		msr_value = (0x8 & 0x3F)<<8;   /* BUS_RATIO_SEL : bits [13:8] */
+		msr_bits |= msr_value;
+		msr_value = (2 & 0x7F);    /* VID_SEL : bits [6:0] */
+		msr_bits |= msr_value;
+	}else{
+		/*  set module0 default freq 1560M(0x1405)*/
+		msr_value = (0x14 & 0x3F)<<8;   /* BUS_RATIO_SEL : bits [13:8] */
+		msr_bits |= msr_value;
+		msr_value = (5 & 0x7F);    /* VID_SEL : bits [6:0] */
+		msr_bits |= msr_value;
+	}
 
 	wrmsrl(MSR_IA32_PERF_CTL, msr_bits);
 
