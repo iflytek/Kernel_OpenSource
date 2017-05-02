@@ -33,7 +33,9 @@ void subsys_clk_enable()
 static void thm_overheate_en(void)
 {
 	sci_glb_set(REG_AON_APB_THERMAL_OVERHEAT_EN,
-					BIT_AON_APB_DPLL_THM_OVERHEAT_EN);
+					BIT_AON_APB_DPLL_THM_OVERHEAT_EN |
+					BIT_AON_APB_ITHM0_GPU_OVERHEAT_EN |
+					BIT_AON_APB_ITHM1_BIA_OVERHEAT_EN);
 }
 
 int board_init(void)
