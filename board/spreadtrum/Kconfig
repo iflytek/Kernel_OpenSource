@@ -173,6 +173,12 @@ config TARGET_J1ZEBU
 	select ARM64
 	help
 	  This is the Spreadtrum j1zebu Board
+  
+config TARGET_SP9850J_1H10
+	bool "Spreadtrum sp9850j_1h10"
+	select ARM64
+	help
+	  This is the Spreadtrum j1 Board
 
 config TARGET_SP9850KA_2C10
 	bool "Spreadtrum sp9850ka_2c10"
@@ -235,6 +241,7 @@ source "board/spreadtrum/sp7700_fpga/Kconfig"
 source "board/spreadtrum/j1vdk/Kconfig"
 source "board/spreadtrum/j1fpga/Kconfig"
 source "board/spreadtrum/j1zebu/Kconfig"
+source "board/spreadtrum/sp9850j_1h10/Kconfig"
 source "board/spreadtrum/sp9850ka_2c10/Kconfig"
 source "board/spreadtrum/sp9835_haps/Kconfig"
 endif
