@@ -271,19 +271,20 @@ static struct panel_operations lcd_st7701_mipi_operations = {
 };
 
 static struct timing_rgb lcd_st7701_mipi_timing = {
-	.hfp = 72,  /* unit: pixel */
-	.hbp = 52,//80
-	.hsync = 16,//4//10
-	.vfp = 22, /*unit: line*/
-	.vbp = 40,//32
-	.vsync = 3,//4//4
+	/* unit: pixel */
+	.hfp = 32,
+	.hbp = 32,
+	.hsync = 4,//4
+	.vfp = 22,
+	.vbp = 40,
+	.vsync = 3,//4
 };
 
 static struct info_mipi lcd_st7701_mipi_info = {
 	.work_mode  = SPRDFB_MIPI_MODE_VIDEO,
 	.video_bus_width = 24, /*18,16*/
 	.lan_number = 4,
-	.phy_feq = 460 * 1000,//4//960
+	.phy_feq = 500 * 1000,//4//960
 	.h_sync_pol = SPRDFB_POLARITY_POS,
 	.v_sync_pol = SPRDFB_POLARITY_POS,
 	.de_pol = SPRDFB_POLARITY_POS,
