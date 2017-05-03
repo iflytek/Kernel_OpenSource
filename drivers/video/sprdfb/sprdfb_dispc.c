@@ -137,13 +137,16 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 
 #if (defined(CONFIG_SPRD_SOC_SP9853I))
 	reg_val |= (DPU_LAYER_FORMAT_RGB565 << 4);
+	/* B0B1B2B3 */
+	reg_val |= (0 << 8);
 #else
 	/* data format */
 	/* RGB565 */
 	reg_val |= (5 << 4);
-#endif
 	/* B2B3B0B1 */
 	reg_val |= (2 << 8);
+#endif
+
 
 	dispc_write(reg_val, DISPC_OSD_CTRL);
 
