@@ -139,5 +139,6 @@
 #define CTL_BASE_PWM                                       SPRD_PWM_PHYS
 /* just tricky, on uart0 on sharkle */
 #define SPRD_UART0_PHYS                                    SPRD_UART1_PHYS
-
+#define SPRD_DSI_BASE                                      SPRD_DSI_PHYS
+#define REGS_AON_APB_BASE                                  SPRD_AONAPB_PHYS
 #endif

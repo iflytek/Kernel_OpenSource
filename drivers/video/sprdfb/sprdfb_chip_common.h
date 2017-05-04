@@ -58,6 +58,11 @@
 #include "sprdfb_chip_9851.h"
 #endif
 
+#ifdef CONFIG_SOC_SHARKLE
+#include "sprdfb_chip_9835.h"
+
+#endif
+
 #ifdef CONFIG_SOC_IWHALE2
 #include "sprdfb_chip_9861.h"
 #endif
