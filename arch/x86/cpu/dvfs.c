@@ -476,6 +476,8 @@ void change_cpu_freq()
 		msr_bits |= msr_value;
 		msr_value = (2 & 0x7F);    /* VID_SEL : bits [6:0] */
 		msr_bits |= msr_value;
+		debug("set freq ratio and vid to:0x%4x in BOOTLOADER_MODE_DOWNLOAD\n", msr_bits & 0x3F7F);
+		return;
 	}else{
 		/*  set module0 default freq 1560M(0x1405)*/
 		msr_value = (0x14 & 0x3F)<<8;   /* BUS_RATIO_SEL : bits [13:8] */
