@@ -30,6 +30,7 @@
 
 /* file system config */
 #define CONFIG_FAT_WRITE		1
+#define CONFIG_FS_EXT4
 
 #define CONFIG_DOS_PARTITION		1
 #define CONFIG_EFI_PARTITION		1
