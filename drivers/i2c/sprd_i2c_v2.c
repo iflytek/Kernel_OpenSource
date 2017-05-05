@@ -336,7 +336,7 @@ static void sprd_i2c_init(struct i2c_adapter *adap, int speed, int slaveadd)
 	tmp = readl(i2c_base + I2C_CTL);
 	tmp = tmp & ~(I2C_EN | I2C_TRIM_OPT | (0xF << FIFO_AF_LVL) |
 		(0xF << FIFO_AE_LVL));
-	tmp |= I2C_TRIM_OPT | I2C_INT_EN;
+	tmp |= I2C_INT_EN;
 	tmp	|=(I2C_FIFO_FULL_THLD << FIFO_AF_LVL) |
 		(I2C_FIFO_EMPTY_THLD << FIFO_AE_LVL);
 	writel(tmp, i2c_base + I2C_CTL);
