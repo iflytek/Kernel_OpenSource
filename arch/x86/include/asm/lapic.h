@@ -75,7 +75,9 @@ static inline __attribute__((always_inline)) void stop_this_cpu(void)
 		cpu_hlt();
 }
 #else
-void stop_this_cpu(void);
+void (*stop_this_cpu)(void);
+void stop_this_cpu_sram(void);
+void stop_this_cpu_normal(void);
 #endif
 
 #define xchg(ptr, v) ((__typeof__(*(ptr)))__xchg((unsigned long)(v), (ptr), \

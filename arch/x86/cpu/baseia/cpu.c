@@ -17,6 +17,7 @@
 #include <asm/bootparam.h>
 #include <asm/microcode.h>
 #include <asm/mv/mobilevisor.h>
+#include <chipram_env.h>
 
 #ifdef CONFIG_BASEIA_S3
 #define RESERVED_RAM_SIZE 0x10000
@@ -114,19 +115,27 @@ int x86_init_cpus(void)
 
 #ifdef CONFIG_BASEIA_S3
 	if(!is_x86_mobilevisor()) {
-		_resume_cpus = detect_num_cpus();
+		boot_mode_t boot_role;
+		chipram_env_t* cr_env = get_chipram_env();
 
-		/* Copy S3 resume code into SRAM */
-		memcpy((void *) CONFIG_BASEIA_SRAM, (const void *) _resume_start,
-			_resume_end - _resume_start);
+		boot_role = cr_env->mode;
+		stop_this_cpu = stop_this_cpu_normal;
+		if(boot_role != BOOTLOADER_MODE_DOWNLOAD) {
+			stop_this_cpu = stop_this_cpu_sram;
+			_resume_cpus = detect_num_cpus();
 
-		/*
-		*  Write resume entry point address to SRAM and store it there, kernel
-		*  will read it from SRAM and programe it to AON_APB_DAT_1 at late
-		*  stage of S3. On CPU reset, the boot ROM will jump there if reset
-		*  reason is S3.
-		*/
-		writel(SRAM_ADDRESS(_resume_entry), RESUME_ENTRY_P);
+			/* Copy S3 resume code into SRAM */
+			memcpy((void *) CONFIG_BASEIA_SRAM, (const void *) _resume_start,
+				_resume_end - _resume_start);
+
+			/*
+			*  Write resume entry point address to SRAM and store it there, kernel
+			*  will read it from SRAM and programe it to AON_APB_DAT_1 at late
+			*  stage of S3. On CPU reset, the boot ROM will jump there if reset
+			*  reason is S3.
+			*/
+			writel(SRAM_ADDRESS(_resume_entry), RESUME_ENTRY_P);
+		}
 
 		/* Copy CPU microcode data into the reserved DRAM area */
 		if (gd->arch.microcode_size <= RESERVED_RAM_SIZE) {

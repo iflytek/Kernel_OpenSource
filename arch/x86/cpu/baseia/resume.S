@@ -11,7 +11,8 @@
 .global _resume_start
 .global _resume_entry
 .global _resume_end
-.global stop_this_cpu
+.global stop_this_cpu_normal
+.global stop_this_cpu_sram
 
 #include <config.h>
 #include <asm/processor-flags.h>
@@ -971,9 +972,14 @@ _mtrr_enable:
 _resume_end:
 
 /**
- *  stop_this_cpu() - jump to SRAM code that will keep this CPU in C6FS
+ *  stop_this_cpu_sram() - jump to SRAM code that will keep this CPU in C6FS
  */
-stop_this_cpu:
+stop_this_cpu_sram:
 	movl	$SRAM_ADDRESS(_resume_stop_ap), %ebx
 	calll	*%ebx
 	ret
+
+stop_this_cpu_normal:
+	calll   _resume_stop_ap
+	ret
+
