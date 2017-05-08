@@ -28,5 +28,7 @@
 #define BIT_AP_SYST_EB                          BIT_AON_APB_AP_SYST_EB
 #define BIT_AP_SYST_RTC_EB                      BIT_AON_APB_AP_SYST_RTC_EB
 #define BIT_I2C_EB                              BIT_AP_APB_I2C0_EB
+#define BIT_ADI_EB                                                BIT_AON_APB_ADI_EB
+
 
 #endif

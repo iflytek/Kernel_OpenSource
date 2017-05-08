@@ -20,14 +20,6 @@
 #include <asm/arch/sdio_reg.h>
 #include <asm/arch/common.h>
 
-/*
- * TODO：
- * Now many macros(such as: SPRD_EMMC_BASE, REG_AP_CLK_EMMC_CFG)
- * have not defined in spreadtrum platform, so we use a immediate
- * value instead of it.
- * These immediate values should be removed if the corresponding
- * macros are defined.
- */
 const struct sdio_base_info sdio_ctrl_info[2] = {
 {
 	EMMC,
