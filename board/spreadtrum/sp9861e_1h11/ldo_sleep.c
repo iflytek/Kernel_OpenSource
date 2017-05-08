@@ -176,7 +176,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		BIT_SLP_DCDCGPU_PD_EN |
+		//BIT_SLP_DCDCGPU_PD_EN |  /*wa for overshot, is set in ddr shutdown code,and clear after wakup*/
 		//BIT_SLP_DCDCGPU_DROP_EN |
 		BIT_SLP_DCDCCORE_DROP_EN |
 		//BIT_SLP_DCDCRF_PD_EN |   /*control by wcn*;
