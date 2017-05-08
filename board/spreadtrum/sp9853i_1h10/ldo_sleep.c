@@ -118,33 +118,41 @@ void pll_sel_config(uint32_t gen_para)
 
 void DCDC_ldo_power_on()
 {
-	ANA_REG_AND(ANA_REG_GLB_DCDC_GPU_PD_HW, ~BIT_DCDC_GPU_PD_HW);
-	ANA_REG_AND(ANA_REG_GLB_DCDC_WPA_REG2, ~BIT_DCDC_WPA_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_CAMA0_REG0, ~BIT_LDO_CAMA0_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_CAMA1_REG0, ~BIT_LDO_CAMA1_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_CAMMOT_REG0, ~BIT_LDO_CAMMOT_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_SIM0_PD_REG, ~BIT_LDO_SIM0_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_SIM1_PD_REG, ~BIT_LDO_SIM1_PD);
-	ANA_REG_AND(ANA_REG_GLB_LDO_VLDO_PD_REG, ~BIT_LDO_VLDO_PD);
-	ANA_REG_AND(ANA_REG_GLB_LDO_EMMCCORE_REG0, ~BIT_LDO_EMMCCORE_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_SD_PD_REG, ~BIT_LDO_SDCORE_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_SDIO_PD_REG, ~BIT_LDO_SDIO_PD);
-	ANA_REG_AND(ANA_REG_GLB_LDO_WIFIPA_REG0, ~BIT_LDO_WIFIPA_PD);
-	ANA_REG_AND(ANA_REG_GLB_LDO_DCXO_REG0, ~BIT_LDO_DCXO_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_USB33_REG0, ~BIT_LDO_USB33_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_CAMD0_REG0, ~BIT_LDO_CAMD0_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_CAMD1_REG0, ~BIT_LDO_CAMD1_PD);
-	ANA_REG_AND(ANA_REG_GLB_LDO_CON_REG0, ~BIT_LDO_CON_PD);
-	//ANA_REG_AND(ANA_REG_GLB_LDO_CAMIO_REG0, ~BIT_LDO_CAMIO_PD);
-	ANA_REG_AND(ANA_REG_GLB_LDO_VDDRF_REG0, ~BIT_LDO_RF_PD);
-	ANA_REG_AND(ANA_REG_GLB_LDO_SRAM_PD_REG, ~BIT_LDO_SRAM_PD);
-	ANA_REG_AND(ANA_REG_GLB_CHGR_DET_FGU_CTRL, ~BIT_LDO_FGU_PD);
+	//regulator_enable("vddarm0");
+	//regulator_enable("vddarm1");
+	//regulator_enable("vddcore");
+	//regulator_enable("vddgpu");
+	//regulator_enable("vddmem");
+	//regulator_enable("vddgen");
+	//regulator_enable("vddrf");
+	//regulator_enable("vddwpa");
+	//regulator_enable("vddcama0");
+	//regulator_enable("vddcama1");
+	//regulator_enable("vddcammot");
+	//regulator_enable("vddsim0");
+	//regulator_enable("vddsim1");
+	regulator_enable("vddvldo");  //vddsim2
+	//regulator_enable("vddemmccore");  /*defaule on*/
+	//regulator_disable("vddsdcore");
+	//regulator_disable("vddsdio");
+	//regulator_enable("vdd28");
+	//regulator_enable("vddwifipa");
+	//regulator_enable("vdddcxo");
+	//regulator_enable("vddusb33"); /*default on*/
+	//regulator_enable("vddcamd0");
+	//regulator_enable("vddcamd1");
+	regulator_enable("vddcon");
+	//regulator_enable("vddcamio");
+	//regulator_enable("vdd18");
+	regulator_enable("vddrf0");
+	//regulator_enable("vddsram");
 }
 
 void pmic_lowpower_config(uint32_t gen_para)
 {
 #if defined(CONFIG_ADIE_SC2731)
 	uint32_t reg_val;
+
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE,0x6e7f);
 	while( (ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & 0x8000) != 0x8000 );
 
@@ -169,17 +177,17 @@ void pmic_lowpower_config(uint32_t gen_para)
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_CTRL,
 		BIT_LDO_XTL_EN |
-		BIT_SLP_BG_LP_EN |
+		BIT_SLP_BG_LP_EN | /*The chip does not have this pin, so it does not work.*/
 		BIT_SLP_IO_EN |
-		//BIT_SLP_LDO_PD_EN |
+		BIT_SLP_LDO_PD_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		//BIT_SLP_DCDCGPU_PD_EN |
+		BIT_SLP_DCDCGPU_PD_EN |
 		//BIT_SLP_DCDCGPU_DROP_EN |
 		BIT_SLP_DCDCCORE_DROP_EN |
-		BIT_SLP_DCDCRF_PD_EN |
+		//BIT_SLP_DCDCRF_PD_EN |
 		//BIT_SLP_DCDCWPA_PD_EN |
 		//BIT_SLP_DCDCARM0_PD_EN |  /*control by sleep drv*/
 		//BIT_SLP_DCDCARM1_PD_EN |  /*control by sleep drv*/
@@ -216,7 +224,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-		//BIT_SLP_DCDCRF_LP_EN |   /*control by wcn, not slp_lp*/
+		BIT_SLP_DCDCRF_LP_EN |   /*wcn control. But slp_lp when wcn working in chip_sleep.*/
 		BIT_SLP_DCDCCORE_LP_EN |
 		//BIT_SLP_DCDCGPU_LP_EN |
 		BIT_SLP_DCDCMEM_LP_EN |
@@ -256,10 +264,10 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_DCDC_XTL_EN0,
-		BIT_DCDC_CORE_EXT_XTL0_EN |
-		BIT_DCDC_CORE_EXT_XTL1_EN |
+		//BIT_DCDC_CORE_EXT_XTL0_EN |
+		//BIT_DCDC_CORE_EXT_XTL1_EN |
 		BIT_DCDC_CORE_EXT_XTL2_EN |
-		BIT_DCDC_CORE_EXT_XTL3_EN |
+		//BIT_DCDC_CORE_EXT_XTL3_EN |
 		//BIT_DCDC_GPU_EXT_XTL0_EN |
 		//BIT_DCDC_GPU_EXT_XTL1_EN |
 		//BIT_DCDC_GPU_EXT_XTL2_EN |
@@ -280,22 +288,22 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_DCDC_XTL_EN2,
-		BIT_DCDC_MEM_EXT_XTL0_EN |
+		//BIT_DCDC_MEM_EXT_XTL0_EN |
 		BIT_DCDC_MEM_EXT_XTL1_EN |
 		BIT_DCDC_MEM_EXT_XTL2_EN |
-		BIT_DCDC_MEM_EXT_XTL3_EN |
-		BIT_DCDC_GEN_EXT_XTL0_EN |
+		//BIT_DCDC_MEM_EXT_XTL3_EN |
+		//BIT_DCDC_GEN_EXT_XTL0_EN |
 		BIT_DCDC_GEN_EXT_XTL1_EN |
 		BIT_DCDC_GEN_EXT_XTL2_EN |
-		BIT_DCDC_GEN_EXT_XTL3_EN |
+		//BIT_DCDC_GEN_EXT_XTL3_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_DCDC_XTL_EN3,
-		BIT_DCDC_RF_EXT_XTL0_EN |
+		//BIT_DCDC_RF_EXT_XTL0_EN |
 		BIT_DCDC_RF_EXT_XTL1_EN |
-		BIT_DCDC_RF_EXT_XTL2_EN |
-		BIT_DCDC_RF_EXT_XTL3_EN |
+		//BIT_DCDC_RF_EXT_XTL2_EN |
+		//BIT_DCDC_RF_EXT_XTL3_EN |
 		//BIT_DCDC_WPA_EXT_XTL0_EN |
 		//BIT_DCDC_WPA_EXT_XTL1_EN |
 		//BIT_DCDC_WPA_EXT_XTL2_EN |
@@ -304,26 +312,26 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN0,
-		BIT_LDO_DCXO_EXT_XTL0_EN |
+		//BIT_LDO_DCXO_EXT_XTL0_EN |
 		BIT_LDO_DCXO_EXT_XTL1_EN |
 		BIT_LDO_DCXO_EXT_XTL2_EN |
-		BIT_LDO_DCXO_EXT_XTL3_EN |
-		BIT_LDO_VDD28_EXT_XTL0_EN |
-		BIT_LDO_VDD28_EXT_XTL1_EN |
+		//BIT_LDO_DCXO_EXT_XTL3_EN |
+		//BIT_LDO_VDD28_EXT_XTL0_EN |
+		//BIT_LDO_VDD28_EXT_XTL1_EN |
 		BIT_LDO_VDD28_EXT_XTL2_EN |
-		BIT_LDO_VDD28_EXT_XTL3_EN |
+		//BIT_LDO_VDD28_EXT_XTL3_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN1,
-		BIT_LDO_RF0_EXT_XTL0_EN |
+		//BIT_LDO_RF0_EXT_XTL0_EN |
 		BIT_LDO_RF0_EXT_XTL1_EN |
-		BIT_LDO_RF0_EXT_XTL2_EN |
-		BIT_LDO_RF0_EXT_XTL3_EN |
+		//BIT_LDO_RF0_EXT_XTL2_EN |
+		//BIT_LDO_RF0_EXT_XTL3_EN |
 		//BIT_LDO_WIFIPA_EXT_XTL0_EN |
-		//BIT_LDO_WIFIPA_EXT_XTL1_EN |
+		BIT_LDO_WIFIPA_EXT_XTL1_EN |
 		//BIT_LDO_WIFIPA_EXT_XTL2_EN |
-		BIT_LDO_WIFIPA_EXT_XTL3_EN |
+		//BIT_LDO_WIFIPA_EXT_XTL3_EN |
 		0
 	);
 
@@ -424,38 +432,38 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN10,
-		BIT_LDO_CON_EXT_XTL0_EN |
-		BIT_LDO_CON_EXT_XTL1_EN |
-		BIT_LDO_CON_EXT_XTL2_EN |
-		BIT_LDO_CON_EXT_XTL3_EN |
-		BIT_LDO_AVDD18_EXT_XTL0_EN |
-		BIT_LDO_AVDD18_EXT_XTL1_EN |
-		BIT_LDO_AVDD18_EXT_XTL2_EN |
-		BIT_LDO_AVDD18_EXT_XTL3_EN |
+		//BIT_LDO_CON_EXT_XTL0_EN |
+		//BIT_LDO_CON_EXT_XTL1_EN |
+		//BIT_LDO_CON_EXT_XTL2_EN |
+		//BIT_LDO_CON_EXT_XTL3_EN |
+		//BIT_LDO_AVDD18_EXT_XTL0_EN |
+		//BIT_LDO_AVDD18_EXT_XTL1_EN |
+		//BIT_LDO_AVDD18_EXT_XTL2_EN |
+		//BIT_LDO_AVDD18_EXT_XTL3_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_XO_BG_XTL_EN,
-		BIT_XO_EXT_XTL0_EN |
+		//BIT_XO_EXT_XTL0_EN |
 		BIT_XO_EXT_XTL1_EN |
 		BIT_XO_EXT_XTL2_EN |
-		BIT_XO_EXT_XTL3_EN |
-		BIT_BG_EXT_XTL0_EN |
+		//BIT_XO_EXT_XTL3_EN |
+		//BIT_BG_EXT_XTL0_EN |
 		BIT_BG_EXT_XTL1_EN |
 		BIT_BG_EXT_XTL2_EN |
-		BIT_BG_EXT_XTL3_EN |
+		//BIT_BG_EXT_XTL3_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_XTL_WAIT_CTRL,
 		BIT_CUR_SEL |
-		BIT_EXT_XTL3_FOR_26M_EN |
+		//BIT_EXT_XTL3_FOR_26M_EN |
 		BIT_EXT_XTL2_FOR_26M_EN |
 		BIT_EXT_XTL1_FOR_26M_EN |
-		BIT_EXT_XTL0_FOR_26M_EN |
+		//BIT_EXT_XTL0_FOR_26M_EN |
 		BIT_SLP_XTLBUF_PD_EN |
 		BIT_XTL_EN |
-		BITS_XTL_WAIT(0x39) |  /*how long need to wait*/
+		BITS_XTL_WAIT(0x32) |  /*default configure at first, modify when D Die needs*/
 		0
 	);
 
