@@ -11,7 +11,7 @@
 #include "sprd_module_config.h"
 #include <power/sprd_pmic/pmic_glb_reg.h>
 
-#if defined(CONFIG_TARGET_SP9861_VP) || defined(CONFIG_TARGET_SP9861) || defined(CONFIG_TARGET_SP9861E_1H10) || defined(CONFIG_TARGET_SP9861E_2H10) || defined(CONFIG_TARGET_SP9861E_1H11) || defined(CONFIG_TARGET_SP9861E_3H10)
+#if defined(CONFIG_TARGET_SP9861_VP) || defined(CONFIG_TARGET_SP9861) || defined(CONFIG_TARGET_SP9861E_1H10) || defined(CONFIG_TARGET_SP9861E_2H10) || defined(CONFIG_TARGET_SP9861E_2H10_2705) || defined(CONFIG_TARGET_SP9861E_1H11) || defined(CONFIG_TARGET_SP9861E_3H10)
 #include "chip_iwhale2/__regs_ana_apb.h"
 #include "chip_iwhale2/__regs_ap_apb.h"
 #include "chip_iwhale2/__regs_aon_apb.h"

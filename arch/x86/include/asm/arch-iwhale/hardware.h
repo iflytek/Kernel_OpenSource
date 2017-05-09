@@ -25,7 +25,7 @@
 #include "sprd_eic.h"
 #include "rtc_reg_v3.h"
 
-#if defined(CONFIG_TARGET_SP9861_VP) || defined(CONFIG_TARGET_SP9861) || defined(CONFIG_TARGET_SP9861E_1H10) || defined(CONFIG_TARGET_SP9861E_2H10)|| defined(CONFIG_TARGET_SP9861E_1H11) || defined(CONFIG_TARGET_SP9861E_3H10)
+#if defined(CONFIG_TARGET_SP9861_VP) || defined(CONFIG_TARGET_SP9861) || defined(CONFIG_TARGET_SP9861E_1H10) || defined(CONFIG_TARGET_SP9861E_2H10)|| defined(CONFIG_TARGET_SP9861E_2H10_2705) || defined(CONFIG_TARGET_SP9861E_1H11) || defined(CONFIG_TARGET_SP9861E_3H10)
 #include "chip_iwhale2/__hardware-iwhale2.h"
 #else
 #include "chip_isharkl2/__hardware-isharkl2.h"
