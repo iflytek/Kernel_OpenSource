@@ -2,16 +2,10 @@
 #define _SPRD_REG_EIC_H_
 
 #define SPRD_ADIE_EIC_START 160
-#if defined(CONFIG_ADIE_SC2723S)||defined(CONFIG_ADIE_SC2723)
-#define SPRD_ADIE_EIC_END   170
-#elif defined(CONFIG_ADIE_SC2731)
-#define SPRD_ADIE_EIC_END   172
-#else
-#define SPRD_ADIE_EIC_END   167
-#endif
+#define SPRD_ADIE_EIC_END   175
 
 #define EIC_CHG_INT         160
-#if defined(CONFIG_ADIE_SC2731)
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 #define EIC_PBINT 161
 #define EIC_PBINT2 162
 #else
@@ -25,7 +19,7 @@
 #define EIC_VBAT_OVI        167
 
 #if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723) \
-	|| defined(CONFIG_ADIE_SC2731)
+	|| defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 #define EIC_AUDIO_HEAD_INS3	168
 #define EIC_BATDET		169
 #define EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE		170
