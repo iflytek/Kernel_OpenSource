@@ -55,6 +55,11 @@ $(UBOOT_CONFIG): u-boot15/configs/$(addsuffix _defconfig,$(UBOOT_DEFCONFIG)) $(U
 ifeq ($(strip $(NORMAL_UART_MODE)),true)
 	@echo "#define NORMAL_UART_MODE" >> $(UBOOT_CONFIG)
 endif
+ifeq ($(TARGET_ARCH), arm)
+ifeq ($(strip $(BOARD_ATF_CONFIG)),true)
+	@echo "#define CONFIG_ARMV7_LPAE" >> $(UBOOT_CONFIG)
+endif
+endif
 
 $(INSTALLED_UBOOT_TARGET) : $(UBOOT_CONFIG)
 	$(MAKE) -C u-boot15 ARCH=$(SRCARCH) DEVICE_TREE=$(UBOOT_TARGET_DTB) CROSS_COMPILE=$(UBOOT_TOOLCHAIN) AUTOBOOT_FLAG=true O=../$(UBOOT_OUT)

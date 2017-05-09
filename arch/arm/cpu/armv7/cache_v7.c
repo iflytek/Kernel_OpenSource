@@ -28,7 +28,7 @@ static void set_csselr(u32 level, u32 type)
 	asm volatile ("mcr p15, 2, %0, c0, c0, 0" : : "r" (csselr));
 }
 
-static u32 get_ccsidr(void)
+u32 get_ccsidr(void)
 {
 	u32 ccsidr;
 
