@@ -31,14 +31,16 @@ static void __raw_bits_or(unsigned int v, unsigned int a)
 
 void usb_phy_init(void)
 {
-	__raw_bits_or(BIT_24|BIT_22, REG_AP_AHB_OTG_PHY_TEST);
+	__raw_bits_or(BIT_28|BIT_22, REG_AP_AHB_OTG_PHY_TEST);
 
-	__raw_bits_and(~(BIT_29|BIT_30), REG_AP_AHB_OTG_PHY_CTRL);//SPRD USB PHY width: 8 bit
+	/*Tiger PHY width: 16 bit*/
+	__raw_bits_or(BIT_30, REG_AP_AHB_OTG_PHY_CTRL);
+	__raw_bits_or(BIT_3, REG_ANLG_PHY_G2_ANALOG_USB20_USB20_CTRL0);
 
-	__raw_bits_or(BIT_20, REG_AP_AHB_OTG_CTRL1);//utmi_rst
-
-	__raw_bits_or(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST|BIT_OTG_PHY_SOFT_RST, REG_AP_AHB_AHB_RST);
+	__raw_bits_or(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST, REG_AP_AHB_AHB_RST);
+	__raw_bits_or(BIT_OTG_PHY_SOFT_RST, REG_AON_APB_APB_RST2);
 	Musb_mdelay(5);
-	__raw_bits_and(~(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST|BIT_OTG_PHY_SOFT_RST),REG_AP_AHB_AHB_RST);
+	__raw_bits_and(~(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST), REG_AP_AHB_AHB_RST);
+	__raw_bits_and(~BIT_OTG_PHY_SOFT_RST, REG_AON_APB_APB_RST2);
 }
 
