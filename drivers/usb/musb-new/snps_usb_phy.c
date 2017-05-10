@@ -19,28 +19,35 @@
 #include <packet.h>
 #include <dl_crc.h>
 
-static void __raw_bits_and(unsigned int v, unsigned int a)
-{
-	__raw_writel((__raw_readl(a) & v), a);
-}
-
-static void __raw_bits_or(unsigned int v, unsigned int a)
-{
-	__raw_writel((__raw_readl(a) | v), a);
-}
-
 void usb_phy_init(void)
 {
-	__raw_bits_or(BIT_28|BIT_22, REG_AP_AHB_OTG_PHY_TEST);
+	/* enable usb module*/
+	CHIP_REG_OR(REG_AP_AHB_AHB_EB, BIT_USB_EB);
+	CHIP_REG_OR(REG_AON_APB_APB_EB2,
+				BIT_AON_APB_ANLG_APB_EB | BIT_AON_APB_ANLG_EB);
 
-	/*Tiger PHY width: 16 bit*/
-	__raw_bits_or(BIT_30, REG_AP_AHB_OTG_PHY_CTRL);
-	__raw_bits_or(BIT_3, REG_ANLG_PHY_G2_ANALOG_USB20_USB20_CTRL0);
+	/*PHY bus valid*/
+	CHIP_REG_OR(REG_AP_AHB_OTG_PHY_TEST,
+				BIT_AP_AHB_OTG_VBUS_VALID_PHYREG);
+	CHIP_REG_OR(REG_ANLG_PHY_G2_ANALOG_USB20_USB20_OTG_CTRL0,
+				BIT_ANLG_PHY_G2_ANALOG_USB20_VBUSVLDEXTSEL0);
+	CHIP_REG_OR(REG_ANLG_PHY_G2_ANALOG_USB20_USB20_UART_CTRL0,
+				BIT_ANLG_PHY_G2_ANALOG_USB20_VBUSVLDEXT0);
 
-	__raw_bits_or(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST, REG_AP_AHB_AHB_RST);
-	__raw_bits_or(BIT_OTG_PHY_SOFT_RST, REG_AON_APB_APB_RST2);
+	/*PHY width: 16 bit*/
+	CHIP_REG_OR(REG_AP_AHB_OTG_PHY_CTRL,
+				BIT_AP_AHB_UTMI_WIDTH_SEL);
+	CHIP_REG_OR(REG_ANLG_PHY_G2_ANALOG_USB20_USB20_CTRL0,
+				BIT_ANLG_PHY_G2_ANALOG_USB20_WORDINTERFACE0);
+
+	/*Soft reset phy*/
+	CHIP_REG_OR(REG_AP_AHB_AHB_RST,
+				BIT_OTG_SOFT_RST | BIT_OTG_UTMI_SOFT_RST);
+	CHIP_REG_OR(REG_AON_APB_APB_RST2,  BIT_OTG_PHY_SOFT_RST);
 	Musb_mdelay(5);
-	__raw_bits_and(~(BIT_OTG_SOFT_RST|BIT_OTG_UTMI_SOFT_RST), REG_AP_AHB_AHB_RST);
-	__raw_bits_and(~BIT_OTG_PHY_SOFT_RST, REG_AON_APB_APB_RST2);
+	CHIP_REG_AND(REG_AP_AHB_AHB_RST,
+				~(BIT_OTG_SOFT_RST | BIT_OTG_UTMI_SOFT_RST));
+	CHIP_REG_AND(REG_AON_APB_APB_RST2,
+				~BIT_OTG_PHY_SOFT_RST);
 }
 

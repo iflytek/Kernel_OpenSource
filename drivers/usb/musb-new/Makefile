@@ -12,6 +12,7 @@ obj-$(CONFIG_USB_MUSB_SUNXI) += sunxi.o
 obj-$(CONFIG_USB_SPRD_DMA) += sprd_musbhsdma.o
 obj-$(CONFIG_USB_PHY_SPRD) += sprd_usb_phy.o
 obj-$(CONFIG_USB_PHY_SNPS) += snps_usb_phy.o
+obj-$(CONFIG_USB_PHY_SHARKLE) += sharkle_usb_phy.o
 
 ccflags-y := $(call cc-option,-Wno-unused-variable) \
 		$(call cc-option,-Wno-unused-but-set-variable) \
