@@ -35,7 +35,7 @@ void set_backlight(uint32_t brightness)
 #ifndef CONFIG_FPGA
 	int index = PWM_INDEX;
 
-	__raw_bits_or((0x1 << 0), REG_AON_CLK_PWM0_CFG + index * 4);//ext_26m select
+	__raw_bits_or((0x1 << 0), REG_AON_CLK_CORE_CGM_PWM0_CFG + index * 4);//ext_26m select
 	__raw_bits_or((0xF << 4), REG_AON_APB_APB_EB0); //PWMx EN
 
 	if (0 == brightness) {
