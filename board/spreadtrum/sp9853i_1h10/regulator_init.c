@@ -4,6 +4,7 @@
 
 static int power_on_voltage_init(void)
 {
+	regulator_set_voltage("vddcon",1250);
 	return 0;
 }
 
