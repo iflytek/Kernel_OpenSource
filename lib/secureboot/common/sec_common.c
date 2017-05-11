@@ -243,7 +243,10 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 		fb_secure_verify("splloader0", buf, 0);
 	}
 #ifdef CONFIG_SECBOOT
-	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))) {
+	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))
+				||(SEC_TRUE == strcmp("mobilevisor",part_name))
+				||(SEC_TRUE == strcmp("mvconfig",part_name))
+				||(SEC_TRUE == strcmp("secvm",part_name))) {
 			fb_secure_verify("splloader",buf,0);
 	}
 #endif

@@ -21,6 +21,8 @@ static unsigned long g_checksum;
 static unsigned long g_sram_addr;
 static unsigned int img_backup_flag = 0;
 
+extern fastboot_image_size;
+
 #ifdef CONFIG_X86
 unsigned char *g_eMMCBuf = (unsigned char *)0x35000000;
 #else
@@ -536,6 +538,8 @@ OPERATE_STATUS _download_image(void)
 			g_status.unsave_recv_size, g_status.total_size, g_eMMCBuf);
 	} else {
 		/* for autodloader mode, use fb_secure_process_flow verify */
+		fastboot_image_size = g_status.unsave_recv_size;
+		//printf("g_dl_eMMCStatus.curUserPartitionName:%s; fastboot_image_size:%x,g_status.total_size:%x\n",g_dl_eMMCStatus.curUserPartitionName,fastboot_image_size,g_status.total_size);
 		verify_res = fb_secure_process_flow(&strip_header,
 			g_dl_eMMCStatus.curUserPartitionName,
 			g_status.unsave_recv_size, g_status.total_size, g_eMMCBuf);
