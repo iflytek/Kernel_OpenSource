@@ -153,6 +153,7 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	ss_whale2_jigboard-native.dtb \
 	sp9850ka_1h10_native.dtb \
 	sp9850ka_2c10_native.dtb \
+	sp9850ka_2c20_native.dtb \
 	sp9850j-vdk-smt.dtb \
 	sp9850j-vdk.dtb \
 	sp9850j-fpga.dtb \

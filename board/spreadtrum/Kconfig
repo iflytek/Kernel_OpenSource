@@ -189,6 +189,10 @@ config TARGET_SP9850KA_2C10
 	bool "Spreadtrum sp9850ka_2c10"
 	select CPU_V7
 
+config TARGET_SP9850KA_2C20
+	bool "Spreadtrum sp9850ka_2c20"
+	select CPU_V7
+
 config TARGET_SP9835_HAPS
 	bool "Spreadtrum sharkle"
 	select ARM64
@@ -249,5 +253,6 @@ source "board/spreadtrum/j1fpga/Kconfig"
 source "board/spreadtrum/j1zebu/Kconfig"
 source "board/spreadtrum/sp9850j_1h10/Kconfig"
 source "board/spreadtrum/sp9850ka_2c10/Kconfig"
+source "board/spreadtrum/sp9850ka_2c20/Kconfig"
 source "board/spreadtrum/sp9835_haps/Kconfig"
 endif
