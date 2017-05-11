@@ -119,8 +119,6 @@ void sprdchg_common_cfg(void)
 {
 	sprd2731_chg_init();
 	sprd2731_chg_leakage_cur_config();
-	sci_adi_write(ANA_REG_GLB_CHGR_DET_FGU_CTRL,
-		BITS_CHG_INT_DELAY(5), BITS_CHG_INT_DELAY(~0));
 }
 
 static void sprd2731_chg_ic_init(void)
