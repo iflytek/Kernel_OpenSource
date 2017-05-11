@@ -134,3 +134,21 @@ int uboot_get_hbk(uint64_t start_addr, uint64_t lenth){
   return param->a0;
 }
 
+/*add fastboot cmd for sharkl2*/
+#ifdef CONFIG_SECBOOT
+int get_lcs(uint32_t *p_lcs){
+	smc_param *param = tee_common_call(FUNCTYPE_GET_LCS, p_lcs, sizeof(uint32_t));
+	return param->a0;
+}
+
+int get_socid(uint64_t start_addr, uint64_t lenth){
+	smc_param *param = tee_common_call(FUNCTYPE_GET_SOCID, (uint32_t)start_addr, (uint32_t)lenth);
+	return param->a0;
+}
+
+int set_rma(void){
+	smc_param *param = tee_common_call(FUNCTYPE_SET_RMA, 0, 0);
+	return param->a0;
+}
+#endif
+

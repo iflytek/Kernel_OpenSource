@@ -39,6 +39,9 @@
 #include <asm/arch/chip_releted_def.h>
 
 #include <secureboot/sec_common.h>
+#ifdef CONFIG_SECBOOT
+#include <linux/input.h>
+#endif
 
 
 extern SPECIAL_PARTITION_CFG const s_special_partition_cfg[];
@@ -115,6 +118,13 @@ extern void splFillCheckData(uchar * splBuf);
 extern unsigned int get_fblockflag(void);
 extern int set_fblockflag(unsigned int flag);
 
+/*for fastboot getlcs, getsocid, setrma cmd*/
+#ifdef CONFIG_SECBOOT
+extern int get_lcs(uint32_t *p_lcs);
+extern int get_socid(uint64_t start_addr, uint64_t lenth);
+extern int set_rma(void);
+#endif
+
 #ifdef CONFIG_X86
 unsigned char *g_FbBuf = (unsigned char *)0x35000000;
 #else
@@ -176,6 +186,19 @@ void fastboot_okay(const char *info)
 {
 	fastboot_ack("OKAY", info);
 }
+
+#ifdef CONFIG_SECBOOT
+void fastboot_response_socid(const char *info)
+{
+	if (info == 0)
+		info = "";
+	if (strlen("SOCID") + strlen(info) >= 64) {
+		debugf("too long string\r\n");
+	}
+	sprintf(response, "%s%s", "SOCID", info);
+	fb_usb_write(response, strlen(response));
+}
+#endif
 
 static void fb_cmd_getvar(const char *arg, void *data, uint64_t sz)
 {
@@ -690,6 +713,107 @@ void fb_cmd_powerdown(const char *arg, void *data, uint64_t sz)
 
 }
 
+/*add fastboot cmd for sharkl2*/
+#ifdef CONFIG_SECBOOT
+int wait_for_keypress(){
+	debugf("Enter fastboot wait_for_keypress\n");
+	int key_code;
+	int i=0;
+	do {
+		if(i>=300){
+			debugf("wait_for_keypress time out\n");
+			key_code = -1;
+			break;
+		}
+		udelay(50 * 1000);
+		key_code = board_key_scan();
+		debugf("key_code is %x\n", key_code);
+		if (key_code == KEY_VOLUMEDOWN || key_code == KEY_VOLUMEUP)
+			break;
+		i++;
+	} while(1);
+	debugf("fastboot wait_for_keypress key_code is %x\n", key_code);
+	return key_code;
+}
+
+#define  SOCID_SIZE_IN_WORDS 8
+void fb_cmd_getlcs(const char *arg, void *data, uint64_t sz){
+	int ret = 0;
+	unsigned int t_lcs __attribute__((aligned(4096)));
+	ret = get_lcs(&t_lcs);
+	char s[20]={0};
+	if(ret!=0){
+		sprintf(s, " ret is %04x", ret);
+		fastboot_fail(s);
+	}else{
+		sprintf(s, "lcs is %d\n", t_lcs);
+		fastboot_okay(s);
+	}
+}
+
+void fb_cmd_setrma(const char *arg, void *data, uint64_t sz){
+	int ret = 0;
+	lcd_printf(
+		"\n\n------------------------------------------------------------------------\n"
+		"   Warning:RMA will change hardware status and unrecoverable, also will make some secure data unaccessible!\n"
+		"   Do you confirm that you are developer and need this operation really?\n"
+		"   Press button 'Volumn-Down' for 'No'.\n"
+		"   Press button 'Volumn-Up' for 'Yes'.\n"
+		"   The operation will be cancelled automatically after 20 seconds.\n"
+		"------------------------------------------------------------------------\n");
+	int key_code = wait_for_keypress();
+	if (key_code == KEY_VOLUMEDOWN) {
+		fastboot_fail("user cancelled");
+	} else if (key_code == KEY_VOLUMEUP) {
+		ret = set_rma();
+		char s[20]={0};
+		if(ret!=0){
+			sprintf(s, " ret is %04x", ret);
+			fastboot_fail(s);
+		}else{
+			fastboot_okay("");
+		}
+	} else if (key_code == -1) {
+		fastboot_fail("time out");
+	}
+	lcd_clear();
+	lcd_splash("logo");
+	lcd_printf("\n   fastboot mode");
+}
+
+void fb_cmd_getsocid(const char *arg, void *data, uint64_t sz){
+	int ret = 0;
+	uint8_t socIdBuff[32] __attribute__((aligned(4096)));
+	ret = get_socid(socIdBuff, sizeof(socIdBuff));
+	char s[32] = {0};
+	if(ret!=0){
+		sprintf(s, " ret is %04x", ret);
+		fastboot_fail(s);
+	}else{
+		fastboot_response_socid("socid is:\n");
+		int i;
+		for(i=0;i<16;i++){
+			if(i<15){
+				sprintf(s+i*2, "%02x", socIdBuff[i]);
+			}else{
+				sprintf(s+i*2, "%02x\n", socIdBuff[i]);
+			}
+		}
+		fastboot_response_socid(s);
+		int j;
+		for(j=16;j<32;j++){
+			if(j<31){
+				sprintf(s+(j-16)*2, "%02x", socIdBuff[j]);
+			}else{
+				sprintf(s+(j-16)*2, "%02x\n", socIdBuff[j]);
+			}
+		}
+		fastboot_response_socid(s);
+		fastboot_okay("");
+	}
+}
+#endif
+
 static void fastboot_command_loop(void)
 {
 	struct fastboot_cmd *cmd;
@@ -760,6 +884,12 @@ int do_fastboot(void)
 	fastboot_register("reboot-bootloader", fb_cmd_reboot_bootloader);
 	fastboot_register("flashing", fb_cmd_setlockflag);
 	fastboot_register("getflag", fb_cmd_getlockflag);
+	/*add fastboot cmd for sharkl2*/
+	#ifdef CONFIG_SECBOOT
+	fastboot_register("getlcs", fb_cmd_getlcs);
+	fastboot_register("setrma", fb_cmd_setrma);
+	fastboot_register("getsocid", fb_cmd_getsocid);
+	#endif
 
 	fastboot_handler(0);
 
