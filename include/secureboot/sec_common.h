@@ -30,7 +30,7 @@ extern imgToVerifyInfo img_verify_info;
 #ifdef TOS_TRUSTY
 extern imgToVerifyInfo *img_verify_info_tos;
 #define  PAGE_ALIGN 4096
-#define  ARG_START_ADRESS 0x94000000
+#define  ARG_START_ADRESS 0x98100000//0x94000000+64M
 #endif
 
 /*this two marco is diffent among products, pls check it!*/
