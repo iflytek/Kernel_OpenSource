@@ -140,6 +140,11 @@ static void sc9833_disable_clkautogate()
 		     REG_AP_AHB_AP_SYS_AUTO_SLEEP_CFG);
 }
 
+static void memory_repair_once()
+{
+	CHIP_REG_OR(REG_PMU_APB_BISR_FORCE_SEL,BIT_PMU_APB_PD_AON_MEM_BISR_FORCE_SEL);
+}
+
 void misc_init()
 {
 	int chipid_l,chipid_h,version_id;
@@ -150,6 +155,7 @@ void misc_init()
 	bb_ldo_auto_en();
 
 	pmic_misc_init();
+	memory_repair_once();
 
 	sprd_get_chipid();
 	chipid_l = sprd_get_chipid_l();
