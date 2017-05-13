@@ -43,6 +43,13 @@ endif
 
 export UBOOT_FIREWALL_FLAG
 
+ifeq ($(TARGET_ARCH), arm)
+ifeq ($(strip $(BOARD_ATF_CONFIG)),true)
+UBOOT_ARMV7_LPAE_FLAG := -DCONFIG_ARMV7_LPAE
+endif
+endif
+export UBOOT_ARMV7_LPAE_FLAG
+
 .PHONY: $(UBOOT_OUT)
 $(UBOOT_OUT):
 	@echo "Start U-Boot build board $(UBOOT_DEFCONFIG)"
@@ -54,11 +61,6 @@ $(UBOOT_CONFIG): u-boot15/configs/$(addsuffix _defconfig,$(UBOOT_DEFCONFIG)) $(U
 
 ifeq ($(strip $(NORMAL_UART_MODE)),true)
 	@echo "#define NORMAL_UART_MODE" >> $(UBOOT_CONFIG)
-endif
-ifeq ($(TARGET_ARCH), arm)
-ifeq ($(strip $(BOARD_ATF_CONFIG)),true)
-	@echo "#define CONFIG_ARMV7_LPAE" >> $(UBOOT_CONFIG)
-endif
 endif
 
 $(INSTALLED_UBOOT_TARGET) : $(UBOOT_CONFIG)
