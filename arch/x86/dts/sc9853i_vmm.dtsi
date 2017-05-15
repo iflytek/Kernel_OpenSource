@@ -32,8 +32,8 @@
                 #size-cells = <2>;
                 ranges;
 		/* fb */
-		fb_reserved: fb-mem@5ca88000{
-			reg = <0 0x5ca88000 0 0x017bc000>;
+		fb_reserved: fb-mem@5c158000{
+			reg = <0 0x5c158000 0 0x02060000>;
 		};
 	};
 
