@@ -5,12 +5,13 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#ifndef __TSHARK_L_H
-#define __TSHARK_L_H
+#ifndef __SHARKLJ1_FPGA_H
+#define __SHARKLJ1_FPGA_H
+#include "sharklj1_modem.h"
 
 #define SPRD_DEBUG_LEVEL		2
 
-#define CONFIG_KERNEL_BOOT_CP
+//#define CONFIG_KERNEL_BOOT_CP
 
 #define CONFIG_MEM_LAYOUT_DECOUPLING
 
@@ -37,7 +38,7 @@
 //#define CONFIG_SYS_DCACHE_OFF
 //#define CONFIG_SYS_ICACHE_OFF
 
-#define CONFIG_IDENT_STRING		"whale2"
+#define CONFIG_IDENT_STRING		"sharklj1"
 
 #define CONFIG_SYS_INIT_SP_ADDR     \
 	(CONFIG_SYS_SDRAM_END - 0x10000 - GENERATED_GBL_DATA_SIZE)
@@ -195,46 +196,6 @@
 
 //#define CONFIG_MINI_TRUSTZONE
 
-#define CONFIG_SUPPORT_LTE
-#define CONFIG_ADVANCED_LTE
-
-//#define CONFIG_SUPPORT_WLTE
-//#define CONFIG_SUPPORT_GSM
-
-
-#define LTE_TGDSP_LOADER_OFFSET	0x20000
-
-#define LTE_FIXNV_SIZE 0x00080000 //512k
-#define LTE_RUNNV_SIZE 0x000a0000 //640K
-#define LTE_FIXNV_ADDR 0x8c520000
-#define LTE_RUNNV_ADDR 0x8c5a0000
-#define LTE_MODEM_SIZE 0x00d00000   //0x8f0000
-#define LTE_MODEM_ADDR 0x8b800000
-
-
-
-/*****************************************/
-/*******A/G DSP  0x89300000****************/
-/*******T/G DSP  0x89620000****************/
-/*******W/G DSP 0x89900000****************/
-/*****************************************/
-#define LTE_TGDSP_SIZE  0x002E0000
-#define LTE_TGDSP_ADDR   (0x89600000 + LTE_TGDSP_LOADER_OFFSET)
-#define LTE_WGDSP_SIZE  0x00400000
-#define LTE_WGDSP_ADDR  (LTE_TGDSP_ADDR+LTE_TGDSP_SIZE)
-#define LTE_LDSP_SIZE  0x00c00000
-#define LTE_LDSP_ADDR  (LTE_WGDSP_ADDR + LTE_WGDSP_SIZE)
-
-#define LTE_AGDSP_SIZE  0x00260000
-#define LTE_AGDSP_ADDR (0x89600000 - LTE_AGDSP_SIZE)
-
-#define FIXNV_SIZE     LTE_FIXNV_SIZE
-
-#define CONFIG_DFS_ENABLE
-#define DFS_ADDR    0x80000
-#define DFS_SIZE    (256*1024) //256K
-
-
 /*eMMC config*/
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
@@ -261,7 +222,7 @@
 #define USB3_PHY_TUNE2 0x0f0560fe
 #define CONFIG_USB_PHY_SNPS
 //#define CALIBRATION_FLAG_CP0           0x88AF0000
-#define CALIBRATION_FLAG_CP1           0x8c640000
+//#define CALIBRATION_FLAG_CP1           0x8c640000
 //#define CONFIG_DWC_OTG
 #define CONFIG_MODEM_CALIBERATE
 #define CALIBRATE_ENUM_MS 15000
@@ -367,8 +328,6 @@
 
 /* Chip Driver Macro Definitions End*/
 /*active arm7 ram before access to it*/
-#define CONFIG_ARM7_RAM_ACTIVE
-
 
 #define CONFIG_SPRD_EXT_IC_POWER
 #define CONFIG_SYS_I2C
