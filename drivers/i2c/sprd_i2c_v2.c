@@ -382,10 +382,14 @@ static int sprd_i2c_write_byte(void *i2c_base, char *byte, int c)
 }
 
 
-static int sprd_i2c_read_byte(void *i2c_base, char *byte, int status)
+static int sprd_i2c_read_byte(void *i2c_base, char *byte, int c)
 {
-	*byte = (unsigned char)(readl(i2c_base + I2C_RX));
-	//printf("sprd_i2c_read_byte =%x \n", *byte);
+	int i =0;
+
+	for(i = 0; i < c; i++) {
+		byte[i] = (unsigned char)(readl(i2c_base + I2C_RX));
+		//printf("sprd_i2c_read_byte =%x \n", byte[i]);
+	}
 	return 0;
 }
 
@@ -490,6 +494,7 @@ static int sprd_i2c_read(struct i2c_adapter *adap, uchar chip, uint addr,
 		p_buf +=get_len;
 	}
 
+	sprd_i2c_clear_start(i2c_base);
 	return res;
 }
 
