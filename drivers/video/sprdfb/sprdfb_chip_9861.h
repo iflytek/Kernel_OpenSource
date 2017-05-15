@@ -270,6 +270,7 @@ typedef enum {
 #define INTERLEAVE_SEL_OFFSET	6
 #define INTERLEAVE_SEL_MASK	(0x3 << INTERLEAVE_SEL_OFFSET)
 
+#define WLED_CE_2705		(25)
 void misc_noc_ctrl(unsigned long base, unsigned int mode, unsigned int sel);
 void dsi_enable(void);
 void dsi_disable(void);

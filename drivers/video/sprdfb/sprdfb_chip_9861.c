@@ -25,6 +25,7 @@ void misc_noc_ctrl(unsigned long base, unsigned int mode, unsigned int sel)
 		(sel << INTERLEAVE_SEL_OFFSET);
 	*(volatile unsigned int *)base = val;
 }
+
 int disp_domain_power_ctrl(int enable)
 {
 	if (enable) {
@@ -39,6 +40,7 @@ int disp_domain_power_ctrl(int enable)
 
 	return 0;
 }
+
 void dsi_enable(void)
 {
 	unsigned int reg = 0;
