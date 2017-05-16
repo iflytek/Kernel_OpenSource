@@ -316,7 +316,7 @@
 #endif
 
 #define CONFIG_7S_RST_SHORT_MODE	1	//0:long press then release key to trigger;1:press key some time to trigger
-#define CONFIG_7S_RST_2KEY_MODE		0	//0:1Key--Normal mode; 1:2KEY
+#define CONFIG_7S_RST_2KEY_MODE		1	//0:1Key--Normal mode; 1:2KEY
 #define CONFIG_7S_RST_THRESHOLD		7	//7S, hold key down for this time to trigger
 
  /*SMPL config*/
@@ -324,13 +324,8 @@
 #define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
 
 /* Chip Driver Macro Definitions End*/
-
-#define CONFIG_SPRD_EXT_IC_POWER
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C
-#define CONFIG_SPRDCHG_I2C_BUS 4
-#define CONFIG_SPRD2701_CHARGE_IC
-
 /*-----------------------------------------------------------------------
  * Cache Configuration
  */
