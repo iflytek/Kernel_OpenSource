@@ -92,7 +92,7 @@ int board_init(void)
 static void battery_init(void)
 {
 	sprdchg_common_cfg();
-	sprdchg_2701_init();
+	sprdchg_2705_init();
 	sprdbat_init();
 }
 

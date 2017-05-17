@@ -55,4 +55,7 @@
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0
 
+#undef CONFIG_SPRD2701_CHARGE_IC
+#define CONFIG_SPRD2705_CHARGE_IC
+
 #endif /* __CONFIG_H */

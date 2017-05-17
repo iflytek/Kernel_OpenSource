@@ -40,6 +40,7 @@ void sprdchg_fan54015_init(void);
 void sprdchg_bq25896_init(void);
 void sprdchg_2700_init(void);
 void sprdchg_2701_init(void);
+void sprdchg_2705_init(void);
 void sprdchg_2731_init(void);
 void sprdchg_2721_init(void);
 void sprdchg_2723_init(void);

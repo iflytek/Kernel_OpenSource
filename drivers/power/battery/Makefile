@@ -20,5 +20,6 @@ obj-$(CONFIG_FAN54015_CHARGE_IC)+= fan54015.o
 obj-$(CONFIG_SPRD2701_CHARGE_IC)+= sprd_2701.o
 obj-$(CONFIG_BQ25896_CHARGE_IC)+= bq25896.o
 obj-$(CONFIG_SPRD2700_CHARGE_IC)+= sprd_2700.o
+obj-$(CONFIG_SPRD2705_CHARGE_IC)+= sc2705_chg.o
 obj-y += sprd_chg_logo.o sprd_chg_helper.o sprd_battery.o sprd_fgu.o
 
