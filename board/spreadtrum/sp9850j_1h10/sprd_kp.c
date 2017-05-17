@@ -1,32 +1,34 @@
 #include <common.h>
-#include <malloc.h>
-#include <boot_mode.h>
-#include <asm/arch/mfp.h>
 #include <linux/input.h>
+#include <linux/kernel.h>
+#include <boot_mode.h>
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_eic.h>
 
-void board_keypad_init(void)
-{
-	return;
-}
+#include <sprd_kp.h>
 
-unsigned char board_key_scan(void)
-{
-	uint32_t key_code = KEY_RESERVED;
+/* TODO:
+ * modify keys here for different board
+ * an empty key_info must be at the end
+ */
+static struct key_info KEYS[] = {
+	{
+		.tag = "Volume Up",
+		.offset = EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE,
+		.type = TYPE_EIC,
+		.keycode = KEY_VOLUMEUP,
+		.active = 1,
+	},
+	{
+		.tag = "Volume Down",
+		.offset = 2, /* TODO: change to MACRO in EIC headers */
+		.type = TYPE_EIC,
+		.keycode = KEY_VOLUMEDOWN,
+		.active = 0,
+	},
+	{
+		.keycode = KEY_RESERVED,
+	}
+};
 
-	return key_code;
-}
-
-unsigned int check_key_boot(unsigned char key)
-{
-    if(KEY_VOLUMEUP == key)
-      return CMD_FACTORYTEST_MODE;
-    else if(KEY_HOME == key)
-      return CMD_FASTBOOT_MODE;
-    else if(KEY_VOLUMEDOWN== key)
-      return CMD_RECOVERY_MODE;
-    else
-      return 0;
-}
-
+DEFAULT_SPRD_KEYPAD_FUNC(KEYS);
