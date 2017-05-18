@@ -14,7 +14,11 @@
 //#define CP_MEM_DECOUP_DEBUG
 
 extern void fdt_support_default_count_cells(void *blob, int parentoffset,
-					int *addrc, int *sizec);
+					    int *addrc, int *sizec);
+extern void of_bus_default_count_cells(void *blob, int parentoffset,
+				       int *addrc, int *sizec);
+extern int common_raw_read(char *part_name, uint64_t size,
+			   uint64_t offset, char *buf);
 
 static boot_image_required_t s_boot_image_cp_table[MAX_REGION_NUM];
 static struct partition_name_info g_partition_info[MAX_REGION_NUM];

@@ -194,38 +194,14 @@
 //#define CONFIG_SUPPORT_WLTE
 //#define CONFIG_SUPPORT_GSM
 
-
-#define LTE_TGDSP_LOADER_OFFSET	0x20000
-
-#define LTE_FIXNV_SIZE 0x00080000 //512k
-#define LTE_RUNNV_SIZE 0x000a0000 //640K
-#define LTE_FIXNV_ADDR 0x8c520000
-#define LTE_RUNNV_ADDR 0x8c5a0000
-#define LTE_MODEM_SIZE 0x00d00000   //0x8f0000
-#define LTE_MODEM_ADDR 0x8b800000
-
-
-
-/*****************************************/
-/*******A/G DSP  0x89300000****************/
-/*******T/G DSP  0x89620000****************/
-/*******W/G DSP 0x89900000****************/
-/*****************************************/
-#define LTE_TGDSP_SIZE  0x002E0000
-#define LTE_TGDSP_ADDR   (0x89600000 + LTE_TGDSP_LOADER_OFFSET)
-#define LTE_WGDSP_SIZE  0x00400000
-#define LTE_WGDSP_ADDR  (LTE_TGDSP_ADDR+LTE_TGDSP_SIZE)
-#define LTE_LDSP_SIZE  0x00c00000
-#define LTE_LDSP_ADDR  (LTE_WGDSP_ADDR + LTE_WGDSP_SIZE)
-
 #define LTE_AGDSP_SIZE  0x00260000
 #define LTE_AGDSP_ADDR (0x89600000 - LTE_AGDSP_SIZE)
 
-#define FIXNV_SIZE     LTE_FIXNV_SIZE
+#define FIXNV_SIZE     0xc8000
 
 #define CONFIG_DFS_ENABLE
-#define DFS_ADDR    0x80000
-#define DFS_SIZE    (256*1024) //256K
+#define DFS_ADDR    0x50800000
+#define DFS_SIZE    (64*1024)
 
 
 /*eMMC config*/
@@ -254,7 +230,7 @@
 #define USB3_PHY_TUNE2 0x0f0560fe
 #define CONFIG_USB_PHY_SHARKLE
 //#define CALIBRATION_FLAG_CP0           0x88AF0000
-#define CALIBRATION_FLAG_CP1           0x8c640000
+#define CALIBRATION_FLAG_CP1	0x8d7d0000
 //#define CONFIG_DWC_OTG
 #define CONFIG_MODEM_CALIBERATE
 #define CALIBRATE_ENUM_MS 15000
