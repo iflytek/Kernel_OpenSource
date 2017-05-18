@@ -93,9 +93,9 @@ static int sprdfb_probe(void *lcdbase)
 
 
 	debugf("sprdfb:[%s]\n", __FUNCTION__);
-
+#ifndef CONFIG_ZEBU
 	set_backlight(0);
-
+#endif
 	dev->ctrl = &sprdfb_dispc_ctrl;
 	dev->ctrl->early_init(dev);
 

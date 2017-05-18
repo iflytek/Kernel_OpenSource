@@ -148,6 +148,12 @@
 /* referenced by sprd_musb2_def.h */
 #define SPRD_USB_BASE                                      SPRD_USB_PHYS
 /* referenced by timer_reg_r4p0.h */
+#define SPRD_DISPC0_BASE		SPRD_DISPC0_PHYS
+
+#define SPRD_DSI_BASE			SPRD_DSI_PHYS
+
+#define REGS_AON_APB_BASE	SPRD_AONAPB_PHYS
+
 #define SPRD_GPTIMER0_BASE                                 SPRD_GPTIMER0_PHYS
 /* referenced by sprd_bl.c */
 #define CTL_BASE_PWM                                       SPRD_PWM_PHYS

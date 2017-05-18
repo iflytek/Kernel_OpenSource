@@ -18,7 +18,7 @@
 #define SHORT_PACKET			4
 #define BLANKING_PACKET         6
 /** Version supported by this driver */
-static const uint32_t mipi_dsih_supported_versions[] = {0x100, 0x3132302A, 0x3132312A, 0x3133312A};
+static const uint32_t mipi_dsih_supported_versions[] = {0x100, 0x200, 0x3132302A, 0x3132312A, 0x3133312A};
 static const uint32_t mipi_dsih_no_of_versions = sizeof(mipi_dsih_supported_versions) / sizeof(uint32_t);
 uint32_t mipi_dsih_current_versions;
 
@@ -132,7 +132,7 @@ dsih_error_t mipi_dsih_open(dsih_ctrl_t * instance)
     mipi_dsih_hal_dpi_lp_during_vfp(instance, 1);
     mipi_dsih_hal_dpi_lp_during_vbp(instance, 1);
     mipi_dsih_hal_dpi_lp_during_vsync(instance, 1);
-    /* by default, all commands are sent in LP */
+	/* by default, all commands are sent in LP */
     mipi_dsih_hal_dcs_wr_tx_type(instance, 0, 1);
     mipi_dsih_hal_dcs_wr_tx_type(instance, 1, 1);
     mipi_dsih_hal_dcs_wr_tx_type(instance, 3, 1); /* long packet*/
@@ -580,7 +580,7 @@ dsih_error_t mipi_dsih_dpi_video(dsih_ctrl_t * instance, dsih_dpi_video_t * vide
     }
     mipi_dsih_hal_dpi_video_mode_type(instance, video_params->video_mode);
     mipi_dsih_hal_dpi_hline(instance, (uint16_t)((video_params->h_total_pixels * ratio_clock_xPF) / PRECISION_FACTOR));
-#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE)
+#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2)
     mipi_dsih_hal_dpi_sig_delay(instance, 95*(video_params->h_total_pixels * ratio_clock_xPF) / PRECISION_FACTOR /100);
 #endif
     mipi_dsih_hal_dpi_hbp(instance, ((video_params->h_back_porch_pixels * ratio_clock_xPF) / PRECISION_FACTOR));
@@ -731,7 +731,7 @@ dsih_error_t mipi_dsih_dpi_video(dsih_ctrl_t * instance, dsih_dpi_video_t * vide
     mipi_dsih_dphy_no_of_lanes(&(instance->phy_instance), video_params->no_of_lanes);
     /* enable high speed clock */
 //    mipi_dsih_dphy_enable_hs_clk(&(instance->phy_instance), 1);//jessica, panel not init yet, could not set to hs, or result in err to some panel
-#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE)
+#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2)
     mipi_dsih_dphy_enable_hs_clk(&(instance->phy_instance), 1);//jessica, panel not init yet, could not set to hs, or result in err to some panel
     mipi_dsih_reset_controller(instance);
 #endif

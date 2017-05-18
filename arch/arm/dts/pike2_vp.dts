@@ -52,7 +52,19 @@
 		};
 
 		fb_reserved: framebuffer@9fb4f000{
-			reg = <0x9fb4f000 0x4b1000>;
+			reg = <0x9f574000 0x4b1000>;
+		};
+	};
+
+	ion {
+		compatible = "sprd,ion";
+		#address-cells = <1>;
+                #size-cells = <0>;
+		heap@3 {
+			reg = <3>;
+			label = "carveout_fb";
+			type = <2>;
+			memory-region = <&fb_reserved>;
 		};
 	};
 };

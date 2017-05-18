@@ -64,7 +64,7 @@ int32_t dsi_early_int(void)
 	}
 
 #ifdef CONFIG_FPGA
-#if !((defined(CONFIG_SC9833)) || (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SOC_SHARKLE)))
+#if !((defined(CONFIG_SC9833)) || (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SOC_SHARKLE)) || defined(CONFIG_SOC_PIKE2))
 	usc28c_dsi_init();
 #endif
 #endif
@@ -125,6 +125,8 @@ static int32_t dsi_dpi_init(struct sprdfb_device *dev)
 	dpi_param.byte_clock = mipi->phy_feq / 8;
 #ifndef CONFIG_FPGA
 	dpi_param.pixel_clock = dev->dpi_clock/1000;//384*1000/11;//DSI_PHY_REF_CLOCK / 4;
+#elif defined(CONFIG_ZEBU)
+	dpi_param.pixel_clock = dev->dpi_clock/1000;//128*1000/11;//DSI_PHY_REF_CLOCK / 4;
 #else
 	dpi_param.pixel_clock = 6500;
 #endif

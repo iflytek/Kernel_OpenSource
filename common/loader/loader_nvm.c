@@ -277,10 +277,15 @@ int splash_screen_prepare(uchar *logo_part_name, u8 *addr)
 
 	size = lcd_get_size(&lcd_line_length) >> 1;
 	size += bmp_header_size;
+#ifndef CONFIG_ZEBU
 	if (0 != common_raw_read(logo_part_name, (uint64_t)size, (uint64_t)0, addr)) {
 		errorf("failed to read logo partition:%s\n", logo_part_name);
 		return -1;
 	}
+#else
+	memcpy(addr, 0xb0000000, (size_t)size);
+#endif
+
 	return 0;
 }
 
@@ -905,6 +910,14 @@ void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
     ulong dt_img_adr = 0;
 	uint64_t fdt_size = 0;
 	int ret;
+
+	if(lcd_enable) {
+		extern void lcd_enable(void);
+		debug("[LCD] Drawing the logo...\n");
+		drv_lcd_init();
+		lcd_splash(LOGO_PART);
+		lcd_enable();
+	}
 
     /* load bootimg to RAM  */
     boot_hdr = malloc(512*4);

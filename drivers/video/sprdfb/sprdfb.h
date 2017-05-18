@@ -16,7 +16,17 @@
 #define FB_PRINT(...)
 #endif
 
+#ifdef CONFIG_ZEBU
+#define udelay(x) \
+	do { \
+		volatile int i; \
+		int cnt = 20 * (x); \
+		for (i=0; i<cnt; i++);\
+	} while(0);
+#define mdelay(t)	({unsigned long msec=(t); while (msec--) { udelay(10);}})
+#else
 #define mdelay(t)	({unsigned long msec=(t); while (msec--) { udelay(1000);}})
+#endif
 
 enum{
 	SPRDFB_PANEL_IF_DBI = 0,
