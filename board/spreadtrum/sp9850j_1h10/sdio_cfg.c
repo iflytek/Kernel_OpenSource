@@ -32,7 +32,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 #else
 	REG_AON_CLK_CORE_CGM_EMMC_2X_CFG,
 	3,
-	384000000,
+	192000000,
 	400000,
 #endif
 	REG_AP_AHB_AHB_EB,
@@ -54,7 +54,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 #else
 	REG_AON_CLK_CORE_CGM_SDIO0_2X_CFG,
 	3,
-	384000000,
+	192000000,
 	400000,
 #endif
 
