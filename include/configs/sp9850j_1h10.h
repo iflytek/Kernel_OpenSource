@@ -196,7 +196,7 @@
 /*eMMC config*/
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
-#define CONFIG_EMMC_VERSION_R7P0
+#define CONFIG_EMMC_VERSION_R8P0
 
 /*eMMC boot*/
 #define CONFIG_EMMC_BOOT
