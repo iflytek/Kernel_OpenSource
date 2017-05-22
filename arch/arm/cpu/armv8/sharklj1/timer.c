@@ -81,15 +81,23 @@ static inline unsigned long long us_to_tick(unsigned long long us)
 
 int timer_init(void)
 {
-	writel(readl(REG_AON_APB_APB_EB0) | BIT_AP_SYST_EB, REG_AON_APB_APB_EB0);
-	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AP_SYST_RTC_EB, REG_AON_APB_APB_RTC_EB);
+	/* AP SYS TMR and AP TMR0/1/2 enable */
+	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AP_SYST_EB, REG_AON_APB_APB_EB0);
+	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AP_SYST_RTC_EB, REG_AON_APB_APB_RTC_EB);
 
-	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_TMR_EB, REG_AON_APB_APB_EB0);
-	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_TMR_EB, REG_AON_APB_APB_RTC_EB);
+	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AP_TMR0_EB, REG_AON_APB_APB_EB0);
+	writel(readl(REG_AON_APB_APB_EB1) | BIT_AON_APB_AP_TMR1_EB | BIT_AON_APB_AP_TMR2_EB,
+				REG_AON_APB_APB_EB1);
+	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AP_TMR0_RTC_EB |
+				BIT_AON_APB_AP_TMR1_RTC_EB | BIT_AON_APB_AP_TMR2_RTC_EB,
+				REG_AON_APB_APB_RTC_EB);
 
+	/* AON SYS TMR and AON TMR enable */
 	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_SYST_EB, REG_AON_APB_APB_EB0);
 	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_SYST_RTC_EB, REG_AON_APB_APB_RTC_EB);
 
+	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_TMR_EB, REG_AON_APB_APB_EB0);
+	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_TMR_RTC_EB, REG_AON_APB_APB_RTC_EB);
 
 	/* enable ts clk output to arch timer */
 	writel(0x1, SPRD_APCPUTS0_BASE);

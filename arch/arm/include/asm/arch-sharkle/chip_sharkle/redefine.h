@@ -29,8 +29,6 @@
 #define BIT_OTG_SOFT_RST                        BIT_AP_AHB_OTG_SOFT_RST
 #define BIT_OTG_UTMI_SOFT_RST                   BIT_AP_AHB_OTG_UTMI_SOFT_RST
 #define BIT_OTG_PHY_SOFT_RST                    BIT_AP_AHB_OTG_PHY_SOFT_RST
-#define BIT_AP_SYST_EB                          BIT_AON_APB_AP_SYST_EB
-#define BIT_AP_SYST_RTC_EB                      BIT_AON_APB_AP_SYST_RTC_EB
 #define BIT_I2C_EB                              BIT_AP_APB_I2C0_EB
 
 #endif
