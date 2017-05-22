@@ -123,11 +123,13 @@ int uboot_kce_program(uint64_t start_addr, uint64_t lenth){
 
 int uboot_get_hbk(uint64_t start_addr, uint64_t lenth){
 
+#if defined (CONFIG_SANSA_SECBOOT)
   ap_sansa_efuse_prog_power_on();
-
+#endif
   smc_param *param = tee_common_call(FUNCTYPE_GET_HBK, (uint32_t)start_addr, (uint32_t)lenth);
-
+#if defined (CONFIG_SANSA_SECBOOT)
   ap_sansa_efuse_power_off();
+#endif
   return param->a0;
 }
 
