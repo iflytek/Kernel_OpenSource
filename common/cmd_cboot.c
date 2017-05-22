@@ -235,9 +235,15 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 #endif
 #if defined CONFIG_AUTOBOOT
 	if (reboot_mode_check() == CMD_AUTODLOADER_REBOOT)
+	{
 		autodloader_mode();
-	else
+	}
+	else    {
+	#if defined CONFIG_X86
+		write_sysdump_before_boot_extend();//if autoboot kernel is crash and reboot,the uboot go to sysdump in x86; 
+	#endif
 		normal_mode();
+	}
 #endif
 #if defined CONFIG_ZEBU || defined CONFIG_FPGA
 	normal_mode();
