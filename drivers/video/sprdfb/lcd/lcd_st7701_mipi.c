@@ -244,10 +244,6 @@ int32_t st7701_reset(struct panel_spec *self)
 	sprd_gpio_request(NULL, LCM_GPIO_AVDDEN);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_AVDDEN, 1);
 	mdelay(10);
-	#define LCD_ID_GPIO 90
-	sprd_gpio_request(NULL, LCD_ID_GPIO);
-	sprd_gpio_direction_output(NULL, LCD_ID_GPIO, 1);
-	mdelay(10);
 
 	sprd_gpio_request(NULL, LCM_GPIO_AVEEEN);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_AVEEEN, 1);
