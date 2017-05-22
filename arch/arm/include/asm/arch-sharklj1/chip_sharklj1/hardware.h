@@ -11,6 +11,8 @@
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
+#define REGS_AON_APB_BASE		SPRD_AONAPB_PHYS
+
 #define SPRD_CORESIGHT_STM_PHYS                            0x01000000
 #define SPRD_CORESIGHT_PHYS                                0x10000000
 #define SPRD_GIC400_PHYS                                   0x12000000
