@@ -84,6 +84,9 @@ void scx35_pmu_reconfig(void)
 				BIT_PMU_APB_PD_GPU_TOP_AUTO_SHUTDOWN_EN));
 
 	CHIP_REG_OR(REG_AON_APB_APB_EB0, BIT_AON_APB_GPU_EB | BIT_AON_APB_MM_EB);
+
+	CHIP_REG_OR(REG_MM_AHB_AHB_EB, BIT_MM_AHB_CKG_EB);
+	CHIP_REG_OR(REG_MM_CLK_CORE_CGM_MM_AHB_CFG, 0x3);
 }
 #else
 void scx35_pmu_reconfig(void) {}
