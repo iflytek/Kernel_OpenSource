@@ -30,8 +30,11 @@
 #endif
 
 #define SPRD_DDIE_EIC_START 0
-#define SPRD_DDIE_EIC_END   4
-#define SPRD_DDIE_EIC_EXTINT3 3
+#define SPRD_DDIE_EIC_KEYIN0 2
+#define SPRD_DDIE_EIC_END   7
+#define SPRD_DDIE_EIC1_START 8
+#define SPRD_DDIE_EIC1_END   15
 #define SPRD_DDIE_EIC_EXTINT2 2
+#define SPRD_DDIE_EIC_EXTINT3 3
 
 #endif
