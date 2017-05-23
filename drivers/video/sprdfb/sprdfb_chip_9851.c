@@ -16,6 +16,7 @@
 #include "sprdfb_chip_9833.h"
 #include "sprdfb.h"
 
+#define BIT(x)  (1<<x)
 
 void dsi_enable(void)
 {
@@ -24,6 +25,11 @@ void dsi_enable(void)
 	udelay(10);
 	__raw_bits_and(~(BIT_MIPI_DSI_PS_PD_L),DPHY_PW_CONFIG_REG);
 	__raw_bits_or(BIT_DPHY_REF_CKG_EN|BIT_DPHY_CFG_CKG_EN,DPHY_CKG_EN);
+	__raw_bits_or(BIT(14),0x40353034);
+	__raw_bits_or(BIT(16),0x40353024);
+	__raw_bits_and(~BIT(4),0x402d0040);
+	 __raw_bits_or(BIT(4),0x402d0050);
+
 }
 
 void dsi_disable(void)

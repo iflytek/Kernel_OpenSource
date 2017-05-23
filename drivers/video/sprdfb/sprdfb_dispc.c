@@ -191,8 +191,11 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 	dispc_write(reg_val, DISPC_OSD_PITCH);
 
 	/*OSD base address*/
+#ifdef CONFIG_SOC_SHARKLJ1
+	dispc_write(dev->smem_start - 0x80000000, DISPC_OSD_BASE_ADDR);
+#else
 	dispc_write(dev->smem_start, DISPC_OSD_BASE_ADDR);
-
+#endif
 	/* OSD color_key value */
 	dispc_set_osd_ck(0x0);
 
