@@ -342,6 +342,9 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(2),{0x00,0xA4}},
 {LCM_SEND(2),{0xC5,0x67}},
 
+{LCM_SEND(2),{0x00,0x00}},
+{LCM_SEND(2),{0x1C,0x32}},
+
 {LCM_SEND(2),{0x00,0x80}},
 
 //{LCM_SEND(2),{0x00,0xA4}},
@@ -351,6 +354,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(5),{3,0,0xFF,0x00,0x00}},
 {LCM_SEND(2),{0x00,0x00}},
 {LCM_SEND(6),{4,0,0xFF,0x00,0x00,0x00}},
+{LCM_SEND(2), {0x35,0x00}},
 {LCM_SEND(1),{0x11}},
 {LCM_SLEEP(120)},
 {LCM_SEND(1),{0x29}},
@@ -408,7 +412,7 @@ static uint32_t otm1906c_readid(struct panel_spec *self)
 	LCD_PRINT("lcd_otm1906c_mipi read id!\n");
 
 	mipi_set_cmd_mode();
-	mipi_eotp_set(0,1);
+	mipi_eotp_set(1,0);
 
 	for(j = 0; j < 4; j++){
 		rd_prepare = rd_prep_code;
@@ -426,6 +430,7 @@ static uint32_t otm1906c_readid(struct panel_spec *self)
 
 		if(0x40 == read_data[0]){
 			printk("lcd_otm1906c_mipi read id success!\n");
+			/*
 			mipi_eotp_set(1,1);
 			i2c_set_bus_num(5);
 			if (0x0A != i2c_reg_read(0x3E, 0x00)) {
@@ -434,13 +439,13 @@ static uint32_t otm1906c_readid(struct panel_spec *self)
 				i2c_reg_write(0x3E, 0x03, 0x03);
 				i2c_reg_write(0x3E, 0xFF, 0x80);
 				mdelay(50);
-			}
+			}*/
 			return 0x1906;
 		}
-		return 0x1906;
+		return 0;
 	}
 	mipi_eotp_set(1,1);
-	return 0x1906;
+	return 0;
 }
 
 int32_t otm1906c_reset(struct panel_spec *self)
@@ -471,11 +476,11 @@ static struct panel_operations lcd_otm1906c_mipi_operations = {
 };
 
 static struct timing_rgb lcd_otm1906c_mipi_timing = {
-	.hfp = 45,  /* unit: pixel */
-	.hbp = 45,//80
+	.hfp = 36,  /* unit: pixel */
+	.hbp = 36,//80
 	.hsync = 8,//4//10
-	.vfp = 146, /*unit: line*/
-	.vbp = 146,//32
+	.vfp = 16, /*unit: line*/
+	.vbp = 16,//32
 	.vsync = 4,//4//4
 };
 
@@ -497,7 +502,7 @@ static struct info_mipi lcd_otm1906c_mipi_info = {
 struct panel_spec lcd_otm1906c_mipi_spec = {
 	.width					= 1080,
 	.height					= 1920,
-	.fps					= 60,
+	.fps					= 56,
 	.type					= LCD_MODE_DSI,
 	.direction				= LCD_DIRECT_NORMAL,
 	.info = {
