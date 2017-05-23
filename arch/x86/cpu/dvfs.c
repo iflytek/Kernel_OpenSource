@@ -492,6 +492,7 @@ void change_cpu_freq()
 		msr_bits |= msr_value;
 		msr_value = (2 & 0x7F);    /* VID_SEL : bits [6:0] */
 		msr_bits |= msr_value;
+		wrmsrl(MSR_IA32_PERF_CTL, msr_bits);
 		debug("set freq ratio and vid to:0x%4x in BOOTLOADER_MODE_DOWNLOAD\n", msr_bits & 0x3F7F);
 		return;
 	}else{

@@ -28,6 +28,7 @@ obj-$(CONFIG_SMP) += sipi_vector.o
 obj-y += turbo.o
 obj-$(CONFIG_INTEL_MICROCODE) += microcode_intel.o
 obj-$(CONFIG_TARGET_SP9861E_1H10) += dvfs.o
+obj-$(CONFIG_TARGET_SP9861E_1H11) += dvfs.o
 obj-$(CONFIG_TARGET_SP9861E_2H10) += dvfs.o
 obj-$(CONFIG_TARGET_SP9861E_2H10_2705) += dvfs.o
 obj-$(CONFIG_TARGET_SP9861E_3H10) += dvfs.o
