@@ -11,8 +11,6 @@
 #define CONFIG_LMB
 #define CONFIG_OF_LIBFDT
 
-#define CONFIG_NO_RELOCATION
-
 /* no need to uncompress kernel right now */
 #undef CONFIG_LZO
 #undef CONFIG_ZLIB

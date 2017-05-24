@@ -219,6 +219,12 @@ config SPRD_WCN
 	help
 	  This  option specifies some special control for zebu/fpga wcn board.
 
+config NO_RELOCATION
+	bool "skip relocate"
+	default y
+	help
+	  This  option specifies control of relocate uboot code.
+
 source "board/spreadtrum/isharkl/Kconfig"
 source "board/spreadtrum/sp9861/Kconfig"
 source "board/spreadtrum/sp9861_vp/Kconfig"

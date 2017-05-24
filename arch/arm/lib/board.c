@@ -350,6 +350,7 @@ void board_init_f(ulong bootflag)
 #endif /* CONFIG_FB_ADDR */
 #endif /* CONFIG_LCD */
 
+#ifndef CONFIG_NO_RELOCATION
 	/*
 	 * reserve memory for U-Boot code, data & bss
 	 * round down to next 4 kB limit
@@ -358,6 +359,7 @@ void board_init_f(ulong bootflag)
 	addr &= ~(4096 - 1);
 
 	debug("Reserving %ldk for U-Boot at: %08lx\n", gd->mon_len >> 10, addr);
+#endif
 
 #ifndef CONFIG_SPL_BUILD
 	/*
@@ -366,6 +368,9 @@ void board_init_f(ulong bootflag)
 	addr_sp = addr - TOTAL_MALLOC_LEN;
 	debug("Reserving %dk for malloc() at: %08lx\n",
 			TOTAL_MALLOC_LEN >> 10, addr_sp);
+#ifdef CONFIG_NO_RELOCATION
+	gd->no_relloc_malloc_addr = addr_sp;
+#endif
 	/*
 	 * (permanently) allocate a Board Info struct
 	 * and a permanent copy of the "global" data
@@ -434,9 +439,16 @@ void board_init_f(ulong bootflag)
 	dram_init_banksize();
 	display_dram_config();	/* and display it */
 
+#ifndef CONFIG_NO_RELOCATION
 	gd->relocaddr = addr;
-	gd->start_addr_sp = addr_sp;
 	gd->reloc_off = addr - (ulong)&_start;
+#else
+	gd->relocaddr = (ulong)&_start;
+	gd->reloc_off = gd->relocaddr - (ulong)&_start;
+#endif
+
+	gd->start_addr_sp = addr_sp;
+
 	debug("relocation Offset is: %08lx\n", gd->reloc_off);
 	if (new_fdt) {
 		memcpy(new_fdt, gd->fdt_blob, fdt_size);
@@ -529,7 +541,11 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 	/* The Malloc area is immediately below the monitor copy in DRAM */
+#ifndef CONFIG_NO_RELOCATION
 	malloc_start = dest_addr - TOTAL_MALLOC_LEN;
+#else
+	malloc_start = gd->no_relloc_malloc_addr;
+#endif
 	mem_malloc_init (malloc_start, TOTAL_MALLOC_LEN);
 
 #ifdef CONFIG_ARCH_EARLY_INIT_R
