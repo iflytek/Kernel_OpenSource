@@ -481,6 +481,8 @@ void sprd_pmu_lowpower_init(void)
 #define VDDGPU_EN_GPIO   163
 void dl_power_control(void)
 {
+	pmu_cfg_for_dl_power();
+
 	ANA_REG_OR(ANA_REG_GLB_DCDC_WPA_REG2, BIT_DCDC_WPA_PD);  //shutdown VDDWPA
 	ANA_REG_OR(ANA_REG_GLB_LDO_VLDO_PD_REG, BIT_LDO_VLDO_PD); //shutdown VDDSIM2
 

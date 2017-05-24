@@ -55,4 +55,5 @@
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0
 
+#define CONFIG_DL_POWER_CONTROL
 #endif /* __CONFIG_H */
