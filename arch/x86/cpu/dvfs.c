@@ -184,7 +184,7 @@ static void setup_vid_table(int module)
 			debug("no VID_V2 on efuse, write 1200mv as default\n");
 		} else {
 #if defined(CONFIG_SOC_IWHALE2)
-			set_pmic_voltage(v, 840);
+			set_pmic_voltage(v, 800);
 			debug("no VID_V2 on efuse, write 840mv as default\n");
 #elif defined(CONFIG_SPRD_SOC_SP9853I)
 			set_pmic_voltage(v, 840);
@@ -218,9 +218,9 @@ static void setup_vid_table(int module)
 	}
 	else{
 #if defined(CONFIG_SOC_IWHALE2)
-		set_pmic_voltage(v0 + VID_V0, 840);
-		set_pmic_voltage(v0 + VID_V1, 840);
-		set_pmic_voltage(v0 + VID_V2, 840);
+		set_pmic_voltage(v0 + VID_V0, 800);
+		set_pmic_voltage(v0 + VID_V1, 800);
+		set_pmic_voltage(v0 + VID_V2, 800);
 		set_pmic_voltage(v0 + VID_V3, 840);
 		set_pmic_voltage(v0 + VID_V4, 947);
 		set_pmic_voltage(v0 + VID_V5, 1061);
