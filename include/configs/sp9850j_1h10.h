@@ -156,7 +156,6 @@
 #define CONFIG_SYS_SDRAM_END2 (CONFIG_SYS_SDRAM_BASE2 + CONFIG_SYS_SDRAM_SIZE2)
 #endif
 
-#define CONFIG_DDR_AUTO_DETECT
 
 
 /* Initial environment variables */
