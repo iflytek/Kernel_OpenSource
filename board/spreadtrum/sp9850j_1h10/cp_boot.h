@@ -51,15 +51,20 @@
 #define PUBCP_IRAM_ADDRESS 0x5001D000
 
 static u32 g_loader[] = {
-	0xee110f10, 0xe3c00005, 0xe3c00a01, 0xf57ff04f,
-	0xee010f10, 0xf57ff06f, 0xee110f30, 0xe3800802,
-	0xe3800801, 0xe3c00902, 0xee010f30, 0xf57ff04f,
-	0xe3a00000, 0xee070f15, 0xee0f0f15, 0xe3a01000,
-	0xee061f12, 0xf57ff06f, 0xe3a01000, 0xee061f11,
-	0xe3a0103f, 0xee061f51, 0xe3a01f42, 0xee061f91,
-	0xee110f30, 0xe3c00802, 0xe3c00801, 0xe3c00902,
-	0xee010f30, 0xee110f10, 0xe3800001, 0xf57ff04f,
-	0xee010f10, 0xf57ff06f, 0xe51ff004, 0x8b800600
+	 0xEE110F10, 0xE3C00005, 0xE3C00A01, 0xF57FF04F,
+	 0xEE010F10, 0xF57FF06F, 0xEE110F30, 0xE3800802,
+	 0xE3800801, 0xE3C00902, 0xEE010F30, 0xF57FF04F,
+	 0xE3A00000, 0xEE070F15, 0xEE0F0F15, 0xE3A01000,
+	 0xEE061F12, 0xF57FF06F, 0xE3A01000, 0xEE061F11,
+	 0xE3A0103F, 0xEE061F51, 0xE3A01C13, 0xEE061F91,
+	 0xE3A01001, 0xEE061F12, 0xF57FF06F, 0xE3A01000,
+	 0xEE061F11, 0xE3A0102F, 0xEE061F51, 0xE3A01FC2,
+	 0xEE061F91, 0xE3A01003, 0xEE061F12, 0xF57FF06F,
+	 0xE3A01102, 0xEE061F11, 0xE3A0103D, 0xEE061F51,
+	 0xE3A01FC2, 0xEE061F91, 0xEE110F30, 0xE3C00802,
+	 0xE3C00801, 0xE3C00902, 0xEE010F30, 0xEE110F10,
+	 0xE3800001, 0xF57FF04F, 0xEE010F10, 0xF57FF06F,
+	 0xE51FF004, 0x8b800600
 };
 
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
@@ -77,15 +82,17 @@ static inline void pubcp_boot(void)
 	u32 loader[0x32] = {0};
 	u32 count = sizeof(loader)/sizeof(u32);
 
-	if(load_cp_boot_code((void*)PUBCP_IRAM_ADDRESS))
-		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
+	memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, sizeof(g_loader));
 
 	/*boot cr5 */
 	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT_1;   /* reset R5 */
 	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) |= BIT_10; /*cr5 core soft reset*/
+
+	msleep(50);
+
 	/*power on*/
-	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_25);/* clear R5 force shutdown */
-	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_24);/* clear R5 auto shutdown  deep sleep*/
+	//*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_25);/* clear R5 force shutdown */
+	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~(BIT_24|BIT_25);/* clear R5 auto shutdown  deep sleep*/
 	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_18;   /*clear R5 force sleep */
 
 	msleep(50);

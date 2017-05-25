@@ -30,21 +30,19 @@ void memset_dsp_share_memory()
 
 void modem_entry()
 {
-#if 0
-	/*workaround,change wtlcp axi to 307.2M*/
-	//REG32(REG_AON_APB_SUB_SYS_DBG_SIG7) = 0x09;
+
 	memset_dsp_share_memory();
 #ifndef CONFIG_KERNEL_BOOT_CP
-	pmic_arm7_boot();
+	//pmic_arm7_boot();
 	pubcp_boot();
 	debugf("boot CP1 OK\n");
+
 #else
 	extern unsigned int g_charger_mode;
 	if(g_charger_mode) {
 		pmic_arm7_boot();
-		debugf("boot arm7  OK\n");
+		//debugf("boot arm7  OK\n");
 	}
-#endif
 #endif
 }
 
