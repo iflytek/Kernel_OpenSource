@@ -99,7 +99,7 @@ typedef struct smc_param {
         uint32_t a7;
 }smc_param;
 
-int uboot_verify_img(uint64_t start_addr, uint64_t lenth);
+int uboot_verify_img(unsigned long start_addr, uint32_t lenth);
 int uboot_get_socid(uint64_t start_addr, uint64_t lenth);
 int uboot_program_efuse(uint64_t start_addr, uint64_t lenth);
 int uboot_update_swVersion(uint64_t start_addr, uint64_t lenth);

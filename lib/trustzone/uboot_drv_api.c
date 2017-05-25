@@ -40,9 +40,10 @@ TEE driver, there are two ways if you want to pass 64 bits addr to tos:
    then call tee_smc_call
 */
 
-int uboot_verify_img(uint64_t start_addr, uint64_t lenth){
+int uboot_verify_img(unsigned long start_addr, uint32_t lenth)
+{
 
-  smc_param *param = tee_common_call(FUNCTYPE_VERIFY_IMG, (uint32_t)start_addr, (uint32_t)lenth);
+  smc_param *param = tee_common_call(FUNCTYPE_VERIFY_IMG, (uint32_t)start_addr, lenth);
   return param->a0;
 }
 

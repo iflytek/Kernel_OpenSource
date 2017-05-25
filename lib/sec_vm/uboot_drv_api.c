@@ -7,7 +7,7 @@
 #define SEC_VERIFY_CMD 0x1
 #define SEC_GETHBK_CMD 0x3
 
-int uboot_verify_img(uint64_t start_addr,uint64_t lenth)
+int uboot_verify_img(unsigned long start_addr,uint32_t lenth)
 {
 	unsigned int result = 0;
 	imgToVerifyInfo *info = (imgToVerifyInfo *)start_addr;
