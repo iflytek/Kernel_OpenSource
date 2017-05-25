@@ -261,9 +261,22 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
 	};
 
 #if 1
+
+
     //uint32_t fbdivratio,fracdiv,fracnen,div5bbypass,div5b,div2or3;
 #ifdef CONFIG_SPRD_SOC_SP9853I
 	#define ANLG_PHY_ANALOG_REG0 REG_ANLG_PHY_G2_ANALOG_DSI_0_CTRL_REG0
+    __raw_bits_or(BIT_ANLG_PHY_G2_DBG_SEL_ANALOG_DSPLL_IRST_PLL_POR_B_A, REG_ANLG_PHY_G2_ANALOG_DSPLL_REG_SEL_CFG_0);
+    writel_nbits(0x0,3,2,REG_ANLG_PHY_G2_ANALOG_DSPLL_CRIT_CTRL_0);
+    __raw_bits_and(~BIT_ANLG_PHY_G2_ANALOG_DSPLL_ICTL_PLL_CLKSLICE0_ENABLE_A,REG_ANLG_PHY_G2_ANALOG_DSPLL_PHASE_CTRL_1);
+    writel_nbits(0x60,8,0,REG_ANLG_PHY_G2_ANALOG_DSPLL_PLL_DIRECT_CTRL_0);
+    writel_nbits(0x60,8,8,REG_ANLG_PHY_G2_ANALOG_DSPLL_PHASE_CTRL_0);
+    __raw_bits_or(BIT_ANLG_PHY_G2_ANALOG_DSPLL_IRST_PLL_POR_B_A, REG_ANLG_PHY_G2_ANALOG_DSPLL_CRIT_CTRL_0);
+    __raw_bits_or(BIT_ANLG_PHY_G2_ANALOG_DSPLL_ICTL_PLL_CLKSLICE0_ENABLE_A, REG_ANLG_PHY_G2_ANALOG_DSPLL_PHASE_CTRL_1);
+    while(BIT_COMMON_APB_INT_REQ_DSIPLL_LOCK_STATUS_RAW_STS !=
+		(__raw_readl(REG_COMMON_APB_DSIPLL_LOCK_STATUS) & BIT_COMMON_APB_INT_REQ_DSIPLL_LOCK_STATUS_RAW_STS)){
+	printf("[0x%x] warning: busy waiting DSIPLL lock!\n",__raw_readl(REG_COMMON_APB_DSIPLL_LOCK_STATUS));
+    }
 #else //iwhale2
 	#define ANLG_PHY_ANALOG_REG0 REG_ANLG_PHY_G8_ANALOG_DSI_0_CTRL_REG0
 #endif
@@ -318,6 +331,7 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     printf("0xe41b0120 = 0x%x\n", __raw_readl(0xe41b0120+PHY_OFFSET));
     printf("0xe41b00e4 = 0x%x\n", __raw_readl(0xe41b00e4+PHY_OFFSET));
     printf("0xe41b0370 = 0x%x\n", __raw_readl(0xe41b0370+PHY_OFFSET));
+
 #endif
     if (phy == 0)
     {
