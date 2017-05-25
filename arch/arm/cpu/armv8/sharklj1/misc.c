@@ -157,9 +157,9 @@ int sprd_get_chipid(int *chip_id, int *version_id)
 void set_smt(void)
 {
 	if(0x00 == CONFIG_SMT_VALUE){
-		__raw_writel(__raw_readl(JVT_MT_CFG) & (~(0x3)),JVT_MT_CFG);/*open smt*/
+		__raw_writel(__raw_readl(JVT_MT_CFG) & (~(0x3)),JVT_MT_CFG);/*close smt*/
 	}else if(0x01 == CONFIG_SMT_VALUE){
-		__raw_writel(__raw_readl(JVT_MT_CFG) | 0x3,JVT_MT_CFG);/*close smt*/
+		__raw_writel(__raw_readl(JVT_MT_CFG) | 0x3,JVT_MT_CFG);/*open smt*/
 	}else if(0x10 == CONFIG_SMT_VALUE){
 		/*get config info from mmc*/
 	}
