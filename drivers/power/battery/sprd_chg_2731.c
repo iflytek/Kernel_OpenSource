@@ -39,7 +39,8 @@
 #define RG_BST_DCM_EN		BIT(11)
 
 //RG_OTG_NEW
-#define RG_OTG_OCP_DBC(x)	(((x) & 0x3) << 2)
+#define RG_OTG_OCP(x)	(((x) & 0x3))
+#define RG_BST_UVLO_DBC(x)	(((x) & 0x3) << 5)
 
 
 #define SWTCHG_APB_EN		BIT(5)
@@ -60,16 +61,17 @@ static void sprd2731_chg_init(void)
 	sci_adi_set(ANA_REG_GLB_MODULE_EN1, SWTCHG_APB_EN);
 
 	//for otg setting
-	sci_adi_write(RG_BST_CFG0, RG_BST_STB_OP(~0),
+	sci_adi_write(RG_BST_CFG0, RG_BST_STB_OP(0x3c),
 		  RG_BST_STB_OP(~0));
 	sci_adi_write(RG_BST_CFG2, RG_BST_DIS_PFM,
 		  (RG_BST_DIS_PFM | RG_BST_DCM_EN));
 	sci_adi_write(RG_SETUP_TIME, OTG_SETUP(~0),
 		  OTG_SETUP(~0));
 	//CA or later version, use this setup
-	if (sci_adi_read(ANA_REG_GLB_CHIP_ID_LOW) >= 0xC000)
-		sci_adi_write(RG_OTG_NEW, RG_OTG_OCP_DBC(2),
-			RG_OTG_OCP_DBC(~0));
+	if (sci_adi_read(ANA_REG_GLB_CHIP_ID_LOW) >= 0xC000) {
+		sci_adi_write(RG_OTG_NEW, RG_OTG_OCP(2) | RG_BST_UVLO_DBC(~0),
+			RG_OTG_OCP(~0) | RG_BST_UVLO_DBC(~0));
+	}
 }
 
 static void sprd2731_chg_leakage_cur_config(void)
