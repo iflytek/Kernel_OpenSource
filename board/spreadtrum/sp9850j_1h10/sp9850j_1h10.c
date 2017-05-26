@@ -72,7 +72,7 @@ int misc_init_r(void)
 static void battery_init(void)
 {
 	sprdchg_common_cfg();
-	sprdchg_2721_init();
+	sprdchg_fan54015_init();
 	sprdbat_init();
 }
 

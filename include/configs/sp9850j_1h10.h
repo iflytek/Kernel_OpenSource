@@ -329,7 +329,10 @@
 
 /* Chip Driver Macro Definitions End*/
 #define CONFIG_SYS_I2C
-#define CONFIG_SPRD_I2C
+#define CONFIG_SPRD_I2C_V2
+#define CONFIG_SPRDCHG_I2C_BUS 1
+#define CONFIG_FAN54015_CHARGE_IC
+
 /*-----------------------------------------------------------------------
  * Cache Configuration
  */
