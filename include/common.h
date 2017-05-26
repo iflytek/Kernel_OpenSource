@@ -465,6 +465,8 @@ int board_late_init (void);
 int board_postclk_init (void); /* after clocks/timebase, before env/serial */
 int board_early_init_r (void);
 void board_poweroff (void);
+phys_size_t get_real_ram_size(void);
+
 
 #if defined(CONFIG_SYS_DRAM_TEST)
 int testdram(void);

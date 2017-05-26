@@ -15,6 +15,7 @@ typedef struct chipram_env {
 	u32 dram_size; //MB
 	u64 vol_para_addr;
 	u32 keep_charge;
+	u32 channel_sel;//usb,uart0,uart1
 	u32 cs_number;
 	u32 cs0_size;
 	u32 cs1_size;
