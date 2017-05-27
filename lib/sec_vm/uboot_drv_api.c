@@ -85,3 +85,15 @@ int uboot_get_hbk(uint64_t start_addr, uint64_t lenth){
 	}
 	return share_data[2];
 }
+
+int get_lcs(uint32_t *p_lcs){
+	return 0;
+}
+
+int get_socid(uint64_t start_addr, uint64_t lenth){
+	return 0;
+}
+
+int set_rma(void){
+	return 0;
+}
