@@ -887,8 +887,12 @@ In x86 ,we need to read 32bit address from 64bit dts for lcd frambuffer.
 	*basep = fdt_addr_to_cpu(cell[1]);
 	*sizep = fdt_size_to_cpu(cell[3]);
 #else
-	*basep = fdt_addr_to_cpu(*cell);
-	*sizep = fdt_size_to_cpu(cell[1]);
+	/*in sharklj1 "cell" are not aligned in 8 bytes, this will cause "Synchronous Abort",
+	so we use a temporary array to force align*/
+	ulong temp[2] = {0};
+	memcpy((void *)temp, (void *)cell, 2 * sizeof(ulong));
+	*basep = fdt_addr_to_cpu(temp[0]);
+	*sizep = fdt_size_to_cpu(temp[1]);
 #endif
 	debug("%s: base=%08lx, size=%lx\n", __func__, (ulong)*basep,
 	      (ulong)*sizep);
