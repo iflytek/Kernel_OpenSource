@@ -5,7 +5,7 @@
 #include "mv_svc_hypercalls.h"
 
 #define SEC_VERIFY_CMD 0x1
-#define SEC_GETHBK_CMD 0x3
+#define SEC_GETHBK_CMD 0x8
 
 int uboot_verify_img(unsigned long start_addr,uint32_t lenth)
 {
