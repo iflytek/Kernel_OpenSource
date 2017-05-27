@@ -33,7 +33,7 @@ void modem_entry()
 
 	memset_dsp_share_memory();
 #ifndef CONFIG_KERNEL_BOOT_CP
-	//pmic_arm7_boot();
+	pmic_arm7_boot();
 	pubcp_boot();
 	debugf("boot CP1 OK\n");
 
