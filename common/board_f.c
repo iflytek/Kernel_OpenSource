@@ -729,7 +729,7 @@ static int mark_bootstage(void)
 
 static int initf_dm(void)
 {
-#if defined(CONFIG_DM) && defined(CONFIG_SYS_MALLOC_F_LEN)
+#if defined(CONFIG_DM) && defined(CONFIG_SYS_MALLOC_F_LEN) && !defined(CONFIG_NO_RELOCATION)
 	int ret;
 
 	ret = dm_init_and_scan(true);
