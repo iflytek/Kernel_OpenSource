@@ -61,9 +61,9 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 #endif
 
 	REG_AP_AHB_AHB_EB,
-	BIT_7,
-	REG_AP_AHB_AHB_RST,
 	BIT_8,
+	REG_AP_AHB_AHB_RST,
+	BIT_11,
 	REG_AON_APB_CLK_EB0,
 	BIT_2|BIT_3,
 
