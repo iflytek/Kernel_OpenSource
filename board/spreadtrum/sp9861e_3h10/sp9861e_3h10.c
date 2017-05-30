@@ -51,6 +51,19 @@ void misc_init()
 	thm_overheate_en();
 }
 
+void disable_unused_module()
+{
+#ifndef DEBUG
+	sci_glb_clr(REG_AON_APB_APB_EB0, BIT_AON_APB_CA53_DAP_EB);
+	sci_glb_clr(REG_AON_APB_CGM_CLK_TOP_REG1, BIT_AON_APB_CGM_CSSYS_EN);
+#endif
+	sci_glb_clr(REG_AON_APB_CGM_REG1, BIT_AON_APB_CGM_RC100M_FDK_EN |
+					BIT_AON_APB_CGM_RC100M_REF_EN |
+					BIT_AON_APB_CGM_DPHY1_REF_EN);
+	sci_glb_clr(REG_AON_APB_CGM_CLK_TOP_REG1, BIT_AON_APB_CGM_SDIO2_1X_EN |
+					BIT_AON_APB_CGM_SDIO2_2X_EN);
+}
+
 int board_init(void)
 {
 	setup_chipram_env();
@@ -61,6 +74,7 @@ int board_init(void)
 	/*FPGA forbiden*/
 	sprd_timer_init();
 	misc_init();
+	disable_unused_module();
 	pmic_adc_Init();
 	/*FPGA forbiden*/
 	pin_init();
