@@ -703,7 +703,7 @@ set_contents(fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
 		/* actsize >= file size */
 		actsize -= bytesperclust;
 		/* set remaining clusters */
-		if (set_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
+		if (set_cluster(mydata, curclust, buffer, (unsigned long)actsize) != 0) {
 			debug("error: writing cluster\n");
 			return -1;
 		}
