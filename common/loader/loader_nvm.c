@@ -982,6 +982,7 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	aon_lpc_config();
 #endif
 	wakeup_source_enable();
+	ap_clk_doze_enable();
 
 #ifdef CONFIG_SPLASH_SCREEN
 	if(lcd_enable) {

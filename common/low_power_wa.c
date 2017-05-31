@@ -162,7 +162,20 @@ void wakeup_source_enable()
 	return;
 }
 #endif
+#if defined(CONFIG_SOC_IWHALE2) || defined(CONFIG_SPRD_SOC_SP9853I)
+void ap_clk_doze_enable()
+{
+	CHIP_REG_OR(REG_AP_CLK_CGM_CTL_CFG,
+		BIT_AP_CLK_CGM_DOZE_MODE_EN |
+		0);
+}
+#else
+void ap_clk_doze_enable()
+{
+	return;
+}
 
+#endif
 #ifdef __cplusplus
 }
 #endif
