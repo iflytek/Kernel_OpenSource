@@ -82,7 +82,8 @@ static inline void pubcp_boot(void)
 	u32 loader[0x32] = {0};
 	u32 count = sizeof(loader)/sizeof(u32);
 
-	memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, sizeof(g_loader));
+	if(load_cp_boot_code((void*)PUBCP_IRAM_ADDRESS))
+	    memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, sizeof(g_loader));
 
 	/*boot cr5 */
 	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT_1;   /* reset R5 */
