@@ -185,6 +185,12 @@ config TARGET_SP9850J_1H10
 	help
 	  This is the Spreadtrum j1 Board
 
+config TARGET_SP9850J_2C20
+	bool "Spreadtrum sp9850j_2c20"
+	select ARM64
+	help
+	  This is the Spreadtrum j12c Board
+
 config TARGET_SP9850KA_2C10
 	bool "Spreadtrum sp9850ka_2c10"
 	select CPU_V7
@@ -258,6 +264,7 @@ source "board/spreadtrum/j1vdk/Kconfig"
 source "board/spreadtrum/j1fpga/Kconfig"
 source "board/spreadtrum/j1zebu/Kconfig"
 source "board/spreadtrum/sp9850j_1h10/Kconfig"
+source "board/spreadtrum/sp9850j_2c20/Kconfig"
 source "board/spreadtrum/sp9850ka_2c10/Kconfig"
 source "board/spreadtrum/sp9850ka_2c20/Kconfig"
 source "board/spreadtrum/sp9835_haps/Kconfig"

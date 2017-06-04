@@ -162,6 +162,7 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
         sp7700_fpga.dtb \
         sp9835_haps_native.dtb \
         sp9850j_1h10.dtb \
+	sp9850j_2c20.dtb \
 	pike2_vp.dtb
 
 
