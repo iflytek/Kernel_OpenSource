@@ -476,11 +476,13 @@ int input_init(struct input_config *config, int leds)
 int input_stdio_register(struct stdio_dev *dev)
 {
 	int error;
-
+	char *ptr = NULL;
+	ptr = getenv("stdin");
+	if (!ptr || !dev)
+		return -1;
 	error = stdio_register(dev);
-
 	/* check if this is the standard input device */
-	if (!error && strcmp(getenv("stdin"), dev->name) == 0) {
+	if (!error && strcmp(ptr, dev->name) == 0) {
 		/* reassign the console */
 		if (OVERWRITE_CONSOLE ||
 				console_assign(stdin, dev->name))

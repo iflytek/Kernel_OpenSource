@@ -305,12 +305,12 @@ static int do_parse_decoup_sipc_info(struct cp_mem_coupling_info *info, struct f
 	if(do_add_prop_to_fdt(fdt, 1, &ranges) < 0)
 		goto err;
 
-	c_reg.offset = fdt_first_subnode(fdt, offs);
-	if(c_reg.offset < 0) {
+	p_offs = fdt_first_subnode(fdt, offs);
+	if(p_offs < 0) {
 		errorf("the sipc child node not found\n");
 		goto err;
 	}
-
+	c_reg.offset = p_offs;
 	if(do_add_prop_to_fdt(fdt, 0, &c_reg) < 0)
 		goto err;
 

@@ -1005,7 +1005,10 @@ OPERATE_STATUS dl_read_ref_info(char *part_name, uint16_t size, uint64_t offset,
 		memcpy(transmit_buf, receive_buf, (size_t)size);
 	}
 	/* update receive ref info to flash */
-	common_raw_write(part_name, (uint64_t)size, (uint64_t)0, offset, receive_buf);
+	if(0 != common_raw_write(part_name, (uint64_t)size, (uint64_t)0, offset, receive_buf)){
+		debugf("update receive ref info to flash fail\n");
+		return  OPERATE_SYSTEM_ERROR;
+	}
 	return OPERATE_SUCCESS;
 }
 

@@ -279,7 +279,7 @@ void cali_usb_debug(uint8_t *buf)
 		if(usb_trans_status)
 			printf("func: %s line %d usb trans with error %d\n", __func__, __LINE__, usb_trans_status);
 		ret = gs_read(buf, &count);
-		printf("func: %s readly read %d\n", __func__, count);
+		printf("func: %s readly read %d，return ret %d\n", __func__, count, ret);
 		if(usb_trans_status)
 			printf("func: %s line %d usb trans with error %d\n", __func__, __LINE__, usb_trans_status);
 		for(i = 0; i<count; i++)
@@ -347,7 +347,7 @@ int cali_get_cmd(uint8_t *buf, int len)
 		{
 			if(usb_trans_status)
 				printf("func: %s line %d usb trans with error %d\n", __func__, __LINE__, usb_trans_status);
-			ret = gs_read(buf + got, &count);
+			gs_read(buf + got, &count);
 			if(usb_trans_status)
 				printf("func: %s line %d usb trans with error %d\n", __func__, __LINE__, usb_trans_status);
 			got+=count;
@@ -495,19 +495,18 @@ int pctool_mode_detect(void)
 		{
 #if defined(CONFIG_SECURE_BOOT)||defined (CONFIG_SECBOOT)
 			ret = secure_efuse_program();
+			if(!ret)
+				ret = prepare_reply_buf(pctool_cmd_buf ,CALIBERATE_CNF_SCS);
+			else{
+				printf("write efuse failed and error code = %d \n" , ret);
+				ret = prepare_reply_buf(pctool_cmd_buf , CALIBERATE_CNF_FAIL);
+			}
+			if(ret)
+				ret = reply_to_pctool(pctool_cnf_buf, ret);
+			if(!ret)
+				return -1;
 #endif
-
 		}
-		if(!ret)
-		    ret = prepare_reply_buf(pctool_cmd_buf ,CALIBERATE_CNF_SCS);
-		else{
-		    printf("write efuse failed and error code = %d \n" , ret);
-		    ret = prepare_reply_buf(pctool_cmd_buf , CALIBERATE_CNF_FAIL);
-		}
-		if(ret)
-			ret = reply_to_pctool(pctool_cnf_buf, ret);
-		if(!ret)
-		    return -1;
 		ret = cali_get_cmd(pctool_cmd_buf,CALIBERATE_STRING_LEN_16);
 		if(!ret)
 			return -1;
@@ -517,17 +516,17 @@ int pctool_mode_detect(void)
 		switch(command){
 			case 0xffff:
 				ret = prepare_reply_buf(pctool_cmd_buf ,CALIBERATE_CNF_SCS);
-				ret = reply_to_pctool(pctool_cnf_buf, ret);
+				reply_to_pctool(pctool_cnf_buf, ret);
 				return CMD_POWER_DOWN_DEVICE;
 				break;
 			case 0xfffe:
 				ret = prepare_reply_buf(pctool_cmd_buf ,CALIBERATE_CNF_SCS);
-				ret = reply_to_pctool(pctool_cnf_buf, ret);
+				reply_to_pctool(pctool_cnf_buf, ret);
 				return CMD_CHARGE_MODE;
 				break;
 			default:
 				ret = prepare_reply_buf(pctool_cmd_buf ,CALIBERATE_CNF_SCS);
-				ret = reply_to_pctool(pctool_cnf_buf, ret);
+				reply_to_pctool(pctool_cnf_buf, ret);
 				break;
 		}
 	}

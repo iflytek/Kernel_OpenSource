@@ -251,7 +251,7 @@ static void cmdline_prepare(void)
 	debugf("g_CPcmdlineBuf = 0x%p\n" , g_CPcmdlineBuf);
 }
 
-static cmdline_add_cp_cmdline(char *cmd, char* value)
+static void cmdline_add_cp_cmdline(char *cmd, char* value)
 {
 	char *p;
 	int len;
