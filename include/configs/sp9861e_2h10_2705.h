@@ -51,6 +51,8 @@
 #define CONFIG_LCD_1080P
 #endif
 
+#define CONFIG_DL_POWER_CONTROL
+
 #define CONFIG_MISC_INIT_R
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0
