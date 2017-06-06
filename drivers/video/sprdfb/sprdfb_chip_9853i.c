@@ -87,21 +87,6 @@ void dispc_early_configs(void)
 
 	__raw_bits_or(value, REG_DISP_AHB_AHB_EB);
 	REG_DUMP(REG_DISP_AHB_AHB_EB);
-
-	/* 0xd2100000 -> 0xffffffff */
-	value =  0xffffffff;
-	__raw_writel(value, 0xd2100000);
-	PRINT("0xd2100000 =  0x%x\n",value);
-
-	/* 0xd2100008 -> 0xffffffff */
-	value =  0xffffffff;
-	__raw_writel(value, 0xd2100008);
-	PRINT("0xd2100008 =  0x%x\n",value);
-
-	/* 0xd210002c -> 0xffffffff */
-	value =  0xffffffff;
-	__raw_writel(value, 0xd210002c);
-	PRINT("0xd210002c =  0x%x\n",value);
 }
 
 void dispc_print_clk(void)
