@@ -375,7 +375,7 @@ int pin_init(void);
 #define BIT_PIN_SLP_WTLCP		( BIT_15 )
 #define BIT_PIN_SLP_PUBCP               ( BIT_14 )
 #define BIT_PIN_SLP_AP                  ( BIT_13 )
-#define BIT_PIN_SLP_NONE		( (~(0xf << 13)) & (BIT_13|BIT_14|BIT_15|BIT_16|BIT_17) )
+#define BIT_PIN_SLP_NONE		( (~(0x1f << 13)) & (BIT_13|BIT_14|BIT_15|BIT_16|BIT_17) )
 #define BITS_PIN_SLP(_x_)               ( ((_x_) << 13) & (BIT_13|BIT_14|BIT_15|BIT_16|BIT_17) )
 #define BIT_PIN_WPU_SEL                 ( BIT_12 )
 #define BIT_PIN_WPU                     ( BIT_7 )
