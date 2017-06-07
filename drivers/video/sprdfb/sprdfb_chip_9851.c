@@ -13,7 +13,6 @@
  ******************************************************************************/
 
 #include "sprdfb_chip_common.h"
-#include "sprdfb_chip_9833.h"
 #include "sprdfb.h"
 
 #define BIT(x)  (1<<x)
