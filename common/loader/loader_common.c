@@ -340,9 +340,12 @@ static int start_linux_armv8(uchar *dt_addr)
 	/*FIXME: cleanup_before_linux() will cause panic here, we need to find the solution*/
 	flush_dcache_range(CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_SDRAM_END);
 #ifdef CONFIG_DUAL_DDR
-		flush_dcache_range(CONFIG_SYS_SDRAM_BASE2, CONFIG_SYS_SDRAM_END2);
+	flush_dcache_range(CONFIG_SYS_SDRAM_BASE2, CONFIG_SYS_SDRAM_END2);
 #endif
 
+#ifdef CONFIG_SOC_SHARKLE
+	cleanup_before_linux();//sharkle need disable mmu and cache before into kernel
+#endif
 	/*start modem CP */
 	modem_entry();
 
