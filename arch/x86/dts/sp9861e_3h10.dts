@@ -143,7 +143,7 @@
 	};
         microcode {
                 update@0 {
-#include "microcode/MU_00_01_00070658_80000811.SIGNED.dtsi"
+#include "microcode/MU_00_01_00070658_80000812.SIGNED.dtsi"
                 };
         };
 };
