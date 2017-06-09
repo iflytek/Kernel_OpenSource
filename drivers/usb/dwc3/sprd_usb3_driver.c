@@ -375,9 +375,11 @@ static void usb3_handle_ep_intr(usb3_pcd_t *pcd,
 	epnum = physep >> 1 & 0xf;
 
 	/* Get EP pointer */
-	if(epnum == 0)
+	if(epnum == 0) {
+		if ((pcd->ep0state == EP0_IDLE) && is_in)
+			return;
 		ep = pcd->ep0;
-	else
+	} else
 		ep = is_in ? pcd->in_ep : pcd->out_ep;
 
 	switch (event & DEPEVT_INTTYPE_BITS) {
