@@ -6,11 +6,13 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
+ * updated at 2017-06-09 10:08:26
+ *
  */
 
 
-#ifndef _GPU_APB_H
-#define _GPU_APB_H
+#ifndef GPU_APB_H
+#define GPU_APB_H
 
 #define CTL_BASE_GPU_APB 0x60100000
 
@@ -24,75 +26,44 @@
 #define REG_GPU_APB_GPU_CGM_FDIV_NUM                   ( CTL_BASE_GPU_APB + 0x0018 )
 #define REG_GPU_APB_GPU_CGM_FDIV_DENOM                 ( CTL_BASE_GPU_APB + 0x001C )
 
-/*---------------------------------------------------------------------------
-// Register Name   : REG_GPU_APB_APB_RST
-// Register Offset : 0x0000
-// Description     :
----------------------------------------------------------------------------*/
+/* REG_GPU_APB_APB_RST */
 
-#define BIT_GPU_APB_GPU_SOFT_RST                                 BIT(0)
+#define BIT_GPU_APB_GPU_SOFT_RST                 BIT(0)
 
-/*---------------------------------------------------------------------------
-// Register Name   : REG_GPU_APB_APB_CLK_CTRL
-// Register Offset : 0x0004
-// Description     :
----------------------------------------------------------------------------*/
+/* REG_GPU_APB_APB_CLK_CTRL */
 
-#define BIT_GPU_APB_CLK_GPU_DIV(x)                               (((x) & 0x7) << 4)
-#define BIT_GPU_APB_CLK_GPU_SEL(x)                               (((x) & 0x7))
+#define BIT_GPU_APB_CLK_GPU_DIV(x)               (((x) & 0x7) << 4)
+#define BIT_GPU_APB_CLK_GPU_SEL(x)               (((x) & 0x7))
 
-/*---------------------------------------------------------------------------
-// Register Name   : REG_GPU_APB_APB_BARRIER_CTRL
-// Register Offset : 0x0008
-// Description     :
----------------------------------------------------------------------------*/
+/* REG_GPU_APB_APB_BARRIER_CTRL */
 
-#define BIT_GPU_APB_GPU_BARRIER_DISABLE_EN                       BIT(0)
+#define BIT_GPU_APB_GPU_BARRIER_DISABLE_EN       BIT(0)
 
-/*---------------------------------------------------------------------------
-// Register Name   : REG_GPU_APB_GPU_NIC400_GPU2PUB_SLV_LP_CFG
-// Register Offset : 0x000C
-// Description     :
----------------------------------------------------------------------------*/
+/* REG_GPU_APB_GPU_NIC400_GPU2PUB_SLV_LP_CFG */
 
-#define BIT_GPU_APB_NIC400_GPU2PUB_SLV_LP_EB                     BIT(1)
-#define BIT_GPU_APB_NIC400_GPU2PUB_SLV_LP_FORCE                  BIT(0)
+#define BIT_GPU_APB_NIC400_GPU2PUB_SLV_LP_EB     BIT(1)
+#define BIT_GPU_APB_NIC400_GPU2PUB_SLV_LP_FORCE  BIT(0)
 
-/*---------------------------------------------------------------------------
-// Register Name   : REG_GPU_APB_GPU_LPC_NUM_CFG
-// Register Offset : 0x0010
-// Description     :
----------------------------------------------------------------------------*/
+/* REG_GPU_APB_GPU_LPC_NUM_CFG */
 
-#define BIT_GPU_APB_GPU_SYS_LP_NUM(x)                            (((x) & 0xFFFF))
+#define BIT_GPU_APB_GPU_SYS_LP_NUM(x)            (((x) & 0xFFFF))
 
-/*---------------------------------------------------------------------------
-// Register Name   : REG_GPU_APB_GPU_NIC400_QOS
-// Register Offset : 0x0014
-// Description     :
----------------------------------------------------------------------------*/
+/* REG_GPU_APB_GPU_NIC400_QOS */
 
-#define BIT_GPU_APB_GPU_QOS_SEL                                  BIT(16)
-#define BIT_GPU_APB_AWQOS_THRESHOLD_GPU(x)                       (((x) & 0xF) << 12)
-#define BIT_GPU_APB_ARQOS_THRESHOLD_GPU(x)                       (((x) & 0xF) << 8)
-#define BIT_GPU_APB_AWQOS_GPU(x)                                 (((x) & 0xF) << 4)
-#define BIT_GPU_APB_ARQOS_GPU(x)                                 (((x) & 0xF))
+#define BIT_GPU_APB_GPU_QOS_SEL                  BIT(16)
+#define BIT_GPU_APB_AWQOS_THRESHOLD_GPU(x)       (((x) & 0xF) << 12)
+#define BIT_GPU_APB_ARQOS_THRESHOLD_GPU(x)       (((x) & 0xF) << 8)
+#define BIT_GPU_APB_AWQOS_GPU(x)                 (((x) & 0xF) << 4)
+#define BIT_GPU_APB_ARQOS_GPU(x)                 (((x) & 0xF))
 
-/*---------------------------------------------------------------------------
-// Register Name   : REG_GPU_APB_GPU_CGM_FDIV_NUM
-// Register Offset : 0x0018
-// Description     :
----------------------------------------------------------------------------*/
+/* REG_GPU_APB_GPU_CGM_FDIV_NUM */
 
-#define BIT_GPU_APB_CGM_GPU_FDIV_NUM(x)                          (((x) & 0xF))
+#define BIT_GPU_APB_CGM_GPU_FDIV_NUM(x)          (((x) & 0xF))
 
-/*---------------------------------------------------------------------------
-// Register Name   : REG_GPU_APB_GPU_CGM_FDIV_DENOM
-// Register Offset : 0x001C
-// Description     :
----------------------------------------------------------------------------*/
+/* REG_GPU_APB_GPU_CGM_FDIV_DENOM */
 
-#define BIT_GPU_APB_CGM_GPU_FDIV_DENOM(x)                        (((x) & 0xF))
+#define BIT_GPU_APB_CGM_GPU_FDIV_DENOM(x)        (((x) & 0xF))
 
 
-#endif
+#endif /* GPU_APB_H */
+
