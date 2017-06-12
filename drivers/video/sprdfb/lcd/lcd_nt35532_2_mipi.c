@@ -740,7 +740,11 @@ static struct info_mipi lcd_nt35532_mipi_info = {
 	.work_mode  = SPRDFB_MIPI_MODE_VIDEO,
 	.video_bus_width = 24, /*18,16*/
 	.lan_number = 4,
-	.phy_feq = 9646*100,//4//960
+#ifdef CONFIG_SPRD_SOC_SP9853I
+	.phy_feq = 9798*100,
+#else
+	.phy_feq = 9646*100,
+#endif
 	.h_sync_pol = SPRDFB_POLARITY_POS,
 	.v_sync_pol = SPRDFB_POLARITY_POS,
 	.de_pol = SPRDFB_POLARITY_POS,
