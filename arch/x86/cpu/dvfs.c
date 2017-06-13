@@ -18,11 +18,18 @@
 #include "adi_hal_internal.h"
 #include <chipram_env.h>
 
+#define FUSE_DVFS_BINNING_BLKNO		26 /*[9:6]: 0011-OD 0010-SS 0001-TT*/
 #define FUSE_LFM_MODULE0_BLKNO		55
 #define FUSE_HFM_MODULE0_BLKNO		56
 #define FUSE_LFM_MODULE1_BLKNO		57
 #define FUSE_HFM_MODULE1_BLKNO		58
 #define FUSE_IDV_BLKNO			59
+
+#define FUSE_DVFS_BINNING_VAL(efusedata) (((efusedata)>>6)&0xF)
+#define FUSE_DVFS_BINNING_OD  0x3
+#define FUSE_DVFS_BINNING_SS  0x2
+#define FUSE_DVFS_BINNING_TT  0x1
+#define FUSE_DVFS_BINNING_NULL  0x0
 
 #define VID_TABLE_DATA (CONFIG_BASEIA_SRAM + CONFIG_VID_OFFSET)
 
@@ -173,6 +180,7 @@ static void setup_vid_table(int module)
 	int i, mv_range;
 	struct pmic_vid *v0, *v;
 	int mv_v2, mv_v7, mv;
+	u32 binning;
 
 	v0 = (module == MODULE0) ? vt_mod0 : vt_mod1;
 	/* WA. on zebu module, there's no efuse table, so we will set one
@@ -218,14 +226,47 @@ static void setup_vid_table(int module)
 	}
 	else{
 #if defined(CONFIG_SOC_IWHALE2)
-		set_pmic_voltage(v0 + VID_V0, 800);
-		set_pmic_voltage(v0 + VID_V1, 800);
-		set_pmic_voltage(v0 + VID_V2, 800);
-		set_pmic_voltage(v0 + VID_V3, 840);
-		set_pmic_voltage(v0 + VID_V4, 947);
-		set_pmic_voltage(v0 + VID_V5, 1061);
-		set_pmic_voltage(v0 + VID_V6, 1176);
-		set_pmic_voltage(v0 + VID_V7, 1233);
+		binning = sprd_ap_efuse_read(FUSE_DVFS_BINNING_BLKNO);
+		debug("setup_vid_table  binning=%u\n", binning);
+
+		if (FUSE_DVFS_BINNING_VAL(binning) == FUSE_DVFS_BINNING_OD) {
+			set_pmic_voltage(v0 + VID_V0, 770);
+			set_pmic_voltage(v0 + VID_V1, 770);
+			set_pmic_voltage(v0 + VID_V2, 770);
+			set_pmic_voltage(v0 + VID_V3, 863);
+			set_pmic_voltage(v0 + VID_V4, 977);
+			set_pmic_voltage(v0 + VID_V5, 1092);
+			set_pmic_voltage(v0 + VID_V6, 1206);
+			set_pmic_voltage(v0 + VID_V7, 1263);
+		} else if (FUSE_DVFS_BINNING_VAL(binning) == FUSE_DVFS_BINNING_SS) {
+			set_pmic_voltage(v0 + VID_V0, 732);
+			set_pmic_voltage(v0 + VID_V1, 732);
+			set_pmic_voltage(v0 + VID_V2, 732);
+			set_pmic_voltage(v0 + VID_V3, 833);
+			set_pmic_voltage(v0 + VID_V4, 947);
+			set_pmic_voltage(v0 + VID_V5, 1062);
+			set_pmic_voltage(v0 + VID_V6, 1176);
+			set_pmic_voltage(v0 + VID_V7, 1233);
+		} else if (FUSE_DVFS_BINNING_VAL(binning) == FUSE_DVFS_BINNING_TT) {
+			set_pmic_voltage(v0 + VID_V0, 732);
+			set_pmic_voltage(v0 + VID_V1, 732);
+			set_pmic_voltage(v0 + VID_V2, 732);
+			set_pmic_voltage(v0 + VID_V3, 820);
+			set_pmic_voltage(v0 + VID_V4, 921);
+			set_pmic_voltage(v0 + VID_V5, 1022);
+			set_pmic_voltage(v0 + VID_V6, 1123);
+			set_pmic_voltage(v0 + VID_V7, 1173);
+		} else {
+			set_pmic_voltage(v0 + VID_V0, 800);
+			set_pmic_voltage(v0 + VID_V1, 800);
+			set_pmic_voltage(v0 + VID_V2, 800);
+			set_pmic_voltage(v0 + VID_V3, 840);
+			set_pmic_voltage(v0 + VID_V4, 947);
+			set_pmic_voltage(v0 + VID_V5, 1061);
+			set_pmic_voltage(v0 + VID_V6, 1176);
+			set_pmic_voltage(v0 + VID_V7, 1233);
+		}
+
 #elif defined(CONFIG_SPRD_SOC_SP9853I)
 		set_pmic_voltage(v0 + VID_V0, 840);
 		set_pmic_voltage(v0 + VID_V1, 840);
