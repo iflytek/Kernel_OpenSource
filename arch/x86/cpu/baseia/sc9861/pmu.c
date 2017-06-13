@@ -70,28 +70,6 @@ void pmu_common_config(void)
 		0
 	);
 
-	/* After PMU switch from 32k to 4M, the op will less than 1ms.
-	 * This must be done in SBS chip, or else the pub1 status is
-	 * wrong, which will cause RCO100m can be closed by PMU.
-	 */
-	/* only SBS chip need this op */
-	if ((CHIP_REG_GET(REG_AON_APB_ACCDDR_LATENCY_REDUCE_SEL) &
-		BIT_AON_APB_GPU2DDR_LATENCY_REDUCE_SEL) ==
-		BIT_AON_APB_GPU2DDR_LATENCY_REDUCE_SEL)
-	{
-		CHIP_REG_AND(REG_PMU_APB_PD_PUB1_SYS_PWR_CFG,
-			~(BIT_PMU_APB_PD_PUB1_SYS_FORCE_SHUTDOWN |
-			BIT_PMU_APB_PD_PUB1_SYS_AUTO_SHUTDOWN_EN |
-			0));
-
-		while((CHIP_REG_GET(REG_PMU_APB_PWR_STATE_DBG3) &
-			BIT_PMU_APB_PD_PUB1_SYS_STATE(0x1f)) != 0);
-
-		CHIP_REG_SET(REG_PMU_APB_PD_PUB1_SYS_PWR_CFG,
-			BIT_PMU_APB_PD_PUB1_SYS_FORCE_SHUTDOWN |
-			0);
-	}
-
 	CHIP_REG_SET(REG_PMU_APB_PD_TOP_PWR_CFG,
 		//BIT_PMU_APB_PD_TOP_FORCE_SHUTDOWN |
 		//BIT_PMU_APB_PD_TOP_AUTO_SHUTDOWN_EN |
