@@ -35,6 +35,7 @@ extern void aon_lpc_config();
 #include <libfdt.h>
 #include "dev_tree.h"
 #endif
+
 extern int lcd_line_length;
 
 extern int fdt_fixup_memory_region(void *fdt, int *auto_mem_num_p);
@@ -968,6 +969,7 @@ void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
 }
 #endif
 
+uint32_t uboot_start_time;
 void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 {
 	boot_img_hdr *hdr = (void *)raw_header;
@@ -977,6 +979,9 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	int j = 0;
 	int ret = 0;
 	uchar *dt_adr = DT_ADR;
+	uint32_t lcd_init_time;
+	uint32_t backlight_on_time;
+	uint32_t uboot_consume_time;
 
 #ifdef CONFIG_SOC_IWHALE2
 	aon_lpc_config();
@@ -985,6 +990,8 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	ap_clk_doze_enable();
 
 #ifdef CONFIG_SPLASH_SCREEN
+	lcd_init_time = SCI_GetTickCount();
+	printf("lcd start init time:%dms\n", lcd_init_time);
 	if(lcd_enable) {
 		extern void lcd_enable(void);
 		debug("[LCD] Drawing the logo...\n");
@@ -993,6 +1000,12 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 		lcd_enable();
 	}
 	set_backlight(backlight_set);
+	backlight_on_time = SCI_GetTickCount();
+	lcd_init_time= backlight_on_time - lcd_init_time;
+	uboot_consume_time = backlight_on_time - uboot_start_time;
+	printf("uboot consume time:%dms, lcd init consume:%dms, backlight on time:%dms \n", \
+		uboot_consume_time, lcd_init_time, backlight_on_time);
+
 #endif
 	set_vibrator(0);
 

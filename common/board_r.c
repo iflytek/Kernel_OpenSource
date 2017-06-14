@@ -904,8 +904,10 @@ init_fnc_t init_sequence_r[] = {
 	run_main_loop,
 };
 
+extern uint32_t uboot_start_time;
 void board_init_r(gd_t *new_gd, ulong dest_addr)
 {
+	uboot_start_time = SCI_GetTickCount();
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
 	int i;
 #endif

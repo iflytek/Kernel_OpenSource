@@ -2108,7 +2108,7 @@ int mmc_init(struct mmc *mmc)
 
 	if (!err)
 		err = mmc_complete_init(mmc);
-	debugf("%s: %d, time %lu\n", __func__, err, get_timer(start));
+	printf("%s: %d, time %lu\n", __func__, err, get_timer(start));
 	return err;
 }
 
@@ -2290,7 +2290,7 @@ int sprd_host_init(int sdio_type)
 	CHIP_REG_SET(sprd_host_info->baseclk_reg, sprd_host_info->baseclk_mask);
 #endif
 
-	debugf("sprd_host_info->ldo_core:%d,sprd_host_info->ldo_io:%d\n",
+	debugf("sprd_host_info->ldo_core:%s,sprd_host_info->ldo_io:%s\n",
 	       sprd_host_info->ldo_core, sprd_host_info->ldo_io);
 	udelay(1000);
 	CHIP_REG_OR(sprd_host_info->ahb_enable_reg,

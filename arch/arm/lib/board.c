@@ -502,13 +502,14 @@ static void display_fdt_model(const void *blob)
  *
  ************************************************************************
  */
-
+extern uint32_t uboot_start_time;
 void board_init_r(gd_t *id, ulong dest_addr)
 {
 	ulong malloc_start;
 #if !defined(CONFIG_SYS_NO_FLASH)
 	ulong flash_size;
 #endif
+	uboot_start_time = SCI_GetTickCount();
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
 	bootstage_mark_name(BOOTSTAGE_ID_START_UBOOT_R, "board_init_r");
