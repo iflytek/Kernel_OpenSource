@@ -66,7 +66,7 @@ void pmu_common_config(void)
 	uint32_t reg_val;
 
 	CHIP_REG_SET(REG_PMU_APB_CGM_PMU_SEL_CFG,
-		BIT_PMU_APB_CGM_PMU_SEL_REG(0x02) |
+		BIT_PMU_APB_CGM_PMU_SEL_REG(0x01) |
 		0
 	);
 
