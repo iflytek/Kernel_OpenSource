@@ -98,7 +98,7 @@
 
 /*sprd adi*/
 #define CONFIG_SPRD_ADI
-#define ADI_R1P0_VER
+#define ADI_R3P0_VER
 /*sprd gpio*/
 #define CONFIG_SPRD_GPIO
 /* Chip Driver Macro Definitions End*/
