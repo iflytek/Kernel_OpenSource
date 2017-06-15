@@ -16,6 +16,11 @@ static u16 ana_mixed_ctl;
 extern int32_t pmic_adc_get_values(uint16_t channel, bool scale, uint8_t num,
 				    int32_t * p_buf);
 
+struct dcdc_efficiency_scaling{
+	u32 glb_addr;
+	u16 scaling_val;
+};
+
 #define REGU_CALI_DEBUG
 
 #ifdef REGU_CALI_DEBUG
@@ -709,8 +714,35 @@ int calibrate_register_callback(void* callback_fun)
 	} else
 		return -1;
 }
-
+int dcdc_optimize()
+{
+	int i;
+	struct dcdc_efficiency_scaling dcdc_group[] = {
+		{ANA_REG_GLB_DCDC_ARM0_REG0,0x1910},
+		{ANA_REG_GLB_DCDC_ARM0_REG1,0x0C08},
+		{ANA_REG_GLB_DCDC_ARM1_REG0,0x1910},
+		{ANA_REG_GLB_DCDC_ARM1_REG1,0x0C08},
+		{ANA_REG_GLB_DCDC_CORE_REG0,0x1910},
+		{ANA_REG_GLB_DCDC_CORE_REG1,0x0C08},
+		{ANA_REG_GLB_DCDC_GPU_REG0,0x1910},
+		{ANA_REG_GLB_DCDC_GPU_REG1,0x0C08},
+		{ANA_REG_GLB_DCDC_MEM_REG0,0x1910},
+		{ANA_REG_GLB_DCDC_MEM_REG1,0x0308},
+		{ANA_REG_GLB_DCDC_GEN_REG0,0x1910},
+		{ANA_REG_GLB_DCDC_GEN_REG1,0x0308},
+		{ANA_REG_GLB_DCDC_RF_REG0,0x1910},
+		{ANA_REG_GLB_DCDC_RF_REG1,0x0608},
+		{ANA_REG_GLB_DCDC_WPA_REG0,0x1910},
+		{ANA_REG_GLB_DCDC_WPA_REG1,0x0308},
+		{0,0}
+	};
+	for(i = 0;dcdc_group[i].glb_addr !=0; i++ ){
+		ANA_REG_SET(dcdc_group[i].glb_addr,dcdc_group[i].scaling_val);
+	}
+	return 0;
+}
 int regulator_pmic_init(void)
 {
+	dcdc_optimize();
 	return 0;
 }
