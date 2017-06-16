@@ -67,6 +67,12 @@ static int FDL_UsbSetBaudrate (struct FDL_ChannelHandler  *channel,
 	return 0;
 }
 
+static int FDL_DisableHDLC (struct FDL_ChannelHandler  *channel,int disabled)
+{
+	usb_disableHDLC(disabled);
+	return 0;
+}
+
 static int FDL_UsbClose (struct FDL_ChannelHandler  *channel)
 {
 	return 0;
@@ -80,6 +86,7 @@ struct FDL_ChannelHandler gUSBChannel = {
 	FDL_UsbWrite,
 	FDL_UsbPutChar,
 	FDL_UsbSetBaudrate,
+	FDL_DisableHDLC,
 	FDL_UsbClose,
 	0
 };

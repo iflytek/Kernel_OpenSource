@@ -19,7 +19,7 @@
 #define __USB_DRV_H__
 
 
-#define MAX_RECV_LENGTH 1024 * 32
+#define MAX_RECV_LENGTH (1024*63)
 
 extern uint8_t usb_get_entry();
 extern int usb_get_packet(unsigned char* buf, unsigned int len);

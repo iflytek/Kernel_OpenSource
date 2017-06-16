@@ -9,6 +9,10 @@ extern int act_as_romcode;
 extern void dl_send_ack (dl_cmd_type_t pkt_type);
 void FDL_PacketDoIdle (void);
 
+int message_format;
+
+#define	FDL_DEFAULT_HDLC_FORMAT	0
+#define	FDL_NONE_HDLC_FORMAT	1
 
 struct FDL_ChannelHandler *gFdlUsedChannel;
 
@@ -23,6 +27,7 @@ void dl_packet_init (void)
 {
 	uint32_t i = 0;
 
+	message_format = FDL_DEFAULT_HDLC_FORMAT;
 	packet_free_list = &packet[0];
 
 	for (i = 0; i < PACKET_MAX_NUM; i++) {
@@ -283,6 +288,18 @@ void FDL_WritePacket (const void *buf, int len)
 
 }
 
+void FDL_DisableHDLC (int disabled)
+{
+	if (gFdlUsedChannel->DisableHDLC) {
+		gFdlUsedChannel->DisableHDLC (gFdlUsedChannel, disabled);
+		message_format = FDL_NONE_HDLC_FORMAT;
+	}
+}
+
+int * FDL_get_DisableHDLC(void)
+{
+	return gFdlUsedChannel->DisableHDLC;
+}
 
 uint32_t  FDL_DataProcess (dl_packet_t *packet_ptr_src, dl_packet_t *packet_ptr_dest)
 {
@@ -325,21 +342,26 @@ uint32_t  FDL_DataProcess (dl_packet_t *packet_ptr_src, dl_packet_t *packet_ptr_
 	* (des_ptr++) = HDLC_FLAG;
 	send_len = 1;
 
-	/*middle part process*/
-	for (i = 0; i < write_len; i++) {
-		curval = * (src_ptr + i);
+	if (message_format == FDL_NONE_HDLC_FORMAT) {
+		memcpy(des_ptr,src_ptr,write_len);
+		send_len += write_len;
+		des_ptr += write_len;
+	} else {
+          /*middle part process*/
+          for (i = 0; i < write_len; i++) {
+                  curval = * (src_ptr + i);
 
-		if ( (HDLC_FLAG == curval) || (HDLC_ESCAPE == curval)) {
-			* (des_ptr++) = HDLC_ESCAPE;
-			* (des_ptr++) = ~HDLC_ESCAPE_MASK & curval;
-			send_len++;
-		} else {
-			* (des_ptr++) = curval;
-		}
+                  if ( (HDLC_FLAG == curval) || (HDLC_ESCAPE == curval)) {
+                          * (des_ptr++) = HDLC_ESCAPE;
+                          * (des_ptr++) = ~HDLC_ESCAPE_MASK & curval;
+                          send_len++;
+                  } else {
+                          * (des_ptr++) = curval;
+                  }
 
-		send_len++;
+                  send_len++;
+          }
 	}
-
 	/*end flag*/
 	* (des_ptr++) = HDLC_FLAG;
 	send_len++;

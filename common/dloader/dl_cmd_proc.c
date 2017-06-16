@@ -411,3 +411,10 @@ int dl_cmd_end_process(dl_packet_t *packet, void *arg)
 	return 0;
 }
 
+int dl_cmd_disable_hdlc(dl_packet_t *packet, void *arg)
+{
+	dl_send_ack(BSL_REP_ACK);
+	FDL_DisableHDLC(1);
+	return 0;
+}
+

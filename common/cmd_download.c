@@ -30,6 +30,12 @@ static int dl_times=0;
 static struct dl_cmd *cmdlist = NULL;
 extern int sprd_clean_rtc(void);
 extern void usb_init (uint32_t autodl_mode);
+typedef struct _DA_INFO_T_
+{
+	uint32_t   dwVersion;
+	bool    bDisableHDLC; //0: Enable hdl; 1:Disable hdl
+}DA_INFO_T;
+
 
 void dl_cmd_register(enum dl_cmd_type type,
 		       int (*handle)(struct dl_packet *pkt, void *arg))
@@ -80,6 +86,8 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	extern int autodloader_mainhandler(void);
 	boot_mode_t boot_role = get_boot_role();
 	int chip_version = 0;
+	dl_packet_t ack_packet;
+	DA_INFO_T Da_Info;
 
 #ifdef CONFIG_USB_ENUM_IN_UBOOT
 	chip_version = sprd_get_chip_version();
@@ -122,9 +130,21 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #endif
 	dl_cmd_register(BSL_CMD_END_PROCESS, dl_cmd_end_process);
 	dl_cmd_register(BSL_CMD_READ_REFINFO, dl_cmd_read_ref_info);
-
+	dl_cmd_register(BSL_CMD_DIS_HDLC, dl_cmd_disable_hdlc);
 	usb_init(0);
-	dl_send_ack (BSL_INCOMPATIBLE_PARTITION);
+
+	/* uart download doesn't supoort disable hdlc, so need check it */
+	if (FDL_get_DisableHDLC() == NULL)
+		dl_send_ack (BSL_INCOMPATIBLE_PARTITION);
+	else {
+		Da_Info.dwVersion = 1;
+		Da_Info.bDisableHDLC = 1;
+		ack_packet.body.type = BSL_INCOMPATIBLE_PARTITION;
+		memcpy((unchar *)ack_packet.body.content, (unchar *)&Da_Info,sizeof(Da_Info));
+		ack_packet.body.size = sizeof(Da_Info);
+		dl_send_packet(&ack_packet);
+	}
+
 	/* enter command handler */
 	dl_cmd_handler();
         return 0;

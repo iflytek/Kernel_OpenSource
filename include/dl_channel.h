@@ -11,6 +11,7 @@ typedef struct FDL_ChannelHandler
     int (*Write) (struct FDL_ChannelHandler *channel, const unsigned char *buf, unsigned int  len);
     int (*PutChar) (struct FDL_ChannelHandler *channel, const unsigned char ch);
     int (*SetBaudrate) (struct FDL_ChannelHandler *channel, unsigned int  baudrate);
+    int (*DisableHDLC) (struct FDL_ChannelHandler *channel, int  disabled);
     int (*Close) (struct FDL_ChannelHandler *channel);
     void   *priv;
 } FDL_ChannelHandler_T;

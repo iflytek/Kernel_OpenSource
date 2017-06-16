@@ -28,13 +28,13 @@ static __inline void usb_handler (void);
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/
-#define MAX_RECV_LENGTH     (64*64*4)//640*64 0xa000
+#define MAX_RECV_LENGTH     (1024*63)//640*64 0xa000
 #define USB_TIMEOUT             (1000)
 
 /**---------------------------------------------------------------------------*
  **                         Data Structures                                   *
  **---------------------------------------------------------------------------*/
-
+static int hdlc_disabled;
 static int currentDmaBufferIndex = 0;
 LOCAL __attribute__((aligned (64))) uint32_t    s_setup_packet[8] = {0};
 LOCAL uint32_t    enum_speed = 0;
@@ -718,6 +718,12 @@ REGET:
 
 	src = usb_out_endpoint_buf[nIndex] + readIndex;
 
+	if (hdlc_disabled) {
+		memcpy(buf,src+1,recv_length-2);
+		readIndex = recv_length;
+		return recv_length-2;
+	}
+
 	for (; readIndex < recv_length; src++) {
 		readIndex++;
 		switch (pkt_flag) {
@@ -750,6 +756,10 @@ end:
 	return dest - buf;
 }
 
+void usb_disableHDLC( int disabled)
+{
+	hdlc_disabled = disabled;
+}
 /*****************************************************************************/
 //  Description:   initialize the usb core.
 //  Global resource dependence:
@@ -773,6 +783,7 @@ void usb_core_init(unsigned long reg_base_addr, uint32_t autodl_mode)
  */
 void usb_init(unsigned int autodl_mode)
 {
+	hdlc_disabled = 0;
 	usb_core_init(SPRD_USB_BASE, autodl_mode);
 }
 

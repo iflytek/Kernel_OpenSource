@@ -28,6 +28,7 @@
 #include "sprd_usb3_def.h"
 #include <usb/sprd_usb_drv.h>
 
+static int hdlc_disabled;
 /** Driver context struct */
 static usb3_device_t g_usb3_dev;
 
@@ -723,6 +724,12 @@ int usb_get_packet(uint8_t* buf, unsigned int len)
 loop:
 		usb3_handler();
 		if (g_out_len) {
+			if (hdlc_disabled) {
+				int count = g_out_len;
+				memcpy(dest,g_out_buffer+1,count-2);
+				g_out_len = 0;;
+				return count-2;
+			}
 			for (src = g_out_buffer; g_out_len--; src++) {
 				switch(pkt_flag) {
 				case PKT_NONE:
@@ -760,6 +767,10 @@ end:
 	return dest - buf;
 }
 
+void usb_disableHDLC( int disabled)
+{
+	hdlc_disabled = disabled;
+}
 /**
  * The routine initialize USB3 driver
  * Note: Since USB is initialized and enumerated in ROM code,
@@ -819,6 +830,7 @@ void usb_core_init(unsigned long reg_base_addr, uint32_t autodl_mode)
  */
 void usb_init(unsigned int autodl_mode)
 {
+	hdlc_disabled = 0;
 	usb_core_init(SPRD_USB_BASE, autodl_mode);
 }
 

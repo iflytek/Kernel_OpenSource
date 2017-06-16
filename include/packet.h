@@ -60,6 +60,8 @@ struct dl_packet* dl_get_packet (void);
 void dl_free_packet (struct dl_packet *pkt);
 void dl_send_packet (struct dl_packet *pkt);
 void dl_send_ack (dl_cmd_type_t  pkt_type);
+void FDL_DisableHDLC (int disabled);
+int * FDL_get_DisableHDLC(void);
 
 
 #endif  // PACKET_H

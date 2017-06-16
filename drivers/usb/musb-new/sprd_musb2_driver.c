@@ -36,7 +36,7 @@ void flush_dcache_range(unsigned long start, unsigned long stop);
 /**---------------------------------------------------------------------------*
  **                         Data Structures                                   *
  **---------------------------------------------------------------------------*/
-
+static int hdlc_disabled;
 static int currentDmaBufferIndex;
 static uint32_t    enum_speed;
 static uint32_t    recv_length;
@@ -542,6 +542,11 @@ REGET:
     }
     src = usb_out_endpoint_buf + readIndex;
 
+    if (hdlc_disabled) {
+        memcpy(buf,src+1,recv_length-2);
+        readIndex = recv_length;
+	return (recv_length - 2);
+    }
     for (; readIndex < recv_length; src++) {
         readIndex++;
         switch (pkt_flag) {
@@ -574,6 +579,10 @@ end:
     return dest - buf;
 }
 
+void usb_disableHDLC( int disabled)
+{
+	hdlc_disabled = disabled;
+}
 void usb_init(unsigned int autodl_mode)
 {
 	usb_core_init(autodl_mode);
@@ -695,6 +704,7 @@ int usb_driver_init(unsigned int max_speed)
 	int retval = 0;
 	int error;
 
+	hdlc_disabled = 0;
 	udc_power_on();
 
 	if (max_speed == USB_SPEED_HIGH) {

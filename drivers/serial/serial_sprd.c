@@ -261,6 +261,7 @@ FDL_ChannelHandler_T  gUart1Channel = {
 	.Write = sprd_write,
 	.PutChar = sprd_putChar,
 	.SetBaudrate =sprd_setBaudrate,
+	.DisableHDLC = NULL,
 	.Close = sprd_close,
 	.priv = &port[0],
 };
@@ -272,6 +273,7 @@ FDL_ChannelHandler_T  gUart0Channel = {
 	.Write = sprd_write,
 	.PutChar = sprd_putChar,
 	.SetBaudrate =sprd_setBaudrate,
+	.DisableHDLC = NULL,
 	.Close = sprd_close,
 	.priv = &port[1],
 };
