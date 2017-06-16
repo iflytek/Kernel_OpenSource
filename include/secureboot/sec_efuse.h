@@ -8,5 +8,7 @@
 #ifdef CONFIG_SC9833
 #include "sec_efuse_sharkl2.h"
 #endif
-
+#ifdef CONFIG_SOC_SHARKLJ1
+#include "sec_efuse_sharklj1.h"
+#endif
 #endif

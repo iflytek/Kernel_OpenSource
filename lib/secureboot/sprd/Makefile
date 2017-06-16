@@ -6,6 +6,9 @@ obj-y += sec_efuse_api.o
 ifdef CONFIG_SC9833
 obj-y += sec_efuse_sharkl2.o
 endif
+ifdef CONFIG_SOC_SHARKLJ1
+obj-y += sec_efuse_sharklj1.o
+endif
 ifneq ($(CONFIG_SOC_IWHALE2)$(CONFIG_SPRD_SOC_SP9853I), )
 obj-y += sec_iefuse.o
 endif
