@@ -827,7 +827,7 @@ find_dir_entry(exfsdata *mydata,  exfat_whole_dentry *p_ent,  exfat_whole_dentry
 	int  i, j,  fn_len, idx, fname_dent_idx, strend, cont;
 
 	if (p_parent->strext == NULL) {// root dir
-		sec_all = (__u32)(EXFAT2CPU64(p_parent->strext->data_len)/mydata->sect_size);
+		sec_all = 0;
 		startsect = mydata->rootdir_sect;
 		curclust = (startsect - mydata->data_begin) / mydata->clust_size;
 		cont = 0;
