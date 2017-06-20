@@ -217,6 +217,7 @@ int check_pctool_cmd(uint8_t* buf, int len)
 	            freq = *(buf+1);
 	            freq = freq<<8;
 	            freq += *(buf+2);
+	            freq += ((*(buf+3)) << 16); /* bit16~bit23, new fre may > 65535 */
 	            command += freq<<8;
 	            break;
 	        case CALIBERATE_PROKEY_COMMOND_T:
