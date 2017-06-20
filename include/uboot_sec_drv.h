@@ -118,4 +118,6 @@ void tee_smc_call   (struct smc_param *param);
 
 void tee_call_request(unsigned int **mem_ptr);
 void tos_status_check();
+void tos_start_notify();
+void tos_end_notify();
 #endif

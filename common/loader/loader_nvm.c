@@ -1020,6 +1020,10 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
         tos_status_check();
 #endif
 
+#if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)
+    tos_start_notify();
+#endif
+
 #if defined(CONFIG_SECURE_BOOT)||defined(CONFIG_SECBOOT)
 	if (0 == memcmp(kernel_pname, RECOVERY_PART, strlen(RECOVERY_PART))) {
 		partition = "recovery";
@@ -1114,6 +1118,9 @@ extern boot_image_required_t *get_cp_load_table(void);
 #endif
 #ifdef CONFIG_TEE_FIREWALL
 	fdt_reserved_mem_multimedia_parse(dt_adr);
+#endif
+#if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)
+    tos_end_notify();
 #endif
 	vlx_entry(dt_adr);
 }
