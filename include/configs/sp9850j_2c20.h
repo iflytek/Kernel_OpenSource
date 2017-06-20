@@ -25,6 +25,7 @@
 
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
+#define TOS_TRUSTY
 
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
