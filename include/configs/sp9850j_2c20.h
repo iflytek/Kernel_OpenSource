@@ -296,15 +296,6 @@
 #endif
 #endif
 
-/*rf board id */
-//#define RF_BAND_INFO
-#ifdef RF_BAND_INFO
-#define LB_GPIO_NUM   175
-#define MB_GPIO_NUM   174
-#define HB_GPIO_NUM   166
-#define ADC_CHANNEL_FOR_NV   1
-#endif
-
 /*fastboot*/
 #define SCRATCH_ADDR    (CONFIG_SYS_SDRAM_BASE + 0x100000)
 #define FB_DOWNLOAD_BUF_SIZE           (CONFIG_SYS_TEXT_BASE - SCRATCH_ADDR-0x800000)
@@ -327,6 +318,19 @@
  /*SMPL config*/
 //#define CONFIG_SMPL_EN
 #define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
+
+/*rf board id */
+#define RF_BAND_INFO
+#ifdef RF_BAND_INFO
+#define ADC_CHANNEL_FOR_NV              3
+#endif
+
+/* TSX_32Kless */
+#define CONFIG_TSX_32K
+#ifdef CONFIG_TSX_32K
+#define LB_GPIO                         140
+#define MB_GPIO                         141
+#endif
 
 /* Chip Driver Macro Definitions End*/
 #define CONFIG_SYS_I2C
