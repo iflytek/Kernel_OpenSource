@@ -125,11 +125,9 @@ extern void musb_g_disconnect(struct musb *);
 #endif
 #endif
 
-#ifndef __UBOOT__
 extern irqreturn_t musb_h_ep0_irq(struct musb *);
 extern void musb_host_tx(struct musb *, u8);
 extern void musb_host_rx(struct musb *, u8);
-#endif
 /****************************** CONSTANTS ********************************/
 
 #ifndef MUSB_C_NUM_EPS

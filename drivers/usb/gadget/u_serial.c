@@ -679,14 +679,12 @@ void gs_close(void)
 	struct gs_port *port = ports[vcom_port].port;
 	struct gserial	*gser;
 
-	spin_lock_irq(&port->port_lock);
-
 	if (port->open_count != 1) {
 		if (port->open_count == 0)
 			;
 		else
 			--port->open_count;
-		goto exit;
+		return;
 	}
 
 	pr_debug("gs_close: ttyGS%d (%p,%p) ...\n", port->port_num, tty, file);
@@ -705,11 +703,9 @@ void gs_close(void)
 	 * most GS_CLOSE_TIMEOUT seconds; then discard the rest
 	 */
 	if (gs_buf_data_avail(&port->port_write_buf) > 0 && gser) {
-		spin_unlock_irq(&port->port_lock);
 //		waitV_event_interruptible_timeout(port->drain_wait,
 	//				gs_writes_finished(port),
 	//				GS_CLOSE_TIMEOUT * HZ);
-		spin_lock_irq(&port->port_lock);
 		gser = port->port_usb;
 	}
 
@@ -731,8 +727,6 @@ void gs_close(void)
 			port->port_num, tty, file);
 
 	//wake_up_interruptible(&port->close_wait);
-exit:
-	spin_unlock_irq(&port->port_lock);
 }
 
 //buf: the buf address where data put
@@ -1460,9 +1454,7 @@ static int gs_closed(struct gs_port *port)
 {
 	int cond;
 
-	spin_lock_irq(&port->port_lock);
 	cond = (port->open_count == 0) && !port->openclose;
-	spin_unlock_irq(&port->port_lock);
 	return cond;
 }
 

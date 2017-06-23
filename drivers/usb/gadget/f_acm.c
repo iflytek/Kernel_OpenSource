@@ -86,6 +86,12 @@ struct f_acm {
 #define ACM_CTRL_DCD		(1 << 0)
 };
 
+extern struct usb_endpoint_descriptor *__init
+usb_find_endpoint(
+	struct usb_descriptor_header **src,
+	struct usb_descriptor_header **copy,
+	struct usb_endpoint_descriptor *match
+);
 static inline struct f_acm *func_to_acm(struct usb_function *f)
 {
 	return container_of(f, struct f_acm, port.func);

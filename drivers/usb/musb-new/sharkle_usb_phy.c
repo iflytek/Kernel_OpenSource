@@ -19,6 +19,8 @@
 #include <packet.h>
 #include <dl_crc.h>
 
+extern void Musb_mdelay(uint32_t msecs);
+
 static void __raw_bits_and(unsigned int v, unsigned int a)
 {
 	__raw_writel((__raw_readl(a) & v), a);
