@@ -58,7 +58,7 @@
 #include <linux/string.h>
 #include <version.h>
 #include <common.h>
-
+#include <asm/arch/chip_id.h>
 #include <asm/io.h>
 //#include <ldo.h>
 #include <linux/usb/ch9.h>
@@ -532,7 +532,7 @@ static int test_lpm_enabled(struct usb_gadget *gadget)
 static void __raw_bits_and(unsigned int v, unsigned int a)
 {
 	__raw_writel((__raw_readl(a) & v), a);
-	
+
 }
 
 static void __raw_bits_or(unsigned int v, unsigned int a)
@@ -567,9 +567,11 @@ static void usb_enable_module(int en)
 	}
 
 }
+
 static void usb_startup(void)
 {
-	if (CALIBRATE_ENUM_MS == 10000)
+	if ((CALIBRATE_ENUM_MS == 3001) &&
+		(sprd_get_chip_version() == 0))
 		dwc_mdelay(16000);
 	usb_enable_module(1);
 	dwc_mdelay(10);
@@ -1019,7 +1021,7 @@ static struct gadget_wrapper *alloc_wrapper(
 		return NULL;
 	}
 	#endif
-	
+
 	return d;
 }
 
@@ -1067,7 +1069,7 @@ int pcd_init(
 	/*
 	 * Setup interupt handler
 	 */
-	 
+
 	#if 0
 	irq = platform_get_irq(_dev, 0);
 	DWC_DEBUGPL(DBG_ANY, "registering handler for irq%d\n", irq);
@@ -1082,7 +1084,7 @@ int pcd_init(
 	}
 	#endif
 	sprd_pcd = otg_dev->pcd;
-	
+
 	dwc_otg_pcd_start(gadget_wrapper->pcd, &fops);
 
 	return retval;
@@ -1196,6 +1198,6 @@ int usb_gadget_handle_interrupts(void)
 	dwc_otg_pcd_irq(0, sprd_pcd);
        return 0;
 }
-	
+
 #endif				/* DWC_HOST_ONLY */
 

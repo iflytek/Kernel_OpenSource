@@ -79,8 +79,8 @@
 #define CONFIG_MODEM_CALIBERATE
 
 
-#define CALIBRATE_ENUM_MS 10000
-#define CALIBRATE_IO_MS 5000
+#define CALIBRATE_ENUM_MS 3001
+#define CALIBRATE_IO_MS 3000
 
 
 #define LOW_BAT_VOL            3400 /*phone battery voltage low than this value will not boot up*/
