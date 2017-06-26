@@ -18,6 +18,11 @@
 #define REG_SET_VALUE(__base,__v) 		((*(volatile u32 *)(__base)) = (uint32_t)(__v))
 #define REG_GET_VALUE(__base)		    (*(volatile u32 *)(__base))
 #define SCI_ADDR(_b_, _o_) 				( (u32)(_b_) + (_o_) )
+//sprd register set/clr mode
+#define SET_OFFSET	0x1000
+#define CLR_OFFSET	0x2000
+#define SPRD_REG_SET_BIT(__base, __v)	((*(volatile u32 *)((__base) + SET_OFFSET)) = (uint32_t)(__v))
+#define SPRD_REG_CLR_BIT(__base, __v)	((*(volatile u32 *)((__base) + CLR_OFFSET)) = (uint32_t)(__v))
 
 #define udelay(x) \
 	do { \
@@ -606,15 +611,11 @@ void sprd_ce_close(void){
 }
 
 static inline void sprd_ce_enable(void) {
-    REG_SET_VALUE(REG_AP_AHB_RF_AHB_EB,
-            REG_GET_VALUE(REG_AP_AHB_RF_AHB_EB)
-            | BIT_AP_AHB_RF_CE0_EB);
+	SPRD_REG_SET_BIT(REG_AP_AHB_RF_AHB_EB, BIT_AP_AHB_RF_CE0_EB);
 }
 
 static inline void sprd_ce_disable(void) {
-    REG_SET_VALUE(REG_AP_AHB_RF_AHB_EB,
-            REG_GET_VALUE(REG_AP_AHB_RF_AHB_EB)
-            & ~BIT_AP_AHB_RF_CE0_EB);
+	SPRD_REG_CLR_BIT(REG_AP_AHB_RF_AHB_EB, BIT_AP_AHB_RF_CE0_EB);
 }
 
 void sprd_ce_reset(void) {
