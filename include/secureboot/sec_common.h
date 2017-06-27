@@ -9,7 +9,7 @@
 #include<asm/arch/chip_releted_def.h>
 
 typedef struct{
-#ifdef CONFIG_SC9833
+#if defined (CONFIG_SC9833)||defined (CONFIG_SOC_SHARKLJ1)
 	uint32_t img_addr; //the base address of image to verify
 	uint32_t img_len; //length of image
 	uint32_t pubkeyhash;//pubkey hash for verifying image
