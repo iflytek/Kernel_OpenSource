@@ -50,6 +50,9 @@ extern int get_dt_end_addr(void *fdt, uchar **addr);
 #define MODEM_SHA1_SIZE		20
 
 #define FREE_RAM_SPACE_ADDR		0x9d000000 /* 0x9d000000 ~9f000000  30M Bytes Free*/
+/*secure lcs*/
+#define SECURE_LCS               0x5
+
 
 typedef struct {
 	uint32_t type_flags;
@@ -1027,7 +1030,22 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	/***secboot 1st step***/
 	secboot_init();
 	/***secboot 2nd step***/
+	/*if bootmode is cali mode, do not verify image*/
+#if defined	(CONFIG_SOC_IWHALE2)
+	char  *boot_mode_type_str;
+	unsigned int lcs = 0;
+	sprd_get_lcs((unsigned int *)&lcs);
+	boot_mode_type_str = getenv("bootmode");
+	printf("boot_mode_type=%s\n",boot_mode_type_str);
+	if((strncmp(boot_mode_type_str, "cali", 4)) || (SECURE_LCS == lcs))
+	{
+		printf("partition:%s\n",partition);
+		secboot_secure_process_flow(partition,0,0,(char *)VERIFY_ADDR);
+	}
+#else
 	secboot_secure_process_flow(partition,0,0,(char *)VERIFY_ADDR);
+#endif
+
 #endif
 #endif
 #ifdef OTA_BACKUP_MISC_RECOVERY
