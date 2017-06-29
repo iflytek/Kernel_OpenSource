@@ -1750,14 +1750,18 @@ int fdtdec_decode_region_private(const void *blob, int node, const char *prop_na
 		return -1;
 	}
         if(len > sizeof(fdt_addr_t) * 2) {
-		*basep = fdt_addr_to_cpu(cell[2]);
-		*sizep = fdt_size_to_cpu(cell[3]);
-		debug("-%s: base=%08lx, size=%lx\n", __func__, (ulong)*basep,
+		ulong temp[4] = {0};
+		memcpy((void *)temp, (void *)cell, 4 * sizeof(ulong));
+		*basep = fdt_addr_to_cpu(temp[2]);
+		*sizep = fdt_size_to_cpu(temp[3]);
+		debug("+%s: base=%08lx, size=%lx\n", __func__, (ulong)*basep,
 		      (ulong)*sizep);
 
 	} else {
-		*basep = fdt_addr_to_cpu(*cell);
-		*sizep = fdt_size_to_cpu(cell[1]);
+		ulong temp[2] = {0};
+		memcpy((void *)temp, (void *)cell, 2 * sizeof(ulong));
+		*basep = fdt_addr_to_cpu(temp[0]);
+		*sizep = fdt_size_to_cpu(temp[1]);
 		debug("=%s: base=%08lx, size=%lx\n", __func__, (ulong)*basep,
 		      (ulong)*sizep);
 	}

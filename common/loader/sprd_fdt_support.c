@@ -334,7 +334,7 @@ int fdt_reserved_mem_multimedia_parse(void*fdt)
 			return -1;
 		}
 	}
-	if(0 == (fdtdec_decode_region_private(fdt, offset, "reg", &s_addr, &s_size,0)))
+	if(0 == (fdtdec_decode_region_private(fdt, offset, "reg", &s_addr, &s_size)))
 	{
 		/*find reg prop ok*/
 		uboot_set_secure_range_paraneters(CP_MODEM,s_addr,s_size);
