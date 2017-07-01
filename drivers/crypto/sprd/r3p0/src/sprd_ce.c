@@ -22,8 +22,13 @@
 static void* s_ahb_vaddr;
 static void* s_ce_vaddr;
 
-#define REG_SET_VAL(__base, __offset,__v)	((*(volatile uint32_t *)((__base) + (__offset))) = (uint32_t)(__v))
+#define REG_SET_VAL(__base, __offset, __v)	((*(volatile uint32_t *)((__base) + (__offset))) = (uint32_t)(__v))
 #define REG_GET_VAL(__base, __offset)		 (*(volatile uint32_t *)((__base) + (__offset)))
+
+#define SET_OFFSET		(0x1000)
+#define CLR_OFFSET		(0x2000)
+#define SPRD_REG_SET_BIT(__offset, __v)		REG_SET_VAL((s_ahb_vaddr+SET_OFFSET), __offset, __v)
+#define SPRD_REG_CLR_BIT(__offset, __v)		REG_SET_VAL((s_ahb_vaddr+CLR_OFFSET), __offset, __v)
 
 static uint32_t get_paddr_hi (void *vaddr){
 	void *paddr = sprd_pal_vaddr_to_paddr(vaddr);
@@ -318,13 +323,11 @@ static inline void sprd_ce_all_int_clear(void) {
 }
 
 static inline void sprd_ce_enable(void) {
-	REG_SET_VAL(s_ahb_vaddr, REG_AP_AHB_AHB_EB_OFFSET,
-			REG_GET_VAL(s_ahb_vaddr, REG_AP_AHB_AHB_EB_OFFSET) | BIT_AP_AHB_CE_SEC_EB);
+	SPRD_REG_SET_BIT(REG_AP_AHB_AHB_EB_OFFSET, BIT_AP_AHB_CE_SEC_EB);
 }
 
 static inline void sprd_ce_disable(void) {
-	REG_SET_VAL(s_ahb_vaddr, REG_AP_AHB_AHB_EB_OFFSET,
-			REG_GET_VAL(s_ahb_vaddr, REG_AP_AHB_AHB_EB_OFFSET) & ~BIT_AP_AHB_CE_SEC_EB);
+	SPRD_REG_CLR_BIT(REG_AP_AHB_AHB_EB_OFFSET, BIT_AP_AHB_CE_SEC_EB);
 }
 
 void sprd_ce_open(void) {
@@ -346,10 +349,8 @@ void sprd_ce_close(void){
 }
 
 void sprd_ce_reset(void) {
-	REG_SET_VAL(s_ahb_vaddr, REG_AP_AHB_AHB_RST_OFFSET,
-			REG_GET_VAL(s_ahb_vaddr, REG_AP_AHB_AHB_RST_OFFSET) | BIT_AP_AHB_CE_SEC_SOFT_RST);
-	REG_SET_VAL(s_ahb_vaddr, REG_AP_AHB_AHB_RST_OFFSET,
-			REG_GET_VAL(s_ahb_vaddr, REG_AP_AHB_AHB_RST_OFFSET) & (~BIT_AP_AHB_CE_SEC_SOFT_RST));
+	SPRD_REG_SET_BIT(REG_AP_AHB_AHB_RST_OFFSET, BIT_AP_AHB_CE_SEC_SOFT_RST);
+	SPRD_REG_CLR_BIT(REG_AP_AHB_AHB_RST_OFFSET, BIT_AP_AHB_CE_SEC_SOFT_RST);
 	REG_SET_VAL(s_ce_vaddr, CE_CLEAR, CE_CLEAR_EN);
 }
 
