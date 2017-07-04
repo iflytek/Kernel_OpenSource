@@ -205,7 +205,7 @@ void irq_llsr(struct irq_regs *regs)
 	case 0x00:
 		printf("Divide Error (Division by zero)\n");
 		dump_regs(regs);
-		hang();
+		panic("Divide Error Panic\n");
 		break;
 	case 0x01:
 		printf("Debug Interrupt (Single step)\n");
@@ -222,32 +222,32 @@ void irq_llsr(struct irq_regs *regs)
 	case 0x04:
 		printf("Overflow\n");
 		dump_regs(regs);
-		hang();
+		panic("Overflow Panic\n");
 		break;
 	case 0x05:
 		printf("BOUND Range Exceeded\n");
 		dump_regs(regs);
-		hang();
+		panic("BOUND Range Exceeded Panic\n");
 		break;
 	case 0x06:
 		printf("Invalid Opcode (UnDefined Opcode)\n");
 		dump_regs(regs);
-		hang();
+		panic("UnDefined Opcode Panic\n");
 		break;
 	case 0x07:
 		printf("Device Not Available (No Math Coprocessor)\n");
 		dump_regs(regs);
-		hang();
+		panic("Device Not Available Panic\n");
 		break;
 	case 0x08:
 		printf("Double fault\n");
 		dump_regs(regs);
-		hang();
+		panic("Double fault Panic\n");
 		break;
 	case 0x09:
 		printf("Co-processor segment overrun\n");
 		dump_regs(regs);
-		hang();
+		panic("Co-processor segment overrun Panic\n");
 		break;
 	case 0x0a:
 		printf("Invalid TSS\n");
@@ -256,12 +256,12 @@ void irq_llsr(struct irq_regs *regs)
 	case 0x0b:
 		printf("Segment Not Present\n");
 		dump_regs(regs);
-		hang();
+		panic("Segment Not Present Panic\n");
 		break;
 	case 0x0c:
 		printf("Stack Segment Fault\n");
 		dump_regs(regs);
-		hang();
+		panic("Stack Segment Fault Panic\n");
 		break;
 	case 0x0d:
 		printf("General Protection\n");
@@ -270,7 +270,7 @@ void irq_llsr(struct irq_regs *regs)
 	case 0x0e:
 		printf("Page fault\n");
 		dump_regs(regs);
-		hang();
+		panic("Page fault Panic\n");
 		break;
 	case 0x0f:
 		printf("Floating-Point Error (Math Fault)\n");
