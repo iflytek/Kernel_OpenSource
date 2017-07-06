@@ -343,9 +343,9 @@ static int start_linux_armv8(uchar *dt_addr)
 	flush_dcache_range(CONFIG_SYS_SDRAM_BASE2, CONFIG_SYS_SDRAM_END2);
 #endif
 
-#ifdef CONFIG_SOC_SHARKLE
-	cleanup_before_linux();//sharkle need disable mmu and cache before into kernel
-#endif
+	/*sharkle and sharklj1 need disable mmu and cache before jump into kernel*/
+	cleanup_before_linux();
+
 	/*start modem CP */
 	modem_entry();
 
