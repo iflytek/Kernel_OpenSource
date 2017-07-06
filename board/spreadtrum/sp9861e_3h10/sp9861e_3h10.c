@@ -142,7 +142,7 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 	/* 7 get mode from charger*/
 	get_mode_from_charger,
 	/* 8 get mode from gpio*/
-	//get_mode_from_gpio_extend,
+	get_mode_from_gpio_extend,
 
 	/*shutdown device*/
 	//get_mode_from_shutdown,

@@ -113,6 +113,7 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 	get_mode_from_charger,
 	/*5 get mode from keypad*/
 	get_mode_from_keypad,
+	get_mode_from_gpio_extend,
 	0
 #else
 	0
