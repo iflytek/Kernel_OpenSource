@@ -3,6 +3,7 @@
 			Allen Yu
 *****************************************************************/
 
+#include <common.h>
 #include <crypto/sprdrsa.h>
 #include <secureboot/sprdsec_header.h>
 //#define               BIGINT_MAXLEN 35

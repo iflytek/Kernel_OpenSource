@@ -114,6 +114,7 @@ int uboot_sansa_set_rma(uint32_t *p_rmaret);
 int uboot_kce_program(uint64_t start_addr, uint64_t lenth);
 
 smc_param *tee_common_call(uint32_t funcid, uint32_t start_addr, uint32_t lenth);
+void tee_smc_call   (struct smc_param *param);
 
 void tee_call_request(unsigned int **mem_ptr);
 void tos_status_check();
