@@ -1,6 +1,7 @@
 #include <common.h>
 #include "sprd_adc.h"
 #include <boot_mode.h>
+#include <sprd_battery.h>
 
 int charger_connected(void);
 

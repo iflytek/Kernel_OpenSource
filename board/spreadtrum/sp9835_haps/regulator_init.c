@@ -4,15 +4,10 @@
 
 static int power_on_voltage_init(void)
 {
-	regulator_set_voltage("vddvldo",2800);
-	regulator_set_voltage("vddcon",1250);
-	regulator_set_voltage("dcdcrf",1500);
-	regulator_enable("vddcon");
 	return 0;
 }
 
 int regulator_init(void)
 {
-	power_on_voltage_init();
 	return 0;
 }

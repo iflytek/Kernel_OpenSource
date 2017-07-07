@@ -13,6 +13,8 @@ typedef void (*pfun)(int);
 static pfun calibrate_post = NULL;
 
 static u16 ana_mixed_ctl;
+extern int32_t pmic_adc_get_values(uint16_t channel, bool scale, uint8_t num,
+				    int32_t * p_buf);
 
 #define REGU_CALI_DEBUG
 
