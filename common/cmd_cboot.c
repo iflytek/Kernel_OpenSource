@@ -13,6 +13,9 @@
 extern CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] ;
 
 extern unsigned int check_key_boot(unsigned char key);
+extern void write_sysdump_before_boot(int rst_mode);
+extern unsigned char board_key_scan(void);
+extern void board_boot_mode_regist(CBOOT_MODE_ENTRY *array);
 
 int boot_pwr_check(void)
 {

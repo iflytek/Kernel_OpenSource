@@ -1,6 +1,7 @@
 #include <common.h>
 #include <part.h>
 #include <sparse_format.h>
+#include <sprd_common_rw.h>
 #include "sparse_crc32.h"
 
 

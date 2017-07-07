@@ -18,6 +18,7 @@
 #define BACKUP_RECOVERY_BUF_ADDR    0x9d000000
 
 extern int _boot_load_separate_dt(void);
+extern int sprd_host_init(int sdio_type);
 
 int find_sd_backup_misc_flag = 0;
 int _sd_fat_mount()

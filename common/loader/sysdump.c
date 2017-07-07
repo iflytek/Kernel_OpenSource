@@ -45,6 +45,14 @@
 #define SYSDUMP_LONG		unsigned long
 #endif
 
+#if (defined CONFIG_ARM64) || (defined CONFIG_X86)
+typedef uint64_t mem_addr_t;
+typedef uint64_t mem_size_t;
+#else
+typedef uint32_t mem_addr_t;
+typedef uint32_t mem_size_t;
+#endif
+
 enum {
 	FS_FAT32,
 	FS_EXFAT,
@@ -66,6 +74,9 @@ extern int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
 extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
 extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
+extern unsigned char board_key_scan(void);
+extern int fdt_get_addr_size(const void *fdt, int node, const char *propname,
+		   uint64_t *addrp, mem_size_t *sizep);
 
 #ifdef CONFIG_X86
 extern ddr_info_t* get_ddr_range(void);

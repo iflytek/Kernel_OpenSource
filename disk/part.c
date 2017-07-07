@@ -25,6 +25,10 @@ struct block_drvr {
 	int (*select_hwpart)(int dev_num, int hwpart);
 };
 
+#ifdef CONFIG_EFI_PARTITION
+	extern int get_partition_info_by_name_efi(block_dev_desc_t * dev_desc, uchar *partition_name, disk_partition_t *info);
+#endif
+
 static const struct block_drvr block_drvr[] = {
 #if defined(CONFIG_CMD_IDE)
 	{ .name = "ide", .get_dev = ide_get_dev, },

@@ -28,6 +28,8 @@
 
 static int dl_times=0;
 static struct dl_cmd *cmdlist = NULL;
+extern int sprd_clean_rtc(void);
+extern void usb_init (uint32_t autodl_mode);
 
 void dl_cmd_register(enum dl_cmd_type type,
 		       int (*handle)(struct dl_packet *pkt, void *arg))

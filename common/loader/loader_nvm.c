@@ -40,6 +40,10 @@ extern int lcd_line_length;
 
 extern int fdt_fixup_memory_region(void *fdt, int *auto_mem_num_p);
 extern int get_dt_end_addr(void *fdt, uchar **addr);
+extern int lcd_get_size(int *line_length);
+extern unsigned char _chkNVEcc(uint8_t *buf, uint64_t size, uint32_t checksum);
+extern void wakeup_source_enable();
+extern void ap_clk_doze_enable();
 
 #define MODEM_MAGIC		"SCI1"
 #define MODEM_HDR_SIZE		(12 * 512) //size of a block

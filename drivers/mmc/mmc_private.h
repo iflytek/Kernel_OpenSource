@@ -16,6 +16,12 @@ extern int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			struct mmc_data *data);
 extern int mmc_send_status(struct mmc *mmc, int timeout);
 extern int mmc_set_blocklen(struct mmc *mmc, int len);
+extern int sdhci_send_command_backstage(struct mmc *mmc, struct mmc_cmd *cmd,
+		       struct mmc_data *data);
+extern int sprd_sdhci_init(u32 regbase, u32 max_clk, u32 min_clk, u32 quirks);
+ extern int sdhci_query_command_backstage(struct mmc *mmc, struct mmc_data *data);
+extern int sprd_sdhci_init(u32 regbase, u32 max_clk, u32 min_clk, u32 quirks);
+
 #ifdef CONFIG_FSL_ESDHC_ADAPTER_IDENT
 void mmc_adapter_card_type_ident(void);
 #endif

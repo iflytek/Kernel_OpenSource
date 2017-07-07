@@ -4,6 +4,8 @@
 #include "loader_common.h"
 #include <sprd_common_rw.h>
 
+extern void reboot_devices(unsigned reboot_mode);
+
 /* Recovery Message */
 struct recovery_message {
 	char command[32];

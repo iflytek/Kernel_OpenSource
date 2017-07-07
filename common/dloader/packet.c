@@ -3,9 +3,11 @@
 #include <dl_stdio.h>
 #include <dl_crc.h>
 #include <dl_channel.h>
+#include <common.h>
 
 extern int act_as_romcode;
 extern void dl_send_ack (dl_cmd_type_t pkt_type);
+void FDL_PacketDoIdle (void);
 
 
 struct FDL_ChannelHandler *gFdlUsedChannel;

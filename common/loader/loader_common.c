@@ -5,7 +5,7 @@
 #include <libfdt.h>
 #include <fdt_support.h>
 #endif
-#include "sprd_common_rw.h"
+#include <sprd_common_rw.h>
 #include <linux/usb/usb_uboot.h>
 
 #ifdef CONFIG_MINI_TRUSTZONE
@@ -251,6 +251,7 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 
 }
 
+#ifdef CONFIG_X86
 static int start_linux_x86()
 {
 	struct boot_params *base_ptr;
@@ -288,6 +289,8 @@ static int start_linux_x86()
 	/* we assume that the kernel is in place */
 	return boot_linux_kernel((ulong)base_ptr, load_address, image_64bit);
 }
+#endif
+
 #ifdef CONFIG_ARM
 static int start_linux(uchar *dt_addr)
 {

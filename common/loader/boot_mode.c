@@ -4,6 +4,8 @@
 #include "dev_tree.h"
 
 extern unsigned int g_charger_mode;
+extern int do_fastboot(void);
+extern void lcd_printf(const char *fmt, ...);
 void lcd_enable(void);
 extern void fastboot_lcd_printf(void);
 

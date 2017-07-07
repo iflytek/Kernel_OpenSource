@@ -2,6 +2,8 @@
 #include <malloc.h>
 #include <part.h>
 #include <sprd_common_rw.h>
+#include <ext4fs.h>
+
 #ifdef CONFIG_CMD_UBI
 #include <ubi_uboot.h>
 #endif

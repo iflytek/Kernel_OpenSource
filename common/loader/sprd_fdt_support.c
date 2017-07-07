@@ -9,7 +9,7 @@
 #include "loader_common.h"
 #include "sprd_cpcmdline.h"
 #include "sysdump.h"
-#include "sprd_common_rw.h"
+#include <sprd_common_rw.h>
 #include <adi_hal_internal.h>
 #include <asm/arch/sprd_reg.h>
 #include <uboot_sec_drv.h>
@@ -23,10 +23,13 @@ extern int get_dram_cs_number(void);
 extern int get_dram_cs0_size(void);
 extern char *get_product_sn(void);
 extern void tee_call_request(unsigned int **mem_ptr);
-
+extern int fdtdec_decode_region_private(const void *blob, int node, const char *prop_name,
+			 fdt_addr_t *basep, fdt_size_t *sizep);
+extern int poweron_by_calibration(void);
 /*for verified boot*/
 enVerifiedState g_verifiedbootstate = v_state_green;
 extern unsigned int g_fb_lockflag;
+int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force);
 
 #ifdef CONFIG_SECURE_BOOT
 #define CMDLINE_BUF_SIZE	(1024)

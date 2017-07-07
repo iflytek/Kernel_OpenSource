@@ -15,13 +15,15 @@
 #include <fat.h>
 #include <sprd_common_rw.h>
 #include <asm/arch/check_reboot.h>
+#include <ext4fs.h>
 
 
 #define PART_SYSTEM						"userdata"
 #define SPRDISK_RAMDISK_PATH	"/sprdisk/ramdisk.img"
 #define SD_RAMDISK   "ramdisk.img"
 extern int _sd_fat_mount();
-
+extern int load_sd_ramdisk(void* buf,int size);
+extern unsigned reboot_mode_check(void);
 static int file_read(char *mpart, char *filenm, void *buf, int len)
 {
 #ifdef CONFIG_FS_EXT4
