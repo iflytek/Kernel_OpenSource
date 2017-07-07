@@ -21,7 +21,7 @@ phys_size_t get_real_ram_size(void)
         return real_ram_size;
 }
 
-
+extern void setup_chipram_env(void);
 int board_init(void)
 {
 	setup_chipram_env();

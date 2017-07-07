@@ -16,7 +16,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/errno.h>
-
+#include <asm/arch/common.h>
 
 u32 sci_glb_read(u32 reg, u32 msk)
 {

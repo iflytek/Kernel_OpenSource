@@ -13,6 +13,10 @@
 unsigned reboot_reg = 0;
 unsigned sysdump_flag = 0;
 extern int hw_watchdog_rst_pending(void);
+extern int is_hw_smpl_enable(void);
+extern void power_down_cpu(ulong ignored);
+extern int sprd_eic_request(unsigned offset);
+extern int sprd_eic_get(unsigned offset);
 
 static void rtc_domain_reg_write(uint32_t val)
 {

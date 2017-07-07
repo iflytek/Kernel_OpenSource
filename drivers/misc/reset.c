@@ -36,6 +36,8 @@
 #include <asm/io.h>
 #include <sprd_regulator.h>
 #include <asm/arch/sprd_reg.h>
+#include "sprd_wdt.h"
+
 /*
  * Reset the cpu by setting up the watchdog timer and let it time out
  */

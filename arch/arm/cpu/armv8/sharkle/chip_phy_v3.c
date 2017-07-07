@@ -23,6 +23,7 @@
 //#include "asm/arch/wdg_drvapi.h"
 #include "asm/arch/sprd_reg.h"
 #include "asm/arch/common.h"
+#include "sprd_wdt.h"
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/
@@ -31,6 +32,8 @@ extern   "C"
 {
 #endif
 
+extern void wdt_reset_MCU(void);
+extern uint32_t SCI_GetTickCount(void);
 
 /*****************************************************************************/
 // Description :    This function is used to reset MCU.

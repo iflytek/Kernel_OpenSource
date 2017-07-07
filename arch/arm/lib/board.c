@@ -503,6 +503,7 @@ static void display_fdt_model(const void *blob)
  ************************************************************************
  */
 extern uint32_t uboot_start_time;
+extern uint32_t SCI_GetTickCount(void);
 void board_init_r(gd_t *id, ulong dest_addr)
 {
 	ulong malloc_start;

@@ -11,6 +11,7 @@
 #include <linux/sizes.h>
 #include <asm/io.h>
 #include <common.h>
+#include <lcd.h>
 
 #define ETB_BASE					0x10003000
 

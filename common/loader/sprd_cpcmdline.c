@@ -1,6 +1,7 @@
 #include "sprd_cpcmdline.h"
 #include "loader_common.h"
 #include "otp_helper.h"
+#include <sprd_adc.h>
 
 char *g_CPcmdlineBuf = NULL;
 #if defined( CONFIG_KERNEL_BOOT_CP )
@@ -67,6 +68,10 @@ static const struct tsx_32k_table tsx_32k_table[] = {
 	{K32, TCXO},
 };
 #endif
+extern int sprd_gpio_request(struct gpio_chip *chip, unsigned offset);
+extern int sprd_gpio_direction_input(struct gpio_chip *chip, unsigned offset);
+extern int sprd_gpio_get(struct gpio_chip *chip, unsigned offset);
+
 static unsigned int gpio_state(unsigned int GPIO_NUM){
 	int value = 0 ;
 	sprd_gpio_request(NULL, GPIO_NUM);
