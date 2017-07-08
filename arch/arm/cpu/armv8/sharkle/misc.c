@@ -179,7 +179,6 @@ void misc_init()
 	pmic_misc_init();
 
 	sprd_get_chipid(NULL, NULL);
-	sprd_uid_bin_info();
 
 #if defined CONFIG_SMT
 	set_smt();

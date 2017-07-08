@@ -68,8 +68,7 @@
  /* SPREADTRUM BIGPHONE board - SoC Configuration */
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
 #define CONFIG_SOC_SHARKLE
-#define CONFIG_ADIE_SC2731
-#define CONFIG_ADIE_SC2731R
+#define CONFIG_ADIE_SC2721
 
 
 /* SPRD Serial Configuration */
@@ -91,6 +90,8 @@
 /*sprd rtc*/
 #define CONFIG_RTC_SPRD
 
+/*sprd normal efuse*/
+#define CONFIG_SPRD_AP_NORMAL_EFUSE
 /*sprd adc*/
 #define CONFIG_SPRD_ADC
 
