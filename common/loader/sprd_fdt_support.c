@@ -30,6 +30,7 @@ extern int poweron_by_calibration(void);
 enVerifiedState g_verifiedbootstate = v_state_green;
 extern unsigned int g_fb_lockflag;
 int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force);
+#define MAX_BOOTARG_LEN  (0x1000)  /*4kb*/
 
 #ifdef CONFIG_SECURE_BOOT
 #define CMDLINE_BUF_SIZE	(1024)
@@ -65,6 +66,11 @@ typedef struct {
 	uint32_t start_low;
 	uint32_t size;
 } mem_info;
+
+#ifdef CONFIG_VBOOT_V2
+#include "libavb.h"
+extern AvbSlotVerifyData* avb_slot_data[2];
+#endif
 
 int fdt_fixup_verified_boot(void *fdt)
 {
@@ -126,6 +132,24 @@ int fdt_fixup_flash_lock_state(void *fdt)
 	return ret;
 }
 
+
+#ifdef CONFIG_VBOOT_V2
+int fdt_fixup_ando_vboot(void *fdt)
+{
+	int ret = 0;
+	char buf[64];
+	int str_len;
+	memset(buf, 0, 64);
+
+	str_len = strlen(avb_slot_data[0]->cmdline);
+	avb_slot_data[0]->cmdline[str_len] = '\0';
+	ret = fdt_chosen_bootargs_append(fdt, avb_slot_data[0]->cmdline, 1);
+    debug("fdt vboot ret is %d\n", ret);
+
+	return ret;
+}
+#endif
+
 int fdt_initrd_norsvmem(void *fdt, ulong initrd_start, ulong initrd_end, int force)
 {
 	int nodeoffset;
@@ -181,6 +205,7 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 	int err;
 	const char *path;
 	char *strargs;
+	int size;
 
 	if (!append_args)
 		return -1;
@@ -210,17 +235,27 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 	 */
 	path = fdt_getprop(fdt, nodeoffset, "bootargs", NULL);
 	if ((path == NULL) || force) {
-		strargs = malloc(1024);
+		strargs = malloc(MAX_BOOTARG_LEN+1);
 		if (!strargs)
 			return -1;
-		memset(strargs, 0, 1024);
+		memset(strargs, 0, MAX_BOOTARG_LEN+1);
 		if(path != NULL)
 		{
-		    sprintf(strargs, "%s %s", path, append_args);
+			size = strlen(path) + strlen(append_args);
+			if (size > MAX_BOOTARG_LEN) {
+				errorf("bootargs len:%d overflow MAX_BOOTARG_LEN\n", size);
+				size =  MAX_BOOTARG_LEN;
+			}
+			snprintf(strargs, size, "%s %s", path, append_args);
 		}
 		else
 		{
-		    sprintf(strargs, "%s", append_args);
+			size = strlen(append_args);
+			if (size > MAX_BOOTARG_LEN) {
+				errorf("bootargs len:%d overflow MAX_BOOTARG_LEN\n", size);
+				size =  MAX_BOOTARG_LEN;
+			}
+			snprintf(strargs, size, "%s", append_args);
 		}
 		err = fdt_setprop(fdt, nodeoffset, "bootargs", strargs, strlen(strargs) + 1);
 		if (err < 0)

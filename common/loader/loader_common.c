@@ -193,6 +193,11 @@ void fdt_fixup_all(u8 *fdt_blob)
 	fdt_fixup_verified_boot(fdt_blob);
 	fdt_fixup_flash_lock_state(fdt_blob);
 
+#ifdef CONFIG_VBOOT_V2
+	/*for Android O VBooot*/
+	fdt_fixup_ando_vboot(fdt_blob);
+#endif
+
 	fdt_fixup_serialno(fdt_blob);
 	fdt_fixup_chosen_bootargs_board_private(fdt_blob);
 

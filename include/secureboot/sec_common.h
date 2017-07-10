@@ -23,6 +23,24 @@ typedef struct{
 	uint32_t flag;//sprd or sansa plan
 }imgToVerifyInfo;
 
+/*add for vboot v2*/
+typedef struct{
+	uint32_t vboot_verify_ret;
+	uint32_t reserved0;
+	uint32_t reserved1;
+	uint32_t reserved2;
+}VBootResultInfo;
+
+typedef struct{
+	char * img_addr; //the base address of image to verify
+	uint32_t img_len; //length of image
+	char * vbmeta_img_addr;
+	uint32_t vbmeta_img_len;
+	char * vbmeta_pubkey_addr;
+	uint32_t vbmeta_pubkey_len;
+	VBootResultInfo * verify_return_data;
+}VbootVerifyInfo;
+
 #define SPRD_FLAG 1
 #define SANSA_FLAG 2
 
@@ -46,6 +64,11 @@ extern imgToVerifyInfo *img_verify_info_tos;
 #define UBOOT_START  (CONFIG_SYS_TEXT_BASE - SYS_HEADER_SIZE)
 #define VERIFY_ADDR  (CONFIG_SYS_TEXT_BASE - RESERVE_SIZE)
 
+#ifdef CONFIG_VBOOT_V2
+#define VBMETA_IMG_MAX_SIZE 0x800000
+//#define VBOOT_BUFFER_ADDR  (VERIFY_ADDR - RESERVE_SIZE+ VBMETA_IMG_MAX_SIZE) /*0x99800000 ~ 0x9c000000 40MB*/
+#define VBMETA_IMG_ADDR  (VERIFY_ADDR - RESERVE_SIZE) /*0x99000000 ~ 0x99800000 8MB*/
+#endif
 
 #define SEC_TRUE    0
 #define SEC_FALSE   1
@@ -90,11 +113,17 @@ void secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo);
 
 int secure_efuse_program();
 
-void secboot_init(void);
+void secboot_init(char *partition_name);
 
 void secboot_terminal(void);
 
 void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr);
+
+#ifdef CONFIG_VBOOT_V2
+void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr);
+void vboot_secure_process_flow(char *partition_name);
+void vboot_secure_process_prepare(void);
+#endif
 
 void secboot_update_swVersion(void);
 

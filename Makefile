@@ -608,6 +608,10 @@ export CONFIG_SYS_TEXT_BASE
 
 include $(srctree)/scripts/Makefile.extrawarn
 
+ifdef CONFIG_VBOOT_V2
+KCFLAGS += -DAVB_ENABLE_DEBUG -DAVB_COMPILATION
+endif
+
 # Add user supplied CPPFLAGS, AFLAGS and CFLAGS as the last assignments
 KBUILD_CPPFLAGS += $(KCPPFLAGS)
 KBUILD_AFLAGS += $(KAFLAGS)
@@ -620,6 +624,7 @@ UBOOTINCLUDE    := \
 		$(if $(KBUILD_SRC), -I$(srctree)/include) \
 		-I$(srctree)/arch/$(ARCH)/include \
 		-I$(srctree)/arch/$(ARCH)/lib/mv \
+		-I$(srctree)/lib/secureboot/avb/libavb \
 		-include $(srctree)/include/linux/kconfig.h
 
 NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)

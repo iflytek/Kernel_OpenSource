@@ -1,5 +1,8 @@
 
 obj-y += common/
+ifdef CONFIG_VBOOT_V2
+obj-y += avb/
+endif
 ifdef CONFIG_SPRD_SECBOOT
 obj-y += sprd/
 endif

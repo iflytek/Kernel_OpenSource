@@ -359,6 +359,7 @@ int speedup_download_process(uint16_t size, char *buf)
 	uint32_t blk_count = 0;
 	uint32_t tot_buf_size = current_buffer->size;
 	uint32_t last_size = 0;
+
 	if (current_buffer->spare > size)  {
 		memcpy(current_buffer->pointer, buf, size);
 		current_buffer->used += size;

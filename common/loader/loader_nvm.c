@@ -11,6 +11,7 @@
 
 #include <secureboot/sprdsec_header.h>
 #include <secureboot/sec_common.h>
+#include <avb/uboot_avb_ops.h>
 #include <otp_helper.h>
 #include <stdio_dev.h>
 
@@ -573,7 +574,7 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 	secure_boot_offset = get_code_offset(hdr);
 	offset += secure_boot_offset;
 #endif
-#ifdef CONFIG_SECBOOT
+#if (defined CONFIG_SECBOOT) && (!(defined CONFIG_VBOOT_V2))
 	offset = 512;/**header of image size is 512B**/
 #endif
 	if (0 != common_raw_read(partition, KERNL_PAGE_SIZE, (uint64_t)offset, (char *)hdr)) {
@@ -594,6 +595,8 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 		return 0;
 	}
 
+	debug("boot_img_offset.kernel_offset is 0x%llx\n", boot_img_offset.kernel_offset );
+
 	/* ramdisk image */
 	boot_img_offset.ramdisk_offset = boot_img_offset.kernel_offset + size;
 	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
@@ -601,8 +604,13 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 		errorf("ramdisk image size should not be zero\n");
 		return 0;
 	}
+
+	debug("boot_img_offset.ramdisk_offset is 0x%llx\n", boot_img_offset.ramdisk_offset );
+
 	/* dt image */
 	boot_img_offset.dt_offset = boot_img_offset.ramdisk_offset + size;
+
+	debug("boot_img_offset.dt_offset is 0x%llx\n", boot_img_offset.dt_offset );
 	return 1;
 }
 
@@ -940,6 +948,33 @@ int secure_verify_partition(block_dev_desc_t * dev, uchar * partition_name, void
 }
 #endif
 
+#ifdef CONFIG_VBOOT_V2
+int secure_get_partition_size(uchar * partition_name, uint64_t * size)
+{
+	int ret = 0;
+	disk_partition_t info;
+	block_dev_desc_t *dev = NULL;
+
+	dev = get_dev("mmc", 0);
+	if (NULL == dev) {
+		errorf("Fatal Error,get_dev mmc failed!\n");
+		return -1;
+	}
+
+	if (get_partition_info_by_name(dev, partition_name, &info)) {
+		errorf("verify get partition %s info failed!\n", partition_name);
+		ret = 1;
+	}
+
+	if (size) {
+		*size = info.size * EMMC_SECTOR_SIZE;
+	}
+
+	debugf("partition:%s, info.name:%s, info.size:%d, EMMC_SECTOR_SIZE:%d, size:0x%x\n", partition_name, info.name,  info.size , EMMC_SECTOR_SIZE, *size);
+	return ret;
+}
+#endif
+
 #ifdef CONFIG_ZEBU
 void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
 {
@@ -1048,6 +1083,13 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 #endif
 	set_vibrator(0);
 
+#ifdef CONFIG_VBOOT_V2
+	debug("begin to check vbmeta.img\n");
+
+	avb_ops_new();
+	avb_check_bootimage();
+#endif
+
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SOC_IWHALE2) && (defined CONFIG_SECBOOT)
         tos_status_check();
 #endif
@@ -1068,7 +1110,8 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 #if defined (CONFIG_SECBOOT)
 	/***secboot only 3 steps***/
 	/***secboot 1st step***/
-	secboot_init();
+	secboot_init(partition);
+
 	/***secboot 2nd step***/
 	/*if bootmode is cali mode, do not verify image*/
 #if defined	(CONFIG_SOC_IWHALE2)

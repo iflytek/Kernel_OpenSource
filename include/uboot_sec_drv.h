@@ -87,6 +87,8 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 #define FUNCTYPE_GET_LCS 0x0A
 #define FUNCTYPE_SET_RMA 0x0B
 
+#define FUNCTYPE_VBOOT_VERIFY_IMG	0x20
+
 #define BLOCK_NUM_3                      (0x03)
 #define DISABLE_DX_DEBUG_CONTROL         (0x20000000)
 #endif
