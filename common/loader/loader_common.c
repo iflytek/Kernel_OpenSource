@@ -265,6 +265,7 @@ static int start_linux_x86()
 
 	debugf("initrd_size: 0x%lx\n", initrd_size);
 	disable_interrupts();
+	wbinvd();
 
 #ifndef CONFIG_ZEBU
 	/*start modem CP */
