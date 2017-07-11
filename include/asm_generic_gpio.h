@@ -124,7 +124,6 @@ extern int gpio_direction_output(unsigned gpio, int value);
 extern int gpio_get_value_cansleep(unsigned gpio);
 extern void gpio_set_value_cansleep(unsigned gpio, int value);
 
-
 /* A platform's <asm/gpio.h> code may want to inline the I/O calls when
  * the GPIO is constant and refers to some always-present controller,
  * giving direct access to chip registers and tight bitbanging loops.
@@ -164,18 +163,6 @@ static inline int gpio_is_valid(int number)
 static inline int gpio_cansleep(unsigned gpio)
 {
 	return 0;
-}
-
-static inline int gpio_get_value_cansleep(unsigned gpio)
-{
-	might_sleep();
-	return gpio_get_value(gpio);
-}
-
-static inline void gpio_set_value_cansleep(unsigned gpio, int value)
-{
-	might_sleep();
-	gpio_set_value(gpio, value);
 }
 
 #endif /* !CONFIG_HAVE_GPIO_LIB */

@@ -7,6 +7,11 @@
 //#include <adi_hal_internal.h>
 #include "adi_hal_internal.h"
 #include <asm/arch/sprd_module_config.h>
+
+extern int printf(const char *fmt, ...);
+extern void __raw_bits_or(unsigned int v, unsigned int a);
+extern void __raw_bits_and(unsigned int v, unsigned int a);
+#define WARN(nmu, fmt...) printf(fmt)
 #define GPIO_DBG(fmt...) printf(fmt)
 
 enum gpio_section_type {

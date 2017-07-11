@@ -19,8 +19,9 @@
 #include <asm/arch/common.h>
 #include <asm/errno.h>
 
+extern int printf(const char *fmt, ...);
+
 #define KERN_WARNING ""
-#define WARN(nmu, fmt...) printf(fmt)
 #define WARN_ON(num)
 #define BUG_ON(__cond__) if(__cond__) printf("%s line: %d bug on\n", __FUNCTION__, __LINE__)
 #define pr_err(fmt...) printf(fmt)

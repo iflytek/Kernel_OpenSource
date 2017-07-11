@@ -18,6 +18,8 @@
 #include "adi_hal_internal.h"
 #include <asm/arch/common.h>
 
+extern int printf(const char *fmt, ...);
+
 #define KERN_WARNING ""
 #define WARN(nmu, fmt...) printf(fmt)
 #define WARN_ON(num)
@@ -80,10 +82,6 @@ enum eic_die {
 
 static void __get_eic_base_info (u32 eic_id, struct eic_info *info)
 {
-	int i = 0;
-	u32 table_size = 0;
-	struct gpio_section  *section_table;
-
 	if (eic_id>=SPRD_ADIE_EIC_START && eic_id<=SPRD_ADIE_EIC_END)
 	{
 		info->base_addr= SPRD_ANA_EIC_PHYS;
@@ -126,7 +124,6 @@ static void __get_eic_base_info (u32 eic_id, struct eic_info *info)
 
 static int __eic_get_pin_data (struct eic_info *info)
 {
-	u32 offset_addr = 0;
 	u32 reg_addr = 0, reg_data;
 
 	if (info->base_addr == INVALID_REG)
@@ -147,7 +144,6 @@ static int __eic_get_pin_data (struct eic_info *info)
 
 static int __eic_get_data_mask (struct eic_info *info)
 {
-	u32 offset_addr = 0;
 	u32 reg_addr = 0, reg_data;
 
 	if (info->base_addr == INVALID_REG)
@@ -171,7 +167,6 @@ static int __eic_get_data_mask (struct eic_info *info)
  */
 static void __eic_set_data_mask (struct eic_info *info, int b_on)
 {
-	u32 offset_addr = 0;
 	u32 reg_addr = 0, reg_data;
 
 	reg_addr = info->base_addr + EIC_MASK;
