@@ -5,6 +5,7 @@
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
+#include <asm/arch/sprd_reg.h>
 #include <common.h>
 #include <malloc.h>
 #include <boot_mode.h>
@@ -20,6 +21,12 @@ phys_size_t real_ram_size = 0x40000000;
 phys_size_t get_real_ram_size(void)
 {
         return real_ram_size;
+}
+
+void enable_global_clocks(void)
+{
+	sci_glb_set(REG_AON_APB_APB_EB0, BIT_AON_APB_GPU_EB |
+		BIT_AON_APB_MM_EB);
 }
 
 extern void setup_chipram_env(void);
@@ -41,6 +48,7 @@ int board_init(void)
 	/*FPGA forbiden*/
 	sprd_pmu_lowpower_init();
 	TDPllRefConfig(1);
+	enable_global_clocks();
 #endif
 	return 0;
 }
