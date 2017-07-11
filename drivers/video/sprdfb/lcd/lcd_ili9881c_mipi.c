@@ -369,8 +369,8 @@ static struct timing_rgb lcd_ili9881c_mipi_timing = {
 	.hfp = 52,  /* unit: pixel */
 	.hbp = 26,
 	.hsync = 25,
-	.vfp = 9, /*unit: line*/
-	.vbp = 5,
+	.vfp = 5, /*unit: line*/
+	.vbp = 9,
 	.vsync = 2,
 };
 
