@@ -44,11 +44,41 @@
 #include "asm/arch/sys_timer_reg_v0.h"
 #include "asm/arch/timer_reg_r4p0.h"
 
-#define TIMER_MAX_VALUE 0xFFFFFFFF
-static unsigned long mul_value = 26;//default 26Mhz
+#define TIMER_MAX_VALUE			0xFFFFFFFF
+#define TMR0_CNT_VAL			(32)
+#define TMR1_CNT_VAL			(32)
+#define TMR2_CNT_VAL			(26)
 
 static unsigned long long timestamp;
 static ulong lastinc;
+
+/* nothing really to do with interrupts, just starts up a counter. */
+/* The 32KHz 23-bit timer overruns in 512 seconds */
+int timer_init(void)
+{
+	/* AP SYS TMR and AP TMR0/1/2 enable */
+	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AP_SYST_EB, REG_AON_APB_APB_EB0);
+	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AP_SYST_RTC_EB, REG_AON_APB_APB_RTC_EB);
+
+	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AP_TMR0_EB, REG_AON_APB_APB_EB0);
+	writel(readl(REG_AON_APB_APB_EB1) | BIT_AON_APB_AP_TMR1_EB | BIT_AON_APB_AP_TMR2_EB,
+				REG_AON_APB_APB_EB1);
+	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AP_TMR0_RTC_EB |
+				BIT_AON_APB_AP_TMR1_RTC_EB | BIT_AON_APB_AP_TMR2_RTC_EB,
+				REG_AON_APB_APB_RTC_EB);
+
+	/* AON SYS TMR and AON TMR enable */
+	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_SYST_EB, REG_AON_APB_APB_EB0);
+	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_SYST_RTC_EB, REG_AON_APB_APB_RTC_EB);
+
+	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_TMR_EB, REG_AON_APB_APB_EB0);
+	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_TMR_RTC_EB, REG_AON_APB_APB_RTC_EB);
+
+	/* enable ts clk output to arch timer */
+	writel(0x1, SPRD_APCPUTS0_BASE);
+
+	return 0;
+}
 
 /*
  * "time" is measured in 1 / CONFIG_SYS_HZ seconds,
@@ -73,39 +103,6 @@ static inline unsigned long long us_to_tick(unsigned long long us)
 	us = us*CONFIG_SPRD_TIMER_CLK;
 	do_div(us, CONFIG_SYS_HZ*1000);
 	return us;
-}
-
-
-/* nothing really to do with interrupts, just starts up a counter. */
-/* The 32KHz 23-bit timer overruns in 512 seconds */
-
-int timer_init(void)
-{
-	/* AP SYS TMR and AP TMR0/1/2 enable */
-	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AP_SYST_EB, REG_AON_APB_APB_EB0);
-	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AP_SYST_RTC_EB, REG_AON_APB_APB_RTC_EB);
-
-	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AP_TMR0_EB, REG_AON_APB_APB_EB0);
-	writel(readl(REG_AON_APB_APB_EB1) | BIT_AON_APB_AP_TMR1_EB | BIT_AON_APB_AP_TMR2_EB,
-				REG_AON_APB_APB_EB1);
-	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AP_TMR0_RTC_EB |
-				BIT_AON_APB_AP_TMR1_RTC_EB | BIT_AON_APB_AP_TMR2_RTC_EB,
-				REG_AON_APB_APB_RTC_EB);
-
-	/* AON SYS TMR and AON TMR enable */
-	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_SYST_EB, REG_AON_APB_APB_EB0);
-	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_SYST_RTC_EB, REG_AON_APB_APB_RTC_EB);
-
-	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_TMR_EB, REG_AON_APB_APB_EB0);
-	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_TMR_RTC_EB, REG_AON_APB_APB_RTC_EB);
-
-	/* enable aon timer2 26M clk source */
-	//writel(readl(REG_AON_APB_CGM_REG1) | BIT_AON_APB_CGM_CM3_TMR2_EN, REG_AON_APB_CGM_REG1);
-
-	/* enable ts clk output to arch timer */
-	writel(0x1, SPRD_APCPUTS0_BASE);
-
-	return 0;
 }
 
 void reset_timer(void)
@@ -152,12 +149,31 @@ void set_timer(ulong t)
 
 void __udelay (unsigned long usec)
 {
-	do { 
-               int i; 
-               int cnt = 200 * (usec); 
-               for (i=0; i<cnt; i++);
-       } while(0);
+	do {
+		int i;
+		int cnt = 200 * (usec);
+		for (i=0; i<cnt; i++);
+	} while(0);
+}
 
+void tmr_udelay (unsigned long usec)
+{
+	unsigned long delta_usec = usec * TMR2_CNT_VAL;
+
+	writel(delta_usec, TM2_LOAD_LO);
+	REG32 (TM2_CTL) |= (BIT_TIMER_RUN);
+	while(readl(TM2_SHDW_LO) > 0);
+	REG32 (TM2_CTL) &=~ (BIT_TIMER_RUN);
+}
+
+void tmr_mdelay (unsigned long msec)
+{
+	unsigned long delta_usec = msec * TMR0_CNT_VAL;
+
+	writel(delta_usec, TM0_LOAD_LO);
+	REG32 (TM0_CTL) |= (BIT_TIMER_RUN);
+	while(readl(TM0_SHDW_LO) > 0);
+	REG32 (TM0_CTL) &=~ (BIT_TIMER_RUN);
 }
 
 u32 SCI_GetTickCount(void)
