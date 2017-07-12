@@ -492,7 +492,7 @@ static int ldo_set_trimming(struct regulator_desc *desc, int def_vol, int to_vol
 		debug2("regu_ldo %p (%s) %d = %d %+dmv (trim=%d step=%duv)\n", regs, desc->name,
 			ctl_vol, regs->vol_sel[0], ctl_vol - regs->vol_sel[0], trim, regs->vol_sel[1]);
 
-		if ((trim >= 0) && (trim <= (regs->vol_trm_bits >> shft))) {
+		if (trim <= (regs->vol_trm_bits >> shft)) {
 			ANA_REG_MSK_OR(regs->vol_trm,
 					trim << shft,
 					regs->vol_trm_bits);

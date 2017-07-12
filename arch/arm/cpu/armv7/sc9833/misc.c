@@ -119,18 +119,24 @@ uint32_t sprd_get_chipid_h(void)
 {
 	if(chiptype != CHIP_TYPE_MAX)
 		return chipid[chiptype].chipid_1;
+	else
+		return 65535;
 }
 
 uint32_t sprd_get_chipid_l(void)
 {
 	if(chiptype != CHIP_TYPE_MAX)
 		return chipid[chiptype].chipid_0;
+	else
+		return 65535;
 }
 
 uint32_t sprd_get_chip_version(void)
 {
 	if(chiptype != CHIP_TYPE_MAX)
 		return chipid[chiptype].ver_id;
+	else
+		return 65535;
 }
 
 static void sc9833_disable_clkautogate()
@@ -161,7 +167,11 @@ void misc_init()
 	chipid_l = sprd_get_chipid_l();
 	chipid_h = sprd_get_chipid_h();
 	version_id = sprd_get_chip_version();
-	debugf("chipid_l = 0x%x chipid_h = 0x%x version_id = 0x%x\n",chipid_l,chipid_h,version_id);
+
+	if ((chipid_l != 65535) && (chipid_h != 65535) && (version_id != 65535))
+		debugf("chipid_l = 0x%x chipid_h = 0x%x version_id = 0x%x\n",chipid_l,chipid_h,version_id);
+	else
+		debugf("unknow chipid\n");
 }
 
 typedef struct mem_cs_info
