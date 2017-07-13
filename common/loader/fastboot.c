@@ -864,6 +864,10 @@ int do_fastboot(void)
 	if (ret < 0)
 		return ret;
 
+#if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)
+    tos_start_notify();
+#endif
+
 	ImageInfo.base_address = g_FbBuf;
 	/*except the u-boot occupied area , all RAM can be used as fastboot buffer */
 	ImageInfo.max_size = (uint64_t) (CONFIG_SYS_TEXT_BASE - (uint64_t)g_FbBuf);
