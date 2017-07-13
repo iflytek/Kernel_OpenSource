@@ -4,10 +4,12 @@
 
 static int power_on_voltage_init(void)
 {
+	regulator_set_voltage("vddsim2",2800);
 	return 0;
 }
 
 int regulator_init(void)
 {
+	power_on_voltage_init();
 	return 0;
 }
