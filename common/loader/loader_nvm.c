@@ -688,11 +688,43 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 end:
 	memcpy(*dt_start_addr, fdt_blob, size);
 	ret = 0;
+#ifdef CONFIG_OF_LIBFDT_OVERLAY
+	u8 *dtbo_addr = NULL;
+	struct fdt_header dtbo_header;
+	size = sizeof(struct fdt_header);
+	if (0 != common_raw_read("dtbo", size, 0, &dtbo_header)) {
+		errorf("read dtbo fail\n");
+		goto error;
+	}
+	if (fdt_check_header(&dtbo_header) != 0) {
+		errorf("image is not a fdt\n");
+		goto error;
+	}
+	size = fdt_totalsize(&dtbo_header);
+	dtbo_addr = malloc(size);
+	if (NULL == dtbo_addr) {
+		errorf("malloc size %d for dtbo fail\n", size);
+		goto error;
+	}
+	if (0 != common_raw_read("dtbo", size, 0, dtbo_addr)) {
+		errorf("read dtbo fail\n");
+		goto error;
+	}
+	ret = fdt_overlay_apply(*dt_start_addr, dtbo_addr);
+	if (ret) {
+		errorf("fdt_overlay_apply(): %s\n", fdt_strerror(ret));
+		goto error;
+	}
+#endif
 error:
 	if (NULL != header)
 		free(header);
 	if (NULL != fdt_blob)
 		free(fdt_blob);
+#ifdef CONFIG_OF_LIBFDT_OVERLAY
+	if (NULL != dtbo_addr)
+		free(dtbo_addr);
+#endif
 	return ret;
 }
 
