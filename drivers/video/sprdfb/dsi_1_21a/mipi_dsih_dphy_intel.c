@@ -297,6 +297,9 @@ dsih_error_t mipi_dsih_dphy_configure(dphy_t * phy, uint8_t no_of_lanes, uint32_
     /****latchreset,latchen****/
     __raw_bits_or(1<<13, ANLG_PHY_ANALOG_REG0);
     __raw_bits_or(1<<14, ANLG_PHY_ANALOG_REG0);
+#ifdef CONFIG_SOC_IWHALE2
+    __raw_bits_or(1<<0, ANLG_PHY_ANALOG_REG0+0x30);
+#endif
     printf("0x%x = 0x%x\n", ANLG_PHY_ANALOG_REG0, __raw_readl(ANLG_PHY_ANALOG_REG0));
     /***********enable dsi**************/
 #define PHY_OFFSET 0x0
