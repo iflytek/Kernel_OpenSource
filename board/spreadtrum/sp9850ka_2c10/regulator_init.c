@@ -5,6 +5,7 @@
 static int power_on_voltage_init(void)
 {
 	regulator_set_voltage("vddsim2",2800);
+	regulator_set_voltage("vddgen",1880);
 	return 0;
 }
 
