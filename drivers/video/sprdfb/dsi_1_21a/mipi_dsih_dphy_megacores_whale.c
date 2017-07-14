@@ -440,7 +440,7 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 	regs._0e.bits.kstep_l = pll->kstep & 0x7;
 	regs._0f.bits.det_delay = pll->det_delay;
 #ifdef CONFIG_SOC_SHARKLE
-	regs._0f.bits.delta =  pll->kdelta >> 12;
+	regs._0f.bits.kdelta =  pll->kdelta >> 12;
 #else
 	regs._0f.bits.ldo0p4 = 1 << 2;
 #endif

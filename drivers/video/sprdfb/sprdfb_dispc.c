@@ -189,7 +189,7 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 	dispc_write(reg_val, DISPC_OSD_PITCH);
 
 	/*OSD base address*/
-#ifdef CONFIG_SOC_SHARKLJ1
+#if (defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE))
 	dispc_write(dev->smem_start - 0x80000000, DISPC_OSD_BASE_ADDR);
 #else
 	dispc_write(dev->smem_start, DISPC_OSD_BASE_ADDR);
