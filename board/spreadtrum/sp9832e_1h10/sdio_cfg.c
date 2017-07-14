@@ -45,9 +45,9 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	400000,
 #endif
 	REG_AP_AHB_AHB_EB,
-	BIT_10,
-	REG_AP_AHB_AHB_RST,
 	BIT_11,
+	REG_AP_AHB_AHB_RST,
+	BIT_14,
 
 	"vddgen",
 	"vddemmccore",
@@ -69,9 +69,9 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 #endif
 
 	REG_AP_AHB_AHB_EB,
-	BIT_7,
-	REG_AP_AHB_AHB_RST,
 	BIT_8,
+	REG_AP_AHB_AHB_RST,
+	BIT_11,
 
 	"vddsdio",
 	"vddsdcore",
