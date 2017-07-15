@@ -74,6 +74,8 @@ int timer_init(void)
 	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_TMR_EB, REG_AON_APB_APB_EB0);
 	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_TMR_RTC_EB, REG_AON_APB_APB_RTC_EB);
 
+	writel(readl(REG_AON_APB_CLK_EB0) | BIT_AON_APB_TMR_EB, REG_AON_APB_CLK_EB0);
+
 	/* enable ts clk output to arch timer */
 	writel(0x1, SPRD_APCPUTS0_BASE);
 
@@ -149,11 +151,12 @@ void set_timer(ulong t)
 
 void __udelay (unsigned long usec)
 {
-	do {
-		int i;
-		int cnt = 200 * (usec);
-		for (i=0; i<cnt; i++);
-	} while(0);
+	unsigned long delta_usec = usec * TMR2_CNT_VAL;
+
+	writel(delta_usec, TM2_LOAD_LO);
+	REG32 (TM2_CTL) |= (BIT_TIMER_RUN);
+	while(readl(TM2_SHDW_LO) > 0);
+	REG32 (TM2_CTL) &=~ (BIT_TIMER_RUN);
 }
 
 void tmr_udelay (unsigned long usec)
