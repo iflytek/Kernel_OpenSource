@@ -573,7 +573,7 @@ static int sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 
 	/* Wait max 20 ms */
-	timeout = 100;
+	timeout = 2000;
 	while (!((clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL))
 		 & SDHCI_CLOCK_INT_STABLE)) {
 		if (timeout == 0) {
