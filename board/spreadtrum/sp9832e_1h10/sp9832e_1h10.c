@@ -25,8 +25,15 @@ phys_size_t get_real_ram_size(void)
 
 void enable_global_clocks(void)
 {
+	u32 val;
+
 	sci_glb_set(REG_AON_APB_APB_EB0, BIT_AON_APB_GPU_EB |
 		BIT_AON_APB_MM_EB);
+	sci_glb_clr(REG_PMU_APB_PD_GPU_TOP_CFG, BIT_PMU_APB_PD_GPU_TOP_FORCE_SHUTDOWN);
+	sci_glb_clr(REG_PMU_APB_PD_MM_TOP_CFG, BIT_PMU_APB_PD_MM_TOP_FORCE_SHUTDOWN);
+	val = sci_glb_read(REG_PMU_APB_PWR_STATUS3_DBG);
+	while (val & BIT_PMU_APB_PD_MM_TOP_STATE(~0));
+	sci_glb_set(REG_MM_AHB_AHB_EB, BIT_MM_AHB_CKG_EB);
 }
 
 extern void setup_chipram_env(void);
