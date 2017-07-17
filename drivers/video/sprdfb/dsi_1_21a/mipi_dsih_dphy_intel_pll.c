@@ -444,6 +444,7 @@ static struct pll_frequency_intel pll_frequency_intel_set[] = {
 };
 
 #define PHY_OFFSET 0x0
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 void set_pll_frequency(uint32_t output_freq)
 {
     uint32_t div5b,div2or3,div5bbyass,i_fbdivratio,i_fracdiv2,i_fracdiv1,i_fracdiv0;
@@ -451,8 +452,10 @@ void set_pll_frequency(uint32_t output_freq)
     uint32_t i_sscsteplength0,i_sscsteplength1,i_sscstepnum,i_ssctype,i_sscen_h,i_prop_coeff;
     uint32_t i_int_coeff,i_gainctrl,i_tdctargetcnt0,i_tdctargetcnt1,i_lockthreshsel,i_pllwait_cntr;
     uint8_t i;
+    int count;
 
-    for(i=0;i<sizeof(pll_frequency_intel_set);i++)
+    count = ARRAY_SIZE(pll_frequency_intel_set);
+    for(i=0;i<count;i++)
 	if(pll_frequency_intel_set[i].phy_clk == output_freq)
 	{
 		div5b = pll_frequency_intel_set[i].div5b;
@@ -480,6 +483,11 @@ void set_pll_frequency(uint32_t output_freq)
 		i_pllwait_cntr = pll_frequency_intel_set[i].i_pllwait_cntr;
 		break;
 	}
+    if (i >= count) {
+	    printf("sprd-adf:error: cannot found any frequence (0x%x)\n",
+			    output_freq);
+	    return;
+    }
     writel_nbits(div5b,3,1,0xe41b0004+PHY_OFFSET);
     writel_nbits(div2or3,1,4,0xe41b0004+PHY_OFFSET);
     writel_nbits(div5bbyass,1,5,0xe41b0004+PHY_OFFSET);
