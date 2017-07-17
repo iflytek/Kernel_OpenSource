@@ -27,10 +27,10 @@ void memset_dsp_share_memory()
 
 void modem_entry()
 {
-	memset_dsp_share_memory();
+	//memset_dsp_share_memory();
 
 #ifndef CONFIG_KERNEL_BOOT_CP
-	sp_boot();
+	//sp_boot();
 	pubcp_boot();
 	debugf("boot CP1 OK\n");
 #else

@@ -176,7 +176,7 @@ static boot_image_required_t const s_boot_image_COMMON_table[] = {
 #endif
 #ifdef CONFIG_DFS_ENABLE
 #if !defined( CONFIG_KERNEL_BOOT_CP )
-	{"pm_sys", NULL, DFS_SIZE, DFS_ADDR},
+	//{"pm_sys", NULL, DFS_SIZE, DFS_ADDR},
 #endif
 #endif
 	{NULL, NULL, 0, 0}
