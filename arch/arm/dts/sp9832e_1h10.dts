@@ -53,10 +53,6 @@
 			reg = <0x0 0x95000000 0x0 0x00100000>;
 		};
 
-		camera_reserved: camera-mem@4,c64f0000{
-			reg = <0x4 0xc64f0000 0x0 0x3800000>;
-		};
-
 		fb_reserved: framebuffer@4,c9cf0000{
 			reg = <0x0 0xbeb6c000 0x0 0x00a8c000>;
 		};
@@ -114,13 +110,6 @@
 			label = "carveout_fb";
 			type = <2>;
 			memory-region = <&fb_reserved>;
-		};
-
-		heap@4 {
-			reg = <4>;
-			label = "carveout_camera";
-			type = <2>;
-			memory-region = <&camera_reserved>;
 		};
 	};
 };
