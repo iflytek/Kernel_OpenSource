@@ -58,7 +58,7 @@
 		};
 
 		fb_reserved: framebuffer@4,c9cf0000{
-			reg = <0x4 0xc9cf0000 0x0 0x2a30000>;
+			reg = <0x0 0xbeb6c000 0x0 0x00a8c000>;
 		};
 
 		overlay_reserved: overlaybuffer@4,cc720000{
