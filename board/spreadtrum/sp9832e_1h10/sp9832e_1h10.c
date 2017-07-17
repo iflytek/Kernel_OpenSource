@@ -32,6 +32,7 @@ void enable_global_clocks(void)
 	sci_glb_clr(REG_PMU_APB_PD_GPU_TOP_CFG, BIT_PMU_APB_PD_GPU_TOP_FORCE_SHUTDOWN);
 	sci_glb_clr(REG_PMU_APB_PD_MM_TOP_CFG, BIT_PMU_APB_PD_MM_TOP_FORCE_SHUTDOWN);
 	val = sci_glb_read(REG_PMU_APB_PWR_STATUS3_DBG);
+	udelay(1000);
 	while (val & BIT_PMU_APB_PD_MM_TOP_STATE(~0));
 	sci_glb_set(REG_MM_AHB_AHB_EB, BIT_MM_AHB_CKG_EB);
 }
