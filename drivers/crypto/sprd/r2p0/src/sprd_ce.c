@@ -39,6 +39,16 @@
 #define CTL_BASE_SCE    	0xC0D00000//secure
 #define CTL_BASE_PCE    	0xC0E00000//public
 
+//ce clk register
+#define SPRD_APCLK_BASE				0xE2000000
+#define REG_AP_CLK_CGM_CE0_CFG		(SPRD_APCLK_BASE + 0x0038)
+
+#define BIT_CGM_CE0_SEL		(0x3)
+#define CGM_CE0_SEL_26M		(0x0)
+#define CGM_CE0_SEL_96M		(0x1)
+#define CGM_CE0_SEL_192M	(0x2)
+#define CGM_CE0_SEL_256M	(0x3)
+
 //#define CTL_BASE_SCE    	0x50200000//secure
 //#define CTL_BASE_SCE    	0x50300000//public
 
@@ -611,10 +621,18 @@ void sprd_ce_close(void){
 }
 
 static inline void sprd_ce_enable(void) {
+	//set ce0 freq : 256M
+	unsigned int cgm_ce0_val = REG_GET_VALUE(REG_AP_CLK_CGM_CE0_CFG);
+	if ((cgm_ce0_val & BIT_CGM_CE0_SEL) != CGM_CE0_SEL_256M) {
+		REG_SET_VALUE(REG_AP_CLK_CGM_CE0_CFG, (cgm_ce0_val | CGM_CE0_SEL_256M));
+	}
+	udelay(100);
+	//enable ce0
 	SPRD_REG_SET_BIT(REG_AP_AHB_RF_AHB_EB, BIT_AP_AHB_RF_CE0_EB);
 }
 
 static inline void sprd_ce_disable(void) {
+	udelay(100);
 	SPRD_REG_CLR_BIT(REG_AP_AHB_RF_AHB_EB, BIT_AP_AHB_RF_CE0_EB);
 }
 
