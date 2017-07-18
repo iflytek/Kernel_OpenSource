@@ -100,26 +100,12 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-	u32 state;
-
-	/* hold cm4 */
-	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) |= BIT(0);
-
-	/* sharklE, cm4 sys hase been release by ddr, can't be reset agian, otherwise
-	the system will hung */
-	state = *((volatile u32*)REG_PMU_APB_CP_SOFT_RST);
-	if(!(state & BIT(8)))
-		return;
-
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT(8);   /* reset cm4 */
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) |= BIT_AON_APB_CM4_CORE_SOFT_RST | BIT_AON_APB_CM4_SYS_SOFT_RST;
 	msleep(50);
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT(8); /* clear cm4 */
-	while(1)
-	{
-		state = *((volatile u32*)REG_PMU_APB_CP_SOFT_RST);
-		if(!(state & BIT(8)))
-			break;
-	}
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_SP_SYS_SOFT_RST;
+	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_PMU_APB_SP_SYS_FORCE_DEEP_SLEEP;   /*clear sp force sleep */
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_SYS_SOFT_RST;
+	msleep(50);
 }
 
 
@@ -130,12 +116,11 @@ void pmic_arm7_RAM_active(void)
 /*****************************************************************************/
 static inline void sp_boot(void)
 {
-	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT(21);   /*clear sp force sleep */
-	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT(0);   /* reset sp */
-	msleep(50);
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_CORE_SOFT_RST;   /* core release */
 }
 
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/
 #endif
+
