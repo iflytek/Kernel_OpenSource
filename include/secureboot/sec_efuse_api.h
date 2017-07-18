@@ -6,6 +6,7 @@ extern "C"
 {
 #endif
 
+#define SEC_EFUSE_OK                               0x0
 /* error definition - per bit */
 #define SEC_EFUSE_OK                               0x00
 #define SEC_EFUSE_BASE_ERROR                       0xFFFF0000

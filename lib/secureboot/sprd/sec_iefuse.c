@@ -262,12 +262,17 @@ static Efuse_Result_Ret ce_efuse_program(unsigned int block_id, unsigned int pWr
 	REG_WRITE(EFUSE_LDO_VOL_UP_TIMEOUT, 0x001f4000);
 	/*Auto trigger finish writting operation when down voltage time out*/
 	REG_WRITE(EFUSE_LDO_VOL_DOWN_TIMEOUT, 0x001f4000);
-
+#if defined(CONFIG_SOC_IWHALE2)
 	/*open efuse LDO*/
 	REG_AND((CTL_AP_BASE_LDO + 0x0068), ~BIT(7));
 	REG_AND((CTL_AP_BASE_LDO + 0x006C), ~BIT(7));
 	REG_OR((CTL_AP_BASE_LDO + 0x0078), (BIT(7) | BIT(5)));
-
+#elif defined(CONFIG_SPRD_SOC_SP9853I)
+    /*open efuse LDO*/
+    REG_AND((CTL_AP_BASE_LDO + 0x0098), ~BIT(7));
+    REG_AND((CTL_AP_BASE_LDO + 0x009C), ~BIT(7));
+    REG_OR((CTL_AP_BASE_LDO + 0x00AC), (BIT(7) | BIT(5)));
+#endif
 	/*clear efuse status*/
 	REG_OR(REG_EFUSE_SECURE_STS, EFUSE_STATUS_CLEAR | EFUSE_VDD_ON);
 
@@ -290,10 +295,17 @@ static Efuse_Result_Ret ce_efuse_program(unsigned int block_id, unsigned int pWr
 
 	msleep(10);//delay 10ms
 
+#if defined(CONFIG_SOC_IWHALE2)
 	/*close efuse LDO*/
 	REG_OR((CTL_AP_BASE_LDO + 0x0068), BIT(7));
 	REG_OR((CTL_AP_BASE_LDO + 0x006C), BIT(7));
 	REG_AND((CTL_AP_BASE_LDO + 0x0078), ~(BIT(7) | BIT(5)));
+#elif defined(CONFIG_SPRD_SOC_SP9853I)
+    /*close efuse LDO*/
+    REG_OR((CTL_AP_BASE_LDO + 0x0098), BIT(7));
+    REG_OR((CTL_AP_BASE_LDO + 0x009C), BIT(7));
+    REG_AND((CTL_AP_BASE_LDO + 0x00AC), ~(BIT(7) | BIT(5)));
+#endif
 
 	/*disable CE0, CE1, CE_EFS*/
 	REG_AND(AP_AHB_EB_REG, ~(CE0_EB | CE1_EB | CE_EFS_EB));
@@ -307,7 +319,10 @@ Efuse_Result_Ret sprd_ce_efuse_read(unsigned int block_id, unsigned int *pReadDa
 
 	//spink_lock();
 	//power_on();
+    printf("sprd_ce_efuse_read: enter !\n");
 	ret = ce_efuse_read(block_id, pReadData);
+    printf("sprd_ce_efuse_read: block[%d], 0x%x\n", block_id, *pReadData);
+    printf("sprd_ce_efuse_read: end !\n");
 	//power_off();
 	//spink_unlock();
 
@@ -326,7 +341,10 @@ Efuse_Result_Ret sprd_ce_efuse_program(unsigned int blocked_id, unsigned int pWr
 
 	//spink_lock();
 	//power_on();
+    printf("sprd_ce_efuse_program: enter !\n");
 	ret = ce_efuse_program(blocked_id, pWriteData);
+    printf("sprd_ce_efuse_program: block[%d], 0x%x\n", blocked_id, pWriteData);
+    printf("sprd_ce_efuse_program: end !\n");
 	//power_off();
 	//spink_unlock();
 
@@ -358,10 +376,17 @@ static Efuse_Result_Ret ce_efuse_huk_program(void)
 	/*Auto trigger finish writting operation when down voltage time out*/
 	REG_WRITE(EFUSE_LDO_VOL_DOWN_TIMEOUT, 0x001f4000);
 
+#if defined(CONFIG_SOC_IWHALE2)
 	/*open efuse LDO*/
 	REG_AND((CTL_AP_BASE_LDO + 0x0068), ~BIT(7));
 	REG_AND((CTL_AP_BASE_LDO + 0x006C), ~BIT(7));
 	REG_OR((CTL_AP_BASE_LDO + 0x0078), (BIT(7) | BIT(5)));
+#elif defined(CONFIG_SPRD_SOC_SP9853I)
+    /*open efuse LDO*/
+    REG_AND((CTL_AP_BASE_LDO + 0x0098), ~BIT(7));
+    REG_AND((CTL_AP_BASE_LDO + 0x009C), ~BIT(7));
+    REG_OR((CTL_AP_BASE_LDO + 0x00AC), (BIT(7) | BIT(5)));
+#endif
 
 	/*clear efuse status*/
 	REG_OR(REG_EFUSE_SECURE_STS, EFUSE_STATUS_CLEAR | EFUSE_VDD_ON);
@@ -390,10 +415,17 @@ static Efuse_Result_Ret ce_efuse_huk_program(void)
 
 	msleep(10);//delay 10ms
 
+#if defined(CONFIG_SOC_IWHALE2)
 	/*close efuse LDO*/
 	REG_OR((CTL_AP_BASE_LDO + 0x0068), BIT(7));
 	REG_OR((CTL_AP_BASE_LDO + 0x006C), BIT(7));
 	REG_AND((CTL_AP_BASE_LDO + 0x0078), ~(BIT(7) | BIT(5)));
+#elif defined(CONFIG_SPRD_SOC_SP9853I)
+    /*close efuse LDO*/
+    REG_OR((CTL_AP_BASE_LDO + 0x0098), BIT(7));
+    REG_OR((CTL_AP_BASE_LDO + 0x009C), BIT(7));
+    REG_AND((CTL_AP_BASE_LDO + 0x00AC), ~(BIT(7) | BIT(5)));
+#endif
 
 	/*disable CE0, CE1, CE_EFS*/
 	REG_AND(AP_AHB_EB_REG, ~(CE0_EB | CE1_EB | CE_EFS_EB));

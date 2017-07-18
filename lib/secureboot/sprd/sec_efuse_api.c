@@ -51,6 +51,9 @@ static int sec_efuse_write(unsigned int block_id, unsigned int write_data)
 
     wd_data = write_data & (~read_data);
 
+    if (!wd_data)
+        return SEC_EFUSE_OK;
+
     /* write secure efuse block */
     ret = sprd_ce_efuse_program(block_id, wd_data);
     if (ret)
@@ -65,11 +68,25 @@ static int sec_efuse_write(unsigned int block_id, unsigned int write_data)
 static unsigned int sec_efuse_write_and_check(unsigned int block_id, unsigned int write_data)
 {
     unsigned int ret = SEC_EFUSE_OK;
+    unsigned int read_data = 0, read_org = 0;
+
+    ret = sec_efuse_read(block_id, &read_org);
+    if (ret)
+        return SEC_EFUSE_READ_FAIL_ERR;
 
     /* write secure efuse block */
     ret = sec_efuse_write(block_id, write_data);
     if (ret)
         return SEC_EFUSE_WRITE_FAIL_ERR;
+
+    /*read secure efuse block*/
+    ret = sec_efuse_read(block_id, &read_data);
+    if (ret)
+        return SEC_EFUSE_READ_FAIL_ERR;
+
+    /*check write data */
+    if ((read_org | write_data) != read_data)
+        return SEC_EFUSE_WRITE_CHECK_ERR;
 
     return ret;
 }
@@ -237,9 +254,7 @@ unsigned int sprd_get_version(sw_version_id_t counterId, unsigned int* swVersion
     /* check for legal counter number */
     switch(counterId) {
     case SW_VERSION_COUNTER1:
-        cntr_width =  VERSION_COUNTER1_WIDTH;
-        cntr_offset = SEC_VERSION_BLOCK;
-        break;
+        return sec_efuse_read(SEC_VERSION_BLOCK, swVersion);
 
     case SW_VERSION_COUNTER2:
         cntr_width  = VERSION_COUNTER2_WIDTH;
@@ -277,11 +292,7 @@ unsigned int sprd_set_version(sw_version_id_t counterId, unsigned int swVersion)
     /* check for legal counter number */
     switch(counterId) {
     case SW_VERSION_COUNTER1:
-        if (swVersion > SW_REVOCATION_MAX_NUM_OF_BITS_CNTR1)
-            return SEC_EFUSE_ILLEGAL_INPUT_PARAM_ERR;
-        cntr_width =  VERSION_COUNTER1_WIDTH;
-        cntr_offset = SEC_VERSION_BLOCK;
-        break;
+        return sec_efuse_write_and_check(SEC_VERSION_BLOCK, swVersion);
 
     case SW_VERSION_COUNTER2:
         if (swVersion > SW_REVOCATION_MAX_NUM_OF_BITS_CNTR2)
