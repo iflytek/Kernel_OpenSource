@@ -3,6 +3,8 @@
 
 extern u32 sprd_ap_efuse_read(int blk_index);
 extern int sprd_ap_efuse_prog(int blk_index, u32 val);
+extern int sprd_efuse_double_prog(u32 blk, bool backup, bool lock, u32 val);
+extern u32 sprd_efuse_double_read(int blk, bool backup);
 extern u32 sprd_pmic_efuse_read(int blk_index);
 extern u32 sprd_pmic_efuse_read_bits(int bit_index, int length);
 extern void pmic_efuse_block_dump(void);

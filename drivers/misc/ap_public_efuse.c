@@ -19,6 +19,7 @@
 #include <asm/arch/sprd_reg.h>
 #include <linux/types.h>
 #include <linux/err.h>
+#include <errno.h>
 
 #ifndef SCI_ADDR
 #define SCI_ADDR(_b_, _o_)		((unsigned int)(_b_) + (_o_))
@@ -46,7 +47,8 @@ typedef unsigned int  u32;
 #define EFUSE_NS_MAGIC_NUM		SCI_ADDR(SPRD_UIDEFUSE_PHYS, 0x002c)
 #define EFUSE_FW_CFG			SCI_ADDR(SPRD_UIDEFUSE_PHYS, 0x0050)
 #define EFUSE_PW_SWT			SCI_ADDR(SPRD_UIDEFUSE_PHYS, 0x0054)
-#define EFUSE_MEM(val)			(0x1000 + (val << 2))
+#define EFUSE_MEM(val)			SCI_ADDR(SPRD_UIDEFUSE_PHYS,(0x1000 + (val << 2)))
+
 
 /* bits definitions for register EFUSE_MODE_CTRL */
 
@@ -55,6 +57,7 @@ typedef unsigned int  u32;
 /* bits definitions for register EFUSE_NS_EN */
 
 #define BIT_NS_VDD_EN			(BIT(0))
+#define BIT_NS_AUTO_CHECK_ENABLE	(BIT(1))
 #define BIT_DOUBLE_BIT_EN_NS            (BIT(2))
 #define BIT_NS_MARGIN_RD_ENABLE         (BIT(3))
 #define BIT_NS_LOCK_BIT_WR_EN           (BIT(4))
@@ -101,6 +104,9 @@ typedef unsigned int  u32;
 
 
 #define EFUSE_MAGIC_NUMBER              ( 0x8810 )
+#define ERR_CLR_MASK		0x3fff
+extern void tmr_udelay (unsigned long usec);
+
 #define udelay(x)	\
 	do { \
 		volatile int i; \
@@ -135,10 +141,10 @@ static void ap_efuse_prog_power_on(void)
 	cfg0 = ap_efuse_reg_read(EFUSE_PW_SWT);
 	cfg0 &= ~BIT_EFS_ENK2_ON;
 	ap_efuse_reg_write(cfg0, EFUSE_PW_SWT);
-	udelay(1000);
+	tmr_udelay(1000);
 	cfg0 |= BIT_EFS_ENK1_ON;
 	ap_efuse_reg_write(cfg0, EFUSE_PW_SWT);
-	udelay(1000);
+	tmr_udelay(1000);
 }
 
 static void ap_efuse_prog_power_off(void)
@@ -148,10 +154,10 @@ static void ap_efuse_prog_power_off(void)
 	cfg0 = ap_efuse_reg_read(EFUSE_PW_SWT);
 	cfg0 &= ~BIT_EFS_ENK1_ON;
 	ap_efuse_reg_write(cfg0, EFUSE_PW_SWT);
-	udelay(1000);
+	tmr_udelay(1000);
 	cfg0 |= BIT_EFS_ENK2_ON;
 	ap_efuse_reg_write(cfg0, EFUSE_PW_SWT);
-	udelay(1000);
+	tmr_udelay(1000);
 }
 
 static void ap_efuse_read_power_on(void)
@@ -161,7 +167,7 @@ static void ap_efuse_read_power_on(void)
 	cfg0 = ap_efuse_reg_read(EFUSE_NS_EN);
 	cfg0 |= BIT_NS_VDD_EN;
 	ap_efuse_reg_write(cfg0,  EFUSE_NS_EN);
-	udelay(1000);
+	tmr_udelay(1000);
 }
 
 static void ap_efuse_read_power_off(void)
@@ -171,6 +177,7 @@ static void ap_efuse_read_power_off(void)
 	cfg0 = ap_efuse_reg_read(EFUSE_NS_EN);
 	cfg0 &= ~BIT_NS_VDD_EN;
 	ap_efuse_reg_write(cfg0, EFUSE_NS_EN);
+	tmr_udelay(1000);
 }
 
 static void efuse_clk_enable(void)
@@ -184,7 +191,7 @@ static void ap_efuse_prog_lock(bool en_lock)
 
 	cfg0 = ap_efuse_reg_read(EFUSE_NS_EN);
 	if(en_lock)
-		cfg0 |= BIT_DOUBLE_BIT_EN_NS;
+		cfg0 |= BIT_NS_LOCK_BIT_WR_EN;
 	else
 		cfg0 &= ~BIT_NS_LOCK_BIT_WR_EN;
 
@@ -204,7 +211,20 @@ static void ap_efuse_double(bool backup)
 	ap_efuse_reg_write(cfg0,  EFUSE_NS_EN);
 }
 
-static u32 ap_efuse_read(u32 blk,bool backup)
+static void ap_efuse_auto_check(bool en_lock)
+{
+	u32 cfg0;
+
+	cfg0 = ap_efuse_reg_read(EFUSE_NS_EN);
+	if (en_lock)
+		cfg0 |= BIT_NS_AUTO_CHECK_ENABLE;
+	else
+		cfg0 &= ~BIT_NS_AUTO_CHECK_ENABLE;
+
+	ap_efuse_reg_write(cfg0, EFUSE_NS_EN);
+}
+
+static u32 ap_efuse_read(int blk, bool backup)
 {
 	u32 val = 0;
 
@@ -217,49 +237,77 @@ static u32 ap_efuse_read(u32 blk,bool backup)
 static int ap_efuse_prog(u32 blk, bool backup, bool lock, u32 val)
 {
 	u32 cfg0;
+	int ret;
 
 	ap_efuse_reg_write(BITS_NS_EFUSE_MAGIC_NUMBER(EFUSE_MAGIC_NUMBER),
 			   EFUSE_NS_MAGIC_NUM);
-	ap_efuse_reg_write(0xffff, EFUSE_NS_FLAG_CLR);
+	ap_efuse_prog_power_on();
+	ap_efuse_reg_write(ERR_CLR_MASK, EFUSE_NS_FLAG_CLR);
 	cfg0 = ap_efuse_reg_read(EFUSE_PW_SWT);
 	cfg0 |= BIT_NS_S_PG_EN;
 	ap_efuse_reg_write(cfg0, EFUSE_PW_SWT);
 
 	ap_efuse_double(backup);
-	ap_efuse_prog_lock(backup);
+	ap_efuse_auto_check(true);
 	ap_efuse_reg_write(val, EFUSE_MEM(blk));
+	ap_efuse_auto_check(false);
 	ap_efuse_double(false);
-	ap_efuse_prog_lock(false);
+	ret = ap_efuse_reg_read(EFUSE_NS_ERR_FLAG);
+	if (!ret) {
+		ap_efuse_prog_lock(lock);
+		ap_efuse_reg_write(0x0, EFUSE_MEM(blk));
+		ap_efuse_prog_lock(false);
+	}
+	ap_efuse_reg_write(ERR_CLR_MASK, EFUSE_NS_FLAG_CLR);
 
 	cfg0 = ap_efuse_reg_read(EFUSE_PW_SWT);
 	cfg0 &= ~BIT_NS_S_PG_EN;
 	ap_efuse_reg_write(cfg0, EFUSE_PW_SWT);
+	ap_efuse_prog_power_off();
 	ap_efuse_reg_write(0, EFUSE_NS_MAGIC_NUM);
-	return 0;
+
+	return ret;
 }
 
-u32 sprd_ap_efuse_read(int blk, bool backup)
+u32 sprd_efuse_double_read(int blk, bool backup)
 {
 	u32 val = 0;
+	int ret;
+
 	ap_efuse_lock();
 	efuse_clk_enable();
+	ap_efuse_reg_write(ERR_CLR_MASK, EFUSE_NS_FLAG_CLR);
 	ap_efuse_read_power_on();
 	val = ap_efuse_read(blk, backup);
 	ap_efuse_read_power_off();
+	ret = ap_efuse_reg_read(EFUSE_NS_ERR_FLAG);
+	if (ret) {
+		ap_efuse_reg_write(ERR_CLR_MASK, EFUSE_NS_FLAG_CLR);
+		val = 0;
+	}
 	ap_efuse_unlock();
-	debugf("ap efuse read block =%d,val = 0x%x\n", blk, val);
+	debugf("efuse read blk %d, ret 0x%x, val 0x%08x\n", blk, ret, val);
+
 	return val;
 }
 
-int sprd_ap_efuse_prog(u32 blk, bool backup, bool lock, u32 val)
+u32 sprd_ap_efuse_read(int blk)
 {
+	return sprd_efuse_double_read(blk, 1);
+}
+
+int sprd_efuse_double_prog(u32 blk, bool backup, bool lock, u32 val)
+{
+	int ret;
+
 	ap_efuse_lock();
 	efuse_clk_enable();
-	ap_efuse_prog_power_on();
-	ap_efuse_prog(blk,backup,lock,val);
-	ap_efuse_prog_power_off();
+	ret = ap_efuse_prog(blk,backup,lock,val);
+	if (ret)
+		ret = -EIO;
 	ap_efuse_unlock();
-	return 0;
+	debugf("efuse prog blk %d, ret 0x%x, val 0x%08x\n", blk, ret, val);
+	return ret;
 }
 
 void sprd_get_chip_uid(char *buf)
@@ -269,8 +317,8 @@ void sprd_get_chip_uid(char *buf)
 	u32 LOTID_0, LOTID_1, LOTID_2, LOTID_3, LOTID_4, LOTID_5;
 	char *p = buf;
 
-	block0 = sprd_ap_efuse_read(94,false);
-	block1 = sprd_ap_efuse_read(95,false);
+	block0 = sprd_efuse_double_read(94,false);
+	block1 = sprd_efuse_double_read(95,false);
 
 	y = block1 & 0x7F;
 	x = (block1 >> 7) & 0x7F;
