@@ -94,7 +94,7 @@ void sprd_etb_dump (void)
 {
 	int i;
 	unsigned char *buf_ptr = NULL;
-	u32 read_data;
+	u32 read_data, buf_size;
 	u32 read_ptr, write_ptr;
 	u32 frame_off, frame_endoff;
 
@@ -108,6 +108,7 @@ void sprd_etb_dump (void)
 
 	read_ptr = __raw_readl(ETB_BASE + ETB_RAM_READ_POINTER);
 	write_ptr = __raw_readl(ETB_BASE + ETB_RAM_WRITE_POINTER);
+	buf_size = __raw_readl(ETB_BASE + ETB_RAM_DEPTH_REG);
 
 	frame_off = write_ptr % ETB_FRAME_SIZE_WORDS;
 	frame_endoff = ETB_FRAME_SIZE_WORDS - frame_off;
@@ -119,7 +120,7 @@ void sprd_etb_dump (void)
 	else
 		__raw_writel(write_ptr, ETB_BASE + ETB_RAM_READ_POINTER);
 
-	for (i = 0; i < SZ_32K / 4; i++) {
+	for (i = 0; i < buf_size; i++) {
 		read_data = __raw_readl(ETB_BASE + ETB_RAM_READ_DATA_REG);
 		*buf_ptr++ = read_data >> 0;
 		*buf_ptr++ = read_data >> 8;
