@@ -731,5 +731,10 @@ int regulator_pmic_init(void)
 
 		ANA_REG_SET(ANA_REG_GLB_DCDC_WPA_REG3,0x0891);
 
+/*
+ * bypass function comparator with deglitch
+ * */
+               ANA_REG_OR(ANA_REG_GLB_DCDC_WPA_REG1,BIT_DCDC_WPA_DEGEN);
+
 	return 0;
 }
