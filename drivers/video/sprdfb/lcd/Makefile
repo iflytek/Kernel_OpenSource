@@ -61,4 +61,6 @@ obj-$(CONFIG_FB_LCD_ILI9885_MIPI) += lcd_ili9885_mipi.o
 obj-$(CONFIG_FB_LCD_ILI9881C_MIPI)  += lcd_ili9881c_mipi.o
 obj-$(CONFIG_FB_LCD_ILI9881C_WEIYI_MIPI)  += lcd_ili9881c_weiyi_mipi.o
 obj-$(CONFIG_FB_LCD_OTM1906C_MIPI) += lcd_otm1906c_mipi.o
+obj-$(CONFIG_FB_LCD_OTM1911_MIPI) += lcd_otm1911_mipi.o
+obj-$(CONFIG_FB_LCD_HX8399C_MIPI) += lcd_hx8399c_mipi.o
 obj-$(CONFIG_FB_LCD_ST7701_MIPI)  += lcd_st7701_mipi.o
