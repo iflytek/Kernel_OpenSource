@@ -84,6 +84,7 @@ extern ddr_info_t* get_ddr_range(void);
 
 #ifdef CONFIG_ETB_DUMP
 extern unsigned char etb_dump_mem[SZ_32K];
+extern u32 etb_buf_size;
 extern void sprd_etb_hw_dis(void);
 extern void sprd_etb_dump (void);
 #endif
@@ -1424,7 +1425,7 @@ FINISH_write_mmc:
 		debugf ("\n Start to dump ETB trace data\n");
 		sprd_etb_hw_dis();
 		sprd_etb_dump();
-		write_mem_to_mmc(0, "etbdata_uboot.bin", fs_type, &etb_dump_mem[0], SZ_32K);
+		write_mem_to_mmc(0, "etbdata_uboot.bin", fs_type, &etb_dump_mem[0], etb_buf_size * 4);
 		debugf ("\n Dump ETB data finished\n");
 #endif
 

@@ -12,8 +12,13 @@
 #include <asm/io.h>
 #include <common.h>
 #include <lcd.h>
+#include <asm/arch/sprd_reg.h>
 
+#ifdef SPRD_CORESIGHT_ETB
+#define ETB_BASE					SPRD_CORESIGHT_ETB
+#else
 #define ETB_BASE					0x10003000
+#endif
 
 #define ETB_RAM_DEPTH_REG			0x004
 #define ETB_STATUS_REG				0x00c
@@ -55,6 +60,7 @@
 #define CORESIGHT_LAR				0xfb0
 
 unsigned char etb_dump_mem[SZ_32K] = {0};
+u32 etb_buf_size;
 
 static inline void CS_LOCK(u32 addr)
 {
@@ -94,7 +100,7 @@ void sprd_etb_dump (void)
 {
 	int i;
 	unsigned char *buf_ptr = NULL;
-	u32 read_data, buf_size;
+	u32 read_data;
 	u32 read_ptr, write_ptr;
 	u32 frame_off, frame_endoff;
 
@@ -108,7 +114,7 @@ void sprd_etb_dump (void)
 
 	read_ptr = __raw_readl(ETB_BASE + ETB_RAM_READ_POINTER);
 	write_ptr = __raw_readl(ETB_BASE + ETB_RAM_WRITE_POINTER);
-	buf_size = __raw_readl(ETB_BASE + ETB_RAM_DEPTH_REG);
+	etb_buf_size = __raw_readl(ETB_BASE + ETB_RAM_DEPTH_REG);
 
 	frame_off = write_ptr % ETB_FRAME_SIZE_WORDS;
 	frame_endoff = ETB_FRAME_SIZE_WORDS - frame_off;
@@ -120,7 +126,7 @@ void sprd_etb_dump (void)
 	else
 		__raw_writel(write_ptr, ETB_BASE + ETB_RAM_READ_POINTER);
 
-	for (i = 0; i < buf_size; i++) {
+	for (i = 0; i < etb_buf_size; i++) {
 		read_data = __raw_readl(ETB_BASE + ETB_RAM_READ_DATA_REG);
 		*buf_ptr++ = read_data >> 0;
 		*buf_ptr++ = read_data >> 8;

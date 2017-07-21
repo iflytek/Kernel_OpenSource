@@ -15,6 +15,7 @@
 #define HARDWARE_H
 
 #define SPRD_CORESIGHT_STM_PHYS                            0x01000000
+#define SPRD_CORESIGHT_ETB                                 0x01003000
 #define SPRD_GIC400_PHYS                                   0x12000000
 #define SPRD_DMA0_PHYS                                     0x20100000
 #define SPRD_USB_OTG_PHYS                                  0x20200000

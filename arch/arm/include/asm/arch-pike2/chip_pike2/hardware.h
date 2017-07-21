@@ -16,6 +16,7 @@
 
 #define SPRD_CORESIGHT_STM_PHYS                            0x01000000
 #define SPRD_CORESIGHT_PHYS                                0x10000000
+#define SPRD_CORESIGHT_ETB                                 0x10003000
 #define SPRD_CA7_TOP_MTX_QOS_PHYS                          0x10400000
 #define SPRD_CA7_GIC_PHYS                                  0x12000000
 #define SPRD_DMA0_PHYS                                     0x20100000
