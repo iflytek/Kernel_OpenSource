@@ -173,14 +173,14 @@ static Efuse_Result_Ret sprd_ce_efuse_set_protect_flag(uint32_t start_id, uint32
         }
     }
 
-    if(!block_id_mask0)
+    if(block_id_mask0)
     {
         sprd_ce_efuse_read(SEC_EFUSE_BLOCK_WR_PROT0, &ce_reg_data);
         ce_reg_data |= block_id_mask0;
         sprd_ce_efuse_program(SEC_EFUSE_BLOCK_WR_PROT0, ce_reg_data);
     }
 
-    if(!block_id_mask1)
+    if(block_id_mask1)
     {
         sprd_ce_efuse_read(SEC_EFUSE_BLOCK_WR_PROT1, &ce_reg_data);
         ce_reg_data |= block_id_mask1;
