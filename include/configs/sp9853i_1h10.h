@@ -52,9 +52,6 @@
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0
 
-/* coresight dump ETB data */
-#define CONFIG_ETB_DUMP
-
 #define CONFIG_USB_UTMI_WIDTH_8
 
 #endif /* __CONFIG_H */

@@ -30,7 +30,4 @@
 
 #define CONFIG_MISC_INIT_R
 
-/* coresight dump ETB data */
-#define CONFIG_ETB_DUMP
-
 #endif /* __CONFIG_H */
