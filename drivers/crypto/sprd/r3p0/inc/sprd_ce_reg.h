@@ -240,4 +240,13 @@
  */
 #define CE_CLEAR_EN			BIT(0)
 
+/**
+ * sec ce clk register
+ * sharkl2/sharklj1 bit[0] 0:26M 1:256M
+ * isharkl2 bit[0:1] 0:26M 1:96M 2:192M 3:256M
+ **/
+
+#define BIT_CGM_CE0_SEL		(0x3)
+#define CGM_CE0_SEL_256M	(0x3)
+
 #endif /* SPRD_CE_REG_H */

@@ -382,6 +382,7 @@
 // Description     : 
 ---------------------------------------------------------------------------*/
 
-
+/* referenced by sprd_ce_r3p0.c */
+#define REG_AP_CLK_CE_SEC_CFG	REG_AP_CLK_CGM_CE_SEC_CFG
 
 #endif // _AP_CLK_REG_H

@@ -337,5 +337,7 @@
 
 #define BIT_AP_CLK_CORE_CGM_SIM0_32K_CFG_CGM_SIM0_32K_SEL                               BIT(0)
 
+/* referenced by sprd_ce_r3p0.c */
+#define REG_AP_CLK_CE_SEC_CFG		REG_AP_CLK_CORE_CGM_CE_SEC_CFG
 
 #endif // _AP_CLK_CORE_REG_H
