@@ -144,4 +144,23 @@
 /* referenced by pmic global register header file */
 #define ANA_REGS_GLB_BASE                                  (SPRD_ADISLAVE_PHYS+0xC00)
 
+/* referenced by sdio_cfg.c */
+#define SPRD_EMMC_BASE                                     SPRD_EMMC_PHYS
+#define SPRD_SDIO0_BASE                                    SPRD_SDIO0_PHYS
+/* referenced by sprd_musb2_def.h */
+#define SPRD_USB_BASE                                      SPRD_USB_OTG_PHYS
+/* referenced by adi.c */
+#define SPRD_MISC_PHYS                                     SPRD_ADI_PHYS
+/* referenced by sprd_i2c.c, just tricky */
+#define SPRD_I2C_BASE                                      SPRD_I2C0_PHYS
+/* referenced by timer.c */
+#define SPRD_APCPUTS0_BASE                                 SPRD_APCPUTS0_PHYS
+/* referenced by pmic.h */
+#define SPRD_ADISLAVE_BASE                                 SPRD_ADISLAVE_PHYS
+/* referenced by sprd_bl.c */
+#define CTL_BASE_PWM                                       SPRD_PWM_PHYS
+/* just tricky, on uart0 on sharkle */
+#define SPRD_UART0_PHYS                                    SPRD_UART1_PHYS
+#define SPRD_DSI_BASE                                      SPRD_DSI_PHYS
+#define REGS_AON_APB_BASE                                  SPRD_AONAPB_PHYS
 #endif

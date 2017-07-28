@@ -20,3 +20,4 @@ obj-$(CONFIG_TARGET_XILINX_ZYNQMP) += zynqmp/
 obj-$(CONFIG_SC9860) += whale2/
 obj-$(CONFIG_SOC_SHARKLJ1) += sharklj1/
 obj-$(CONFIG_SOC_SHARKLE) += sharkle/
+obj-$(CONFIG_SOC_SHARKL3) += sharkl3/

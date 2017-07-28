@@ -74,6 +74,11 @@
 #ifdef CONFIG_SOC_PIKE2
 #include "sprdfb_chip_7700.h"
 #endif
+
+#ifdef CONFIG_SOC_SHARKL3
+#include "sprdfb_chip_9855.h"
+#endif
+
 void __raw_bits_or(unsigned int v, unsigned int a);
 void __raw_bits_and(unsigned int v, unsigned int a);
 void __raw_bits_set_value(unsigned int reg, unsigned int value, unsigned int bit, unsigned int mask);

@@ -7,7 +7,9 @@
 #endif
 
 #include <config.h>
-
+#include "hardware.h"
+#include "sprd_module_config.h"
+#include <power/sprd_pmic/pmic_glb_reg.h>
 #include "./chip_sharkl3/anlg_phy_g1.h"
 #include "./chip_sharkl3/anlg_phy_g2.h"
 #include "./chip_sharkl3/anlg_phy_g3.h"
