@@ -1,16 +1,12 @@
-ifeq ($(TARGET_ARCH) , arm64)
+ifeq ($(TARGET_KERNEL_ARCH) , arm64)
 UBOOT_TOOLCHAIN := $(shell pwd)/prebuilts/gcc/linaro-x86/aarch64/gcc-linaro-4.8/gcc-linaro-4.8-2015.06-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
 SRCARCH := arm
-else ifeq ($(TARGET_ARCH), arm)
+else ifeq ($(TARGET_KERNEL_ARCH), arm)
 UBOOT_TOOLCHAIN := $(shell pwd)/prebuilts/gcc/linux-x86/arm/arm-eabi-4.8/bin/arm-eabi-
 SRCARCH := arm
-else ifeq ($(TARGET_ARCH), x86_64)
+else ifeq ($(TARGET_KERNEL_ARCH), x86)
 UBOOT_TOOLCHAIN := $(shell pwd)/prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9/bin/x86_64-linux-android-
 SRCARCH := x86
-endif
-
-ifeq ($(strip $(CONFIG_64KERNEL_32FRAMEWORK)),true)
-UBOOT_TOOLCHAIN := $(shell pwd)/prebuilts/gcc/linaro-x86/aarch64/gcc-linaro-4.8/gcc-linaro-4.8-2015.06-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
 endif
 
 UBOOT_OUT := $(TARGET_OUT_INTERMEDIATES)/u-boot15
