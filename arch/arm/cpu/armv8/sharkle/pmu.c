@@ -32,6 +32,8 @@ extern   "C"
 #ifndef CONFIG_FPGA
 void pmu_commom_config(void)
 {
+	uint32_t reg_val;
+
 	CHIP_REG_SET(REG_PMU_APB_PD_CA53_TOP_CFG,
 		//BIT_PMU_APB_PD_CA53_TOP_DBG_SHUTDOWN_EN |
 		//BIT_PMU_APB_PD_CA53_TOP_PD_SEL |
@@ -261,6 +263,12 @@ void pmu_commom_config(void)
 		BIT_PMU_APB_ISO_OFF_DLY(0x01) |
 		BIT_PMU_APB_CGM_ON_DLY(0x01) |
 		BIT_PMU_APB_RST_ASSERT_DLY(0x01) |
+		0
+	);
+	reg_val = CHIP_REG_GET(REG_PMU_APB_ANALOG_PHY_PD_CFG) & 0x0F;
+	CHIP_REG_SET(REG_PMU_APB_ANALOG_PHY_PD_CFG,
+		reg_val |
+		BIT_PMU_APB_PHY_PWR_DLY(0x01) |
 		0
 	);
 }
