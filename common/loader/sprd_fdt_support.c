@@ -244,18 +244,18 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 			size = strlen(path) + strlen(append_args);
 			if (size > MAX_BOOTARG_LEN) {
 				errorf("bootargs len:%d overflow MAX_BOOTARG_LEN\n", size);
-				size =  MAX_BOOTARG_LEN;
+				return -1;
 			}
-			snprintf(strargs, size, "%s %s", path, append_args);
+			sprintf(strargs, "%s %s", path, append_args);
 		}
 		else
 		{
 			size = strlen(append_args);
 			if (size > MAX_BOOTARG_LEN) {
 				errorf("bootargs len:%d overflow MAX_BOOTARG_LEN\n", size);
-				size =  MAX_BOOTARG_LEN;
+				return -1;
 			}
-			snprintf(strargs, size, "%s", append_args);
+			sprintf(strargs, "%s", append_args);
 		}
 		err = fdt_setprop(fdt, nodeoffset, "bootargs", strargs, strlen(strargs) + 1);
 		if (err < 0)
