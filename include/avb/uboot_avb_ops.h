@@ -25,7 +25,8 @@
 #ifndef UBOOT_AVB_OPS_H_
 #define UBOOT_AVB_OPS_H_
 
-#define  SPRD_RSA4096PUBKLEN  (1032)
+#define  SPRD_RSA4096PUBK_HASHLEN  (32)
+#define  SPRD_VBOOT_CMDLINE_MAXSIZE (512)
 
 typedef enum {
 	AVB_CHECK_BOOTING,
@@ -35,10 +36,14 @@ typedef enum {
 
 
 extern AvbCheckType g_ulAvbCheckType;
-extern unsigned char g_sprd_vboot_key[SPRD_RSA4096PUBKLEN];
+extern unsigned char g_sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN];
 extern unsigned int g_sprd_vboot_key_len;
-int avb_check_bootimage(void);
+extern unsigned char g_sprd_vboot_cmdline[SPRD_VBOOT_CMDLINE_MAXSIZE];
+extern bool g_sprd_vbmeta_checked_flag;
+int avb_check_image(unsigned char *name);
+int avb_check_vbmeta(uint8_t * vbmeta_img_paddr, uint32_t vbmeta_image_len);
 int avb_ops_new_for_download(void);
 int avb_ops_new(void);
+uint8_t* avb_ops_get_vboot_key(uint32_t * avb_vboot_key_len);
 
 #endif /* UBOOT_AVB_OPS_H_ */

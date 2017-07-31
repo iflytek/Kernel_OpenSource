@@ -53,6 +53,12 @@ int uboot_vboot_verify_img(unsigned long start_addr, uint32_t lenth)
   return param->a0;
 }
 
+int uboot_vboot_set_ver(unsigned long start_addr, uint32_t lenth)
+{
+  smc_param *param = tee_common_call(FUNCTYPE_VBOOT_SET_VERSION, (uint32_t)start_addr, lenth);
+  return param->a0;
+}
+
 static void disable_debug_control_signal(void)
 {
 #if defined (CONFIG_SPRD_SECBOOT)

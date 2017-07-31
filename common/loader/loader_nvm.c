@@ -973,7 +973,7 @@ int secure_get_partition_size(uchar * partition_name, uint64_t * size)
 		*size = info.size * EMMC_SECTOR_SIZE;
 	}
 
-	debugf("partition:%s, info.name:%s, info.size:%d, EMMC_SECTOR_SIZE:%d, size:0x%x\n", partition_name, info.name,  info.size , EMMC_SECTOR_SIZE, *size);
+	debugf("partition:%s, info.name:%s, info.size:%d, EMMC_SECTOR_SIZE:%d, size:0x%llx\n", partition_name, info.name,  info.size , EMMC_SECTOR_SIZE, *size);
 	return ret;
 }
 #endif
@@ -1085,13 +1085,6 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 
 #endif
 	set_vibrator(0);
-
-#ifdef CONFIG_VBOOT_V2
-	debug("begin to check vbmeta.img\n");
-
-	avb_ops_new();
-	avb_check_bootimage();
-#endif
 
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SOC_IWHALE2) && (defined CONFIG_SECBOOT)
         tos_status_check();

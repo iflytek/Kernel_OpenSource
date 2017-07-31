@@ -255,8 +255,11 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
   bool is_main_vbmeta;
   bool is_vbmeta_partition;
   AvbVBMetaData* vbmeta_image_data = NULL;
+  unsigned char sprd_vboot_key_in_vbmeta[SPRD_RSA4096PUBK_HASHLEN];
 
   ret = AVB_SLOT_VERIFY_RESULT_OK;
+
+  debug("in %s l:%d. requested_partitions[0]: %s.\n", __func__, __LINE__, requested_partitions[0]);
 
   avb_assert(slot_data != NULL);
 
@@ -386,6 +389,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
   }
   avb_assert(vbmeta_num_read <= vbmeta_size);
 
+   if(g_sprd_vbmeta_checked_flag == false || is_vbmeta_partition == false) {
   /* Check if the image is properly signed and get the public key used
    * to sign the image.
    */
@@ -429,6 +433,10 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
                  NULL);
       goto out;
   }
+  }else {
+      pk_data = NULL;
+      pk_len = 0;
+  }
 
   /* Byteswap the header. */
   avb_vbmeta_image_header_to_host_byte_order((AvbVBMetaImageHeader*)vbmeta_buf,
@@ -459,10 +467,6 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
   /* Check if key used to make signature matches what is expected. */
   if (pk_data != NULL) {
     if (expected_public_key != NULL) {
-      debug("expected_public_key dump:\n");
-#ifdef CONFIG_VBOOT_DUMP
-      do_hex_dump(expected_public_key, expected_public_key_length);
-#endif
       avb_assert(!is_main_vbmeta);
       if (expected_public_key_length != pk_len ||
           avb_safe_memcmp(expected_public_key, pk_data, pk_len) != 0) {
@@ -509,6 +513,9 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
         if (!allow_verification_error) {
           goto out;
         }
+      }
+      if (is_vbmeta_partition){
+          g_sprd_vbmeta_checked_flag = true;
       }
     }
   }
@@ -577,12 +584,10 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
   descriptors =
       avb_descriptor_get_all(vbmeta_buf, vbmeta_num_read, &num_descriptors);
 
-	debug("in %s, l:%d. num_descriptors:%d.\n", __func__, __LINE__, num_descriptors);
+	debug("in %s, l:%d. num_descriptors:%d. begin to check partitions in vbmeta descriptors\n", __func__, __LINE__, num_descriptors);
 
   for (n = 0; n < num_descriptors; n++) {
     AvbDescriptor desc;
-
-	debug("in %s, l:%d..\n", __func__, __LINE__);
 
     if (!avb_descriptor_validate_and_byteswap(descriptors[n], &desc)) {
       avb_errorv(full_partition_name, ": Descriptor is invalid.\n", NULL);
@@ -590,7 +595,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
       goto out;
     }
 
-	debug("in %s, l:%d. desc.tag:0x%llx.\n", __func__, __LINE__, desc.tag);
+	debug(">>>>begin to check desc : n:%d, desc.tag:0x%llx.\n", (uint32_t)n, desc.tag);
 
     switch (desc.tag) {
       case AVB_DESCRIPTOR_TAG_HASH: {
@@ -620,7 +625,6 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
         const uint8_t* chain_partition_name;
         const uint8_t* chain_public_key;
 
-			debug("in %s, l:%d..\n", __func__, __LINE__);
         /* Only allow CHAIN_PARTITION descriptors in the main vbmeta image. */
         if (!is_main_vbmeta) {
           avb_errorv(full_partition_name,
@@ -654,6 +658,20 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
         chain_partition_name = ((const uint8_t*)descriptors[n]) +
                                sizeof(AvbChainPartitionDescriptor);
         chain_public_key = chain_partition_name + chain_desc.partition_name_len;
+
+#ifdef CONFIG_VBOOT_DUMP
+	if(chain_partition_name)
+	{
+		do_hex_dump(chain_partition_name, 32);
+	}
+
+	if(requested_partitions[0])
+		debug(" requested_partitions:%s. \n", requested_partitions[0]);
+#endif
+	if(chain_partition_name && requested_partitions[0] && avb_memcmp(chain_partition_name, requested_partitions[0], chain_desc.partition_name_len)) {
+		debug("Info::>>> chain_partition_name:%s != requested_partitions[0]:%s. skip .... \n", chain_partition_name, requested_partitions[0]);
+		break;
+	}
 
         sub_ret = load_and_verify_vbmeta(ops,
                                          requested_partitions,
@@ -1000,14 +1018,14 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
   AvbAlgorithmType algorithm_type = AVB_ALGORITHM_TYPE_NONE;
   AvbIOResult io_ret;
   bool using_boot_for_vbmeta = false;
-  char * expected_public_key;
-  unsigned int expected_public_key_len;
+  //char * expected_public_key;
+  //unsigned int expected_public_key_len;
 
   if (out_data != NULL) {
     *out_data = NULL;
   }
 
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+  debug("in %s, l:%d. requested_partitions:%s\n", __func__, __LINE__, requested_partitions[0]);
 
   slot_data = avb_calloc(sizeof(AvbSlotVerifyData));
   if (slot_data == NULL) {
@@ -1030,14 +1048,17 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
     goto fail;
   }
 
+#if 0
   /*get expected_public_key from user data*/
   expected_public_key = avb_ops_get_vboot_key(&expected_public_key_len);
   if(expected_public_key_len != 0) {
-      //vboot_dumpHex("pk_data", (void *)expected_public_key, expected_public_key_len);
+#ifdef CONFIG_VBOOT_DUMP
+      do_hex_dump("expected_public_key", (void *)expected_public_key, expected_public_key_len);
+#endif
   } else {
       debug("expected_public_key is null.\n");
   }
-
+#endif
   ret = load_and_verify_vbmeta(ops,
                                requested_partitions,
                                ab_suffix,
@@ -1195,43 +1216,6 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
         avb_assert_not_reached();
         break;
     }
-
-	/*add by jason, for debug print the cmdline info*/
-	{
-		int i = 0;
-
-		char* tmp = slot_data->cmdline;
-		int len = strlen(tmp);
-		char tmp_buffer[128];
-
-		debug("len is %d\n", len);
-		memset(tmp_buffer, 0, sizeof(tmp_buffer));
-
-		for(i=0;i<32;i++)
-		{
-		
-			if(	(i*64) < len)
-			{
-				debug("i:%d\n", i);
-				memset(tmp_buffer, 0, sizeof(tmp_buffer));
-				memcpy(tmp_buffer, (tmp), 64);
-				debug("%s", tmp_buffer);
-			}
-			else if(((i+1)*64) < len)
-			{
-				debug("i:%d\n", i);
-				memset(tmp_buffer, 0, sizeof(tmp_buffer));
-				memcpy(tmp_buffer, (tmp), (len - i*64));
-				debug("%s", tmp_buffer);
-			}
-			else
-			{
-				break;
-			}
-
-			tmp = tmp + 64;
-		}
-	}
 
     if (out_data != NULL) {
       *out_data = slot_data;

@@ -14,6 +14,9 @@
 #include <asm/arch/sprd_reg.h>
 #include <uboot_sec_drv.h>
 #include <fdtdec.h>
+#ifdef CONFIG_VBOOT_V2
+#include <avb/uboot_avb_ops.h>
+#endif
 
 extern void *lcd_get_base_addr(void *lcd_base);
 extern uint32_t load_lcd_id_to_kernel();
@@ -137,14 +140,16 @@ int fdt_fixup_flash_lock_state(void *fdt)
 int fdt_fixup_ando_vboot(void *fdt)
 {
 	int ret = 0;
-	char buf[64];
-	int str_len;
-	memset(buf, 0, 64);
+	int str_len = 0;
 
-	str_len = strlen(avb_slot_data[0]->cmdline);
-	avb_slot_data[0]->cmdline[str_len] = '\0';
-	ret = fdt_chosen_bootargs_append(fdt, avb_slot_data[0]->cmdline, 1);
-    debug("fdt vboot ret is %d\n", ret);
+	str_len = strlen((char *)g_sprd_vboot_cmdline);
+	if(str_len == 0) {
+		debug("g_sprd_vboot_cmdline is null. \n");
+		return ret;
+	}
+	g_sprd_vboot_cmdline[str_len] = '\0';
+	ret = fdt_chosen_bootargs_append(fdt, (char *)g_sprd_vboot_cmdline, 1);
+	debug("fdt vboot str_len is %d, ret is %d\n", str_len, ret);
 
 	return ret;
 }
@@ -242,8 +247,9 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 		if(path != NULL)
 		{
 			size = strlen(path) + strlen(append_args);
-			if (size > MAX_BOOTARG_LEN) {
-				errorf("bootargs len:%d overflow MAX_BOOTARG_LEN\n", size);
+			if (size > (MAX_BOOTARG_LEN - 1)) {
+				errorf("bootargs len:%d overflow (MAX_BOOTARG_LEN-1)\n", size);
+				free(strargs);
 				return -1;
 			}
 			sprintf(strargs, "%s %s", path, append_args);
@@ -253,6 +259,7 @@ int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force)
 			size = strlen(append_args);
 			if (size > MAX_BOOTARG_LEN) {
 				errorf("bootargs len:%d overflow MAX_BOOTARG_LEN\n", size);
+				free(strargs);
 				return -1;
 			}
 			sprintf(strargs, "%s", append_args);

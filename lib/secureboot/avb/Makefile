@@ -21,6 +21,6 @@ obj-y += \
     libavb/avb_vbmeta_image.o \
     libavb/avb_version.o
 
-obj-y += avb_test.o
+obj-y += avb_check.o
 obj-y += uboot_avb_ops.o
 obj-y += uboot_avb_util.o

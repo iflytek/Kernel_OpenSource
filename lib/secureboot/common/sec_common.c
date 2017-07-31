@@ -7,7 +7,9 @@
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>
+#ifdef CONFIG_VBOOT_V2
 #include <avb/uboot_avb_ops.h>
+#endif
 #include "sprd_common_rw.h"
 
 #define EFUSE_HASH_STARTID 2
@@ -17,6 +19,7 @@ VbootVerifyInfo *vboot_verify_info = ARG_START_ADRESS;
 #endif
  imgToVerifyInfo img_verify_info = {0};
 uint8_t pubkhash[32];
+VbootVerInfo vboot_ver_info __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
 
 static uchar *const s_force_secure_check[] = {
     "splloader",
@@ -58,11 +61,15 @@ static uchar *const s_force_secure_check[] = {
 	NULL
 };
 
-static int dl_secure_verify(void *partition_name,void *header,void *code)
+static int dl_secure_verify(void *partition_name,void *tocheck_partition_name,void *header,void *code)
 {
 #ifdef CONFIG_SPRD_SECBOOT
 #ifdef CONFIG_VBOOT_V2
-	sprd_dl_vboot_verify(partition_name, header, code);
+	if(tocheck_partition_name != ""){
+		sprd_dl_vboot_verify(partition_name, tocheck_partition_name, header, code);
+	}else{
+		sprd_dl_verify(partition_name, header, code);
+	}
 #else
 	sprd_dl_verify(partition_name, header, code);
 #endif
@@ -74,10 +81,18 @@ static int dl_secure_verify(void *partition_name,void *header,void *code)
 #endif
 }
 
-static void fb_secure_verify(void *partition_name,void *header,void *code)
+static void fb_secure_verify(void *partition_name,void *tocheck_partition_name,void *header,void *code)
 {
 #ifdef CONFIG_SPRD_SECBOOT
+#ifdef CONFIG_VBOOT_V2
+	if(tocheck_partition_name != ""){
+		sprd_fb_secure_vboot_verify(partition_name, tocheck_partition_name, header, code);
+	}else{
+		sprd_fb_secure_verify(partition_name, header, code);
+	}
+#else
 	sprd_fb_secure_verify(partition_name, header, code);
+#endif
 #elif defined CONFIG_SANSA_SECBOOT
 	sansa_fb_secure_verify(partition_name,header,code);
 #else
@@ -120,7 +135,6 @@ static int secure_load_partition(char *partition_name, uint64_t size, uint64_t o
 			return;
 		}
 #else
-		debugf("in %s, l:%d.\n, %s, 0x%x, 0x%x", __func__, __LINE__, partition_name, size, offset);
 		if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
 		{
 			errorf("read %s partition fail\n", partition_name);
@@ -199,16 +213,16 @@ VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
 #endif
 
 	if (SEC_TRUE == strcmp("uboot", part_name)) {
-		dl_secure_verify("splloader", buf, 0);
+		dl_secure_verify("splloader", "", buf, 0);
 	} else if (SEC_TRUE == strcmp("splloader", part_name)) {
-		dl_secure_verify("splloader0", buf, 0);
+		dl_secure_verify("splloader0", "", buf, 0);
 	}
 #ifdef CONFIG_SECBOOT
 	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))
 				||(SEC_TRUE == strcmp("mobilevisor",part_name))
 				||(SEC_TRUE == strcmp("mvconfig",part_name))
 				||(SEC_TRUE == strcmp("secvm",part_name))){
-			dl_secure_verify("fdl1",buf,0);
+			dl_secure_verify("fdl1","",buf,0);
 	}
 #endif
 #ifdef CONFIG_SECURE_BOOT
@@ -231,14 +245,20 @@ VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
 		}
 	}
 #endif
-#ifdef CONFIG_VBOOT_V2
-	else if (0 == strcmp("vbmeta", part_name)) {
-		/*vbmeta image*/
-		//dl_vboot_verify_vbmeta();
-	}
-#endif
 	else {
-		dl_secure_verify("fdl2",buf,0);
+#ifdef CONFIG_VBOOT_V2
+		if((0 == strcmp("splloader", part_name)) ||\
+			(0 == strcmp("uboot", part_name)) ||\
+			(0 == strcmp("sml", part_name)) ||\
+			(0 == strcmp("trustos", part_name))) {
+			dl_secure_verify("fdl2","",buf,0);
+		} else {
+			debugf("download vboot check images. \n");
+			dl_secure_verify("fdl2",part_name,buf,0);
+		}
+#else
+		dl_secure_verify("fdl2","",buf,0);
+#endif
 	}
 
 	return VERIFY_OK;
@@ -262,16 +282,16 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 #endif
 
 	if (SEC_TRUE == strcmp("uboot", part_name)) {
-		fb_secure_verify("splloader", buf, 0);
+		fb_secure_verify("splloader", "", buf, 0);
 	} else if (SEC_TRUE == strcmp("splloader", part_name)) {
-		fb_secure_verify("splloader0", buf, 0);
+		fb_secure_verify("splloader0", "", buf, 0);
 	}
 #ifdef CONFIG_SECBOOT
 	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))
 				||(SEC_TRUE == strcmp("mobilevisor",part_name))
 				||(SEC_TRUE == strcmp("mvconfig",part_name))
 				||(SEC_TRUE == strcmp("secvm",part_name))) {
-			fb_secure_verify("splloader",buf,0);
+			fb_secure_verify("splloader","",buf,0);
 	}
 #endif
 #ifdef CONFIG_SECURE_BOOT
@@ -296,16 +316,17 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 #endif
 	else {
 #ifdef CONFIG_VBOOT_V2
-		/*vbmeta image*/
-		if(0 == strcmp("vbmeta", part_name)) {
-			//fb_vboot_verify_vbmeta();
-		} else if((0 == strcmp("boot", part_name)) || (0 == strcmp("recovery", part_name)) || (0 == strcmp("modem", part_name))) { 		/*boot image / recovery image / modem*/
-			//fb_vboot_verify_bootimg();
+		if((0 == strcmp("splloader", part_name)) ||\
+			(0 == strcmp("uboot", part_name)) ||\
+			(0 == strcmp("sml", part_name)) ||\
+			(0 == strcmp("trustos", part_name))) {
+			fb_secure_verify("uboot","",buf,0);
 		} else {
-			fb_secure_verify("uboot",buf,0);
+			debugf("fastboot download vboot check images. \n");
+			fb_secure_verify("uboot",part_name,buf,0);
 		}
 #else
-		fb_secure_verify("uboot",buf,0);
+		fb_secure_verify("uboot","",buf,0);
 #endif
 	}
 
@@ -361,29 +382,65 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 	uint64_t partition_size = 0;
 	uint8_t * avb_vboot_key = NULL;
 	uint32_t avb_vboot_key_len = 0;
+	if(!partition_name){
+		debugf("para is invalid\n");
+		return;
+	}
 
+	/*public op1: when check vbmeta & other imgs(like boot.)*/
 	secure_get_partition_size(partition_name, &partition_size);
+	if(strcmp("vbmeta",partition_name) == 0){
+		/*Info: when check vbmeta, img para should be null.*/
+		vboot_verify_info->img_len = 0;
+		vboot_verify_info->img_addr = NULL;
 
-	debug("partintion:%s, size:0x%x\n", partition_name, partition_size);
-	vboot_verify_info->img_len = partition_size;
 
-	secure_get_partition_size("vbmeta", &partition_size);
-	debug("partintion:%s, size:0x%x.\n", "vbmeta", partition_size);
+		vboot_verify_info->vbmeta_img_len = (uint32_t)partition_size;
+		vboot_verify_info->vbmeta_img_addr = img_ram_addr;
 
-	vboot_verify_info->vbmeta_img_len = partition_size;
+		debug("partintion:%s, partition_size:0x%x\n", partition_name, vboot_verify_info->img_len);
 
-	debug("in %s, l:%d, partition_size:0x%x, VERIFY_ADDR:0x%x \n", __func__, __LINE__, partition_size, VERIFY_ADDR);
-	
-	vboot_verify_info->img_addr = img_ram_addr;
+		debug("partintion:%s, partition_size:0x%x.\n", "vbmeta", vboot_verify_info->vbmeta_img_len);
 
-	vboot_verify_info->vbmeta_img_addr = vbmeta_ram_addr;
+		debug("img_ram_addr:0x%x.   vbmeta_ram_addr:0x%x. \n", img_ram_addr, vbmeta_ram_addr);
 
-	debugf("wo kao... size:0x%x, ram_addr:0x%x.   vbmeta_ram_addr:0x%x.   \n", partition_size, img_ram_addr, vbmeta_ram_addr);
 
+		vboot_verify_info->vb_cmdline_addr = NULL;
+		vboot_verify_info->vb_cmdline_len = 0;
+	}else{
+		vboot_verify_info->img_len = (uint32_t)partition_size;
+		vboot_verify_info->img_addr = img_ram_addr;
+
+		secure_get_partition_size("vbmeta", &partition_size);
+		vboot_verify_info->vbmeta_img_len = (uint32_t)partition_size;
+		vboot_verify_info->vbmeta_img_addr = vbmeta_ram_addr;
+
+		debug("partintion:%s, partition_size:0x%x\n", partition_name, vboot_verify_info->img_len);
+
+		debug("partintion:%s, partition_size:0x%x.\n", "vbmeta", vboot_verify_info->vbmeta_img_len);
+
+		debug("img_ram_addr:0x%x.   vbmeta_ram_addr:0x%x. \n", img_ram_addr, vbmeta_ram_addr);
+
+
+		memset((char *)g_sprd_vboot_cmdline, 0, sizeof(g_sprd_vboot_cmdline));
+		vboot_verify_info->vb_cmdline_addr = (char *)g_sprd_vboot_cmdline;
+		vboot_verify_info->vb_cmdline_len = sizeof(g_sprd_vboot_cmdline);
+
+		debug("g_sprd_vboot_cmdline:0x%x.   g_sprd_vboot_cmdline_len:%d.   \n", (char *)g_sprd_vboot_cmdline, sizeof(g_sprd_vboot_cmdline));
+	}
+
+	/*public op2: when check vbmeta & other imgs(like boot.)*/
 	vboot_verify_info->vbmeta_pubkey_addr = (char *)g_sprd_vboot_key;
 	vboot_verify_info->vbmeta_pubkey_len = g_sprd_vboot_key_len;
 
-	debugf("avb_vboot_key:0x%x.   avb_vboot_key_len:%d.   \n", avb_vboot_key, avb_vboot_key_len);
+	debugf("g_sprd_vboot_key:0x%x.   g_sprd_vboot_key_len:%d.   \n", g_sprd_vboot_key, g_sprd_vboot_key_len);
+
+	//read version from rpmb block
+	//struct sprd_img_ver_t imgver;
+	//sprd_get_imgver(&imgver);
+	//pass the version msg to tos
+	//uboot_vboot_set_ver((VbootVerInfo*)(&vboot_ver_info),sizeof(VbootVerInfo));
+
 }
 
 void vboot_secure_process_flow(char *partition_name)
@@ -398,15 +455,13 @@ void vboot_secure_process_flow(char *partition_name)
 #if defined (TOS_TRUSTY)
 
 #ifdef CONFIG_VBOOT_DUMP
-	//dumpHex("boot image",  (uchar *)vboot_verify_info->img_addr, 512);
+	dumpHex("boot image",  (uchar *)vboot_verify_info->img_addr, 512);
 
-	//dumpHex("vbmeta image",  (uchar *)vboot_verify_info->vbmeta_img_addr, 512);
+	dumpHex("vbmeta image",  (uchar *)vboot_verify_info->vbmeta_img_addr, 512);
 
-	//dumpHex("vbmeta pubkey",  (uchar *)vboot_verify_info->vbmeta_pubkey_addr, 512);
+	dumpHex("vbmeta pubkey",  (uchar *)vboot_verify_info->vbmeta_pubkey_addr, 32);
 #endif
 	uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
-
-	debugf("exit %s, leave vboot secure check.\n",  __func__);
 #else
 	secboot_param_set(VERIFY_ADDR,&img_verify_info);
 	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
@@ -416,13 +471,48 @@ void vboot_secure_process_flow(char *partition_name)
 
 void vboot_secure_process_prepare(void)
 {
-	unsigned char sprd_vboot_key[SPRD_RSA4096PUBKLEN];
-	sprd_get_vboot_key(UBOOT_START, sprd_vboot_key);
+	unsigned char sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN];
+	sprd_get_vboot_key(UBOOT_START, sprd_vboot_key, GET_FROM_RAM);
 
 #ifdef CONFIG_VBOOT_DUMP
-	dumpHex("vboot pubk", sprd_vboot_key, SPRD_RSA4096PUBKLEN);
+	dumpHex("vboot pubk", sprd_vboot_key, SPRD_RSA4096PUBK_HASHLEN);
 #endif
 	avb_ops_set_vboot_key(sprd_vboot_key, sizeof(sprd_vboot_key));
+}
+
+
+void sprd_fb_secure_vboot_prepare(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr)
+{
+	unsigned char sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN];
+	/*from uboot get vboot key*/
+	sprd_get_vboot_key((CONFIG_SYS_TEXT_BASE - 0x200), sprd_vboot_key, GET_FROM_EMMC);
+
+#ifdef CONFIG_VBOOT_DUMP
+	dumpHex("vboot pubk", sprd_vboot_key, SPRD_RSA4096PUBK_HASHLEN);
+#endif
+	avb_ops_set_vboot_key(sprd_vboot_key, sizeof(sprd_vboot_key));
+
+	secf("partition_name: %s, img_ram_addr: 0x%x, vbmeta_ram_addr:0x%x \r\n", partition_name, img_ram_addr, vbmeta_ram_addr);
+	vboot_secure_process_init(partition_name, img_ram_addr, vbmeta_ram_addr); //VBMETA_IMG_ADDR
+
+	/*if it's not vbmeta image*/
+	if(partition_name && (strcmp("vbmeta",partition_name) != 0)){
+		secure_load_partition("vbmeta",vboot_verify_info->vbmeta_img_len, (uint64_t)0, vboot_verify_info->vbmeta_img_addr);
+	}
+}
+
+void sprd_dl_secure_vboot_prepare(void)
+{
+	unsigned char sprd_vboot_key_in_uboot[SPRD_RSA4096PUBK_HASHLEN];
+
+	memset(sprd_vboot_key_in_uboot, 0, sizeof(sprd_vboot_key_in_uboot));
+	sprd_get_vboot_key((CONFIG_SYS_TEXT_BASE - 0x200), sprd_vboot_key_in_uboot, 0);
+
+#ifdef CONFIG_VBOOT_DUMP
+	debug("dump uboot key hash \n");
+	do_hex_dump(sprd_vboot_key_in_uboot, SPRD_RSA4096PUBK_HASHLEN);
+#endif
+	avb_ops_set_vboot_key(sprd_vboot_key_in_uboot, sizeof(sprd_vboot_key_in_uboot));
 }
 #endif
 

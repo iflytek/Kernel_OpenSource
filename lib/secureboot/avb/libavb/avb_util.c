@@ -199,7 +199,6 @@ void* avb_malloc(size_t size) {
     debug("Failed to allocate memory. size:%d\n", size);
     return NULL;
   }
-    debug("Success to allocate memory. size:%d\n", size);
   return ret;
 }
 

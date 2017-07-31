@@ -38,8 +38,27 @@ typedef struct{
 	uint32_t vbmeta_img_len;
 	char * vbmeta_pubkey_addr;
 	uint32_t vbmeta_pubkey_len;
+	char * vb_cmdline_addr;
+	uint32_t vb_cmdline_len;
 	VBootResultInfo * verify_return_data;
+	uint32_t verify_return_data_len;
 }VbootVerifyInfo;
+
+typedef enum enAntiRBImageType{
+	IMAGE_VBMETA = 0, /**/
+	IMAGE_BOOT,
+	IMAGE_RECOVERY,
+	IMAGE_SYSTEM,
+	IMAGE_L_MODEM,
+	IMAGE_L_LDSP,
+	IMAGE_L_LGDSP,
+	IMAGE_PM_SYS,
+	IMAGE_END
+}antirb_image_type;
+
+typedef struct{
+	uint32_t img_ver[IMAGE_END];
+}VbootVerInfo;
 
 #define SPRD_FLAG 1
 #define SANSA_FLAG 2
@@ -47,6 +66,7 @@ typedef struct{
 extern imgToVerifyInfo img_verify_info;
 #ifdef TOS_TRUSTY
 extern imgToVerifyInfo *img_verify_info_tos;
+extern VbootVerifyInfo *vboot_verify_info;
 #define  PAGE_ALIGN 4096
 #define  ARG_START_ADRESS 0x98100000//0x94000000+64M
 #endif
@@ -72,9 +92,15 @@ extern imgToVerifyInfo *img_verify_info_tos;
 #endif
 
 #ifdef CONFIG_VBOOT_V2
-#define VBMETA_IMG_MAX_SIZE 0x800000
+//#define VBMETA_IMG_MAX_SIZE 0x800000
 //#define VBOOT_BUFFER_ADDR  (VERIFY_ADDR - RESERVE_SIZE+ VBMETA_IMG_MAX_SIZE) /*0x99800000 ~ 0x9c000000 40MB*/
 #define VBMETA_IMG_ADDR  (VERIFY_ADDR - RESERVE_SIZE) /*0x99000000 ~ 0x99800000 8MB*/
+#define VBMETA_PARTITION_MAX_SIZE (1024*1024)
+
+typedef enum GetKeyFrom {
+	GET_FROM_RAM = 0,
+	GET_FROM_EMMC = 1
+} get_key_from;
 #endif
 
 #define SEC_TRUE    0

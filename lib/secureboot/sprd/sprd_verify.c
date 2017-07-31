@@ -5,6 +5,7 @@
 #include <crypto/sprdsha.h>
 #include <secureboot/sec_common.h>
 #include <secureboot/sec_efuse_api.h>
+#include "libavb.h"
 #include <avb/uboot_avb_ops.h>
 
 #define SEC_DEBUG
@@ -372,10 +373,15 @@ bool sprd_verify_img(uint8_t * hash_key_precert, uint8_t * imgbuf)
 }
 
 #ifdef CONFIG_VBOOT_V2
- void sprd_get_vboot_key(uint8_t * load_buf,uint8_t *key)
+/*
+ubootkey_from
+0:from ram
+1:from emmc
+*/
+void sprd_get_vboot_key(uint8_t * load_buf,uint8_t *key,uint32_t ubootkey_from)
 {
 	uint8_t vboot_signed_part[4096];
-	sprd_vboot_keycert * vboot_cert = 0; // = (sprd_vboot_keycert *)sprd_get_cert_addr((uint8_t *)load_buf);
+	sprd_keycert * vboot_cert = 0; // = (sprd_vboot_keycert *)sprd_get_cert_addr((uint8_t *)load_buf);
 	sprdsignedimageheader * vboot_signheader = 0;
 
 	uint8_t *sechdr_addr = 0;
@@ -384,27 +390,38 @@ bool sprd_verify_img(uint8_t * hash_key_precert, uint8_t * imgbuf)
 	sys_img_header *imghdr = (sys_img_header *) load_buf;
 	uint64_t sechdr_offset =  (uint64_t)(imghdr->mImgSize + sizeof(sys_img_header));
 
-	secf("sechdr_offset is %d.\n", sechdr_offset);
-	memset(vboot_signed_part, 0, sizeof(vboot_signed_part));
-	if (0 != common_raw_read("uboot", ((uint64_t)(sizeof(vboot_signed_part))), sechdr_offset, (char*)vboot_signed_part))
+	if(ubootkey_from == GET_FROM_EMMC)
 	{
-		errorf("read uboot partition signed part fail\n");
-		return;
+		secf("sechdr_offset is 0x%llx.\n", sechdr_offset);
+		memset(vboot_signed_part, 0, sizeof(vboot_signed_part));
+		if (0 != common_raw_read("uboot", ((uint64_t)(sizeof(vboot_signed_part))), sechdr_offset, (char*)vboot_signed_part))
+		{
+			errorf("read uboot partition signed part fail\n");
+			return;
+		}
+
+		sechdr_addr = vboot_signed_part;
+		vboot_signheader = (sprdsignedimageheader *)(vboot_signed_part);
+	}
+	else
+	{
+		secf("load_buf is 0x%x.\n", load_buf);
+		secf("sechdr_offset is 0x%llx.\n", sechdr_offset);
+		sechdr_addr = (load_buf + sechdr_offset);
+		secf("sechdr_addr is 0x%x.\n", sechdr_addr);
+
+		vboot_signheader = (sprdsignedimageheader *)(sechdr_addr);
 	}
 
-	//dumpHex("vboot_signed_part", vboot_signed_part, 4096);
-
-	sechdr_addr = vboot_signed_part;
-	vboot_signheader = (sprdsignedimageheader *)(vboot_signed_part);
 	cert_addr = sechdr_addr + (vboot_signheader->cert_offset - sechdr_offset);
 
-	secf("sechdr_addr: 0x%llx. cert_addr: 0x%llx. \n", sechdr_addr, cert_addr);
+	secf("sechdr_addr: 0x%llx. cert_addr: 0x%llx. cert_addr: 0x%llx. cert_addr: 0x%x. \n", sechdr_addr, cert_addr, (uint64_t)cert_addr, (uint32_t)cert_addr);
 	secf("sechdr_offset is 0x%llx, sechdr_addr->cert_offset is 0x%llx.\n", sechdr_offset, vboot_signheader->cert_offset);
 
-	vboot_cert = (sprd_vboot_keycert *)cert_addr;
-	//dumpHex("cert_key", vboot_cert->key, SPRD_RSA4096PUBKLEN);
+	vboot_cert = (sprd_keycert *)cert_addr;
+	dumpHex("cert_key", vboot_cert->hash_key, SPRD_RSA4096PUBK_HASHLEN);
 
-	sec_memcpy(key, vboot_cert->key, SPRD_RSA4096PUBKLEN);
+	sec_memcpy(key, vboot_cert->hash_key, SPRD_RSA4096PUBK_HASHLEN);
 }
 #endif
 
@@ -459,35 +476,42 @@ void sprd_dl_check(uint8_t * hash,uint8_t * data_header)
 }
 
 #ifdef CONFIG_VBOOT_V2
-void sprd_dl_vboot_verify(uint8_t *name,uint8_t * header,uint8_t *code)
+void sprd_dl_vboot_verify(uint8_t *name,uint8_t *tocheck_name,uint8_t * header,uint8_t *code)
+{
+	uint8_t pubk[SPRD_RSAPUBKLEN] = {0};
+	uint8_t hash[HASH_BYTE_LEN] = {0};
+	int8_t vb_ret = 0;
+
+	secf("enter use partition name: %s . to check partition_name: %s. \n", name, tocheck_name);
+
+	if(name){
+		if(strcmp("fdl2",name) == 0){
+			avb_ops_new_for_download();
+			sprd_dl_secure_vboot_prepare();
+			if(strcmp("vbmeta",tocheck_name) == 0){
+				secf("check vbmeta image.\n");
+				vb_ret = avb_check_vbmeta(header, VBMETA_PARTITION_MAX_SIZE);
+			}else{
+
+				vb_ret = avb_check_image(tocheck_name);
+			}
+		}
+	}
+}
+
+void sprd_fb_secure_vboot_verify(uint8_t *name,uint8_t *partition_name,uint8_t * header,uint8_t *code)
 {
 	uint8_t pubk[SPRD_RSAPUBKLEN] = {0};
 	uint8_t hash[HASH_BYTE_LEN] = {0};
 
-	secf("\r\t name: %s enter\r\n",name);
-	if(name){/*splloader is spl partiton, uboot is uboot partition which img the pubk hash stored*/
-		if(strcmp("splloader",name) == 0 || strcmp("fdl1",name) == 0){
-		sprd_secure_check(IRAM_BEGIN,header); /*add first param*/
-		}else if(strcmp("fdl2",name) == 0){
-#if 0 //mod by jason for vboot verify bootimage / recoveryimage / modem
-			//sprd_secure_check((CONFIG_SYS_TEXT_BASE - 0x200),header);// first para is the addr
-#else
-			secf("in %s, l:%d.\n", __func__, __LINE__);
-			{
-				//extern int avb_check_bootimage(void);
-				//extern int avb_ops_new_for_download(void);
-				avb_ops_new_for_download();
-				avb_check_bootimage();
-			}
-#endif
-		}else if(strcmp("splloader0",name) == 0){
-			/*if secboot is enable, the romcode will verify fdl1's pubk,sectool sign spl and fdl1 use the same pubkkey,so wo can use the pubk's hash to verify spl's pubk*/
-			sprd_get_pubk(IRAM_BEGIN, pubk);
-			cal_sha256(pubk, SPRD_RSAPUBKLEN, hash);
-			sprd_dl_check(hash,header);
-		}else if(strcmp("uboot",name) == 0){
-			sprd_secure_check(CONFIG_SYS_TEXT_BASE - 0x200,header); //for fastboot
+	secf("enter use partition name: %s . to check partition_name: %s. \n",name, partition_name);
+	if(name && (strcmp("uboot",name) == 0)){
+		if(partition_name && (strcmp("vbmeta",partition_name) == 0)){
+			secf("check vbmeta image.\n");
 		}
+		//prepare verify infomation
+		sprd_fb_secure_vboot_prepare(partition_name, header, VBMETA_IMG_ADDR);
+		uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
 	}
 }
 #endif

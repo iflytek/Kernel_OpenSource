@@ -82,7 +82,6 @@ typedef struct sprd_rsapubkey {
 } sprd_rsapubkey;
 
 #define  SPRD_RSAPUBKLEN  sizeof(sprd_rsapubkey)
-#define  SPRD_RSA4096PUBKLEN  (1032)
 
 typedef struct sprd_keycert {
 	uint32_t certtype;	//1:key cert
@@ -93,16 +92,6 @@ typedef struct sprd_keycert {
 	uint32_t version;
 	uint8_t signature[RSA_KEY_BYTE_LEN_MAX];	//signature of hash_data+hash_key
 } sprd_keycert;
-
-typedef struct sprd_vboot_keycert {
-	uint32_t certtype;	//1:key cert
-	sprd_rsapubkey pubkey;	//pubkey for this cert, to verify signature in this cert
-	uint8_t hash_data[HASH_BYTE_LEN];	//hash of current image data
-	uint8_t key[SPRD_RSA4096PUBKLEN];
-	uint32_t type;
-	uint32_t version;
-	uint8_t signature[RSA_KEY_BYTE_LEN_MAX];	//signature of hash_data+hash_key
-} sprd_vboot_keycert;
 
 typedef struct sprd_contentcert {
 	uint32_t certtype;	//0:content cert

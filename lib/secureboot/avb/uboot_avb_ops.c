@@ -39,6 +39,8 @@
 #include <stdio_dev.h>
 /*end of add for avb ops*/
 
+//#include "sprd_imgversion.h"
+
 #include <avb/uboot_avb_ops.h>
 #include "avb_ops.h"
 #include <avb/uboot_avb_util.h>
@@ -47,8 +49,12 @@ extern AvbOps g_avb_ops;
 extern unsigned char *g_eMMCBuf;
 
 AvbCheckType g_ulAvbCheckType = AVB_CHECK_BOOTING;
-unsigned char g_sprd_vboot_key[SPRD_RSA4096PUBKLEN] __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
+unsigned char g_sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN] __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
 unsigned int g_sprd_vboot_key_len = 0;
+unsigned char g_sprd_vboot_cmdline[SPRD_VBOOT_CMDLINE_MAXSIZE]__attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
+
+/*for skip check vbmeta when already checked*/
+bool g_sprd_vbmeta_checked_flag = false;
 
 /* This function hex dumps a buffer of characters */
 int do_hex_dump(void * vaddr, int buflen)
@@ -140,22 +146,71 @@ AvbIOResult validate_vbmeta_public_key(
     const uint8_t* public_key_metadata,
     size_t public_key_metadata_length,
     bool* out_key_is_trusted) {
-  /* For now we just allow any key. */
-  if (out_key_is_trusted != NULL) {
-    *out_key_is_trusted = true;
-  }
-  avb_debug("TODO: implement validate_vbmeta_public_key().\n");
-  return AVB_IO_RESULT_OK;
+    AvbIOResult ret = AVB_IO_RESULT_OK;
+    unsigned char sprd_vboot_key_in_vbmeta[SPRD_RSA4096PUBK_HASHLEN];
+
+    uint8_t* public_key_hash;
+    size_t public_key_hash_length;
+
+    avb_debug("Enter: implement validate_vbmeta_public_key().\n");
+    (void)public_key_metadata;
+    (void)public_key_metadata_length;
+
+    if (!out_key_is_trusted ||!public_key_data || !public_key_length) {
+	avb_errorv("invalid: para is null.\n", NULL);
+	return AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
+    }
+
+    /*get expected_public_key from user data*/
+    public_key_hash = avb_ops_get_vboot_key(&public_key_hash_length);
+
+#ifdef CONFIG_VBOOT_DUMP
+    debug("dump public_key_hash: public_key_hash_length:%d. \n", public_key_hash_length);
+    if(public_key_hash_length && public_key_hash) {
+        do_hex_dump(public_key_hash, public_key_hash_length);
+    }
+#endif
+
+    extern void cal_sha256(uint8_t * input, uint32_t bytes_num, uint8_t * output);
+    cal_sha256((uint8_t *)public_key_data, (uint32_t)public_key_length, (uint8_t *)sprd_vboot_key_in_vbmeta);
+#ifdef CONFIG_VBOOT_DUMP
+    do_hex_dump((uint8_t *)sprd_vboot_key_in_vbmeta, SPRD_RSA4096PUBK_HASHLEN);
+#endif
+
+    if (public_key_hash_length != SPRD_RSA4096PUBK_HASHLEN ||
+	avb_safe_memcmp(public_key_hash, sprd_vboot_key_in_vbmeta, SPRD_RSA4096PUBK_HASHLEN) != 0) {
+	avb_debugv("expected_public_key is not matched.\n", NULL);
+	avb_errorv("vbmeta",
+		": Public key used to sign data does not match key in chain "
+		"partition descriptor.\n",
+		NULL);
+
+	*out_key_is_trusted = false;
+	ret = AVB_SLOT_VERIFY_RESULT_ERROR_PUBLIC_KEY_REJECTED;
+    } else {
+	avb_debugv("expected_public_key is matched.\n", NULL);
+	*out_key_is_trusted = true;
+    }
+
+  return ret;
 }
 
 static AvbIOResult read_rollback_index(AvbOps* ops,
                                        size_t rollback_index_slot,
                                        uint64_t* out_rollback_index) {
-  /* For now we always return 0 as the stored rollback index. */
-  avb_debug("TODO: implement read_rollback_index().\n");
-  if (out_rollback_index != NULL) {
-    *out_rollback_index = 0;
+  uint32_t swVersion = 0;
+  int ret = 0;
+
+  //ret = sprd_get_imgversion((antirb_image_type)rollback_index_slot, &swVersion);
+  debug(">>>>> rollback_index_slot:0x%llx, swVersion:%d, ret:%d.\n", rollback_index_slot, swVersion, ret);
+
+  if((!ret) && (out_rollback_index != NULL)) {
+    *out_rollback_index = (uint64_t)swVersion;
+  } else {
+     debug(">>>>> ERR:return err or para is invalid.\n");
+     return AVB_IO_RESULT_ERROR_IO;
   }
+
   return AVB_IO_RESULT_OK;
 }
 
@@ -241,3 +296,12 @@ uint8_t* avb_ops_get_vboot_key(uint32_t * avb_vboot_key_len)
 	*avb_vboot_key_len = g_sprd_vboot_key_len;
 	return (uint8_t*)g_sprd_vboot_key;
 }
+#if 0
+int avb_ops_vbmeta_image_verify(const uint8_t * data, size_t length, const uint8_t** out_public_key_data, size_t* out_public_key_length)
+{
+	int result = 0;
+
+	result = avb_vbmeta_image_verify(data, length, out_public_key_data, out_public_key_length);
+	return result;
+}
+#endif
