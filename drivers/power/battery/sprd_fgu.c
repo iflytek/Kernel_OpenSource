@@ -77,7 +77,7 @@ void sprdfgu_init(void)
 {
 
 	sci_adi_set(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_FGU_EN);
-#if defined(CONFIG_ADIE_SC2721)
+#if defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 	sci_adi_set(ANA_REG_GLB_RTC_CLK_EN, BIT_RTC_FGU_EN);
 #else
 	sci_adi_set(ANA_REG_GLB_RTC_CLK_EN, BIT_RTC_FGU_EN | BIT_RTC_FGUA_EN);

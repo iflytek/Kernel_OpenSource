@@ -101,7 +101,8 @@ static struct pmic_adc_para para = {
 	.blk_width = 8,
 	.adc_data_off = 128,
 };
-#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
+#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || \
+	defined(CONFIG_ADIE_SC2720)
 
 static struct pmic_adc_para para = {
 	.small_adc_p0 = 838,
@@ -288,7 +289,7 @@ static int pmic_adc_set_current(u8 enable, int isen)
 	return 0;
 }
 
-#elif defined(CONFIG_ADIE_SC2721)
+#elif defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 
 #define BITS_BATDET_CUR(x)     (((x) & 0x7) << 10)
 static int pmic_adc_set_isen(u8 enable, int isen)
@@ -473,7 +474,7 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 	return RATIO(1, 1);
 }
 
-#elif defined(CONFIG_ADIE_SC2721)
+#elif defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 {
 	switch (channel) {
@@ -569,7 +570,8 @@ static int sprd_get_adc_small_scale_cal(uint32_t *p_cal_data)
 	    (((deta >> 8) & 0x00FF) + para.small_adc_p0 - para.adc_data_off) * 4;
 	debugf("1.0V adc data 0x%x\n", adc_data);
 	p_cal_data[0] = (para.small_vol_p0) | (adc_data << 16);
-#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
+#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || \
+	defined(CONFIG_ADIE_SC2720)
 	/* adc 0.1V */
 	adc_data =
 		 (((deta >> 8) & 0x00FF) + para.small_adc_p1 - para.adc_data_off) * 4;
@@ -671,7 +673,7 @@ void pmic_adc_Init(void)
 	sprd_current_source_cal();
 #if defined(CONFIG_ADIE_SC2731)
 	sci_adi_set(ANA_REG_GLB_AUXAD_CTL, SC2731_ADC0_SELECT_BIT);
-#elif defined(CONFIG_ADIE_SC2721)
+#elif defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
        ANA_REG_OR(ADC_CTL1, BITS_AUXAD_NTC_MUX(0x1));
        debugf("ADC_CTL1 value of it 0x%x\n", ANA_REG_GET(ADC_CTL1));
 #endif

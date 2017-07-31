@@ -27,7 +27,7 @@ void set_vibrator(int on)
 
 void vibrator_hw_init(void)
 {
-#if defined(CONFIG_ADIE_SC2721)
+#if defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 	//SC2721 TODO
 #else
 	ANA_REG_OR(ANA_REG_GLB_RTC_CLK_EN, BIT_RTC_VIBR_EN);
