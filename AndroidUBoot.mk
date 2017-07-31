@@ -38,6 +38,12 @@ endif
 
 export UBOOT_SECURE_BOOT_FLAG
 
+ifeq ($(strip $(BOARD_TEE_CONFIG)),trusty)
+UBOOT_TOS_TRUSTY_FLAG := -DTOS_TRUSTY
+endif
+
+export UBOOT_TOS_TRUSTY_FLAG
+
 ifeq ($(strip $(CONFIG_TEE_FIREWALL)),true)
 UBOOT_FIREWALL_FLAG := -DCONFIG_TEE_FIREWALL
 endif
