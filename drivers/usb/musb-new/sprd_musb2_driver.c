@@ -110,7 +110,7 @@ void configure_ep(void)
 //  Author:        chunhou.wang
 //  Note:
 /*****************************************************************************/
-int prepare_linklist_node (uint32_t dir,int ep, unsigned int transfer_size, unsigned int *buffer)
+void prepare_linklist_node (uint32_t dir,int ep, unsigned int transfer_size, unsigned int *buffer)
 {
 	volatile unsigned char *q;
 	volatile unsigned char *p;

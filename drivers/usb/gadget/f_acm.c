@@ -386,6 +386,7 @@ static int acm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 {
 	struct f_acm		*acm = func_to_acm(f);
 	struct usb_composite_dev *cdev = f->config->cdev;
+	int result = 0;
 
 	/* we know alt == 0, so this is an activation or a reset */
 
@@ -399,7 +400,11 @@ static int acm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 		acm->notify_desc = ep_choose(cdev->gadget,
 				acm->hs.notify,
 				acm->fs.notify);
-		usb_ep_enable(acm->notify, acm->notify_desc);
+		result = usb_ep_enable(acm->notify, acm->notify_desc);
+		if (result != 0) {
+			debug("enable ep failed\n");
+			return result;
+		}
 		acm->notify->driver_data = acm;
 
 	} else if (intf == acm->data_id) {

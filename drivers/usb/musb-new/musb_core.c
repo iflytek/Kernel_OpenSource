@@ -2008,11 +2008,6 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 		musb->dma_controller = c;
 	}
 #endif
-#ifndef __UBOOT__
-	/* ideally this would be abstracted in platform setup */
-	if (!is_dma_capable() || !musb->dma_controller)
-		dev->dma_mask = NULL;
-#endif
 
 	/* be sure interrupts are disabled before connecting ISR */
 	musb_platform_disable(musb);
@@ -2045,69 +2040,10 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 		musb->irq_wake = 0;
 	}
 
-#ifndef __UBOOT__
-	/* host side needs more setup */
-	if (is_host_enabled(musb)) {
-		struct usb_hcd	*hcd = musb_to_hcd(musb);
+	MUSB_DEV_MODE(musb);
 
-		otg_set_host(musb->xceiv->otg, &hcd->self);
-
-		if (is_otg_enabled(musb))
-			hcd->self.otg_port = 1;
-		musb->xceiv->otg->host = &hcd->self;
-		hcd->power_budget = 2 * (plat->power ? : 250);
-
-		/* program PHY to use external vBus if required */
-		if (plat->extvbus) {
-			u8 busctl = musb_read_ulpi_buscontrol(musb->mregs);
-			busctl |= MUSB_ULPI_USE_EXTVBUS;
-			musb_write_ulpi_buscontrol(musb->mregs, busctl);
-		}
-	}
-#endif
-#ifndef __UBOOT__
-
-	/* For the host-only role, we can activate right away.
-	 * (We expect the ID pin to be forcibly grounded!!)
-	 * Otherwise, wait till the gadget driver hooks up.
-	 */
-	if (!is_otg_enabled(musb) && is_host_enabled(musb)) {
-		struct usb_hcd	*hcd = musb_to_hcd(musb);
-
-		MUSB_HST_MODE(musb);
-
-		musb->xceiv->otg->default_a = 1;
-		musb->xceiv->state = OTG_STATE_A_IDLE;
-
-		status = usb_add_hcd(musb_to_hcd(musb), 0, 0);
-
-		hcd->self.uses_pio_for_control = 1;
-		dev_dbg(musb->controller, "%s mode, status %d, devctl %02x %c\n",
-			"HOST", status,
-			musb_readb(musb->mregs, MUSB_DEVCTL),
-			(musb_readb(musb->mregs, MUSB_DEVCTL)
-					& MUSB_DEVCTL_BDEVICE
-				? 'B' : 'A'));
-
-
-	} else /* peripheral is enabled */ {
-#endif
-		MUSB_DEV_MODE(musb);
-#ifndef __UBOOT__
-		musb->xceiv->otg->default_a = 0;
-		musb->xceiv->state = OTG_STATE_B_IDLE;
-#endif
-
-		if (is_peripheral_capable())
-			status = musb_gadget_setup(musb);
-
-#ifndef __UBOOT__
-		dev_dbg(musb->controller, "%s mode, status %d, dev%02x\n",
-			is_otg_enabled(musb) ? "OTG" : "PERIPHERAL",
-			status,
-			musb_readb(musb->mregs, MUSB_DEVCTL));
-	}
-#endif
+	if (is_peripheral_capable())
+		status = musb_gadget_setup(musb);
 
 	if (status < 0)
 		goto fail3;
@@ -2124,34 +2060,15 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 
 	pm_runtime_put(musb->controller);
 
-	pr_debug("USB %s mode controller at %p using %s, IRQ %d\n",
-			({char *s;
-			 switch (musb->board_mode) {
-			 case MUSB_HOST:		s = "Host"; break;
-			 case MUSB_PERIPHERAL:	s = "Peripheral"; break;
-			 default:		s = "OTG"; break;
-			 }; s; }),
-			ctrl,
-			(is_dma_capable() && musb->dma_controller)
-			? "DMA" : "PIO",
-			musb->nIrq);
-
-#ifndef __UBOOT__
-	return 0;
-#else
 	return status == 0 ? musb : NULL;
-#endif
 
+#ifdef CONFIG_SYSFS
 fail5:
 	musb_exit_debugfs(musb);
+#endif
 
 fail4:
-#ifndef __UBOOT__
-	if (!is_otg_enabled(musb) && is_host_enabled(musb))
-		usb_remove_hcd(musb_to_hcd(musb));
-	else
-#endif
-		musb_gadget_cleanup(musb);
+	musb_gadget_cleanup(musb);
 
 fail3:
 	pm_runtime_put_sync(musb->controller);
@@ -2168,12 +2085,7 @@ fail1:
 	musb_free(musb);
 
 fail0:
-
-#ifndef __UBOOT__
-	return status;
-#else
-	return status == 0 ? musb : NULL;
-#endif
+	return NULL;
 
 }
 
