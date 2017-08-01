@@ -17,11 +17,9 @@
 /*sharklj1 fpga/zebu debug*/
 #define BOOTIMG_ADR	0x8D000000
 
-/*build aarch64 u-boot.elf*/
-#define CONFIG_REMAKE_ELF
-
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
+#define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
 #define CONFIG_BOARD_LATE_INIT         /* call board_late_init() */
 //#define CONFIG_SUPPORT_RAW_INITRD
@@ -36,7 +34,7 @@
 	(CONFIG_SYS_SDRAM_END - 0x10000 - GENERATED_GBL_DATA_SIZE)
 
 /* Flat Device Tree Definitions */
-#define CONFIG_OF_LIBFDT
+//#define CONFIG_OF_LIBFDT  /*no need config here,the defconfigs config_of_control*/
 
 
 /* SMP Spin Table Definitions */
@@ -67,6 +65,7 @@
 
  /* SPREADTRUM BIGPHONE board - SoC Configuration */
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
+#define CONFIG_ARCH_SHARK
 #define CONFIG_SOC_SHARKLE
 #define CONFIG_ADIE_SC2721
 
@@ -131,7 +130,7 @@
 #define CONFIG_SYS_LOAD_ADDR		(PHYS_SDRAM_1 + 0x10000000)
 
 /* Physical Memory Map */
-#define  CONFIG_DUAL_DDR
+//#define  CONFIG_DUAL_DDR /*32 bit sp9832e no need dual ddr*/
 
 #define PHYS_SDRAM_1			0x80000000	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE		0x20000000	/* 512 MB */
@@ -172,7 +171,6 @@
 									sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_CMDLINE_EDITING		1
 #define CONFIG_SYS_MAXARGS		64	/* max command args */
 
 
