@@ -10,7 +10,7 @@
 
 #define SPRD_DEBUG_LEVEL		2
 
-#define CONFIG_KERNEL_BOOT_CP
+//#define CONFIG_KERNEL_BOOT_CP
 
 #define CONFIG_MEM_LAYOUT_DECOUPLING
 
@@ -140,6 +140,7 @@
 #define CONFIG_SYS_SDRAM_SIZE     PHYS_SDRAM_1_SIZE
 #define CONFIG_SYS_SDRAM_END (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE)
 
+#define CONFIG_DDR_AUTO_DETECT
 
 #ifndef CONFIG_DUAL_DDR
 #define CONFIG_NR_DRAM_BANKS		1
@@ -247,7 +248,8 @@
 
 /*for sysdump*/
 #define CONFIG_SPRD_SYSDUMP
-#define CONFIG_RAMDUMP_NO_SPLIT 1 /* Don't split sysdump file */
+#define SPRD_SYSDUMP_MAGIC	RAMDISK_ADR
+#define CONFIG_RAMDUMP_NO_SPLIT /* Don't split sysdump file */
 #define REAL_SDRAM_SIZE 0x40000000  /*dump 1G*/
 #define CONFIG_SHA1
 
@@ -258,7 +260,7 @@
 
 
 /*for device tree*/
-#define DT_PLATFROM_ID 9820
+#define DT_PLATFROM_ID 9832
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 
@@ -284,15 +286,17 @@
 #define CORE_CP2                          BIT_2
 
 /*lcd config*/
-/*#define CONFIG_LCD*/
+#define CONFIG_LCD
 #ifdef CONFIG_LCD
 #define CONFIG_DSIH_VERSION_1P21A
 #define CONFIG_MIPI_DSIH_SPRD
+#define CONFIG_FB_USE_MEGACORES_MIPI_DPHY
 #define CONFIG_SPLASH_SCREEN
 #define LCD_BPP LCD_COLOR16
 #define CONFIG_LCD_720P
 #define CONFIG_CMD_BMP
-#define CONFIG_FB_LCD_NT35597_MIPI_FPGA
+#define LCM_GPIO_RSTN 50
+#define CONFIG_FB_LCD_ILI9881C_MIPI
 
 #define CONFIG_SYS_WHITE_ON_BLACK
 #ifdef  LCD_TEST_PATTERN
