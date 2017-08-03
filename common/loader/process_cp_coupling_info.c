@@ -847,6 +847,11 @@ int load_cp_boot_code(void *loader)
 		return 0;
 	}
 
+	if (ih_desc->magic != HEADER_MAGIC_INFO) {
+		ret = -EMEDIUMTYPE;
+		goto err;
+	}
+
 	for (i_desc = ih_desc->desc; i_desc->size != 0; i_desc++) {
 		if (!strcmp("boot-code", i_desc->desc)) {
 			debugf("boot-code was found\n");
@@ -860,5 +865,57 @@ int load_cp_boot_code(void *loader)
 err:
 	errorf("load cp boot code error, err = %d\n", ret);
 	return ret;
+}
+
+void *parse_cpcmdline_addr()
+{
+	uint64_t addr = 0;
+	struct img_desc *i_desc;
+	struct iheader_desc *ih_desc;
+	union composite_header *c_header;
+	struct cp_mem_coupling_info *decoup_data;
+
+	debugf("parse cpcmdline addr\n");
+
+	c_header = (union composite_header *)raw_decouple_data;
+
+	ih_desc = &c_header->iheader;
+	if (ih_desc->magic != HEADER_MAGIC_INFO) {
+		int i;
+		struct mem_resource *res;
+		struct region_info *region;
+		decoup_data = &c_header->mem_decoup;
+		if (decoup_data->magic != DECOUPLE_MAGIC_INFO) {
+			errorf("decoup data format error!\n");
+			goto end;
+		}
+
+		region = &decoup_data->boot_info.regions;
+		for (i = 0; i < MAX_REGION_NUM; i++) {
+			if (!strncmp("cpcmdline", region[i].res.name, 9)) {
+				addr = BASE_TO_APBASE(region[i].res.base);
+				break;
+			}
+		}
+
+		goto end;
+
+	}
+
+	if (ih_desc->magic != HEADER_MAGIC_INFO) {
+		errorf("new decoup data format error!\n");
+		goto end;
+	}
+
+	for (i_desc = ih_desc->desc; i_desc->size != 0; i_desc++) {
+		if (!strncmp("cpcmdline", i_desc->desc, 9)) {
+			addr = BASE_TO_APBASE(i_desc->offs);
+			break;
+		}
+	}
+
+end:
+	debugf("cpcmdline addr: 0x%p\n", (void *)(addr));
+	return (void *)(addr);
 }
 

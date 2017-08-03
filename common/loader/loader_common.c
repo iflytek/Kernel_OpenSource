@@ -176,9 +176,12 @@ void fdt_fixup_all(u8 *fdt_blob)
 	fdt_fixup_mtd(fdt_blob);
 #endif
 
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+extern int fdt_fixup_cp_coupling_info(void *blob);
+	fdt_fixup_cp_coupling_info(fdt_blob);
+#endif
 	/*max let cp_cmdline_fixup befor fdt_fixup_cp_boot*/
 	cp_cmdline_fixup();
-
 	fdt_fixup_cp_boot(fdt_blob);
 
 	boot_mode_type_str = getenv("bootmode");
@@ -208,11 +211,6 @@ void fdt_fixup_all(u8 *fdt_blob)
 	/* for non iq mode, remove reserved iq memory from dtb */
 	fdt_fixup_iq_reserved_mem(fdt_blob);
 
-#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
-extern int fdt_fixup_cp_coupling_info(void *blob);
-	fdt_fixup_cp_coupling_info(fdt_blob);
-#endif
-
 	return;
 }
 
@@ -236,6 +234,12 @@ void fdt_fixup_all_x86(u8 *fdt_blob)
 	fdt_fixup_adc_calibration_data(fdt_blob);
 
 	fdt_fixup_serialno(fdt_blob);
+
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+extern int fdt_fixup_cp_coupling_info(void *blob);
+	fdt_fixup_cp_coupling_info(fdt_blob);
+#endif
+
 	/*max let cp_cmdline_fixup befor fdt_fixup_cp_boot*/
 	cp_cmdline_fixup();
 
@@ -248,10 +252,6 @@ void fdt_fixup_all_x86(u8 *fdt_blob)
 	/* for non iq mode, remove reserved iq memory from dtb */
 	fdt_fixup_iq_reserved_mem(fdt_blob);
 
-#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
-extern int fdt_fixup_cp_coupling_info(void *blob);
-	fdt_fixup_cp_coupling_info(fdt_blob);
-#endif
 	fdt_fixup_pmic_wa(fdt_blob);
 
 }

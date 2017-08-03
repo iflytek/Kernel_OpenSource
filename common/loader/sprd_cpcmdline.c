@@ -239,11 +239,16 @@ static void cmdline_prepare(void)
 #if defined( CONFIG_KERNEL_BOOT_CP )
 	g_CPcmdlineBuf = CPcmdlineBuf;
 #else
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+extern void *parse_cpcmdline_addr();
+	g_CPcmdlineBuf = (char*)parse_cpcmdline_addr();
+#else
 #ifdef CALIBRATION_FLAG_CP0
 	g_CPcmdlineBuf = (char*)CALIBRATION_FLAG_CP0;
 #endif
 #ifdef CALIBRATION_FLAG_CP1
 	g_CPcmdlineBuf = (char*)CALIBRATION_FLAG_CP1;
+#endif
 #endif
 #endif
 	if (g_CPcmdlineBuf)
