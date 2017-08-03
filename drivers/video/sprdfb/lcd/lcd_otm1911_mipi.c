@@ -66,7 +66,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(6),{4,0,0xFF,0x00,0x00,0x00}},
 {LCM_SLEEP(10)},
 
-{LCM_SEND(5),{3,0,0x51,0xff,0x0f}},
+{LCM_SEND(5),{3,0,0x51,0x00,0x0f}},
 {LCM_SLEEP(5)},
 {LCM_SEND(2),{0x53,0x2c}},
 {LCM_SLEEP(5)},
@@ -189,10 +189,22 @@ int32_t otm1911_reset(struct panel_spec *self)
 	return 0;
 }
 
+static unsigned char set_bl_seq[] = {
+	0x51, 0xFF
+};
+
+int32_t otm1911_set_brightness(struct panel_spec *self,uint16_t brightness)
+{
+	mipi_gen_write_t mipi_gen_write = self->info.mipi->ops->mipi_gen_write;
+	set_bl_seq[1] = brightness;
+	mipi_gen_write(&set_bl_seq[0], 2);
+}
+
 static struct panel_operations lcd_otm1911_mipi_operations = {
 	.panel_init = otm1911_mipi_init,
 	.panel_readid = otm1911_readid,
 	.panel_reset = otm1911_reset,
+	.panel_set_brightness = otm1911_set_brightness,
 };
 
 static struct timing_rgb lcd_otm1911_mipi_timing = {

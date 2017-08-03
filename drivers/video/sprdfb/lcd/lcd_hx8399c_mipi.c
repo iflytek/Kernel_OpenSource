@@ -78,7 +78,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(12),{ 10, 0, 0xE5, 0x00, 0x04, 0x0B, 0x08, 0x06, 0x00, 0x20, 0x20, 0x00}},
 {LCM_SEND(15),{ 13, 0, 0xE6, 0x00, 0x00, 0x00, 0x05, 0x05, 0x10, 0x0A, 0x10, 0x20, 0x20, 0x00, 0x00}},
 
-{LCM_SEND(5),{3,0,0x51, 0x0f,0xff}},
+{LCM_SEND(5),{3,0,0x51, 0x00,0x00}},
 {LCM_SLEEP(5)},
 {LCM_SEND(2),{0x55, 0x01}},
 {LCM_SLEEP(5)},
@@ -198,18 +198,32 @@ static int32_t hx8399c_reset(struct panel_spec *self)
 	return 0;
 }
 
+static unsigned char set_bl_seq[] = {
+	0x51, 0x0f,0xff,
+};
+
+int32_t hx8399c_set_brightness(struct panel_spec *self,uint16_t brightness)
+{
+	mipi_gen_write_t mipi_gen_write = self->info.mipi->ops->mipi_gen_write;
+	uint16_t temp;
+	temp = 4095 *brightness/255;
+	set_bl_seq[1] = temp>>8;
+	set_bl_seq[2] = (unsigned char)temp&0xff;
+	mipi_gen_write(&set_bl_seq[0], 3);
+}
 static struct panel_operations lcd_hx8399c_mipi_operations = {
 	.panel_init = lcd_hx8399c_init,
 	.panel_readid = hx8399c_readid,
 	.panel_reset = hx8399c_reset,
+	.panel_set_brightness = hx8399c_set_brightness,
 };
 
 static struct timing_rgb lcd_hx8399c_mipi_timing = {
-	.hfp = 40,  /* unit: pixel */
+	.hfp = 36,  /* unit: pixel */
 	.hbp = 30,
-	.hsync = 30,
-	.vfp = 9, /*unit: line*/
-	.vbp = 4,
+	.hsync = 24,
+	.vfp = 14, /*unit: line*/
+	.vbp = 8,
 	.vsync = 4,
 };
 
