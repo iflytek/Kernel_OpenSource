@@ -45,7 +45,7 @@ static inline int pbint_7s_rst_set_2keymode(uint32_t mode)
 	} else {
 		sci_adi_clr(ANA_REG_GLB_SWRST_CTRL, BIT_KEY2_7S_RST_EN);
 	}
-#elif defined CONFIG_ADIE_SC2721
+#elif defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 	if (!mode) {
 		sci_adi_set(ANA_REG_GLB_POR_7S_CTRL, BIT_KEY2_7S_RST_EN);
 	} else {
@@ -154,11 +154,12 @@ void pmic_misc_init(void)
 	sci_adi_set(ANA_REG_GLB_LDO_SHPT_PD2, BIT_LDO_VIBR_SHPT_PD);	//close vibr short protection
 #endif
 
-#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) \
+	|| defined(CONFIG_ADIE_SC2720)
 	sci_adi_write(ANA_REG_GLB_OTP_CTRL, (BIT_OTP_EN|BITS_OTP_OP(0)), (BIT_OTP_EN|BITS_OTP_OP(3)));	//open otp and set 135C
 #endif
 
-#ifdef CONFIG_ADIE_SC2721
+#if defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 	printf("last shutdown flag ANA_REG_GLB_POR_OFF_FLAG:0x%x\n",ANA_REG_GET(ANA_REG_GLB_POR_OFF_FLAG));
 #endif
 	regulator_pmic_init();

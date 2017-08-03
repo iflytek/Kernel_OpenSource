@@ -45,7 +45,7 @@
  */
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
 #define CONFIG_SOC_PIKE2
-#define CONFIG_ADIE_SC2723
+#define CONFIG_ADIE_SC2720
 #define CONFIG_ARCH_SCX35L2
 #define CONFIG_ARCH_SCX35L
 
