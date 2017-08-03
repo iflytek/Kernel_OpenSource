@@ -598,7 +598,7 @@ static void usb_startup(void)
         __raw_bits_and(~BIT_USB_PHY_SOFT_RST, REG_AP_AHB_AHB_RST);
 
 
-#elif defined(CONFIG_TARGET_SP9853I) || defined(CONFIG_TARGET_SP9853I_1H10) || defined(CONFIG_TARGET_SP9853I_10C10) || defined(CONFIG_TARGET_SP9853I_2H10) || defined(CONFIG_TARGET_SP9853I_3C10)
+#elif defined(CONFIG_TARGET_SP9853I) || defined(CONFIG_TARGET_SP9853I_1H10) || defined(CONFIG_TARGET_SP9853I_9C10) || defined(CONFIG_TARGET_SP9853I_10C10) || defined(CONFIG_TARGET_SP9853I_2H10) || defined(CONFIG_TARGET_SP9853I_3C10)
 	__raw_bits_or(BIT_OTG_SOFT_RST, REG_AP_AHB_AHB_RST);
 	dwc_mdelay(5);
 	__raw_bits_and(~(BIT_OTG_SOFT_RST), REG_AP_AHB_AHB_RST);
@@ -1200,3 +1200,4 @@ int usb_gadget_handle_interrupts(void)
 }
 
 #endif				/* DWC_HOST_ONLY */
+
