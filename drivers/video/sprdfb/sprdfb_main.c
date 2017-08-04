@@ -177,6 +177,12 @@ void lcd_ctrl_init(void *lcdbase)
 	}
 	setenv_hex("splashimage", (ulong)bmp);
 	s = getenv("splashimage");
+	if(s == NULL){
+		errorf("sprdfb: splashimage addr is NULL\n");
+		setenv("splashimage",NULL);
+		free(bmp);
+		return;
+	}
 	addr = simple_strtoul(s, NULL, 16);
 	debugf("sprdfb: splashimage addr is 0x%p, fb size is 0x%x\n",
 			(void *)addr, size);
