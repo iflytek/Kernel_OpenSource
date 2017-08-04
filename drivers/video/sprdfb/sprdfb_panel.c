@@ -45,6 +45,7 @@ extern struct panel_spec lcd_ili9806e_mipi_spec;
 extern struct panel_spec lcd_ili9806e_2_mipi_spec;
 extern struct panel_spec lcd_otm8019a_mipi_spec;
 extern struct panel_spec lcd_otm1906c_mipi_spec;
+extern struct panel_spec lcd_otm1901_mipi_spec;
 extern struct panel_spec lcd_fl10802_mipi_spec;
 extern struct panel_spec lcd_jd9161_mipi_spec;
 extern struct panel_spec lcd_hx8369b_mipi_vivaltoVE_spec;
@@ -398,6 +399,12 @@ static struct panel_cfg panel_cfg[] = {
 	{
 		.lcd_id = 0x1906,
 		.panel = &lcd_otm1906c_mipi_spec,
+	},
+#endif
+#ifdef CONFIG_FB_LCD_OTM1901_MIPI
+	{
+		.lcd_id = 0x1901,
+		.panel = &lcd_otm1901_mipi_spec,
 	},
 #endif
 #ifdef CONFIG_FB_LCD_FL10802_MIPI
