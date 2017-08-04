@@ -47,6 +47,9 @@
 #define LCM_GPIO_RSTN   126
 #define CONFIG_LCD_1080P
 #endif
+/*charge config*/
+#define CONFIG_SPRD2705_CHARGE_IC
+#define CONFIG_SPRDCHG_I2C_BUS 4
 
 #define CONFIG_MISC_INIT_R
 /**********vmm related***********/
