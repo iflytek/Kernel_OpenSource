@@ -133,7 +133,11 @@ static int sprdfb_probe(void *lcdbase)
 		errorf("Failed to decode reg property \n");
 		return -EINVAL;
 	}
+#ifdef CONFIG_SPRD_SOC_SP9853I
+	gd->fb_base = base + (size / 4) * 2;
+#else
 	gd->fb_base = base + (size / 3) * 2;
+#endif
 	dev->smem_start = gd->fb_base;
 	dev->ctrl->init(dev);
 	debugf("sprdfb:[%s]---\n", __FUNCTION__);
