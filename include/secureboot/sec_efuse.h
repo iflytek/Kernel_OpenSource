@@ -11,4 +11,9 @@
 #ifdef CONFIG_SOC_SHARKLJ1
 #include "sec_efuse_sharklj1.h"
 #endif
+
+#ifdef CONFIG_SOC_SHARKLE
+#include "sec_efuse_sharkle.h"
+#endif
+
 #endif

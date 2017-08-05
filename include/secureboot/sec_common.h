@@ -9,7 +9,7 @@
 #include<asm/arch/chip_releted_def.h>
 
 typedef struct{
-#if defined (CONFIG_SC9833)||defined (CONFIG_SOC_SHARKLJ1)
+#if defined (CONFIG_SC9833)||defined (CONFIG_SOC_SHARKLJ1) || defined (CONFIG_SOC_SHARKLE)
 	uint32_t img_addr; //the base address of image to verify
 	uint32_t img_len; //length of image
 	uint32_t pubkeyhash;//pubkey hash for verifying image
@@ -58,6 +58,8 @@ extern imgToVerifyInfo *img_verify_info_tos;
 #define RESERVE_SIZE 0x3000000
 #if defined (CONFIG_SOC_IWHALE2)||defined (CONFIG_SPRD_SOC_SP9853I)
 #define IRAM_BEGIN   0xe6000000
+#elif defined (CONFIG_SOC_SHARKLE)
+#define IRAM_BEGIN   0x5000
 #else
 #define IRAM_BEGIN   (SPL_BASE_ADDR - SYS_HEADER_SIZE)
 #endif

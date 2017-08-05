@@ -359,4 +359,7 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+/**** PAGE_ALIGN ****/
+#define TOS_TRUSTY
+
 #endif /* __TSHARK_L_H */
