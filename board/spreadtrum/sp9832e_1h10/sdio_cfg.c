@@ -51,7 +51,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	0,
 	0,
 
-	"vddgen",
+	0,
 	"vddemmccore",
 },
 {

@@ -2283,8 +2283,10 @@ int sprd_host_init(int sdio_type)
 	uint32_t ret, i;
 	struct sdio_base_info *sprd_host_info;
 	sprd_host_info = get_sdcontrol_info(sdio_type);
-	regulator_enable(sprd_host_info->ldo_core);
-	regulator_enable(sprd_host_info->ldo_io);
+	if( 0 != sprd_host_info->ldo_core)
+		regulator_enable(sprd_host_info->ldo_core);
+	if( 0 != sprd_host_info->ldo_io)
+		regulator_enable(sprd_host_info->ldo_io);
 
 #ifndef CONFIG_FPGA
 	CHIP_REG_SET(sprd_host_info->baseclk_reg, sprd_host_info->baseclk_mask);
