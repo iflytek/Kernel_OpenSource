@@ -701,11 +701,11 @@ int32_t nt35532_reset(struct panel_spec *self)
 	sprd_gpio_request(NULL, LCM_GPIO_AVDDEN);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_AVDDEN, 1);
 	mdelay(10);
-
+#ifdef LCM_GPIO_AVEEEN
 	sprd_gpio_request(NULL, LCM_GPIO_AVEEEN);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_AVEEEN, 1);
 	mdelay(20);
-
+#endif
 	sprd_gpio_request(NULL, LCM_GPIO_RSTN);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
 	mdelay(5);

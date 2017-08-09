@@ -3,54 +3,52 @@
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
 
-#define PWM_INDEX 0
+#include "sc2705_bllcd.h"
 
-/*r3p0*/
+//#####################
+enum {
+	SC2705_WLED_BYPASS = 0,
+	SC2705_WLED_DIRECT = 1,
+	SC2705_WLED_DUTY_DET_PWM = 2,
+	SC2705_WLED_DUTY_DET_ANALOG = 3,
+	SC2705_WLED_DUTY_DET_MIXED = 4,
+	SC2705_WLED_MODE_MAX,
+};
+#define WLED_CE_2705		(120)
+#define SC2705_LCD_I2C_ADDRESS	0x48
+#define SC2705_LCD_I2C_BUS	3
+#define SC2705_WLED_IDAC_MAX 2047
+#define MAX_BRIGHTNESS 255
 
-#define PWM_PRESCALE	(0x0000)
-#define PWM_MOD		(0x0004)
-#define PWM_DUTY		(0x0008)
-#define PWM_DIV			(0x000c)
-#define PWM_PAT_LOW	(0x0010)
-#define PWM_PAT_HIGH	(0x0014)
-#define PWM_ENABLE 	(0x0018)
-#define PWM_VERSION	(0x001c)
-
-#define PWM2_SCALE		0x0
-#define PWM_MOD_MAX 0xff
-#define PWM_REG_MSK 0xffff
-
-static inline uint32_t pwm_read(int index, uint32_t reg)
-{
-	return __raw_readl(CTL_BASE_PWM + index * 0x20 + reg);
-}
-
-static void pwm_write(int index, uint32_t value, uint32_t reg)
-{
-	__raw_writel(value, CTL_BASE_PWM + index * 0x20 + reg);
-}
-
+//###########
 void set_backlight(uint32_t brightness)
 {
-#ifndef CONFIG_FPGA
-	int index = PWM_INDEX;
 
-	__raw_bits_or((0x3 << 0), REG_CLKTOP_CGM_PWM0_CFG + index * 4);//ext_26m select
-	__raw_bits_or((0xF << 4), REG_AON_APB_APB_EB0); //PWMx EN
+	int value;
+	int pwm_out_duty = 0x80;
+	brightness = (brightness * SC2705_WLED_IDAC_MAX)/MAX_BRIGHTNESS;
 
-	if (0 == brightness) {
-		pwm_write(index, 0, PWM_ENABLE);
-		printf("sprd backlight power off. pwm_index=%d  brightness=%d\n", index, brightness);
-	} else {
-		pwm_write(index, PWM2_SCALE, PWM_PRESCALE);
-		pwm_write(index, PWM_MOD_MAX, PWM_MOD);
-		pwm_write(index,  brightness, PWM_DUTY);
+	sprd_gpio_request(NULL, WLED_CE_2705);
+	sprd_gpio_direction_output(NULL, WLED_CE_2705, brightness > 0? 1: 0);
 
-		pwm_write(index, PWM_REG_MSK, PWM_PAT_LOW);
-		pwm_write(index, PWM_REG_MSK, PWM_PAT_HIGH);
-		pwm_write(index, 1, PWM_ENABLE);
-		printf("sprd backlight power on. pwm_index=%d  brightness=%d\n", index, brightness);
-	}
-#endif
-	return;
+	i2c_set_bus_num(SC2705_LCD_I2C_BUS);
+	value = (SC2705_WLED_DIRECT << SC2705_WLED_MODE_SHIFT)
+		| SC2705_WLED_STR1_EN_MASK
+		| SC2705_WLED_STR2_EN_MASK;
+	/* direct mode */
+	i2c_reg_write(SC2705_LCD_I2C_ADDRESS, SC2705_WLED_CONFIG1, value);
+
+	i2c_reg_write(SC2705_LCD_I2C_ADDRESS, SC2705_WLED_CONFIG7, pwm_out_duty);
+
+	value = (brightness >> 8) & 0x7;
+	i2c_reg_write(SC2705_LCD_I2C_ADDRESS, SC2705_WLED_CONFIG2, SC2705_IDAC_LINEAR_MASK | value);
+
+	value = brightness & 0xFF;
+	i2c_reg_write(SC2705_LCD_I2C_ADDRESS, SC2705_WLED_CONFIG3, value);
+
+	value = SC2705_WLED_EN_MASK | SC2705_DISPLAY_EN_MASK;
+	value = brightness > 0? value: 0;
+	i2c_reg_write(SC2705_LCD_I2C_ADDRESS, SC2705_SUPPLY_ACTIVE, value);
+	value = i2c_reg_read(SC2705_LCD_I2C_ADDRESS, SC2705_SUPPLY_STATUS);
+	printf("read SC2705_SUPPLY_STATUS = 0x%x brightness:%d\n", value,brightness);
 }
