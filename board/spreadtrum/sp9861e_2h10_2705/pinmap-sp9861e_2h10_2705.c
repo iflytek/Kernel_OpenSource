@@ -12,7 +12,7 @@
  */
 
 /*
- *Version SP9861-1_E-IA_V1.0.0_Pinmap  The version of pinlist was modified
+ *Version SC9861-2_IRD_E-IA_URSA_V1.0.0_Pinmap  The version of pinlist was modified
  */
 
 #include <asm/io.h>
@@ -41,7 +41,7 @@ static pinmap_t pinmap[]={
 {REG_PIN_RFCTL32,                 BITS_AF(3)},
 {REG_PIN_RFCTL32_MISC,            BITS_DEF(0x75)|BIT_SLP_AP|BITS_STR(1)|BIT_POC|BIT_NUL|BIT_SLP_NUL|BIT_SLP_OE},//FTID_RSTN
 {REG_PIN_RFCTL33,                 BITS_AF(3)},
-{REG_PIN_RFCTL33_MISC,            BITS_DEF(0x75)|BIT_SLP_AP|BITS_STR(1)|BIT_NUL|BIT_SLP_NUL|BIT_SLP_OE},//HAPTIC_DRV_EN
+{REG_PIN_RFCTL33_MISC,            BITS_DEF(0x75)|BIT_SLP_NONE|BITS_STR(1)|BIT_WPU|BIT_SLP_WPU|BIT_SLP_IE},//Ursa_IRQ
 {REG_PIN_RFCTL34,                 BITS_AF(0)},
 {REG_PIN_RFCTL34_MISC,            BITS_DEF(0x75)|BIT_SLP_ALL_CP|BITS_STR(1)|BIT_NUL|BIT_SLP_NUL|BIT_SLP_OE},//NC
 {REG_PIN_RFCTL35,                 BITS_AF(0)},
