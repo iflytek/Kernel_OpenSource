@@ -265,7 +265,7 @@
 
 #define SIMLOCK_ADR      (0x891FE800+0x4)   //0x4 just for data header
 
-#define KERNEL_ADR      0x80080000
+#define KERNEL_ADR      0x80008000
 #define DT_ADR          0x85400000
 #define RAMDISK_ADR     0x85500000
 
