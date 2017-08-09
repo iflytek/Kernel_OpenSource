@@ -13,6 +13,7 @@ extern struct panel_if_ctrl sprdfb_mcu_ctrl;
 extern struct panel_if_ctrl sprdfb_rgb_ctrl;
 extern struct panel_if_ctrl sprdfb_mipi_ctrl;
 
+extern struct panel_spec lcd_dummy_mipi_qvga_spec;
 extern struct panel_spec lcd_dummy_mipi_spec;
 extern struct panel_spec lcd_nt35510_mipi_spec;
 extern struct panel_spec lcd_nt35516_mipi_spec;
@@ -494,6 +495,13 @@ static struct panel_cfg panel_cfg[] = {
 {
 	.lcd_id = 0x9881,
 	.panel = &lcd_ili9881c_mipi_spec,
+},
+#endif
+
+#ifdef CONFIG_FB_LCD_DUMMY_MIPI_QVGA
+{
+	.lcd_id = 0xFFFF,
+	.panel = &lcd_dummy_mipi_qvga_spec,
 },
 #endif
 
