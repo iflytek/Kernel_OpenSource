@@ -18,6 +18,7 @@
 #include <linux/types.h>
 #include <mmc.h>
 #include <malloc.h>
+#include <sprd_rpmb.h>
 
 #define RPMB_MSG_TYPE_REQ_AUTH_KEY_PROGRAM          0x0001
 #define RPMB_MSG_TYPE_REQ_WRITE_COUNTER_VAL_READ    0x0002
