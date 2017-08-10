@@ -24,10 +24,15 @@ void dsi_enable(void)
 	udelay(10);
 	__raw_bits_and(~(BIT_MIPI_DSI_PS_PD_L),DPHY_PW_CONFIG_REG);
 	__raw_bits_or(BIT_DPHY_REF_CKG_EN|BIT_DPHY_CFG_CKG_EN,DPHY_CKG_EN);
+	__raw_bits_or(BIT(27)|BIT(28),0x40353034);
+	__raw_bits_and(~(BIT(20)|BIT(21)) ,0x40353020);
 	__raw_bits_or(BIT(14),0x40353034);
 	__raw_bits_or(BIT(16),0x40353024);
-	__raw_bits_and(~BIT(4),0x402d0040);
-	 __raw_bits_or(BIT(4),0x402d0050);
+
+	__raw_bits_or(BIT(25)|BIT(26),0x40353034);
+	__raw_bits_and(~(BIT(18)|BIT(19)) ,0x40353020);
+	mdelay(3);
+	__raw_bits_or(BIT(18)|BIT(19),0x40353020);
 
 }
 
