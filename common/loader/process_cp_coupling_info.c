@@ -899,7 +899,6 @@ void *parse_cpcmdline_addr()
 		}
 
 		goto end;
-
 	}
 
 	if (ih_desc->magic != HEADER_MAGIC_INFO) {
@@ -908,8 +907,16 @@ void *parse_cpcmdline_addr()
 	}
 
 	for (i_desc = ih_desc->desc; i_desc->size != 0; i_desc++) {
-		if (!strncmp("cpcmdline", i_desc->desc, 9)) {
-			addr = BASE_TO_APBASE(i_desc->offs);
+		if (!strcmp("decoup-desc", i_desc->desc)) {
+			struct img_desc *idesc;
+			struct region_desc *reg;
+			reg = ((struct mem_coupling_info *)((char *)c_header + i_desc->offs))->region;
+			for (; reg->size > 0; reg++) {
+				if (!strncmp("cpcmdline", reg->name, 9)) {
+					addr = BASE_TO_APBASE(reg->base);
+					goto end;
+				}
+			}
 			break;
 		}
 	}
