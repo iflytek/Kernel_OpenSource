@@ -334,6 +334,7 @@ void secboot_terminal(void)
 
 void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
 {
+	uint32_t ret = 1;
 #ifdef CONFIG_VBOOT_V2
 	vboot_secure_process_flow(partition_name);
 #else
@@ -344,7 +345,8 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 	secboot_get_pubkhash(UBOOT_START,img_verify_info_tos->pubkeyhash);
 
 	printf("p1:%x, p2:%x,P3:%x,p4:%x,p5:%x\n",img_verify_info_tos->img_addr,img_verify_info_tos->img_len,img_verify_info_tos->pubkeyhash,img_verify_info_tos->hash_len,img_verify_info_tos->flag);
-	uboot_verify_img((imgToVerifyInfo*)img_verify_info_tos,sizeof(imgToVerifyInfo));
+	ret = uboot_verify_img((imgToVerifyInfo*)img_verify_info_tos,sizeof(imgToVerifyInfo));
+	while(ret);
 #else
 	secboot_param_set(VERIFY_ADDR,&img_verify_info);
 	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);

@@ -520,6 +520,7 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 {
 	uint8_t pubk[SPRD_RSAPUBKLEN] = {0};
 	uint8_t hash[HASH_BYTE_LEN] = {0};
+	uint8_t ret =1;
 
 	secf("name: %s enter\r\n",name);
 	if(name){/*splloader is spl partiton, uboot is uboot partition which img the pubk hash stored*/
@@ -553,7 +554,8 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 			#endif
 		}
 	#ifdef TOS_TRUSTY
-		uboot_verify_img((imgToVerifyInfo*)img_verify_info_tos,sizeof(imgToVerifyInfo));
+		ret = uboot_verify_img((imgToVerifyInfo*)img_verify_info_tos,sizeof(imgToVerifyInfo));
+		while(ret);
 	#else
 		uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
 	#endif
