@@ -66,7 +66,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(6),{4,0,0xFF,0x00,0x00,0x00}},
 {LCM_SLEEP(10)},
 
-{LCM_SEND(5),{3,0,0x51,0x00,0x0f}},
+{LCM_SEND(5),{3,0,0x51,0x00,0x00}},
 {LCM_SLEEP(5)},
 {LCM_SEND(2),{0x53,0x2c}},
 {LCM_SLEEP(5)},
