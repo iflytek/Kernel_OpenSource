@@ -100,7 +100,7 @@ static int get_adc_value_board(int channel){
 		return -1;
 	}
 
-#if defined(CONFIG_SC9833)
+#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLE)
 	if (vol >0 && vol <= 100)
 		vol = 0;
 	if (vol > 100 && vol <= 250 )

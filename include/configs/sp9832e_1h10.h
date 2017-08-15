@@ -310,12 +310,16 @@
 #endif
 
 /*rf board id */
-//#define RF_BAND_INFO
+#define RF_BAND_INFO
 #ifdef RF_BAND_INFO
-#define LB_GPIO_NUM   175
-#define MB_GPIO_NUM   174
-#define HB_GPIO_NUM   166
-#define ADC_CHANNEL_FOR_NV   1
+#define ADC_CHANNEL_FOR_NV		1
+#endif
+
+/* TSX_32Kless */
+#define CONFIG_TSX_32K
+#ifdef CONFIG_TSX_32K
+#define LB_GPIO 			86
+#define MB_GPIO 			87
 #endif
 
 /*fastboot*/
