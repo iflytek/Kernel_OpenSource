@@ -28,7 +28,7 @@
 
 
 static pinmap_t pinmap[]={
-{REG_PIN_CTRL_REG1,0x40},       // 0000 0000 0000 0000 0000 0000 0000 0000
+{REG_PIN_CTRL_REG1,0x0},       // 0000 0000 0000 0000 0000 0000 0000 0000
 {REG_PIN_CTRL_REG2,0x00408200}, // uart0->ap'uart0;  uart1->ap'uart1; uart2->pubcp'uart0; uart3->gps; uart4->tgdsp'uart0; uart5->ap'uart4 0000 0000 0100 0000 1000 0010 0000 0000
 {REG_PIN_CTRL_REG3,0x0},        //
 {REG_PIN_CTRL_REG4,0x00000200}, //I2C3 for LCD Driver,I2C2 for CM4,  I2C4 for AP I2C5 Controller?  0000 0000 0000 0000 0000 0010 0000 0000
