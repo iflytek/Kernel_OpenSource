@@ -132,8 +132,8 @@
                 #size-cells = <2>;
                 ranges;
 		/* fb */
-		fb_reserved: fb@44700000 {
-		     reg = <0x0 0x44700000 0x0 0x1800000>;
+		fb_reserved: fb@5af00000 {
+		     reg = <0x0 0x5af00000 0x0 0x1800000>;
 		 };
 	};
 
