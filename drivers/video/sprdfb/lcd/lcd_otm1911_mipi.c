@@ -208,11 +208,11 @@ static struct panel_operations lcd_otm1911_mipi_operations = {
 };
 
 static struct timing_rgb lcd_otm1911_mipi_timing = {
-	.hfp = 37,  /* unit: pixel */
+	.hfp = 143,  /* unit: pixel */
 	.hbp = 37,//80
 	.hsync = 20,//4//10
-	.vfp = 14, /*unit: line*/
-	.vbp = 8,//32
+	.vfp = 50, /*unit: line*/
+	.vbp = 26,//32
 	.vsync = 4,//4//4
 };
 
@@ -220,7 +220,7 @@ static struct info_mipi lcd_otm1911_mipi_info = {
 	.work_mode  = SPRDFB_MIPI_MODE_VIDEO,
 	.video_bus_width = 24, /*18,16*/
 	.lan_number = 4,
-	.phy_feq = 9646*100,
+	.phy_feq = 9798*100,
 	.h_sync_pol = SPRDFB_POLARITY_POS,
 	.v_sync_pol = SPRDFB_POLARITY_POS,
 	.de_pol = SPRDFB_POLARITY_POS,
@@ -234,7 +234,7 @@ static struct info_mipi lcd_otm1911_mipi_info = {
 struct panel_spec lcd_otm1911_mipi_spec = {
 	.width = 1080,
 	.height = 1920,
-	.fps = 56,
+	.fps = 60,
 	.type = LCD_MODE_DSI,
 	.direction = LCD_DIRECT_NORMAL,
 	.is_need_reset = 1,
