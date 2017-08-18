@@ -64,7 +64,12 @@ extern imgToVerifyInfo *img_verify_info_tos;
 #define IRAM_BEGIN   (SPL_BASE_ADDR - SYS_HEADER_SIZE)
 #endif
 #define UBOOT_START  (CONFIG_SYS_TEXT_BASE - SYS_HEADER_SIZE)
+
+#ifdef CONFIG_SOC_IWHALE2
+#define VERIFY_ADDR  (0x29000000)
+#else
 #define VERIFY_ADDR  (CONFIG_SYS_TEXT_BASE - RESERVE_SIZE)
+#endif
 
 #ifdef CONFIG_VBOOT_V2
 #define VBMETA_IMG_MAX_SIZE 0x800000
