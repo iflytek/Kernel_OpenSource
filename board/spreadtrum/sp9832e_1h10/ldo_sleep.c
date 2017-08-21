@@ -5,30 +5,30 @@
 
 void DCDC_ldo_power_on()
 {
-	regulator_enable("vddcpu");
-	regulator_enable("vddcore");
-	regulator_enable("vddmem");
-	regulator_enable("vddgen");
-	regulator_enable("vddwpa");
+	//regulator_enable("vddcpu");
+	//regulator_enable("vddcore");
+	//regulator_enable("vddmem");
+	//regulator_enable("vddgen");
+	//regulator_enable("vddwpa");
 	//regulator_enable("vddcama");
 	//regulator_enable("vddcammot");
 	//regulator_enable("vddsim0");
 	//regulator_enable("vddsim1");
 	regulator_enable("vddsim2");
-	regulator_enable("vddemmccore");
-	regulator_enable("vddsdcore");
-	regulator_enable("vddsdio");
-	regulator_enable("vdd28");
+	//regulator_enable("vddemmccore");
+	regulator_disable("vddsdcore");
+	regulator_disable("vddsdio");
+	//regulator_enable("vdd28");
 	//regulator_enable("vddwifipa");
-	regulator_enable("vdddcxo");
+	//regulator_enable("vdddcxo");
 	//regulator_enable("vddusb33");
 	//regulator_enable("vddcamd");
 	//regulator_enable("vddcon");
 	//regulator_enable("vddcamio");
-	regulator_enable("vdd18");
+	//regulator_enable("vdd18");
 	regulator_enable("vddrf18");
 	regulator_enable("vddrf15");
-	regulator_enable("vddldomem");
+	//regulator_enable("vddldomem");
 }
 
 void pmic_lowpower_config(uint32_t gen_para)
@@ -40,7 +40,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 	ANA_REG_SET(ANA_REG_GLB_POWER_PD_SW,
 		//BIT_LDO_DCXO_PD |
 		//BIT_LDO_EMM_PD |
-		//BIT_DCDC_TOPCLK6M_PD |
+		BIT_DCDC_TOPCLK6M_PD |
 		//BIT_DCDC_GEN_PD |
 		//BIT_DCDC_MEM_PD |
 		//BIT_DCDC_CORE_PD |
@@ -55,34 +55,34 @@ void pmic_lowpower_config(uint32_t gen_para)
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_CTRL,
 		BIT_LDO_XTL_EN |
-		//BIT_SLP_IO_EN |
-		//BIT_SLP_LDO_PD_EN |
+		BIT_SLP_IO_EN |
+		BIT_SLP_LDO_PD_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		//BIT_SLP_DCDCCORE_DROP_EN |
+		BIT_SLP_DCDCCORE_DROP_EN |
 		//BIT_SLP_DCDCWPA_PD_EN |
-		//BIT_SLP_DCDCCPU_PD_EN |
+		BIT_SLP_DCDCCPU_PD_EN |
 		//BIT_SLP_DCDCMEM_PD_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-		//BIT_SLP_LDORF15_PD_EN |
-		//BIT_SLP_LDORF18_PD_EN |
+		BIT_SLP_LDORF15_PD_EN |
+		BIT_SLP_LDORF18_PD_EN |
 		//BIT_SLP_LDOEMMCCORE_PD_EN |
-		//BIT_SLP_LDODCXO_PD_EN | //Transceiver and TCXO
-		//BIT_SLP_LDOWIFIPA_PD_EN | //Marlin2
+		//BIT_SLP_LDODCXO_PD_EN |
+		//BIT_SLP_LDOWIFIPA_PD_EN |
 		//BIT_SLP_LDOVDD28_PD_EN |
-		//BIT_SLP_LDOSDCORE_PD_EN | // T-flash
+		//BIT_SLP_LDOSDCORE_PD_EN |
 		//BIT_SLP_LDOSDIO_PD_EN |
 		//BIT_SLP_LDOUSB33_PD_EN |
 		//BIT_SLP_LDOCAMMOT_PD_EN |
 		//BIT_SLP_LDOCAMIO_PD_EN |
 		//BIT_SLP_LDOCAMD_PD_EN |
 		//BIT_SLP_LDOCAMA_PD_EN |
-		//BIT_SLP_LDOSIM2_PD_EN |
+		BIT_SLP_LDOSIM2_PD_EN |
 		//BIT_SLP_LDOSIM1_PD_EN |
 		0
 	);
@@ -90,16 +90,16 @@ void pmic_lowpower_config(uint32_t gen_para)
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
 		//BIT_SLP_LDOCON_PD_EN |
 		//BIT_SLP_LDOSIM0_PD_EN |
-		//BIT_SLP_LDOAVDD18_PD_EN |
+		BIT_SLP_LDOAVDD18_PD_EN |
 		//BIT_SLP_LDOMEM_PD_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
 		//BIT_SLP_DCDCCORE_LP_EN |
-		//BIT_SLP_DCDCMEM_LP_EN |
+		BIT_SLP_DCDCMEM_LP_EN |
 		//BIT_SLP_DCDCCPU_LP_EN |
-		//BIT_SLP_DCDCGEN_LP_EN |
+		BIT_SLP_DCDCGEN_LP_EN |
 		//BIT_SLP_DCDCWPA_LP_EN |
 		0
 	);
@@ -108,9 +108,9 @@ void pmic_lowpower_config(uint32_t gen_para)
 		//BIT_SLP_LDORF15_LP_EN |
 		//BIT_SLP_LDORF18_LP_EN |
 		//BIT_SLP_LDOEMMCCORE_LP_EN |
-		//BIT_SLP_LDODCXO_LP_EN |
+		BIT_SLP_LDODCXO_LP_EN |
 		//BIT_SLP_LDOWIFIPA_LP_EN |
-		//BIT_SLP_LDOVDD28_LP_EN |
+		BIT_SLP_LDOVDD28_LP_EN |
 		//BIT_SLP_LDOSDCORE_LP_EN |
 		//BIT_SLP_LDOSDIO_LP_EN |
 		//BIT_SLP_LDOUSB33_LP_EN |
@@ -127,62 +127,62 @@ void pmic_lowpower_config(uint32_t gen_para)
 		//BIT_SLP_LDOCON_LP_EN |
 		//BIT_SLP_LDOSIM0_LP_EN |
 		//BIT_SLP_LDOAVDD18_LP_EN |
-		//BIT_SLP_LDOMEM_LP_EN |
+		BIT_SLP_LDOMEM_LP_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_DCDC_XTL_EN0,
-		BIT_DCDC_CORE_EXT_XTL0_EN |
-		BIT_DCDC_CORE_EXT_XTL1_EN |
-		BIT_DCDC_CORE_EXT_XTL2_EN |
-		BIT_DCDC_CORE_EXT_XTL3_EN |
-		BIT_DCDC_WPA_EXT_XTL0_EN |
-		BIT_DCDC_WPA_EXT_XTL1_EN |
-		BIT_DCDC_WPA_EXT_XTL2_EN |
-		BIT_DCDC_WPA_EXT_XTL3_EN |
+		//BIT_DCDC_CORE_EXT_XTL0_EN |
+		//BIT_DCDC_CORE_EXT_XTL1_EN |
+		//BIT_DCDC_CORE_EXT_XTL2_EN |
+		//BIT_DCDC_CORE_EXT_XTL3_EN |
+		//BIT_DCDC_WPA_EXT_XTL0_EN |
+		//BIT_DCDC_WPA_EXT_XTL1_EN |
+		//BIT_DCDC_WPA_EXT_XTL2_EN |
+		//BIT_DCDC_WPA_EXT_XTL3_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_DCDC_XTL_EN1,
-		BIT_DCDC_CPU_EXT_XTL0_EN |
-		BIT_DCDC_CPU_EXT_XTL1_EN |
-		BIT_DCDC_CPU_EXT_XTL2_EN |
-		BIT_DCDC_CPU_EXT_XTL3_EN |
+		//BIT_DCDC_CPU_EXT_XTL0_EN |
+		//BIT_DCDC_CPU_EXT_XTL1_EN |
+		//BIT_DCDC_CPU_EXT_XTL2_EN |
+		//BIT_DCDC_CPU_EXT_XTL3_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_DCDC_XTL_EN2,
-		BIT_DCDC_MEM_EXT_XTL0_EN |
-		BIT_DCDC_MEM_EXT_XTL1_EN |
-		BIT_DCDC_MEM_EXT_XTL2_EN |
-		BIT_DCDC_MEM_EXT_XTL3_EN |
-		BIT_DCDC_GEN_EXT_XTL0_EN |
-		BIT_DCDC_GEN_EXT_XTL1_EN |
-		BIT_DCDC_GEN_EXT_XTL2_EN |
-		BIT_DCDC_GEN_EXT_XTL3_EN |
+		//BIT_DCDC_MEM_EXT_XTL0_EN |
+		//BIT_DCDC_MEM_EXT_XTL1_EN |
+		//BIT_DCDC_MEM_EXT_XTL2_EN |
+		//BIT_DCDC_MEM_EXT_XTL3_EN |
+		//BIT_DCDC_GEN_EXT_XTL0_EN |
+		//BIT_DCDC_GEN_EXT_XTL1_EN |
+		//BIT_DCDC_GEN_EXT_XTL2_EN |
+		//BIT_DCDC_GEN_EXT_XTL3_EN |
 		0
 	);
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN0,
-		BIT_LDO_DCXO_EXT_XTL0_EN |
-		BIT_LDO_DCXO_EXT_XTL1_EN |
-		BIT_LDO_DCXO_EXT_XTL2_EN |
-		BIT_LDO_DCXO_EXT_XTL3_EN |
-		BIT_LDO_VDD28_EXT_XTL0_EN |
-		BIT_LDO_VDD28_EXT_XTL1_EN |
-		BIT_LDO_VDD28_EXT_XTL2_EN |
-		BIT_LDO_VDD28_EXT_XTL3_EN |
+		//BIT_LDO_DCXO_EXT_XTL0_EN |
+		//BIT_LDO_DCXO_EXT_XTL1_EN |
+		//BIT_LDO_DCXO_EXT_XTL2_EN |
+		//BIT_LDO_DCXO_EXT_XTL3_EN |
+		//BIT_LDO_VDD28_EXT_XTL0_EN |
+		//BIT_LDO_VDD28_EXT_XTL1_EN |
+		//BIT_LDO_VDD28_EXT_XTL2_EN |
+		//BIT_LDO_VDD28_EXT_XTL3_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN1,
-		BIT_LDO_RF15_EXT_XTL0_EN |
-		BIT_LDO_RF15_EXT_XTL1_EN |
-		BIT_LDO_RF15_EXT_XTL2_EN |
-		BIT_LDO_RF15_EXT_XTL3_EN |
-		BIT_LDO_RF18_EXT_XTL0_EN |
-		BIT_LDO_RF18_EXT_XTL1_EN |
-		BIT_LDO_RF18_EXT_XTL2_EN |
-		BIT_LDO_RF18_EXT_XTL3_EN |
+		//BIT_LDO_RF15_EXT_XTL0_EN |
+		//BIT_LDO_RF15_EXT_XTL1_EN |
+		//BIT_LDO_RF15_EXT_XTL2_EN |
+		//BIT_LDO_RF15_EXT_XTL3_EN |
+		//BIT_LDO_RF18_EXT_XTL0_EN |
+		//BIT_LDO_RF18_EXT_XTL1_EN |
+		//BIT_LDO_RF18_EXT_XTL2_EN |
+		//BIT_LDO_RF18_EXT_XTL3_EN |
 		0
 	);
 
@@ -199,14 +199,14 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN3,
-		BIT_LDO_SIM2_EXT_XTL0_EN |
-		BIT_LDO_SIM2_EXT_XTL1_EN |
-		BIT_LDO_SIM2_EXT_XTL2_EN |
-		BIT_LDO_SIM2_EXT_XTL3_EN |
-		BIT_LDO_MEM_EXT_XTL0_EN |
-		BIT_LDO_MEM_EXT_XTL1_EN |
-		BIT_LDO_MEM_EXT_XTL2_EN |
-		BIT_LDO_MEM_EXT_XTL3_EN |
+		//BIT_LDO_SIM2_EXT_XTL0_EN |
+		//BIT_LDO_SIM2_EXT_XTL1_EN |
+		//BIT_LDO_SIM2_EXT_XTL2_EN |
+		//BIT_LDO_SIM2_EXT_XTL3_EN |
+		//BIT_LDO_MEM_EXT_XTL0_EN |
+		//BIT_LDO_MEM_EXT_XTL1_EN |
+		//BIT_LDO_MEM_EXT_XTL2_EN |
+		//BIT_LDO_MEM_EXT_XTL3_EN |
 		0
 	);
 
@@ -235,22 +235,22 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN6,
-		BIT_LDO_SDIO_EXT_XTL0_EN |
-		BIT_LDO_SDIO_EXT_XTL1_EN |
-		BIT_LDO_SDIO_EXT_XTL2_EN |
-		BIT_LDO_SDIO_EXT_XTL3_EN |
-		BIT_LDO_SDCORE_EXT_XTL0_EN |
-		BIT_LDO_SDCORE_EXT_XTL1_EN |
-		BIT_LDO_SDCORE_EXT_XTL2_EN |
-		BIT_LDO_SDCORE_EXT_XTL3_EN |
+		//BIT_LDO_SDIO_EXT_XTL0_EN |
+		//BIT_LDO_SDIO_EXT_XTL1_EN |
+		//BIT_LDO_SDIO_EXT_XTL2_EN |
+		//BIT_LDO_SDIO_EXT_XTL3_EN |
+		//BIT_LDO_SDCORE_EXT_XTL0_EN |
+		//BIT_LDO_SDCORE_EXT_XTL1_EN |
+		//BIT_LDO_SDCORE_EXT_XTL2_EN |
+		//BIT_LDO_SDCORE_EXT_XTL3_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN7,
-		BIT_LDO_EMMCCORE_EXT_XTL0_EN |
-		BIT_LDO_EMMCCORE_EXT_XTL1_EN |
-		BIT_LDO_EMMCCORE_EXT_XTL2_EN |
-		BIT_LDO_EMMCCORE_EXT_XTL3_EN |
+		//BIT_LDO_EMMCCORE_EXT_XTL0_EN |
+		//BIT_LDO_EMMCCORE_EXT_XTL1_EN |
+		//BIT_LDO_EMMCCORE_EXT_XTL2_EN |
+		//BIT_LDO_EMMCCORE_EXT_XTL3_EN |
 		//BIT_LDO_USB33_EXT_XTL0_EN |
 		//BIT_LDO_USB33_EXT_XTL1_EN |
 		//BIT_LDO_USB33_EXT_XTL2_EN |
@@ -275,10 +275,10 @@ void pmic_lowpower_config(uint32_t gen_para)
 		//BIT_LDO_CON_EXT_XTL1_EN |
 		//BIT_LDO_CON_EXT_XTL2_EN |
 		//BIT_LDO_CON_EXT_XTL3_EN |
-		BIT_LDO_AVDD18_EXT_XTL0_EN |
-		BIT_LDO_AVDD18_EXT_XTL1_EN |
-		BIT_LDO_AVDD18_EXT_XTL2_EN |
-		BIT_LDO_AVDD18_EXT_XTL3_EN |
+		//BIT_LDO_AVDD18_EXT_XTL0_EN |
+		//BIT_LDO_AVDD18_EXT_XTL1_EN |
+		//BIT_LDO_AVDD18_EXT_XTL2_EN |
+		//BIT_LDO_AVDD18_EXT_XTL3_EN |
 		0
 	);
 
@@ -292,10 +292,10 @@ void pmic_lowpower_config(uint32_t gen_para)
 	ANA_REG_SET(ANA_REG_GLB_XTL_WAIT_CTRL,
 		BIT_RSV |
 		BIT_CUR_SEL |
-		BIT_EXT_XTL3_FOR_26M_EN |
-		BIT_EXT_XTL2_FOR_26M_EN |
-		BIT_EXT_XTL1_FOR_26M_EN |
-		BIT_EXT_XTL0_FOR_26M_EN |
+		//BIT_EXT_XTL3_FOR_26M_EN |
+		//BIT_EXT_XTL2_FOR_26M_EN |
+		//BIT_EXT_XTL1_FOR_26M_EN |
+		//BIT_EXT_XTL0_FOR_26M_EN |
 		BIT_SLP_XTLBUF_PD_EN |
 		BIT_XTL_EN |
 		BITS_XTL_WAIT(0x32) |
