@@ -18,7 +18,8 @@
 #include "adi_hal_internal.h"
 #include <chipram_env.h>
 
-#define FUSE_DVFS_BINNING_BLKNO		26 /*[9:6]: 0011-OD 0010-SS 0001-TT*/
+#define FUSE_DVFS_BINNING_BLKNO				26 /*[9:6]: 0011-OD 0010-SS 0001-TT*/
+#define FUSE_ISHARKL2_DVFS_BINNING_BLKNO		27 /*[19:16]: 0011-SS 0010-TT 0001-FF*/
 #define FUSE_LFM_MODULE0_BLKNO		55
 #define FUSE_HFM_MODULE0_BLKNO		56
 #define FUSE_LFM_MODULE1_BLKNO		57
@@ -30,6 +31,14 @@
 #define FUSE_DVFS_BINNING_SS  0x2
 #define FUSE_DVFS_BINNING_TT  0x1
 #define FUSE_DVFS_BINNING_NULL  0x0
+
+
+#define FUSE_ISHARKL2_DVFS_BINNING_VAL(efusedata) (((efusedata)>>16)&0xF)
+#define FUSE_ISHARKL2_DVFS_BINNING_SS  0x3
+#define FUSE_ISHARKL2_DVFS_BINNING_TT  0x2
+#define FUSE_ISHARKL2_DVFS_BINNING_FF  0x1
+#define FUSE_ISHARKL2_DVFS_BINNING_NULL  0x0
+
 
 #define VID_TABLE_DATA (CONFIG_BASEIA_SRAM + CONFIG_VID_OFFSET)
 
@@ -170,10 +179,9 @@ static void set_pmic_voltage(struct pmic_vid *v, u32 mv)
 	WARN_ON(cal < 0);
 	val = (cal << PMIC_CAL_BIT) | (ctrl << PMIC_CTRL_BIT)
 		| (1 << PMIC_VLT_AVAIL_BIT);
-	debug("val [%x] ctrl [%d] cal [%d] addr [%p]\n", val, ctrl, cal, v);
+	debug("mv [%u] val [%x] ctrl [%d] cal [%d] addr [%p]\n", mv, val, ctrl, cal, v);
 	writel(val, v);
 }
-
 
 static void setup_vid_table(int module)
 {
@@ -227,7 +235,7 @@ static void setup_vid_table(int module)
 	else{
 #if defined(CONFIG_SOC_IWHALE2)
 		binning = sprd_ap_efuse_read(FUSE_DVFS_BINNING_BLKNO);
-		debug("setup_vid_table  binning=%u\n", binning);
+		debug("setup_vid_table  BINNING_BLK=%u, BINING_VAL=%u\n", binning, FUSE_DVFS_BINNING_VAL(binning));
 
 		if (FUSE_DVFS_BINNING_VAL(binning) == FUSE_DVFS_BINNING_OD) {
 			set_pmic_voltage(v0 + VID_V0, 770);
@@ -268,14 +276,47 @@ static void setup_vid_table(int module)
 		}
 
 #elif defined(CONFIG_SPRD_SOC_SP9853I)
-		set_pmic_voltage(v0 + VID_V0, 840);
-		set_pmic_voltage(v0 + VID_V1, 840);
-		set_pmic_voltage(v0 + VID_V2, 840);
-		set_pmic_voltage(v0 + VID_V3, 840);
-		set_pmic_voltage(v0 + VID_V4, 947);
-		set_pmic_voltage(v0 + VID_V5, 1061);
-		set_pmic_voltage(v0 + VID_V6, 1176);
-		set_pmic_voltage(v0 + VID_V7, 1233);
+
+		binning = sprd_ap_efuse_read(FUSE_ISHARKL2_DVFS_BINNING_BLKNO);
+		debug("setup_vid_table  BINNING_BLK=%u, BINING_VAL=%u\n", binning, FUSE_ISHARKL2_DVFS_BINNING_VAL(binning));
+
+		if (FUSE_ISHARKL2_DVFS_BINNING_VAL(binning) == FUSE_ISHARKL2_DVFS_BINNING_FF) {
+			set_pmic_voltage(v0 + VID_V0, 726);
+			set_pmic_voltage(v0 + VID_V1, 726);
+			set_pmic_voltage(v0 + VID_V2, 726);
+			set_pmic_voltage(v0 + VID_V3, 798);
+			set_pmic_voltage(v0 + VID_V4, 895);
+			set_pmic_voltage(v0 + VID_V5, 992);
+			set_pmic_voltage(v0 + VID_V6, 1089);
+			set_pmic_voltage(v0 + VID_V7, 1138);
+		} else if (FUSE_ISHARKL2_DVFS_BINNING_VAL(binning) == FUSE_ISHARKL2_DVFS_BINNING_TT) {
+			set_pmic_voltage(v0 + VID_V0, 736);
+			set_pmic_voltage(v0 + VID_V1, 736);
+			set_pmic_voltage(v0 + VID_V2, 736);
+			set_pmic_voltage(v0 + VID_V3, 818);
+			set_pmic_voltage(v0 + VID_V4, 921);
+			set_pmic_voltage(v0 + VID_V5, 1024);
+			set_pmic_voltage(v0 + VID_V6, 1127);
+			set_pmic_voltage(v0 + VID_V7, 1178);
+		} else if (FUSE_ISHARKL2_DVFS_BINNING_VAL(binning) == FUSE_ISHARKL2_DVFS_BINNING_SS) {
+			set_pmic_voltage(v0 + VID_V0, 754);
+			set_pmic_voltage(v0 + VID_V1, 754);
+			set_pmic_voltage(v0 + VID_V2, 754);
+			set_pmic_voltage(v0 + VID_V3, 838);
+			set_pmic_voltage(v0 + VID_V4, 947);
+			set_pmic_voltage(v0 + VID_V5, 1055);
+			set_pmic_voltage(v0 + VID_V6, 1164);
+			set_pmic_voltage(v0 + VID_V7, 1218);
+		} else {
+			set_pmic_voltage(v0 + VID_V0, 840);
+			set_pmic_voltage(v0 + VID_V1, 840);
+			set_pmic_voltage(v0 + VID_V2, 840);
+			set_pmic_voltage(v0 + VID_V3, 840);
+			set_pmic_voltage(v0 + VID_V4, 947);
+			set_pmic_voltage(v0 + VID_V5, 1061);
+			set_pmic_voltage(v0 + VID_V6, 1176);
+			set_pmic_voltage(v0 + VID_V7, 1233);
+		}
 #endif
 	}
 }
