@@ -82,6 +82,10 @@ extern int fdt_get_addr_size(const void *fdt, int node, const char *propname,
 extern ddr_info_t* get_ddr_range(void);
 #endif
 
+#ifdef CONFIG_ARM7_RAM_ACTIVE
+extern void pmic_arm7_RAM_active(void);
+#endif
+
 #ifdef CONFIG_ETB_DUMP
 extern unsigned char etb_dump_mem[SZ_32K];
 extern u32 etb_buf_size;
@@ -1352,6 +1356,9 @@ void write_sysdump_before_boot(int rst_mode)
 		chk_length += sprintf(check_sum + chk_length, "\n");
 		/*sysdump header checksum end*/
 
+#ifdef CONFIG_ARM7_RAM_ACTIVE
+		pmic_arm7_RAM_active();
+#endif
 		mem = (struct sysdump_mem *)infop->dump_mem_paddr;
 		for (i = 0; i < infop->mem_num; i++) {
 			if (0xffffffff != mem[i].soff)
