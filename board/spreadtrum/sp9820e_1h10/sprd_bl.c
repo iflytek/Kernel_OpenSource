@@ -32,7 +32,7 @@ static void pwm_write(int index, uint32_t value, uint32_t reg)
 
 void set_backlight(uint32_t brightness)
 {
-#ifndef CONFIG_FPGA
+#ifndef CONFIG_BACKLIGHT_WHTLED
 	int index = PWM_INDEX;
 
 	__raw_bits_or((0x1 << 0), REG_AON_CLK_CORE_CGM_PWM0_CFG + index * 4);//ext_26m select
@@ -51,6 +51,46 @@ void set_backlight(uint32_t brightness)
 		pwm_write(index, PWM_REG_MSK, PWM_PAT_HIGH);
 		pwm_write(index, 1, PWM_ENABLE);
 		printf("sprd backlight power on. pwm_index=%d  brightness=%d\n", index, brightness);
+	}
+#else
+	u32 bl_brightness, led_level;
+	u32 reg_val;
+
+	printf("sprd backlight power brightness=%d\n", brightness);
+	__raw_writel(0x0,0x40388EA0);
+
+	if(0==brightness){
+	__raw_writel(0x0005,0x40388EA0);
+	}
+	else
+	{
+	reg_val = __raw_readl((unsigned long)0x40388C08);
+	reg_val = reg_val | 0x200;
+	__raw_writel(reg_val,0x40388C08);			//bltc en bit
+	udelay(100);
+
+	reg_val = __raw_readl((unsigned long)0x40388C10);
+	reg_val = reg_val | 0x80;
+	__raw_writel(reg_val,0x40388C10);			//bltc rtc en bit
+	udelay(100);
+
+	if(brightness <= 16)
+	{
+		__raw_writel(0,0x40388EA0);			//enable RGB LED
+		udelay(100);
+	}
+	else
+	{
+		reg_val = (80 * brightness * 100) / 255 / 3;
+		reg_val = (reg_val -169) / 84;
+		reg_val = reg_val << 4;
+		__raw_writel(reg_val,0x40388EA0);			//enable RGB LED
+		udelay(100);
+	}
+
+	__raw_writel(0xfff,0x40388180);				//enable bltc modules
+	udelay(100);
+
 	}
 #endif
 	return;

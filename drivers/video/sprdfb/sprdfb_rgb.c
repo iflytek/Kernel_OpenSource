@@ -27,7 +27,7 @@ static uint32_t rgb_readid(struct panel_spec *self)
 		rgb->bus_info.i2c->ops->i2c_read_16bits(rgb->bus_info.i2c->i2c_addr , 0x0, FALSE, &id, FALSE);
 	}else{
 		rgb->bus_info.spi->ops->spi_send_cmd(0x0);
-		rgb->bus_info.spi->ops->spi_read(&id);
+		rgb->bus_info.spi->ops->spi_read(&id,1);
 	}
 
 	return id;

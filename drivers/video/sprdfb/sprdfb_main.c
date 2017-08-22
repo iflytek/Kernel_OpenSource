@@ -14,6 +14,7 @@
 
 #include "sprdfb_chip_common.h"
 #include "sprdfb.h"
+#include "sprdfb_panel.h"
 #include <malloc.h>
 #include <fdtdec.h>
 
@@ -24,8 +25,11 @@ DECLARE_GLOBAL_DATA_PTR;
 extern int sprdfb_panel_probe(struct sprdfb_device *dev);
 extern void sprdfb_panel_remove(struct sprdfb_device *dev);
 
+#ifdef CONFIG_FB_SWDISPC
+extern struct display_ctrl sprdfb_swdispc_ctrl;
+#else
 extern struct display_ctrl sprdfb_dispc_ctrl;
-
+#endif
 static struct sprdfb_device s_sprdfb_dev = {0};
 static uint32_t lcd_id_to_kernel = 0;
 static uint32_t lcd_width_to_kernel = 0;
@@ -96,12 +100,19 @@ static int sprdfb_probe(void *lcdbase)
 #ifndef CONFIG_ZEBU
 	set_backlight(0);
 #endif
-	dev->ctrl = &sprdfb_dispc_ctrl;
-	dev->ctrl->early_init(dev);
+
+#ifdef CONFIG_FB_SWDISPC
+		dev->ctrl = &sprdfb_swdispc_ctrl;
+#else
+		dev->ctrl = &sprdfb_dispc_ctrl;
+#endif
+	if(dev->ctrl->early_init)
+		dev->ctrl->early_init(dev);
 
 	if (0 != sprdfb_panel_probe(dev)) {
 		sprdfb_panel_remove(dev);
-		dev->ctrl->uninit(dev);
+		if(dev->ctrl->uninit)
+			dev->ctrl->uninit(dev);
 		errorf("sprdfb: failed to probe\n");
 		return -EFAULT;
 	}
@@ -139,7 +150,8 @@ static int sprdfb_probe(void *lcdbase)
 	gd->fb_base = base + (size / 3) * 2;
 #endif
 	dev->smem_start = gd->fb_base;
-	dev->ctrl->init(dev);
+	if(dev->ctrl->init)
+		dev->ctrl->init(dev);
 	dev_cabc_bl = dev;
 	debugf("sprdfb:[%s]---\n", __FUNCTION__);
 	return 0;
@@ -149,7 +161,8 @@ void lcd_disable(void)
 {
 	debugf("sprdfb: [%s]\n", __FUNCTION__);
 	sprdfb_panel_remove(&s_sprdfb_dev);
-	s_sprdfb_dev.ctrl->uninit(&s_sprdfb_dev);
+	if(s_sprdfb_dev.ctrl->uninit)
+		s_sprdfb_dev.ctrl->uninit(&s_sprdfb_dev);
 }
 
 void lcd_enable(void)
@@ -221,3 +234,16 @@ void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue)
 {
 	return;
 }
+
+int32_t sprdfb_spi_refresh(struct sprdfb_device *dev)
+{
+	if(!dev->panel)
+	{
+		printf("sprdfb:sprdfb_refresh dev->panel is null\n");
+		return -1;
+	}
+	dev->panel->ops->panel_invalidate(dev->panel);
+	dev->panel->ops->panel_refresh(dev->panel,dev->smem_start);
+	return 0;
+}
+

@@ -24,8 +24,13 @@
 # obj-$(CONFIG_LCD) += sprdfb_backlight.o
 
 ## basic fb driver
-obj-$(CONFIG_LCD) += sprdfb_main.o sprdfb_panel.o sprdfb_dispc.o sprdfb_chip_common.o
+obj-$(CONFIG_LCD) += sprdfb_main.o sprdfb_panel.o sprdfb_chip_common.o
 obj-$(CONFIG_LCD) += sprdfb_rgb.o sprdfb_mipi.o sprdfb_dsi.o
+ifeq ($(CONFIG_FB_SWDISPC), y)
+	obj-$(CONFIG_LCD) += sprdfb_swdispc.o
+else
+	obj-$(CONFIG_LCD) += sprdfb_dispc.o
+endif
 
 ## old panel interface
 ifeq ($(CONFIG_LCD), y)

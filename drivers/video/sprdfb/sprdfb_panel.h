@@ -84,6 +84,7 @@ enum{
 	SPRDFB_PANEL_TYPE_RGB,
 	SPRDFB_PANEL_TYPE_MIPI,
 	SPRDFB_PANEL_TYPE_LVDS,
+	SPRDFB_PANEL_TYPE_SPI,
 	SPRDFB_PANEL_TYPE_LIMIT
 };
 
@@ -134,13 +135,14 @@ typedef int32_t (*i2c_write_burst_t)(uint8_t addr, uint8_t* buf, int num);
 
 typedef void (*spi_send_cmd_t)(uint32_t cmd);
 typedef void (*spi_send_data_t)(uint32_t data);
-typedef void (*spi_read_t)(uint32_t *data);
+typedef void (*spi_read_t)(uint32_t *data, uint32_t len);
 
 /* LCD operations */
 struct panel_operations {
 	int32_t (*panel_init)(struct panel_spec *self);
 	int32_t (*panel_close)(struct panel_spec *self);
 	int32_t (*panel_reset)(struct panel_spec *self);
+	int32_t (*panel_refresh)(struct panel_spec *self,void *base);
 	int32_t (*panel_enter_sleep)(struct panel_spec *self, uint8_t is_sleep);
 	int32_t (*panel_set_contrast)(struct panel_spec *self, uint16_t contrast);
 	int32_t (*panel_set_brightness)(struct panel_spec *self,
@@ -198,7 +200,7 @@ struct ops_i2c {
 struct ops_spi{
 	void (*spi_send_cmd)(uint32_t cmd);
 	void (*spi_send_data)(uint32_t data);
-	void (*spi_read)(uint32_t *data);
+	void (*spi_read)(uint32_t *data,uint32_t len);
 };
 
 struct ops_mipi{
@@ -252,6 +254,21 @@ struct info_rgb {
 	}bus_info;
 };
 
+struct info_spi {
+	uint16_t cmd_bus_mode;
+	uint16_t bus_width;
+	uint16_t bpp;
+	uint16_t te_pol;
+	uint16_t spi_mode; // 0,1,2,3
+	uint16_t cd_gpio;
+	uint32_t te_sync_delay;
+	uint8_t bus_num;
+	uint8_t spi_pol_mode;
+	uint32_t speed;
+	uint8_t cs;
+	struct ops_spi *ops;
+};
+
 struct info_mcu {
 	uint16_t bus_mode; /*8080, 6800*/
 	uint16_t bus_width;
@@ -276,6 +293,7 @@ struct panel_spec {
 	uint16_t non_continue_clk_en;
 	union {
 		struct info_mcu *mcu;
+		struct info_spi *spi;
 		struct info_rgb *rgb;
 		struct info_mipi * mipi;
 	} info;

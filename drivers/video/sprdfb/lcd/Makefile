@@ -66,4 +66,5 @@ obj-$(CONFIG_FB_LCD_HX8399C_MIPI) += lcd_hx8399c_mipi.o
 obj-$(CONFIG_FB_LCD_OTM1901_MIPI) += lcd_otm1901_mipi.o
 obj-$(CONFIG_FB_LCD_ST7701_MIPI)  += lcd_st7701_mipi.o
 obj-$(CONFIG_FB_LCD_JD9365_MIPI) += lcd_jd9365_mipi_hd.o
+obj-$(CONFIG_FB_LCD_GC9305_SPI) += lcd_gc9305_spi.o
 obj-$(CONFIG_FB_LCD_DUMMY_MIPI_QVGA)  += lcd_dummy_mipi_qvga.o

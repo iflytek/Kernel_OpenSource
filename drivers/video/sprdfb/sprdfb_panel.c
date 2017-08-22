@@ -12,6 +12,9 @@ extern struct panel_if_ctrl sprdfb_mcu_ctrl;
 #endif
 extern struct panel_if_ctrl sprdfb_rgb_ctrl;
 extern struct panel_if_ctrl sprdfb_mipi_ctrl;
+#ifdef CONFIG_SPI
+extern struct panel_if_ctrl sprdfb_spi_ctrl;
+#endif
 
 extern struct panel_spec lcd_dummy_mipi_qvga_spec;
 extern struct panel_spec lcd_dummy_mipi_spec;
@@ -75,6 +78,7 @@ extern struct panel_spec lcd_st7701_mipi_spec;
 extern struct panel_spec lcd_hx8399c_mipi_spec;
 extern struct panel_spec lcd_otm1911_mipi_spec;
 extern struct panel_spec lcd_jd9365_mipi_spec;
+extern struct panel_spec lcd_gc9305_spi_spec;
 
 void sprdfb_panel_remove(struct sprdfb_device *dev);
 
@@ -511,6 +515,13 @@ static struct panel_cfg panel_cfg[] = {
 },
 #endif
 
+#ifdef CONFIG_FB_LCD_GC9305_SPI
+{
+	.lcd_id = 0x9305,
+	.panel = &lcd_gc9305_spi_spec,
+},
+#endif
+
 {
 	.lcd_id = 0xFFFF,
 	.panel = &lcd_dummy_mipi_spec,
@@ -545,7 +556,9 @@ static void panel_reset(struct sprdfb_device *dev)
 	}
 
 	//reset panel
-	dev->panel->ops->panel_reset(dev->panel);
+	if(NULL != dev->panel->ops->panel_reset){
+		dev->panel->ops->panel_reset(dev->panel);
+	}
 }
 
 static int panel_mount(struct sprdfb_device *dev, struct panel_spec *panel)
@@ -555,6 +568,11 @@ static int panel_mount(struct sprdfb_device *dev, struct panel_spec *panel)
 	debugf("sprdfb: [%s], type = %d\n",__FUNCTION__, panel->type);
 
 	switch(panel->type){
+#ifdef CONFIG_SPI
+	case SPRDFB_PANEL_TYPE_SPI:
+		dev->if_ctrl = &sprdfb_spi_ctrl;
+		break;
+#endif
 #if defined(CONFIG_I2C) && defined(CONFIG_SPI)
 	case SPRDFB_PANEL_TYPE_MCU:
 		dev->if_ctrl = &sprdfb_mcu_ctrl;
@@ -592,9 +610,11 @@ static int panel_mount(struct sprdfb_device *dev, struct panel_spec *panel)
 
 	dev->panel = panel;
 
+#ifndef CONFIG_FB_SWDISPC
 	if(NULL == dev->panel->ops->panel_reset){
 		dev->panel->ops->panel_reset = panel_reset_dispc;
 	}
+#endif
 
 	dev->if_ctrl->panel_if_mount(dev);
 
@@ -647,7 +667,8 @@ static struct panel_spec *adapt_panel_from_readid(struct sprdfb_device *dev)
 			errorf("sprdfb: panel_mount failed!\n");
 			continue;
 		}
-		dev->ctrl->update_clk(dev);
+		if(dev->ctrl->update_clk)
+			dev->ctrl->update_clk(dev);
 		panel_init(dev);
 		if ((b_panel_reset==0) || (1 == dev->panel->is_need_reset))
 		{
