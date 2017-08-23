@@ -105,11 +105,6 @@ void ag_tg_ldsp_hold()
 /* activation of PARM related iram  */
 void pmic_arm7_RAM_active(void)
 {
-#ifdef CONFIG_SOC_IWHALE2
-	/*Just for iwhale2 bringup --from Sheng.Zhu advice*/
-	ag_tg_ldsp_hold();
-#endif
-
 	/* enable ap access to cm4 permissions */
 	*((volatile u32*)REG_COMMON_APB_SP_CFG_BUS) &= ~BIT_COMMON_APB_SP_CFG_BUS_SLEEP;
 	/* hold cm4 */

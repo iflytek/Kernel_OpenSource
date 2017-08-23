@@ -45,6 +45,9 @@ extern int lcd_get_size(int *line_length);
 extern unsigned char _chkNVEcc(uint8_t *buf, uint64_t size, uint32_t checksum);
 extern void wakeup_source_enable();
 extern void ap_clk_doze_enable();
+#ifdef CONFIG_SOC_IWHALE2
+extern void ag_tg_ldsp_hold();
+#endif
 
 #define MODEM_MAGIC		"SCI1"
 #define MODEM_HDR_SIZE		(12 * 512) //size of a block
@@ -1148,6 +1151,10 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	/*load required image which config in table */
 	i = 0;
 #ifdef CONFIG_ARM7_RAM_ACTIVE
+#ifdef CONFIG_SOC_IWHALE2
+        /*Just for iwhale2 bringup --from Sheng.Zhu advice*/
+        ag_tg_ldsp_hold();
+#endif
 			pmic_arm7_RAM_active();
 #endif
 	while (s_boot_image_table[i]) {
