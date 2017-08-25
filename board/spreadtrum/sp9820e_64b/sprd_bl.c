@@ -2,6 +2,7 @@
 #include <asm/arch/hardware.h>
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
+#include <adi_hal_internal.h>
 
 #define PWM_INDEX  1
 
@@ -64,12 +65,12 @@ void set_backlight(uint32_t brightness)
 	}
 	else
 	{
-	reg_val = __raw_readl((unsigned long)0x40388C08);
+	reg_val = ANA_REG_GET(0x40388C08);
 	reg_val = reg_val | 0x200;
 	__raw_writel(reg_val,0x40388C08);			//bltc en bit
 	udelay(100);
 
-	reg_val = __raw_readl((unsigned long)0x40388C10);
+	reg_val = ANA_REG_GET(0x40388C10);
 	reg_val = reg_val | 0x80;
 	__raw_writel(reg_val,0x40388C10);			//bltc rtc en bit
 	udelay(100);
@@ -84,7 +85,7 @@ void set_backlight(uint32_t brightness)
 		reg_val = (80 * brightness * 100) / 255 / 3;
 		reg_val = (reg_val -169) / 84;
 		reg_val = reg_val << 4;
-		__raw_writel(reg_val,0x40388EA0);			//enable RGB LED
+		__raw_writel(reg_val,0x40388EA0);		//enable RGB LED
 		udelay(100);
 	}
 
