@@ -723,13 +723,6 @@ static int io_init(struct ubi_device *ubi, int max_beb_per1024)
 	 * Maximum write size has to be greater or equivalent to min. I/O
 	 * size, and be multiple of min. I/O size.
 	 */
-	if (ubi->max_write_size < ubi->min_io_size ||
-	    ubi->max_write_size % ubi->min_io_size ||
-	    !is_power_of_2(ubi->max_write_size)) {
-		ubi_err("bad write buffer size %d for %d min. I/O unit",
-			ubi->max_write_size, ubi->min_io_size);
-		return -EINVAL;
-	}
 
 	/* Calculate default aligned sizes of EC and VID headers */
 	ubi->ec_hdr_alsize = ALIGN(UBI_EC_HDR_SIZE, ubi->hdrs_min_io_size);

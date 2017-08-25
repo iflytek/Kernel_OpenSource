@@ -161,17 +161,9 @@ OPERATE_STATUS dl_read_end(void);
  */
 OPERATE_STATUS dl_erase(char *part, uint32_t size);
 
-/**
- * dl_repartition
- *
- * Resize/Add/Delete volumes
- *
- * @param vol_cfg volume cfg
- * @param total_vol_num
- * @return 0 failed
- *             1 success
- */
-OPERATE_STATUS dl_repartition(uchar * vol_cfg, uint16_t total_vol_num);
+OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_num,
+									uchar version, uchar size_unit);
+
 
 OPERATE_STATUS dl_get_mcptype(uchar * content, uint16_t * size);
 

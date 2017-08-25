@@ -2669,7 +2669,7 @@ int uboot_ubifs_mount(char *vol_name)
 {
 	struct dentry *ret;
 	int flags;
-
+	char name[80] = "ubi:";
 	/*
 	 * First unmount if allready mounted
 	 */
@@ -2680,6 +2680,7 @@ int uboot_ubifs_mount(char *vol_name)
 	 * Mount in read-only mode
 	 */
 	flags = MS_RDONLY;
+	strcat(name, vol_name);
 	ret = ubifs_mount(&ubifs_fs_type, flags, vol_name, NULL);
 	if (IS_ERR(ret)) {
 		printf("Error reading superblock on volume '%s' " \

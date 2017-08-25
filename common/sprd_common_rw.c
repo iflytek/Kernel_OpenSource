@@ -13,7 +13,12 @@
 #ifdef CONFIG_UFS_BOOT
 #include <sprd_ufs.h>
 #endif
-
+#ifdef  CONFIG_NAND_BOOT
+#include <jffs2/load_kernel.h>
+#include <linux/mtd/partitions.h>
+#include <nand.h>
+#include <dl_ubi.h>
+#endif
 static disk_partition_t local_part_info;
 
 int block_dev_read(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, char *buf)
@@ -890,4 +895,362 @@ int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
 }
 
 #endif
+
+
+
+#ifdef CONFIG_NAND_BOOT
+extern int ubifs_init(void);
+extern struct ubi_selected_dev cur_ubi;
+
+int uboot_ubi_read(struct ubi_volume_desc *desc, char *buf,
+			   int offset, int size)
+{
+	int err, lnum, off, len, tbuf_size, i = 0;
+	size_t count_save = size;
+	void *tbuf;
+	unsigned long long tmp;
+	struct ubi_volume *vol = NULL;
+	struct ubi_device *ubi = NULL;
+	loff_t offp = offset;
+
+	vol = desc->vol;
+	ubi = desc->vol->ubi;
+
+	//printf("read %i bytes from volume %d to %x(buf address)\n",
+	       //(int) size, vol->vol_id, (unsigned)buf);
+
+	if (vol->updating) {
+		printf("updating");
+		return -EBUSY;
+	}
+	if (vol->upd_marker) {
+		printf("damaged volume, update marker is set");
+		return -EBADF;
+	}
+	if (offp == vol->used_bytes)
+		return 0;
+
+	if (size == 0) {
+		printf("Read [%lu] bytes\n", (unsigned long) vol->used_bytes);
+		size = vol->used_bytes;
+	}
+
+	if (vol->corrupted)
+		printf("read from corrupted volume %d", vol->vol_id);
+	if (offp + size > vol->used_bytes)
+		count_save = size = vol->used_bytes - offp;
+
+	tbuf_size = vol->usable_leb_size;
+	if (size < tbuf_size)
+		tbuf_size = ALIGN(size, ubi->min_io_size);
+	tbuf = malloc(tbuf_size);
+	if (!tbuf) {
+		printf("NO MEM\n");
+		return -ENOMEM;
+	}
+	len = size > tbuf_size ? tbuf_size : size;
+
+	tmp = offp;
+	off = do_div(tmp, vol->usable_leb_size);
+	lnum = tmp;
+	do {
+		if (off + len >= vol->usable_leb_size)
+			len = vol->usable_leb_size - off;
+		err = ubi_eba_read_leb(ubi, vol, lnum, tbuf, off, len, 0);
+		if (err) {
+			printf("read err %x\n", err);
+			break;
+		}
+		off += len;
+		if (off == vol->usable_leb_size) {
+			lnum += 1;
+			off -= vol->usable_leb_size;
+		}
+
+		size -= len;
+		offp += len;
+
+		memcpy(buf, tbuf, len);
+
+		buf += len;
+		len = size > tbuf_size ? tbuf_size : size;
+	} while (size);
+	free(tbuf);
+	return err ? err : count_save - size;
+}
+
+static int _boot_ubi_attach_mtd(const char *mtdpart)
+{
+	struct mtd_device *dev;
+	struct part_info *part;
+	struct mtd_info *mtd;
+	struct mtd_partition mtd_part;
+	char mtd_dev[16];
+	u8 pnum;
+	int ret;
+
+	ret = find_dev_and_part(mtdpart, &dev, &pnum, &part);
+	if(ret){
+		printf("--->main partition %s miss<---\n",mtdpart);
+		return -1;
+	}
+	if(dev->id->type != MTD_DEV_TYPE_NAND){
+		printf("mtd dev %s not a nand device!\n",mtdpart);
+		return -1;
+	}
+	sprintf(mtd_dev, "%s%d", MTD_DEV_TYPE(dev->id->type), dev->id->num);
+	mtd = get_mtd_device_nm(mtd_dev);
+
+	memset(&mtd_part, 0, sizeof(mtd_part));
+	mtd_part.name = mtdpart;
+	mtd_part.size = part->size;
+	mtd_part.offset = part->offset;
+	add_mtd_partitions(mtd, &mtd_part, 1);
+	mtd = get_mtd_device_nm(mtdpart);
+	ret = ubi_attach_mtd_dev(mtd, UBI_DEV_NUM_AUTO, 0,CONFIG_MTD_UBI_BEB_LIMIT);
+	if(ret<0){
+		printf("--->ubi attach mtd %s failed<---\n",mtdpart);
+	}
+	return ret;
+}
+
+
+int nand_ubi_dev_init(void)
+{
+	int ret;
+	static int initialized=0;
+	static int dev_num=-1;
+
+	if(!initialized){
+		//init mtd & ubi devices
+		ret = mtdparts_init();
+		if(ret){
+			printf("mtdparts init error...\n");
+			return -1;
+		}
+		printf("ubi init start\n");
+		ret = ubi_init();
+		if(ret){
+			printf("ubi init error...\n");
+			return -1;
+		}
+		//ubi attach mtd dev, and get the new ubi dev num
+		dev_num = _boot_ubi_attach_mtd(UBIPAC_PART);
+		initialized = 1;
+	}
+
+	return dev_num;
+}
+
+
+int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
+{
+	int ubi_dev_num;
+	struct ubi_volume_desc *vol;
+	ubi_dev_num = nand_ubi_dev_init();
+	if(ubi_dev_num < 0){
+		//dev num can't be a negative
+		printf("read failed...\n");
+		return;
+	}
+	vol = ubi_open_volume_nm(ubi_dev_num, part_name, UBI_READONLY);
+	uboot_ubi_read(vol, buf, offset,  size);
+
+	return 0;
+}
+
+
+int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t offset, char *buf)
+{
+#if 0
+	nand_info_t *nand;
+	int ret;
+	dl_part_type part_type = PART_TYPE_MIN;
+	struct mtd_partition mtd_part;
+	ubi_volume_desc *vol;
+
+	nand = _get_cur_nand();
+	if (strcmp(part_name, "splloader") == 0) {
+		ret = sprd_nand_write_spl(buf, nand);
+		return ret;
+	} else {
+	ret = _get_mtd_partition_info(part_name, &mtd_part);
+		if (ret) {
+		part_type = PART_TYPE_MTD;
+		}
+	} else {
+	vol = ubi_open_volume_nm(cur_ubi.dev_num, part_name, UBI_READWRITE);
+		if (0 != IS_ERR(vol)) {
+		part_type = PART_TYPE_UBI;
+		}
+	}
+
+	switch (part_type) {
+	case PART_TYPE_MTD:
+		ret = nand_write_skip_bad(nand, offset, &size, NULL, mtd_part.size, buf, 0);
+		if (ret) {
+			/*mark a block as badblock */
+			printf("nand write error %d, mark bad block 0x%llx\n", ret, mtd_part.offset & ~(nand->erasesize - 1));
+			nand->_block_markbad(nand, mtd_part.offset & ~(nand->erasesize - 1));
+			return ret;
+		}
+		break;
+	case PART_TYPE_UBI:
+		ret = fdl_ubi_volume_write(cur_ubi.dev, part_name, buf, size);
+		if (ret) {
+			printf("ubi volume write error %d!\n", ret);
+			return ret;
+		}
+		break;
+	default:
+		debugf("part type error!\n");
+		return -1;
+	}
+	return 0;
+#endif
+}
+
+int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
+{
+	
+}
+
+
+
+int common_repartition(disk_partition_t *partitions, int parts_count)
+{
+	
+}
+
+int32_t common_get_lba_size(void)
+{
+	
+}
+
+int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
+{
+#if 1
+
+	int ret=-1;
+	static int is_ubifs_init = 0;
+	if(is_ubifs_init == 0){
+		ubifs_init();
+		is_ubifs_init = 1;
+	}
+
+
+	ret = uboot_ubifs_mount(mpart);
+	if(ret){
+		printf("do_fs_file_read:mount %s failed!\n",mpart);
+		return ret;
+	}
+	ret = ubifs_load(filenm, buf, len);
+	if(ret)
+		printf("do_fs_file_read:file %s not found!\n", filenm);
+	return ret;
+	#endif
+}
+int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
+{
+	/*do not write in uboot now*/
+	return -1;
+}
+
+
+
+
+
+int do_raw_data_write(char *part, u32 updsz, u32 size, u32 off, char *buf)
+{
+	int ret =-1;
+	int i =0;
+	int ubi_dev;
+	u8 pnum;
+	loff_t offset;
+	size_t length,wlen=0;
+	struct mtd_device *dev;
+	struct mtd_info *nand;
+	struct part_info *mtdpart;
+	struct ubi_volume_desc *vol;
+	nand_erase_options_t opts;
+
+try_mtd:
+	ret = find_dev_and_part(part, &dev, &pnum, &mtdpart);
+	if (ret)
+		goto try_ubi;
+	else if (dev->id->type != MTD_DEV_TYPE_NAND)
+		goto end;
+
+	offset = mtdpart->offset+off;
+	length = size;
+	nand = &nand_info[dev->id->num];
+	memset(&opts, 0x0, sizeof(opts));
+	opts.offset = offset;
+	opts.length = length;
+	opts.quiet = 1;
+	opts.spread = 1;
+
+	ret = nand_erase_opts(nand, &opts);
+	if (ret) {
+		printf("erase %s failed.\n",part);
+		goto end;
+	}
+	//write spl part with header
+	if(strcmp(part, "splloader")==0){
+		ret = sprd_nand_write_spl(buf, nand);
+		goto end;
+	}
+
+	while((size != wlen) && (i++<0xff)) {
+		ret = nand_write_skip_bad(nand, offset, &length, NULL, mtdpart->size, buf, 0);
+		wlen += length;
+		buf += length;
+		offset += length;
+
+		if(ret){
+			//mark a block as badblock
+			printf("nand write error %d, mark bad block 0x%llx\n",ret,offset&~(nand->erasesize-1));
+			nand->_block_markbad(nand,offset &~(nand->erasesize-1));
+		}
+	}
+	goto end;
+
+try_ubi:
+	ubi_dev = nand_ubi_dev_init();
+	if (ubi_dev<0) {
+		printf("do_raw_data_write: ubi init failed.\n");
+		return ret;
+	}
+	vol = ubi_open_volume_nm(ubi_dev, part, UBI_READWRITE);
+	if (IS_ERR(vol)) {
+		printf("cannot open \"%s\", error %d",
+			  part, (int)PTR_ERR(vol));
+		return ret;
+	}
+
+	//set total size to be updated in this volume
+	if (updsz) {
+		ret = ubi_start_update(vol->vol->ubi, vol->vol, updsz);
+		if (ret < 0) {
+			printf("Cannot start volume %s update\n",part);
+			return ret;
+		}
+	}
+
+	ret = ubi_more_update_data(vol->vol->ubi, vol->vol, buf, size);
+	if (ret < 0) {
+		printf("Couldnt write data in volume %s\n",part);
+		return ret;
+	}
+	ret = 0;
+	ubi_close_volume(vol);
+
+end:
+	if (ret)
+		printf("do_raw_data_write error.\n");
+	return ret;
+}
+
+#endif
+
 

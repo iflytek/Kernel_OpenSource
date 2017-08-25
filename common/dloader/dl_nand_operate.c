@@ -12,18 +12,22 @@
 #include "dl_common.h"
 #include "dl_cmd_proc.h"
 #include "dl_nand_operate.h"
-
+#include "parsemtdparts.h"
+extern int nand_curr_device ;
 #ifdef CONFIG_SECURE_BOOT
 #include "secure_verify.h"
 #endif
+extern uint64_t	spl_read_size;
 
 static dl_status_t dl_stat = { 0 };
 
-static char fdl_buf[FDL_BUF_LEN];
+static char * fdl_buf = (char *)0x82000000;
 extern struct ubi_selected_dev cur_ubi;
 static dl_nv_info_t s_nv_backup_cfg[] = {
 	{"fixnv1", "fixnv2"},
+	{"l_fixnv1", "l_fixnv2"},
 	{"runtimenv1", "runtimenv2"},
+	{"l_runtimenv1", "l_runtimenv2"},
 	{"tdfixnv1", "tdfixnv2"},
 	{"tdruntimenv1", "tdruntimenv2"},
 	{"wfixnv1", "wfixnv2"},
@@ -38,7 +42,7 @@ static int secure_image_flag = 0;
 static int check_secure_flag = 0;
 
 static char *const s_force_secure_check[] = {
-	"spl", "2ndbl", "boot", "recovery", "tdmodem", "tddsp", "wmodem", "wdsp", "wcnmodem", NULL
+	"spl", "uboot", "boot", "recovery", "tdmodem", "tddsp", "wmodem", "wdsp", "wcnmodem", NULL
 };
 
 static int _nand_check_secure_part(uchar * partition_name)
@@ -431,17 +435,16 @@ static void _dl_nand_write(nand_info_t * nand, unsigned long long offset, unsign
 {
 	int ret;
 
-	printf("fdl_nand_write:partname:%s,offset:0x%llx,len:0x%x\n", dl_stat.mtd.name, offset, length);
+	printf("_dl_nand_write:partname:%s,offset:0x%llx,len:0x%x\n", dl_stat.mtd.name, offset, length);
 
 	//TODO:temp here for step 1 debug
-	if (strcmp(dl_stat.mtd.name, "spl") == 0) {
+	if (strcmp(dl_stat.mtd.name, "splloader") == 0) {
 		sprd_nand_write_spl(buffer, dl_stat.nand);
 		printf("write spl\n");
 		dl_stat.wp = 0;
 		dl_stat.unsv_size = 0;
 		return;
 	}
-
 	switch (dl_stat.part_type) {
 	case PART_TYPE_MTD:
 		ret = nand_write_skip_bad(nand, offset, &length, NULL, dl_stat.mtd.size, buffer, 0);
@@ -550,6 +553,7 @@ static void _dl_part_info_parse(char *part)
 OPERATE_STATUS dl_download_start(char *name, uint32_t size, uint32_t nv_checksum)
 {
 	int ret;
+	int index;
 
 #ifdef CONFIG_SECURE_BOOT
 	printf("dl_download_start(): check secure part. name:%s, size:%d.\n", name, size);
@@ -731,7 +735,7 @@ OPERATE_STATUS dl_download_end(void)
 
 		if (strcmp(name, "spl") == 0) {
 			secure_verify("splloader0", dl_stat.buf, 0);
-		} else if (strcmp(name, "2ndbl") == 0) {
+		} else if (strcmp(name, "uboot") == 0) {
 			secure_verify("splloader", dl_stat.buf, 0);
 		} else {
 			secure_verify("fdl2", dl_stat.buf, 0);
@@ -739,7 +743,7 @@ OPERATE_STATUS dl_download_end(void)
 
 		switch (dl_stat.part_type) {
 		case PART_TYPE_MTD:
-			ret = _dl_mtd_part_erase(name);
+			ret = _dl_mtd_part_erase(dl_stat.nand, name);
 			if (ret) {
 				printf("%s:mtd %d erase failed!\n", __FUNCTION__, name);
 			}
@@ -755,6 +759,10 @@ OPERATE_STATUS dl_download_end(void)
 		}
 		if (ret != 0) {
 			return 0;
+		}
+		else
+		{
+			ret = OPERATE_SUCCESS;
 		}
 	}
 #endif
@@ -781,7 +789,6 @@ OPERATE_STATUS dl_download_end(void)
 	secure_image_flag = UNABLE_SECURE;	//0;
 	check_secure_flag = UNABLE_SECURE;	// 0;
 #endif
-
 	return ret;
 }
 
@@ -864,15 +871,26 @@ OPERATE_STATUS dl_read_midst(uint32_t size, uint32_t off, uchar * buf)
 	int ret;
 	size_t read_size = (size_t) size;
 	size_t read_offset = (size_t) off;
+	static int  read_spl = 0;
 	switch (dl_stat.part_type) {
 	case PART_TYPE_MTD:
-		ret = nand_read_skip_bad(dl_stat.nand, dl_stat.mtd.rw_point + off, &read_size, NULL, dl_stat.mtd.size, buf);
-		if (ret)
-			goto err;
+		if(0 == strcmp(dl_stat.mtd.name, "uboot")){
+			read_spl ++;
+			if(read_spl == 1){
+				ret = nand_read_skip_bad(dl_stat.nand, dl_stat.mtd.rw_point + off, &spl_read_size, NULL, dl_stat.mtd.size, fdl_buf);
+				if (ret)
+					goto err;
+			}
+		memcpy(buf, fdl_buf+off, read_size);
+		}else{
+			ret = nand_read_skip_bad(dl_stat.nand, dl_stat.mtd.rw_point + off, &read_size, NULL, dl_stat.mtd.size, buf);
+			if (ret)
+				goto err;
+		}
 		break;
 	case PART_TYPE_UBI:
 		if (_is_nv_volume(dl_stat.ubi.cur_volnm)) {
-			off += NV_HEAD_LEN;
+			read_offset += NV_HEAD_LEN;
 		}
 		ret = fdl_ubi_volume_read(dl_stat.ubi.dev, dl_stat.ubi.cur_volnm, buf, read_size, read_offset);
 		if (size != ret)
@@ -987,17 +1005,9 @@ err:
 	return ret;
 }
 
-/**
- * dl_repartition
- *
- * Resize/Add/Delete volumes
- *
- * @param vol_cfg volume cfg
- * @param total_vol_num
- * @return 0 failed
- *             1 success
- */
-OPERATE_STATUS dl_repartition(uchar * vol_cfg, uint16_t total_vol_num)
+OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_num,
+									uchar version, uchar size_unit)
+
 {
 	int ret, i, vol_id, auto_resize_id = -1;
 	fdl_ubi_vtbl_t *vtbl = NULL;
@@ -1014,15 +1024,15 @@ OPERATE_STATUS dl_repartition(uchar * vol_cfg, uint16_t total_vol_num)
 	if (NULL == nand)
 		return OPERATE_DEVICE_INIT_ERROR;
 
-	vtbl = malloc(total_vol_num * sizeof(fdl_ubi_vtbl_t));
+	vtbl = malloc(total_partition_num * sizeof(fdl_ubi_vtbl_t));
 	if (!vtbl) {
 		debugf("malloc vtbl failed!\n");
 		goto err;
 	}
-	memset(vtbl, 0x0, total_vol_num * sizeof(fdl_ubi_vtbl_t));
-	_dl_parse_volume_cfg(vol_cfg, total_vol_num, vtbl);
+	memset(vtbl, 0x0, total_partition_num * sizeof(fdl_ubi_vtbl_t));
+	_dl_parse_volume_cfg(partition_cfg, total_partition_num, vtbl);
 
-	ret = _dl_vtbl_check(vtbl, total_vol_num, &remove, &create);
+	ret = _dl_vtbl_check(vtbl, total_partition_num, &remove, &create);
 	switch (ret) {
 	case PART_SAME:
 		debugf("ubi volumes are same.\n");
@@ -1058,7 +1068,7 @@ full_repartition:
 		goto err;
 	}
 	/*create volumes */
-	for (i = 0; i < total_vol_num; i++) {
+	for (i = 0; i < total_partition_num; i++) {
 		ret = fdl_ubi_create_vol(cur_ubi.dev, vtbl[i].name, &vol_id, vtbl[i].size, 1);
 		if (ret) {
 			printf("ubi vol \"%s\" create err %d.\n", vtbl[i].name, ret);
@@ -1140,3 +1150,8 @@ OPERATE_STATUS dl_get_mcptype(uchar * content, uint16_t * size)
 	debugf("return\n");
 	return 1;
 }
+
+OPERATE_STATUS dl_read_ref_info(char *part_name, uint16_t size, uint64_t offset,
+	uchar *receive_buf, uchar  *transmit_buf)
+{}
+

@@ -56,6 +56,8 @@ extern uchar *_get_backup_partition_name(uchar * partition_name);
 #include <nand.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/nand.h>
+#include <jffs2/load_kernel.h>
+
 
 typedef struct {
 	char *vol;
@@ -242,7 +244,7 @@ static void fb_cmd_download(const char *arg, void *data, uint64_t sz)
 	fastboot_image_size = ImageInfo.data_size;
 	fastboot_okay("");
 }
-
+#ifndef CONFIG_NAND_BOOT
 int _fb_write_nv_img(char * partition_name, uint64_t size)
 {
 	char *backup_partition_name = NULL;
@@ -464,16 +466,17 @@ void fb_cmd_erase(const char *arg, void *data, uint64_t size)
 	fastboot_okay("");
 	return;
 }
-
+#endif
 /*for nand this can not work,TODO*/
 #ifdef CONFIG_NAND_BOOT
-void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
+void fb_cmd_flash(const char *arg, void *data, u32 sz)
 {
+
 	int ret = -1;
 	int i;
 	uint64_t *code_addr;
 	debugf("arg:%x date: 0x%x, sz 0x%x\n", arg, data, sz);
-
+	//ImageInfo.data_size =0x10000;
 	if (!strcmp(arg, "boot") || !strcmp(arg, "recovery")) {
 #ifdef CONFIG_SECURE_BOOT
 		code_addr = (uint64_t *) get_code_addr(NULL, data);
@@ -490,9 +493,9 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 #endif
 	}
 #ifdef CONFIG_SECURE_BOOT
-	if (strcmp(arg, "spl") == 0) {
+	if (strcmp(arg, "splloader") == 0) {
 		secure_verify("splloader0", data, 0);
-	} else if (strcmp(arg, "2ndbl") == 0) {
+	} else if (strcmp(arg, "uboot") == 0) {
 		secure_verify("splloader", data, 0);
 	}
 #endif
@@ -528,15 +531,8 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 		}
 	}
 
-	if (ImageInfo[1].data_size) {
-		uint32_t total_sz = ImageInfo[0].data_size + ImageInfo[1].data_size;
-		ret = do_raw_data_write(arg, total_sz, ImageInfo[0].data_size, 0, ImageInfo[0].base_address);
-		if (ret)
-			goto end;
-		ret = do_raw_data_write(arg, 0, ImageInfo[1].data_size, ImageInfo[0].data_size, ImageInfo[1].base_address);
-	} else {
-		ret = do_raw_data_write(arg, ImageInfo[0].data_size, ImageInfo[0].data_size, 0, ImageInfo[0].base_address);
-	}
+		ret = do_raw_data_write(arg, ImageInfo.data_size, ImageInfo.data_size, 0, ImageInfo.base_address);
+
 
 end:
 	if (!ret)
@@ -544,6 +540,7 @@ end:
 	else
 		fastboot_fail("flash error");
 	return;
+
 }
 
 void fb_cmd_erase(const char *arg, void *data, uint64_t sz)
@@ -562,8 +559,8 @@ void fb_cmd_erase(const char *arg, void *data, uint64_t sz)
 	if (!ret) {
 		nand = &nand_info[dev->id->num];
 		memset(&opts, 0, sizeof(opts));
-		opts.offset = (loff_t) part->offset;
-		opts.length = (loff_t) part->size;
+		opts.offset = (loff_t) (part->offset);
+		opts.length = (loff_t) (part->size);
 		opts.jffs2 = 0;
 		opts.quiet = 1;
 		ret = nand_erase_opts(nand, &opts);
@@ -900,3 +897,5 @@ int do_fastboot(void)
 	return 0;
 
 }
+
+

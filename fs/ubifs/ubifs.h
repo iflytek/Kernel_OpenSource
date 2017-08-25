@@ -2377,6 +2377,10 @@ int ubifs_decompress(const void *buf, int len, void *out, int *out_len,
 #include "debug.h"
 #include "misc.h"
 #include "key.h"
+#include <linux/lzo.h>
+
+int lzo1x_decompress_safe(const unsigned char *in, size_t in_len,
+			  unsigned char *out, size_t *out_len);
 
 #ifdef __UBOOT__
 /* these are used in cmd_ubifs.c */

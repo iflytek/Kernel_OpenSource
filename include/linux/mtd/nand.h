@@ -29,6 +29,9 @@
 #include "linux/mtd/mtd.h"
 #include "linux/mtd/flashchip.h"
 #include "linux/mtd/bbm.h"
+#include <asm/cache.h>
+#include <common.h>
+
 #endif
 
 struct mtd_info;

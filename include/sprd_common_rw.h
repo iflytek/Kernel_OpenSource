@@ -1,6 +1,6 @@
 #ifndef _SPRD_COMMON_RW_H_
 #define _SPRD_COMMON_RW_H_
-
+#include <common.h>
 #define SPRD_DISK_GUID_STR "11111111-2222-3333-4444-000000000000"
 
 int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf);
@@ -29,7 +29,9 @@ void fdt_fixup_pmic_wa(void *fdt);
  int fdt_initrd_norsvmem(void *fdt, ulong initrd_start, ulong initrd_end, int force);
  int boot_sprdisk(int offset, char *ramdisk_addr);
 
-
+#ifdef CONFIG_NAND_BOOT
+int do_raw_data_write(char *part, u32 updsz, u32 size, u32 off, char *buf);
+#endif
 
 
 #endif /* _LOADER_COMMON_H_ */

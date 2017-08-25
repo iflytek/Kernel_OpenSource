@@ -590,10 +590,12 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #if defined(CONFIG_CMD_ONENAND)
 	onenand_init();
 #endif
+#ifdef  CONFIG_EMMC_BOOT
 #ifndef CONFIG_ZEBU
 #ifdef CONFIG_GENERIC_MMC
 	puts("MMC:   ");
 	mmc_initialize(gd->bd);
+#endif
 #endif
 #endif
 #ifdef CONFIG_UFS

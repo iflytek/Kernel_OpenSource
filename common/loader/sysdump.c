@@ -454,12 +454,12 @@ int read_nand_to_ram( struct mtd_info *mtd, loff_t paddr, unsigned int size, uns
         debugf("%s, read 0x%.8x:0x%.8x buf: 0x%.8x\n", __func__, (unsigned int)paddr, size, buf);
         for(read_addr = paddr, read_buf = buf; read_addr < (paddr + size); read_addr += readsize, read_buf += readsize) {
                 readsize = (paddr + size - read_addr) > mtd->erasesize ? mtd->erasesize : (paddr + size - read_addr);
-                if(mtd->block_isbad(mtd, read_addr) == 1) {//if met bad block, we just fill it with 0x5a
+                if(mtd->_block_isbad(mtd, read_addr) == 1) {//if met bad block, we just fill it with 0x5a
                         memset(read_buf, 0x5a, readsize);
                         continue;
                 }
 
-                ret = mtd->read(mtd, read_addr, readsize, &retlen, read_buf);
+                ret = mtd->_read(mtd, read_addr, readsize, &retlen, read_buf);
                 if(ret != 0 && retlen != readsize) {
                         printf("%s, read addr: 0x%.8x len: 0x%.8x 's value error, ret: %d, retlen: 0x%.8x\n",\
 			 __func__, (unsigned int)read_addr, readsize, ret, retlen);

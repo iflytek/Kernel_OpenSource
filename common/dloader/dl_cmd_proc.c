@@ -18,6 +18,9 @@
 
 static root_stat_t root_stat;
 
+#ifdef CONFIG_NAND_BOOT
+	 uint64_t	spl_read_size = 0;
+#endif
 
 static void _decode_packet_data(dl_packet_t *packet, uchar * partition_name, uint64_t * size, uint32_t * checksum)
 {
@@ -163,6 +166,10 @@ int dl_cmd_read_start(dl_packet_t *packet, void *arg)
 	_decode_packet_data(packet, partition_name, &size, NULL);
 
 	debugf("partition_name=%s,size=0x%llx\n", partition_name, size);
+#ifdef CONFIG_NAND_BOOT
+	if(0 == strcmp(partition_name,"uboot"))
+		spl_read_size = size;
+#endif
 	op_res = dl_read_start(partition_name, size);
 
 	debugf("operate result =%d,send ack\n", op_res);
@@ -290,20 +297,35 @@ int dl_powerdown_device(dl_packet_t *packet, void *arg)
 
 int dl_cmd_read_mcptype(dl_packet_t *packet, void *arg)
 {
-
-	uint16_t size ;
-
-
 #ifdef CONFIG_NAND_BOOT
-	dl_get_mcptype(packet->body.content, &size);
+	unsigned int pagesize;
+	unsigned int blocksize;
+	unsigned int size ;
+	char temp[sizeof(struct MCP_TYPE)];
+	struct mtd_info *nand ;
+	struct MCP_TYPE mcp_type;
+	int i =0,j=0;
+	nand = _get_cur_nand();
+	pagesize  = nand->writesize;
+	blocksize = nand->erasesize;
+	mcp_type.flag = 0;
+	mcp_type.pagesize  = pagesize;
+	mcp_type.blocksize = blocksize;
+	size = sizeof(struct MCP_TYPE);
 	packet->body.type = BSL_REP_READ_MCP_TYPE;
-	packet->body.size = size;
+	packet->body.size = 12;
+	memcpy(packet->body.content, &mcp_type, size);
+	for(i=0 ; i<size ;i++)
+		temp[i] = packet->body.content[i];
+	for(i=0; i <size; i++){
+		if((i%4) == 0)
+			j=i+4;
+		packet->body.content[i]=temp[--j];
+	}
+	  dl_send_packet (packet);
 #else
-	packet->body.type = BSL_UNKNOWN_DEVICE;
-	packet->body.size = 0;
 
 #endif
-	dl_send_packet (packet);
 	return 1;
 
 
