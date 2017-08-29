@@ -152,7 +152,7 @@
 
         microcode {
                 update@0 {
-			#include "microcode/MU_00_01_0007065A_80000A04.SIGNED.dtsi"
+			#include "microcode/M017065AA08.SIGNED.bin.dtsi"
                 };
         };
 };
