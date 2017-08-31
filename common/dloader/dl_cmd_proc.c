@@ -418,3 +418,13 @@ int dl_cmd_disable_hdlc(dl_packet_t *packet, void *arg)
 	return 0;
 }
 
+int dl_cmd_write_datetime(dl_packet_t *packet, void *arg)
+{
+	int32_t op_res = OPERATE_SUCCESS;
+	uint64_t size =(uint64_t)packet->body.size;
+	uchar * raw_data =(uchar *) packet->body.content;
+
+	op_res = dl_record_pacdatetime(raw_data,size);
+	_send_reply(op_res);
+	return 0;
+}

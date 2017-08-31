@@ -27,6 +27,9 @@ but actually reserve 1MB space before the first partition can enhance the erase 
 #define TRUE   1		/* Boolean true value. */
 #define FALSE  0		/* Boolean false value. */
 
+#define DATETIME_OFFSET 0x81400
+#define DATATIME_PARTNAME "miscdata"
+
 typedef enum _PARTITION_IMG_TYPE {
 	IMG_RAW = 0,
 	IMG_WITH_SPARSE = 1,
@@ -92,6 +95,8 @@ OPERATE_STATUS dl_repartition(uchar * partition_cfg, uint16_t total_partition_nu
 									uchar version, uchar size_unit);
 OPERATE_STATUS dl_read_ref_info(char *part_name, uint16_t size, uint64_t offset,
 	uchar *receive_buf, uchar  *transmit_buf);
+
+OPERATE_STATUS dl_record_pacdatetime(uchar * buf, uint64_t size);
 
 
 #endif //_FDL_EMMC_OPERATE_H
