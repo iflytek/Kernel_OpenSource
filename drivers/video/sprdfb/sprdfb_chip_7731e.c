@@ -13,7 +13,7 @@
  ******************************************************************************/
 
 #include "sprdfb_chip_common.h"
-#include "sprdfb_chip_7700.h"
+#include "sprdfb_chip_7731e.h"
 #include "sprdfb.h"
 
 

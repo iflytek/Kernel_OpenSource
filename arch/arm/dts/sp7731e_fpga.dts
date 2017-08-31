@@ -10,9 +10,9 @@
 
 
 / {
-	model = "Spreadtrum SP7700_FPGA Board";
+	model = "Spreadtrum SP7731e_FPGA Board";
 
-	compatible = "sprd,sp7700_fpga", "sprd,pike2";
+	compatible = "sprd,sp7731e_fpga", "sprd,pike2";
 
 	sprd,sc-id = <7700 1 0x20000>;
 
@@ -22,7 +22,7 @@
 	};
 
 	chosen {
-		bootargs = "loglevel=8 console=ttyS1,115200n8 init=/init root=/dev/ram0 rw androidboot.hardware=sp7700fpga";
+		bootargs = "loglevel=8 console=ttyS1,115200n8 init=/init root=/dev/ram0 rw androidboot.hardware=sp7731efpga";
 		linux,initrd-start = <0x85500000>;
 		linux,initrd-end = <0x855a3212>;
 	};

@@ -11,8 +11,8 @@
  ** DATE          NAME            DESCRIPTION                       *
 
  ******************************************************************************/
-#ifndef _SC7700_DISPC_GLB_REG_U_H_
-#define _SC7700_DISPC_GLB_REG_U_H_
+#ifndef _SC7731E_DISPC_GLB_REG_U_H_
+#define _SC7731E_DISPC_GLB_REG_U_H_
 
 /* DISPC regs offset */
 #define DISPC_VERSION		(0x0000)

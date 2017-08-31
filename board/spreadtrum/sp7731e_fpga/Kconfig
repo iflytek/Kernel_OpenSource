@@ -1,7 +1,7 @@
-if TARGET_SP7700_FPGA
+if TARGET_SP7731E_FPGA
 
 config SYS_BOARD
-	default "sp7700_fpga"
+	default "sp7731e_fpga"
 
 config SYS_VENDOR
 	default "spreadtrum"
@@ -10,7 +10,7 @@ config SYS_SOC
 	default "pike2"
 
 config SYS_CONFIG_NAME
-	default "sp7700_fpga"
+	default "sp7731e_fpga"
 
 config SYS_TEXT_BASE
 	default 0x9f000000
