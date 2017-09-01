@@ -317,8 +317,8 @@ void sprd_get_chip_uid(char *buf)
 	u32 LOTID_0, LOTID_1, LOTID_2, LOTID_3, LOTID_4, LOTID_5;
 	char *p = buf;
 
-	block0 = sprd_efuse_double_read(94,false);
-	block1 = sprd_efuse_double_read(95,false);
+	block1 = sprd_efuse_double_read(94,false);
+	block0 = sprd_efuse_double_read(95,false);
 
 	y = block1 & 0x7F;
 	x = (block1 >> 7) & 0x7F;
