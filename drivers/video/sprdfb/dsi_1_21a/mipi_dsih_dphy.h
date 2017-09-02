@@ -99,5 +99,5 @@ struct pll_frequency_intel {
         uint32_t i_pllwait_cntr;
 };
 extern void set_pll_frequency(uint32_t output_freq);
-extern void writel_nbits(uint8_t value,uint8_t nbits,uint8_t offset,uint32_t addr);
+extern void writel_nbits(uint32_t value,uint8_t nbits,uint8_t offset,uint32_t addr);
 #endif
