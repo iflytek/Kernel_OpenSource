@@ -84,7 +84,11 @@ boot_mode_enum_type get_mode_from_bat_low(void)
 {
 #ifndef CONFIG_FPGA       //jump loop
 	while(is_bat_low()) {
+#ifdef CONFIG_TARGET_SP9853I_10C10
+	  if(1) {
+#else
 	  if(charger_connected()) {
+#endif
 		  debugf("cboot:low battery,charging...\n");
 		  sprdbat_show_chglogo();
 		  sprdbat_lowbat_chg();

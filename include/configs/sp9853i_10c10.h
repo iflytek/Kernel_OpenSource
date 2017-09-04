@@ -54,5 +54,5 @@
 #define VMM_RESERVE_SIZE 0
 
 #define CONFIG_USB_UTMI_WIDTH_8
-
+#define CONFIG_SHOW_CHGLOGO
 #endif /* __CONFIG_H */
