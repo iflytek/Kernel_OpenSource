@@ -495,6 +495,8 @@ void sprd_dl_vboot_verify(uint8_t *name,uint8_t *tocheck_name,uint8_t * header,u
 
 				vb_ret = avb_check_image(tocheck_name);
 			}
+			if (vb_ret!=0)
+				while (1);
 		}
 	}
 }
