@@ -673,7 +673,7 @@ int fdt_fixup_cp_coupling_info(void *blob)
 		size_t total_len;
 		size_t exe_size;
 
-#if defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)
+#if (defined (CONFIG_SECURE_BOOT) || defined (CONFIG_SECBOOT)) && !defined (CONFIG_VBOOT_V2)
 		secure_boot_offset = SYS_HEADER_SIZE;
 		normal_boot_offset = get_modem_img_info(&i_info,
 							SYS_HEADER_SIZE,
