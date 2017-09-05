@@ -17,14 +17,15 @@
 #endif
 
 /*####for anti-rollback######*/
-#define TRUSTED_VERSION_MAX  31
 #define NON_TRUSTED_VERSION_MAX 223
-#define TRUSTED_FIRMWARE 1
-#define NON_TRUSTED_FIRMWARE 0
-#define VERSION_INIT_VALUE 0xFFFF//to mark read efuse first time
-static uint32_t Trusted_rollback_version = VERSION_INIT_VALUE;
+#define TRUSTED_FIRMWARE        1
+#define NON_TRUSTED_FIRMWARE    0
+#define SEC_VERSION_INIT_VALUE  0x1234 // trust version init value
+#define VERSION_INIT_VALUE      0xFFFF // non trust version init value
+#define CHECK_BINARY_NUM        10
+
+static uint32_t Trusted_rollback_version = SEC_VERSION_INIT_VALUE;
 static uint32_t Non_Trusted_rollback_version = VERSION_INIT_VALUE;
-#define CHECK_BINARY_NUM	10
 static uint32_t Trusted_update_version[CHECK_BINARY_NUM] = {0};
 static uint32_t Non_Trusted_update_version[CHECK_BINARY_NUM] = {0};
 static uint32_t Trusted_update_index = 0;
@@ -93,68 +94,64 @@ uint32_t check_rollback_version(uint32_t version)
 
 void update_sec_version(void)
 {
-	int i;
-	uint32_t nosecure_update_version = 0;
+    int         i;
+    uint32_t    nosecure_update_version = 0;
 
-	if(Non_Trusted_update_index)
-	{
-		nosecure_update_version = Non_Trusted_update_version[0];
-		for(i=1;i<Non_Trusted_update_index;i++)
-		{
-			if(nosecure_update_version != Non_Trusted_update_version[i])
-			{
-				secf("\r\Nosec rollback version not unified\n");
-			}
-		}
-		//if(check_rollback_version(nosecure_update_version))
-		if(nosecure_update_version>Non_Trusted_rollback_version)
-		sprd_set_version(SW_VERSION_COUNTER2,nosecure_update_version);
-		Non_Trusted_update_index = 0;
-		Non_Trusted_rollback_version = 0;
-	}
+    if (Non_Trusted_update_index) {
+        nosecure_update_version = Non_Trusted_update_version[0];
+        for (i = 1;i < Non_Trusted_update_index; i++)
+        {
+            if (nosecure_update_version != Non_Trusted_update_version[i])
+            {
+                secf("\r\Nosec rollback version not unified\n");
+                return;
+            }
+        }
+        if (nosecure_update_version > Non_Trusted_rollback_version) {
+            sprd_set_version(SW_VERSION_COUNTER2,nosecure_update_version);
+        }
+        Non_Trusted_update_index = 0;
+        Non_Trusted_rollback_version = 0;
+    }
 }
 
-bool sprd_anti_rollback(uint32_t certtype,uint32_t certversion)
+bool sprd_anti_rollback(uint32_t certtype, uint32_t certversion)
 {
-	if(certtype == TRUSTED_FIRMWARE)
-	{
-		if(Trusted_rollback_version == VERSION_INIT_VALUE){
-			sprd_get_version(SW_VERSION_COUNTER1,&Trusted_rollback_version);
-			secf("Trusted_rollback_version %d\n", Trusted_rollback_version);
-		}
-		//version_efuse = version_convert_efuse(curcertptr->version);
-		if((certversion < Trusted_rollback_version)||(certversion>TRUSTED_VERSION_MAX)){
-			secf("SEC ANTI_ROLLBACK ERR version = %x\n",certversion);
-			return false;
-		}else{
-			Trusted_update_version[Trusted_update_index] = certversion;
-			Trusted_update_index++;
-		}
-	}
-	else
-	{
-		if(certtype == NON_TRUSTED_FIRMWARE)
-		{
-			if(Non_Trusted_rollback_version == VERSION_INIT_VALUE){
-			sprd_get_version(SW_VERSION_COUNTER2,&Non_Trusted_rollback_version);
-			secf("Non_Trusted_rollback_version %d\n", Non_Trusted_rollback_version);
-			}
-			//version_efuse = version_convert_efuse(curcertptr->version);
-			if((certversion < Non_Trusted_rollback_version)||(certversion>NON_TRUSTED_VERSION_MAX)){
-			secf("NOSEC ANTI_ROLLBACK ERR version = %x\n",certversion);
-			return false;
-			}else{
-			secf("version_efuse %d\n", certversion);
-			Non_Trusted_update_version[Non_Trusted_update_index] = certversion;
-			Non_Trusted_update_index++;
-			}
-		}
-		else
-		{
-			return false;
-		}
-	}
-	return true;
+    secf("image type = %d\n", certtype);
+    if (certtype == TRUSTED_FIRMWARE) {
+        if (Trusted_rollback_version == SEC_VERSION_INIT_VALUE){
+            sprd_get_version(SW_VERSION_COUNTER1 ,&Trusted_rollback_version);
+            secf("read efuse version: 0X%x\n", Trusted_rollback_version);
+        }
+        secf("Trusted_rollback_version = 0X%x  certversion = 0X%x\n",
+             Trusted_rollback_version, certversion);
+        if (certversion < Trusted_rollback_version) {
+            secf("SEC ANTI_ROLLBACK ERR version = 0X%x\n", certversion);
+            return false;
+        } else {
+            Trusted_update_version[Trusted_update_index] = certversion;
+            Trusted_update_index++;
+        }
+    } else if (certtype == NON_TRUSTED_FIRMWARE) {
+        if (Non_Trusted_rollback_version == VERSION_INIT_VALUE) {
+            sprd_get_version(SW_VERSION_COUNTER2,&Non_Trusted_rollback_version);
+            secf("read efuse version: %d\n", Non_Trusted_rollback_version);
+        }
+        secf("Non_Trusted_rollback_version = %d  certversion = %d\n",
+             Non_Trusted_rollback_version, certversion);
+        if ((certversion < Non_Trusted_rollback_version) ||
+            (certversion > NON_TRUSTED_VERSION_MAX)) {
+            secf("NOSEC ANTI_ROLLBACK ERR version = %d\n", certversion);
+            return false;
+        } else {
+            Non_Trusted_update_version[Non_Trusted_update_index] = certversion;
+            Non_Trusted_update_index++;
+        }
+    } else {
+        secf("image type mismatch!! \n");
+        return false;
+    }
+    return true;
 }
 
 bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t * certptr)
