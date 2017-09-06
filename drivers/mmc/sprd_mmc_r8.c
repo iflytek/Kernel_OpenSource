@@ -1728,6 +1728,8 @@ static int mmc_startup(struct mmc *mmc)
 	}
 #ifndef CONFIG_MMC_1BIT_BUS_MODE
 	if (IS_SD(mmc)) {
+		/*some sandisk card need this delay in case of sysdump*/
+		udelay(3000);
 		err = sd_change_freq(mmc);
 		debugf("sd_change_freq=%d\n", err);
 	} else {
