@@ -78,7 +78,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SEND(12),{ 10, 0, 0xE5, 0x00, 0x04, 0x0B, 0x08, 0x06, 0x00, 0x20, 0x20, 0x00}},
 {LCM_SEND(15),{ 13, 0, 0xE6, 0x00, 0x00, 0x00, 0x05, 0x05, 0x10, 0x0A, 0x10, 0x20, 0x20, 0x00, 0x00}},
 
-{LCM_SEND(5),{3,0,0x51, 0x00,0x00}},
+{LCM_SEND(5),{3,0,0x51, 0x0f,0xff}},
 {LCM_SLEEP(5)},
 {LCM_SEND(2),{0x55, 0x01}},
 {LCM_SLEEP(5)},
@@ -219,11 +219,11 @@ static struct panel_operations lcd_hx8399c_mipi_operations = {
 };
 
 static struct timing_rgb lcd_hx8399c_mipi_timing = {
-	.hfp = 36,  /* unit: pixel */
+	.hfp = 185,  /* unit: pixel */
 	.hbp = 30,
-	.hsync = 24,
+	.hsync = 20,
 	.vfp = 14, /*unit: line*/
-	.vbp = 8,
+	.vbp = 9,
 	.vsync = 4,
 };
 
@@ -232,7 +232,7 @@ static struct info_mipi lcd_hx8399c_mipi_info = {
 	.work_mode  = SPRDFB_MIPI_MODE_VIDEO,
 	.video_bus_width = 24, /*18,16*/
 	.lan_number = 4,
-	.phy_feq =900*1000,
+	.phy_feq =960*1000,
 	.h_sync_pol = SPRDFB_POLARITY_POS,
 	.v_sync_pol = SPRDFB_POLARITY_POS,
 	.de_pol = SPRDFB_POLARITY_POS,
