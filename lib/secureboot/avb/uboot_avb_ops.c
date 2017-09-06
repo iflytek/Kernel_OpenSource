@@ -114,7 +114,7 @@ AvbIOResult read_from_partition(AvbOps* ops,
   else
     *out_num_read = num_bytes;
 
-	if((!strcmp(partition_name, "boot")) && (g_ulAvbCheckType == AVB_CHECK_DOWNLOAD))
+	if((strcmp(partition_name, "vbmeta")) && (g_ulAvbCheckType == AVB_CHECK_DOWNLOAD))
 	{
 		debug("buf:0x%x, g_eMMCBuf:0x%x, offset_from_partition:%d num_bytes:%d\n", buf, g_eMMCBuf, offset_from_partition, num_bytes);
 

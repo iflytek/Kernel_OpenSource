@@ -20,6 +20,7 @@ VbootVerifyInfo *vboot_verify_info = ARG_START_ADRESS;
  imgToVerifyInfo img_verify_info = {0};
 uint8_t pubkhash[32];
 VbootVerInfo vboot_ver_info __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
+unsigned char vboot_para_partition_name[SEC_MAX_PARTITION_NAME_LEN] __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
 
 static uchar *const s_force_secure_check[] = {
     "splloader",
@@ -445,6 +446,12 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 
 void vboot_secure_process_flow(char *partition_name)
 {
+	if(!partition_name)
+	{
+		debugf("Error: partition_name is null. \n");
+		return;
+	}
+
 	debugf("img_addr:0x%x.  len:0x%x. \n", vboot_verify_info->img_addr, vboot_verify_info->img_len);
 
 	/*partition load*/
@@ -461,6 +468,13 @@ void vboot_secure_process_flow(char *partition_name)
 
 	dumpHex("vbmeta pubkey",  (uchar *)vboot_verify_info->vbmeta_pubkey_addr, 32);
 #endif
+
+	memset(vboot_para_partition_name, 0, sizeof(vboot_para_partition_name));
+	strcpy(vboot_para_partition_name, partition_name);
+	vboot_verify_info->img_name = vboot_para_partition_name;
+	vboot_verify_info->img_name_len = SEC_MAX_PARTITION_NAME_LEN;
+	debugf("vboot_verify_info->img_name :%s. \n", vboot_verify_info->img_name);
+
 	uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
 #else
 	secboot_param_set(VERIFY_ADDR,&img_verify_info);
@@ -499,6 +513,12 @@ void sprd_fb_secure_vboot_prepare(char *partition_name, char *img_ram_addr, char
 	if(partition_name && (strcmp("vbmeta",partition_name) != 0)){
 		secure_load_partition("vbmeta",vboot_verify_info->vbmeta_img_len, (uint64_t)0, vboot_verify_info->vbmeta_img_addr);
 	}
+
+	memset(vboot_para_partition_name, 0, sizeof(vboot_para_partition_name));
+	strcpy(vboot_para_partition_name, partition_name);
+	vboot_verify_info->img_name = vboot_para_partition_name;
+	vboot_verify_info->img_name_len = SEC_MAX_PARTITION_NAME_LEN;
+	debugf("vboot_verify_info->img_name :%s. \n", vboot_verify_info->img_name);
 }
 
 void sprd_dl_secure_vboot_prepare(void)

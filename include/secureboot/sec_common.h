@@ -32,6 +32,8 @@ typedef struct{
 }VBootResultInfo;
 
 typedef struct{
+	char * img_name;
+	uint32_t img_name_len;
 	char * img_addr; //the base address of image to verify
 	uint32_t img_len; //length of image
 	char * vbmeta_img_addr;
@@ -62,6 +64,7 @@ typedef struct{
 
 #define SPRD_FLAG 1
 #define SANSA_FLAG 2
+#define SEC_MAX_PARTITION_NAME_LEN   (36)
 
 extern imgToVerifyInfo img_verify_info;
 #ifdef TOS_TRUSTY
