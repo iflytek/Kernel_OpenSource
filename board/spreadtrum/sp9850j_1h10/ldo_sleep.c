@@ -4,6 +4,14 @@
 #include <asm/arch/sprd_reg.h>
 #include <adi_hal_internal.h>
 
+#define TSX_32KLESS 0
+#define DCXO_TCXO_32KLESS 1
+#define IS_32K 3  /*TCXO_32K*/
+
+#if defined(CONFIG_TSX_32K)
+extern int sprd_get32_less(void);
+#endif
+
 void DCDC_ldo_power_on()
 {
 	//regulator_enable("vddcpu");
@@ -34,6 +42,12 @@ void DCDC_ldo_power_on()
 
 void pmic_lowpower_config(uint32_t gen_para)
 {
+	unsigned int feature_32k_less = 0;
+
+#if defined(CONFIG_TSX_32K)
+	feature_32k_less = sprd_get32_less();
+#endif
+
 #if defined(CONFIG_ADIE_SC2721)
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE,0x6e7f);
 	while( (ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & 0x8000) != 0x8000 );
@@ -69,24 +83,49 @@ void pmic_lowpower_config(uint32_t gen_para)
 		0
 	);
 
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-		BIT_SLP_LDORF15_PD_EN |
-		BIT_SLP_LDORF18_PD_EN |
-		//BIT_SLP_LDOEMMCCORE_PD_EN |
-		//BIT_SLP_LDODCXO_PD_EN | //Transceiver and TCXO
-		//BIT_SLP_LDOWIFIPA_PD_EN | //Marlin2
-		//BIT_SLP_LDOVDD28_PD_EN |
-		//BIT_SLP_LDOSDCORE_PD_EN | // T-flash
-		//BIT_SLP_LDOSDIO_PD_EN |
-		//BIT_SLP_LDOUSB33_PD_EN |
-		//BIT_SLP_LDOCAMMOT_PD_EN |
-		//BIT_SLP_LDOCAMIO_PD_EN |
-		//BIT_SLP_LDOCAMD_PD_EN |
-		//BIT_SLP_LDOCAMA_PD_EN |
-		BIT_SLP_LDOSIM2_PD_EN |
-		//BIT_SLP_LDOSIM1_PD_EN |
-		0
-	);
+	if (feature_32k_less == IS_32K) {
+		ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
+			BIT_SLP_LDORF15_PD_EN |
+			BIT_SLP_LDORF18_PD_EN |
+			//BIT_SLP_LDOEMMCCORE_PD_EN |
+			BIT_SLP_LDODCXO_PD_EN | //Transceiver and TCXO
+			//BIT_SLP_LDOWIFIPA_PD_EN | //Marlin2
+			//BIT_SLP_LDOVDD28_PD_EN |
+			//BIT_SLP_LDOSDCORE_PD_EN | // T-flash
+			//BIT_SLP_LDOSDIO_PD_EN |
+			//BIT_SLP_LDOUSB33_PD_EN |
+			//BIT_SLP_LDOCAMMOT_PD_EN |
+			//BIT_SLP_LDOCAMIO_PD_EN |
+			//BIT_SLP_LDOCAMD_PD_EN |
+			//BIT_SLP_LDOCAMA_PD_EN |
+			BIT_SLP_LDOSIM2_PD_EN |
+			//BIT_SLP_LDOSIM1_PD_EN |
+			0
+		);
+	} else {
+		ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
+			BIT_SLP_LDORF15_PD_EN |
+			BIT_SLP_LDORF18_PD_EN |
+			//BIT_SLP_LDOEMMCCORE_PD_EN |
+			//BIT_SLP_LDODCXO_PD_EN | //Transceiver and TCXO
+			//BIT_SLP_LDOWIFIPA_PD_EN | //Marlin2
+			//BIT_SLP_LDOVDD28_PD_EN |
+			//BIT_SLP_LDOSDCORE_PD_EN | // T-flash
+			//BIT_SLP_LDOSDIO_PD_EN |
+			//BIT_SLP_LDOUSB33_PD_EN |
+			//BIT_SLP_LDOCAMMOT_PD_EN |
+			//BIT_SLP_LDOCAMIO_PD_EN |
+			//BIT_SLP_LDOCAMD_PD_EN |
+			//BIT_SLP_LDOCAMA_PD_EN |
+			BIT_SLP_LDOSIM2_PD_EN |
+			//BIT_SLP_LDOSIM1_PD_EN |
+			0
+		);
+
+		ANA_REG_OR(ANA_REG_GLB_CLK32KLESS_CTRL0,
+			BIT_SLP_XO_LOW_CUR_EN
+		);
+	}
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
 		//BIT_SLP_LDOCON_PD_EN |
