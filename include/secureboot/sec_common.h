@@ -7,6 +7,7 @@
 #include<crypto/sprdrsa.h>
 #include<secure_efuse.h>
 #include<asm/arch/chip_releted_def.h>
+#include <sprd_imgversion.h>
 
 typedef struct{
 #if defined (CONFIG_SC9833)||defined (CONFIG_SOC_SHARKLJ1) || defined (CONFIG_SOC_SHARKLE)
@@ -45,7 +46,7 @@ typedef struct{
 	VBootResultInfo * verify_return_data;
 	uint32_t verify_return_data_len;
 }VbootVerifyInfo;
-
+#if 0
 typedef enum enAntiRBImageType{
 	IMAGE_VBMETA = 0, /**/
 	IMAGE_BOOT,
@@ -57,9 +58,9 @@ typedef enum enAntiRBImageType{
 	IMAGE_PM_SYS,
 	IMAGE_END
 }antirb_image_type;
-
+#endif
 typedef struct{
-	uint32_t img_ver[IMAGE_END];
+	uint32_t img_ver[IMAGE_TYPE_END];
 }VbootVerInfo;
 
 #define SPRD_FLAG 1

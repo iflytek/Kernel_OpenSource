@@ -122,5 +122,8 @@ int sprd_get_imgversion(antirb_image_type imgType, unsigned int* swVersion)
             return -1;
     }
 
+#ifdef IMGVER_DEBUG
+    printf("sprd image type %d, swVersion:0x%x\n", imgType, *swVersion);
+#endif
     return 0;
 }

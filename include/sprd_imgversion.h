@@ -4,6 +4,7 @@
 #ifndef _SPRDIMGVERSION_H
 #define _SPRDIMGVERSION_H
 
+#define IMGVER_DEBUG 1
 
 typedef enum enAntiRBImageType {
 	IMAGE_VBMETA = 0,

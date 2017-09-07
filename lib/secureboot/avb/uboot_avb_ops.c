@@ -39,7 +39,7 @@
 #include <stdio_dev.h>
 /*end of add for avb ops*/
 
-//#include "sprd_imgversion.h"
+#include "sprd_imgversion.h"
 
 #include <avb/uboot_avb_ops.h>
 #include "avb_ops.h"
@@ -201,14 +201,20 @@ static AvbIOResult read_rollback_index(AvbOps* ops,
   uint32_t swVersion = 0;
   int ret = 0;
 
-  //ret = sprd_get_imgversion((antirb_image_type)rollback_index_slot, &swVersion);
+  if(out_rollback_index == NULL) {
+      error(">>>>> ERR:para is invalid.\n");
+      return AVB_IO_RESULT_ERROR_OOM;
+  }
+
+  ret = sprd_get_imgversion((antirb_image_type)rollback_index_slot, &swVersion);
   debug(">>>>> rollback_index_slot:0x%llx, swVersion:%d, ret:%d.\n", rollback_index_slot, swVersion, ret);
 
-  if((!ret) && (out_rollback_index != NULL)) {
+  if(!ret) {
     *out_rollback_index = (uint64_t)swVersion;
   } else {
-     debug(">>>>> ERR:return err or para is invalid.\n");
-     return AVB_IO_RESULT_ERROR_IO;
+     debug(">>>>> Warning:read rollback index return err.\n");
+     *out_rollback_index = (uint64_t)0;
+     //debug(">>>>> Debug *out_rollback_index:%d.\n", *out_rollback_index);
   }
 
   return AVB_IO_RESULT_OK;
@@ -273,7 +279,7 @@ uint8_t* avb_ops_get_image_buffer(uint8_t avb_check_type)
 	if(avb_check_type == AVB_CHECK_BOOTING) {
 		return (uint8_t*)KERNEL_ADR;
 	} else {
-		return (uint8_t*)(g_eMMCBuf + 0x04000000); /*g_emmcbuf + 64MB*/
+		return (uint8_t*)(g_eMMCBuf);
 	}
 }
 

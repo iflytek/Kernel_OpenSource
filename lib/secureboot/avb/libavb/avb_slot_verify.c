@@ -125,21 +125,27 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
 #if 0 //mod by  jason. for vbmeta image verify bootimage
   image_buf = avb_malloc(hash_desc.image_size);
 #else
-  //image_buf = (uint8_t*)KERNEL_ADR;
   image_buf = avb_ops_get_image_buffer(g_ulAvbCheckType);
+  image_buf = ((size_t)image_buf & 0xFFFFFFFF);
+
+  //debug("in %s, l:%d. image_buf:0x%llx, hash_desc.image_size:0x%llx. ret:0x%llx. \n", __func__, __LINE__, image_buf, hash_desc.image_size, avb_ops_get_image_buffer(g_ulAvbCheckType));
 #endif
   if (image_buf == NULL) {
 			debug("in %s, l:%d..\n", __func__, __LINE__);
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
     goto out;
   }
-
+#if 0 //mod by  jason. for vbmeta image verify bootimage
   io_ret = ops->read_from_partition(ops,
                                     part_name,
                                     0 /* offset */,
                                     hash_desc.image_size,
                                     image_buf,
                                     &part_num_read);
+#else
+   io_ret = AVB_IO_RESULT_OK;
+   part_num_read = hash_desc.image_size;
+#endif
   if (io_ret == AVB_IO_RESULT_ERROR_OOM) {
 			debug("in %s, l:%d..\n", __func__, __LINE__);
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
@@ -189,7 +195,7 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_VERIFICATION;
     goto out;
   }
-
+debug("in %s, l:%d. verify hash success.\n", __func__, __LINE__);
   ret = AVB_SLOT_VERIFY_RESULT_OK;
 
 out:

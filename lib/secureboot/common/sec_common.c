@@ -382,6 +382,7 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 #ifdef CONFIG_VBOOT_V2
 void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr)
 {
+	antirb_image_type tmp_type;
 	uint64_t partition_size = 0;
 	uint8_t * avb_vboot_key = NULL;
 	uint32_t avb_vboot_key_len = 0;
@@ -439,11 +440,17 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 	debugf("g_sprd_vboot_key:0x%x.   g_sprd_vboot_key_len:%d.   \n", g_sprd_vboot_key, g_sprd_vboot_key_len);
 
 	//read version from rpmb block
-	//struct sprd_img_ver_t imgver;
-	//sprd_get_imgver(&imgver);
+	memset(vboot_ver_info.img_ver, 0, sizeof(vboot_ver_info.img_ver));
+	for(tmp_type=IMAGE_SYSTEM; tmp_type<IMAGE_TYPE_END; tmp_type++)
+	{
+		sprd_get_imgversion(tmp_type, &(vboot_ver_info.img_ver[tmp_type]));
+	}
+#ifdef CONFIG_VBOOT_DUMP
+	debug("dump vboot_ver_info.img_ver \n");
+	do_hex_dump(vboot_ver_info.img_ver, sizeof(vboot_ver_info.img_ver));
+#endif
 	//pass the version msg to tos
-	//uboot_vboot_set_ver((VbootVerInfo*)(&vboot_ver_info),sizeof(VbootVerInfo));
-
+	uboot_vboot_set_ver((VbootVerInfo*)(&vboot_ver_info),sizeof(VbootVerInfo));
 }
 
 void vboot_secure_process_flow(char *partition_name)

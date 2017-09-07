@@ -217,6 +217,7 @@
 #define CONFIG_EMMC_BOOT
 #define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
+#define EMMC_SECTOR_SIZE 512
 
 /*file system config*/
 #define CONFIG_FAT_WRITE
