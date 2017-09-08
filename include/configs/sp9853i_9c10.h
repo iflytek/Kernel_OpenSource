@@ -54,4 +54,7 @@
 
 #define CONFIG_USB_UTMI_WIDTH_8
 
+#undef CONFIG_7S_RST_2KEY_MODE
+#define CONFIG_7S_RST_2KEY_MODE		0	/* 0:1Key--Normal mode; 1:2KEY special for 3c10*/
+
 #endif /* __CONFIG_H */
