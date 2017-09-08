@@ -14,7 +14,7 @@
 
 	compatible = "sprd,sp7731e_fpga", "sprd,pike2";
 
-	sprd,sc-id = <7700 1 0x20000>;
+	sprd,sc-id = <7731 1 0x20000>;
 
 	memory: memory@80000000 {
 		device_type = "memory";
