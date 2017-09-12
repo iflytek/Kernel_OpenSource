@@ -77,8 +77,7 @@ static LCM_Init_Code init_data[] = {
 {LCM_SLEEP(10)},
 {LCM_SEND(12),{ 10, 0, 0xE5, 0x00, 0x04, 0x0B, 0x08, 0x06, 0x00, 0x20, 0x20, 0x00}},
 {LCM_SEND(15),{ 13, 0, 0xE6, 0x00, 0x00, 0x00, 0x05, 0x05, 0x10, 0x0A, 0x10, 0x20, 0x20, 0x00, 0x00}},
-
-{LCM_SEND(5),{3,0,0x51, 0x0f,0xff}},
+{LCM_SEND(5),{3,0,0x51, 0x00,0x00}},
 {LCM_SLEEP(5)},
 {LCM_SEND(2),{0x55, 0x01}},
 {LCM_SLEEP(5)},
@@ -198,19 +197,23 @@ static int32_t hx8399c_reset(struct panel_spec *self)
 	return 0;
 }
 
-static unsigned char set_bl_seq[] = {
-	0x51, 0x0f,0xff,
+static unsigned char set_bl_seq[5] = {
+	0x03,0x00,0x51, 0x0F,0xFF
 };
 
-int32_t hx8399c_set_brightness(struct panel_spec *self,uint16_t brightness)
+static int32_t hx8399c_set_brightness(struct panel_spec *self,uint16_t brightness)
 {
-	mipi_gen_write_t mipi_gen_write = self->info.mipi->ops->mipi_gen_write;
 	uint16_t temp;
-	temp = 4095 *brightness/255;
-	set_bl_seq[1] = temp>>8;
-	set_bl_seq[2] = (unsigned char)temp&0xff;
-	mipi_gen_write(&set_bl_seq[0], 3);
+	mipi_dcs_write_t mipi_dcs_write = self->info.mipi->ops->mipi_dcs_write;
+	temp = 0x10*(unsigned char)brightness;
+	set_bl_seq[3] = temp>>8;
+	set_bl_seq[4] = (unsigned char)temp&0xFF;
+
+	mipi_dcs_write(&set_bl_seq[0], 5);
+
+	return 0;
 }
+
 static struct panel_operations lcd_hx8399c_mipi_operations = {
 	.panel_init = lcd_hx8399c_init,
 	.panel_readid = hx8399c_readid,
@@ -246,7 +249,7 @@ static struct info_mipi lcd_hx8399c_mipi_info = {
 struct panel_spec lcd_hx8399c_mipi_spec = {
 	.width = 1080,
 	.height = 1920,
-	.fps = 56,
+	.fps = 60,
 	.type = LCD_MODE_DSI,
 	.direction = LCD_DIRECT_NORMAL,
 	.info = {
