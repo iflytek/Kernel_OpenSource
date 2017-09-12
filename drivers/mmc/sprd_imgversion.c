@@ -44,7 +44,7 @@ int sprd_get_imgversion(antirb_image_type imgType, unsigned int* swVersion)
     uint16_t block_ind, block_count;
     int ret;
 
-    if (imgType < IMAGE_L_MODEM) {
+    if (IMAGE_SYSTEM == imgType || IMAGE_VENDOR == imgType) {
         block_ind = SPRD_IMGVERSION_BLK;
     } else {
         block_ind = SPRD_MODEM_IMGVERSION_BLK;
@@ -58,7 +58,7 @@ int sprd_get_imgversion(antirb_image_type imgType, unsigned int* swVersion)
         return ret;
     }
 
-    if (imgType < IMAGE_L_MODEM) {
+    if (IMAGE_SYSTEM == imgType || IMAGE_VENDOR == imgType) {
         memcpy((void *)&imgver, data_rd, sizeof(struct sprd_img_ver_t));
 
         if(imgver.magic != SPRD_IMGVER_MAGIC) {

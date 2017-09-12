@@ -6,6 +6,9 @@
 
 
 typedef enum enAntiRBImageType {
+	IMAGE_VBMETA = 0,
+	IMAGE_BOOT,
+	IMAGE_RECOVERY,
 	IMAGE_SYSTEM,
 	IMAGE_VENDOR,
 	IMAGE_L_MODEM,
@@ -16,11 +19,8 @@ typedef enum enAntiRBImageType {
 	IMAGE_WCN,
 	IMAGE_GPS,
 	IMAGE_GPU,
-	IMAGE_VBMETA,
-	IMAGE_BOOT,
-	IMAGE_RECOVERY
+	IMAGE_TYPE_END
 } antirb_image_type;
-
 
 /*
 *@imgType   The image which need to get the version
