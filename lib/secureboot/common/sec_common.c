@@ -499,7 +499,7 @@ void sprd_fb_secure_vboot_prepare(char *partition_name, char *img_ram_addr, char
 {
 	unsigned char sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN];
 	/*from uboot get vboot key*/
-	sprd_get_vboot_key((CONFIG_SYS_TEXT_BASE - 0x200), sprd_vboot_key, GET_FROM_EMMC);
+	sprd_get_vboot_key((CONFIG_SYS_TEXT_BASE - 0x200), sprd_vboot_key, GET_FROM_RAM);
 
 #ifdef CONFIG_VBOOT_DUMP
 	dumpHex("vboot pubk", sprd_vboot_key, SPRD_RSA4096PUBK_HASHLEN);
