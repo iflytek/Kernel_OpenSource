@@ -542,7 +542,7 @@ int _boot_load_required_image(boot_image_required_t img_info)
 		memcpy((void *)img_info.mem_addr,
 		       (void*)FREE_RAM_SPACE_ADDR,
 		       exe_size);
-#elif defined (CONFIG_SECBOOT)
+#elif defined (CONFIG_SECBOOT) && !defined(CONFIG_VBOOT_V2)
 		/***secboot 2nd step***/
 		secboot_secure_process_flow(img_info.partition,(img_info.size + CERT_SIZE),0,(char *)VERIFY_ADDR);
 		memcpy(img_info.mem_addr,(VERIFY_ADDR + SYS_HEADER_SIZE),img_info.size);
