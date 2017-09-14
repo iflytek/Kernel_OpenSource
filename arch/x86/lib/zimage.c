@@ -75,6 +75,10 @@ static void build_command_line(char *command_line, int auto_boot)
 	command_line[0] = '\0';
 
 	env_command_line =  getenv("bootargs");
+    if (!env_command_line) {
+        printf("error: getenv(bootargs) return null\n");
+        return;
+    }
 
 	/* set console= argument if we use a serial console */
 	if (!strstr(env_command_line, "console=")) {
@@ -89,8 +93,7 @@ static void build_command_line(char *command_line, int auto_boot)
 	if (auto_boot)
 		strcat(command_line, "auto ");
 
-	if (env_command_line)
-		strcat(command_line, env_command_line);
+    strcat(command_line, env_command_line);
 
 	printf("Kernel command line: \"%s\"\n", command_line);
 }
