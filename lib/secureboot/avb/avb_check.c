@@ -69,7 +69,7 @@ int avb_check_image(unsigned char *name)
      const char* slot_suffixes[2] = {"", ""};
 
     const char* requested_partitions[] = {"boot", NULL};
-    bool allow_verification_error = true;
+    bool allow_verification_error = false;
     AvbSlotVerifyData * out_slot_data = NULL;
 
     if(name) {
@@ -86,8 +86,8 @@ int avb_check_image(unsigned char *name)
                                       slot_suffixes[0],
                                       allow_verification_error,
                                       &avb_slot_data[0]);
-	debug(">>>>>>>>>>>>>>>>  avb verify_bootimage result is %d.\n", verify_result);
-	debug(">>>>>>>>>>>>>>>>  avb verify_bootimage result is %s.\n", avb_slot_verify_result_to_string(verify_result));
+	debug(">>>>>>>>>>>>>>>>  avb_slot_verify result is %d.\n", verify_result);
+	debug(">>>>>>>>>>>>>>>>  avb_slot_verify result is %s.\n", avb_slot_verify_result_to_string(verify_result));
 
 	debug("slot_data[0] is 0x%x.\n", avb_slot_data[0]);
 	debug("slot_data[1] is 0x%x.\n", avb_slot_data[1]);

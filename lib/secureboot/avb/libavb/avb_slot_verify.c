@@ -586,6 +586,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
 
 	debug("in %s, l:%d. num_descriptors:%d. begin to check partitions in vbmeta descriptors\n", __func__, __LINE__, num_descriptors);
 
+  bool found_chain_partion=false;
   for (n = 0; n < num_descriptors; n++) {
     AvbDescriptor desc;
 
@@ -624,7 +625,8 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
         AvbChainPartitionDescriptor chain_desc;
         const uint8_t* chain_partition_name;
         const uint8_t* chain_public_key;
-
+        if (found_chain_partion)
+			break;
         /* Only allow CHAIN_PARTITION descriptors in the main vbmeta image. */
         if (!is_main_vbmeta) {
           avb_errorv(full_partition_name,
@@ -670,9 +672,11 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
 #endif
 	if(chain_partition_name && requested_partitions[0] && avb_memcmp(chain_partition_name, requested_partitions[0], chain_desc.partition_name_len)) {
 		debug("Info::>>> chain_partition_name:%s != requested_partitions[0]:%s. skip .... \n", chain_partition_name, requested_partitions[0]);
+		ret=AVB_SLOT_VERIFY_RESULT_ERROR_INVALID_METADATA;
 		break;
 	}
 
+    found_chain_partion=true;
         sub_ret = load_and_verify_vbmeta(ops,
                                          requested_partitions,
                                          ab_suffix,
@@ -687,9 +691,8 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
                                          NULL /* out_algorithm_type */);
 
 		debug("in %s, l:%d. sub_ret:%d. \n", __func__, __LINE__, sub_ret);
-
+        ret = sub_ret;
 		if (sub_ret != AVB_SLOT_VERIFY_RESULT_OK) {
-          ret = sub_ret;
           if (!result_should_continue(ret)) {
 			debug("in %s, l:%d..\n", __func__, __LINE__);
             goto out;

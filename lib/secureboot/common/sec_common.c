@@ -37,6 +37,7 @@ static uchar *const s_force_secure_check[] = {
 #endif
 	"boot",
 	"recovery",
+#ifndef CONFIG_VBOOT_V2//TO FIX: modem not signed now so shouldn't be checked
 	"wl_modem",
 	"wl_ldsp",
 	"wmodem",
@@ -56,6 +57,7 @@ static uchar *const s_force_secure_check[] = {
 	#ifdef CONFIG_SUPPORT_WIFI
 	"wcnmodem",
 	#endif
+#endif
 	#ifdef CONFIG_SYSTEM_VERIFY
 	"system",
 	#endif
@@ -203,7 +205,7 @@ VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
 	int ret = 0;
 
 	if (SEC_FALSE == _check_secure_part(part_name))	{
-	    errorf("no secure image to need verify \n");
+	    debugf("%s partition isn't secure image need to verify \n",part_name);
 		return VERIFY_NO_NEED;
 	}
 #ifdef CONFIG_SECURE_BOOT
@@ -272,7 +274,7 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 	int ret = 0;
 
 	if (SEC_FALSE == _check_secure_part(part_name)){
-		errorf("no secure image to need verify \n");
+		debugf("%s not secure image need to verify \n",part_name);
 		return VERIFY_NO_NEED;
 		}
 #ifdef CONFIG_SECURE_BOOT
@@ -446,11 +448,15 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 
 void vboot_secure_process_flow(char *partition_name)
 {
+    uint64_t partition_size=0;
 	if(!partition_name)
 	{
 		debugf("Error: partition_name is null. \n");
 		return;
 	}
+
+	secure_get_partition_size(partition_name, &partition_size);
+	vboot_verify_info->img_len=partition_size;
 
 	debugf("img_addr:0x%x.  len:0x%x. \n", vboot_verify_info->img_addr, vboot_verify_info->img_len);
 
