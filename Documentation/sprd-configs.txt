@@ -11384,6 +11384,24 @@ CONFIG_PRINTK_TIME
 	[must] debug
 	[missing plat description] none
 	[function] Add time stamp in kernel log.
+CONFIG_PRINTK_TIME_LOCAL
+	[arch] all
+	[plat] all
+	[missing plat] none
+	[field]
+	[subsys]
+	[must]
+	[missing plat description] none
+	[function]
+CONFIG_PRINTK_TIME_TYPE
+	[arch] all
+	[plat] all
+	[missing plat] none
+	[field]
+	[subsys]
+	[must]
+	[missing plat description] none
+	[function]
 CONFIG_PROBE_EVENTS
 	[arch] arm
 	[plat] sharkl5_32
