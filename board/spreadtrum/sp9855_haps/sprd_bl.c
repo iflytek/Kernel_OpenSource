@@ -22,16 +22,12 @@
 
 static inline uint32_t pwm_read(int index, uint32_t reg)
 {
-#ifndef CONFIG_SP9855_HAPS
 	return __raw_readl(CTL_BASE_PWM + index * 0x20 + reg);
-#endif
 }
 
 static void pwm_write(int index, uint32_t value, uint32_t reg)
 {
-#ifndef CONFIG_SP9855_HAPS
 	__raw_writel(value, CTL_BASE_PWM + index * 0x20 + reg);
-#endif
 }
 
 void set_backlight(uint32_t brightness)

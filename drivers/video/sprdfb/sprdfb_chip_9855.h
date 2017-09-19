@@ -135,11 +135,7 @@ static inline void dispc_clear_bits(u32 bits, unsigned long reg)
 #define	SPRD_MIPI_DPHY_GEN2
 #endif
 
-#ifndef CONFIG_SP9855_HAPS
 #define DSI_CTL_BEGIN				SPRD_DSI_BASE
-#else
-#define DSI_CTL_BEGIN				0
-#endif
 #define DSI_AHB_SOFT_RST           		G_DISPC_AHB_BASE + 0x0004
 #define BIT_DSI_SOFT_RST	 		( BIT(0) )
 
@@ -192,11 +188,7 @@ static inline void dispc_clear_bits(u32 bits, unsigned long reg)
 #define BIT_DISPC_DPI_DIV_MSK		BIT0_DISPC_DPI_DIV_CFG | BIT1_DISPC_DPI_DIV_CFG | BIT2_DISPC_DPI_DIV_CFG | BIT3_DISPC_DPI_DIV_CFG \
 					| BIT4_DISPC_DPI_DIV_CFG | BIT5_DISPC_DPI_DIV_CFG | BIT6_DISPC_DPI_DIV_CFG | BIT7_DISPC_DPI_DIV_CFG
 
-#ifndef CONFIG_SP9855_HAPS
 #define DPHY_PW_CONFIG_REG	REGS_AON_APB_BASE + 0x0024
-#else
-#define DPHY_PW_CONFIG_REG	0 + 0x0024
-#endif
 #define BIT_MIPI_DSI_PS_PD_S	BIT(15)
 #define BIT_MIPI_DSI_PS_PD_L	BIT(14)
 

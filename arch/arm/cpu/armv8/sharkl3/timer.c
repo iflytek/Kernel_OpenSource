@@ -76,10 +76,9 @@ int timer_init(void)
 
 	writel(readl(REG_AON_APB_CLK_EB0) | BIT_AON_APB_TMR_EB, REG_AON_APB_CLK_EB0);
 
-#ifndef CONFIG_SP9855_HAPS
 	/* enable ts clk output to arch timer */
 	writel(0x1, SPRD_APCPUTS0_BASE);
-#endif
+
 	return 0;
 }
 

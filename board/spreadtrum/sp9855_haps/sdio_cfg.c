@@ -31,12 +31,7 @@
 const struct sdio_base_info sdio_ctrl_info[2] = {
 {
 	EMMC,
-#ifndef CONFIG_SP9855_HAPS
 	SPRD_EMMC_BASE,
-#else
-	0,
-#endif
-
 #ifdef CONFIG_FPGA
 	NULL,
 	NULL,
@@ -59,12 +54,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 },
 {
 	SD,
-#ifndef CONFIG_SP9855_HAPS
 	SPRD_SDIO0_BASE,
-#else
-	0,
-#endif
-
 #ifdef CONFIG_FPGA
 	NULL,
 	NULL,
