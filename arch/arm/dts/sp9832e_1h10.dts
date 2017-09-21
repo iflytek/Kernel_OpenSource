@@ -53,8 +53,8 @@
 			reg = <0x0 0x95000000 0x0 0x00100000>;
 		};
 
-		fb_reserved: framebuffer@4,c9cf0000{
-			reg = <0x0 0xbeb6c000 0x0 0x00a8c000>;
+		fb_reserved: framebuffer@4,be7e8000{
+			reg = <0x0 0xbe7e8000 0x0 0x00a8c000>;
 		};
 
 		overlay_reserved: overlaybuffer@4,cc720000{
