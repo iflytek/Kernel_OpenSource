@@ -19,6 +19,9 @@
 #ifdef TOS_TRUSTY
 imgToVerifyInfo *img_verify_info_tos = ARG_START_ADRESS;
 VbootVerifyInfo *vboot_verify_info = ARG_START_ADRESS;
+#else
+VbootVerifyInfo vboot_verify_info_s = {0};
+VbootVerifyInfo *vboot_verify_info = &vboot_verify_info_s;
 #endif
  imgToVerifyInfo img_verify_info = {0};
 uint8_t pubkhash[32];
@@ -567,7 +570,6 @@ void vboot_secure_process_flow(char *partition_name)
 
 	secure_load_partition("vbmeta",vboot_verify_info->vbmeta_img_len, (uint64_t)0, vboot_verify_info->vbmeta_img_addr);
 
-#if defined (TOS_TRUSTY)
 
 #ifdef CONFIG_VBOOT_DUMP
 	dumpHex("boot image",  (uchar *)vboot_verify_info->img_addr, 512);
@@ -606,12 +608,6 @@ void vboot_secure_process_flow(char *partition_name)
 		debugf("partion %s, verify_ret:0x%x is invalid.\n",partition_name, vboot_check_result);
 		g_verifiedbootstate = v_state_red;
 	}
-#else
-	secboot_param_set(VERIFY_ADDR,&img_verify_info);
-	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
-	uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
-	g_verifiedbootstate = v_state_green;
-#endif
 }
 
 void vboot_secure_process_prepare(void)

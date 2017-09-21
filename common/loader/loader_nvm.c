@@ -1078,7 +1078,16 @@ int loader_binding_state_get(void)
 
 	return g_DeviceStatus;
 }
-
+#ifdef CONFIG_X86
+int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
+{
+	return 0;
+}
+int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status_len)
+{
+	return 0;
+}
+#else
 int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status_len)
 {
 #ifndef CONFIG_VBOOT_V2
@@ -1163,6 +1172,7 @@ int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
 	return ret;
 #endif
 }
+#endif
 
 void pass_pubkey_to_tos(void)
 {

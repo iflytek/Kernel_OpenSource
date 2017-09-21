@@ -82,10 +82,10 @@ typedef struct{
 extern imgToVerifyInfo img_verify_info;
 #ifdef TOS_TRUSTY
 extern imgToVerifyInfo *img_verify_info_tos;
-extern VbootVerifyInfo *vboot_verify_info;
 #define  PAGE_ALIGN 4096
 #define  ARG_START_ADRESS 0x98100000//0x94000000+64M
 #endif
+extern VbootVerifyInfo *vboot_verify_info;
 
 /*this two marco is diffent among products, pls check it!*/
 #define SIMG_BUF     0x2E00000

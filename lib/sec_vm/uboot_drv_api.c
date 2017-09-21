@@ -4,12 +4,6 @@
 #include "mv_gal.h"
 #include "mv_svc_hypercalls.h"
 
-#define SEC_VERIFY_CMD 0x1
-#define SEC_GETHBK_CMD 0x8
-/*add fastboot cmd for iwhale2*/
-#define FUNCTYPE_GET_SOCID 0x03
-#define FUNCTYPE_GET_LCS 0x0A
-#define FUNCTYPE_SET_RMA 0x0B
 
 
 
@@ -90,6 +84,87 @@ int uboot_get_hbk(uint64_t start_addr, uint64_t lenth){
 		printf("## Save hbk request failed");
 	}
 	return share_data[2];
+}
+int uboot_vboot_set_ver(unsigned long start_addr, uint32_t lenth)
+{
+	unsigned int result = 0;
+
+	printf("start_addr=%p, lenth=%d\n", start_addr, lenth);
+	volatile unsigned int *share_data;
+	tee_call_request(&share_data);/*check tos status and send cmd to tos, tos return share memory point*/
+
+	printf("##%s:%d---vm=%d,cpu=%d,result: %d\n", __func__, __LINE__,
+			   share_data[0], share_data[1], share_data[2]);
+	puts("## Start vboot_set_ver...\n");
+	share_data[2] = result;
+	share_data[3] = FUNCTYPE_VBOOT_SET_VERSION; /*cmd, other feature add own cmd*/
+	share_data[4] = (uint32_t)start_addr&0xFFFFFFFF;
+	share_data[5] = lenth&0xFFFFFFFF;
+
+	printf("##cmd:0x%x,start_addr:0x%x,lenth:0x%x\n",share_data[3],share_data[4],share_data[5]);
+	/* secvm id: 3 */
+	if (mv_svc_ivmc_request(3) != 0) {
+		printf("## Waiting for response ...\n");
+		while (1) {
+			/* check the return value of ptr[2] */
+			if (share_data[2] != result) {
+				printf("%s:%d---vm=%u,cpu=%u,result: %u\n",__func__, __LINE__,
+						  share_data[0], share_data[1], share_data[2]);
+				break;
+			}
+			mdelay(200);
+		}
+	} else {
+		printf("## vboot_set_ver failed");
+	}
+	if(share_data[2] == 1)
+		return 0;
+	else
+		return share_data[2];
+}
+
+int uboot_vboot_verify_img(unsigned long start_addr, uint32_t lenth)
+{
+	unsigned int result = 0;
+	VbootVerifyInfo *info = (VbootVerifyInfo *)start_addr;
+	volatile unsigned int *share_data;
+	tee_call_request(&share_data);/*check tos status and send cmd to tos, tos return share memory point*/
+	printf("##%s:%d---vm=%d,cpu=%d,result: %d\n", __func__, __LINE__,
+	       share_data[0], share_data[1], share_data[2]);
+	puts("## Start vboot_verify_img ...\n");
+	share_data[2] = result;
+	share_data[3] = FUNCTYPE_VBOOT_VERIFY_IMG; /*cmd, other feature add own cmd*/
+	share_data[4] = info->img_name;
+	share_data[5] = info->img_name_len;
+	share_data[6] = info->img_addr;
+	share_data[7] = info->img_len;
+	share_data[8] = info->vbmeta_img_addr;
+	share_data[9] = info->vbmeta_img_len;
+	share_data[10]= info->vbmeta_pubkey_addr;
+	share_data[11]= info->vbmeta_pubkey_len;
+	share_data[12]= info->vb_cmdline_addr;
+	share_data[13]= info->vb_cmdline_len;
+	/* secvm id: 3 */
+	if (mv_svc_ivmc_request(3) != 0) {
+		printf("## Waiting for response ...\n");
+		while (1) {
+			/* check the return value of ptr[2] */
+			if (share_data[2] != result) {
+				printf("%s:%d---vm=%u,cpu=%u,result: %u\n",__func__, __LINE__,
+						  share_data[0], share_data[1], share_data[2]);
+				break;
+			}
+			mdelay(200);
+		}
+	} else {
+		printf("## Save hbk request failed");
+	}
+	return share_data[2];
+  //smc_param *param = tee_common_call(FUNCTYPE_VBOOT_VERIFY_IMG, (uint32_t)start_addr, lenth);
+  //return param->a0;
+}
+int uboot_encrypt_data(uint64_t start_addr, uint64_t lenth){
+  return 0;
 }
 
 /*add fastboot cmd for iwhale2*/
