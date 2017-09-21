@@ -322,20 +322,12 @@ static inline void sprd_ce_all_int_clear(void) {
 #pragma GCC diagnostic pop
 }
 
-static inline void count_delay(unsigned int count) {
-	unsigned int i;
-	unsigned int l = 0;
-	for(i = count; i > 0; i--)
-		l++;
-}
-
 static inline void sprd_ce_enable(void) {
 	//set ce freq : 256M
 	unsigned int cgm_ce0_val = REG_GET_VAL(REG_AP_CLK_CE_SEC_CFG, 0);
 	if ((cgm_ce0_val & BIT_CGM_CE0_SEL) != CGM_CE0_SEL_256M) {
 		REG_SET_VAL(REG_AP_CLK_CE_SEC_CFG, 0, (cgm_ce0_val | CGM_CE0_SEL_256M));
 	}
-	count_delay(300);
 	//enable ce
 	SPRD_REG_SET_BIT(REG_AP_AHB_AHB_EB_OFFSET, BIT_AP_AHB_CE_SEC_EB);
 }
