@@ -96,7 +96,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-		//BIT_SLP_DCDCCORE_LP_EN |
+		BIT_SLP_DCDCCORE_LP_EN |
 		BIT_SLP_DCDCMEM_LP_EN |
 		//BIT_SLP_DCDCCPU_LP_EN |
 		BIT_SLP_DCDCGEN_LP_EN |
