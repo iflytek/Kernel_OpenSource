@@ -9,9 +9,9 @@
 /dts-v1/;
 
 / {
-	model = "Spreadtrum SP9850j_2c20 Board";
+	model = "Spreadtrum SP9850kh fpga Board";
 
-	compatible = "sprd,sc9850j_2c20";
+	compatible = "sprd,sc9850kh-fpga";
 
 	sprd,sc-id = <9850 1 20000>;
 

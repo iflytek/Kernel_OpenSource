@@ -9,17 +9,20 @@
 /dts-v1/;
 
 
-/ {
-	model = "Spreadtrum SP9850jsmt vdk Board";
 
-	compatible = "sprd,sc9850jsmt-vdk";
+/ {
+	model = "Spreadtrum SP9850kh vdk Board";
+
+	compatible = "sprd,sc9850kh-vdk";
 
 	sprd,sc-id = <9850 1 20000>;
+
 
 	memory{
 		device_type = "memory";
 		reg = <0x0 0x80000000 0 0x40000000>;
 	};
+
 
 };
 

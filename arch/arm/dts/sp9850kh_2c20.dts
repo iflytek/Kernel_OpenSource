@@ -9,9 +9,9 @@
 /dts-v1/;
 
 / {
-	model = "Spreadtrum SP9850j_1h10 Board";
+	model = "Spreadtrum SP9850kh_2c20 Board";
 
-	compatible = "sprd,sc9850j_1h10";
+	compatible = "sprd,sc9850kh_2c20";
 
 	sprd,sc-id = <9850 1 20000>;
 

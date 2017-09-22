@@ -154,16 +154,16 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9850ka_1h10_native.dtb \
 	sp9850ka_2c10_native.dtb \
 	sp9850ka_2c20_native.dtb \
-	sp9850j-vdk-smt.dtb \
-	sp9850j-vdk.dtb \
-	sp9850j-fpga.dtb \
-	sp9850j-zebu.dtb \
-	sp9850j-fpga-smt.dtb \
+	sp9850kh-vdk-smt.dtb \
+	sp9850kh-vdk.dtb \
+	sp9850kh-fpga.dtb \
+	sp9850kh-zebu.dtb \
+	sp9850kh-fpga-smt.dtb \
         sp7731e_fpga.dtb \
 	sp7731e_1h10_native.dtb \
         sp9835_haps_native.dtb \
-        sp9850j_1h10.dtb \
-	sp9850j_2c20.dtb \
+        sp9850kh_1h10.dtb \
+	sp9850kh_2c20.dtb \
 	pike2_vp.dtb \
 	sp9832e_1h10.dtb \
 	sp9820e_64b.dtb \

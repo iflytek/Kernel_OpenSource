@@ -12,7 +12,7 @@
  */
 
 /*
- *Version SC9850J_Xunrui_L503_V1.0.0(8110L503_170407C)_pinmap
+ *Version SC9850kh_Xunrui_L503_V1.0.0(8110L503_170407C)_pinmap
  */
 
 #include <asm/io.h>

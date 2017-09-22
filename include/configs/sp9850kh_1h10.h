@@ -5,8 +5,8 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#ifndef __SP9850J_1H10_H
-#define __SP9850J_1H10_H
+#ifndef __SP9850KH_1H10_H
+#define __SP9850KH_1H10_H
 
 #include "sharklj1_modem.h"
 #define SPRD_DEBUG_LEVEL		2

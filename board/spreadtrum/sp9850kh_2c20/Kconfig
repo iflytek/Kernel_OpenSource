@@ -1,7 +1,7 @@
-if TARGET_SP9850J_2C20
+if TARGET_SP9850KH_2C20
 
 config SYS_BOARD
-	default "sp9850j_2c20"
+	default "sp9850kh_2c20"
 
 config SYS_VENDOR
 	default "spreadtrum"
@@ -10,7 +10,7 @@ config SYS_SOC
 	default "sharklj1"
 
 config SYS_CONFIG_NAME
-	default "sp9850j_2c20"
+	default "sp9850kh_2c20"
 
 config SYS_TEXT_BASE
 	default 0x9f000000
