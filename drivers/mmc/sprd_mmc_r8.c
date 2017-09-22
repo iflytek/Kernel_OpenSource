@@ -2301,7 +2301,7 @@ int sprd_host_init(int sdio_type)
 		    sprd_host_info->ahb_reset_bit);
 	CHIP_REG_AND(sprd_host_info->ahb_reset_reg,
 		     ~(sprd_host_info->ahb_reset_bit));
-#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1))
+#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_PIKE2))
 	CHIP_REG_OR(sprd_host_info->aon_clk_reg,
 		    sprd_host_info->aon_clk_bit);
 #endif

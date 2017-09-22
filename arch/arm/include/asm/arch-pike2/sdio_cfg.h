@@ -26,6 +26,8 @@ struct sdio_base_info {
 	uint32_t  ahb_enable_bit;
 	uint32_t  ahb_reset_reg;
 	uint32_t  ahb_reset_bit;
+	uint32_t aon_clk_reg;
+	uint32_t aon_clk_bit;
 
 	const char *ldo_io;
 	const char *ldo_core;

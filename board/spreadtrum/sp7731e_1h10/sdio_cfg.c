@@ -39,19 +39,19 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	      36000000,
 	      100000,
 #else
-		REG_AP_CLK_EMMC_CFG,
-		BIT_0|BIT_1,
- 	       384000000,
-		400000,
+	REG_AON_CLK_EMMC_2X_CFG,
+	BIT_0|BIT_1,
+	192000000,
+	400000,
 #endif
-	/* REG_AP_AHB_AHB_EB, */
-	0X20E00000,
-	BIT_11,
-	/* REG_AP_AHB_AHB_RST, */
-	0X20E00004,
-	BIT_14,
+	REG_AP_AHB_AHB_EB,
+	BIT_AP_AHB_EMMC_EB,
+	REG_AP_AHB_AHB_RST,
+	BIT_AP_AHB_EMMC_SOFT_RST,
+	REG_AON_APB_CLK_EB0,
+	BIT_0|BIT_1,
 
-		"vddgen1",
+		"vddgen",
 		"vddemmccore",
 	},
 	{
@@ -63,18 +63,18 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	      36000000,
 	      100000,
 #else
-		REG_AP_CLK_SDIO0_CFG,
-		BIT_0|BIT_1,
-		384000000,
-		400000,
+	REG_AON_CLK_SDIO0_2X_CFG,
+	BIT_0|BIT_1,
+	192000000,
+	400000,
 #endif
 
-	/* REG_AP_AHB_AHB_EB, */
-	0X20E00000,
-	BIT_8,
-	/* REG_AP_AHB_AHB_RST, */
-	0X20E00004,
-	BIT_11,
+	REG_AP_AHB_AHB_EB,
+	BIT_AP_AHB_SDIO0_EB,
+	REG_AP_AHB_AHB_RST,
+	BIT_AP_AHB_SDIO0_SOFT_RST,
+	REG_AON_APB_CLK_EB0,
+	BIT_2|BIT_3,
 
 		"vddsdio",
 		"vddsdcore",
