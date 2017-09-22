@@ -10,9 +10,9 @@
 
 
 / {
-	model = "Spreadtrum SP9850kasmt vdk Board";
+	model = "Spreadtrum SP9850khsmt vdk Board";
 
-	compatible = "sprd,sc9850kasmt-vdk";
+	compatible = "sprd,sc9850khsmt-vdk";
 
 	sprd,sc-id = <9850 1 20000>;
 
