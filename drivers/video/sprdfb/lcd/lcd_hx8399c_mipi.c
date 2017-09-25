@@ -222,11 +222,11 @@ static struct panel_operations lcd_hx8399c_mipi_operations = {
 };
 
 static struct timing_rgb lcd_hx8399c_mipi_timing = {
-	.hfp = 185,  /* unit: pixel */
+	.hfp = 170,  /* unit: pixel */
 	.hbp = 30,
 	.hsync = 20,
-	.vfp = 14, /*unit: line*/
-	.vbp = 9,
+	.vfp = 25, /*unit: line*/
+	.vbp = 20,
 	.vsync = 4,
 };
 
