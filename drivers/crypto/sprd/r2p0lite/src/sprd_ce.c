@@ -515,6 +515,12 @@ static inline void sprd_ce_all_int_clear(void) {
 #define SPRD_REG_CLR_BIT(__base, __offset, __v)   ((*(volatile u32 *)((__base) + __offset + CLR_OFFSET)) = (uint32_t)(__v))
 
 static inline void sprd_ce_enable(void) {
+	//set ce freq : 256M
+	unsigned int cgm_ce0_val = REG_GET_VAL(REG_AP_CLK_CORE_CGM_CE_CFG, 0);
+	if ((cgm_ce0_val & BIT_CGM_CE0_SEL) != CGM_CE0_SEL_256M) {
+		REG_SET_VAL(REG_AP_CLK_CORE_CGM_CE_CFG, 0, (cgm_ce0_val | CGM_CE0_SEL_256M));
+	}
+
 	SPRD_REG_SET_BIT(s_ahb_vaddr, REG_AP_AHB_CE_SEC_EB_OFFSET, BIT_AP_AHB_CE_SEC_EB);
 }
 

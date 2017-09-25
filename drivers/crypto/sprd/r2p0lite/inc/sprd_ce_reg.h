@@ -257,4 +257,7 @@
  */
 #define CE_CLEAR_EN			BIT(0)
 
+#define BIT_CGM_CE0_SEL		(0x3)
+#define CGM_CE0_SEL_256M	(0x3)
+
 #endif /* SPRD_CE_REG_H */
