@@ -17,11 +17,9 @@
 /*sharklj1 fpga/zebu debug*/
 #define BOOTIMG_ADR	0x8D000000
 
-/*build aarch64 u-boot.elf*/
-#define CONFIG_REMAKE_ELF
-
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
+#define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
 #define CONFIG_BOARD_LATE_INIT         /* call board_late_init() */
 //#define CONFIG_SUPPORT_RAW_INITRD
@@ -36,7 +34,7 @@
 	(CONFIG_SYS_SDRAM_END - 0x10000 - GENERATED_GBL_DATA_SIZE)
 
 /* Flat Device Tree Definitions */
-#define CONFIG_OF_LIBFDT
+//#define CONFIG_OF_LIBFDT  /*no need config here,the defconfigs config_of_control*/
 
 
 /* SMP Spin Table Definitions */
@@ -67,6 +65,7 @@
 
  /* SPREADTRUM BIGPHONE board - SoC Configuration */
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
+#define CONFIG_ARCH_SHARK
 #define CONFIG_SOC_SHARKLE
 #define CONFIG_ADIE_SC2721
 
@@ -131,7 +130,7 @@
 #define CONFIG_SYS_LOAD_ADDR		(PHYS_SDRAM_1 + 0x10000000)
 
 /* Physical Memory Map */
-#define  CONFIG_DUAL_DDR
+//#define  CONFIG_DUAL_DDR /*32 bit sp9832e no need dual ddr*/
 
 #define PHYS_SDRAM_1			0x80000000	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE		0x20000000	/* 512 MB */
@@ -140,6 +139,7 @@
 #define CONFIG_SYS_SDRAM_SIZE     PHYS_SDRAM_1_SIZE
 #define CONFIG_SYS_SDRAM_END (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE)
 
+#define CONFIG_DDR_AUTO_DETECT
 
 #ifndef CONFIG_DUAL_DDR
 #define CONFIG_NR_DRAM_BANKS		1
@@ -171,7 +171,6 @@
 									sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_CMDLINE_EDITING		1
 #define CONFIG_SYS_MAXARGS		64	/* max command args */
 
 
@@ -247,7 +246,8 @@
 
 /*for sysdump*/
 #define CONFIG_SPRD_SYSDUMP
-#define CONFIG_RAMDUMP_NO_SPLIT 1 /* Don't split sysdump file */
+#define SPRD_SYSDUMP_MAGIC	RAMDISK_ADR
+#define CONFIG_RAMDUMP_NO_SPLIT /* Don't split sysdump file */
 #define REAL_SDRAM_SIZE 0x40000000  /*dump 1G*/
 #define CONFIG_SHA1
 
@@ -265,7 +265,7 @@
 
 #define SIMLOCK_ADR      (0x891FE800+0x4)   //0x4 just for data header
 
-#define KERNEL_ADR      0x80080000
+#define KERNEL_ADR      0x80008000
 #define DT_ADR          0x85400000
 #define RAMDISK_ADR     0x85500000
 
@@ -284,15 +284,23 @@
 #define CORE_CP2                          BIT_2
 
 /*lcd config*/
-/*#define CONFIG_LCD*/
+#define CONFIG_LCD
 #ifdef CONFIG_LCD
 #define CONFIG_DSIH_VERSION_1P21A
 #define CONFIG_MIPI_DSIH_SPRD
+#define CONFIG_FB_USE_MEGACORES_MIPI_DPHY
 #define CONFIG_SPLASH_SCREEN
 #define LCD_BPP LCD_COLOR16
 #define CONFIG_LCD_720P
 #define CONFIG_CMD_BMP
-#define CONFIG_FB_LCD_NT35597_MIPI_FPGA
+#define LCM_GPIO_RSTN 50
+
+#define CONFIG_SPI
+#define CONFIG_SPRD_SPI
+#define CONFIG_FB_SWDISPC
+#define CONFIG_FB_LCD_GC9305_SPI
+#define CONFIG_FB_LCD_DUMMY_SPI
+#define CONFIG_BACKLIGHT_WHTLED
 
 #define CONFIG_SYS_WHITE_ON_BLACK
 #ifdef  LCD_TEST_PATTERN
@@ -348,8 +356,6 @@
 
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C_V2
-#define CONFIG_SPRDCHG_I2C_BUS 4
-#define CONFIG_FAN54015_CHARGE_IC
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

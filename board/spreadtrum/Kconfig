@@ -241,7 +241,7 @@ config TARGET_SP9820E_1H10
 
 config TARGET_SP9820E_2H10
 	bool "Spreadtrum sharkle"
-	select ARM64
+	select CPU_V7
 	help
 	  This is the Spreadtrum sharkle Board
 

@@ -13,62 +13,51 @@
 
 	compatible = "sprd,sp9820e_2h10";
 
-	sprd,sc-id = <9832 1 0x20000>;
+	sprd,sc-id = <9820 1 0x20000>;
 
 	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
+		#address-cells = <1>;
+		#size-cells = <1>;
 		ranges;
 
-		pub1_mpu_reserved: mpu1-dump@180000000 {
-			reg = <0x1 0x80000000 0x0 0x1000>;
-		};
-
-		pub0_mpu_reserved: mpu0-dump@874ff000 {
-			reg = <0x0 0x874ff000 0x0 0x1000>;
-		};
-
 		audio_reserved: audio-mem@87500000 {
-			reg = <0x0 0x87500000 0x0 0x300000>;
+			reg = <0x87500000 0x300000>;
 		};
 
 		smem_reserved: sipc-mem@87800000 {
-			reg = <0x0 0x87800000 0x0 0x500000>;
+			reg = <0x87800000 0x500000>;
 		};
 
-		cp_reserved: cp-modem@87d00000 {
-			reg = <0x0 0x87d00000 0x0 0x7900000>;
+		cp_reserved: cp-modem@89600000 {
+			reg = <0x89600000 0x04100000>;
 		};
 
-		tos_reserved: tos-mem@8f600000 {
-			reg = <0x0 0x8f600000 0x0 0x6000000>;
+		/* must be 4K aligned */
+		sml_reserved: sml-mem@8e000000{
+                        reg = <0x8e000000 0x00020000>;
+                };
+
+                tos_reserved: tos-mem@8e020000{
+                        reg = <0x8e020000 0x001e0000>;
+                };
+
+		fb_reserved: framebuffer@8fb89000{
+			reg = <0x8fb89000 0x000e1000>;
 		};
 
-		camera_reserved: camera-mem@4,c64f0000{
-			reg = <0x4 0xc64f0000 0x0 0x3800000>;
-		};
-
-		fb_reserved: framebuffer@4,c9cf0000{
-			reg = <0x4 0xc9cf0000 0x0 0x2a30000>;
-		};
-
-		overlay_reserved: overlaybuffer@4,cc720000{
-			reg = <0x4 0xcc720000 0x0 0x2ee0000>;
+		overlay_reserved: overlaybuffer@8fc6a000{
+			reg = <0x8fc6a000 0x00096000>;
 		};
 
 		/* For cma 4M align, enlarge its size from 0xd840000 to 0xd8d0000 */
-		mm_reserved: multimediabuffer@4,cf600000{
-			reg = <0x4 0xcf600000 0x0 0x10a00000>;
-		};
-
-		system_reserved: systembuffer@5,c64f0000{
-			reg = <0x5 0xc64f0000 0x0 0x19b10000>;
+		mm_reserved: multimediabuffer@8fc6a000{
+			reg = <0x8fc6a000 0x00000000>;
 		};
 
 		iq_reserved: iq-mem{
 			compatible = "sprd,iq-mem";
 			alignment = <0x0 0x1000>;
-			alloc-ranges = <0x0 0x80000000 0 0x45400000>;
+			alloc-ranges = <0x8e300000 0x00000000>;
 			size = <0x0 0x8000000>;
 		};
 	};
@@ -78,13 +67,6 @@
 		compatible = "sprd,ion";
 		#address-cells = <1>;
 		#size-cells = <0>;
-
-		heap@0 {
-			reg = <0>;
-			label = "system";
-			type = <2>;
-			memory-region = <&system_reserved>;
-		};
 
 		heap@1 {
 			reg = <1>;
@@ -105,13 +87,6 @@
 			label = "carveout_fb";
 			type = <2>;
 			memory-region = <&fb_reserved>;
-		};
-
-		heap@4 {
-			reg = <4>;
-			label = "carveout_camera";
-			type = <2>;
-			memory-region = <&camera_reserved>;
 		};
 	};
 };
