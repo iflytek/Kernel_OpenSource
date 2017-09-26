@@ -176,6 +176,10 @@ static void set_pmic_voltage(struct pmic_vid *v, u32 mv)
 
 	cal = div_fp(int_tofp(vddcpu), PMIC_CAL_PRECISION);
 	cal = ceiling_fp(cal);
+	if(cal >= (1 << PMIC_CTRL_BIT)) {
+		ctrl++;
+		cal=0;
+	}
 	WARN_ON(cal < 0);
 	val = (cal << PMIC_CAL_BIT) | (ctrl << PMIC_CTRL_BIT)
 		| (1 << PMIC_VLT_AVAIL_BIT);
