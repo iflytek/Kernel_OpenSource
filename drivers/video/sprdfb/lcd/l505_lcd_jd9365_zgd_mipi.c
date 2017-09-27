@@ -275,7 +275,7 @@ static LCM_Init_Code init_data[] = {
 
 {LCM_SEND(2),{0xE0,0x00}},
 {LCM_SEND(2),{0xE6,0x02}},
-{LCM_SEND(2),{0xE7,0x02}},
+{LCM_SEND(2),{0xE7,0x1F}},
 
 {LCM_SEND(2),{0x35,0x00}},
 
@@ -371,10 +371,10 @@ static uint32_t jd9365_readid(struct panel_spec *self)
 		}
 		mdelay(50);
 		read_rtn = mipi_force_read(0x04, 1,(uint8_t *)read_data);
-		//lcd_adc = load_lcd_adc_to_kernel();
+		lcd_adc = load_lcd_adc_to_kernel();
 		printk("lcd_jd9365_mipi read id 0x04 value is 0x%x  lcd_adc %d!\n", read_data[0], lcd_adc);
 
-		if((0x93 == read_data[0])){ // && (lcd_adc > 700) && (lcd_adc < 1200) // 997
+		if((0x93 == read_data[0]) && (lcd_adc < 300)){ // && (lcd_adc > 700) && (lcd_adc < 1200) // 997
 			printk("lcd_jd9365_mipi read id success!\n");
 			return 0x9365;
 		}
@@ -386,26 +386,40 @@ static uint32_t jd9365_readid(struct panel_spec *self)
 	return 0x00;
 }
 
+static int32_t jd9365_reset(struct panel_spec *self)
+{
+	sprd_gpio_request(NULL, LCM_GPIO_RSTN);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
+	mdelay(5);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 0);
+	mdelay(5);
+	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
+	mdelay(20);
+
+	return 0;
+}
+
 static struct panel_operations lcd_jd9365_mipi_operations = {
 	.panel_init = jd9365_mipi_init,
 	.panel_readid = jd9365_readid,
+	.panel_reset = jd9365_reset,
 };
 
 static struct timing_rgb lcd_jd9365_mipi_timing = {
-#if 0
-	.hfp = 20,  /* unit: pixel */// 100
-	.hbp = 120,//80
-	.hsync = 20,//6  //20
-	.vfp = 6, /*unit: line*/
-	.vbp = 8,
-	.vsync =2, //6,
+#if 1
+	.hfp = 30,  /* unit: pixel */
+	.hbp = 50,//
+	.hsync = 10,//
+	.vfp = 18, /*unit: line*/
+	.vbp = 12,
+	.vsync = 6, //6,
 #else
 	.hfp = 30,//80,  /* unit: pixel */// 100
-	.hbp = 50,//120,//80
-	.hsync = 10, //20,//6
+	.hbp = 65,//120,//80
+	.hsync = 30, //20,//6
 	.vfp = 18,//20, /*unit: line*/
-	.vbp = 16,//18,
-	.vsync = 6,//8, //6,
+	.vbp = 12,//18,
+	.vsync = 4,//8, //6,
 #endif
 };
 
@@ -424,7 +438,7 @@ static struct info_mipi lcd_jd9365_mipi_info = {
 	.ops = NULL,
 };
 
-struct panel_spec lcd_jd9365_mipi_spec = {
+struct panel_spec lcd_jd9365_zgd_mipi_spec = {
 	//.cap = PANEL_CAP_NOT_TEAR_SYNC,
 	.width = 720,
 	.height = 1280,

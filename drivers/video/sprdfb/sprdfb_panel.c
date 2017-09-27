@@ -7,6 +7,11 @@
 #include "sprdfb.h"
 #include "sprdfb_panel.h"
 
+#ifdef LCM_SAME_IC_SUPPORT
+#include <common.h>
+#include <adc_drvapi.h>
+#endif
+
 #if defined(CONFIG_I2C) && defined(CONFIG_SPI)
 extern struct panel_if_ctrl sprdfb_mcu_ctrl;
 #endif
@@ -80,6 +85,9 @@ extern struct panel_spec lcd_otm1911_mipi_spec;
 extern struct panel_spec lcd_jd9365_mipi_spec;
 extern struct panel_spec lcd_gc9305_spi_spec;
 extern struct panel_spec lcd_dummy_spi_spec;
+extern struct panel_spec lcd_jd9365_zgd_mipi_spec;
+extern struct panel_spec lcd_jd9365_hf_mipi_spec;
+extern struct panel_spec lcd_otm1289a_kd_mipi_spec;
 
 void sprdfb_panel_remove(struct sprdfb_device *dev);
 
@@ -498,7 +506,14 @@ static struct panel_cfg panel_cfg[] = {
 #ifdef CONFIG_FB_LCD_JD9365_ZGD_MIPI_L505
 {
 	.lcd_id = 0x9365,
-	.panel = &lcd_jd9365_mipi_spec,
+	.panel = &lcd_jd9365_zgd_mipi_spec,
+},
+#endif
+
+#ifdef CONFIG_FB_LCD_JD9365_HF_MIPI_L505
+{
+	.lcd_id = 0x936502,
+	.panel = &lcd_jd9365_hf_mipi_spec,
 },
 #endif
 
@@ -506,6 +521,13 @@ static struct panel_cfg panel_cfg[] = {
 {
 	.lcd_id = 0x988101,
 	.panel = &lcd_ili9881c_weiyi_mipi_spec,
+},
+#endif
+
+#ifdef CONFIG_FB_LCD_OTM1289A_KD_MIPI_L505
+{
+	.lcd_id = 0x128902,
+	.panel = &lcd_otm1289a_kd_mipi_spec,
 },
 #endif
 
@@ -675,10 +697,30 @@ int panel_ready(struct sprdfb_device *dev)
 	return 0;
 }
 
+#ifdef LCM_SAME_IC_SUPPORT
+static int32_t LCM_SAME_IC_ADC_GetValue()
+{
+	int iLoop = 0, iTimes = 10;
+	int32_t adc_value = 0, adc_value_all = 0;
+	volatile int32_t adc_channel = 4;
+
+	for (iLoop=0;iLoop<iTimes;iLoop++)
+	{
+		adc_value = ADC_GetValue(adc_channel, false);
+		adc_value_all += adc_value;
+		printf("LCM_SAME_IC_ADC_GetValue adc_value = %d\n", adc_value);
+	}
+	adc_value = adc_value_all/iTimes;
+	printf("LCM_SAME_IC_ADC_GetValue adc_channel = %d, adc_value = %d\n", adc_channel, adc_value);
+
+	return adc_value;
+}
+#endif
 
 static struct panel_spec *adapt_panel_from_readid(struct sprdfb_device *dev)
 {
 	int id, i, ret, b_panel_reset=0;
+	uint32_t id_adc;
 
 	FB_PRINT("sprdfb: [%s]\n",__FUNCTION__);
 
@@ -697,6 +739,10 @@ static struct panel_spec *adapt_panel_from_readid(struct sprdfb_device *dev)
 			panel_reset(dev);
 			b_panel_reset=1;
 		}
+#ifdef LCM_SAME_IC_SUPPORT
+		id_adc = LCM_SAME_IC_ADC_GetValue();	//10801=600,30k, 10802=300,10k
+		save_lcd_adc_to_kernel(id_adc);
+#endif
 		id = dev->panel->ops->panel_readid(dev->panel);
 		if(id == panel_cfg[i].lcd_id) {
 			debugf("sprdfb: [%s]: LCD Panel 0x%x is attached!\n", __FUNCTION__, panel_cfg[i].lcd_id);
