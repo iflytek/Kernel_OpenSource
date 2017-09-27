@@ -159,6 +159,7 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9850kh-fpga.dtb \
 	sp9850kh-zebu.dtb \
 	sp9850kh-fpga-smt.dtb \
+	sp9850ka_2c30_native.dtb \
         sp7731e_fpga.dtb \
 	sp7731e_1h10_native.dtb \
         sp9835_haps_native.dtb \

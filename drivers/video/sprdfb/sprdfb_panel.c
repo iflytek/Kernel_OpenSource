@@ -488,6 +488,20 @@ static struct panel_cfg panel_cfg[] = {
 },
 #endif
 
+#ifdef CONFIG_FB_LCD_ILI9881C_WEIYI_MIPI_L505
+{
+	.lcd_id = 0x988102,
+	.panel = &lcd_ili9881c_mipi_spec,
+},
+#endif
+
+#ifdef CONFIG_FB_LCD_JD9365_ZGD_MIPI_L505
+{
+	.lcd_id = 0x9365,
+	.panel = &lcd_jd9365_mipi_spec,
+},
+#endif
+
 #ifdef CONFIG_FB_LCD_ILI9881C_WEIYI_MIPI
 {
 	.lcd_id = 0x988101,

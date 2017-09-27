@@ -251,6 +251,9 @@ config TARGET_SP9855_HAPS
 	help
 	  This is the Spreadtrum sharkl3 Board
 
+config TARGET_SP9850KA_2C30
+	bool "Spreadtrum sp9850ka_2c30"
+	select CPU_V7
 endchoice
 
 config ZEBU
@@ -322,6 +325,7 @@ source "board/spreadtrum/sp9820e_64b/Kconfig"
 source "board/spreadtrum/sp9820e_1h10/Kconfig"
 source "board/spreadtrum/sp9820e_2h10/Kconfig"
 source "board/spreadtrum/sp9855_haps/Kconfig"
+source "board/spreadtrum/sp9850ka_2c30/Kconfig"
 endif
 
 

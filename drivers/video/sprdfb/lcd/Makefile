@@ -69,3 +69,6 @@ obj-$(CONFIG_FB_LCD_JD9365_MIPI) += lcd_jd9365_mipi_hd.o
 obj-$(CONFIG_FB_LCD_GC9305_SPI) += lcd_gc9305_spi.o
 obj-$(CONFIG_FB_LCD_DUMMY_SPI)  += lcd_dummy_spi.o
 obj-$(CONFIG_FB_LCD_DUMMY_MIPI_QVGA)  += lcd_dummy_mipi_qvga.o
+#L505
+obj-$(CONFIG_FB_LCD_ILI9881C_WEIYI_MIPI_L505)  += l505_lcd_ili9881c_weiyi_mipi.o
+obj-$(CONFIG_FB_LCD_JD9365_ZGD_MIPI_L505)  += l505_lcd_jd9365_zgd_mipi.o
