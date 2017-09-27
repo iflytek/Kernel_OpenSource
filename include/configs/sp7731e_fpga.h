@@ -27,6 +27,9 @@
 //#define CONFIG_ZEBU
 #define CONFIG_FPGA
 
+#define CONFIG_KERNEL_BOOT_CP
+#define CONFIG_MEM_LAYOUT_DECOUPLING
+
 /* Flat Device Tree Definitions */
 #define CONFIG_OF_LIBFDT
 #define CONFIG_SPRD_PLATFORM
@@ -59,6 +62,7 @@
 /*#define CONFIG_SUPPORT_LTE*/
 //#define CONFIG_SUPPORT_WLTE
 //#define CONFIG_SUPPORT_GSM
+#define CONFIG_SUPPORT_W
 
 #define LTE_GDSP_LOAD_OFFSET	0x20000
 
@@ -86,9 +90,9 @@
 #define GSM_DSP_SIZE   0x400000
 #define FIXNV_SIZE     LTE_FIXNV_SIZE
 
-/*#define CONFIG_DFS_ENABLE*/
+#define CONFIG_DFS_ENABLE
 #define DFS_ADDR    0x50800000
-#define DFS_SIZE    0xC000     //48K
+#define DFS_SIZE    0x10000     //64K
 
 #ifdef SECURE_BOOT_ENABLE
 #define MODEM_SIZE		(0x800000)
@@ -273,7 +277,7 @@
 #define SIPC_LTE_APCP_START_ADDR    (0x8AA40000)
 #define SIPC_PMIC_SIPC_START_ADDR   (0x5000B000)         /*0x50807400*/
 #define CALIBRATION_FLAG_CP0        (0x88AF0000)
-#define CALIBRATION_FLAG_CP1        (0x8AA41800)
+#define CALIBRATION_FLAG_CP1        (0x8AE40000)
 
 /*7S reset config*/
 #define CONFIG_7S_RST_MODULE_EN		1	//0:disable module; 1:enable module

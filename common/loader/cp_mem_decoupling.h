@@ -14,6 +14,10 @@
 #define MAX_HEADER_SIZE	0x600
 #define EXPAND_FDT_SIZE		0x400
 
+#ifdef CONFIG_SUPPORT_W
+#define PARTITION_PREFIX	"w"
+#endif
+
 #ifdef CONFIG_SUPPORT_LTE
 #define PARTITION_PREFIX	"l_"
 #endif

@@ -155,7 +155,7 @@ static boot_image_required_t const s_boot_image_TD_table[] = {
 
 #ifdef CONFIG_SUPPORT_W
 static boot_image_required_t const s_boot_image_W_table[] = {
-#if !defined( CONFIG_KERNEL_BOOT_CP )
+#if (!defined( CONFIG_KERNEL_BOOT_CP )) && (!defined(CONFIG_MEM_LAYOUT_DECOUPLING))
 	{"wfixnv1", "wfixnv2", FIXNV_SIZE, WFIXNV_ADR},
 	{"wruntimenv1", "wruntimenv2", RUNTIMENV_SIZE, WRUNTIMENV_ADR},
 	{"wmodem", NULL, WMODEM_SIZE, WMODEM_ADR},

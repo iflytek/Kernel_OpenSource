@@ -58,7 +58,7 @@ static u32 g_loader[] = {
 	0xe3a0103f, 0xee061f51, 0xe3a01f42, 0xee061f91,
 	0xee110f30, 0xe3c00802, 0xe3c00801, 0xe3c00902,
 	0xee010f30, 0xee110f10, 0xe3800001, 0xf57ff04f,
-	0xee010f10, 0xf57ff06f, 0xe51ff004, 0x8b800600
+	0xee010f10, 0xf57ff06f, 0xe51ff004, 0x89980600
 };
 
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
@@ -80,17 +80,17 @@ static inline void pubcp_boot(void)
 		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
 
 	/*boot cr5 */
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT_1;   /* reset R5 */
-	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) |= BIT_10; /*cr5 core soft reset*/
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT_PMU_APB_CP_SOFT_RST;   /* reset R5 */
+	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) |= BIT_AON_APB_PUBCP_CR5_CORE_SOFT_RST; /*cr5 core soft reset*/
 	/*power on*/
-	*((volatile u32*)REG_PMU_APB_PD_CP_SYS_CFG) &= ~(BIT_25);/* clear R5 force shutdown */
-	*((volatile u32*)REG_PMU_APB_PD_CP_SYS_CFG) &= ~(BIT_24);/* clear R5 auto shutdown */
-	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_18;   /*clear R5 force sleep */
+	*((volatile u32*)REG_PMU_APB_PD_CP_SYS_CFG) &= ~BIT_PMU_APB_PD_CP_SYS_FORCE_SHUTDOWN;/* clear R5 force shutdown */
+	*((volatile u32*)REG_PMU_APB_PD_CP_SYS_CFG) &= ~BIT_PMU_APB_PD_PUBCP_SYS_AUTO_SHUTDOWN_EN;/* clear R5 auto shutdown */
+	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_PMU_APB_CP_FORCE_DEEP_SLEEP;   /*clear R5 force sleep */
 
 	msleep(50);
 	/*reset*/
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_1; /* pubcp soft reset */
-	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) &= ~BIT_10; /*cr5 core soft reset*/
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_CP_SOFT_RST; /* pubcp soft reset */
+	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) &= ~BIT_AON_APB_PUBCP_CR5_CORE_SOFT_RST; /*cr5 core soft reset*/
 
 }
 
@@ -101,22 +101,12 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-    u32 state;
-
-	state = *((volatile u32*)REG_PMU_APB_CP_SOFT_RST);
-	if(!(state & BIT(8)))
-		return;
-    *((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) |= BIT(0);   /* 0x402e0114*/
-    msleep(50);
-    *((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT(8);   /* reset arm7*/
-    msleep(50);
-    *((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT(8); /* clear arm7*/
-    while(1)
-    {
-        state = *((volatile u32*)REG_PMU_APB_CP_SOFT_RST);
-        if(!(state & BIT(8)))
-          break;
-    }
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) |= BIT_AON_APB_CM4_CORE_SOFT_RST | BIT_AON_APB_CM4_SYS_SOFT_RST;   /* 0x402e0114*/
+	msleep(50);
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_CM4_SOFT_RST;
+	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~ BIT_PMU_APB_CM4_FORCE_DEEP_SLEEP;   /*clear sp force sleep */
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_SYS_SOFT_RST;
+	msleep(50);
 }
 
 
@@ -125,12 +115,9 @@ void pmic_arm7_RAM_active(void)
 //  Author:         Andrew.Yang
 //  Note:
 /*****************************************************************************/
-static inline void pmic_arm7_boot(void)
+static inline void sp_boot(void)
 {
-    u32 state;
-    *((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~ BIT(21);   /*clear arm7 force sleep */
-    *((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~ BIT(0);   /* reset arm7 */
-    msleep(50);
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_CORE_SOFT_RST;   /* reset arm7 */
 }
 
 

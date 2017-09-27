@@ -19,14 +19,14 @@ void modem_entry()
 	memset_dsp_share_memory();
 
 #ifndef CONFIG_KERNEL_BOOT_CP
-	pmic_arm7_boot();
+	sp_boot();
 	pubcp_boot();
 	debugf("boot CP1 OK\n");
 #else
 	extern unsigned int g_charger_mode;
 	if(g_charger_mode) {
-		pmic_arm7_boot();
-		debugf("boot arm7  OK\n");
+		sp_boot();
+		debugf("boot sp  OK\n");
 	}
 #endif
 }
