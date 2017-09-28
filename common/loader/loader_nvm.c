@@ -542,10 +542,14 @@ int _boot_load_required_image(boot_image_required_t img_info)
 		memcpy((void *)img_info.mem_addr,
 		       (void*)FREE_RAM_SPACE_ADDR,
 		       exe_size);
-#elif defined (CONFIG_SECBOOT) && !defined(CONFIG_VBOOT_V2)
+#elif defined (CONFIG_SECBOOT)
 		/***secboot 2nd step***/
 		secboot_secure_process_flow(img_info.partition,(img_info.size + CERT_SIZE),0,(char *)VERIFY_ADDR);
+#if defined (CONFIG_VBOOT_V2)
+		memcpy(img_info.mem_addr,VERIFY_ADDR,img_info.size);
+#else
 		memcpy(img_info.mem_addr,(VERIFY_ADDR + SYS_HEADER_SIZE),img_info.size);
+#endif
 #else  // Secure boot is not turned on
 		exe_offset = get_modem_img_info(&img_info, 0,
 						&is_sci, &total_len,

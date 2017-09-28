@@ -39,7 +39,6 @@ static uchar *const s_force_secure_check[] = {
 #endif
 	"boot",
 	"recovery",
-#ifndef CONFIG_VBOOT_V2//TO FIX: modem not signed now so shouldn't be checked
 	"wl_modem",
 	"wl_ldsp",
 	"wmodem",
@@ -59,7 +58,6 @@ static uchar *const s_force_secure_check[] = {
 	#ifdef CONFIG_SUPPORT_WIFI
 	"wcnmodem",
 	#endif
-#endif
 	#ifdef CONFIG_SYSTEM_VERIFY
 	"system",
 	#endif

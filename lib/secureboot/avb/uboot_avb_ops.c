@@ -53,6 +53,21 @@ unsigned char g_sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN] __attribute__((aligned(
 unsigned int g_sprd_vboot_key_len = 0;
 unsigned char g_sprd_vboot_cmdline[SPRD_VBOOT_CMDLINE_MAXSIZE]__attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
 
+// for dat modem
+#define MODEM_MAGIC           "SCI1"
+#define MODEM_HDR_SIZE        12  // size of a block
+#define SCI_TYPE_MODEM_BIN    1
+#define SCI_TYPE_PARSING_LIB  2
+#define MODEM_LAST_HDR        0x100
+#define MODEM_SHA1_HDR        0x400
+#define MODEM_SHA1_SIZE       20
+
+typedef struct {
+    unsigned int type_flags;
+    unsigned int offset;
+    unsigned int length;
+} data_block_header_t;
+
 /*for skip check vbmeta when already checked*/
 bool g_sprd_vbmeta_checked_flag = false;
 
@@ -274,13 +289,104 @@ int avb_ops_new(void)
    return 0;
 }
 
+static int is_packed_modem_image(uint8_t *data)
+{
+    if (sec_memcmp(data, (uint8_t*)MODEM_MAGIC, sizeof(MODEM_MAGIC)))
+        return 0;
+    return 1;
+}
+
+/*
+ *  this function parse new packed modem image and return modem code offset and length
+ */
+static void get_modem_info(uint8_t *data, uint32_t *code_offset, uint32_t *code_len)
+{
+	uint32_t offset = 0, hdr_offset = 0, length = 0;
+	uint8_t hdr_buf[MODEM_HDR_SIZE << 3] = {0};
+	uint8_t read_len;
+	uint8_t result = 0; // 0:OK, 1:not find, 2:some error occur
+	data_block_header_t *hdr_ptr = NULL;
+
+	read_len = sizeof(hdr_buf);
+	sec_memcpy(hdr_buf, data, read_len);
+
+    do {
+      if (!hdr_offset) {
+        if (memcmp(hdr_buf, MODEM_MAGIC, sizeof(MODEM_MAGIC))) {
+          result = 2;
+          debug("old image format!\n");
+          break;
+        }
+
+        hdr_ptr = (data_block_header_t *)hdr_buf + 1;
+        hdr_offset = MODEM_HDR_SIZE;
+      } else {
+        hdr_ptr = (data_block_header_t *)hdr_buf;
+      }
+
+      data_block_header_t* endp
+          = (data_block_header_t*)(hdr_buf + sizeof hdr_buf);
+      int found = 0;
+      while (hdr_ptr < endp) {
+        uint32_t type = (hdr_ptr->type_flags & 0xff);
+        if (SCI_TYPE_MODEM_BIN == type) {
+          found = 1;
+          break;
+        }
+
+        /*  There is a bug (622472) in MODEM image generator.
+         *  To recognize wrong SCI headers and correct SCI headers,
+         *  we devise the workaround.
+         *  When the MODEM image generator is fixed, remove #if 0.
+         */
+#if 0
+        if (hdr_ptr->type_flags & MODEM_LAST_HDR) {
+          result = 2;
+          MODEM_LOGE("no modem image, error image header!!!\n");
+          break;
+        }
+#endif
+        hdr_ptr++;
+      }
+      if (!found) {
+        result = 2;
+        debug("no MODEM exe found in SCI header!");
+      }
+
+      if (result != 1) {
+        break;
+      }
+    } while (1);
+
+    if (!result) {
+      offset = hdr_ptr->offset;
+      if (hdr_ptr->type_flags & MODEM_SHA1_HDR) {
+        offset += MODEM_SHA1_SIZE;
+      }
+      length = hdr_ptr->length;
+    }
+
+	*code_offset = offset;
+	*code_len = length;
+}
+
 uint8_t* avb_ops_get_image_buffer(uint8_t avb_check_type)
 {
-	if(avb_check_type == AVB_CHECK_BOOTING) {
-		return (uint8_t*)KERNEL_ADR;
-	} else {
-		return (uint8_t*)(g_eMMCBuf);
-	}
+    uint32_t modem_offset = 0;
+    uint32_t modem_len = 0;
+
+    debug("avb_check_type = %d\n", avb_check_type);
+    if(avb_check_type == AVB_CHECK_BOOTING) {
+        return (uint8_t*)KERNEL_ADR;
+    } else {
+        debug("check dat cp\n");
+        if (is_packed_modem_image(g_eMMCBuf)) {
+            debug("the image is new packed modem image\n");
+            get_modem_info(g_eMMCBuf, &modem_offset, &modem_len);
+            debug("modem offset: 0x%x, length: 0x%x\n", modem_offset, modem_len);
+        }
+        return (uint8_t*)(g_eMMCBuf + modem_offset);
+    }
 }
 
 /*for uboot*/
