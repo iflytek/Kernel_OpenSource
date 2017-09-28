@@ -66,7 +66,6 @@ int board_init()
 #ifndef CONFIG_FPGA
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 	ADI_init();
-	misc_init();
 	regulator_init();
 	pmic_adc_Init();
 	pin_init();
