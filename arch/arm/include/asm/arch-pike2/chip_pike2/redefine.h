@@ -31,6 +31,7 @@
 #define BIT_CKG_EB                              BIT_MM_AHB_RF_CKG_EB
 #define BIT_GPU_EB                              BIT_AON_APB_AP_TMR0_EB
 #define BIT_ADI_EB                              BIT_AON_APB_ADI_EB
+#define REG_AP_CLK_CORE_CGM_CE_CFG 		REG_AP_CLK_CE_CFG
 
 /* register redefiniton for compatible */
 #define REG_PMU_APB_CP_SOFT_RST                 REG_PMU_APB_SOFT_RST
