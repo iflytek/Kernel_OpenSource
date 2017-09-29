@@ -53,6 +53,11 @@ int uboot_vboot_verify_img(unsigned long start_addr, uint32_t lenth)
   return param->a0;
 }
 
+int uboot_encrypt_data(uint64_t start_addr, uint64_t lenth){
+  smc_param *param = tee_common_call(FUNCTYPE_CRYPTO_DATA, (uint32_t)start_addr, (uint32_t)lenth);
+  return param->a0;
+}
+
 int uboot_vboot_set_ver(unsigned long start_addr, uint32_t lenth)
 {
   smc_param *param = tee_common_call(FUNCTYPE_VBOOT_SET_VERSION, (uint32_t)start_addr, lenth);

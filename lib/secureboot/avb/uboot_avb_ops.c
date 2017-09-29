@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-//#include <libavb_ab/libavb_ab.h>
 
 /*add for avb ops*/
 #include <common.h>
@@ -37,6 +36,7 @@
 
 #include <otp_helper.h>
 #include <stdio_dev.h>
+#include <secureboot/sec_common.h>
 /*end of add for avb ops*/
 
 #include "sprd_imgversion.h"
@@ -47,11 +47,13 @@
 
 extern AvbOps g_avb_ops;
 extern unsigned char *g_eMMCBuf;
+extern unsigned int g_DeviceStatus;
 
 AvbCheckType g_ulAvbCheckType = AVB_CHECK_BOOTING;
 unsigned char g_sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN] __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
 unsigned int g_sprd_vboot_key_len = 0;
 unsigned char g_sprd_vboot_cmdline[SPRD_VBOOT_CMDLINE_MAXSIZE]__attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
+unsigned int g_sprd_vboot_ret[4]__attribute__((aligned(4096)));
 
 // for dat modem
 #define MODEM_MAGIC           "SCI1"
@@ -98,20 +100,9 @@ AvbIOResult read_from_partition(AvbOps* ops,
                                        size_t* out_num_read) {
 	int ret = 0;
     uint64_t partition_size;
-#if 0
-	disk_partition_t info;
 
-	if (get_partition_info_by_name(dev, partition_name, &info)) {
-		debug("verify get partition %s info failed!\n", partition_name);
-		return AVB_IO_RESULT_ERROR_IO;
-	}
-
-	partition_size = info.size * EMMC_SECTOR_SIZE;
-	debug("%s=%x  =%x\n", partition_name, info.size, partition_size);
-#else
-	extern int secure_get_partition_size(uchar * partition_name, uint64_t * size);
-	secure_get_partition_size(partition_name, &partition_size);
-#endif
+    extern int secure_get_partition_size(uchar * partition_name, uint64_t * size);
+    secure_get_partition_size(partition_name, &partition_size);
 
   if (offset_from_partition < 0) {
     if ((-offset_from_partition) > partition_size) {
@@ -244,9 +235,13 @@ AvbIOResult write_rollback_index(AvbOps* ops,
 }
 
 AvbIOResult read_is_device_unlocked(AvbOps* ops, bool* out_is_unlocked) {
-  /* For now we always return that the device is unlocked. */
-  avb_debug("TODO: implement read_is_device_unlocked().\n");
-  *out_is_unlocked = false; //true;
+  if(g_DeviceStatus == VBOOT_STATUS_UNLOCK){
+    *out_is_unlocked = true;
+  }else{
+    *out_is_unlocked = false;
+  }
+
+  avb_debugv("read_is_device_unlocked() get DeviceStatus 0x%x, *out_is_unlocked is %d.\n", g_DeviceStatus, *out_is_unlocked, NULL);
   return AVB_IO_RESULT_OK;
 }
 
@@ -408,12 +403,3 @@ uint8_t* avb_ops_get_vboot_key(uint32_t * avb_vboot_key_len)
 	*avb_vboot_key_len = g_sprd_vboot_key_len;
 	return (uint8_t*)g_sprd_vboot_key;
 }
-#if 0
-int avb_ops_vbmeta_image_verify(const uint8_t * data, size_t length, const uint8_t** out_public_key_data, size_t* out_public_key_length)
-{
-	int result = 0;
-
-	result = avb_vbmeta_image_verify(data, length, out_public_key_data, out_public_key_length);
-	return result;
-}
-#endif

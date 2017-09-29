@@ -90,11 +90,10 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
   size_t digest_len;
   const char* found;
 
-			debug("in %s, l:%d..\n", __func__, __LINE__);
   if (!avb_hash_descriptor_validate_and_byteswap(
           (const AvbHashDescriptor*)descriptor, &hash_desc)) {
-			debug("in %s, l:%d..\n", __func__, __LINE__);
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_INVALID_METADATA;
+    debugf(" vboot verify return err %d. \n", ret);
     goto out;
   }
 
@@ -105,8 +104,8 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
 
   if (!avb_validate_utf8(desc_partition_name, hash_desc.partition_name_len)) {
     avb_error("Partition name is not valid UTF-8.\n");
-			debug("in %s, l:%d..\n", __func__, __LINE__);
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_INVALID_METADATA;
+    debugf(" vboot verify return err %d. \n", ret);
     goto out;
   }
 
@@ -131,8 +130,8 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
   //debug("in %s, l:%d. image_buf:0x%llx, hash_desc.image_size:0x%llx. ret:0x%llx. \n", __func__, __LINE__, image_buf, hash_desc.image_size, avb_ops_get_image_buffer(g_ulAvbCheckType));
 #endif
   if (image_buf == NULL) {
-			debug("in %s, l:%d..\n", __func__, __LINE__);
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
+    debugf(" vboot verify return err %d. \n", ret);
     goto out;
   }
 #if 0 //mod by  jason. for vbmeta image verify bootimage
@@ -147,8 +146,8 @@ static AvbSlotVerifyResult load_and_verify_hash_partition(
    part_num_read = hash_desc.image_size;
 #endif
   if (io_ret == AVB_IO_RESULT_ERROR_OOM) {
-			debug("in %s, l:%d..\n", __func__, __LINE__);
     ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
+    debugf(" vboot verify return err %d. \n", ret);
     goto out;
   } else if (io_ret != AVB_IO_RESULT_OK) {
     avb_errorv(part_name, ": Error loading data from partition.\n", NULL);
@@ -1027,8 +1026,6 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
   AvbAlgorithmType algorithm_type = AVB_ALGORITHM_TYPE_NONE;
   AvbIOResult io_ret;
   bool using_boot_for_vbmeta = false;
-  //char * expected_public_key;
-  //unsigned int expected_public_key_len;
 
   if (out_data != NULL) {
     *out_data = NULL;
@@ -1057,17 +1054,6 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
     goto fail;
   }
 
-#if 0
-  /*get expected_public_key from user data*/
-  expected_public_key = avb_ops_get_vboot_key(&expected_public_key_len);
-  if(expected_public_key_len != 0) {
-#ifdef CONFIG_VBOOT_DUMP
-      do_hex_dump("expected_public_key", (void *)expected_public_key, expected_public_key_len);
-#endif
-  } else {
-      debug("expected_public_key is null.\n");
-  }
-#endif
   ret = load_and_verify_vbmeta(ops,
                                requested_partitions,
                                ab_suffix,
@@ -1103,7 +1089,7 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
     slot_data->ab_suffix = avb_strdup(ab_suffix);
     if (slot_data->ab_suffix == NULL) {
       ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+      debugf(" vboot verify return err %d. \n", ret);
       goto fail;
     }
 
@@ -1112,7 +1098,7 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
                                "androidboot.vbmeta.device",
                                "PARTUUID=$(ANDROID_VBMETA_PARTUUID)")) {
       ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+      debugf(" vboot verify return err %d. \n", ret);
       goto fail;
     }
 
@@ -1122,7 +1108,7 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
                                 AVB_VERSION_MAJOR,
                                 AVB_VERSION_MINOR)) {
       ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+      debugf(" vboot verify return err %d. \n", ret);
       goto fail;
     }
 
@@ -1133,7 +1119,7 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
           ops, slot_data->cmdline, ab_suffix, using_boot_for_vbmeta);
       if (new_cmdline == NULL) {
         ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+      debugf(" vboot verify return err %d. \n", ret);
         goto fail;
       }
       avb_free(slot_data->cmdline);
@@ -1148,19 +1134,19 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
     io_ret = ops->read_is_device_unlocked(ops, &is_device_unlocked);
     if (io_ret == AVB_IO_RESULT_ERROR_OOM) {
       ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+      debugf(" vboot verify return err %d. \n", ret);
       goto fail;
     } else if (io_ret != AVB_IO_RESULT_OK) {
       avb_error("Error getting device state.\n");
       ret = AVB_SLOT_VERIFY_RESULT_ERROR_IO;
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+      debugf(" vboot verify return err %d. \n", ret);
       goto fail;
     }
     if (!cmdline_append_option(slot_data,
                                "androidboot.vbmeta.device_state",
                                is_device_unlocked ? "unlocked" : "locked")) {
       ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+      debugf(" vboot verify return err %d. \n", ret);
       goto fail;
     }
 
@@ -1191,7 +1177,7 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
                                 avb_sha256_final(&ctx),
                                 AVB_SHA256_DIGEST_SIZE)) {
           ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+          debugf(" vboot verify return err %d. \n", ret);
           goto fail;
         }
       } break;
@@ -1217,7 +1203,7 @@ AvbSlotVerifyResult avb_slot_verify(AvbOps* ops,
                                 avb_sha512_final(&ctx),
                                 AVB_SHA512_DIGEST_SIZE)) {
           ret = AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
-  debug("in %s, l:%d. \n", __func__, __LINE__);
+          debugf(" vboot verify return err %d. \n", ret);
           goto fail;
         }
       } break;

@@ -14,6 +14,9 @@
 
 #include "sprd_cpcmdline.h"
 
+#if defined (CONFIG_SECBOOT)
+#include "secureboot/sec_common.h"
+#endif
 unsigned char raw_header[8192];
 unsigned int g_charger_mode = 0;
 char serial_number_to_transfer[SP15_MAX_SN_LEN];
@@ -87,6 +90,7 @@ char *get_product_sn(void)
 	return serial_number_to_transfer;
 }
 
+#if defined (CONFIG_SECBOOT)
 /*
 * flag:1 means jump secure check or verify.
 * flag:0 means normal check
@@ -94,57 +98,77 @@ char *get_product_sn(void)
 */
 unsigned int get_fblockflag(void)
 {
-	unsigned char tmp_buffer[512];
+	unsigned char tmp_buffer[PDT_INFO_LOCK_FLAG_SECTION_SIZE];
+	unsigned char * tmp_p = tmp_buffer;
+	int ret;
 
 	memset(tmp_buffer, 0, sizeof(tmp_buffer));
 	if (common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(tmp_buffer), PDT_INFO_LOCK_FLAG_OFFSET, (char *)tmp_buffer)) {
 		debugf("read miscdata error.\n");
 	}
 
-	if (!strcmp("VerifiedBoot-LOCK", tmp_buffer)) {
-		g_fb_lockflag = 0;
-	}
-	else if (!strcmp("VerifiedBoot-UNLOCK", tmp_buffer)) {
-		g_fb_lockflag = 1;
+	ret = sprd_sec_verify_unlockstatus(tmp_p, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+	debugf("sprd_sec_verify_unlockstatus ret %d.\n", ret);
+
+	if(ret != 0) {
+		g_fb_lockflag = VBOOT_STATUS_LOCK; /*default lock status.*/
 	}
 	else {
-		debugf("flag data invalid:%s\n", tmp_buffer);
-		g_fb_lockflag = 0; /*default lock status.*/
+		g_fb_lockflag = VBOOT_STATUS_UNLOCK; /*unlock status.*/
 	}
-	//g_fb_lockflag = tmp_buffer[0];
+
 	return g_fb_lockflag;
 }
 
 int set_fblockflag(unsigned int flag)
 {
-	unsigned char tmp_buffer[512];
-	unsigned int fb_lockflag_old = 0;
-	unsigned int fb_lockflag_new = 0;
+	unsigned char tmp_buffer_flag[PDT_INFO_LOCK_FLAG_MAX_SIZE] __attribute__((aligned(4096)));
+	unsigned char tmp_buffer[PDT_INFO_LOCK_FLAG_SECTION_SIZE];
+	//unsigned int fb_lockflag_old = VBOOT_STATUS_LOCK;
+	//unsigned int fb_lockflag_new = VBOOT_STATUS_LOCK;
 
+	memset(tmp_buffer_flag, 0, sizeof(tmp_buffer_flag));
 	memset(tmp_buffer, 0, sizeof(tmp_buffer));
-	if (flag == 1) {
-		strcat(tmp_buffer, "VerifiedBoot-UNLOCK");
+
+	if (flag == VBOOT_STATUS_UNLOCK) {
+		strcat(tmp_buffer_flag, "VerifiedBoot-UNLOCK");
 	}
-	else if(flag == 0) {
-		strcat(tmp_buffer, "VerifiedBoot-LOCK");
+	else if(flag == VBOOT_STATUS_LOCK) {
+		strcat(tmp_buffer_flag, "VerifiedBoot-LOCK");
 	}
 	else {
 		debugf("lockflag is invalid.\n");
 		return -2;
 	}
 
-	fb_lockflag_old = get_fblockflag();
+	//fb_lockflag_old = get_fblockflag();
+	if (common_raw_read(PRODUCTINFO_FILE_PATITION, PDT_INFO_LOCK_FLAG_SECTION_SIZE, PDT_INFO_LOCK_FLAG_OFFSET, (char *)tmp_buffer)) {
+		debugf("read miscdata error.\n");
+		return -1;
+	}
 
-	if (common_raw_write(PRODUCTINFO_FILE_PATITION, sizeof(tmp_buffer), sizeof(tmp_buffer), PDT_INFO_LOCK_FLAG_OFFSET, (unsigned char *)tmp_buffer)) {
+#ifdef CONFIG_VBOOT_DUMP
+	do_hex_dump(tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+#endif
+	uboot_encrypt_data(tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+#ifdef CONFIG_VBOOT_DUMP
+	do_hex_dump(tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+#endif
+
+	/*data ready*/
+	memcpy((char *)tmp_buffer , tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+
+	/*write to emmc*/
+	if (common_raw_write(PRODUCTINFO_FILE_PATITION, sizeof(tmp_buffer), sizeof(tmp_buffer), PDT_INFO_LOCK_FLAG_OFFSET, (char *)tmp_buffer)) {
 		debugf("write miscdata error.\n");
 		return -1;
 	}
 
-	fb_lockflag_new = get_fblockflag();
-
-	debugf("old value:%d, new value:%d\n", fb_lockflag_old, fb_lockflag_new);
+	//fb_lockflag_new = get_fblockflag();
+	//debugf("old value:%d, new value:%d\n", fb_lockflag_old, fb_lockflag_new);
 	return 0;
 }
+#endif
 
 void fdt_fixup_all(u8 *fdt_blob)
 {

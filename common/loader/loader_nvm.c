@@ -11,6 +11,7 @@
 
 #include <secureboot/sprdsec_header.h>
 #include <secureboot/sec_common.h>
+#include <uboot_sec_drv.h>
 #include <avb/uboot_avb_ops.h>
 #include <otp_helper.h>
 #include <stdio_dev.h>
@@ -38,6 +39,7 @@ extern void aon_lpc_config();
 #endif
 
 extern int lcd_line_length;
+extern enVerifiedState g_verifiedbootstate;
 
 extern int fdt_fixup_memory_region(void *fdt, int *auto_mem_num_p);
 extern int get_dt_end_addr(void *fdt, uchar **addr);
@@ -74,6 +76,7 @@ typedef struct _BOOT_IMG_OFFSET {
 	uint64_t dt_offset;
 }BOOT_IMG_OFFSET;
 static BOOT_IMG_OFFSET boot_img_offset;
+unsigned int g_DeviceStatus = 0xFFFFFFFF;
 
 #ifdef CONFIG_SUPPORT_TDLTE
 static boot_image_required_t const s_boot_image_tl_table[] = {
@@ -1050,6 +1053,178 @@ void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
 }
 #endif
 
+#ifdef CONFIG_SECBOOT
+int loader_binding_data_set(void)
+{
+	/*set device state*/
+	g_DeviceStatus = get_fblockflag();
+
+	if(g_DeviceStatus == VBOOT_STATUS_LOCK){
+		debugf("INFO: LOCK FLAG IS : LOCK!!!\n");
+	}else if(g_DeviceStatus == VBOOT_STATUS_UNLOCK){
+		debugf("INFO: LOCK FLAG IS : UNLOCK!!!\n");
+		lcd_printf("INFO: LOCK FLAG IS : UNLOCK!!!\n");
+	}
+
+	return 0;
+}
+
+int loader_binding_state_get(void)
+{
+	if(g_DeviceStatus == 0xFFFFFFFF) {
+		debugf("Warning: get device state error: state is not initiated!\n");
+		return -1;
+	}
+
+	return g_DeviceStatus;
+}
+
+int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status_len)
+{
+	uint8_t data_buffer[128] __attribute__((aligned(4096)));
+	uint8_t * v_lock_state_ret = (uint8_t *)data_buffer + PDT_INFO_LOCK_FLAG_MAX_SIZE;
+
+	struct smc_param param;
+	uint32_t ret;
+
+	if(!lockstatus || !status_len || (status_len > PDT_INFO_LOCK_FLAG_MAX_SIZE))
+	{
+		debugf("para error. \n");
+		return -1;
+	}
+
+	memset(data_buffer, 0, sizeof(data_buffer));
+	memcpy(data_buffer, lockstatus, status_len);
+
+#ifdef CONFIG_VBOOT_DUMP
+	do_hex_dump(data_buffer, status_len);
+#endif
+	param.a0 = TEESMC_SIPCALL_WITH_ARG;
+	param.a1 = FUNCTYPE_CHECK_LOCK_STATUS;
+	param.a2 = data_buffer;
+	param.a3 = sizeof(data_buffer);
+	tee_smc_call(&param);
+	ret = param.a0;
+
+	if(*v_lock_state_ret == VBOOT_STATUS_LOCK)
+	{
+		debugf("verify unlock status failed. \n");
+		ret = -1;
+	}
+
+	return ret;
+}
+
+int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
+{
+	uint8_t data_buffer[256] __attribute__((aligned(4096)));
+	//uint8_t *pwdptr = (uint8_t *)data_buffer + PDT_INFO_UNLOCK_PWD_MAX_SIZE;
+
+	struct smc_param param;
+	uint32_t ret;
+	uint8_t * v_ret = (uint8_t *)data_buffer + PDT_INFO_UNLOCK_PWD_MAX_SIZE * 2;
+
+	if(!password || !pwd_len || (pwd_len > PDT_INFO_UNLOCK_PWD_MAX_SIZE))
+	{
+		debugf("para error. \n");
+		return -1;
+	}
+
+	memset(data_buffer, 0, sizeof(data_buffer));
+	memcpy(data_buffer, password, pwd_len);
+
+	//get_fbunlockpwd(pwdptr);
+
+#ifdef CONFIG_VBOOT_DUMP
+	vboot_dumpHex("input pwd:", password, PDT_INFO_UNLOCK_PWD_MAX_SIZE);
+	//vboot_dumpHex("pwd from emmc:", pwdptr, PDT_INFO_UNLOCK_PWD_MAX_SIZE);
+#endif
+	param.a0 = TEESMC_SIPCALL_WITH_ARG;
+	param.a1 = FUNCTYPE_CHECK_PWD;
+	param.a2 = data_buffer;
+	param.a3 = (sizeof(data_buffer));
+	tee_smc_call(&param);
+	ret = param.a0;
+
+	if(*v_ret == VBOOT_UNLOCK_PWD_CHECK_FAIL)
+	{
+		debugf("verify password failed. \n");
+		ret = -1;
+	}
+
+	return ret;
+}
+
+void pass_pubkey_to_tos(void)
+{
+	return;
+#if 0
+	uint8_t *lockptr;
+	int dev_lock;
+	uint8_t data_buffer[512] __attribute__((aligned(4096)));
+
+	struct smc_param param;
+	int ret;
+
+	data_buffer[0] = 0x12;
+	data_buffer[1] = 0x34;
+	data_buffer[2] = 0x56;
+	data_buffer[3] = 0x78;
+	//mem_info mi __attribute__((aligned(4096)));
+
+	dev_lock = loader_binding_state_get();
+	if (dev_lock < 0) {
+		debug("has not gotten dev state!\n");
+		return;
+	}
+
+	param.a0 = TEESMC_SIPCALL_WITH_ARG;
+	param.a1 = FUNCTYPE_SET_BINDING_DATA;
+	param.a2 = data_buffer;
+	param.a3 = sizeof(data_buffer);
+	tee_smc_call(&param);
+	ret = param.a0;
+#endif
+}
+#endif
+
+#if defined (CONFIG_SECBOOT)
+int take_action_with_vbootret(void)
+{
+	int sec_time_count = 60;
+
+	switch(g_verifiedbootstate) {
+		case v_state_red:
+			debugf("WARNNING: Oem Key & User Key Verify Failed!!!\n");
+			while(sec_time_count) {
+				mdelay(100);
+				sec_time_count --;
+			}
+			power_down_devices(0);
+			break;
+
+		case v_state_yellow:
+			debugf("WARNNING: USER KEY VERIFY SUCCESS!!!\n");
+			break;
+
+		case v_state_green:
+			debugf("WARNNING: OEM KEY VERIFY SUCCESS!!!\n");
+			break;
+
+		case v_state_orange:
+			debugf("WARNNING: LOCK FLAG IS : UNLOCK, SKIP VERIFY!!!\n");
+			lcd_printf("WARNNING: LOCK FLAG IS : UNLOCK, SKIP VERIFY!!!\n");
+			break;
+
+		default:
+			debugf("WARNNING: VERIFY RESULT UNKNOWN!!!\n");
+			break;
+	}
+
+	return 0;
+}
+#endif
+
 uint32_t uboot_start_time;
 void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 {
@@ -1090,6 +1265,13 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 #endif
 	set_vibrator(0);
 
+#if 0
+#ifdef CONFIG_SECBOOT
+	//init fastboot lock data
+	init_fblockflag();
+#endif
+#endif
+
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SOC_IWHALE2) && (defined CONFIG_SECBOOT)
         tos_status_check();
 #endif
@@ -1126,7 +1308,15 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 		secboot_secure_process_flow(partition,0,0,(char *)VERIFY_ADDR);
 	}
 #else
+	/*set v-boot binding data eg:lock status*/
+	loader_binding_data_set();
+	pass_pubkey_to_tos();
+
+	/***secboot 2nd step***/
 	secboot_secure_process_flow(partition,0,0,(char *)VERIFY_ADDR);
+
+	//things to do refer to verify ret
+	take_action_with_vbootret();
 #endif
 
 #endif

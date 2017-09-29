@@ -9,6 +9,17 @@
 #include<asm/arch/chip_releted_def.h>
 #include <sprd_imgversion.h>
 
+#define VBOOT_STATUS_LOCK (0)
+#define VBOOT_STATUS_UNLOCK (1)
+
+#define PDT_INFO_LOCK_FLAG_OFFSET (8*1024)
+#define PDT_INFO_LOCK_FLAG_SECTION_SIZE (512)
+#define PDT_INFO_LOCK_FLAG_MAX_SIZE (64)
+#define PDT_INFO_UNLOCK_PWD_MAX_SIZE (64)
+
+#define VBOOT_UNLOCK_PWD_CHECK_FAIL (1)
+#define VBOOT_UNLOCK_PWD_CHECK_SUCC (0)
+
 typedef struct{
 #if defined (CONFIG_SC9833)||defined (CONFIG_SOC_SHARKLJ1) || defined (CONFIG_SOC_SHARKLE)
 	uint32_t img_addr; //the base address of image to verify
@@ -45,6 +56,7 @@ typedef struct{
 	uint32_t vb_cmdline_len;
 	VBootResultInfo * verify_return_data;
 	uint32_t verify_return_data_len;
+	uint32_t vboot_unlock_status;
 }VbootVerifyInfo;
 #if 0
 typedef enum enAntiRBImageType{
@@ -163,6 +175,10 @@ void vboot_secure_process_flow(char *partition_name);
 void vboot_secure_process_prepare(void);
 #endif
 
+#ifdef CONFIG_SECBOOT
+extern char * strtok(char * s,const char * ct);
+extern int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len);
+#endif
 void secboot_update_swVersion(void);
 
 #endif

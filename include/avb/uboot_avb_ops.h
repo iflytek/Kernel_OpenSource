@@ -39,6 +39,7 @@ extern AvbCheckType g_ulAvbCheckType;
 extern unsigned char g_sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN];
 extern unsigned int g_sprd_vboot_key_len;
 extern unsigned char g_sprd_vboot_cmdline[SPRD_VBOOT_CMDLINE_MAXSIZE];
+extern unsigned int g_sprd_vboot_ret[4];
 extern bool g_sprd_vbmeta_checked_flag;
 int avb_check_image(unsigned char *name);
 int avb_check_vbmeta(uint8_t * vbmeta_img_paddr, uint32_t vbmeta_image_len);

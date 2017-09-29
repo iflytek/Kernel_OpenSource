@@ -10,9 +10,10 @@
 #ifdef CONFIG_VBOOT_V2
 #include <avb/uboot_avb_ops.h>
 #include <avb/avb_footer.h>
-
+#include "../avb/libavb/avb_slot_verify.h"
 #endif
 #include "sprd_common_rw.h"
+#include "loader_common.h"
 
 #define EFUSE_HASH_STARTID 2
 #ifdef TOS_TRUSTY
@@ -64,6 +65,8 @@ static uchar *const s_force_secure_check[] = {
 	NULL
 };
 
+extern unsigned int g_DeviceStatus;
+extern enVerifiedState g_verifiedbootstate;
 static int dl_secure_verify(void *partition_name,void *tocheck_partition_name,void *header,void *code)
 {
 #ifdef CONFIG_SPRD_SECBOOT
@@ -378,8 +381,10 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 	static bool system_vendor_done=false;
 #ifdef CONFIG_VBOOT_V2
 	vboot_secure_process_flow(partition_name);
+
 //secboot_secure_process_flow may be called several times, but system/vendor,only need to be checked on time
-    if (!system_vendor_done)
+    debug("begin to check system & vendor version.\n");
+    if (!system_vendor_done && g_DeviceStatus != VBOOT_STATUS_UNLOCK)
     {
 		vboot_verify_vbmeta("system");
 		vboot_verify_vbmeta("vendor");
@@ -454,7 +459,12 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 		vboot_verify_info->vb_cmdline_addr = (char *)g_sprd_vboot_cmdline;
 		vboot_verify_info->vb_cmdline_len = sizeof(g_sprd_vboot_cmdline);
 
+		memset(g_sprd_vboot_ret, 0, sizeof(g_sprd_vboot_ret));
+		vboot_verify_info->verify_return_data = (VBootResultInfo *)g_sprd_vboot_ret;
+		vboot_verify_info->verify_return_data_len = sizeof(VBootResultInfo);
+
 		debug("g_sprd_vboot_cmdline:0x%x.   g_sprd_vboot_cmdline_len:%d.   \n", (char *)g_sprd_vboot_cmdline, sizeof(g_sprd_vboot_cmdline));
+		debug("g_sprd_vboot_ret:0x%x.   g_sprd_vboot_ret_len:%d.   \n", g_sprd_vboot_ret, sizeof(g_sprd_vboot_ret));
 	}
 
 	/*public op2: when check vbmeta & other imgs(like boot.)*/
@@ -530,8 +540,9 @@ fail:
 
 void vboot_secure_process_flow(char *partition_name)
 {
-    uint64_t partition_size=0;
-    int ret = 0;
+	int ret;
+	uint32_t vboot_check_result;
+	uint64_t partition_size=0;
 
 	if(!partition_name)
 	{
@@ -570,11 +581,34 @@ void vboot_secure_process_flow(char *partition_name)
 	vboot_verify_info->img_name_len = SEC_MAX_PARTITION_NAME_LEN;
 	debugf("vboot_verify_info->img_name :%s. \n", vboot_verify_info->img_name);
 
-	uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
+	vboot_verify_info->vboot_unlock_status = g_DeviceStatus;
+
+	ret = uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
+	debugf("g_sprd_vboot_cmdline len %d.\n", strlen(g_sprd_vboot_cmdline));
+	debugf("g_sprd_vboot_cmdline is %s.\n", g_sprd_vboot_cmdline);
+
+	/*for verify boot*/
+	debugf("partion %s, verify_ret:0x%x\n",partition_name, vboot_verify_info->verify_return_data->vboot_verify_ret);
+	vboot_check_result = vboot_verify_info->verify_return_data->vboot_verify_ret;
+
+	if(g_DeviceStatus == VBOOT_STATUS_UNLOCK) {
+		g_verifiedbootstate = v_state_orange;
+	}
+	else if(vboot_check_result == AVB_SLOT_VERIFY_RESULT_OK) {
+		g_verifiedbootstate = v_state_green;
+	}
+	else if(vboot_check_result == AVB_SLOT_VERIFY_RESULT_ERROR_PUBLIC_KEY_REJECTED) {
+		g_verifiedbootstate = v_state_yellow;
+	}
+	else {
+		debugf("partion %s, verify_ret:0x%x is invalid.\n",partition_name, vboot_check_result);
+		g_verifiedbootstate = v_state_red;
+	}
 #else
 	secboot_param_set(VERIFY_ADDR,&img_verify_info);
 	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
 	uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
+	g_verifiedbootstate = v_state_green;
 #endif
 }
 
