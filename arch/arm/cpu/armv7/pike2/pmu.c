@@ -417,8 +417,8 @@ void pmu_commom_config(void)
 		0
 	);
 
-	CHIP_REG_BIC(REG_PMU_APB_PMU_CLK_CFG,
-		BIT_PMU_APB_CGM_PMU_SEL_REG|
+	CHIP_REG_AND(REG_PMU_APB_PMU_CLK_CFG,
+		~BIT_PMU_APB_CGM_PMU_SEL_REG|
 		0
 	);
 

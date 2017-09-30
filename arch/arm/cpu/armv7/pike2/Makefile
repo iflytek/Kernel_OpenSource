@@ -1,2 +1,2 @@
-obj-y	:= timer.o
+obj-y	:= timer.o pmu.o
 
