@@ -32,6 +32,11 @@
 #define BIT_GPU_EB                              BIT_AON_APB_AP_TMR0_EB
 #define BIT_ADI_EB                              BIT_AON_APB_ADI_EB
 #define REG_AP_CLK_CORE_CGM_CE_CFG 		REG_AP_CLK_CE_CFG
+#define BIT_INTC_EB                             BIT_AON_APB_INTC_EB
+#define BIT_INTC0_EB                            BIT_AP_APB_INTC0_EB
+#define BIT_INTC1_EB                            BIT_AP_APB_INTC1_EB
+#define BIT_INTC2_EB                            BIT_AP_APB_INTC2_EB
+#define BIT_INTC3_EB                            BIT_AP_APB_INTC3_EB
 
 /* register redefiniton for compatible */
 #define REG_PMU_APB_CP_SOFT_RST                 REG_PMU_APB_SOFT_RST
