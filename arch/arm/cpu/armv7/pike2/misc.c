@@ -55,13 +55,13 @@ int sprd_jtag_disable()
 
 static void ap_slp_cp_dbg_cfg()
 {
-	*((volatile unsigned int *)(REG_AP_AHB_MCU_PAUSE)) |= BIT_MCU_SLEEP_FOLLOW_CA7_EN; //when ap sleep, cp can continue debug
+//	*((volatile unsigned int *)(REG_AP_AHB_MCU_PAUSE)) |= BIT_MCU_SLEEP_FOLLOW_CA7_EN; //when ap sleep, cp can continue debug
 }
 
 static void ap_cpll_rel_cfg()
 {
 #if !defined(CONFIG_ARCH_SCX35L)
-	*((volatile unsigned int *)(REG_PMU_APB_CPLL_REL_CFG)) |= BIT_CPLL_AP_SEL;
+//	*((volatile unsigned int *)(REG_PMU_APB_CPLL_REL_CFG)) |= BIT_CPLL_AP_SEL;
 #endif
 }
 
@@ -74,21 +74,21 @@ static void bb_bg_auto_en()
 static void ap_close_wpll_en()
 {
 #if !defined(CONFIG_ARCH_SCX35L)
-       *((volatile unsigned int *)(REG_PMU_APB_CGM_AP_EN)) &= ~BIT_CGM_WPLL_AP_EN;
+//       *((volatile unsigned int *)(REG_PMU_APB_CGM_AP_EN)) &= ~BIT_CGM_WPLL_AP_EN;
 #endif
 }
 
 static void ap_close_cpll_en()
 {
 #if !defined(CONFIG_ARCH_SCX35L)
-       *((volatile unsigned int *)(REG_PMU_APB_CGM_AP_EN)) &= ~BIT_CGM_CPLL_AP_EN;
+//       *((volatile unsigned int *)(REG_PMU_APB_CGM_AP_EN)) &= ~BIT_CGM_CPLL_AP_EN;
 #endif
 }
 
 static void ap_close_wifipll_en()
 {
 #if !defined(CONFIG_ARCH_SCX35L)
-       *((volatile unsigned int *)(REG_PMU_APB_CGM_AP_EN)) &= ~BIT_CGM_WIFIPLL1_AP_EN;
+//       *((volatile unsigned int *)(REG_PMU_APB_CGM_AP_EN)) &= ~BIT_CGM_WIFIPLL1_AP_EN;
 #endif
 }
 
@@ -102,35 +102,6 @@ static void bb_ldo_auto_en()
 #ifdef CONFIG_OF_LIBFDT
 void scx35_pmu_reconfig(void)
 {
-	/* FIXME:
-	 * turn on gpu/mm domain for clock device initcall, and then turn off asap.
-	 */
-	__raw_writel(__raw_readl(REG_PMU_APB_PD_MM_TOP_CFG)
-		     & ~(BIT_PD_MM_TOP_FORCE_SHUTDOWN),
-		     REG_PMU_APB_PD_MM_TOP_CFG);
-#ifndef CONFIG_FPGA
-    while (__raw_readl(REG_PMU_APB_PWR_STATUS0_DBG) & 0xf0000000) {};
-#endif
-	__raw_writel(__raw_readl(REG_PMU_APB_PD_GPU_TOP_CFG)
-		     & ~(BIT_PD_GPU_TOP_FORCE_SHUTDOWN),
-		     REG_PMU_APB_PD_GPU_TOP_CFG);
-#ifndef CONFIG_FPGA
-    while (__raw_readl(REG_PMU_APB_PWR_STATUS0_DBG) & 0x0f000000) {};
-#endif
-	__raw_writel(__raw_readl(REG_AON_APB_APB_EB0) | BIT_MM_EB |
-		     BIT_GPU_EB, REG_AON_APB_APB_EB0);
-#ifndef CONFIG_FPGA
-        __raw_writel(__raw_readl(REG_MM_AHB_RF_AHB_EB) | BIT_CKG_EB,
-                     REG_MM_AHB_RF_AHB_EB);
-        __raw_writel(__raw_readl(REG_MM_AHB_RF_GEN_CKG_CFG)
-                     | BIT_MM_MTX_AXI_CKG_EN | BIT_MM_AXI_CKG_EN,
-                     REG_MM_AHB_RF_GEN_CKG_CFG);
-#endif
-
-#ifndef CONFIG_FPGA
-	__raw_writel(__raw_readl(REG_MM_CLK_MM_AHB_CFG) | 0x3,
-		     REG_MM_CLK_MM_AHB_CFG);
-#endif
 }
 
 #else

@@ -18,6 +18,9 @@
 #define debug1(format, arg...)		regu_debug("\t" format, ## arg)
 #define debug2(format, arg...)		regu_debug("\t\t" format, ## arg)
 
+#define GENMASK(h, l) \
+	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+
 /* abs() handles unsigned and signed longs, ints, shorts and chars.  For all input types abs()
  * returns a signed long.
  * abs() should not be used for 64-bit types (s64, u64, long long) - use abs64() for those.*/
@@ -119,6 +122,21 @@ struct regulator_desc __init0 __init_begin = {0};
 #include "__sc2720_regulator_map.h"
 struct regulator_desc __init2 __init_end = {0};
 
+static struct {
+	int id;
+	const char* name;
+	int efuse_block_id;
+	int efuse_bit_mask;
+	int pmic_regs_addr;
+	int pmic_regs_mask;
+} reinit_node[] = {
+	{0,"DCDC_3M",		0,	GENMASK(11,8),	ANA_REG_GLB_DCDC_CLK_REG0,	BITS_OSC3M_FREQ(0xF)},
+	{1,"DCDC_CORE_PFM",	15,	GENMASK(1,0),	ANA_REG_GLB_DCDC_CORE_REG0,	BITS_PFM_VH_VCORE(0x3)},
+	{2,"DCDC_GEN_PFM",	15,	GENMASK(3,2),	ANA_REG_GLB_DCDC_GEN_REG0,	BITS_PFM_VH_VGEN(0x3)},
+	{3,"DCDC_WPA_PFM",	15,	GENMASK(5,4),	ANA_REG_GLB_DCDC_WPA_REG0,	BITS_PFM_THRESHOLD_VPA(0x3)},
+	{4,"RESERVED_RTC",	6,	GENMASK(14,10),	ANA_REG_GLB_RESERVED_REG_RTC,	GENMASK(4,0)},
+	{-1,NULL,0,0},
+};
 
 /* standard dcdc ops*/
 
@@ -366,7 +384,26 @@ int regulator_set_voltage(const char con_id[], int to_vol)
 	return ret;
 }
 
+static int reload_regulator_config()
+{
+	int i,shft,reload_val;
+	u32 efuse_val;
+	for(i = 0; i != -1; i++)
+	{
+		efuse_val = sprd_pmic_efuse_read(reinit_node[i].efuse_block_id);
+		shft = __ffs(reinit_node[i].efuse_bit_mask);
+		reload_val = (efuse_val & reinit_node[i].efuse_bit_mask)
+			>> shft;
+		shft = __ffs(reinit_node[i].pmic_regs_mask);
+		ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
+			       reload_val << shft,
+			       reinit_node[i].pmic_regs_mask);
+	}
+	return 0;
+}
+
 int regulator_pmic_init(void)
 {
+	reload_regulator_config();
 	return 0;
 }
