@@ -10,8 +10,8 @@ extern u32 sprd_pmic_efuse_read_bits(int bit_index, int length);
 extern void pmic_efuse_block_dump(void);
 extern void ap_efuse_block_dump(void);
 extern void sprd_uid_bin_info(void);
+extern int sprd_get_chip_uid(char *buf);
 extern void ap_sansa_efuse_prog_power_on(void);
 extern void ap_sansa_efuse_power_off(void);
 extern void sansa_enable_efuse_EB(void);
-extern void get_efuse_uid_ex(unsigned int* block0,unsigned int* block1);
 #endif

@@ -20,60 +20,73 @@
 
 #include <common.h>
 #include <otp_helper.h>
+#include <chipram_env.h>
+#include <secureboot/sec_efuse.h>
 
-#define BLK_UID_DETA_START			( 0 )
-#define BLK_UID_DETA_END			( 1)
-#define UID_BLOCK0 0
-#define UID_BLOCK1  1
-#define BIN_BLOCK13 13
-#define BIN_BLOCK15 15
+#ifndef UID_START
+#define UID_START	0
+#endif
+#ifndef UID_END
+#define UID_END		1
+#endif
+#ifndef UID_DOUBLE
+#define UID_DOUBLE	1
+#endif
 
-void get_efuse_uid_ex(unsigned int* block0,unsigned int* block1)
+#define LOT_MSK		0x3F
+#define TO_ASIC		48
+
+typedef unsigned int        uint32;
+
+Efuse_Result_Ret __attribute__((weak)) efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble)
 {
-	*block0 = sprd_ap_efuse_read(BLK_UID_DETA_START);
-	*block1 = sprd_ap_efuse_read(BLK_UID_DETA_END);
-	printf("efuse uid is %08x%08x\n", *block0, *block1);
+	return -2;
 }
 
-void get_efuse_uid(void)
+int sprd_get_chip_uid(char *buf)
 {
-	unsigned int block0, block1;
-	block0 = sprd_ap_efuse_read(BLK_UID_DETA_START);
-	block1 = sprd_ap_efuse_read(BLK_UID_DETA_END);
-	printf("efuse uid is %08x%08x\n", block0, block1);
-}
+	u32 blocks[2] = {0};
+	u32 LOTID_0, LOTID_1, LOTID_2, LOTID_3, LOTID_4, LOTID_5, x, y, wafer_id;
+	if (!buf)
+		return -1;
 
-static void efuse_uid(void)
-{
-	u32 block0,block1;
-    u32 x,y,wafer_id;
-    u32 LOTID_0,LOTID_1,LOTID_2,LOTID_3,LOTID_4,LOTID_5;
-	block0= sprd_ap_efuse_read(UID_BLOCK0);
-	block1= sprd_ap_efuse_read(UID_BLOCK1);
-    y=block1&0x7F;
-    x=(block1>>7)&0x7F;
-    wafer_id=(block1>>14)&0x1F;
-    LOTID_0=(block1>>19)&0x3F;
-    LOTID_1=(block1>>25)&0x3F;
-    LOTID_2=block0&0x3F;
-    LOTID_3=(block0>>6)&0x3F;
-    LOTID_4=(block0>>12)&0x3F;
-    LOTID_5=(block0>>18)&0x3F;
-	printf("the uid = %c%c%c%c%c%c_%d_%d_%d\n",LOTID_5+48,LOTID_4+48,LOTID_3+48,LOTID_2+48,LOTID_1+48,LOTID_0+48,wafer_id,x,y);
-}
+#if defined (CONFIG_SPRD_AP_NORMAL_EFUSE)
+	if(get_chipram_env()->mode == BOOTLOADER_MODE_DOWNLOAD){
+		if (efuse_read_drv(UID_START, UID_START, &blocks[1], UID_DOUBLE)) {
+			return -2;
+		}
+		if (efuse_read_drv(UID_END, UID_END, &blocks[0], UID_DOUBLE)) {
+			return -2;
+           }
+	}else{
+		blocks[1] = sprd_efuse_double_read(UID_START,UID_DOUBLE);
+		blocks[0] = sprd_efuse_double_read(UID_END,UID_DOUBLE);
+	}
+#else
+	blocks[0]= sprd_ap_efuse_read(UID_START);
+	blocks[1]= sprd_ap_efuse_read(UID_END);
+#endif
 
-static void efuse_binning(void)
-{
-	u32 block13,block15;
-	block13= sprd_ap_efuse_read(BIN_BLOCK13);
-	block15= sprd_ap_efuse_read(BIN_BLOCK15);
-	printf("BIF = 0x%x, 0x%x",block13,block15);
+	y = blocks[1] & 0x7F;
+	x = (blocks[1] >> 7) & 0x7F;
+	wafer_id = (blocks[1] >> 14) & 0x1F;
+	LOTID_0 = ((blocks[1] >> 19) & LOT_MSK) + TO_ASIC;
+	LOTID_1 = ((blocks[1] >> 25) & LOT_MSK) + TO_ASIC;
+	LOTID_2 = (blocks[0] & 0x3F) + TO_ASIC;
+	LOTID_3 = ((blocks[0] >> 6) & LOT_MSK) + TO_ASIC;
+	LOTID_4 = ((blocks[0] >> 12) & LOT_MSK) + TO_ASIC;
+	LOTID_5 = ((blocks[0] >> 18) & LOT_MSK) + TO_ASIC;
+
+	debugf("uid start id 0x%x,end id 0x%x\n", blocks[0], blocks[1]);
+	sprintf(buf, "%c%c%c%c%c%c_%d_%d_%d", LOTID_5, LOTID_4,
+		LOTID_3, LOTID_2, LOTID_1, LOTID_0, wafer_id, x, y);
+	return 0;
 }
 
 void sprd_uid_bin_info(void)
 {
-	efuse_uid();
-	efuse_binning();
+	char uid[25] = {0};
+
+	sprd_get_chip_uid(uid);
+	debugf("uid is %s\n", uid);
 }
-
-

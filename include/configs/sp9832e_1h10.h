@@ -329,6 +329,11 @@
 #define SCRATCH_ADDR_EXT1              (CONFIG_SYS_TEXT_BASE + 32*1024*1024)
 #define FB_DOWNLOAD_BUF_EXT1_SIZE      (224*1024*1024)
 
+/*uid blk config*/
+#define UID_START 94
+#define UID_END 95
+#define UID_DOUBLE 0
+
 /*7S reset config*/
 #define CONFIG_7S_RST_MODULE_EN		1	//0:disable module; 1:enable module
 

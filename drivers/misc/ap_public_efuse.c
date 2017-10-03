@@ -182,7 +182,7 @@ static void ap_efuse_read_power_off(void)
 
 static void efuse_clk_enable(void)
 {
-	sci_glb_set(REG_AON_APB_APB_EB0, BIT_AON_APB_EFUSE_NORMAL_EB);
+	sci_glb_set(REG_AON_APB_APB_EB0, BIT_EFUSE_EB);
 }
 
 static void ap_efuse_prog_lock(bool en_lock)
@@ -309,30 +309,3 @@ int sprd_efuse_double_prog(u32 blk, bool backup, bool lock, u32 val)
 	debugf("efuse prog blk %d, ret 0x%x, val 0x%08x\n", blk, ret, val);
 	return ret;
 }
-
-void sprd_get_chip_uid(char *buf)
-{
-	u32 block0, block1;
-	u32 x, y, wafer_id;
-	u32 LOTID_0, LOTID_1, LOTID_2, LOTID_3, LOTID_4, LOTID_5;
-	char *p = buf;
-
-	block1 = sprd_efuse_double_read(94,false);
-	block0 = sprd_efuse_double_read(95,false);
-
-	y = block1 & 0x7F;
-	x = (block1 >> 7) & 0x7F;
-	wafer_id = (block1 >> 14) & 0x1F;
-	LOTID_0 = (block1 >> 19) & 0x3F;
-	LOTID_1 = (block1 >> 25) & 0x3F;
-	LOTID_2 = block0 & 0x3F;
-	LOTID_3 = (block0 >> 6) & 0x3F;
-	LOTID_4 = (block0 >> 12) & 0x3F;
-	LOTID_5 = (block0 >> 18) & 0x3F;
-
-	debugf("uid is %x%x\n", block0, block1);
-	p += sprintf(p, "%c%c%c%c%c%c_%d_%d_%d", LOTID_5 + 48, LOTID_4 + 48,
-		     LOTID_3 + 48, LOTID_2 + 48, LOTID_1 + 48, LOTID_0 + 48,
-		     wafer_id, x, y);
-}
-

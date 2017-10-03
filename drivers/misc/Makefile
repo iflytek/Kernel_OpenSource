@@ -36,7 +36,7 @@ obj-$(CONFIG_SPRD_ADI) += adi.o vibrator.o check_reboot.o reset.o
 obj-$(CONFIG_SPRD_ADC) += sprd_adc.o
 obj-y += sprd_glb.o
 ifdef CONFIG_SPRD_AP_NORMAL_EFUSE
-obj-y += ap_public_efuse.o
+obj-y += ap_public_efuse.o otp_helper.o
 else
 ifdef CONFIG_SPRD_AP_IEFUSE_R1P0
 obj-y += ap_iefuse.o otp_helper.o

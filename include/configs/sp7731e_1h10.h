@@ -279,6 +279,11 @@
 #define CALIBRATION_FLAG_CP0        (0x88AF0000)
 #define CALIBRATION_FLAG_CP1        (0x8AE40000)
 
+/*uid blk config*/
+#define UID_START 46
+#define UID_END 47
+#define UID_DOUBLE 1
+
 /*7S reset config*/
 #define CONFIG_7S_RST_MODULE_EN		1	//0:disable module; 1:enable module
 
@@ -319,6 +324,9 @@
 /* Chip Driver Macro Definitions Start*/
 /*sprd adc*/
 #define CONFIG_SPRD_ADC
+
+/*sprd normal efuse*/
+#define CONFIG_SPRD_AP_NORMAL_EFUSE
 
 /*sprd adi*/
 #define CONFIG_SPRD_ADI
