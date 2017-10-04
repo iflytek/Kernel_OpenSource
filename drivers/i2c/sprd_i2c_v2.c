@@ -348,6 +348,8 @@ static void sprd_i2c_init(struct i2c_adapter *adap, int speed, int slaveadd)
 	sprd_i2c_clear_irq(adap);
 	tmp = readl(i2c_base + I2C_CTL);
 	writel(tmp | (I2C_EN), i2c_base + I2C_CTL);
+
+	sprd_i2c_apb_disable(adap);
 }
 
 /*only buf mode */
@@ -415,6 +417,8 @@ static int sprd_i2c_write(struct i2c_adapter *adap, uchar chip, uint addr,
 	int send_len = 0;
 	uchar *p_buf = buffer;
 
+	sprd_i2c_apb_enable(adap);
+
 	i2c_base = sprd_get_base(adap);
 	sprd_i2c_reset_fifo(adap);
 	writel(chip << 1, i2c_base + I2C_ADDR_CFG);
@@ -434,9 +438,8 @@ static int sprd_i2c_write(struct i2c_adapter *adap, uchar chip, uint addr,
 	}
 	res = sprd_wait_for_int(i2c_base);
 	res = sprd_wait_for_ack(i2c_base);
-	if(res < 0)
-		return res;
 
+	sprd_i2c_apb_disable(adap);
 	return res;
 }
 
@@ -462,6 +465,8 @@ static int sprd_i2c_read(struct i2c_adapter *adap, uchar chip, uint addr,
 	void *i2c_base = NULL;
 	uchar *p_buf = buffer;
 
+	sprd_i2c_apb_enable(adap);
+
 	i2c_base = sprd_get_base(adap);
 	sprd_i2c_reset_fifo(adap);
 	writel(chip << 1, i2c_base + I2C_ADDR_CFG);
@@ -474,11 +479,12 @@ static int sprd_i2c_read(struct i2c_adapter *adap, uchar chip, uint addr,
 	res = sprd_wait_for_int(i2c_base);
 	res = sprd_wait_for_ack(i2c_base);
 	if(res < 0)
-		return res;
+		goto disable_out;
 
 	if (buffer == NULL) {
 		printf("I2C read: NULL pointer buffer\n");
-		return  -1;
+		res = -1;
+		goto disable_out;
 	}
 
 	sprd_i2c_opt_mode(i2c_base, 1);
@@ -495,6 +501,9 @@ static int sprd_i2c_read(struct i2c_adapter *adap, uchar chip, uint addr,
 	}
 
 	sprd_i2c_clear_start(i2c_base);
+
+disable_out:
+	sprd_i2c_apb_disable(adap);
 	return res;
 }
 
