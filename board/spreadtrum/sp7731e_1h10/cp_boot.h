@@ -72,12 +72,10 @@ inline int load_cp_boot_code(void *loader)
 
 static inline void pubcp_boot(void)
 {
-	u32 state;
-	u32 loader[0x32] = {0};
-	u32 count = sizeof(loader)/sizeof(u32);
+	u32 count = sizeof(g_loader)/sizeof(u32);
 
 	if(load_cp_boot_code((void*)PUBCP_IRAM_ADDRESS))
-		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, 0x90);
+		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, count);
 
 	/*boot cr5 */
 	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT_PMU_APB_CP_SOFT_RST;   /* reset R5 */
@@ -117,9 +115,8 @@ void pmic_arm7_RAM_active(void)
 /*****************************************************************************/
 static inline void sp_boot(void)
 {
-	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_CORE_SOFT_RST;   /* reset arm7 */
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_CORE_SOFT_RST;   /* core release */
 }
-
 
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
