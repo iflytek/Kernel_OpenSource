@@ -47,7 +47,7 @@
 //  Note:
 /*****************************************************************************/
 
-#define PUBCP_IRAM_ADDRESS 0x10000
+#define PUBCP_IRAM_ADDRESS 0xF000
 
 static u32 g_loader[] = {
 	0xee110f10, 0xe3c00005, 0xe3c00a01, 0xf57ff04f,
@@ -100,15 +100,8 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-#ifndef CONFIG_SP9855_HAPS
-	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) |= BIT_AON_APB_CM4_CORE_SOFT_RST | BIT_AON_APB_CM4_SYS_SOFT_RST;
-#endif
-	msleep(50);
 	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_SP_SYS_SOFT_RST;
 	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_PMU_APB_SP_SYS_FORCE_DEEP_SLEEP;   /*clear sp force sleep */
-#ifndef CONFIG_SP9855_HAPS
-	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_SYS_SOFT_RST;
-#endif
 	msleep(50);
 }
 
@@ -120,9 +113,7 @@ void pmic_arm7_RAM_active(void)
 /*****************************************************************************/
 static inline void sp_boot(void)
 {
-#ifndef CONFIG_SP9855_HAPS
-	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_CORE_SOFT_RST;   /* core release */
-#endif
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_SP_SYS_CORE_RST;   /* core release */
 }
 
 /**---------------------------------------------------------------------------*

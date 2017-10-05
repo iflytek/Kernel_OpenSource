@@ -204,8 +204,8 @@
 #define FIXNV_SIZE     0xc8000
 
 #define CONFIG_DFS_ENABLE
-#define DFS_ADDR    0x50800000
-#define DFS_SIZE    (64*1024)
+#define DFS_ADDR    0x800000
+#define DFS_SIZE    (256*1024)
 
 
 /*eMMC config*/

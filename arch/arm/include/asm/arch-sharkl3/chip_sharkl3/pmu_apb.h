@@ -656,6 +656,7 @@
 #define BIT_PMU_APB_WIFI_WRAP_SOFT_RST                         BIT(10)
 #define BIT_PMU_APB_CPU_TOP_SOFT_RST                           BIT(9)
 #define BIT_PMU_APB_SP_SYS_SOFT_RST                            BIT(8)
+#define BIT_PMU_APB_SP_SYS_CORE_RST                            BIT(7)
 #define BIT_PMU_APB_PUB_SOFT_RST                               BIT(6)
 #define BIT_PMU_APB_AP_SOFT_RST                                BIT(5)
 #define BIT_PMU_APB_GPU_SOFT_RST                               BIT(4)

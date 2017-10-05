@@ -1384,7 +1384,7 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
         /*Just for iwhale2 bringup --from Sheng.Zhu advice*/
         ag_tg_ldsp_hold();
 #endif
-			pmic_arm7_RAM_active();
+	pmic_arm7_RAM_active();
 #endif
 	while (s_boot_image_table[i]) {
 		j = 0;
