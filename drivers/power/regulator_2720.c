@@ -142,12 +142,6 @@ static struct {
 
 static int dcdc_get_trimming_step(struct regulator_desc *desc, int to_vol)
 {
-#if 0
-	if (0 == strcmp(desc->name, "vddmem")) {
-		/* FIXME: vddmem step 200/32mV */
-		return 1000 * 200 / 32;	/*uV */
-	}
-#endif
 	return 1000 * 100 / 32;	/*uV */
 }
 
@@ -388,8 +382,8 @@ static int reload_regulator_config()
 {
 	int i,shft,reload_val;
 	u32 efuse_val;
-	for(i = 0; i != -1; i++)
-	{
+
+	for(i = 0; reinit_node[i].id != -1; i++) {
 		efuse_val = sprd_pmic_efuse_read(reinit_node[i].efuse_block_id);
 		shft = __ffs(reinit_node[i].efuse_bit_mask);
 		reload_val = (efuse_val & reinit_node[i].efuse_bit_mask)

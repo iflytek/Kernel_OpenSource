@@ -11,7 +11,7 @@ static int power_on_voltage_init(void)
 	return 0;
 }
 
-int regulator_init(void)
+int board_regulator_init(void)
 {
 	power_on_voltage_init();
 	return 0;
