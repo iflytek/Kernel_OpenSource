@@ -448,7 +448,7 @@ int pctool_mode_detect(void)
 
 	debugf("%s\n", "usb cooperating with pc tool");
 
-	if(charger_connected()){
+	if (charger_connected()) {
 		bat_info = sprdchg_charger_is_adapter();
 		if (bat_info == ADP_TYPE_DCP)
 			return -1;
@@ -457,7 +457,7 @@ int pctool_mode_detect(void)
 	}
 	dcache_disable();
 	ret = cali_usb_prepare();
-	if (!ret){
+	if (!ret) {
 		dcache_enable();
 		return -1;
 	}
@@ -466,21 +466,28 @@ int pctool_mode_detect(void)
 	cali_usb_debug(pctool_cmd_buf);
 #endif
 	ret = cali_usb_enum();
-	if (!ret)
+	if (!ret) {
+		dcache_enable();
 		return -1;
+	}
 	ret = cali_get_cmd(pctool_cmd_buf, CALIBERATE_STRING_LEN );
-	if (!ret)
+	if (!ret) {
+		dcache_enable();
 		return -1;
+	}
 	command = check_pctool_cmd(pctool_cmd_buf, CALIBERATE_STRING_LEN);
 	printf("%s caliberate_mode: %x \n",__func__, command&0xff);
 	if (!command)
 	{
 		printf("func: %s line: %d caliberate failed\n", __func__, __LINE__);
+		dcache_enable();
 		return -1;
 	}
 	ret = reply_to_pctool(pctool_cmd_buf, CALIBERATE_STRING_LEN);
-	if(!ret)
+	if (!ret) {
+		dcache_enable();
 		return -1;
+	}
 
 	dcache_enable();
 	if (CALIBERATE_COMMAND_PROGRAMKEY == command)
