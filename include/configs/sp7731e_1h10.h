@@ -325,6 +325,8 @@
 #define ADI_R3P0_VER
 /*sprd gpio*/
 #define CONFIG_SPRD_GPIO
+#define CONFIG_SPRD_EIC_EXT1
+#define CONFIG_POWERKEY_DEFAULT_HIGH
 
 /*sprd rtc*/
 #define CONFIG_RTC_SPRD
