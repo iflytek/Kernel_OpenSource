@@ -44,6 +44,7 @@ void sprdchg_2705_init(void);
 void sprdchg_2731_init(void);
 void sprdchg_2721_init(void);
 void sprdchg_2723_init(void);
+void sprdchg_2720_init(void);
 
 
 #endif

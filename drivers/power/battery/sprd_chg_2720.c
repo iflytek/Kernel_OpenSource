@@ -85,7 +85,7 @@ static struct sprdchg_ic_operations sprdchg_op ={
 	.chg_cmd = sprdchg_cmd,
 };
 
-void sprdchg_2721_init(void)
+void sprdchg_2720_init(void)
 {
 	sprdchg_register_ops(&sprdchg_op);
 }
