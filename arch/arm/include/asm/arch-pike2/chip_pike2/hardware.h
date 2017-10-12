@@ -47,8 +47,8 @@
 #define SPRD_AON_WCN_2TO1_BUS_QOS                          0x33000000
 #define SPRD_AUDIO_PHYS                                    0x40000000
 #define SPRD_VBC_PHYS                                      0x40020000
-#define SPRD_SYSTIMER_CMP_PHYS                             0x40040000
-#define SPRD_GPTIMER0_PHYS                                 0x40050000
+#define SPRD_SYSTIMER_PHYS                                 0x40040000
+#define SPRD_AON_TIMER_PHYS                                0x40050000
 #define SPRD_SPINLOCK_PHYS                                 0x40060000
 #define SPRD_MBOX_PHYS                                     0x400A0000
 #define SPRD_CP_TMR_PHYS                                   0x400B0000
@@ -155,7 +155,6 @@
 
 #define REGS_AON_APB_BASE	SPRD_AONAPB_PHYS
 
-#define SPRD_GPTIMER0_BASE                                 SPRD_GPTIMER0_PHYS
 /* referenced by sprd_bl.c */
 #define CTL_BASE_PWM                                       SPRD_PWM_PHYS
 

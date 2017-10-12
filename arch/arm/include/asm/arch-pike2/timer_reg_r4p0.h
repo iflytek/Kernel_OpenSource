@@ -29,7 +29,7 @@ extern   "C"
 **---------------------------------------------------------------------------*/
 
 /*----------Timer Control Register----------*/
-#define TIMER_CTL_BASE        		SPRD_GPTIMER0_BASE //0x40050000
+#define TIMER_CTL_BASE        		SPRD_AON_TIMER_PHYS
 #define TIMER0_BASE                     (TIMER_CTL_BASE + 0x0000)
 #define TM0_LOAD_LO                        (TIMER0_BASE + 0x0000)
 #define TM0_LOAD_HI                        (TIMER0_BASE + 0x0004)
