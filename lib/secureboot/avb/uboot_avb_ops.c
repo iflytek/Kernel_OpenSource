@@ -114,8 +114,7 @@ AvbIOResult read_from_partition(AvbOps* ops,
   else
     *out_num_read = num_bytes;
 
-	if((strcmp(partition_name, "vbmeta")) && (g_ulAvbCheckType == AVB_CHECK_DOWNLOAD))
-	{
+	if((strcmp(partition_name, "vbmeta")) && (g_ulAvbCheckType == AVB_CHECK_DOWNLOAD))	{
 		debug("buf:0x%x, g_eMMCBuf:0x%x, offset_from_partition:%d num_bytes:%d\n", buf, g_eMMCBuf, offset_from_partition, num_bytes);
 
 		memcpy((char *)buf, g_eMMCBuf+offset_from_partition, num_bytes);
@@ -124,10 +123,11 @@ AvbIOResult read_from_partition(AvbOps* ops,
 	    do_hex_dump(g_eMMCBuf, 512);
 #endif
 		*out_num_read = num_bytes;
-	}
-	else
-	{
-		ret = common_raw_read(partition_name, (uint64_t)num_bytes, (uint64_t)offset_from_partition, (char *)buf);
+	} else {
+		if (strcmp(partition_name, "vbmeta")==0)
+			secure_load_partition(partition_name, (uint64_t)num_bytes, (uint64_t)offset_from_partition, (char *)buf);
+		else
+			ret = common_raw_read(partition_name, (uint64_t)num_bytes, (uint64_t)offset_from_partition, (char *)buf);
 		if (0 != ret) {
 			debug("PARTITION %s read error, ret:%d \n", partition_name, ret);
 			return ret;

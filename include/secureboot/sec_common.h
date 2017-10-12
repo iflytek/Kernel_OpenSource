@@ -120,6 +120,7 @@ SPL_EMMC_SECTOR_NUM=SPL_IMAGE_SIZE / SECTOR_SIZE
 #define SAVE_SPL_IMAGE  VERIFY_ADDR
 
 #define MAX_PACKED_IMAGE_SIZE  0x1400000  // 20MB
+#define IMG_BAK_HEADER 0x42544844
 typedef struct{
     uint32_t  mMagicNum;        // "BTHD"=="0x42544844"=="boothead"
     uint32_t  mVersion;         // 1

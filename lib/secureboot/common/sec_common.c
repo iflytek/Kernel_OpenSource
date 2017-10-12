@@ -118,43 +118,57 @@ static int _check_secure_part(uchar * partition_name)
 	return SEC_FALSE;
 }
 
-static int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
+int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
 {
 	sys_img_header img_header;
 	uint32_t img_size = 0;
 
-	if ((0 == strcmp(partition_name, "boot"))||(0 == strcmp(partition_name, "recovery")))
-	{
+	if ((0 == strcmp(partition_name, "boot"))||(0 == strcmp(partition_name, "recovery"))){
 #if (!defined CONFIG_VBOOT_V2)
 		if (0 != common_raw_read(partition_name, SYS_HEADER_SIZE, 0, (char*)&img_header))
-		{
-			errorf("read %s partition header fail\n", partition_name);
-			return;
-		}
+			goto error;
 
 	img_size = img_header.mImgSize;
 
 		if (0 != common_raw_read(partition_name, img_size+CERT_SIZE, 0, ram_addr))
-		{
-			errorf("read %s partition fail\n", partition_name);
-			return;
-		}
+			goto error;
+
 #else
 		if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
-		{
-			errorf("read %s partition fail\n", partition_name);
-			return;
-		}
+			goto error;
+
 #endif
 	}
-	else
-	{
-		if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
-		{
-			errorf("read %s partition fail\n", partition_name);
-			return;
+	else if (0 == strcmp(partition_name, "vbmeta"))	{
+		if (0 != common_raw_read("vbmeta",size, 0, (u8*)ram_addr))
+			goto error;
+
+		if (check_sprdimgheader(ram_addr)==0){//dual backup check failed,vbmeta.img crashed
+			if (0 != common_raw_read("vbmeta",size-SYS_HEADER_SIZE, SYS_HEADER_SIZE, (u8*)ram_addr))
+				goto error;
+
+		}else {//try to read vbmeta image from vbmeta_bak
+			if (0 != common_raw_read("vbmeta_bak",size, 0, (u8*)ram_addr))
+				goto error;
+
+			if (check_sprdimgheader(ram_addr)==0){
+				if (0 != common_raw_read("vbmeta_bak",size-SYS_HEADER_SIZE, SYS_HEADER_SIZE, (u8*)ram_addr))
+					goto error;
+
+			} else {
+				secf("error:check dual backup hash failed for vbmeta.img.\n");
+				while (1);
+			}
 		}
-	}
+	}else
+		if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
+			goto error;
+
+	return 0;
+
+error:
+	errorf("read %s partition fail\n", partition_name);
+	return -1;
 }
 
 static void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo)
