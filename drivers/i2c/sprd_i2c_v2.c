@@ -89,12 +89,14 @@ struct i2c_base_addr i2c_apb_bit[] = {
 	BIT_AP_APB_I2C0_EB, REG_AP_APB_APB_EB, SPRD_I2C0_PHYS,
 	BIT_AP_APB_I2C1_EB, REG_AP_APB_APB_EB, SPRD_I2C1_PHYS,
 	BIT_AP_APB_I2C2_EB, REG_AP_APB_APB_EB, SPRD_I2C2_PHYS,
-	#if !defined(CONFIG_TARGET_SP9853I) && !defined(CONFIG_TARGET_SP9853I_1H10) && !defined(CONFIG_TARGET_SP9853I_9C10) && !defined(CONFIG_TARGET_SP9853I_10C10) && !defined(CONFIG_TARGET_SP9853I_2H10) && !defined(CONFIG_TARGET_SP9853I_3C10)
+	#if defined(BIT_AP_APB_I2C3_EB)
 	BIT_AP_APB_I2C3_EB, REG_AP_APB_APB_EB, SPRD_I2C3_PHYS,
 	#else
 	0,0,NULL,
 	#endif
+	#if defined(BIT_AP_APB_I2C4_EB)
 	BIT_AP_APB_I2C4_EB, REG_AP_APB_APB_EB, SPRD_I2C4_PHYS,
+	#endif
 };
 
 static unsigned long *sprd_get_base(struct i2c_adapter *adap)
@@ -525,7 +527,7 @@ U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c2, sprd_i2c_init, sprd_i2c_probe,
 			 NULL,
 			 2)
 
-#if !defined(CONFIG_TARGET_SP9853I) && !defined(CONFIG_TARGET_SP9853I_1H10) && !defined(CONFIG_TARGET_SP9853I_9C10) && !defined(CONFIG_TARGET_SP9853I_10C10) && !defined(CONFIG_TARGET_SP9853I_2H10) && !defined(CONFIG_TARGET_SP9853I_3C10)
+#if defined(BIT_AP_APB_I2C3_EB)
 U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c3, sprd_i2c_init, sprd_i2c_probe,
 			 sprd_i2c_read, sprd_i2c_write, NULL,
 			 CONFIG_SYS_SPRD_I2C_DEFAULT_SPEED,
@@ -533,10 +535,12 @@ U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c3, sprd_i2c_init, sprd_i2c_probe,
 			 3)
 #endif
 
+#if defined(BIT_AP_APB_I2C4_EB)
 U_BOOT_I2C_ADAP_COMPLETE(sprd_r8p0_i2c4, sprd_i2c_init, sprd_i2c_probe,
 			 sprd_i2c_read, sprd_i2c_write, NULL,
 			 CONFIG_SYS_SPRD_I2C_DEFAULT_SPEED,
 			 NULL,
 			 4)
+#endif
 
 
