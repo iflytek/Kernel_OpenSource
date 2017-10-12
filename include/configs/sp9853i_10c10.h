@@ -55,4 +55,7 @@
 
 #define CONFIG_USB_UTMI_WIDTH_8
 #define CONFIG_SHOW_CHGLOGO
+
+#undef CONFIG_7S_RST_THRESHOLD
+#define CONFIG_7S_RST_THRESHOLD         10       /* 7S, hold key down for this time to trigger */
 #endif /* __CONFIG_H */
