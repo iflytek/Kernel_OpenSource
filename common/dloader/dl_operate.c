@@ -52,6 +52,7 @@ SPECIAL_PARTITION_CFG const s_special_partition_cfg[] = {
 	{{"wl_runtimenv1"}, {"wl_runtimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"wcnfixnv1"}, {"wcnfixnv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"wcnruntimenv1"}, {"wcnruntimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
+	{{"uboot"},{"uboot_bak"}, IMG_RAW, PARTITION_PURPOSE_NORMAL},
 	{{"system"}, NULL, IMG_RAW, PARTITION_PURPOSE_NORMAL},
 	{{"userdata"}, NULL, IMG_WITH_SPARSE, PARTITION_PURPOSE_NORMAL},
 	{{"cache"}, NULL, IMG_WITH_SPARSE, PARTITION_PURPOSE_NORMAL},
