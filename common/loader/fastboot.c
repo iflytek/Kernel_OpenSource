@@ -352,7 +352,8 @@ OPERATE_STATUS _fb_img_write_with_backup(char *partition_name)
 			return OPERATE_WRITE_ERROR;
 	} else if (0 == strcmp("uboot",  partition_name)
 		|| 0 == strcmp("trustos",partition_name)
-		|| 0 == strcmp("sml",partition_name)) {
+		|| 0 == strcmp("sml",partition_name)
+		|| 0 == strcmp("vbmeta",partition_name)) {
 		if (0 != common_raw_write(partition_name, write_size, (uint64_t)0, (uint64_t)0, buf))
 			return OPERATE_WRITE_ERROR;
 		strcat(partition_name, "_bak");

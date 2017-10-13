@@ -504,7 +504,8 @@ OPERATE_STATUS _img_write_with_backup(uchar *partition)
 			return OPERATE_WRITE_ERROR;
 	} else if (0 == strcmp("uboot",  partition)
 		|| 0 == strcmp("trustos",partition)
-		|| 0 == strcmp("sml",partition)) {
+		|| 0 == strcmp("sml",partition)
+		|| 0 == strcmp("vbmeta",partition)) {
 		write_size = g_status.total_recv_size;
 		if (0 != common_raw_write(partition, write_size, (uint64_t)0, (uint64_t)0, g_eMMCBuf))
 			return OPERATE_WRITE_ERROR;
