@@ -158,4 +158,6 @@
 /* referenced by sprd_bl.c */
 #define CTL_BASE_PWM                                       SPRD_PWM_PHYS
 
+#define SPRD_APCPUTS0_BASE			SPRD_CA7TS0_PHYS
+
 #endif
