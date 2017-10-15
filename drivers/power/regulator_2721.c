@@ -3,6 +3,7 @@
 #include "adc_drvapi.h"
 #include "adi_hal_internal.h"
 #include <asm/arch/sprd_reg.h>
+#include <sprd_adc.h>
 
 int regulator_default_get(const char con_id[]);
 void regulator_default_set(const char con_id[], int vol);
@@ -11,8 +12,6 @@ u32 regulator_get_calibration_mask(void);
 
 typedef void (*pfun)(int);
 static pfun calibrate_post = NULL;
-extern int32_t pmic_adc_get_values(uint16_t channel, bool scale, uint8_t num,
-				    int32_t * p_buf);
 #define REGU_CALI_DEBUG
 
 #ifdef REGU_CALI_DEBUG

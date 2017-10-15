@@ -25,7 +25,12 @@
 #include <common.h>
 
 typedef unsigned int u32;
+#if defined(CONFIG_ADIE_SC2720)
+#define ADC_REG_BASE                       (ADC_BASE + 0x0004)
+#else
 #define ADC_REG_BASE                        ADC_BASE
+#endif
+
 #define ADC_CTRL                            (ADC_REG_BASE + 0x0000)
 #define ADC_SW_CH_CFG                       (ADC_REG_BASE + 0x0004)
 #define ADC_HW_CH_CFG_SLOW(x)               (ADC_REG_BASE + 0x0008 + ((x)-1)*0x04)
@@ -47,8 +52,13 @@ typedef unsigned int u32;
 #define ADC_EN_BIT                          BIT_0
 
 /* ADC_SW_CH_CFG */
+
+#if defined(CONFIG_ADIE_SC2720)
+#define BIT_CH_SCALE(_X_)			(((_X_) & 0x3) << 9)
+#else
 #define BIT_CH_SCALE(_X_)			(((_X_) & 0x1) << 5)
-#define ADC_SCALE_BIT                       BIT_5
+#endif
+
 #define ADC_CS_BIT_MSK                      0x1F
 
 #define ADC_IRQ_EN_BIT                      BIT_0
@@ -65,6 +75,7 @@ typedef unsigned int u32;
 #define TPC_CHANNEL_X    2
 #define TPC_CHANNEL_Y    3
 #define ADC_MESURE_NUMBER       15
+#define ADC_CHAN_MAX 31
 
 #define BITSINDEX(b, o)	( (b) * para.blk_width + (o) )
 #define RATIO(_n_, _d_) (_n_ << 16 | _d_)
@@ -101,8 +112,7 @@ static struct pmic_adc_para para = {
 	.blk_width = 8,
 	.adc_data_off = 128,
 };
-#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || \
-	defined(CONFIG_ADIE_SC2720)
+#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
 
 static struct pmic_adc_para para = {
 	.small_adc_p0 = 838,
@@ -121,6 +131,24 @@ static struct pmic_adc_para para = {
 	.adc_data_off = 128,
 };
 
+#elif defined(CONFIG_ADIE_SC2720)
+
+static struct pmic_adc_para para = {
+	.small_adc_p0 = 833,
+	.small_adc_p1 = 80,
+	.small_vol_p0 = 1000,
+	.small_vol_p1 = 100,
+	.small_cal_efuse_blk = 19,
+	.small_cal_efuse_bit = 16,
+	.big_adc_p0 = 733,
+	.big_adc_p1 = 858,
+	.big_vol_p0 = 3600,
+	.big_vol_p1 = 4200,
+	.big_cal_efuse_blk = 18,
+	.small_cal_efuse_bit = 16,
+	.blk_width = 16,
+	.adc_data_off = 128,
+};
 #endif
 static int pmic_adc_data_average(int a[], int N)
 {
@@ -140,18 +168,12 @@ static void pmic_adc_set_channel(uint16_t channel)
 	ANA_REG_MSK_OR(ADC_SW_CH_CFG, channel, ADC_CS_BIT_MSK);
 }
 
-static void pmic_adc_set_scale(bool scale)
+static void pmic_adc_set_scale(int scale)
 {
-	if (ADC_SCALE_1V2 == scale) {
-		ANA_REG_AND(ADC_SW_CH_CFG, ~ADC_SCALE_BIT);
-	} else if (ADC_SCALE_3V == scale) {
-		ANA_REG_OR(ADC_SW_CH_CFG, ADC_SCALE_BIT);
-	} else {
-		sprd_err("adc scale %d not support\n", scale);
-	}
+	ANA_REG_MSK_OR(ADC_SW_CH_CFG, BIT_CH_SCALE(scale), BIT_CH_SCALE(~0));
 }
 
-int32_t pmic_adc_get_values(uint16_t channel, bool scale, uint8_t num,
+int32_t pmic_adc_get_values(uint16_t channel, int scale, uint8_t num,
 			    int32_t * p_buf)
 {
 	int32_t count, i;
@@ -212,7 +234,7 @@ static void sprd_current_source_cal(void)
 #endif
 }
 
-/*for sc2731/sc2721 if set 1.25uA, parameter isen is 125uA */
+/*for sc2731/sc2721/2720 if set 1.25uA, parameter isen is 125uA */
 static int pmic_adc_isen_set(int isen)
 {
 	int isen_set = 0;
@@ -281,7 +303,7 @@ static int pmic_adc_set_current(u8 enable, int isen)
 		sci_adi_set(ANA_REG_GLB_AUXAD_CTL,BIT_AUXAD_CURRENTSEN_EN);
 		sci_adi_set(ANA_REG_GLB_BATDET_CUR_CTRL,BITS_BATDET_CUR_I(isen_bit));
 	}else {
-		sci_adi_clr(ANA_REG_GLB_BATDET_CUR_CTRL,BITS_BATDET_CUR_I(0));
+		sci_adi_clr(ANA_REG_GLB_BATDET_CUR_CTRL,BITS_BATDET_CUR_I(~0));
 		sci_adi_clr(ANA_REG_GLB_AUXAD_CTL, BIT_AUXAD_CURRENTSEN_EN);
 		sci_adi_clr(ANA_REG_GLB_BATDET_CUR_CTRL,BIT_BATDET_CUR_EN);
 	}
@@ -291,17 +313,18 @@ static int pmic_adc_set_current(u8 enable, int isen)
 
 #elif defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 
-#define BITS_BATDET_CUR(x)     (((x) & 0x7) << 10)
 static int pmic_adc_set_isen(u8 enable, int isen)
 {
 	int isen_bit;
 
 	if (enable) {
 		isen_bit = pmic_adc_isen_set(isen);
+		sci_adi_clr(ANA_REG_GLB_IB_CTRL, BIT_IB_REX_EN);
 		sci_adi_set(ANA_REG_GLB_IB_CTRL, BIT_BATDET_CUR_EN);
-		sci_adi_set(ANA_REG_GLB_IB_CTRL, BITS_BATDET_CUR(isen_bit));
+		sci_adi_set(ANA_REG_GLB_IB_CTRL, BITS_BATDET_CUR_I(isen_bit));
+		udelay(100);
 	} else {
-		sci_adi_clr(ANA_REG_GLB_IB_CTRL, BITS_BATDET_CUR(0));
+		sci_adi_clr(ANA_REG_GLB_IB_CTRL, BITS_BATDET_CUR_I(~0));
 		sci_adi_clr(ANA_REG_GLB_IB_CTRL, BIT_BATDET_CUR_EN);
 	}
 	return 0;
@@ -474,7 +497,7 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 	return RATIO(1, 1);
 }
 
-#elif defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
+#elif defined(CONFIG_ADIE_SC2721)
 static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 {
 	switch (channel) {
@@ -542,6 +565,70 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 	return RATIO(1, 1);
 }
 
+#elif defined(CONFIG_ADIE_SC2720)
+static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
+{
+	if(channel > ADC_CHAN_MAX)
+		return RATIO(1, 1);
+
+	switch (channel) {
+		case ADC_CHANNEL14:
+			switch (scale) {
+			case 0:
+				return RATIO(68, 900);
+			case 1:
+				return RATIO(68, 1760);
+			case 2:
+				return RATIO(68, 2327);
+			case 3:
+				return RATIO(68, 3654);
+			default:
+				return RATIO(1, 1);
+			}
+		case ADC_CHANNEL16:
+			switch (scale) {
+			case 0:
+				return RATIO(48, 100);
+			case 1:
+				return RATIO(480, 1955);
+			case 2:
+				return RATIO(480, 2586);
+			case 3:
+				return RATIO(48, 406);
+			default:
+				return RATIO(1, 1);
+			}
+		case ADC_CHANNEL21:
+		case ADC_CHANNEL22:
+		case ADC_CHANNEL23:
+			switch (scale) {
+			case 0:
+				return RATIO(3, 8);
+			case 1:
+				return RATIO(375, 1955);
+			case 2:
+				return RATIO(375, 2586);
+			case 3:
+				return RATIO(300, 3248);
+			default:
+				return RATIO(1, 1);
+			}
+		default:
+			switch (scale) {
+			case 0:
+				return RATIO(1, 1);
+			case 1:
+				return RATIO(1000, 1955);
+			case 2:
+				return RATIO(1000, 2586);
+			case 3:
+				return RATIO(100, 406);
+			default:
+				return RATIO(1, 1);
+			}
+	}
+	return RATIO(1, 1);
+}
 #endif
 
 static int sprd_get_adc_small_scale_cal(uint32_t *p_cal_data)
@@ -673,7 +760,7 @@ void pmic_adc_Init(void)
 	sprd_current_source_cal();
 #if defined(CONFIG_ADIE_SC2731)
 	sci_adi_set(ANA_REG_GLB_AUXAD_CTL, SC2731_ADC0_SELECT_BIT);
-#elif defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
+#elif defined(CONFIG_ADIE_SC2721)
        ANA_REG_OR(ADC_CTL1, BITS_AUXAD_NTC_MUX(0x1));
        debugf("ADC_CTL1 value of it 0x%x\n", ANA_REG_GET(ADC_CTL1));
 #endif

@@ -2219,7 +2219,7 @@
 -----------------------------------------------------------*/
 
 #define BIT_BATDET_CUR_EN                       BIT(13)
-#define BITS_BATDET_CUR_I(x)                    (((x) & 0xF) << 9)
+#define BITS_BATDET_CUR_I(x)                    (((x) & 0x7) << 10)
 #define BITS_IB_TRIM(x)                         (((x) & 0x7F) << 2)
 #define BIT_IB_TRIM_EM_SEL                      BIT(1)
 #define BIT_IB_REX_EN                           BIT(0)

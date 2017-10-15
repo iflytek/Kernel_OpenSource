@@ -124,7 +124,7 @@ enum sprd_adc_channel {
 
 void pmic_adc_Init(void);
 
-int32_t pmic_adc_get_values(uint16_t channel, bool scale, uint8_t num,
+int32_t pmic_adc_get_values(uint16_t channel, int scale, uint8_t num,
 			    int32_t * p_buf);
 
 int32_t pmic_adc_get_value_by_isen(uint16_t channel, int scale, uint8_t num,
