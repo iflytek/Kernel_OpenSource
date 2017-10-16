@@ -18,6 +18,8 @@
 #define debug1(format, arg...)		regu_debug("\t" format, ## arg)
 #define debug2(format, arg...)		regu_debug("\t\t" format, ## arg)
 
+#define WR_UNLOCK 0x6e7f
+
 #define GENMASK(h, l) \
 	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
 
@@ -398,6 +400,7 @@ static int reload_regulator_config()
 
 int regulator_pmic_init(void)
 {
+	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE, BITS_PWR_WR_PROT_VALUE(WR_UNLOCK));
 	reload_regulator_config();
 	return 0;
 }
