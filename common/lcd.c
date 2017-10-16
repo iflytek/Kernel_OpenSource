@@ -50,6 +50,9 @@ static int lcd_init(void *lcdbase);
 static void lcd_logo(void);
 static void lcd_setfgcolor(int color);
 static void lcd_setbgcolor(int color);
+#ifdef CONFIG_FB_SWDISPC
+extern int32_t sprdfb_spi_flip(void *base);
+#endif
 
 static int lcd_color_fg;
 static int lcd_color_bg;
@@ -80,6 +83,11 @@ void lcd_sync(void)
 		last_sync = get_timer(0);
 	}
 #endif
+
+#ifdef CONFIG_FB_SWDISPC
+        sprdfb_spi_flip(lcd_base);
+#endif
+
 }
 
 void lcd_set_flush_dcache(int flush)

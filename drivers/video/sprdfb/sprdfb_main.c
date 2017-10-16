@@ -265,3 +265,16 @@ int32_t sprdfb_spi_refresh(struct sprdfb_device *dev)
 	return 0;
 }
 
+int32_t sprdfb_spi_flip(void *base)
+{
+        struct sprdfb_device * dev = &s_sprdfb_dev;
+        if(!dev->panel)
+        {
+                printf("sprdfb:sprdfb_refresh dev->panel is null\n");
+                return -1;
+        }
+        dev->panel->ops->panel_invalidate(dev->panel);
+        dev->panel->ops->panel_refresh(dev->panel,base);
+        return 0;
+}
+
