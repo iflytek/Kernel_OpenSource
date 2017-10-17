@@ -141,8 +141,6 @@ static int sprdfb_probe(void *lcdbase)
 	if (nodeoffset == -FDT_ERR_NOTFOUND)
 		return -1;
 
-#ifdef CONFIG_OF_CONTROL
-
 	nodeoffset = fdt_subnode_offset(fdt_blob, nodeoffset, "heap@3");
 	debugf("heap3 node offset = %d\n", nodeoffset);
 	if (nodeoffset == -FDT_ERR_NOTFOUND)
@@ -157,11 +155,6 @@ static int sprdfb_probe(void *lcdbase)
 		errorf("Failed to decode reg property \n");
 		return -EINVAL;
 	}
-#else
-	base = CONFIG_FB_BASE;
-	size =  CONFIG_FB_SIZE;
-#endif
-
 #ifdef CONFIG_SPRD_SOC_SP9853I
 	gd->fb_base = base + (size / 4) * 2;
 #else

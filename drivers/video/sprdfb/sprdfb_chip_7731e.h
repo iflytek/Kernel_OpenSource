@@ -107,10 +107,6 @@
 #define G_DISPC_AHB_BASE	0x20e00000
 #define G_DISPC_CLK_BASE	0x21500000
 #define G_DISPC0_BASE		0x20800000
-#define G_DSI0_BASE		0x21800000
-
-#define SPRD_DSI_BASE 		G_DSI0_BASE
-
 static inline u32 dispc_read(unsigned long reg)
 {
 	return __raw_readl(G_DISPC0_BASE + reg);
@@ -131,7 +127,7 @@ static inline void dispc_clear_bits(u32 bits, unsigned long reg)
 	dispc_write(dispc_read(reg) & ~bits, reg);
 }
 
-#define BIT(x) (1<<(x))
+#define BIT(x) (1<<x)
 
 #ifdef CONFIG_FPGA
 #define	SPRD_MIPI_DPHY_GEN1

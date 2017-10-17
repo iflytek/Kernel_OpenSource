@@ -348,7 +348,6 @@ static uint32_t ili9881c_readid(struct panel_spec *self)
 
 int32_t ili9881c_reset(struct panel_spec *self)
 {
-#if 0
 	sprd_gpio_request(NULL, LCM_GPIO_RSTN);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
 	mdelay(5);
@@ -356,13 +355,6 @@ int32_t ili9881c_reset(struct panel_spec *self)
 	mdelay(5);
 	sprd_gpio_direction_output(NULL, LCM_GPIO_RSTN, 1);
 	mdelay(20);
-#endif
-	dispc_write(1, DISPC_RSTN);
-	mdelay(20);
-	dispc_write(0, DISPC_RSTN);
-	mdelay(20);
-	dispc_write(1, DISPC_RSTN);
-	mdelay(120);
 
 	return 0;
 }
