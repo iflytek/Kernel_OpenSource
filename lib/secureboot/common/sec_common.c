@@ -139,6 +139,7 @@ int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, 
 
 #endif
 	}
+#if (defined CONFIG_VBOOT_V2)
 	else if (0 == strcmp(partition_name, "vbmeta"))	{
 		if (0 != common_raw_read("vbmeta",size, 0, (u8*)ram_addr))
 			goto error;
@@ -160,8 +161,9 @@ int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, 
 				while (1);
 			}
 		}
-	}else
-		if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
+	}
+#endif
+	else if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
 			goto error;
 
 	return 0;

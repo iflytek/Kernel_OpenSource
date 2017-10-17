@@ -5,9 +5,12 @@
 #include <crypto/sprdsha.h>
 #include <secureboot/sec_common.h>
 #include <secureboot/sec_efuse_api.h>
+#ifdef CONFIG_VBOOT_V2
 #include "libavb.h"
 #include <avb/uboot_avb_ops.h>
 #include <avb/avb_sha.h>
+#endif
+
 
 #define SEC_DEBUG
 
