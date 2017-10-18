@@ -73,17 +73,19 @@ static LCM_Init_Code init_data[] = {
 {LCM_SLEEP(150)},
 {LCM_SEND(2),{0x29, 0x00}},
 {LCM_SLEEP(20)},
-{LCM_SEND(5),{ 3, 0, 0xE4, 0x01, 0x42}},
-{LCM_SLEEP(10)},
+{LCM_SEND(5),{ 3, 0, 0xE4, 0x01, 0x02}},
+{LCM_SLEEP(8)},
 {LCM_SEND(12),{ 10, 0, 0xE5, 0x00, 0x04, 0x0B, 0x08, 0x06, 0x00, 0x20, 0x20, 0x00}},
+{LCM_SLEEP(1)},
 {LCM_SEND(15),{ 13, 0, 0xE6, 0x00, 0x00, 0x00, 0x05, 0x05, 0x10, 0x0A, 0x10, 0x20, 0x20, 0x00, 0x00}},
+{LCM_SLEEP(1)},
 {LCM_SEND(5),{3,0,0x51, 0x00,0x00}},
 {LCM_SLEEP(5)},
 {LCM_SEND(2),{0x55, 0x01}},
 {LCM_SLEEP(5)},
 {LCM_SEND(12),{ 10, 0, 0xCA, 0x24, 0x24, 0x24, 0x23, 0x23, 0x20, 0x20, 0x20, 0x20}},
 {LCM_SLEEP(5)},
-{LCM_SEND(2),{0x53, 0x24}},
+{LCM_SEND(2),{0x53, 0x2C}},
 {LCM_SLEEP(5)},
 };
 
@@ -222,9 +224,9 @@ static struct panel_operations lcd_hx8399c_mipi_operations = {
 };
 
 static struct timing_rgb lcd_hx8399c_mipi_timing = {
-	.hfp = 170,  /* unit: pixel */
-	.hbp = 30,
-	.hsync = 20,
+	.hfp = 156,  /* unit: pixel */
+	.hbp = 32,
+	.hsync = 32,
 	.vfp = 25, /*unit: line*/
 	.vbp = 20,
 	.vsync = 4,
