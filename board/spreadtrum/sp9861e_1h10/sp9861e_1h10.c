@@ -127,10 +127,6 @@ int board_late_init(void)
 #endif
 	battery_init();
 	debugf("CHG init OK!\n");
-	if (sprdbat_get_vbatauxadc_caltype() != 0) {
-		/*fix me*/
-		DCDC_Cal_ArmCore();
-	}
 	board_keypad_init();
 #endif
 	return 0;

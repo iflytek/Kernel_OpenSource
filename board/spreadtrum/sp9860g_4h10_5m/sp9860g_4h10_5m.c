@@ -97,10 +97,6 @@ int board_late_init(void)
 	debugf("boot_role = %x\n", boot_role);
 	battery_init();
 	debugf("CHG init OK!\n");
-	if (sprdbat_get_vbatauxadc_caltype() != 0) {
-		/*fix me*/
-		DCDC_Cal_ArmCore();
-	}
 #endif
 	board_keypad_init();
 	return 0;

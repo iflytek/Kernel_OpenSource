@@ -94,10 +94,6 @@ int board_late_init(void)
 
 	CHG_Init();
 	debugf("CHG init OK!\n");
-	if (CHG_GetAdcCalType() != 0) {
-         /*fix me*/
-		DCDC_Cal_ArmCore();
-        }
 #endif
 	board_keypad_init();
 	return 0;
