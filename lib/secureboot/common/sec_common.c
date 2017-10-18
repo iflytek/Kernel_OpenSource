@@ -531,13 +531,20 @@ fail:
 void vboot_secure_process_flow(char *partition_name)
 {
     uint64_t partition_size=0;
+    int ret = 0;
+
 	if(!partition_name)
 	{
 		debugf("Error: partition_name is null. \n");
 		return;
 	}
 
-	secure_get_partition_size(partition_name, &partition_size);
+    ret = secure_get_partition_size(partition_name, &partition_size);
+    debugf("ret = %d\n", ret);
+    if (ret < 0) {
+        debugf("secure_get_partition_size error!\n");
+        return;
+    }
 	vboot_verify_info->img_len=partition_size;
 
 	debugf("img_addr:0x%x.  len:0x%x. \n", vboot_verify_info->img_addr, vboot_verify_info->img_len);

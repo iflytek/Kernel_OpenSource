@@ -970,7 +970,7 @@ int secure_get_partition_size(uchar * partition_name, uint64_t * size)
 
 	if (get_partition_info_by_name(dev, partition_name, &info)) {
 		errorf("verify get partition %s info failed!\n", partition_name);
-		ret = 1;
+		ret = -1;
 	}
 
 	if (size) {
