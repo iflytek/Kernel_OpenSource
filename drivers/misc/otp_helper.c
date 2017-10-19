@@ -36,13 +36,6 @@
 #define LOT_MSK		0x3F
 #define TO_ASIC		48
 
-typedef unsigned int        uint32;
-
-Efuse_Result_Ret __attribute__((weak)) efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble)
-{
-	return -2;
-}
-
 int sprd_get_chip_uid(char *buf)
 {
 	u32 blocks[2] = {0};
@@ -50,7 +43,7 @@ int sprd_get_chip_uid(char *buf)
 	if (!buf)
 		return -1;
 
-#if defined (CONFIG_SPRD_AP_NORMAL_EFUSE)
+#if defined (CONFIG_SOC_SHARKLE)
 	if(get_chipram_env()->mode == BOOTLOADER_MODE_DOWNLOAD){
 		if (efuse_read_drv(UID_START, UID_START, &blocks[1], UID_DOUBLE)) {
 			return -2;
