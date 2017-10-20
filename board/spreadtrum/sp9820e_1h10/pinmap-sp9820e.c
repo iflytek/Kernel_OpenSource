@@ -30,7 +30,7 @@
 static pinmap_t pinmap[]={
 {REG_PIN_CTRL0,0x00000000},
 {REG_PIN_CTRL1,0x00000000},
-{REG_PIN_CTRL2,0x60400000},//uart1->Digital IO; SPI0->Normal Mode; SPI2->Normal Mode; sim2->AP SIM0; sim1->PUBCP SIM1; sim0->PUBCP SIM0; wci2->inside; aud_iis2->AUD IF; wcn_iis_sys->default value; uart2->TGDSP'UART0; uart1->PUBCP'UART0; uart0->AP'UART1;
+{REG_PIN_CTRL2,0x60400090},//uart1->Digital IO; SPI0->Normal Mode; SPI2->Normal Mode; sim2->AP SIM0; sim1->PUBCP SIM1; sim0->PUBCP SIM0; wci2->inside; aud_iis2->AUD IF; wcn_iis_sys->default value; uart2->TGDSP'UART0; uart1->AP'UART1; uart0->PUBCP'UART0;
 {REG_PIN_CTRL3,0x00000000},
 {REG_PIN_CTRL4,0x00000000},
 {REG_PIN_CTRL5,0x00000000},
