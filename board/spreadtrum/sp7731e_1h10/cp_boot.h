@@ -99,8 +99,6 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) |= BIT_AON_APB_CM4_CORE_SOFT_RST | BIT_AON_APB_CM4_SYS_SOFT_RST;   /* 0x402e0114*/
-	msleep(50);
 	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_CM4_SOFT_RST;
 	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~ BIT_PMU_APB_CM4_FORCE_DEEP_SLEEP;   /*clear sp force sleep */
 	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_SYS_SOFT_RST;
