@@ -77,6 +77,7 @@ extern struct panel_spec lcd_ili9885_mipi_spec;
 extern struct panel_spec lcd_nt35532_mipi_spec;
 extern struct panel_spec lcd_nt35597_mipi_fpga_spec;
 extern struct panel_spec lcd_ili9881c_mipi_spec;
+extern struct panel_spec lcd_ili9881c_3lane_mipi_spec;
 extern struct panel_spec lcd_ili9881c_weiyi_mipi_spec;
 extern struct panel_spec lcd_nt35532_2_mipi_spec;
 extern struct panel_spec lcd_st7701_mipi_spec;
@@ -535,6 +536,13 @@ static struct panel_cfg panel_cfg[] = {
 {
 	.lcd_id = 0x9881,
 	.panel = &lcd_ili9881c_mipi_spec,
+},
+#endif
+
+#ifdef CONFIG_FB_LCD_ILI9881C_3LANE_MIPI
+{
+	.lcd_id = 0x9881,
+	.panel = &lcd_ili9881c_3lane_mipi_spec,
 },
 #endif
 

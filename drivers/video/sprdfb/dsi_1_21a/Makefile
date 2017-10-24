@@ -33,6 +33,9 @@ else
 ifdef CONFIG_SOC_SHARKLE
 obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_megacores_whale.o
 else
+ifdef CONFIG_SOC_PIKE2
+obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_megacores_whale.o
+else
 ifdef CONFIG_SOC_SHARKLJ1
 obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_megacores_whale.o
 else
@@ -40,6 +43,7 @@ ifdef CONFIG_SC9833
 obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_megacores_whale.o
 else
 obj-$(CONFIG_DSIH_VERSION_1P21A) += mipi_dsih_dphy_megacores.o
+endif
 endif
 endif
 endif

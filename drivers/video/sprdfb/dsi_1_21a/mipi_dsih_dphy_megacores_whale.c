@@ -162,7 +162,7 @@ struct pll_regs {
 		} bits;
 		u8 val;
 	} _0e;
-#if defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1)
+#if defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_PIKE2)
 	union __reg_0f__ {
 		struct __0f {
 			u8 det_delay:2;
@@ -276,7 +276,7 @@ extern uint32_t mipi_dsih_current_versions;
 static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 {
 	int i;
-#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE)
+#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2)
 	const u32 hopping_period = 15;
 #else
 	const u32 hopping_period = 200;
@@ -329,7 +329,7 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 	tmp *= BIT(20);
 	do_div(tmp, 100000000);
 	pll->kint = (u32)tmp;
-#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE)
+#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2)
 	pll->refin = 3;
 #else
 	if(0x100 == mipi_dsih_current_versions)
@@ -359,7 +359,7 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 		delta_freq = delta_freq / khz * (i + 1);
 		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
 		pll->kdelta = (((1 << 20) * delta_freq / pll->ref_clk / pll->kstep) -3) / 4;
-#elif defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1)
+#elif defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_PIKE2)
 		delta_freq = delta_freq / khz * (i + 1);
 		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
 		pll->kdelta = ((1 << 20) * delta_freq / pll->ref_clk / pll->kstep);
@@ -374,7 +374,7 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 		delta_freq = pll->freq / khz * 0.015 *2 * (i + 1);
 		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
 		pll->kdelta = (((1 << 20) * delta_freq / pll->ref_clk / pll->kstep) -3) / 4;
-#elif defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1)
+#elif defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_PIKE2)
 		delta_freq = delta_freq / khz * (i + 1);
 		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
 		pll->kdelta = ((1 << 20) * delta_freq / pll->ref_clk / pll->kstep);
@@ -397,7 +397,7 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 	u8 *val;
 
 	struct pll_regs regs;
-#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE)
+#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2)
 	u8 regs_addr[] = {
 		0x03, 0x04, 0x06, 0x07, 0x08, 0x09,
 		0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
@@ -439,7 +439,7 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 	regs._0e.bits.pll_pu = 0;
 	regs._0e.bits.kstep_l = pll->kstep & 0x7;
 	regs._0f.bits.det_delay = pll->det_delay;
-#if defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1)
+#if defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_PIKE2)
 	regs._0f.bits.kdelta =  pll->kdelta >> 12;
 #else
 	regs._0f.bits.ldo0p4 = 1 << 2;
@@ -877,7 +877,7 @@ int mipi_dsih_dphy_wakeup_pll(dphy_t *phy)
 void mipi_dsih_dphy_stop_wait_time(dphy_t *phy,
 				u8 no_of_byte_cycles)
 {
-#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE)
+#if defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2)
 	mipi_dsih_dphy_write_part(phy,
 			R_DPHY_MIN_STOP_TIME,
 			no_of_byte_cycles,
