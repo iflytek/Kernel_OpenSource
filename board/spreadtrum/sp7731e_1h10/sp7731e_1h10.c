@@ -83,26 +83,25 @@ int dram_init(void)
 {
 #ifndef CONFIG_ZEBU
 #ifdef CONFIG_DDR_AUTO_DETECT
-	ulong sdram_base = CONFIG_SYS_SDRAM_BASE;
-	ulong sdram_size = 0;
-	int i;
-
-	real_ram_size = 0;
-	ulong bank_cnt = CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM;
-
-	for (i = 1; i <= *(volatile uint32 *)CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM; i++) {
-			real_ram_size += *(volatile ulong *)((volatile ulong *)CONFIG_NR_DRAM_BANKS_ADDR_IN_IRAM + i);
+	chipram_env_t * env = CHIPRAM_ENV_LOCATION;
+	if (CHIPRAM_ENV_MAGIC != env->magic) {
+		printf("Chipram magic wrong , ddr data may be broken\n");
+		return 0;
 	}
 
-	real_ram_size = get_ram_size((volatile void *)sdram_base, real_ram_size);
+	real_ram_size = 0;
+
+	if (env->cs_number == 1) {
+		real_ram_size += env->cs0_size;
+	} else if(env->cs_number == 2){
+		real_ram_size += env->cs0_size;
+		real_ram_size += env->cs1_size;
+	}
 #else
 	real_ram_size = REAL_SDRAM_SIZE;
 #endif
-
-        //gd->ram_size = get_ram_size((volatile void *)PHYS_SDRAM_1,
-        //                PHYS_SDRAM_1_SIZE);
 #endif
-	gd->ram_size = PHYS_SDRAM_1_SIZE;
+       	gd->ram_size = PHYS_SDRAM_1_SIZE;
         return 0;
 }
 

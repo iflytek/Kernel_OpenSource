@@ -177,6 +177,7 @@
 #define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM_1
 #define CONFIG_SYS_MEMTEST_END		(PHYS_SDRAM_1+0x0800000)
 #define CONFIG_STACKSIZE	(256 * 1024)	/* regular stack */
+#define CONFIG_DDR_AUTO_DETECT
 
 /*
  * Flash & Environment
