@@ -347,7 +347,34 @@ int dl_cmd_check_rootflag(dl_packet_t *packet, void *arg)
 
 	return 1;
 }
+#ifdef CONFIG_SPRD_UID
+int dl_cmd_get_chip_uid(dl_packet_t *packet, void *arg)
+{
+	uint32_t *uid = (unsigned int *) (packet->body.content);
+	int ret=0,tmp=0;
+	char *p = (char *)malloc(64);
+	ret = sprd_get_chip_uid(p);
+	if(ret ==0){
+		tmp = strlen(p);
+		tmp = (tmp+1)/2*2;
+		if (8 == tmp) tmp+=2;
+		memset(uid,0,64);
+		memcpy(uid, p, strlen(p));
+		packet->body.size = tmp;
+		packet->body.type = BSL_REP_READ_CHIP_UID;
+		dl_send_packet (packet);
 
+	}else{
+		packet->body.type = BSL_REP_READ_CHIP_UID;
+		packet->body.size = 64;
+		memset(uid,0,64);
+		dl_send_packet (packet);
+	}
+	if(p != NULL)
+		free(p);
+	return 0;
+}
+#else
 #ifdef CONFIG_X86
 int dl_cmd_get_uid_x86(dl_packet_t *packet, void *arg)
 {
@@ -403,6 +430,7 @@ int dl_cmd_get_uid(dl_packet_t *packet, void *arg)
 	dl_send_packet (packet);
 	return 0;
 }
+#endif
 #endif
 
 int dl_cmd_read_ref_info(dl_packet_t *packet, void *arg)
