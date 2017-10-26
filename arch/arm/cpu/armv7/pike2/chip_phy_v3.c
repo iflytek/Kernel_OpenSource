@@ -565,6 +565,7 @@ static void setup_autopd_mode(void)
 		BIT_CA7_EMC_AUTO_GATE_EN |
 		0
 	);
+
 }
 
 static void dcdc_optimize_config(unsigned int para)

@@ -450,9 +450,19 @@ void pmu_commom_config(void)
 #endif /*PMU_CLK_32K*/
 }
 
+static void disable_clkautogate(void)
+{
+	__raw_writel(__raw_readl(REG_AP_AHB_AP_SYS_AUTO_SLEEP_CFG)
+		     & ~(BIT_AP_AHB_CA7_CORE_AUTO_GATE_EN),
+		     REG_AP_AHB_AP_SYS_AUTO_SLEEP_CFG);
+}
+
 void CSP_Init(uint32_t gen_para)
 {
 	pmu_commom_config();
+
+	/* Disable clock auto gating bits */
+	disable_clkautogate();
 }
 #endif
 
