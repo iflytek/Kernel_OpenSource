@@ -737,8 +737,16 @@ static int sprd_small_scale_adc_efuse_get(void)
 	return -1;
 }
 
+void enable_pmic_clock_source(void)
+{
+#if defined(CONFIG_SOC_PIKE2)
+	CHIP_REG_OR(REG_AON_APB_CLK_EB0, BIT_AON_APB_CLK_26M_AUDIO_EB);
+#endif
+}
+
 void pmic_adc_Init(void)
 {
+	enable_pmic_clock_source();
 	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_ADC_EN);	//ADC enable
 	ANA_REG_OR(ANA_REG_GLB_ARM_CLK_EN, BIT_CLK_AUXAD_EN | BIT_CLK_AUXADC_EN);	//enable auxad clock
 	ANA_REG_OR(ANA_REG_GLB_XTL_WAIT_CTRL, BIT_XTL_EN);	//enable clk
