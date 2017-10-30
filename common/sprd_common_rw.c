@@ -755,8 +755,16 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 		offset += part_start;
 	}
 
-	return block_dev_erase(dev_desc, size, offset);
-
+	if(block_dev_erase(dev_desc, size, offset))
+		return -1;
+		
+	if (0 == strcmp(part_name, "uboot")) {
+		uchar buf[512] = { 0x5A };
+		printf("Use Write 5A pattern to uboot partition for check download status\n");
+		 if (common_raw_write(part_name,(uint64_t)1, (uint64_t)0, (uint64_t)0, buf))
+			return -1;
+	}
+	return 0;
 }
 
 int common_write_backstage(char *part_name, uint32_t size, uint64_t offset, char *buf)
