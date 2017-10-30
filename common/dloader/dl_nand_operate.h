@@ -75,6 +75,8 @@ typedef struct MCP_TYPE {
 #define FDL_BUF_LEN  (1*1024*1024)
 #endif
 
+#define DATETIME_OFFSET 0x81400
+#define DATATIME_PARTNAME "miscdata"
 /**
  * dl_download_start
  *

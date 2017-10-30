@@ -1151,6 +1151,14 @@ OPERATE_STATUS dl_get_mcptype(uchar * content, uint16_t * size)
 	return 1;
 }
 
+OPERATE_STATUS dl_record_pacdatetime(uchar * buf, uint64_t size)
+{
+	if(0 != common_raw_write(DATATIME_PARTNAME, size, (uint64_t)0, DATETIME_OFFSET, buf)){
+		return OPERATE_WRITE_ERROR;
+	}
+	return OPERATE_SUCCESS;
+}
+
 OPERATE_STATUS dl_read_ref_info(char *part_name, uint16_t size, uint64_t offset,
 	uchar *receive_buf, uchar  *transmit_buf)
 {}

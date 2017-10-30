@@ -729,7 +729,7 @@ STATIC_FUNC int __param_init_buf(NAND_CTL * this)
 #endif
 	uint32_t mBuf_size = (1 << this->bufShift);
 	uint32_t sBuf_size = (1 << (this->bufShift - this->sectShift)) * this->param.nSpareSize;
-	uint32_t stsBuf_size = ((1 << (this->bufShift - this->sectShift))*(sizeof(struct nand_ecc_stats)))/16;
+	uint32_t stsBuf_size = ((1 << (this->bufShift - this->sectShift))*(sizeof(struct nand_ecc_stats)));
 
 #ifdef _DEBUG_NAND_
 	mBuf_size += 512;
@@ -1053,13 +1053,13 @@ err:
 
 /*
 mtd->ecc_stats
-	__u32 corrected:	纠错次数
-	__u32 failed;		ecc失败个数
-	__u32 badblocks;	坏块个数
+	__u32 corrected:
+	__u32 failed;
+	__u32 badblocks;
 	__u32 bbtblocks;
 
 chip->ecc.correct:
-	此函数
+
 
 */
 /*
@@ -1089,8 +1089,6 @@ STATIC_FUNC int _readPageInBlk(NFC_BASE_T * nfcBase, uint32_t page,
 #ifdef _DEBUG_NAND_
 	_chkMem(this);
 #endif
-	//GenPageSeed(0);
-	//NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
 	_selectCS(this, __GETCS(page));
 	this->NFC_sts_mach_val = _MACH_READ;
 	this->NFC_time0_val = this->NFC_Time0_R;
@@ -1654,22 +1652,23 @@ void set_header_info(u8 *bl_data, struct mtd_info *nand, int ecc_pos)
 
 int nand_write_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
 {
-    uint32_t ifHasMBuf = 1;
-    uint32_t ifHasSBuf = 1;
+	uint32_t ifHasMBuf = 1;
+	uint32_t ifHasSBuf = 1;
 	uint32_t cfg4 = 0;
-    NFC_BASE_T *nfcBase = (NFC_BASE_T * )mtd->priv ;
-    NAND_CTL *this = (NAND_CTL *) nfcBase->priv;
+	NFC_BASE_T *nfcBase = (NFC_BASE_T * )mtd->priv ;
+	NAND_CTL *this = (NAND_CTL *) nfcBase->priv;
 
 	cfg4 = sprd_dolphin_reg_read(NFC_CFG4_REG);
 	cfg4 &=(~_CFG4_ONLY_SEL_MODE);
-    memset(this->mBuf_p,0xff,(1 << this->pageShift));
-    memcpy(this->mBuf_p,buf,(1 << this->pageShift));
-    memset(this->sBuf_p,0xFF, (1 << (this->bufShift - this->sectShift)));
+	memset(this->mBuf_p,0xff,(1 << this->pageShift));
+	memcpy(this->mBuf_p,buf,(1 << this->pageShift));
+	memset(this->sBuf_p,0xFF, (1 << (this->bufShift - this->sectShift)));
 	__32reg_write(NFC_CFG1_REG, (uint32_t)this->NFC_cfg1);
 	__32reg_write(NFC_CFG2_REG, (uint32_t)this->NFC_cfg2);
 	__32reg_write(NFC_CFG4_REG, cfg4);
 	GenPageSeed(0);
 	NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
+	flush_cache((unsigned int)seedBuf,sizeof(seedBuf));
 	callback_writePageInBlk(nfcBase, page,
 					1, NULL,ifHasMBuf, ifHasSBuf,
 					MTD_OPS_PLACE_OOB);
@@ -1689,8 +1688,6 @@ STATIC_FUNC int callback_writePageInBlk(NFC_BASE_T * nfcBase, uint32_t page,
 #ifdef _DEBUG_NAND_
 	_chkMem(this);
 #endif
-	//GenPageSeed(0);
-	//NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
 	_selectCS(this, __GETCS(page));
 	this->NFC_sts_mach_val = _MACH_WRITE;
 	this->NFC_time0_val = this->NFC_Time0_W;
@@ -1798,8 +1795,6 @@ STATIC_FUNC int callback_eraseBlk(NFC_BASE_T * nfcBase, uint32_t page)
 #ifdef _DEBUG_NAND_
 	_chkMem(this);
 #endif
-	//GenPageSeed(0);
-	//NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
 	_selectCS(this, __GETCS(page));
 	this->NFC_sts_mach_val = _MACH_ERASE;
 	this->NFC_time0_val = this->NFC_Time0_E;
