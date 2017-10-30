@@ -10,7 +10,7 @@
 
 #define SPRD_DEBUG_LEVEL		2
 
-#define CONFIG_KERNEL_BOOT_CP
+//#define CONFIG_KERNEL_BOOT_CP
 
 #define CONFIG_MEM_LAYOUT_DECOUPLING
 
@@ -212,14 +212,36 @@
 #define CONFIG_EMMC_VERSION_R10P0
 
 /*eMMC boot*/
-#define CONFIG_EMMC_BOOT
-#define CONFIG_GENERIC_MMC
+//#define CONFIG_EMMC_BOOT
+//#define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
 
 /*file system config*/
 #define CONFIG_FAT_WRITE
-#define CONFIG_FS_EXT4
+//#define CONFIG_FS_EXT4
+#define CONFIG_NAND_BOOT
 
+#ifdef CONFIG_NAND_BOOT
+#define CONFIG_SYS_NAND_BASE		(0x20C00000)
+#define CONFIG_SYS_NAND_U_BOOT_OFFS	0x40000
+
+#define CONFIG_CMD_NAND
+#define CONFIG_CMD_UBI
+
+#define UBIPAC_PART  "ubipac"
+#define MTDIDS_DEFAULT "nand0=sprd-nand"
+#define MTDPARTS_DEFAULT "mtdparts=sprd-nand:256k(splloader),768k(uboot),256k(sml),256k(trustos),-(ubipac)"
+
+/* NAND */
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_MTD_DEVICE
+#define CONFIG_RBTREE
+#define  CONFIG_CMD_UBIFS
+#define CONFIG_LZO
+#endif
 
 /*used in usb drv*/
 #define CHIP_ENDIAN_LITTLE
