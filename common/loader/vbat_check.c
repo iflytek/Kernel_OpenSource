@@ -29,7 +29,7 @@ uint32_t get_vbat_value(void)
 
 #define ADC_CHANNEL_VBAT 5
 
-int32_t ADC_GetValue(unsigned int id, bool scale)
+int32_t ADC_GetValue(unsigned int id, int scale)
 {
 	int32_t result;
 
@@ -46,6 +46,11 @@ int is_bat_low(void)
 	uint16_t comp_vbat = 0;
 	uint16_t vol_vbat;
 	int i;
+#if defined(CONFIG_ADIE_SC2720)
+	int vbat_scale = ADC_SCALE_3;
+#else
+	int vbat_scale = ADC_SCALE_0;
+#endif
 
 	if (charger_connected()) {
 		comp_vbat = LOW_BAT_VOL_CHG;
@@ -56,7 +61,7 @@ int is_bat_low(void)
 	for (i = 0; i < _BUF_SIZE; i++) {
 retry_adc:
 
-		adc_value = ADC_GetValue(ADC_CHANNEL_VBAT, false);
+		adc_value = ADC_GetValue(ADC_CHANNEL_VBAT, vbat_scale);
 		if (adc_value < 0) {
 			printf("ADC read error\n");
 			udelay(10);

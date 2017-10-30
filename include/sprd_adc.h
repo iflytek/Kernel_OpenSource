@@ -24,6 +24,10 @@
 #define ADC_BIG_SCALE     1
 #define ADC_SMALL_SCALE   0
 #define ADC_MESURE_NUMBER       15
+#define ADC_SCALE_0	0
+#define ADC_SCALE_1	1
+#define ADC_SCALE_2	2
+#define ADC_SCALE_3	3
 
 struct sprd_adc_cal {
 	uint16_t p0_vol;	//4.2V

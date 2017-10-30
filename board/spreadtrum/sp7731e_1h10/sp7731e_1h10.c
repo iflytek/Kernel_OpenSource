@@ -108,8 +108,8 @@ int dram_init(void)
 
 CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 
-	/*Temporary cancel of low power check*/
-	//get_mode_from_bat_low,
+	/*low power check*/
+	get_mode_from_bat_low,
 	write_sysdump_before_boot_extend,
 	/* 1 get mode from file*/
 	get_mode_from_file_extend,

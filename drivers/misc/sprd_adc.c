@@ -81,6 +81,15 @@ typedef unsigned int u32;
 #define RATIO(_n_, _d_) (_n_ << 16 | _d_)
 
 static u32 ana_chip_id;
+extern void tmr_udelay (unsigned long usec);
+
+__attribute__((weak))
+void tmr_udelay (unsigned long usec)
+{
+	volatile int32_t i;
+	unsigned long cnt = 255 * usec;
+	for (i = 0; i < cnt; i++) ;
+}
 
 struct sprd_adc_cal big_scale_cal = {
 	4200, 3310,
@@ -188,7 +197,7 @@ int32_t pmic_adc_get_values(uint16_t channel, int scale, uint8_t num,
 	/* wait adc complete */
 	count = 1000;
 	while (!(ANA_REG_GET(ADC_INT_SRC) & ADC_IRQ_RAW_BIT) && count--) {
-		for (i = 0; i < 0xff; i++) ;
+		tmr_udelay(10);
 	}
 	if (count <= 0) {
 		sprd_warning("warn: read adc value timeout....\n");
@@ -737,16 +746,8 @@ static int sprd_small_scale_adc_efuse_get(void)
 	return -1;
 }
 
-void enable_pmic_clock_source(void)
-{
-#if defined(CONFIG_SOC_PIKE2)
-	CHIP_REG_OR(REG_AON_APB_CLK_EB0, BIT_AON_APB_CLK_26M_AUDIO_EB);
-#endif
-}
-
 void pmic_adc_Init(void)
 {
-	enable_pmic_clock_source();
 	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_ADC_EN);	//ADC enable
 	ANA_REG_OR(ANA_REG_GLB_ARM_CLK_EN, BIT_CLK_AUXAD_EN | BIT_CLK_AUXADC_EN);	//enable auxad clock
 	ANA_REG_OR(ANA_REG_GLB_XTL_WAIT_CTRL, BIT_XTL_EN);	//enable clk
