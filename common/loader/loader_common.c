@@ -150,7 +150,9 @@ int set_fblockflag(unsigned int flag)
 #ifdef CONFIG_VBOOT_DUMP
 	do_hex_dump(tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
 #endif
+#ifdef CONFIG_VBOOT_V2
 	uboot_encrypt_data(tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+#endif
 #ifdef CONFIG_VBOOT_DUMP
 	do_hex_dump(tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
 #endif

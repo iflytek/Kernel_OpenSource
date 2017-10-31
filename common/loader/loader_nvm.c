@@ -1081,6 +1081,9 @@ int loader_binding_state_get(void)
 
 int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status_len)
 {
+#ifndef CONFIG_VBOOT_V2
+	return -1; /*default status : locked*/
+#else
 	uint8_t data_buffer[128] __attribute__((aligned(4096)));
 	uint8_t * v_lock_state_ret = (uint8_t *)data_buffer + PDT_INFO_LOCK_FLAG_MAX_SIZE;
 
@@ -1113,10 +1116,14 @@ int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status
 	}
 
 	return ret;
+#endif
 }
 
 int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
 {
+#ifndef CONFIG_VBOOT_V2
+	return 0; /*default : verify pwd pass.*/
+#else
 	uint8_t data_buffer[256] __attribute__((aligned(4096)));
 	//uint8_t *pwdptr = (uint8_t *)data_buffer + PDT_INFO_UNLOCK_PWD_MAX_SIZE;
 
@@ -1153,6 +1160,7 @@ int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
 	}
 
 	return ret;
+#endif
 }
 
 void pass_pubkey_to_tos(void)
