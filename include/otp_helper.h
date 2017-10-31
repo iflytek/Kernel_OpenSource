@@ -11,6 +11,7 @@ extern void pmic_efuse_block_dump(void);
 extern void ap_efuse_block_dump(void);
 extern void sprd_uid_bin_info(void);
 extern int sprd_get_chip_uid(char *buf);
+extern int sprd_secure_efuse_read(u32 start_id, u32 end_id, u32 *pReadData,u32 Isdouble);
 extern void ap_sansa_efuse_prog_power_on(void);
 extern void ap_sansa_efuse_power_off(void);
 extern void sansa_enable_efuse_EB(void);

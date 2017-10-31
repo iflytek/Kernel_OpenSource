@@ -21,7 +21,6 @@
 #include <common.h>
 #include <otp_helper.h>
 #include <chipram_env.h>
-#include <secureboot/sec_efuse.h>
 
 #ifndef UID_START
 #define UID_START	0
@@ -43,12 +42,12 @@ int sprd_get_chip_uid(char *buf)
 	if (!buf)
 		return -1;
 
-#if defined (CONFIG_SOC_SHARKLE)
+#if defined (CONFIG_SPRD_AP_NORMAL_EFUSE)
 	if(get_chipram_env()->mode == BOOTLOADER_MODE_DOWNLOAD){
-		if (efuse_read_drv(UID_START, UID_START, &blocks[1], UID_DOUBLE)) {
+		if (sprd_secure_efuse_read(UID_START, UID_START, &blocks[1], UID_DOUBLE)) {
 			return -2;
 		}
-		if (efuse_read_drv(UID_END, UID_END, &blocks[0], UID_DOUBLE)) {
+		if (sprd_secure_efuse_read(UID_END, UID_END, &blocks[0], UID_DOUBLE)) {
 			return -2;
            }
 	}else{
