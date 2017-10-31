@@ -241,7 +241,7 @@ AvbIOResult read_is_device_unlocked(AvbOps* ops, bool* out_is_unlocked) {
     *out_is_unlocked = false;
   }
 
-  avb_debugv("read_is_device_unlocked() get DeviceStatus 0x%x, *out_is_unlocked is %d.\n", g_DeviceStatus, *out_is_unlocked, NULL);
+  debug("read_is_device_unlocked() get DeviceStatus 0x%x, *out_is_unlocked is %d.\n", g_DeviceStatus, *out_is_unlocked);
   return AVB_IO_RESULT_OK;
 }
 
