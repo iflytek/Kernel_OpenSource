@@ -1,6 +1,6 @@
 /*This file is created by PINMAP tool
  *Device: SC9832E
- *Version: SC9832_1_IRD_E_SCH_V1.0.0_Pinmap_V1.0 20170803
+ *Version: SC9832_1_IRD_E_SCH_V1.0.0_PINMAP_V1.3
  *Creat Time: 2017/7/11 10:10:46
  *Author: 
  */
@@ -73,17 +73,17 @@ static pinmap_t pinmap[]={
 {REG_PIN_CMPD2,                         BITS_PIN_AF(3)},
 {REG_MISC_PIN_CMPD2,                    BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//CAM_PWDN2??PowerDown????????????Debugmode0??
 {REG_PIN_CMRST2,                        BITS_PIN_AF(3)},
-{REG_MISC_PIN_CMRST2,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPU|BIT_PIN_SLP_OE},//CAM_RST2????????????????Debugmode0??
+{REG_MISC_PIN_CMRST2,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//CAM_RST2????????????????Debugmode0??
 {REG_PIN_CMMCLK0,                       BITS_PIN_AF(0)},
 {REG_MISC_PIN_CMMCLK0,                  BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//CAM_MCLK0?????????????
 {REG_PIN_CMRST0,                        BITS_PIN_AF(3)},
-{REG_MISC_PIN_CMRST0,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPU|BIT_PIN_SLP_OE},//CAM_RST0?????????????????Debugmode0??
+{REG_MISC_PIN_CMRST0,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//CAM_RST0?????????????????Debugmode0??
 {REG_PIN_CMPD0,                         BITS_PIN_AF(3)},
 {REG_MISC_PIN_CMPD0,                    BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//CAM_PWDN0??PowerDown?????????????Debugmode0??
 {REG_PIN_CMMCLK1,                       BITS_PIN_AF(0)},
 {REG_MISC_PIN_CMMCLK1,                  BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//CAM_MCLK1???????????????????
 {REG_PIN_CMRST1,                        BITS_PIN_AF(3)},
-{REG_MISC_PIN_CMRST1,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPU|BIT_PIN_SLP_OE},//CAM_RST1?????????????????Debugmode0??
+{REG_MISC_PIN_CMRST1,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//CAM_RST1?????????????????Debugmode0??
 {REG_PIN_CMPD1,                         BITS_PIN_AF(3)},
 {REG_MISC_PIN_CMPD1,                    BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//CAM_PWDN1??PowerDown?????????????Debugmode0??
 {REG_PIN_U0TXD,                         BITS_PIN_AF(0)},
