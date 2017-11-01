@@ -52,7 +52,7 @@ static void sprdchg_timer_callback(void)
 void sprdbat_lowbat_chg(void)
 {
 	enum sprd_adapter_type charger = sprdchg_charger_is_adapter();
-	unsigned int vbat_vol = sprdbat_get_aux_vbatvol();
+	unsigned int vbat_vol = sprdfgu_read_vbat_vol();
 	static unsigned int polling_cnt = 0;
 	static int dead_bat_flag = 0;
 
@@ -166,7 +166,7 @@ void sprdbat_init(void)
 		}
 
 		debugf("chg_cur:%d,limit_cur:%d\n",chg_cur,limit_cur);
-		vbat_vol = sprdbat_get_aux_vbatvol();
+		vbat_vol = sprdfgu_read_vbat_vol();
 		/* if battery voltage is low, we use small current to charge */
 		if (vbat_vol < FAST_CHG_VOL)
 			chg_cur = SDP_CHG_CUR;

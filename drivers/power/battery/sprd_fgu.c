@@ -38,10 +38,56 @@ extern void power_down_devices(unsigned pd_cmd);
 #define BITS_POWERON_TYPE(_x_)           ( (_x_) << 12 & (0xF000))
 #define BITS_RTC_AREA_SHIFT     0
 #define BITS_RTC_AREA(_x_)           ( (_x_) << 0 & (0xFFF) )
+#define BITSINDEX(b, o, w)		((b) * (w) + (o))
 
 #define FIRST_POWERTON  0xF
 #define NORMAIL_POWERTON  0x5
 #define WDG_POWERTON  0xA
+
+#define SPRDBAT_FGUADC_CAL_NO         	0
+#define SPRDBAT_FGUADC_CAL_NV         	1
+#define SPRDBAT_FGUADC_CAL_CHIP		2
+
+static int fgu_nv_4200mv = 2752;
+static int fgu_nv_3600mv = 2374;
+
+struct sprdfgu_cal {
+	int vol_1000mv_adc;
+	int vol_offset;
+	int cal_type;
+};
+
+static struct sprdfgu_cal fgu_cal =
+	{ 2872, 0, SPRDBAT_FGUADC_CAL_NO};
+
+static u32 sprdfgu_adc2vol_mv(u32 adc)
+{
+	return ((adc + fgu_cal.vol_offset) * 1000)
+		/ fgu_cal.vol_1000mv_adc;
+}
+
+static  int sprdfgu_reg_get(unsigned long reg)
+{
+	int old_value = sci_adi_read(reg);
+	int new_value, times = 1000;
+
+	while ((old_value != (new_value = sci_adi_read(reg))) &&
+		(times > 0)) {
+		old_value = new_value;
+		times--;
+	}
+	return new_value;
+}
+
+uint32_t sprdfgu_read_vbat_vol(void)
+{
+	u32 cur_vol_raw;
+	uint32_t temp;
+
+	cur_vol_raw = sprdfgu_reg_get(REG_FGU_VOLT_VAL);
+	temp = sprdfgu_adc2vol_mv(cur_vol_raw);
+	return temp;
+}
 
 static void sprdfgu_rtc_reg_write(uint32_t val)
 {
@@ -71,11 +117,68 @@ static uint32_t sprdfgu_poweron_type_read(void)
 	    >> BITS_POWERON_TYPE_SHIFT;
 }
 
+static int sprdfgu_cal_get(unsigned int *p_cal_data)
+{
+	unsigned int data;
+
+#if defined(CONFIG_ADIE_SC2723)
+	data = sprd_pmic_efuse_read_bits(BITSINDEX(12, 0, 8), 9);
+	debugf("fgu_cal_get 4.2 data data: 0x%x\n", data);
+	p_cal_data[0] = (data + 6963) - 4096 - 256;
+
+	return 0;
+
+#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)|| defined(CONFIG_ADIE_SC2720)
+	data = sprd_pmic_efuse_read_bits(BITSINDEX(3, 0, 16), 9);
+	debugf("fgu_cal_get 4.2 data data: 0x%x\n", data);
+	p_cal_data[0] = (data + 6963) - 4096 - 256;
+
+	return 0;
+#endif
+}
+
+static void sprdfgu_cal_init(void)
+{
+	if (fgu_nv_3600mv == 0) {
+		fgu_cal.vol_1000mv_adc =
+		    DIV_ROUND_CLOSEST((fgu_nv_4200mv) * 10, 42);
+		fgu_cal.vol_offset = 0;
+	} else {
+		fgu_cal.vol_1000mv_adc =
+		    DIV_ROUND_CLOSEST((fgu_nv_4200mv - fgu_nv_3600mv) * 10, 6);
+		fgu_cal.vol_offset =
+		    0 - (fgu_nv_4200mv * 10 - fgu_cal.vol_1000mv_adc * 42) / 10;
+	}
+
+	debugf("4200mv=%d, 3600mv=%d\n", fgu_nv_4200mv, fgu_nv_3600mv);
+
+	debugf("fgu_cal.vol_1000mv_adc=%d, vol_offset=%d\n",
+		fgu_cal.vol_1000mv_adc, fgu_cal.vol_offset);
+}
+
 #define mdelay(_ms) udelay(_ms*1000)
 unsigned int fgu_vol, fgu_cur;
+
+static int sprdfgu_cal_from_chip(void)
+{
+	unsigned int fgu_data[4] = { 0 };
+
+	if (sprdfgu_cal_get(fgu_data)) {
+		debugf("efuse no cal data\n");
+		return 1;
+	}
+
+	debugf("fgu_data: 0x%x\n", fgu_data[0]);
+
+	fgu_nv_4200mv = fgu_data[0];
+	fgu_nv_3600mv = 0;
+	fgu_cal.cal_type = SPRDBAT_FGUADC_CAL_CHIP;
+	debugf("sprdfgu: one point\n");
+	return 0;
+}
+
 void sprdfgu_init(void)
 {
-
 	sci_adi_set(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_FGU_EN);
 #if defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 	sci_adi_set(ANA_REG_GLB_RTC_CLK_EN, BIT_RTC_FGU_EN);
@@ -86,12 +189,12 @@ void sprdfgu_init(void)
 	sci_adi_set(REG_FGU_INT_CLR, 0xFFFF);
 	sci_adi_write(REG_FGU_CURT_OFFSET, 0, ~0);	//init offset after watchdog reset
 
-	//mdelay(1000);
+	sprdfgu_cal_from_chip();
+	sprdfgu_cal_init();
 
 	fgu_vol = 0;		//sci_adi_read(REG_FGU_VOLT_VAL);
-
 	fgu_cur = 0;		//sci_adi_read(REG_FGU_CURT_VAL);
-	debugf("fgu_init fgu_vol 0x%x fgu_cur 0x%x \n", fgu_vol, fgu_cur);
+	debugf("fgu_vol: 0x%x fgu_cur: 0x%x\n", fgu_vol, fgu_cur);
 
 	if (charger_connected() && sprdbat_is_battery_connected()) {
 		if ((FIRST_POWERTON == sprdfgu_poweron_type_read())

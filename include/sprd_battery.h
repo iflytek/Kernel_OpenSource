@@ -34,6 +34,7 @@ void sprdbat_show_chglogo(void);
 void sprdbat_chg_led(int on);
 uint32_t sprdbat_get_aux_vbatvol(void);
 void sprdchg_common_cfg(void);
+uint32_t sprdfgu_read_vbat_vol(void);
 
 /* ext chg ic init function*/
 void sprdchg_fan54015_init(void);
