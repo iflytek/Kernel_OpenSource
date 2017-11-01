@@ -183,8 +183,8 @@ AvbIOResult validate_vbmeta_public_key(
     do_hex_dump((uint8_t *)sprd_vboot_key_in_vbmeta, SPRD_RSA4096PUBK_HASHLEN);
 #endif
 
-    if (public_key_hash_length != SPRD_RSA4096PUBK_HASHLEN ||
-	avb_safe_memcmp(public_key_hash, sprd_vboot_key_in_vbmeta, SPRD_RSA4096PUBK_HASHLEN) != 0) {
+    if (((uint32_t)public_key_hash_length != (uint32_t)SPRD_RSA4096PUBK_HASHLEN) ||
+	(avb_safe_memcmp(public_key_hash, sprd_vboot_key_in_vbmeta, SPRD_RSA4096PUBK_HASHLEN) != 0)) {
 	avb_debugv("expected_public_key is not matched.\n", NULL);
 	avb_errorv("vbmeta",
 		": Public key used to sign data does not match key in chain "
