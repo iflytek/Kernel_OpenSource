@@ -68,6 +68,13 @@ void dl_cmd_handler(void)
 				continue;
 			cmd->handle(pkt,NULL);
 			dl_free_packet(pkt);
+
+		/*
+		 * in for(;;) loop, there should be no other log except handle func,
+		 * otherwise common_raw_write() will be called all the time and will
+		 * slow the download speed
+		 */
+			write_log();
 			break;
 		}
 		/* cannot found the cmd in cmdlist */

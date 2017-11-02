@@ -77,6 +77,8 @@ typedef volatile unsigned char	vu_char;
 #include <asm/arch/hardware.h>
 #endif
 
+#include <sprd_log.h>
+
 #include <part.h>
 #include <flash.h>
 #include <image.h>

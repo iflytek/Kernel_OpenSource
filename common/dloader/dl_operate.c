@@ -676,6 +676,9 @@ OPERATE_STATUS dl_erase(uchar * partition_name, uint64_t size)
 		debugf("Erase all!\n");
 		if (0 != common_raw_erase(partition_name, 0, 0))
 			return OPERATE_WRITE_ERROR;
+
+		/* in download mode, initialize log if uboot log partition is erased */
+		reinit_write_log();
 	} else {
 		debugf("erase partition %s!\n", partition_name);
 
@@ -690,7 +693,12 @@ OPERATE_STATUS dl_erase(uchar * partition_name, uint64_t size)
 				return OPERATE_WRITE_ERROR;
 		}
 
+		if(0 == strcmp(partition_name, UBOOT_LOG_PARTITION)) {
+		/* in download mode, initialize log if uboot log partition is erased */
+			reinit_write_log();
+		}
 	}
+
 
 	return OPERATE_SUCCESS;
 }

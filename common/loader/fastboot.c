@@ -911,6 +911,7 @@ again:
 		debugf("fastboot: %s, r:%d\n", buffer, r);
 
 		for (cmd = cmdlist; cmd; cmd = cmd->next) {
+			write_log();
 			if (memcmp(buffer, cmd->prefix, cmd->prefix_len))
 				continue;
 			debugf("Receive cmd from host :%s \n", cmd->prefix);
@@ -926,6 +927,7 @@ again:
 	}
 	fastboot_state = STATE_OFFLINE;
 	debugf("fastboot: oops!\n");
+	write_log();
 }
 
 static int fastboot_handler(void *arg)

@@ -280,6 +280,8 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 
 	if ((bootmode > CMD_POWER_DOWN_DEVICE) &&(bootmode < CMD_MAX_MODE)&& (0 != boot_mode_array[bootmode])) {
 		debugf("enter boot mode %d\n", bootmode);
+		write_log();
+
 		boot_mode_array[bootmode]();
 	} else {
 #ifdef CONFIG_FPGA
@@ -288,6 +290,7 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 		normal_mode();
 #else
 		debugf("power down device\n");
+		write_log();
 		power_down_devices(0);
 #endif
 		while(1);

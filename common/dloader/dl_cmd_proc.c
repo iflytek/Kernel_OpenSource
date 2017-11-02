@@ -262,6 +262,10 @@ int dl_cmd_repartition(dl_packet_t *pakcet, void *arg)
 	debugf("Partition total num:%d \n", total_partition_num);
 	op_res = dl_repartition(p_part_list, total_partition_num, rp_info.version, rp_info.unit);
 	_send_reply(op_res);
+
+	/* in download mode, write log must be after repartiton action */
+	reinit_write_log();
+
 	return 0;
 }
 

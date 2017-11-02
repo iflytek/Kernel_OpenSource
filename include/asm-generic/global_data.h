@@ -105,6 +105,10 @@ typedef struct global_data {
 #endif
 	struct udevice *cur_serial_dev;	/* current serial device */
 	struct arch_global_data arch;	/* architecture-specific data */
+#ifdef CONFIG_SPRD_LOG
+	LOG_BUFFER log_buffer;  /* sprd uboot log buffer */
+	int sd_fs_type;  /* file system type on sd card for log */
+#endif
 } gd_t;
 #endif
 

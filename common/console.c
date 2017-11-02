@@ -14,6 +14,7 @@
 #include <stdio_dev.h>
 #include <exports.h>
 #include <environment.h>
+#include <sprd_log.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -532,7 +533,19 @@ int printf(const char *fmt, ...)
 	 * anything we ever want to print.
 	 */
 	i = vscnprintf(printbuffer, sizeof(printbuffer), fmt, args);
+
 	va_end(args);
+
+#ifdef CONFIG_SPRD_LOG
+	/* used for log
+	*/
+	if(i > 0 && (gd->log_buffer.spare - 1) >= i) {
+		memcpy(gd->log_buffer.pointer, printbuffer, i);
+		gd->log_buffer.used += i;
+		gd->log_buffer.pointer += i;
+		gd->log_buffer.spare = gd->log_buffer.size - gd->log_buffer.used;
+	}
+#endif
 
 	/* Print the string */
 	puts(printbuffer);

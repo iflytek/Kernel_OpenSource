@@ -93,6 +93,21 @@ static int init_baudrate(void)
 	return 0;
 }
 
+#ifdef CONFIG_SPRD_LOG
+static int init_log_buffer(void)
+{
+	gd->log_buffer.addr = LOG_BUFFER_START_ADDR;
+	gd->log_buffer.pointer = LOG_BUFFER_START_ADDR;
+	gd->log_buffer.size = LOG_BUFFER_SIZE;
+	gd->log_buffer.used = 0;
+	gd->log_buffer.spare = gd->log_buffer.size - gd->log_buffer.used;
+
+	memset((void *)gd->log_buffer.addr, 0, gd->log_buffer.size);
+
+	return (0);
+}
+#endif
+
 static int display_banner(void)
 {
 	printf("\n\n%s\n\n", version_string);
@@ -233,6 +248,9 @@ init_fnc_t *init_sequence[] = {
 	init_baudrate,		/* initialze baudrate settings */
 	serial_init,		/* serial communications setup */
 	console_init_f,		/* stage 1 init of console */
+#ifdef CONFIG_SPRD_LOG
+	init_log_buffer,	/* initialze sprd log buffer  */
+#endif
 	display_banner,		/* say that we are here */
 	print_cpuinfo,		/* display cpu info (and speed) */
 #if defined(CONFIG_DISPLAY_BOARDINFO)
@@ -709,6 +727,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		setenv("mem", (char *)memsz);
 	}
 #endif
+
+	/* initialize uboot log */
+	init_write_log();
 
 	/* main_loop() can return to retry autoboot, if so just run it again. */
 	for (;;) {

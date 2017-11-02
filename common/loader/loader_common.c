@@ -408,6 +408,9 @@ static int start_linux_armv8(uchar *dt_addr)
 
 void vlx_entry(uchar *dt_addr)
 {
+	/* the last time to write log */
+	write_log_last();
+
 #ifdef DFS_ON_ARM7
 	cp_dfs_param_for_arm7();
 #endif
