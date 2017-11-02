@@ -1143,7 +1143,8 @@ int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
 	//get_fbunlockpwd(pwdptr);
 
 #ifdef CONFIG_VBOOT_DUMP
-	vboot_dumpHex("input pwd:", password, PDT_INFO_UNLOCK_PWD_MAX_SIZE);
+	printf("input pwd:\n");
+	do_hex_dump(password, PDT_INFO_UNLOCK_PWD_MAX_SIZE);
 	//vboot_dumpHex("pwd from emmc:", pwdptr, PDT_INFO_UNLOCK_PWD_MAX_SIZE);
 #endif
 	param.a0 = TEESMC_SIPCALL_WITH_ARG;

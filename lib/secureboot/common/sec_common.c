@@ -420,6 +420,8 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 		return;
 	}
 
+	memset(vboot_verify_info, 0, sizeof(VbootVerifyInfo));
+
 	/*public op1: when check vbmeta & other imgs(like boot.)*/
 	secure_get_partition_size(partition_name, &partition_size);
 	if(strcmp("vbmeta",partition_name) == 0){
@@ -627,6 +629,9 @@ void vboot_secure_process_prepare(void)
 void sprd_fb_secure_vboot_prepare(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr)
 {
 	unsigned char sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN];
+
+	memset(vboot_verify_info, 0, sizeof(VbootVerifyInfo));
+
 	/*from uboot get vboot key*/
 	sprd_get_vboot_key((CONFIG_SYS_TEXT_BASE - 0x200), sprd_vboot_key, GET_FROM_RAM);
 
@@ -647,6 +652,10 @@ void sprd_fb_secure_vboot_prepare(char *partition_name, char *img_ram_addr, char
 	strcpy(vboot_para_partition_name, partition_name);
 	vboot_verify_info->img_name = vboot_para_partition_name;
 	vboot_verify_info->img_name_len = SEC_MAX_PARTITION_NAME_LEN;
+
+	memset(g_sprd_vboot_ret, 0, sizeof(g_sprd_vboot_ret));
+	vboot_verify_info->verify_return_data = (VBootResultInfo *)g_sprd_vboot_ret;
+	vboot_verify_info->verify_return_data_len = sizeof(VBootResultInfo);
 	debugf("vboot_verify_info->img_name :%s. \n", vboot_verify_info->img_name);
 }
 
