@@ -14,8 +14,44 @@
 #include "sprd_panel.h"
 
 extern struct panel_driver dummy_mipi_driver;
+extern struct panel_driver ili9881c_xxx_driver;
+extern struct panel_driver nt35532_truly_driver;
+extern struct panel_driver nt35596_boe_driver;
+extern struct panel_driver nt35597_boe_driver;
+extern struct panel_driver nt35597_fpga_driver;
 
 static struct panel_cfg supported_panel[] = {
+#ifdef CONFIG_LCD_ILI9881C_XXX_MIPI_HD
+	{
+		.lcd_id = 0x9881,
+		.drv = &ili9881c_xxx_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_NT35532_TRULY_MIPI_FHD
+	{
+		.lcd_id = 0x32,
+		.drv = &nt35532_truly_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_NT35596_BOE_MIPI_FHD
+	{
+		.lcd_id = 0x96,
+		.drv = &nt35596_boe_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_NT35597_BOE_MIPI_HD
+	{
+		.lcd_id = 0x97,
+		.drv = &nt35597_boe_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_NT35597_FPGA_MIPI_2K
+	{
+		.lcd_id = 0x97,
+		.drv = &nt35597_fpga_driver,
+	},
+#endif
+
 /* warning: the dummy lcd must be the last item in this array */
 	{
 		.lcd_id = 0xFFFF,

@@ -1,1 +1,6 @@
 obj-y += lcd_dummy_mipi_hd.o
+obj-$(CONFIG_LCD_ILI9881C_XXX_MIPI_HD) += lcd_ili9881c_xxx_mipi_hd.o
+obj-$(CONFIG_LCD_NT35532_TRULY_MIPI_FHD) += lcd_nt35532_truly_mipi_fhd.o
+obj-$(CONFIG_LCD_NT35596_BOE_MIPI_FHD) += lcd_nt35596_boe_mipi_fhd.o
+obj-$(CONFIG_LCD_NT35597_BOE_MIPI_HD) += lcd_nt35597_boe_mipi_hd.o
+obj-$(CONFIG_LCD_NT35597_FPGA_MIPI_2K) += lcd_nt35597_fpga_mipi_2k.o
