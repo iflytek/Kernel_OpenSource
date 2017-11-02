@@ -61,6 +61,12 @@ char lcd_is_enabled = 0;
 static void *lcd_base;			/* Start of framebuffer memory	*/
 static char lcd_flush_dcache;	/* 1 to flush dcache after each lcd update */
 
+static uint16_t colormap[256];
+__weak vidinfo_t panel_info = {
+	.vl_bpix = 4,
+	.cmap = colormap,
+};
+
 /* Flush LCD activity to the caches */
 void lcd_sync(void)
 {
@@ -150,6 +156,9 @@ __weak int lcd_get_size(int *line_length)
 	*line_length = (panel_info.vl_col * NBITS(panel_info.vl_bpix)) / 8;
 	return *line_length * panel_info.vl_row;
 }
+
+/* dummy function */
+__weak void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue) {}
 
 int drv_lcd_init(void)
 {

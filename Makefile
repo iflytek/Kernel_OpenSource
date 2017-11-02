@@ -666,10 +666,9 @@ libs-y += drivers/power/ \
 	drivers/power/pmic/ \
 	drivers/power/battery/ \
 	drivers/power/regulator/
-libs-$(CONFIG_LCD) += drivers/video/sprdfb/ \
-	drivers/video/sprdfb/lcd/ \
-	drivers/video/sprdfb/dsi_1_10a/ \
-	drivers/video/sprdfb/dsi_1_21a/
+ifneq ($(CONFIG_VIDEO_SPRD), y)
+libs-$(CONFIG_LCD) += drivers/video/sprdfb/
+endif
 libs-y += drivers/spi/
 libs-$(CONFIG_FMAN_ENET) += drivers/net/fm/
 libs-$(CONFIG_SYS_FSL_DDR) += drivers/ddr/fsl/

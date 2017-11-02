@@ -60,3 +60,5 @@ endif
 obj-$(CONFIG_FPGA)+= sprdfb_gpio2spi.o
 obj-$(CONFIG_FPGA)+= sprdfb_usc28c_init.o
 
+obj-y += lcd/
+obj-y += dsi_1_21a/
