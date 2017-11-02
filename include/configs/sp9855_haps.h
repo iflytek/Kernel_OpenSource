@@ -285,29 +285,17 @@
 #define CORE_CP0                          BIT_0
 #define CORE_CP2                          BIT_2
 
-/*lcd config*/
+/* display config */
 #define CONFIG_LCD
-#ifdef CONFIG_LCD
-#define CONFIG_DSIH_VERSION_1P21A
-#define CONFIG_MIPI_DSIH_SPRD
-#define CONFIG_FB_USE_MEGACORES_MIPI_DPHY
-//#define CONFIG_SPLASH_SCREEN
-#define LCD_BPP LCD_COLOR16
-#define CONFIG_LCD_720P
 #define CONFIG_CMD_BMP
-#define LCM_GPIO_RSTN 50
-#define CONFIG_FB_LCD_ILI9881C_MIPI
-
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_VIDEO_SPRD
+#define CONFIG_DPU_R2P0
+#define CONFIG_DSIH_SPRD_CTRL_RXP0
+#define CONFIG_DPHY_SYNOPSYS_BIDIR_4L
+#define CONFIG_LCD_NT35596_BOE_MIPI_FHD
 #define CONFIG_SYS_WHITE_ON_BLACK
-#ifdef  LCD_TEST_PATTERN
-#define CONSOLE_COLOR_RED 0xf800
-#define CONSOLE_COLOR_GREEN 0x07e0
-#define CONSOLE_COLOR_YELLOW 0x07e0
-#define CONSOLE_COLOR_BLUE 0x001f
-#define CONSOLE_COLOR_MAGENTA 0x001f
-#define CONSOLE_COLOR_CYAN 0x001f
-#endif
-#endif
+#define LCD_BPP LCD_COLOR16
 
 /*rf board id */
 //#define RF_BAND_INFO

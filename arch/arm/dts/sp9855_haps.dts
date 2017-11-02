@@ -20,90 +20,16 @@
 		#size-cells = <2>;
 		ranges;
 
-		pub1_mpu_reserved: mpu1-dump@180000000 {
-			reg = <0x1 0x80000000 0x0 0x1000>;
-		};
-
-		pub0_mpu_reserved: mpu0-dump@874ff000 {
-			reg = <0x0 0x874ff000 0x0 0x1000>;
-		};
-
-		audio_reserved: audio-mem@87500000 {
-			reg = <0x0 0x87500000 0x0 0x300000>;
-		};
-
-		smem_reserved: sipc-mem@87800000 {
-			reg = <0x0 0x87800000 0x0 0x500000>;
-		};
-
-		cp_reserved: cp-modem@87d00000 {
-			reg = <0x0 0x87d00000 0x0 0x7900000>;
-		};
-
-		/* must be 4K aligned */
-		sml_reserved: sml-mem@94000000{
-			reg = <0x0 0x94000000 0x0 0x00100000>;
-		};
-
-		tos_reserved: tos-mem@94100000{
-			reg = <0x0 0x94100000 0x0 0x00f00000>;
-		};
-
-		tos_shm_reserved: sh-mem@95000000{
-			reg = <0x0 0x95000000 0x0 0x00100000>;
-		};
-
-		fb_reserved: framebuffer@4,c9cf0000{
-			reg = <0x0 0xbeb6c000 0x0 0x00a8c000>;
-		};
-
-		overlay_reserved: overlaybuffer@4,cc720000{
-			reg = <0x4 0xcc720000 0x0 0x2ee0000>;
-		};
-
-		/* For cma 4M align, enlarge its size from 0xd840000 to 0xd8d0000 */
-		mm_reserved: multimediabuffer@4,cf600000{
-			reg = <0x4 0xcf600000 0x0 0x10a00000>;
-		};
-
-		system_reserved: systembuffer@5,c64f0000{
-			reg = <0x5 0xc64f0000 0x0 0x19b10000>;
-		};
-
-		iq_reserved: iq-mem{
-			compatible = "sprd,iq-mem";
-			alignment = <0x0 0x1000>;
-			alloc-ranges = <0x0 0x80000000 0 0x45400000>;
-			size = <0x0 0x8000000>;
+		/* 1080x1920x4Bytes x 4Buffers */
+		fb_reserved: framebuffer@be05c000{
+			reg = <0x0 0xbe05c000 0x0 0x01fa4000>;
 		};
 	};
-
 
 	ion {
 		compatible = "sprd,ion";
 		#address-cells = <1>;
 		#size-cells = <0>;
-
-		heap@0 {
-			reg = <0>;
-			label = "system";
-			type = <2>;
-			memory-region = <&system_reserved>;
-		};
-
-		heap@1 {
-			reg = <1>;
-			label = "carveout_mm";
-			type = <2>;
-			memory-region = <&mm_reserved>;
-		};
-
-		heap@2 {
-			reg = <2>;
-			label = "carveout_overlay";
-			type = <2>;
-			memory-region = <&overlay_reserved>;
-		};
 
 		heap@3 {
 			reg = <3>;
@@ -112,4 +38,5 @@
 			memory-region = <&fb_reserved>;
 		};
 	};
+
 };

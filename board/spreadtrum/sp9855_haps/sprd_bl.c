@@ -30,6 +30,11 @@ static void pwm_write(int index, uint32_t value, uint32_t reg)
 	__raw_writel(value, CTL_BASE_PWM + index * 0x20 + reg);
 }
 
+static void __raw_bits_or(unsigned int v, unsigned int a)
+{
+	__raw_writel((__raw_readl(a) | v), a);
+}
+
 void set_backlight(uint32_t brightness)
 {
 #ifndef CONFIG_FPGA
