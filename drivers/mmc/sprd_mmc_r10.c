@@ -21,6 +21,7 @@
 #include <asm/arch/common.h>
 #include <errno.h>
 #include <uboot_sec_drv.h>
+#include <chipram_env.h>
 
 /* Set block count limit because of 16 bit register limit on some hardware*/
 #ifndef CONFIG_SYS_MMC_MAX_BLK_COUNT
@@ -2335,6 +2336,11 @@ int mmc_initialize(bd_t *bis)
 #endif
 
 	do_preinit();
+
+	boot_mode_t boot_role = get_boot_role();
+	if(BOOTLOADER_MODE_DOWNLOAD == boot_role) {
+		return 0;
+	}
 
 	rpmb_size = Emmc_GetCapacity(PARTITION_RPMB);
 	debugf("%s: rpmb size %lld \n", __func__, rpmb_size);
