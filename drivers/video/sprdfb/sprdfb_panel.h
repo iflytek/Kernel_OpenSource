@@ -136,6 +136,7 @@ typedef int32_t (*i2c_write_burst_t)(uint8_t addr, uint8_t* buf, int num);
 typedef void (*spi_send_cmd_t)(uint32_t cmd);
 typedef void (*spi_send_data_t)(uint32_t data);
 typedef void (*spi_read_t)(uint32_t *data, uint32_t len);
+typedef void (*spi_clock_set_t)(unsigned int);
 
 /* LCD operations */
 struct panel_operations {
@@ -201,6 +202,7 @@ struct ops_spi{
 	void (*spi_send_cmd)(uint32_t cmd);
 	void (*spi_send_data)(uint32_t data);
 	void (*spi_read)(uint32_t *data,uint32_t len);
+	void (*spi_clock_set)(unsigned int);
 };
 
 struct ops_mipi{

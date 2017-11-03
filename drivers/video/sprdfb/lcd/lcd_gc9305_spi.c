@@ -279,22 +279,26 @@ static int32_t gc9305_invalidate_rect(struct panel_spec *self,
 }
 static int32_t gc9305_read_id(struct panel_spec *self)
 {
-	//LCD_PRINT("sprdfb:gc9305_read_id\n");
-	//return 0x9305;
 	spi_send_cmd_t spi_send_cmd = self->info.spi->ops->spi_send_cmd;
 	spi_send_data_t spi_send_data = self->info.spi->ops->spi_send_data;
 	spi_read_t spi_read = self->info.spi->ops->spi_read;
+	spi_clock_set_t spi_clock_set = self->info.spi->ops->spi_clock_set;
+	uint32_t i=0;
 	uint32_t lcm_id[4]={0};
+	spi_clock_set(6000000);
 	gc9305_reset();
-	GC9305_SpiWriteCmd(0xFE);
-	GC9305_SpiWriteCmd(0xEF);
-	GC9305_SpiWriteCmd(0x04);
-	//writel(0xf, 0x70b00004);
-	GC9305_SpiRead(lcm_id,4);
-	//writel(0x3, 0x70b00004);
-	LCD_PRINT("sprdfb:gc9305_read_id lcm id[0-3] = 0x%x %x %x %x\n",lcm_id[0],lcm_id[1],lcm_id[2],lcm_id[3]);
-	if(lcm_id[1] == 0x93 && lcm_id[2] == 0x05)
-		return 0x9305;
+	for(i=0;i<4;i++){
+		GC9305_SpiWriteCmd(0xFE);
+		GC9305_SpiWriteCmd(0xEF);
+		GC9305_SpiWriteCmd(0x04);
+		GC9305_SpiRead(lcm_id,4);
+		LCD_PRINT("sprdfb:gc9305_read_id lcm id[0-3] = 0x%x %x %x %x\n",lcm_id[0],lcm_id[1],lcm_id[2],lcm_id[3]);
+		if(lcm_id[1] == 0x93 && lcm_id[2] == 0x05)
+		{
+			spi_clock_set(24000000);
+			return 0x9305;
+		}
+	}
 	return 0x00;
 
 }

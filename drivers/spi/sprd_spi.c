@@ -316,6 +316,14 @@ static void sprd_spi_fifo_rst()
 	writel(0x0, (spi_base + SPI_FIFO_RST));
 }
 
+void sprd_spi_clk_div(unsigned int speed)
+{
+	unsigned long spi_base = sprd_get_spi_base();
+	unsigned int clk_div;
+
+	clk_div = spi_clk_src/(speed << 1) - 1;
+	writel(clk_div, (spi_base + SPI_CLKD));
+}
 
 void sprd_spi_init(struct spi_init_param *spi_param)
 {

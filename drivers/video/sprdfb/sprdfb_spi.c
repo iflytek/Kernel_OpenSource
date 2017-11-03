@@ -102,10 +102,16 @@ BOOLEAN sprdfb_spi_uninit(struct sprdfb_device *dev)
 	return TRUE;
 }
 
+void spi_clock_set(unsigned int speed)
+{
+	sprd_spi_clk_div(speed);
+}
+
 struct ops_spi sprdfb_spi_ops = {
 	.spi_send_cmd = DISPC_SpiWriteCmd,
 	.spi_send_data = DISPC_SpiWriteData,
 	.spi_read = SPI_Read,
+	.spi_clock_set = spi_clock_set,
 };
 
 

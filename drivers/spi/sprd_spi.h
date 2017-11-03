@@ -204,6 +204,7 @@ void sprd_spi_enable(unsigned int spi_id);
 void sprd_spi_disable(unsigned int spi_id);
 void sprd_spi_reset(unsigned int spi_id);
 void sprd_spi_clk_set(unsigned int spi_id, unsigned int clk_src, unsigned int clk_div);
+void sprd_spi_clk_div(unsigned int speed);
 
 void sprd_spi_set_cs(unsigned int spi_sel_csx, unsigned int is_low);
 void sprd_spi_set_cd(unsigned int cd);
