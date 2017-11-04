@@ -15,7 +15,7 @@
 #define EXPAND_FDT_SIZE		0x400
 
 #ifdef CONFIG_SUPPORT_W
-#define PARTITION_PREFIX	"w"
+#define PARTITION_PREFIX	"w_"
 #endif
 
 #ifdef CONFIG_SUPPORT_LTE
