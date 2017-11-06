@@ -299,6 +299,7 @@ static int sprd_set_bus_speed(struct i2c_adapter *adap, int speed)
 	else if (speed == 100000)
 		writel(((4 * APB_clk) / 1000000),
 			i2c_base + ADDR_STA0_DVD);
+	return 0;
 }
 
 static int sprd_i2c_clear_irq(struct i2c_adapter *adap)

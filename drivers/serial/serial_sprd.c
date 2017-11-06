@@ -61,6 +61,7 @@ static int sprd_init( int num, u32 baudrate)
 	writel(UARTCTL_BL8BITS | UARTCTL_SL1BITS, &regs->uart_ctrl0);
 	/* Set baud rate  */
 	writel(baudrate, &regs->uart_ckd0);
+	return 0;
 }
 
 static int sprd_serial_init(void)
