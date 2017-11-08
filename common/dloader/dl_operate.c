@@ -48,6 +48,8 @@ SPECIAL_PARTITION_CFG const s_special_partition_cfg[] = {
 	{{"lf_runtimenv1"}, {"lf_runtimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"wfixnv1"}, {"wfixnv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"wruntimenv1"}, {"wruntimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
+	{{"w_fixnv1"}, {"w_fixnv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
+	{{"w_runtimenv1"}, {"w_runtimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"wl_fixnv1"}, {"wl_fixnv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"wl_runtimenv1"}, {"wl_runtimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"wcnfixnv1"}, {"wcnfixnv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
