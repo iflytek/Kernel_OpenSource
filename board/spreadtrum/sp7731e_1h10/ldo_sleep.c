@@ -19,9 +19,9 @@ void pmic_dcdc_ldo_config(void)
 	regulator_enable("vddcamd");
 	regulator_enable("vddcon");
 	regulator_enable("ldomem");
-	regulator_enable("vddsim0");
-	regulator_enable("vddsim1");
-	regulator_enable("vddsim2");
+	regulator_disable("vddsim0");
+	regulator_disable("vddsim1");
+	regulator_disable("vddsim2");
 	regulator_enable("vddcama");
 	regulator_enable("vddcammot");
 	regulator_enable("vddemmccore");
