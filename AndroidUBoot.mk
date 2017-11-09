@@ -44,6 +44,12 @@ endif
 
 export UBOOT_TOS_TRUSTY_FLAG
 
+ifeq ($(strip $(CONFIG_CHIP_UID)),true)
+UBOOT_CHIP_UID_FLAG += -DCONFIG_CHIP_UID
+endif
+
+export UBOOT_CHIP_UID_FLAG
+
 ifeq ($(strip $(CONFIG_TEE_FIREWALL)),true)
 UBOOT_FIREWALL_FLAG := -DCONFIG_TEE_FIREWALL
 endif

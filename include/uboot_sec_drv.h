@@ -111,6 +111,11 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 #define FUNCTYPE_CRYPTO_DATA 0x31
 #define FUNCTYPE_CHECK_PWD 0x32
 #define FUNCTYPE_CHECK_LOCK_STATUS 0x33
+// add for SOTER-start
+#if defined (CONFIG_CHIP_UID)
+#define FUNCTYPE_SET_CHIP_UID          0x40
+#endif
+// add for SOTER-end
 
 #define BLOCK_NUM_3                      (0x03)
 #define DISABLE_DX_DEBUG_CONTROL         (0x20000000)

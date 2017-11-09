@@ -1243,6 +1243,29 @@ int take_action_with_vbootret(void)
 	return 0;
 }
 #endif
+// add for SOTER start
+#if defined (CONFIG_CHIP_UID)
+void pass_chip_uid_to_tos()
+{
+    //u32 blocks[2]/* = {0} */__attribute__((aligned(4096)));
+    u32 *blocks = VERIFY_ADDR;
+
+    printf("pass_chip_uid_to_tos()...\n");
+#if defined (CONFIG_SPRD_UID)
+    // implements if nessary
+#elif defined (CONFIG_X86)
+    // implements if nessary
+#else
+    blocks[0]= sprd_ap_efuse_read(0);
+    blocks[1]= sprd_ap_efuse_read(1);
+    printf("0x%08x, blocks0: 0x%08x, blk1: 0x%08x\n", blocks, blocks[0], blocks[1]);
+    smc_param *param = tee_common_call(FUNCTYPE_SET_CHIP_UID, (uint32_t)blocks, sizeof(u32)*2);
+    printf("result: 0x%x \n", param->a0);
+#endif
+    return;
+}
+#endif
+// add for SOTER end
 
 uint32_t uboot_start_time;
 void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
@@ -1404,6 +1427,14 @@ extern boot_image_required_t *get_cp_load_table(void);
 	secboot_terminal();
 
 #endif
+
+        // add for SOTER start
+#if defined (CONFIG_CHIP_UID)
+        printf("pass chip id to tos here.\n");
+        pass_chip_uid_to_tos();
+#endif
+        // add for SOTER end
+
 #ifdef CONFIG_TEE_FIREWALL
 	fdt_reserved_mem_multimedia_parse(dt_adr);
 #endif
