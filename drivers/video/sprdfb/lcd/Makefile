@@ -75,3 +75,4 @@ obj-$(CONFIG_FB_LCD_ILI9881C_WEIYI_MIPI_L505)  += l505_lcd_ili9881c_weiyi_mipi.o
 obj-$(CONFIG_FB_LCD_JD9365_ZGD_MIPI_L505)  += l505_lcd_jd9365_zgd_mipi.o
 obj-$(CONFIG_FB_LCD_JD9365_HF_MIPI_L505)  += l505_lcd_jd9365_hf_mipi.o
 obj-$(CONFIG_FB_LCD_OTM1289A_KD_MIPI_L505)  += l505_lcd_otm1289a_kd_mipi.o
+obj-$(CONFIG_FB_LCD_JD9161_FWVGA)  += lcd_jd9161_mipi_fwvga.o
