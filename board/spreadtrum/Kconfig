@@ -177,6 +177,12 @@ config TARGET_SP7731E_1H10
         help
           This is the Spreadtrum sp7731e_1h10 Board
 
+config TARGET_SP7731E_14C10
+        bool "Spreadtrum sp7731e_14c10"
+        select CPU_V7
+        help
+          This is the Spreadtrum sp7731e_14c10 Board
+
 config TARGET_J1VDK
 	bool "Spreadtrum j1vdk"
 	select ARM64
@@ -318,6 +324,7 @@ source "board/spreadtrum/sp9833zebu/Kconfig"
 source "board/spreadtrum/pike2/Kconfig"
 source "board/spreadtrum/sp7731e_fpga/Kconfig"
 source "board/spreadtrum/sp7731e_1h10/Kconfig"
+source "board/spreadtrum/sp7731e_14c10/Kconfig"
 source "board/spreadtrum/j1vdk/Kconfig"
 source "board/spreadtrum/j1fpga/Kconfig"
 source "board/spreadtrum/j1zebu/Kconfig"
@@ -334,4 +341,3 @@ source "board/spreadtrum/sp9820e_2h10/Kconfig"
 source "board/spreadtrum/sp9855_haps/Kconfig"
 source "board/spreadtrum/sp9850ka_2c30/Kconfig"
 endif
-
