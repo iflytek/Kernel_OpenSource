@@ -233,6 +233,12 @@ config TARGET_SP9832E_1H10
 	help
 	  This is the Spreadtrum sharkle Board
 
+config TARGET_SP9832E_1H10_32B
+	bool "Spreadtrum sharkle"
+	select CPU_V7
+	help
+	  This is the Spreadtrum sharkle Board
+
 config TARGET_SP9820E_64B
 	bool "Spreadtrum sharkle"
 	select ARM64
