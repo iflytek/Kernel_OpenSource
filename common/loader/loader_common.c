@@ -275,6 +275,11 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 	fdt_fixup_verified_boot(fdt_blob);
 	fdt_fixup_flash_lock_state(fdt_blob);
 
+#ifdef CONFIG_VBOOT_V2
+		/*for Android O VBooot*/
+		fdt_fixup_ando_vboot(fdt_blob);
+#endif
+
 	/* for non iq mode, remove reserved iq memory from dtb */
 	fdt_fixup_iq_reserved_mem(fdt_blob);
 
