@@ -76,7 +76,7 @@ typedef struct _BOOT_IMG_OFFSET {
 	uint64_t dt_offset;
 }BOOT_IMG_OFFSET;
 static BOOT_IMG_OFFSET boot_img_offset;
-unsigned int g_DeviceStatus = 0xFFFFFFFF;
+unsigned int g_DeviceStatus = VBOOT_STATUS_LOCK;
 
 #ifdef CONFIG_SUPPORT_TDLTE
 static boot_image_required_t const s_boot_image_tl_table[] = {
@@ -1078,16 +1078,7 @@ int loader_binding_state_get(void)
 
 	return g_DeviceStatus;
 }
-#ifdef CONFIG_X86
-int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
-{
-	return 0;
-}
-int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status_len)
-{
-	return 0;
-}
-#else
+
 int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status_len)
 {
 #ifndef CONFIG_VBOOT_V2
@@ -1096,7 +1087,6 @@ int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status
 	uint8_t data_buffer[128] __attribute__((aligned(4096)));
 	uint8_t * v_lock_state_ret = (uint8_t *)data_buffer + PDT_INFO_LOCK_FLAG_MAX_SIZE;
 
-	struct smc_param param;
 	uint32_t ret;
 
 	if(!lockstatus || !status_len || (status_len > PDT_INFO_LOCK_FLAG_MAX_SIZE))
@@ -1111,12 +1101,8 @@ int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status
 #ifdef CONFIG_VBOOT_DUMP
 	do_hex_dump(data_buffer, status_len);
 #endif
-	param.a0 = TEESMC_SIPCALL_WITH_ARG;
-	param.a1 = FUNCTYPE_CHECK_LOCK_STATUS;
-	param.a2 = data_buffer;
-	param.a3 = sizeof(data_buffer);
-	tee_smc_call(&param);
-	ret = param.a0;
+
+	uboot_verify_unlockstatus(data_buffer, sizeof(data_buffer));
 
 	if(*v_lock_state_ret == VBOOT_STATUS_LOCK)
 	{
@@ -1136,7 +1122,6 @@ int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
 	uint8_t data_buffer[256] __attribute__((aligned(4096)));
 	//uint8_t *pwdptr = (uint8_t *)data_buffer + PDT_INFO_UNLOCK_PWD_MAX_SIZE;
 
-	struct smc_param param;
 	uint32_t ret;
 	uint8_t * v_ret = (uint8_t *)data_buffer + PDT_INFO_UNLOCK_PWD_MAX_SIZE * 2;
 
@@ -1154,14 +1139,9 @@ int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
 #ifdef CONFIG_VBOOT_DUMP
 	printf("input pwd:\n");
 	do_hex_dump(password, PDT_INFO_UNLOCK_PWD_MAX_SIZE);
-	//vboot_dumpHex("pwd from emmc:", pwdptr, PDT_INFO_UNLOCK_PWD_MAX_SIZE);
 #endif
-	param.a0 = TEESMC_SIPCALL_WITH_ARG;
-	param.a1 = FUNCTYPE_CHECK_PWD;
-	param.a2 = data_buffer;
-	param.a3 = (sizeof(data_buffer));
-	tee_smc_call(&param);
-	ret = param.a0;
+
+	ret = uboot_verify_pwd(data_buffer, sizeof(data_buffer));
 
 	if(*v_ret == VBOOT_UNLOCK_PWD_CHECK_FAIL)
 	{
@@ -1172,7 +1152,6 @@ int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
 	return ret;
 #endif
 }
-#endif
 
 void pass_pubkey_to_tos(void)
 {
