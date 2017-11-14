@@ -28,3 +28,16 @@ ifneq ($(CONFIG_SOC_SHARKL5),)
 obj-y += sec_efuse_sharkl5.o
 obj-y += sec_efuse_sharkl5_drv.o
 endif
+
+ifneq ($(CONFIG_SC9833)$(CONFIG_SOC_SHARKLJ1)$(CONFIG_SPRD_SOC_SP9853I),)
+ccflags-y := -I$(srctree)/drivers/crypto/sprd/r3p0/inc
+endif
+
+ifneq ($(CONFIG_SOC_PIKE2)$(CONFIG_SOC_SHARKLE)$(CONFIG_SOC_SHARKL3)$(CONFIG_SOC_SHARKL5),)
+ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0lite/inc
+endif
+
+ifneq ($(CONFIG_SOC_IWHALE2),)
+ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0/inc
+endif
+

@@ -26,3 +26,5 @@
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0lite/inc
 
 obj-y += sprd_pkcs1_v1_5.o
+obj-y += sprd_pkcs1_mgf1.o
+obj-y += sprd_pkcs1_pss.o

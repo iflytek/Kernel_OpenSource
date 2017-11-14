@@ -15,7 +15,7 @@
 
 #include <sprd_crypto.h>
 #include <sprd_rsa.h>
-#include <pkcs1/sprd_pkcs1_v1_5.h>
+#include <pkcs1/sprd_pkcs1.h>
 
 static uint8_t buf[SPRD_CRYPTO_RSA_BUF_SIZE] __attribute__ ((aligned(SPRD_PAL_CACHE_LINE)));
 
@@ -218,6 +218,18 @@ sprd_crypto_err_t sprd_rsa_sign(const sprd_rsa_keypair_t *priv_key,
 		break;
 
 	case SPRD_RSASSA_PKCS1_PSS_MGF1:
+		temp = buf;
+		temp_len = priv_key->n_len;
+		err = sprd_pkcs1_pss_encode(dig, dig_size,padding.pad.rsassa_pss.salt_len,
+					padding.pad.rsassa_pss.type,
+					padding.pad.rsassa_pss.mgf1_hash_type,
+					(priv_key->n_len)*8 /*needs bitlen*/,temp, &temp_len);
+		if (err != SPRD_CRYPTO_SUCCESS) {
+			SPRD_CRYPTO_LOG_ERR("rsa pss padding encode failed(0x%x)!\n", err);
+			return err;
+		}
+		break;
+
 	default:
 		SPRD_CRYPTO_LOG_ERR("Bad padding type(%d)!\n", padding.type);
 		return SPRD_CRYPTO_INVALID_PADDING;
@@ -312,6 +324,12 @@ sprd_crypto_err_t sprd_rsa_verify(const sprd_rsa_pubkey_t *pub_key,
 
 
 	case SPRD_RSASSA_PKCS1_PSS_MGF1:
+		err = sprd_pkcs1_pss_decode(dig, dig_size,
+				temp1, temp1_len,
+				padding.pad.rsassa_pss.salt_len, padding.pad.rsassa_pss.type, padding.pad.rsassa_pss.mgf1_hash_type,
+				(pub_key->n_len)*8 /*needs bitlen*/, result);
+		break;
+
 	default:
 		SPRD_CRYPTO_LOG_ERR("Bad padding type(%d)!\n", padding.type);
 		err = SPRD_CRYPTO_INVALID_PADDING;

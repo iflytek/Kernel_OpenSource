@@ -54,6 +54,7 @@ typedef struct {
 
 		struct {
 			sprd_crypto_algo_t type;   /* sha1/sha224/sha256/sha384/sha512 */
+			sprd_crypto_algo_t mgf1_hash_type;   /* sha1/sha224/sha256/sha384/sha512 */
 			uint32_t salt_len;
 		} rsassa_pss;
 	} pad;
