@@ -122,7 +122,7 @@ typedef struct {
 STATIC_FUNC NAND_CTL controller;
 STATIC_FUNC NFC_BASE_T nfc_base;
 
-#define SPRD_NAND_CLOCK	(195)
+#define SPRD_NAND_CLOCK	(390)
 static uint32_t mMcInsNum;
 typedef struct {
 	uint8_t *programName;
@@ -1893,8 +1893,8 @@ STATIC_FUNC int _initGlobeResource(NAND_CTL * this)
 	//printf("the eb0 before write nandc is %x",sprd_dolphin_reg_read(REG_AON_APB_CLK_EB0));
 	//sprd_dolphin_reg_or(REG_AON_APB_CLK_EB0,BIT_AON_APB_NANDC_2X_EB);
 	//printf("the eb0 after write nandc is %x",sprd_dolphin_reg_read(REG_AON_APB_CLK_EB0));
-	sprd_dolphin_reg_write(REG_AP_CLK_CORE_CGM_NANDC_2X_CFG,  (BIT(0)|BIT(1))); //clk = 195M
-	sprd_dolphin_reg_write(REG_AP_CLK_CORE_CGM_NANDC_ECC_CFG,  BIT(0));
+	sprd_dolphin_reg_write(REG_AP_CLK_CORE_CGM_NANDC_2X_CFG, BIT(3)); //clk = 390M
+	sprd_dolphin_reg_write(REG_AP_CLK_CORE_CGM_NANDC_ECC_CFG, BIT(1));//ecc = 256M
 
 	sprd_dolphin_reg_or(REG_AP_AHB_AHB_RST,BIT_AP_AHB_NANDC_SOFT_RST );
 	udelay(1000);

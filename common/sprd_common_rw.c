@@ -1062,7 +1062,11 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 		return;
 	}
 	vol = ubi_open_volume_nm(ubi_dev_num, part_name, UBI_READONLY);
-	uboot_ubi_read(vol, buf, offset,  size);
+	if (IS_ERR(vol)){
+		printf("cannot open \"%s\", error %d", part_name, (int)PTR_ERR(vol));
+		return -1;
+	}
+	uboot_ubi_read(vol, buf, offset, size);
 
 	return 0;
 }
