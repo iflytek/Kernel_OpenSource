@@ -263,7 +263,7 @@ config TARGET_SP9820E_2H10
 	help
 	  This is the Spreadtrum sharkle Board
 
-config TARGET_SP9855_HAPS
+config TARGET_SP9855A_HAPS
 	bool "Spreadtrum sharkl3"
 	select ARM64
 	help
@@ -345,6 +345,6 @@ source "board/spreadtrum/sp9820e_64b/Kconfig"
 source "board/spreadtrum/sp9820e_1h10/Kconfig"
 source "board/spreadtrum/sp9820e_13c10/Kconfig"
 source "board/spreadtrum/sp9820e_2h10/Kconfig"
-source "board/spreadtrum/sp9855_haps/Kconfig"
+source "board/spreadtrum/sp9855a_haps/Kconfig"
 source "board/spreadtrum/sp9850ka_2c30/Kconfig"
 endif

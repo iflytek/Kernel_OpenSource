@@ -9,9 +9,9 @@
 /dts-v1/;
 
 / {
-	model = "Spreadtrum 9855_haps Board";
+	model = "Spreadtrum 9855a_haps Board";
 
-	compatible = "sprd,sp9855_haps";
+	compatible = "sprd,sp9855a_haps";
 
 	sprd,sc-id = <9855 1 0x20000>;
 
