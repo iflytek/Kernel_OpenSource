@@ -360,7 +360,7 @@
 #define CONFIG_CONS_INDEX	0	/* use UART0 for console */
 #define CONFIG_BAUDRATE		921600	/* Default baud rate */
 #else
-#define CONFIG_CONS_INDEX	0	/* use UART0 for console */
+#define CONFIG_CONS_INDEX	1	/* use UART1 for console */
 #define CONFIG_BAUDRATE		115200	/* Default baud rate */
 #endif
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
