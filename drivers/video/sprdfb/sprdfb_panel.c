@@ -85,6 +85,7 @@ extern struct panel_spec lcd_hx8399c_mipi_spec;
 extern struct panel_spec lcd_otm1911_mipi_spec;
 extern struct panel_spec lcd_jd9365_mipi_spec;
 extern struct panel_spec lcd_gc9305_spi_spec;
+extern struct panel_spec lcd_st7789v2_spi_spec;
 extern struct panel_spec lcd_dummy_spi_spec;
 extern struct panel_spec lcd_jd9365_zgd_mipi_spec;
 extern struct panel_spec lcd_jd9365_hf_mipi_spec;
@@ -571,6 +572,13 @@ static struct panel_cfg panel_cfg[] = {
 {
 	.lcd_id = 0x9305,
 	.panel = &lcd_gc9305_spi_spec,
+},
+#endif
+
+#ifdef CONFIG_FB_LCD_ST7789V2_SPI
+{
+	.lcd_id = 0x7789,
+	.panel = &lcd_st7789v2_spi_spec,
 },
 #endif
 
