@@ -266,8 +266,8 @@ static int dphy_calc_pll_param(struct dphy_pll *pll)
 				pll->kstep + pll->sign * (1 << 11);
 	}
 
-	if (pll->mod_en) {
-		delta = pll->freq / khz * 2 * (i + 1) * 15 / 1000;
+	if (1/*pll->mod_en*/) {
+		delta = pll->freq / khz * (i + 1);
 		pll->kstep = pll->ref_clk * mhz * pll->hop_period / mhz;
 		pll->kdelta = (((1 << 20) * delta / pll->ref_clk /
 				pll->kstep));
