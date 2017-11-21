@@ -72,7 +72,8 @@ typedef enum enAntiRBImageType{
 }antirb_image_type;
 #endif
 typedef struct{
-	uint32_t img_ver[IMAGE_TYPE_END];
+    uint32_t img_ver[IMAGE_TYPE_END];
+    uint32_t update_flag;
 }VbootVerInfo;
 
 #define SPRD_FLAG 1
