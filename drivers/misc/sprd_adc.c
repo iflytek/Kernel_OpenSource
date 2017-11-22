@@ -45,6 +45,8 @@ typedef unsigned int u32;
 #define ADC_CTL1                            (ADC_REG_BASE + 0x00B0)
 
 /* ADC_CTRL */
+#define BIT_ADC_OFFSET_CAL_EN		BIT(12)
+#define BIT_AUXAD_AVERAGE(_X_)		(((_X_) & 0x7) << 8)
 #define BIT_SW_CH_RUN_NUM(_X_)		((((_X_) - 1) & 0xF ) << 4)
 #define SW_CH_NUM_MSK				(BIT(4) | BIT(5) | BIT(6) | BIT(7))
 #define ADC_MODE_12B                        BIT_2
@@ -150,7 +152,7 @@ static struct pmic_adc_para para = {
 	.small_cal_efuse_blk = 19,
 	.small_cal_efuse_bit = 16,
 	.big_adc_p0 = 733,
-	.big_adc_p1 = 858,
+	.big_adc_p1 = 856,
 	.big_vol_p0 = 3600,
 	.big_vol_p1 = 4200,
 	.big_cal_efuse_blk = 18,
@@ -195,7 +197,7 @@ int32_t pmic_adc_get_values(uint16_t channel, int scale, uint8_t num,
 	ANA_REG_OR(ADC_CTRL, SW_CH_ON_BIT);
 
 	/* wait adc complete */
-	count = 1000;
+	count = 3000;
 	while (!(ANA_REG_GET(ADC_INT_SRC) & ADC_IRQ_RAW_BIT) && count--) {
 		tmr_udelay(10);
 	}
@@ -331,7 +333,7 @@ static int pmic_adc_set_isen(u8 enable, int isen)
 		sci_adi_clr(ANA_REG_GLB_IB_CTRL, BIT_IB_REX_EN);
 		sci_adi_set(ANA_REG_GLB_IB_CTRL, BIT_BATDET_CUR_EN);
 		sci_adi_set(ANA_REG_GLB_IB_CTRL, BITS_BATDET_CUR_I(isen_bit));
-		udelay(100);
+		tmr_udelay(150);
 	} else {
 		sci_adi_clr(ANA_REG_GLB_IB_CTRL, BITS_BATDET_CUR_I(~0));
 		sci_adi_clr(ANA_REG_GLB_IB_CTRL, BIT_BATDET_CUR_EN);
@@ -752,11 +754,15 @@ void pmic_adc_Init(void)
 	ANA_REG_OR(ANA_REG_GLB_ARM_CLK_EN, BIT_CLK_AUXAD_EN | BIT_CLK_AUXADC_EN);	//enable auxad clock
 	ANA_REG_OR(ANA_REG_GLB_XTL_WAIT_CTRL, BIT_XTL_EN);	//enable clk
 	ANA_REG_OR( ANA_REG_GLB_SOFT_RST0, BIT_ADC_SOFT_RST);
-	udelay(5);
+	tmr_udelay(5);
 	ANA_REG_AND( ANA_REG_GLB_SOFT_RST0, ~BIT_ADC_SOFT_RST);
 
 	ANA_REG_OR(ADC_CTRL, ADC_EN_BIT);
 	ANA_REG_OR(ADC_CTRL, ADC_MODE_12B);
+#if defined(CONFIG_ADIE_SC2720)
+	ANA_REG_OR(ADC_CTRL, BIT_ADC_OFFSET_CAL_EN);
+	ANA_REG_MSK_OR(ADC_CTRL, BIT_AUXAD_AVERAGE(0x3), BIT_AUXAD_AVERAGE(~0));
+#endif
 	ana_chip_id =
 	    ((u32) ANA_REG_GET(ANA_REG_GLB_CHIP_ID_HIGH) << 16) | ((u32)
 								   ANA_REG_GET
