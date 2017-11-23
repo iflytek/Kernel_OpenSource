@@ -12,7 +12,10 @@ endif
 ifneq ($(CONFIG_SOC_IWHALE2)$(CONFIG_SPRD_SOC_SP9853I), )
 obj-y += sec_iefuse.o
 endif
-
+ifneq ($(CONFIG_SOC_PIKE2),)
+obj-y += sec_efuse_pike2.o
+obj-y += sec_efuse_pike2_drv.o
+endif
 ifneq ($(CONFIG_SOC_SHARKLE),)
 obj-y += sec_efuse_sharkle.o
 obj-y += sec_efuse_sharkle_drv.o
