@@ -943,7 +943,8 @@ static void write_to_mmc_x86(char *path, char *filename, int fs_type,
 static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int ofs_remem,
 				int dts_version, struct sysdump_mem *sprd_dump_mem)
 {
-	int x86_dump_mem_num, ret, i = 0;
+	unsigned long long temp_size = 0;
+	int x86_dump_mem_num, ret, j= 0, i = 0;
 	struct sysdump_mem *temp_mem = sprd_dump_mem; 
 
 	/* step1: vmm region */
@@ -1002,7 +1003,35 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 		debugf("auto x86_dump_mem[%d].size  is 0x%llx\n", i, sprd_dump_mem[i].size);
 	}
 
-	 return x86_dump_mem_num;
+	for (i = 0; i < x86_dump_mem_num; i++) {
+		if ((sprd_dump_mem[i].paddr > SYSDUMP_4GB) && (sprd_dump_mem[i].size > SZ_512M)) {
+			debugf("memory section address is more than 4GB and size is more than SZ_512M!!!\n");
+			temp_size = sprd_dump_mem[i].size;
+			debugf("auto x86_dump_mem_num is %d and i is %d\n", x86_dump_mem_num, i);
+			for (j = x86_dump_mem_num; j != i; j--) {
+				sprd_dump_mem[j].paddr = sprd_dump_mem[j-1].paddr;
+				sprd_dump_mem[j].vaddr = sprd_dump_mem[j-1].vaddr;
+				sprd_dump_mem[j].size = sprd_dump_mem[j-1].size;
+				sprd_dump_mem[j].soff  = 0xffffffff;
+				sprd_dump_mem[j].type  = SYSDUMP_RAM;
+			}
+
+			sprd_dump_mem[i].size = SZ_512M;
+
+			sprd_dump_mem[i+1].paddr = sprd_dump_mem[i].paddr + SZ_512M;
+			sprd_dump_mem[i+1].vaddr = __va(sprd_dump_mem[i+1].paddr);
+			sprd_dump_mem[i+1].size = temp_size - SZ_512M;
+
+			x86_dump_mem_num ++;
+		}
+	}
+
+	debugf("auto x86_dump_mem_num is %d\n", x86_dump_mem_num);
+	for (i = 0; i < x86_dump_mem_num; i++) {
+		debugf("auto x86_dump_mem[%d].paddr is 0x%llx\n", i, sprd_dump_mem[i].paddr);
+		debugf("auto x86_dump_mem[%d].size  is 0x%llx\n", i, sprd_dump_mem[i].size);
+	}
+	return x86_dump_mem_num;
 }
 #endif
 
