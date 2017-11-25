@@ -52,7 +52,7 @@ static void sprdchg_timer_callback(void)
 void sprdbat_lowbat_chg(void)
 {
 	enum sprd_adapter_type charger = sprdchg_charger_is_adapter();
-	unsigned int vbat_vol = sprdbat_get_aux_vbatvol();
+	unsigned int vbat_vol = sprdfgu_read_vbat_vol();
 	static unsigned int polling_cnt = 0;
 	static int dead_bat_flag = 0;
 
@@ -129,6 +129,8 @@ void sprdbat_init(void)
 	boot_role = cr_env->mode;
 	keep_charge = cr_env->keep_charge;
 
+	sprdbat_help_init();
+	sprdfgu_init();
 	if (!sprd_chg_ic_op) {
 		printf("ERR!!!:chg op is NULL....\n");
 		printf("ERR!!!:chg op is NULL....\n");
@@ -150,8 +152,6 @@ void sprdbat_init(void)
 		return;
 	}
 
-	sprdbat_help_init();
-
 	//set charge current 500mA(USB) or 600mA(AC)
 	if (charger_connected()) {
 		adp_type = sprdchg_charger_is_adapter();
@@ -166,7 +166,7 @@ void sprdbat_init(void)
 		}
 
 		debugf("chg_cur:%d,limit_cur:%d\n",chg_cur,limit_cur);
-		vbat_vol = sprdbat_get_aux_vbatvol();
+		vbat_vol = sprdfgu_read_vbat_vol();
 		/* if battery voltage is low, we use small current to charge */
 		if (vbat_vol < FAST_CHG_VOL)
 			chg_cur = SDP_CHG_CUR;
@@ -184,6 +184,6 @@ void sprdbat_init(void)
 		sprd_chg_ic_op->chg_stop(0);
 	}
 
-	sprdfgu_init();
+	sprdfgu_late_init();
 }
 
