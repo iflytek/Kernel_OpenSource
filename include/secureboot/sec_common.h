@@ -21,7 +21,7 @@
 #define VBOOT_UNLOCK_PWD_CHECK_SUCC (0)
 
 typedef struct{
-#if defined (CONFIG_SC9833)||defined (CONFIG_SOC_SHARKLJ1) || defined (CONFIG_SOC_SHARKLE)
+#if defined (CONFIG_SC9833)||defined (CONFIG_SOC_SHARKLJ1) || defined (CONFIG_SOC_SHARKLE) || defined (CONFIG_SOC_PIKE2)
 	uint32_t img_addr; //the base address of image to verify
 	uint32_t img_len; //length of image
 	uint32_t pubkeyhash;//pubkey hash for verifying image
@@ -97,6 +97,8 @@ extern VbootVerifyInfo *vboot_verify_info;
 #define IRAM_BEGIN   0xe6000000
 #elif defined (CONFIG_SOC_SHARKLE)
 #define IRAM_BEGIN   0x5000
+#elif defined (CONFIG_SOC_PIKE2)
+#define IRAM_BEGIN 0x50002e00
 #else
 #define IRAM_BEGIN   (SPL_BASE_ADDR - SYS_HEADER_SIZE)
 #endif
