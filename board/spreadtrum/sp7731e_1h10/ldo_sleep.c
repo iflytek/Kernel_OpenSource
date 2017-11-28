@@ -2,6 +2,12 @@
 #include <asm/arch/sprd_reg.h>
 #include "adi_hal_internal.h"
 
+#define DCDC_CORE_VOSEL_DS_0P9V		0x120
+#define DCDC_CORE_VOSEL_DS_0P8V		0x100
+#define DCDC_CORE_VOSEL_DS_0P7V		0x0E0
+#define DCDC_CORE_VOSEL_DS_0P65V	0x0D0
+#define DCDC_CORE_VOSEL_DS_0P6V		0x0C0
+
 
 void pmic_dcdc_ldo_config(void)
 {
@@ -9,43 +15,29 @@ void pmic_dcdc_ldo_config(void)
 	while( (ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & 0x8000) != 0x8000 );
 
 	/*set LDOs & DCDCs PD or not*/
-	regulator_enable("vddcore");
-	regulator_enable("vddgen");
-	regulator_enable("vddwpa");
-	regulator_enable("avdd18");
-	regulator_enable("vddcamio");
-	regulator_enable("vddrf18a");
-	regulator_enable("vddrf18b");
-	regulator_enable("vddcamd");
-	regulator_enable("vddcon");
-	regulator_enable("ldomem");
-	regulator_disable("vddsim0");
-	regulator_disable("vddsim1");
-	regulator_disable("vddsim2");
-	regulator_enable("vddcama");
-	regulator_enable("vddcammot");
-	regulator_enable("vddemmccore");
-	regulator_enable("vddsdcore");
-	regulator_enable("vddsdio");
-	regulator_enable("vdd28");
-	regulator_enable("vddwifipa");
-	regulator_enable("vdddcxo");
-	regulator_enable("vddusb33");
+	//regulator_enable("vddcore");
+	//regulator_enable("vddgen");
+	//regulator_enable("vddwpa");
+	//regulator_enable("avdd18");
+	//regulator_enable("vddcamio");
+	//regulator_enable("vddrf18a");
+	//regulator_enable("vddrf18b");
+	//regulator_enable("vddcamd");
+	//regulator_enable("vddcon");
+	//regulator_enable("ldomem");
+	//regulator_disable("vddsim0");
+	//regulator_disable("vddsim1");
+	//regulator_disable("vddsim2");
+	//regulator_enable("vddcama");
+	//regulator_enable("vddcammot");
+	//regulator_enable("vddemmccore");
+	//regulator_enable("vddsdcore");
+	//regulator_enable("vddsdio");
+	//regulator_enable("vdd28");
+	//regulator_enable("vddwifipa");
+	//regulator_enable("vdddcxo");
+	//regulator_enable("vddusb33");
 
-	/*set POWER_PD_SW to default value*/
-	ANA_REG_OR(ANA_REG_GLB_POWER_PD_SW,
-		//BIT_LDO_DCXO_PD|
-		//BIT_LDO_EMM_PD|
-		//BIT_LDO_CP_PD|
-		//BIT_DCDC_GEN_PD|
-		//BIT_DCDC_CORE_PD|
-		BIT_OSC3M_EN|
-		//BIT_LDO_MEM_PD|
-		//BIT_LDO_AVDD18_PD|
-		//BIT_LDO_VDD28_PD|
-		//BIT_BG_PD|
-		0
-	);
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE,0x0000);
 
 	/*set xtl,io,ldo sleep enable in sleep mode*/
@@ -57,13 +49,13 @@ void pmic_dcdc_ldo_config(void)
 	);
 	/*set dcdc power down in deep sleep mode*/
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		//BIT_SLP_DCDCCORE_DROP_EN|
+		BIT_SLP_DCDCCORE_DROP_EN|
 		//BIT_SLP_DCDCWPA_PD_EN
 		0
 	);
 	/*set ldo power down in deep sleep mode*/
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-		//BIT_SLP_LDORF18A_PD_EN|
+		BIT_SLP_LDORF18A_PD_EN|
 		//BIT_SLP_LDORF18B_PD_EN|
 		//BIT_SLP_LDOEMMCCORE_PD_EN|
 		//BIT_SLP_LDODCXO_PD_EN|
@@ -84,27 +76,33 @@ void pmic_dcdc_ldo_config(void)
 		//BIT_SLP_LDOCP_PD_EN|
 		//BIT_SLP_LDOCON_PD_EN|
 		//BIT_SLP_LDOSIM0_PD_EN|
-		//BIT_SLP_LDOAVDD18_PD_EN|
+		BIT_SLP_LDOAVDD18_PD_EN|
 		//BIT_SLP_LDOMEM_PD_EN|
 		0
 	);
 
 	/*set dcdc lowpower mode enable in sleep mode*/
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-		//BIT_SLP_DCDCCORE_LP_EN|
-		//BIT_SLP_DCDCGEN_LP_EN|
+		BIT_SLP_DCDCCORE_LP_EN|
+		BIT_SLP_DCDCGEN_LP_EN|
 		//BIT_SLP_DCDCWPA_LP_EN|
 		0
 	);
+
+	/*set dcdccore drop voltage to 0.7V*/
+	ANA_REG_OR(ANA_REG_GLB_DCDC_VLG_SEL, BIT_DCDC_CORE_SLP_SW_SEL);
+	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1,
+		BITS_DCDC_CORE_VOSEL_DS_SW(DCDC_CORE_VOSEL_DS_0P7V)
+		);
 
 	/*set ldo lowpower mode enable in sleep mode*/
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL0,
 		//BIT_SLP_LDORF18A_LP_EN|
 		//BIT_SLP_LDORF18B_LP_EN|
 		//BIT_SLP_LDOEMMCCORE_LP_EN|
-		//BIT_SLP_LDODCXO_LP_EN|
+		BIT_SLP_LDODCXO_LP_EN|
 		//BIT_SLP_LDOWIFIPA_LP_EN|
-		//BIT_SLP_LDOVDD28_LP_EN|
+		BIT_SLP_LDOVDD28_LP_EN|
 		//BIT_SLP_LDOSDCORE_LP_EN|
 		//BIT_SLP_LDOSDIO_LP_EN|
 		//BIT_SLP_LDOUSB33_LP_EN|
@@ -120,7 +118,7 @@ void pmic_dcdc_ldo_config(void)
 		//BIT_SLP_LDOCON_LP_EN|
 		//BIT_SLP_LDOSIM0_LP_EN|
 		//BIT_SLP_LDOAVDD18_LP_EN|
-		//BIT_SLP_LDOMEM_LP_EN|
+		BIT_SLP_LDOMEM_LP_EN|
 		0
 	);
 
@@ -262,14 +260,6 @@ void pmic_dcdc_ldo_config(void)
 		//BIT_LDO_WIFIPA_EXT_XTL3_EN|
 		0
 	);
-
-	ANA_REG_SET(ANA_REG_GLB_XTL_WAIT_CTRL,
-		BIT_SLP_XTLBUF_PD_EN |
-		BIT_XTL_EN |
-		BITS_XTL_WAIT(0x32) |
-		0
-	);
-
 }
 
 void init_ldo_sleep_gr(void)
