@@ -58,10 +58,11 @@ static void logo_flip(void)
 
 int get_fb_base_from_dt(void)
 {
-	const void *fdt_blob = gd->fdt_blob;
-	int nodeoffset = fdt_path_offset(fdt_blob, "/ion");
 	int phandle = 0;
-	unsigned long base, size;
+	unsigned long base, size, offset;
+	const void *fdt_blob = gd->fdt_blob;
+	struct panel_info *panel = panel_info_attach();
+	int nodeoffset = fdt_path_offset(fdt_blob, "/ion");
 
 	pr_info("ion node offset = %d\n", nodeoffset);
 	if (nodeoffset == -FDT_ERR_NOTFOUND)
@@ -82,7 +83,13 @@ int get_fb_base_from_dt(void)
 		return -EINVAL;
 	}
 
-	gd->fb_base = base;
+	/*
+	 * We use the third reserved buffer for uboot logo,
+	 * and the first reserved buffer is for write back.
+	 */
+	offset = panel->width * panel->height * 4 * 2;
+	gd->fb_base = ALIGN(base + offset, 32);
+
 	return 0;
 }
 
