@@ -33,7 +33,8 @@ AvbVBMetaVerifyResult avb_vbmeta_image_verify(
     const uint8_t* data,
     size_t length,
     const uint8_t** out_public_key_data,
-    size_t* out_public_key_length) {
+    size_t* out_public_key_length,
+    uint64_t* rollback_index) {
   AvbVBMetaVerifyResult ret;
   AvbVBMetaImageHeader h;
   uint8_t* computed_hash;
@@ -233,7 +234,9 @@ AvbVBMetaVerifyResult avb_vbmeta_image_verify(
   }
 
   ret = AVB_VBMETA_VERIFY_RESULT_OK;
-
+  if (rollback_index != NULL) {
+    *rollback_index = h.rollback_index;
+  }
 out:
   return ret;
 }

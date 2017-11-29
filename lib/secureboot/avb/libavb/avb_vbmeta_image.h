@@ -281,7 +281,8 @@ AvbVBMetaVerifyResult avb_vbmeta_image_verify(
     const uint8_t* data,
     size_t length,
     const uint8_t** out_public_key_data,
-    size_t* out_public_key_length) AVB_ATTR_WARN_UNUSED_RESULT;
+    size_t* out_public_key_length,
+    uint64_t* rollback_index) AVB_ATTR_WARN_UNUSED_RESULT;
 
 #ifdef __cplusplus
 }

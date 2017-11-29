@@ -399,7 +399,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
    * to sign the image.
    */
   vbmeta_ret =
-      avb_vbmeta_image_verify(vbmeta_buf, vbmeta_num_read, &pk_data, &pk_len);
+      avb_vbmeta_image_verify(vbmeta_buf, vbmeta_num_read, &pk_data, &pk_len, NULL);
 
   debug("partition: %s vbmeta_verify_ret is :%d. \n", full_partition_name, vbmeta_ret);
 
