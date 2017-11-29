@@ -229,10 +229,10 @@ static int dphy_calc_pll_param(struct dphy_pll *pll)
 		/* vco band control */
 		pll->vco_band = 0x0;
 		/* low pass filter control */
-		pll->lpf_sel = 1;
+		pll->lpf_sel = 7;
 	} else if (pll->fvco > VCO_BAND_MID && pll->fvco <= VCO_BAND_HIGH) {
 		pll->vco_band = 0x1;
-		pll->lpf_sel = 0;
+		pll->lpf_sel = 6;
 	} else
 		goto FAIL;
 
@@ -248,6 +248,7 @@ static int dphy_calc_pll_param(struct dphy_pll *pll)
 	pll->fdk_s = 0x1; /* fraction */
 	pll->cp_s = 0x0;
 	pll->det_delay = 0x1;
+	pll->hop_period = 15;
 
 	if (pll->hop_en) {
 		if ((pll->hop_delta == 0) || (pll->hop_period == 0))
@@ -264,10 +265,8 @@ static int dphy_calc_pll_param(struct dphy_pll *pll)
 		pll->kstep = pll->ref_clk * mhz * pll->hop_period / mhz;
 		pll->kdelta = (1 << 20) * delta / pll->ref_clk /
 				pll->kstep + pll->sign * (1 << 11);
-	}
-
-	if (1/*pll->mod_en*/) {
-		delta = pll->freq / khz * (i + 1);
+	} else {
+		delta = 0;
 		pll->kstep = pll->ref_clk * mhz * pll->hop_period / mhz;
 		pll->kdelta = (((1 << 20) * delta / pll->ref_clk /
 				pll->kstep));
