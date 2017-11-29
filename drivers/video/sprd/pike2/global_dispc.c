@@ -15,14 +15,18 @@
 #include "sprd_dispc.h"
 
 enum {
-	CLK_DPU_SEL_153_6M = 0,
+	CLK_DPU_SEL_128M = 0,
+	CLK_DPU_SEL_153_6M,
 	CLK_DPU_SEL_192M,
 	CLK_DPU_SEL_256M,
+	CLK_DPU_SEL_320M,
 	CLK_DPU_SEL_384M,
 };
 
 enum {
-	CLK_DPI_SEL_128M = 0,
+	CLK_DPI_SEL_96M = 0,
+	CLK_DPI_SEL_100M,
+	CLK_DPI_SEL_128M,
 	CLK_DPI_SEL_153_6M,
 	CLK_DPI_SEL_192M,
 };
@@ -35,21 +39,21 @@ static int dispc_clk_init(struct dispc_context *ctx)
 {
 	uint32_t dpi_clk_src = CONFIG_DPI_CLK_SRC;
 
-	sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_CFG,
-			CLK_DPU_SEL_384M, BIT(0) | BIT(1));
+	sci_glb_write(REG_AP_CLK_DISPC0_CFG,
+			CLK_DPU_SEL_384M, BIT(0) | BIT(1) | BIT(2));
 
 	switch (dpi_clk_src) {
 	case 128000000:
-		sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG,
-				CLK_DPI_SEL_128M, BIT(0) | BIT(1));
+		sci_glb_write(REG_AP_CLK_DISPC0_DPI_CFG,
+				CLK_DPI_SEL_128M, BIT(0) | BIT(1) | BIT(2));
 		break;
 	case 153600000:
-		sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG,
-				CLK_DPI_SEL_153_6M, BIT(0) | BIT(1));
+		sci_glb_write(REG_AP_CLK_DISPC0_DPI_CFG,
+				CLK_DPI_SEL_153_6M, BIT(0) | BIT(1) | BIT(2));
 		break;
 	case 192000000:
-		sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG,
-				CLK_DPI_SEL_192M, BIT(0) | BIT(1));
+		sci_glb_write(REG_AP_CLK_DISPC0_DPI_CFG,
+				CLK_DPI_SEL_192M, BIT(0) | BIT(1) | BIT(2));
 		break;
 	default:
 		pr_info("invalid dpi clk source: %d\n", dpi_clk_src);
@@ -71,7 +75,7 @@ static int dispc_clk_update(struct dispc_context *ctx, int clk_id, int val)
 		return -1;
 	}
 
-	sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG, (div - 1) << 8, (0xF << 8));
+	sci_glb_write(REG_AP_CLK_DISPC0_DPI_CFG, (div - 1) << 8, (0xF << 8));
 
 	pr_info("the actual dpi_clk = %d\n", CONFIG_DPI_CLK_SRC / div);
 	return 0;
@@ -79,7 +83,7 @@ static int dispc_clk_update(struct dispc_context *ctx, int clk_id, int val)
 
 static int dispc_glb_parse_dt(struct dispc_context *ctx)
 {
-	ctx->base = SPRD_DISPC0_PHYS;
+	ctx->base = SPRD_LCDC_PHYS;
 
 	return 0;
 }

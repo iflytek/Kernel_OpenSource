@@ -39,10 +39,14 @@ static void dphy_power_domain(struct dphy_context *ctx, int enable)
 		sci_glb_clr(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_S);
 		udelay(10);
 		sci_glb_clr(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_L);
+		sci_glb_set(REG_AON_APB_PWR_CTRL, BIT_AON_APB_FORCE_DSI_PHY_SHUTDOWNZ);
+		sci_glb_clr(REG_AON_APB_ANALOG_IOS_CFG, BIT_AON_APB_DSI_ISO_EN);
 	} else {
-		sci_glb_set(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_L);
-		udelay(10);
+		sci_glb_set(REG_AON_APB_ANALOG_IOS_CFG, BIT_AON_APB_DSI_ISO_EN);
+		sci_glb_clr(REG_AON_APB_PWR_CTRL, BIT_AON_APB_FORCE_DSI_PHY_SHUTDOWNZ);
 		sci_glb_set(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_S);
+		udelay(10);
+		sci_glb_set(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_L);
 	}
 }
 
