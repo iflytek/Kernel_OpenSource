@@ -32,7 +32,13 @@ obj-$(CONFIG_TWL4030_LED) += twl4030_led.o
 obj-$(CONFIG_FSL_IFC) += fsl_ifc.o
 obj-$(CONFIG_FSL_SEC_MON) += fsl_sec_mon.o
 obj-$(CONFIG_PCA9551_LED) += pca9551_led.o
-obj-$(CONFIG_SPRD_ADI) += adi.o vibrator.o check_reboot.o reset.o
+obj-$(CONFIG_SPRD_ADI) += adi.o check_reboot.o reset.o
+# use haptic as vibrator if sc2705 exists
+ifdef CONFIG_SPRD2705_CHARGE_IC
+obj-y += sc2705_haptic.o
+else
+obj-$(CONFIG_SPRD_ADI) += vibrator.o
+endif
 obj-$(CONFIG_SPRD_ADC) += sprd_adc.o
 obj-y += sprd_glb.o
 ifdef CONFIG_SPRD_AP_NORMAL_EFUSE
