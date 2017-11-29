@@ -230,7 +230,7 @@
 
 #define UBIPAC_PART  "ubipac"
 #define MTDIDS_DEFAULT "nand0=sprd-nand"
-#define MTDPARTS_DEFAULT "mtdparts=sprd-nand:256k(splloader),768k(uboot),256k(sml),256k(trustos),-(ubipac)"
+#define MTDPARTS_DEFAULT "mtdparts=sprd-nand:256k(splloader),1280k(uboot),768k(sml),1024k(trustos),-(ubipac)"
 
 /* NAND */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
