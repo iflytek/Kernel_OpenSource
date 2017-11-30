@@ -49,7 +49,4 @@ obj-$(CONFIG_EMMC_VERSION_R10P0) += sprd_sdhci_r10.o
 obj-$(CONFIG_SPRD_MMC) += sprd_mmc.o
 obj-$(CONFIG_SPRD_MMC) += sprd_sdhci.o
 obj-$(CONFIG_EMMC_VERSION_R8P0) += sprd_rpmb.o
-obj-$(CONFIG_EMMC_VERSION_R8P0) += sprd_imgversion.o
 obj-$(CONFIG_EMMC_VERSION_R10P0) += sprd_rpmb.o
-obj-$(CONFIG_EMMC_VERSION_R10P0) += sprd_imgversion.o
-obj-y += sprd_imgversion_comm.o

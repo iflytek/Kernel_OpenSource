@@ -24,3 +24,7 @@ obj-y += \
 obj-y += avb_check.o
 obj-y += uboot_avb_ops.o
 obj-y += uboot_avb_util.o
+#need drivers/mmc/sprd_rpmb.o
+obj-y += sprd_imgversion_comm.o
+obj-$(CONFIG_EMMC_VERSION_R10P0) += sprd_imgversion.o
+obj-$(CONFIG_EMMC_VERSION_R8P0) += sprd_imgversion.o

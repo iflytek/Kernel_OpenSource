@@ -4,8 +4,7 @@
 
 #include <linux/types.h>
 #include <malloc.h>
-
-
+#include <common.h>
 
 #include <sprd_imgversion.h>
 #include <sprd_rpmb.h>
