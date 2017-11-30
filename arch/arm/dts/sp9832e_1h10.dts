@@ -46,11 +46,11 @@
 		};
 
 		tos_reserved: tos-mem@94100000{
-			reg = <0x0 0x94100000 0x0 0x00f00000>;
+			reg = <0x0 0x94100000 0x0 0x01f00000>;
 		};
 
-		tos_shm_reserved: sh-mem@95000000{
-			reg = <0x0 0x95000000 0x0 0x00100000>;
+		tos_shm_reserved: sh-mem@96000000{
+			reg = <0x0 0x96000000 0x0 0x00100000>;
 		};
 
 		fb_reserved: framebuffer@4,be7e8000{

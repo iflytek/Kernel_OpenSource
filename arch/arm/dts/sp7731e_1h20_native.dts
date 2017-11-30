@@ -44,6 +44,18 @@
 			reg = <0x8f000000 0x80000>;
 		};
 
+		sml_reserved: sml-mem@94000000{
+			reg = <0x0 0x94000000 0x0 0x00100000>;
+		};
+
+		tos_reserved: tos-mem@94100000{
+			reg = <0x0 0x94100000 0x0 0x01f00000>;
+		};
+
+		tos_shm_reserved: sh-mem@96000000{
+			reg = <0x0 0x96000000 0x0 0x00100000>;
+		};
+
 		mm_reserved: multimediabuffer@96e74000{
 			reg = <0x96e74000 0x7100000>;
 		};
