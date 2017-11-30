@@ -15,7 +15,9 @@
 #include <avb/uboot_avb_ops.h>
 #include <otp_helper.h>
 #include <stdio_dev.h>
-
+#ifdef CONFIG_SECBOOT
+#include <lcd_console.h>
+#endif
 #ifdef CONFIG_ARM7_RAM_ACTIVE
     extern void pmic_arm7_RAM_active(void);
 #endif
