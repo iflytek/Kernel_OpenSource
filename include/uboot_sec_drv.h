@@ -121,6 +121,8 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 #define DISABLE_DX_DEBUG_CONTROL         (0x20000000)
 #endif
 
+#define NO_ERROR 0
+
 typedef struct smc_param {
         uint32_t a0;
         uint32_t a1;

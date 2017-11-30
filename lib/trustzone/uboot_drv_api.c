@@ -44,12 +44,20 @@ int uboot_verify_img(unsigned long start_addr, uint32_t lenth)
 {
 
   smc_param *param = tee_common_call(FUNCTYPE_VERIFY_IMG, (uint32_t)start_addr, lenth);
+  if (param->a0!=NO_ERROR) {//SM_ERR_PANIC may be returned due to tos panic
+  	printf("uboot_verify_img() return error:param->a0=%d\n",param->a0);
+	while (1);
+  }
   return param->a0;
 }
 
 int uboot_vboot_verify_img(unsigned long start_addr, uint32_t lenth)
 {
   smc_param *param = tee_common_call(FUNCTYPE_VBOOT_VERIFY_IMG, (uint32_t)start_addr, lenth);
+  if (param->a0!=NO_ERROR) {//SM_ERR_PANIC may be returned due to tos panic
+    	printf("uboot_vboot_verify_img() return error:param->a0=%d\n",param->a0);
+	while (1);
+  }
   return param->a0;
 }
 
