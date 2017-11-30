@@ -623,6 +623,118 @@ static int fill_mem_from_dts(unsigned char *fdt_blob, int nodeoffset, const char
 	return i;
 }
 
+/* this function only support FAT filesysdump Now*/
+static int sysdump_cyclic_storage(int fs_type, unsigned long long dump_size)
+{
+	char path[72] = {0};
+	char path_rename[72] = {0};
+	int i, j, mod, ret = 0;
+	unsigned char key_code = 0;
+	bool delete_flag = false;
+	bool nospace_flag = false;
+	dir_entry *dentptr = NULL;
+
+	/*setp 1. check available space: delete or format*/
+	mod = fat_checksys(dump_size);
+	if (mod & FSNOSPACE) {
+		nospace_flag = true;
+		for (i = 1; i <= SYSDUMP_FOLDER_NUM; i++) {
+			sprintf(path, SYSDUMP_FOLDER_NAME"/%d", i);
+			path[strlen(path)] = '\0';
+			dentptr = check_folder_flag(path);
+			if(dentptr == NULL)
+				break;
+		}
+
+		if (i != 1 ) {
+			for(j = i; j != 1;) {
+				sprintf(path, SYSDUMP_FOLDER_NAME"/%d", --j);
+				path[strlen(path)] = '\0';
+				ret = delete_folder(path);
+				if(ret != 0) {
+					debugf("ERROR: delete files or folder failed !!!\n");
+					return -1;
+				}
+				mod = fat_checksys(dump_size);
+				if (!(mod & FSNOSPACE)) {
+					nospace_flag = false;
+					break;
+				}
+			}
+		}
+
+		if (nospace_flag) {
+			sysdump_lcd_printf("\nHello Baby: SD Card have not enough space !!!");
+			sysdump_lcd_printf("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump !!!\n");
+			do {
+				udelay(50 * 1000);
+				key_code = board_key_scan();
+				if (key_code == KEY_VOLUMEDOWN) {
+					if (fs_type == FS_FAT32) {
+						fat_format();
+						break;
+					}else
+						return -1;
+				} else if (key_code == KEY_VOLUMEUP) {
+					return -1;
+				}
+			} while (1);
+		}
+	}
+
+	/*step 2. enter /ylog/sysdump*/
+	if(do_new_folder(SYSDUMP_FOLDER_NAME)) {
+		debugf("ERROR: creat %s folder failed !!!\n", SYSDUMP_FOLDER_NAME);
+		return -1;
+	}
+
+	/*step 3. check existed folder*/
+	for (i = 1; i <= SYSDUMP_FOLDER_NUM; ++i) {
+		sprintf(path, SYSDUMP_FOLDER_NAME"/%d", i);
+		path[strlen(path)] = '\0';
+		dentptr = check_folder_flag(path);
+		if(dentptr == NULL)
+			break;
+	}
+
+	/*setp 4. delete folder greater than set number*/
+	if (i > SYSDUMP_FOLDER_NUM) {
+		debugf("there existed %d history log !!!\n", SYSDUMP_FOLDER_NUM);
+		i --;
+		sprintf(path, SYSDUMP_FOLDER_NAME"/%d", i);
+		path[strlen(path)] = '\0';
+		ret = delete_folder(path);
+		if(ret != 0)
+			debugf("Error: delete files or folder\n");
+	}
+
+	/*setp 5. rename folder*/
+	for(j = i - 1; j > 0 && i != 1; j = j - 2) {
+		sprintf(path, SYSDUMP_FOLDER_NAME"/%d", j++);
+		path[strlen(path)] = '\0';
+		sprintf(path_rename, SYSDUMP_FOLDER_NAME"/%d", j);
+		path_rename[strlen(path_rename)] ='\0';
+		debugf("rename folder from %s to %s !!!\n", path, path_rename);
+		ret = rename_folder(path, path_rename);
+		if (ret != 0) {
+			debugf("ERROR: delete files or folder failed !!!\n");
+			break;
+		}
+	}
+
+	/*setp 6. create a new folder "1"*/
+	sprintf(path, SYSDUMP_FOLDER_NAME"/%d", 1);
+	path[strlen(path)] = '\0';
+	debugf("create folder 1 !!!\n");
+	ret = do_new_folder(path);
+	if (ret != 0) {
+		debugf("ERROR: creat %s folder failed !!!\n", path);
+		return -1;
+	}
+
+	return 0;
+}
+
 static void reorder_reserved_memory_by_addr(struct sysdump_memory *memArray, int size)
 {
 	int i, j, min;
@@ -675,6 +787,55 @@ static u32 e820_map_auto_detect(struct e820entry *entries)
 	return e820_entries_detect;
 }
 #endif
+
+static int get_total_dump_memory(struct sysdump_mem *sprd_dump_mem)
+{
+	int k, i = 0; mem_num = 0;
+
+#ifdef CONFIG_X86
+	struct e820entry x86_entries[5] = {0};
+	mem_num = e820_map_auto_detect(x86_entries);
+
+	if (VMM_RESERVE_SIZE) {
+		debugf("dump vmm memory region !!!\n");
+		sprd_dump_mem[0].paddr = 0;
+		sprd_dump_mem[0].vaddr = 0;
+		sprd_dump_mem[0].size  = VMM_RESERVE_SIZE;
+		sprd_dump_mem[0].soff  = 0xffffffff;
+		sprd_dump_mem[0].type  = SYSDUMP_RAM;
+		i ++;
+	}
+
+	for (k = 0; k < mem_num; k++) {
+		sprd_dump_mem[i].paddr = x86_entries[k].addr;
+		sprd_dump_mem[i].vaddr = __va(sprd_dump_mem[i].paddr);
+		sprd_dump_mem[i].size = x86_entries[k].size + 1;
+		sprd_dump_mem[i].soff  = 0xffffffff;
+		sprd_dump_mem[i].type  = SYSDUMP_RAM;
+		i ++;
+	}
+
+	mem_num = i;
+	for (k = 0; k < mem_num; k++)
+		debugf("linux memory addr = 0x%llx, size = 0x%llx !!!\n", sprd_dump_mem[k].paddr,sprd_dump_mem[k].size);
+#else
+	phys_addr_t ddr_base = CONFIG_SYS_SDRAM_BASE;
+	phys_size_t ddr_size = get_real_ram_size();
+
+	sprd_dump_mem[0].paddr = ddr_base;
+	sprd_dump_mem[0].vaddr =  __va(sprd_dump_mem[i].paddr);
+	sprd_dump_mem[0].size = ddr_size;
+	sprd_dump_mem[0].soff  = 0xffffffff;
+	sprd_dump_mem[0].type  = SYSDUMP_RAM;
+
+	i ++;
+	mem_num = i;
+	for (k = 0; k < mem_num; k++)
+		debugf("linux memory addr = 0x%lx, size = 0x%lx!!!\n", sprd_dump_mem[k].paddr, sprd_dump_mem[k].size);
+#endif
+
+	return mem_num;
+}
 
 static int recalculate_kernel_memory(unsigned char *fdt_blob, int nodeoffset, int ofs_remem, int dts_version, struct sysdump_mem *sprd_dump_mem)
 {
@@ -1044,6 +1205,7 @@ void write_sysdump_before_boot(int rst_mode)
 	char txt_info[2000] = {0};
 	unsigned char sha1sum[20];
 	dir_entry *dentptr = NULL;
+	SYSDUMP_LONG max_size = 0;
 	unsigned char *dt_addr = NULL;
 	struct sysdump_info *infop = NULL;
 	int nodeoffset = 0, ofs_remem = 0;
@@ -1051,7 +1213,7 @@ void write_sysdump_before_boot(int rst_mode)
 	unsigned char sysdump_checksum[1000] = {0};
 	int i, j, k, sprd_dump_mem_num, ret, fs_type;
 	struct sysdump_mem sprd_dump_mem[MAX_NUM_DUMP_MEM];
-	int auto_test_flag = 0, s_length =0, chk_length = 0;
+	int mod, key_code, auto_test_flag = 0, s_length =0, chk_length = 0, dt_fail = 0;
 	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr, *string, *check_sum;
 
 #ifdef CONFIG_X86
@@ -1079,10 +1241,11 @@ void write_sysdump_before_boot(int rst_mode)
 		nodeoffset = check_dts_sysdump_node(dt_addr);
 		if (nodeoffset < 0) {
 			debugf("ERROR: device tree must have /sprd-sysdump node %s !!!\n", fdt_strerror(nodeoffset));
-			goto FINISH;
+			dt_fail = 1;
 		}
 
-		dts_version = get_dts_version(dt_addr, nodeoffset);
+		if(!dt_fail)
+			dts_version = get_dts_version(dt_addr, nodeoffset);
 		memset(infop->magic, 0, sizeof(infop->magic));
 
 #ifdef CONFIG_SPLASH_SCREEN
@@ -1108,12 +1271,15 @@ void write_sysdump_before_boot(int rst_mode)
 			goto FINISH;
 		}
 
-		ofs_remem = check_dts_reserved_mem_node(dt_addr);
-		if (ofs_remem < 0) {
-			debugf("ERROR: device tree must have /reserved-memory node %s.\n", fdt_strerror(ofs_remem));
-			goto FINISH;
+		if (!dt_fail) {
+			ofs_remem = check_dts_reserved_mem_node(dt_addr);
+			if (ofs_remem < 0) {
+				debugf("ERROR: device tree must have /reserved-memory node %s.\n", fdt_strerror(ofs_remem));
+				goto FINISH;
+			}
 		}
 
+		if (!dt_fail) {
 #ifdef CONFIG_X86
 		sprd_dump_mem_num = fill_dump_mem_auto_x86(dt_addr, nodeoffset, ofs_remem, dts_version, sprd_dump_mem);
 		infop->dump_mem_paddr = (unsigned long long)sprd_dump_mem;
@@ -1121,6 +1287,10 @@ void write_sysdump_before_boot(int rst_mode)
 		sprd_dump_mem_num = fill_dump_mem_auto_arm(dt_addr, nodeoffset, ofs_remem, 0, sprd_dump_mem);
 		infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
 #endif
+		} else {
+			sprd_dump_mem_num = get_total_dump_memory(sprd_dump_mem);
+			infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
+		}
 
 		infop->mem_num = sprd_dump_mem_num;
 		infop->elfhdr_size = get_elfhdr_size(infop->mem_num);
@@ -1146,122 +1316,39 @@ void write_sysdump_before_boot(int rst_mode)
 			memset(infop->dump_path, '\0', sizeof(infop->dump_path));
                 }
 
+	max_size = get_sprd_dump_size_auto(sprd_dump_mem, sprd_dump_mem_num);
+	max_size += (unsigned long)infop->elfhdr_size;
+	debugf("FAT32 max space size is %lx\n",max_size);
 	if (fs_type == FS_FAT32) {
-		int mod, key_code;
-		unsigned long max_size = 0;
-
 		debugf("FileSystem is FAT32 !!!\n");
-		max_size = get_sprd_dump_size_auto(sprd_dump_mem, sprd_dump_mem_num);
-		max_size += (unsigned long)infop->elfhdr_size;
-		debugf("FAT32 max space size is %lx\n",max_size);
 
 		mod = fat_checksys(max_size);
-		if (mod &(FSFATAL | FSNOSPACE)) {
-			int nospace_flag = 1;
-			if (mod & FSFATAL) {
-				sysdump_lcd_printf("\nHello Baby: SD Card is demaged !!!");
-			}
-			else if (mod & FSNOSPACE) {
-				for (i = 1; i <= SYSDUMP_FOLDER_NUM; i++) {
-					sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", i);
-					fnbuf[strlen(fnbuf)] = '\0';
-					dentptr = check_folder_flag(fnbuf);
-					if(dentptr == NULL)
-						break;
-				}
-				if (i != 1) {
-					for(j = i; j != 1;) {
-						sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", --j);
-						fnbuf[strlen(fnbuf)] = '\0';
-						ret = delete_folder(fnbuf);
-						if(ret == -1) {
-							debugf("ERROR: delete files or folder failed !!!\n");
-							goto FINISH;
-						}
-						mod = fat_checksys(max_size);
-						if (!(mod & FSNOSPACE)) {
-							nospace_flag = 0;
-							break;
-						}
-					}
-				}
-				if (nospace_flag) {
-					sysdump_lcd_printf("\nHello Baby: SD Card have not enough space !!!");
-				}
-			}
-			if (nospace_flag) {
-				sysdump_lcd_printf("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump !!!\n");
-
-				do {
-					udelay(50 * 1000);
-					key_code = board_key_scan();
-					if (key_code == KEY_VOLUMEDOWN) {
-						fat_format();
-						break;
-					} else if(key_code == KEY_VOLUMEUP)
-						goto FINISH;
-				} while (1);
-			}
+		if (mod & FSFATAL) {
+			sysdump_lcd_printf("\nHello Baby: SD Card is demaged !!!");
+			do {
+				udelay(50 * 1000);
+				key_code = board_key_scan();
+				if (key_code == KEY_VOLUMEDOWN) {
+					fat_format();
+					break;
+				} else if(key_code == KEY_VOLUMEUP)
+					goto FINISH;
+			} while (1);
 		}
 
-		if(do_new_folder(SYSDUMP_FOLDER_NAME)) {
-			debugf("ERROR: creat %s folder failed !!!\n", SYSDUMP_FOLDER_NAME);
+		ret = sysdump_cyclic_storage(fs_type,max_size);
+		if (ret < 0)
 			goto FINISH;
-		}
 
+		debugf("check sysdump_auto_test.txt start!!!\n");
 		if(check_folder_flag(SYSDUMP_AUTO_TEST)) {
 			auto_test_flag = 1;
 			debugf("Now has existed sysdump_auto_test.txt, so jump wait_for_keypress !!!\n");
 		}
+		debugf("check sysdump_auto_test.txt end!!!\n");
 
-		for (i = 1; i <= SYSDUMP_FOLDER_NUM; i++) {
-			sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", i);
-			fnbuf[strlen(fnbuf)] = '\0';
-			dentptr = check_folder_flag(fnbuf);
-			if(dentptr == NULL)
-				break;
-		}
-
-		if (i > SYSDUMP_FOLDER_NUM) {
-			debugf("there existed %d history log !!!\n", SYSDUMP_FOLDER_NUM);
-			i --;
-			sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", i);
-			fnbuf[strlen(fnbuf)] = '\0';
-			ret = delete_folder(fnbuf);
-			if(ret == -1) {
-				debugf("ERROR: delete files or folder failed !!!\n");
-				goto FINISH;
-			}
-		}
-
-		for(j = i - 1; j > 0 && i != 1; j = j - 2) {
-				sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", j++);
-				fnbuf[strlen(fnbuf)] = '\0';
-				sprintf(fnbuf_rename, SYSDUMP_FOLDER_NAME"/%d", j);
-				fnbuf_rename[strlen(fnbuf_rename)] ='\0';
-				debugf("rename folder from %s to %s !!!\n", fnbuf, fnbuf_rename);
-				ret = rename_folder(fnbuf, fnbuf_rename);
-				if (ret == -1) {
-					debugf("ERROR: rename folder failed !!!\n");
-					break;
-				}
-			}
-
-		sprintf(fnbuf, SYSDUMP_FOLDER_NAME"/%d", 1);
-
-		if(do_new_folder(fnbuf)) {
-			debugf("ERROR: creat %s folder failed !!!\n", fnbuf);
-			goto FINISH;
-		}
-	}
-	else if (fs_type == FS_EXFAT) {
-		int mod, key_code;
-		unsigned long max_size;
-
+	} else if (fs_type == FS_EXFAT) {
 		debugf("FileSystem is exFAT !!!\n");
-		max_size = get_sprd_dump_size_auto(sprd_dump_mem, sprd_dump_mem_num);
-		max_size += (unsigned long)infop->elfhdr_size;
-		debugf("ExFAT max space size is %lx\n",max_size);
 
 		mod = exfat_checksys(max_size);
 		if (mod & FSSMSIZE) {
@@ -1331,7 +1418,7 @@ void write_sysdump_before_boot(int rst_mode)
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
 
 		string = txt_info;
-		s_length = sprintf(txt_info,"-%s%s\n-%s%x\n-%s%x\n-%s%s\n-%s%s\n-%s%d\n-%s%d\n-%s%d\n-%s"LLX"\n\n",
+		s_length = sprintf(txt_info,"-%s%s\n-%s%x\n-%s%x\n-%s%s\n-%s%d\n-%s%d\n-%s%d\n-%s"LLX"\n\n",
 			"time is ",
 			infop->time,
 			"reboot reg is ",
@@ -1340,8 +1427,6 @@ void write_sysdump_before_boot(int rst_mode)
 			dump_rst_mode,
 			"reason is ",
 			infop->reason,
-			"dump_path is ",
-			infop->dump_path,
 			"elfhdr_size is ",
 			infop->elfhdr_size,
 			"mem_num is ",

@@ -19,7 +19,7 @@
 
 #define SYSDUMP_CORE_NAME_FMT 	"sysdump.core.%02d"
 #define SYSDUMP_FOLDER_NAME "ylog/ap/sysdump"
-#define SYSDUMP_AUTO_TEST "ylog/sysdump/sysdump_auto_test.txt"
+#define SYSDUMP_AUTO_TEST "ylog/ap/sysdump/sysdump_auto_test.txt"
 #define NR_KCORE_MEM		80
 #define SYSDUMP_MAGIC		"SPRD_SYSDUMP_119"
 #define MAX_NUM_DUMP_MEM 20
