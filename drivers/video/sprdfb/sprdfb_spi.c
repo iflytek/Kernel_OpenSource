@@ -10,6 +10,8 @@
 #define REG32(x)              (*((volatile uint32_t *)(x)))
 #define LCM_GPIO_RS		LCM_GPIO_RSTN
 
+unsigned char start_send_pixels_flag = 0;
+
  extern int sprd_gpio_request(struct gpio_chip *chip, unsigned offset);
  extern int sprd_gpio_direction_output(struct gpio_chip *chip, unsigned offset, int value);
  extern void sprd_gpio_set(struct gpio_chip *chip, unsigned offset, int value);
@@ -57,7 +59,9 @@ static void DISPC_SpiWriteData(uint32_t data)
 	sprd_spi_set_data_width(8);
 
 	sprd_spi_set_cs(0, TRUE);
-	sprd_gpio_set(NULL,138,1);
+
+	if (!start_send_pixels_flag)
+		sprd_gpio_set(NULL,138,1);
 
 	// Write a data identical with buswidth
 	sprd_spi_write_data( &data, 1, 0);

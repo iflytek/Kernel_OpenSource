@@ -46,16 +46,20 @@
 #define GC9305_SPI_SPEED 		(48*1000*1000UL)
 #define	SPI_MODE_0	(0|0)
 
+extern unsigned char start_send_pixels_flag;
+
 static int32_t gc9305_refresh(struct panel_spec *self,void *base)
 {
 	int i = 0;
 	uint16_t *prgb = (uint16_t *)base;
 	uint16_t rgb;
 	LCD_PRINT("gc9305_freshbuffer\r\n");
+	start_send_pixels_flag = 1;
 	spi_send_cmd_t spi_send_cmd = self->info.spi->ops->spi_send_cmd;
 	spi_send_data_t spi_send_data = self->info.spi->ops->spi_send_data;
 	spi_read_t spi_read = self->info.spi->ops->spi_read;
 
+	sprd_gpio_set(NULL,138,1);
 	for(i = 0 ; i < 240*320;i++)
 	{
 		rgb = *prgb++;
