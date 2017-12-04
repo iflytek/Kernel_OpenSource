@@ -311,17 +311,7 @@
 #define CONFIG_BOARD_LATE_INIT
 
 /*rf board id */
-#define RF_BAND_INFO
-#ifdef RF_BAND_INFO
-#define ADC_CHANNEL_FOR_NV		3
-#endif
-
-/* TSX_32Kless */
-#define CONFIG_TSX_32K
-#ifdef CONFIG_TSX_32K
-#define LB_GPIO 			140
-#define MB_GPIO 			141
-#endif
+#define CONFIG_BOARD_ID
 
 /* Chip Driver Macro Definitions Start*/
 /*sprd adc*/

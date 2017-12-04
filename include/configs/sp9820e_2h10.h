@@ -336,17 +336,7 @@
 #endif
 
 /*rf board id */
-#define RF_BAND_INFO
-#ifdef RF_BAND_INFO
-#define ADC_CHANNEL_FOR_NV		1
-#endif
-
-/* TSX_32Kless */
-#define CONFIG_TSX_32K
-#ifdef CONFIG_TSX_32K
-#define LB_GPIO 			86
-#define MB_GPIO 			87
-#endif
+#define CONFIG_BOARD_ID
 
 /*fastboot*/
 #define SCRATCH_ADDR    (CONFIG_SYS_SDRAM_BASE + 0x100000)

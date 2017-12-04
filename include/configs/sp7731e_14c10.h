@@ -315,17 +315,6 @@
 #define CONFIG_PREBOOT "role"
 #define CONFIG_BOARD_LATE_INIT
 
-
-/*rf board id */
-//#define RF_BAND_INFO
-#ifdef RF_BAND_INFO
-#define LB_GPIO_NUM 			134
-#define MB_GPIO_NUM 			135
-//#define HB_GPIO_NUM 			0
-//#define ADC_CHANNEL_FOR_NV		0
-#endif
-
-
 /* Chip Driver Macro Definitions Start*/
 /*sprd adc*/
 #define CONFIG_SPRD_ADC

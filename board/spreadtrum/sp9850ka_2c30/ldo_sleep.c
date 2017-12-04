@@ -10,8 +10,8 @@
 #define CPU_PD_BLOCK 4
 #define CPU_PD_BIT 15
 
-#if defined(CONFIG_TSX_32K)
-extern int sprd_get32_less(void);
+#if defined(CONFIG_BOARD_ID)
+extern int sprd_get_boardid(void);
 #endif
 extern u32 sprd_pmic_efuse_read(int blk_index);
 
@@ -48,9 +48,9 @@ void pmic_lowpower_config(uint32_t gen_para)
 	unsigned int cpu_pd_mode;
 	unsigned int feature_32k_less = 0;
 
-	#if defined(CONFIG_TSX_32K)
-	feature_32k_less = sprd_get32_less();
-	#endif
+#if defined(CONFIG_BOARD_ID)
+	feature_32k_less = sprd_get_boardid();
+#endif
 
 	cpu_pd_mode = sprd_pmic_efuse_read(CPU_PD_BLOCK) & BIT(CPU_PD_BIT);
 

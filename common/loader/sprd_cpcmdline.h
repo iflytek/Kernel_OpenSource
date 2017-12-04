@@ -18,7 +18,7 @@
 #define RF_HW_INFO       "hardware.version"
 #define K32_LESS         "32k.less"
 #define AUTO_TEST        "autotest"
-#ifdef CONFIG_TSX_32K
+#ifdef CONFIG_BOARD_ID
 #define CRYSTAL_TYPE    "crystal"
 #define RF_HW_ID       "rfhw.id"
 #endif

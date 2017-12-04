@@ -307,16 +307,6 @@
 #define SRC_DT_ADR      0x81000000
 #define BOOTIMG_ADR     0x86000000
 
-/*rf board id */
-//#define RF_BAND_INFO
-#ifdef RF_BAND_INFO
-#define LB_GPIO_NUM 			134
-#define MB_GPIO_NUM 			135
-//#define HB_GPIO_NUM 			0
-//#define ADC_CHANNEL_FOR_NV		0
-#endif
-
-
 /* Chip Driver Macro Definitions Start*/
 /*sprd adc*/
 #define CONFIG_SPRD_ADC

@@ -55,3 +55,19 @@ obj-y += pmic_efuse.o
 endif
 obj-y += pmic27xx_misc.o
 obj-y += sprd_led.o
+#board id for isharkl2
+ifdef CONFIG_SPRD_SOC_SP9853I
+obj-y += sprd_boardid_isharkl2.o
+endif
+# board id for sharkl2
+ifdef CONFIG_SC9833
+obj-y += sprd_boardid_sharkl2.o
+endif
+# board id for sharklj1
+ifdef CONFIG_SOC_SHARKLJ1
+obj-y += sprd_boardid_sharklj1.o
+endif
+# board id for sharkle
+ifdef CONFIG_SOC_SHARKLE
+obj-y += sprd_boardid_sharkle.o
+endif

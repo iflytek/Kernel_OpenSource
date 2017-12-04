@@ -8,8 +8,8 @@
 #define DCXO_TCXO_32KLESS 1
 #define IS_32K 3  /*TCXO_32K*/
 
-#if defined(CONFIG_TSX_32K)
-extern int sprd_get32_less(void);
+#if defined(CONFIG_BOARD_ID)
+extern int sprd_get_boardid(void);
 #endif
 
 void DCDC_ldo_power_on()
@@ -44,8 +44,8 @@ void pmic_lowpower_config(uint32_t gen_para)
 {
 	unsigned int feature_32k_less = 0;
 
-#if defined(CONFIG_TSX_32K)
-	feature_32k_less = sprd_get32_less();
+#if defined(CONFIG_BOARD_ID)
+	feature_32k_less = sprd_get_boardid();
 #endif
 
 #if defined(CONFIG_ADIE_SC2721)
