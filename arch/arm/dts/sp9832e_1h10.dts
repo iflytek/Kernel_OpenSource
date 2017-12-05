@@ -32,14 +32,6 @@
 			reg = <0x0 0x87500000 0x0 0x300000>;
 		};
 
-		smem_reserved: sipc-mem@87800000 {
-			reg = <0x0 0x87800000 0x0 0x500000>;
-		};
-
-		cp_reserved: cp-modem@87d00000 {
-			reg = <0x0 0x87d00000 0x0 0x7900000>;
-		};
-
 		/* must be 4K aligned */
 		sml_reserved: sml-mem@94000000{
 			reg = <0x0 0x94000000 0x0 0x00100000>;
@@ -68,13 +60,6 @@
 
 		system_reserved: systembuffer@5,c64f0000{
 			reg = <0x5 0xc64f0000 0x0 0x19b10000>;
-		};
-
-		iq_reserved: iq-mem{
-			compatible = "sprd,iq-mem";
-			alignment = <0x0 0x1000>;
-			alloc-ranges = <0x0 0x80000000 0 0x45400000>;
-			size = <0x0 0x8000000>;
 		};
 	};
 

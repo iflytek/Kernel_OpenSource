@@ -24,14 +24,6 @@
 			reg = <0x87500000 0x300000>;
 		};
 
-		smem_reserved: sipc-mem@87800000 {
-			reg = <0x87800000 0x500000>;
-		};
-
-		cp_reserved: cp-modem@89600000 {
-			reg = <0x89600000 0x04100000>;
-		};
-
 		/* must be 4K aligned */
 		sml_reserved: sml-mem@94000000{
                         reg = <0x94000000 0x00100000>;
@@ -52,13 +44,6 @@
 		/* For cma 4M align, enlarge its size from 0xd840000 to 0xd8d0000 */
 		mm_reserved: multimediabuffer@8fc6a000{
 			reg = <0x8fc6a000 0x00000000>;
-		};
-
-		iq_reserved: iq-mem{
-			compatible = "sprd,iq-mem";
-			alignment = <0x0 0x1000>;
-			alloc-ranges = <0x8e300000 0x00000000>;
-			size = <0x0 0x8000000>;
 		};
 	};
 
