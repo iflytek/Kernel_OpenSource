@@ -19,6 +19,7 @@ void fdt_fixup_pmic_wa(void *fdt);
  int fdt_fixup_adc_calibration_data(void *fdt);
  int fdt_fixup_ddr_size(void *fdt);
  int fdt_fixup_sysdump_magic(void *fdt);
+ int _fixup_sysdump_uboot(void *fdt);
  int fdt_fixup_cp_boot(void *fdt);
  int fdt_fixup_memleakon(void *fdt);
  int fdt_fixup_verified_boot(void *fdt);

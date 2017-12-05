@@ -783,6 +783,82 @@ int fdt_fixup_sysdump_magic(void *fdt)
 	return ret;
 }
 
+int fdt_fixup_sysdump_uboot(void *fdt)
+{
+	int err;
+	char *pStr=NULL;
+	char nodename[256];
+	int offset, str_len;
+	phys_size_t uboot_size;
+	fdt_addr_t s_addr, s_size;
+	int parentoffset,nodeoffset;
+	phys_addr_t uboot_base = CONFIG_SYS_TEXT_BASE;
+	phys_addr_t ddr_base = CONFIG_SYS_SDRAM_BASE;
+	phys_size_t ddr_size = get_real_ram_size();
+
+	uboot_base &= (ddr_base + ddr_size);
+	debugf("uboot load address is 0x%x\n", uboot_base);
+	uboot_size = (ddr_base + ddr_size) - uboot_base;
+	debugf("uboot size is 0x%x\n", uboot_size);
+
+	parentoffset = fdt_path_offset(fdt, "/reserved-memory");
+	if (parentoffset < 0) {
+		debugf("cannot find reserved-memory node.\n" );
+		return -1;
+	}
+
+	for (offset = fdt_first_subnode(fdt, parentoffset);
+		offset >= 0; offset = fdt_next_subnode(fdt, offset)) {
+		sprintf(nodename, "%s", fdt_get_name(fdt, offset, NULL));
+		str_len = strlen(nodename);
+		nodename[str_len] = '\0';
+
+		pStr = strstr(nodename, "sysdump-uboot");
+		if (pStr) {
+			debugf("find sysdump-uboot reserved memory\n" );
+			if (fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0) {
+				debugf("cannot find reg prop in sysdump-uboot node.\n" );
+				return -1;
+			} else {
+				debugf("sysdump-uboot: addr is 0x%x, size is 0x%x\n", s_addr, s_size);
+				fdt_delprop(fdt, offset, "reg");
+#ifdef CONFIG_ARM64
+				err = fdt_setprop_u64(fdt, offset, "reg", uboot_base);
+				if (err < 0) {
+					errorf("ERROR: cannot set sysdump-uboot node's reg property(addr)!\n");
+					return -1;
+				}
+
+				err = fdt_appendprop_u64(fdt, offset, "reg", uboot_size);
+				if (err < 0) {
+					errorf("ERROR: cannot set sysdump-uboot node's reg property(size)!\n");
+					return -1;
+				}
+#else
+				err = fdt_setprop_u32(fdt, offset, "reg", uboot_base);
+				if (err < 0) {
+					errorf("ERROR: cannot set sysdump-uboot node's reg property(addr)!\n");
+					return -1;
+				}
+
+				err = fdt_appendprop_u32(fdt, offset, "reg", uboot_size);
+				if (err < 0) {
+					errorf("ERROR: cannot set sysdump-uboot node's reg property(size)!\n");
+					return -1;
+				}
+#endif
+
+			if (!fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size))
+				debugf("sysdump-uboot: addr is 0x%x, size is 0x%x again\n", s_addr, s_size);
+			}
+
+			return 0;
+		}
+	}
+
+	debugf("can not find sysdump-uboot reserved memory\n" );
+	return -1;
+}
 
 int fdt_fixup_adc_calibration_data(void *fdt)
 {
