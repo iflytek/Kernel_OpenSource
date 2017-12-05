@@ -2163,6 +2163,8 @@ static void complete_ep(dwc_otg_pcd_ep_t * ep)
 					      ep->dwc_ep.xfer_count -
 					      deptsiz.b.xfersize);
 				ep->dwc_ep.xfer_buff += byte_count;
+				/* The cache invalidation is for CPU of X86 architecture speculatively fetch */
+				invalidate_dcache_range(ep->dwc_ep.dma_addr, ep->dwc_ep.dma_addr + byte_count);
 				ep->dwc_ep.dma_addr += byte_count;
 				ep->dwc_ep.xfer_count += byte_count;
 
