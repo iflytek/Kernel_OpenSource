@@ -1102,7 +1102,7 @@ int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status
 	do_hex_dump(data_buffer, status_len);
 #endif
 
-	uboot_verify_unlockstatus(data_buffer, sizeof(data_buffer));
+	ret = uboot_verify_unlockstatus(data_buffer, sizeof(data_buffer));
 
 	if(*v_lock_state_ret == VBOOT_STATUS_LOCK)
 	{
