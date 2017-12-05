@@ -213,7 +213,7 @@
 
 /*eMMC boot*/
 //#define CONFIG_EMMC_BOOT
-//#define CONFIG_GENERIC_MMC
+#define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
 
 /*file system config*/

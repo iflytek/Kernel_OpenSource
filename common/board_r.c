@@ -405,8 +405,16 @@ static int initr_onenand(void)
 #ifdef CONFIG_GENERIC_MMC
 static int initr_mmc(void)
 {
-	puts("MMC:   ");
 	mmc_initialize(gd->bd);
+	return 0;
+}
+#endif
+
+#ifdef CONFIG_EMMC_BOOT
+static int initr_board_mmc(void)
+{
+	puts("MMC:   ");
+	board_mmc_initialize(gd->bd);
 	return 0;
 }
 #endif
@@ -799,6 +807,9 @@ init_fnc_t init_sequence_r[] = {
 #endif
 #ifdef CONFIG_GENERIC_MMC
 	initr_mmc,
+#endif
+#ifdef CONFIG_EMMC_BOOT
+	initr_board_mmc,
 #endif
 #ifdef CONFIG_UFS
 	initr_ufs,

@@ -307,10 +307,12 @@ int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf);
 
 
 int mmc_register(struct mmc *mmc);
+int board_mmc_initialize(bd_t *bis);
 int mmc_initialize(bd_t *bis);
 int mmc_init(struct mmc *mmc);
 int mmc_read(struct mmc *mmc, u64 src, uint8_t *dst, int size);
 void mmc_set_clock(struct mmc *mmc, uint clock);
+struct mmc *board_sd_init(void);
 struct mmc *find_mmc_device(int dev_num);
 int mmc_set_dev(int dev_num);
 void print_mmc_devices(char separator);

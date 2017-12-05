@@ -2262,6 +2262,28 @@ void board_mmc_test(void)
 }
 #endif
 
+struct mmc* board_sd_init(void)
+{
+	struct mmc *mmc;
+	int ret;
+
+	cur_dev_num = 1;
+	sprd_host_init(1);
+	mmc = find_mmc_device(1);// 1 is  sd, 0 is emmc
+	if(mmc) {
+		ret = mmc_init(mmc);
+		if(ret < 0){
+			debugf("sdcard init failed %d\n",ret);
+			return NULL;
+		}
+	} else {
+		debugf("no sdcard found\n");
+		return NULL;
+	}
+
+	return mmc;
+}
+
 int board_mmc_init(bd_t *bis)
 {
 	struct mmc *mmc;
@@ -2312,11 +2334,8 @@ int sprd_host_init(int sdio_type)
 	return ret;
 }
 
-int mmc_initialize(bd_t *bis)
+int board_mmc_initialize(bd_t *bis)
 {
-	INIT_LIST_HEAD(&mmc_devices);
-	cur_dev_num = 0;
-
 	debugf("%s entry\n", __func__);
 
 	if (board_mmc_init(bis) < 0)
@@ -2327,6 +2346,14 @@ int mmc_initialize(bd_t *bis)
 #endif
 
 	do_preinit();
+
+	return 0;
+}
+
+int mmc_initialize(bd_t *bis)
+{
+	INIT_LIST_HEAD(&mmc_devices);
+	cur_dev_num = 0;
 
 	return 0;
 }

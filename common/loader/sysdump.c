@@ -160,21 +160,10 @@ int init_mmc_fat(int *fs_type)
 	struct mmc *mmc;
 	block_dev_desc_t *dev_desc = NULL;
 	int ret;
+
 	*fs_type = FS_INVALID;
 	debugf("init_mmc_fat\n");
-	sprd_host_init(1);
-	mmc = find_mmc_device(1);// 1 is  sd, 0 is emmc
-	if(mmc) {
-		ret = mmc_init(mmc);
-		if(ret < 0){
-			debugf("mmc init failed %d\n", ret);
-			return -1;
-		}
-	} else {
-		debugf("no mmc card found\n");
-		return -1;
-	}
-
+	mmc = board_sd_init();
 	dev_desc = &mmc->block_dev;
 	if(dev_desc==NULL){
 		debugf("no mmc block device found\n");

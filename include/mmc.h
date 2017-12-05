@@ -392,10 +392,12 @@ enum mmc_hwpart_conf_mode {
 int mmc_register(struct mmc *mmc);
 struct mmc *mmc_create(const struct mmc_config *cfg, void *priv);
 void mmc_destroy(struct mmc *mmc);
+int board_mmc_initialize(bd_t *bis);
 int mmc_initialize(bd_t *bis);
 int mmc_init(struct mmc *mmc);
 int mmc_read(struct mmc *mmc, u64 src, uchar *dst, int size);
 void mmc_set_clock(struct mmc *mmc, uint clock);
+struct mmc *board_sd_init(void);
 struct mmc *find_mmc_device(int dev_num);
 int mmc_set_dev(int dev_num);
 void print_mmc_devices(char separator);
