@@ -455,41 +455,32 @@ int pctool_mode_detect(void)
 	}else{
 		return -1;
 	}
-	dcache_disable();
+
 	ret = cali_usb_prepare();
-	if (!ret) {
-		dcache_enable();
+	if (!ret)
 		return -1;
-	}
 
 #if IO_DEBUG
 	cali_usb_debug(pctool_cmd_buf);
 #endif
 	ret = cali_usb_enum();
-	if (!ret) {
-		dcache_enable();
+	if (!ret)
 		return -1;
-	}
+
 	ret = cali_get_cmd(pctool_cmd_buf, CALIBERATE_STRING_LEN );
-	if (!ret) {
-		dcache_enable();
+	if (!ret)
 		return -1;
-	}
+
 	command = check_pctool_cmd(pctool_cmd_buf, CALIBERATE_STRING_LEN);
 	printf("%s caliberate_mode: %x \n",__func__, command&0xff);
-	if (!command)
-	{
+	if (!command) {
 		printf("func: %s line: %d caliberate failed\n", __func__, __LINE__);
-		dcache_enable();
 		return -1;
 	}
 	ret = reply_to_pctool(pctool_cmd_buf, CALIBERATE_STRING_LEN);
-	if (!ret) {
-		dcache_enable();
+	if (!ret)
 		return -1;
-	}
 
-	dcache_enable();
 	if (CALIBERATE_COMMAND_PROGRAMKEY == command)
 	{
 		ret = cali_get_cmd(pctool_cmd_buf, CALIBERATE_STRING_LEN_14);
