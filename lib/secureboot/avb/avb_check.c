@@ -37,6 +37,8 @@ int avb_check_vbmeta(uint8_t * vbmeta_img_paddr, uint32_t vbmeta_image_len)
         vboot_verify_ret = g_avb_ops.validate_vbmeta_public_key(&g_avb_ops, pk_data, pk_len, vbmeta_pubkey_addr, vbmeta_pubkey_len, &key_istrusted);
         debug("vboot_verify_ret is %d, key_istrusted:%d.\n", vboot_verify_ret, key_istrusted);
         verify_result = vboot_verify_ret;
+        if (verify_result!=AVB_IO_RESULT_OK)
+            goto out;
         /* Check rollback index. */
         debug("Check rollback index for vbmeta \n");
         io_ret = g_avb_ops.read_rollback_index(&g_avb_ops, 0, &stored_rollback_index);
