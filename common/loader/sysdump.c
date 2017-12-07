@@ -828,9 +828,10 @@ static int get_total_dump_memory(struct sysdump_mem *sprd_dump_mem)
 
 static int recalculate_kernel_memory(unsigned char *fdt_blob, int nodeoffset, int ofs_remem, int dts_version, struct sysdump_mem *sprd_dump_mem)
 {
-
+	char *pStr=NULL;
+	char nodename[256];
 	struct sysdump_memory *entries = NULL;
-	int j = 0, mem_used = 0, i = 0, k, offset;
+	int j = 0, mem_used = 0, i = 0, k, offset, str_len;
 	SYSDUMP_LONG maddr, msize, base_addr;
 	SYSDUMP_LONG old_addr = 0, old_size=0;
 
@@ -858,6 +859,15 @@ static int recalculate_kernel_memory(unsigned char *fdt_blob, int nodeoffset, in
 
 	/* get linux reserved-memory region */
 	for (offset = fdt_first_subnode(fdt_blob, ofs_remem); offset >= 0; offset = fdt_next_subnode(fdt_blob, offset)) {
+
+		sprintf(nodename, "%s", fdt_get_name(fdt_blob, offset, NULL));
+		str_len = strlen(nodename);
+		nodename[str_len] = '\0';
+		pStr = strstr(nodename, "sysdump-uboot");
+		if (pStr) {
+			debugf("find sysdump-uboot reserved memory\n" );
+			continue;
+		}
 		fdt_get_addr_size(fdt_blob, offset, "reg", &maddr, &msize);
 		reserved_memory[re_num].addr = maddr;
 		reserved_memory[re_num].size = msize;

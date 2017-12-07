@@ -796,11 +796,6 @@ int fdt_fixup_sysdump_uboot(void *fdt)
 	phys_addr_t ddr_base = CONFIG_SYS_SDRAM_BASE;
 	phys_size_t ddr_size = get_real_ram_size();
 
-	uboot_base &= (ddr_base + ddr_size);
-	debugf("uboot load address is 0x%x\n", uboot_base);
-	uboot_size = (ddr_base + ddr_size) - uboot_base;
-	debugf("uboot size is 0x%x\n", uboot_size);
-
 	parentoffset = fdt_path_offset(fdt, "/reserved-memory");
 	if (parentoffset < 0) {
 		debugf("cannot find reserved-memory node.\n" );
@@ -816,6 +811,11 @@ int fdt_fixup_sysdump_uboot(void *fdt)
 		pStr = strstr(nodename, "sysdump-uboot");
 		if (pStr) {
 			debugf("find sysdump-uboot reserved memory\n" );
+			uboot_base &= (ddr_base + ddr_size);
+			debugf("uboot load address is 0x%x\n", uboot_base);
+			uboot_size = (ddr_base + ddr_size) - uboot_base;
+			debugf("uboot size is 0x%x\n", uboot_size);
+
 			if (fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0) {
 				debugf("cannot find reg prop in sysdump-uboot node.\n" );
 				return -1;
