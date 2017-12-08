@@ -374,6 +374,7 @@ void secboot_init(char *partition_name)
 void secboot_terminal(void)
 {
 	#if defined (CONFIG_SPRD_SECBOOT)
+	secboot_param_set(VERIFY_ADDR,&img_verify_info);
 	sprd_calc_hbk();
 	#endif
 }
