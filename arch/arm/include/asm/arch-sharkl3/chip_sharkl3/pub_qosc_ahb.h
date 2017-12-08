@@ -6,7 +6,7 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-06-15 20:32:44
+ * updated at 2017-12-07 16:03:11
  *
  */
 
@@ -85,6 +85,8 @@
 #define REG_PUB_QOSC_AHB_QOSC_URGENT_COUNT_CH5              ( CTL_BASE_PUB_QOSC_AHB + 0x0224 )
 #define REG_PUB_QOSC_AHB_QOSC_URGENT_COUNT_CH6              ( CTL_BASE_PUB_QOSC_AHB + 0x0228 )
 #define REG_PUB_QOSC_AHB_QOSC_URGENT_COUNT_CH7              ( CTL_BASE_PUB_QOSC_AHB + 0x022C )
+#define REG_PUB_QOSC_AHB_QOSC_DBG_MON                       ( CTL_BASE_PUB_QOSC_AHB + 0x0280 )
+#define REG_PUB_QOSC_AHB_QOSC_MON_STATUS                    ( CTL_BASE_PUB_QOSC_AHB + 0x0284 )
 #define REG_PUB_QOSC_AHB_M1_QOS_CTRL_EB                     ( CTL_BASE_PUB_QOSC_AHB + 0x0400 )
 #define REG_PUB_QOSC_AHB_M1_QOS_CTRL_RESET                  ( CTL_BASE_PUB_QOSC_AHB + 0x0404 )
 #define REG_PUB_QOSC_AHB_M1_QOSC_CLK_CTRL                   ( CTL_BASE_PUB_QOSC_AHB + 0x0408 )
@@ -154,6 +156,9 @@
 #define REG_PUB_QOSC_AHB_TAR_LAT_OFFSET_LM1                 ( CTL_BASE_PUB_QOSC_AHB + 0x0820 )
 #define REG_PUB_QOSC_AHB_URGENT_RATIO_LM1                   ( CTL_BASE_PUB_QOSC_AHB + 0x0824 )
 #define REG_PUB_QOSC_AHB_LATMON_SUB_CFG_LM1                 ( CTL_BASE_PUB_QOSC_AHB + 0x0828 )
+#define REG_PUB_QOSC_AHB_TAR_LAT_OFFSET_LM2                 ( CTL_BASE_PUB_QOSC_AHB + 0x0830 )
+#define REG_PUB_QOSC_AHB_URGENT_RATIO_LM2                   ( CTL_BASE_PUB_QOSC_AHB + 0x0834 )
+#define REG_PUB_QOSC_AHB_LATMON_SUB_CFG_LM2                 ( CTL_BASE_PUB_QOSC_AHB + 0x0838 )
 #define REG_PUB_QOSC_AHB_LATMON_LM0_STATUS0                 ( CTL_BASE_PUB_QOSC_AHB + 0x0900 )
 #define REG_PUB_QOSC_AHB_LATMON_LM0_STATUS1                 ( CTL_BASE_PUB_QOSC_AHB + 0x0904 )
 #define REG_PUB_QOSC_AHB_LATMON_LM0_STATUS2                 ( CTL_BASE_PUB_QOSC_AHB + 0x0908 )
@@ -162,7 +167,21 @@
 #define REG_PUB_QOSC_AHB_LATMON_LM1_STATUS1                 ( CTL_BASE_PUB_QOSC_AHB + 0x0914 )
 #define REG_PUB_QOSC_AHB_LATMON_LM1_STATUS2                 ( CTL_BASE_PUB_QOSC_AHB + 0x0918 )
 #define REG_PUB_QOSC_AHB_LATMON_LM1_STATUS3                 ( CTL_BASE_PUB_QOSC_AHB + 0x091C )
-#define REG_PUB_QOSC_AHB_LATMON_STATUS                      ( CTL_BASE_PUB_QOSC_AHB + 0x0920 )
+#define REG_PUB_QOSC_AHB_LATMON_LM2_STATUS0                 ( CTL_BASE_PUB_QOSC_AHB + 0x0920 )
+#define REG_PUB_QOSC_AHB_LATMON_LM2_STATUS1                 ( CTL_BASE_PUB_QOSC_AHB + 0x0924 )
+#define REG_PUB_QOSC_AHB_LATMON_LM2_STATUS2                 ( CTL_BASE_PUB_QOSC_AHB + 0x0928 )
+#define REG_PUB_QOSC_AHB_LATMON_LM2_STATUS3                 ( CTL_BASE_PUB_QOSC_AHB + 0x092C )
+#define REG_PUB_QOSC_AHB_LATMON_STATUS                      ( CTL_BASE_PUB_QOSC_AHB + 0x0940 )
+#define REG_PUB_QOSC_AHB_BWMON_EB                           ( CTL_BASE_PUB_QOSC_AHB + 0x0A00 )
+#define REG_PUB_QOSC_AHB_BWMON0_UP_WBW_SET                  ( CTL_BASE_PUB_QOSC_AHB + 0x0A04 )
+#define REG_PUB_QOSC_AHB_BWMON0_UP_RBW_SET                  ( CTL_BASE_PUB_QOSC_AHB + 0x0A08 )
+#define REG_PUB_QOSC_AHB_BWMON1_UP_WBW_SET                  ( CTL_BASE_PUB_QOSC_AHB + 0x0A0C )
+#define REG_PUB_QOSC_AHB_BWMON1_UP_RBW_SET                  ( CTL_BASE_PUB_QOSC_AHB + 0x0A10 )
+#define REG_PUB_QOSC_AHB_BWMON_STATUS                       ( CTL_BASE_PUB_QOSC_AHB + 0x0A70 )
+#define REG_PUB_QOSC_AHB_BWMON0_WBW_CNT                     ( CTL_BASE_PUB_QOSC_AHB + 0x0A80 )
+#define REG_PUB_QOSC_AHB_BWMON0_RBW_CNT                     ( CTL_BASE_PUB_QOSC_AHB + 0x0A84 )
+#define REG_PUB_QOSC_AHB_BWMON1_WBW_CNT                     ( CTL_BASE_PUB_QOSC_AHB + 0x0A88 )
+#define REG_PUB_QOSC_AHB_BWMON1_RBW_CNT                     ( CTL_BASE_PUB_QOSC_AHB + 0x0A8C )
 
 /* REG_PUB_QOSC_AHB_QOS_CTRL_EB */
 
@@ -175,7 +194,10 @@
 
 /* REG_PUB_QOSC_AHB_QOSC_CLK_CTRL */
 
+#define BIT_PUB_QOSC_AHB_QOSC_CFG_CLK_AUTO_GATE_EN             BIT(9)
+#define BIT_PUB_QOSC_AHB_QOSC_CFG_CLK_EB                       BIT(8)
 #define BIT_PUB_QOSC_AHB_QOSC_CLK_TICK_ENABLE                  BIT(4)
+#define BIT_PUB_QOSC_AHB_QOSC_BW_LIMIT_AUTO_GATE_EN            BIT(1)
 #define BIT_PUB_QOSC_AHB_QOSC_PORT_CLK_AUTO_GATE_EN            BIT(0)
 
 /* REG_PUB_QOSC_AHB_QOSC_PORT_ENABLE */
@@ -556,6 +578,16 @@
 #define BIT_PUB_QOSC_AHB_URGENT_ULTRA_COUNT_WR_CH7(x)          (((x) & 0xFF) << 8)
 #define BIT_PUB_QOSC_AHB_URGENT_HIGH_COUNT_WR_CH7(x)           (((x) & 0xFF))
 
+/* REG_PUB_QOSC_AHB_QOSC_DBG_MON */
+
+#define BIT_PUB_QOSC_AHB_QOS_DBG_MON_SEL(x)                    (((x) & 0xF) << 4)
+#define BIT_PUB_QOSC_AHB_QOS_DBG_MON_EB                        BIT(1)
+#define BIT_PUB_QOSC_AHB_QOS_DBG_MON_START                     BIT(0)
+
+/* REG_PUB_QOSC_AHB_QOSC_MON_STATUS */
+
+#define BIT_PUB_QOSC_AHB_QOSC_MON_STATUS(x)                    (((x) & 0xFFFFFFFF))
+
 /* REG_PUB_QOSC_AHB_M1_QOS_CTRL_EB */
 
 #define BIT_PUB_QOSC_AHB_M1_QOS_CTRL_ENABLE                    BIT(0)
@@ -566,7 +598,9 @@
 
 /* REG_PUB_QOSC_AHB_M1_QOSC_CLK_CTRL */
 
+#define BIT_PUB_QOSC_AHB_M1_QOSC_CFG_CLK_EB                    BIT(8)
 #define BIT_PUB_QOSC_AHB_M1_QOSC_CLK_TICK_ENABLE(x)            (((x) & 0x3) << 4)
+#define BIT_PUB_QOSC_AHB_M1_QOSC_BW_LIMIT_AUTO_GATE_EN         BIT(1)
 #define BIT_PUB_QOSC_AHB_M1_QOSC_PORT_CLK_AUTO_GATE_EN         BIT(0)
 
 /* REG_PUB_QOSC_AHB_M1_QOSC_PORT_ENABLE */
@@ -713,7 +747,9 @@
 
 /* REG_PUB_QOSC_AHB_M2_QOSC_CLK_CTRL */
 
+#define BIT_PUB_QOSC_AHB_M2_QOSC_CFG_CLK_EB                    BIT(8)
 #define BIT_PUB_QOSC_AHB_M2_QOSC_CLK_TICK_ENABLE(x)            (((x) & 0x7) << 4)
+#define BIT_PUB_QOSC_AHB_M2_QOSC_BW_LIMIT_AUTO_GATE_EN         BIT(1)
 #define BIT_PUB_QOSC_AHB_M2_QOSC_PORT_CLK_AUTO_GATE_EN         BIT(0)
 
 /* REG_PUB_QOSC_AHB_M2_QOSC_PORT_ENABLE */
@@ -890,13 +926,17 @@
 
 /* REG_PUB_QOSC_AHB_LATMON_EB */
 
-#define BIT_PUB_QOSC_AHB_LATMON_AUTO_GATE_EN(x)                (((x) & 0x3) << 8)
-#define BIT_PUB_QOSC_AHB_LATMON_CLK_TICK_ENABLE(x)             (((x) & 0x3) << 4)
-#define BIT_PUB_QOSC_AHB_LATMON_ENABLE(x)                      (((x) & 0x3))
+#define BIT_PUB_QOSC_AHB_LATMON_SW_TIMER_EN(x)                 (((x) & 0x7) << 24)
+#define BIT_PUB_QOSC_AHB_LATMON_TIMER_SEL(x)                   (((x) & 0x7) << 20)
+#define BIT_PUB_QOSC_AHB_LATMON2_SEL                           BIT(16)
+#define BIT_PUB_QOSC_AHB_LATMON_AUTO_GATE_EN(x)                (((x) & 0x7) << 8)
+#define BIT_PUB_QOSC_AHB_LATMON_CLK_TICK_ENABLE(x)             (((x) & 0x7) << 4)
+#define BIT_PUB_QOSC_AHB_LATMON_ENABLE(x)                      (((x) & 0x7))
 
 /* REG_PUB_QOSC_AHB_LATMON_RESET */
 
-#define BIT_PUB_QOSC_AHB_LATMON_RESET(x)                       (((x) & 0x3))
+#define BIT_PUB_QOSC_AHB_LATMON_COUNT_RESET(x)                 (((x) & 0x7) << 8)
+#define BIT_PUB_QOSC_AHB_LATMON_RESET(x)                       (((x) & 0x7))
 
 /* REG_PUB_QOSC_AHB_TAR_LAT_OFFSET_LM0 */
 
@@ -913,15 +953,17 @@
 /* REG_PUB_QOSC_AHB_LATMON_SUB_CFG_LM0 */
 
 #define BIT_PUB_QOSC_AHB_LATMON_INIT_URGENT_DEB_LM0(x)         (((x) & 0x7) << 28)
-#define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_VALUE_LM0(x)            (((x) & 0x3FF) << 12)
+#define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_SEL_LM0(x)              (((x) & 0x3) << 26)
+#define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_VALUE_LM0(x)            (((x) & 0xFFF) << 12)
 #define BIT_PUB_QOSC_AHB_LAT_SUB_ALL_RATIO_LM0(x)              (((x) & 0x3) << 8)
 #define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_PERIOD_LM0(x)           (((x) & 0xF))
 
 /* REG_PUB_QOSC_AHB_LATMON_HW_DFS_CFG */
 
+#define BIT_PUB_QOSC_AHB_LATMON_HW_DFS_TRIGGER_SEL_LM2(x)      (((x) & 0x7) << 16)
 #define BIT_PUB_QOSC_AHB_LATMON_HW_DFS_TRIGGER_SEL_LM1(x)      (((x) & 0x7) << 12)
 #define BIT_PUB_QOSC_AHB_LATMON_HW_DFS_TRIGGER_SEL_LM0(x)      (((x) & 0x7) << 8)
-#define BIT_PUB_QOSC_AHB_LATMON_HW_DFS_TRIGGER_EN(x)           (((x) & 0x3))
+#define BIT_PUB_QOSC_AHB_LATMON_HW_DFS_TRIGGER_EN(x)           (((x) & 0x7))
 
 /* REG_PUB_QOSC_AHB_TAR_LAT_OFFSET_LM1 */
 
@@ -938,9 +980,30 @@
 /* REG_PUB_QOSC_AHB_LATMON_SUB_CFG_LM1 */
 
 #define BIT_PUB_QOSC_AHB_LATMON_INIT_URGENT_DEB_LM1(x)         (((x) & 0x7) << 28)
-#define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_VALUE_LM1(x)            (((x) & 0x3FF) << 12)
+#define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_SEL_LM1(x)              (((x) & 0x3) << 26)
+#define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_VALUE_LM1(x)            (((x) & 0xFFF) << 12)
 #define BIT_PUB_QOSC_AHB_LAT_SUB_ALL_RATIO_LM1(x)              (((x) & 0x3) << 8)
 #define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_PERIOD_LM1(x)           (((x) & 0xF))
+
+/* REG_PUB_QOSC_AHB_TAR_LAT_OFFSET_LM2 */
+
+#define BIT_PUB_QOSC_AHB_TAR_LAT_OFFSET_RD_LM2(x)              (((x) & 0xFF) << 16)
+#define BIT_PUB_QOSC_AHB_TAR_LAT_OFFSET_WR_LM2(x)              (((x) & 0xFF))
+
+/* REG_PUB_QOSC_AHB_URGENT_RATIO_LM2 */
+
+#define BIT_PUB_QOSC_AHB_URGENT_ULTRA_RATIO_RD_LM2(x)          (((x) & 0x3) << 12)
+#define BIT_PUB_QOSC_AHB_URGENT_ULTRA_RATIO_WR_LM2(x)          (((x) & 0x3) << 8)
+#define BIT_PUB_QOSC_AHB_URGENT_HIGH_RATIO_RD_LM2(x)           (((x) & 0x3) << 4)
+#define BIT_PUB_QOSC_AHB_URGENT_HIGH_RATIO_WR_LM2(x)           (((x) & 0x3))
+
+/* REG_PUB_QOSC_AHB_LATMON_SUB_CFG_LM2 */
+
+#define BIT_PUB_QOSC_AHB_LATMON_INIT_URGENT_DEB_LM2(x)         (((x) & 0x7) << 28)
+#define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_SEL_LM2(x)              (((x) & 0x3) << 26)
+#define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_VALUE_LM2(x)            (((x) & 0xFFF) << 12)
+#define BIT_PUB_QOSC_AHB_LAT_SUB_ALL_RATIO_LM2(x)              (((x) & 0x3) << 8)
+#define BIT_PUB_QOSC_AHB_TIMER_LAT_SUB_PERIOD_LM2(x)           (((x) & 0xF))
 
 /* REG_PUB_QOSC_AHB_LATMON_LM0_STATUS0 */
 
@@ -974,9 +1037,77 @@
 
 #define BIT_PUB_QOSC_AHB_LATENCY_TARGET_RD_LM1(x)              (((x) & 0xFFFFFFFF))
 
+/* REG_PUB_QOSC_AHB_LATMON_LM2_STATUS0 */
+
+#define BIT_PUB_QOSC_AHB_LATENCY_ACTUAL_WR_LM2(x)              (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_LATMON_LM2_STATUS1 */
+
+#define BIT_PUB_QOSC_AHB_LATENCY_TARGET_WR_LM2(x)              (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_LATMON_LM2_STATUS2 */
+
+#define BIT_PUB_QOSC_AHB_LATENCY_ACTUAL_RD_LM2(x)              (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_LATMON_LM2_STATUS3 */
+
+#define BIT_PUB_QOSC_AHB_LATENCY_TARGET_RD_LM2(x)              (((x) & 0xFFFFFFFF))
+
 /* REG_PUB_QOSC_AHB_LATMON_STATUS */
 
-#define BIT_PUB_QOSC_AHB_LATMON_COUNTER_OV_ST(x)               (((x) & 0xFF))
+#define BIT_PUB_QOSC_AHB_LATMON2_UPDATE_FLAG_CLR               BIT(22)
+#define BIT_PUB_QOSC_AHB_LATMON1_UPDATE_FLAG_CLR               BIT(21)
+#define BIT_PUB_QOSC_AHB_LATMON0_UPDATE_FLAG_CLR               BIT(20)
+#define BIT_PUB_QOSC_AHB_LATMON2_UPDATE_FLAG                   BIT(18)
+#define BIT_PUB_QOSC_AHB_LATMON1_UPDATE_FLAG                   BIT(17)
+#define BIT_PUB_QOSC_AHB_LATMON0_UPDATE_FLAG                   BIT(16)
+#define BIT_PUB_QOSC_AHB_LATMON_COUNTER_OV_ST(x)               (((x) & 0xFFF))
+
+/* REG_PUB_QOSC_AHB_BWMON_EB */
+
+#define BIT_PUB_QOSC_AHB_BWMON_F_UP_REQ_EN(x)                  (((x) & 0x3) << 12)
+#define BIT_PUB_QOSC_AHB_BWMON_RBW_EN(x)                       (((x) & 0x3) << 8)
+#define BIT_PUB_QOSC_AHB_BWMON_WBW_EN(x)                       (((x) & 0x3) << 4)
+#define BIT_PUB_QOSC_AHB_BWMON_ENABLE(x)                       (((x) & 0x3))
+
+/* REG_PUB_QOSC_AHB_BWMON0_UP_WBW_SET */
+
+#define BIT_PUB_QOSC_AHB_BWMON0_UP_WBW_SET(x)                  (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_BWMON0_UP_RBW_SET */
+
+#define BIT_PUB_QOSC_AHB_BWMON0_UP_RBW_SET(x)                  (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_BWMON1_UP_WBW_SET */
+
+#define BIT_PUB_QOSC_AHB_BWMON1_UP_WBW_SET(x)                  (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_BWMON1_UP_RBW_SET */
+
+#define BIT_PUB_QOSC_AHB_BWMON1_UP_RBW_SET(x)                  (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_BWMON_STATUS */
+
+#define BIT_PUB_QOSC_AHB_BWMON1_UPDATE_FLAG_CLR                BIT(9)
+#define BIT_PUB_QOSC_AHB_BWMON0_UPDATE_FLAG_CLR                BIT(8)
+#define BIT_PUB_QOSC_AHB_BWMON1_UPDATE_FLAG                    BIT(1)
+#define BIT_PUB_QOSC_AHB_BWMON0_UPDATE_FLAG                    BIT(0)
+
+/* REG_PUB_QOSC_AHB_BWMON0_WBW_CNT */
+
+#define BIT_PUB_QOSC_AHB_BWMON0_WBW_CNT(x)                     (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_BWMON0_RBW_CNT */
+
+#define BIT_PUB_QOSC_AHB_BWMON0_RBW_CNT(x)                     (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_BWMON1_WBW_CNT */
+
+#define BIT_PUB_QOSC_AHB_BWMON1_WBW_CNT(x)                     (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_QOSC_AHB_BWMON1_RBW_CNT */
+
+#define BIT_PUB_QOSC_AHB_BWMON1_RBW_CNT(x)                     (((x) & 0xFFFFFFFF))
 
 
 #endif /* PUB_QOSC_AHB_H */

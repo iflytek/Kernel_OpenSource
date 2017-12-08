@@ -6,7 +6,7 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-06-15 20:32:44
+ * updated at 2017-12-07 16:03:11
  *
  */
 
@@ -33,9 +33,13 @@
 #define REG_AON_SEC_APB_RVBARADDR2_BIG          ( CTL_BASE_AON_SEC_APB + 0x003C )
 #define REG_AON_SEC_APB_RVBARADDR3_BIG          ( CTL_BASE_AON_SEC_APB + 0x0040 )
 #define REG_AON_SEC_APB_SEC_EFUSE_BOUNDARY      ( CTL_BASE_AON_SEC_APB + 0x0050 )
+#define REG_AON_SEC_APB_GIC_ACC_EN              ( CTL_BASE_AON_SEC_APB + 0x0054 )
+#define REG_AON_SEC_APB_DBG_RECOVERY_EN         ( CTL_BASE_AON_SEC_APB + 0x0058 )
 
 /* REG_AON_SEC_APB_SEC_EB */
 
+#define BIT_AON_SEC_APB_DMA_SEC_EB                 BIT(12)
+#define BIT_AON_SEC_APB_EFUSE_SEC_EB               BIT(11)
 #define BIT_AON_SEC_APB_SEC_EIC_RTCDV5_EB          BIT(10)
 #define BIT_AON_SEC_APB_SEC_EIC_RTC_EB             BIT(9)
 #define BIT_AON_SEC_APB_SEC_EIC_EB                 BIT(8)
@@ -126,6 +130,17 @@
 /* REG_AON_SEC_APB_SEC_EFUSE_BOUNDARY */
 
 #define BIT_AON_SEC_APB_SEC_EFUSE_BOUNDARY(x)      (((x) & 0xFF))
+
+/* REG_AON_SEC_APB_GIC_ACC_EN */
+
+#define BIT_AON_SEC_APB_GICP_ALLOW_NS              BIT(1)
+#define BIT_AON_SEC_APB_GICT_ALLOW_NS              BIT(0)
+
+/* REG_AON_SEC_APB_DBG_RECOVERY_EN */
+
+#define BIT_AON_SEC_APB_DBGRCV_TRIG_OUT_EN         BIT(2)
+#define BIT_AON_SEC_APB_AUTO_SAVE_TRIG_OUT_EN      BIT(1)
+#define BIT_AON_SEC_APB_AUTO_SAVE_GATED_OUT_EN     BIT(0)
 
 
 #endif /* AON_SEC_APB_H */

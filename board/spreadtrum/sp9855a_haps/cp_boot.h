@@ -113,7 +113,7 @@ void pmic_arm7_RAM_active(void)
 /*****************************************************************************/
 static inline void sp_boot(void)
 {
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_SP_SYS_CORE_RST;   /* core release */
+	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_SP_CORE_SOFT_RST;   /* core release */
 }
 
 /**---------------------------------------------------------------------------*

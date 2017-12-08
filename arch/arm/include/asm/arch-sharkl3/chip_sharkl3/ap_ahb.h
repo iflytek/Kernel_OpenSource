@@ -6,7 +6,7 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-06-15 20:32:44
+ * updated at 2017-12-07 16:03:11
  *
  */
 
@@ -24,15 +24,22 @@
 #define REG_AP_AHB_RESERVED0_REG               ( CTL_BASE_AP_AHB + 0x0018 )
 #define REG_AP_AHB_RESERVED1_REG               ( CTL_BASE_AP_AHB + 0x001C )
 #define REG_AP_AHB_RESERVED2_REG               ( CTL_BASE_AP_AHB + 0x0020 )
-#define REG_AP_AHB_AP_MTX_WQOS_CFG             ( CTL_BASE_AP_AHB + 0x3008 )
-#define REG_AP_AHB_AP_MTX_RQOS_CFG             ( CTL_BASE_AP_AHB + 0x3010 )
-#define REG_AP_AHB_AP_QOS_CFG                  ( CTL_BASE_AP_AHB + 0x301C )
+#define REG_AP_AHB_AP_MTX_WQOS_CFG             ( CTL_BASE_AP_AHB + 0x3004 )
+#define REG_AP_AHB_AP_MTX_RQOS_CFG             ( CTL_BASE_AP_AHB + 0x3008 )
+#define REG_AP_AHB_AP_QOS_CFG                  ( CTL_BASE_AP_AHB + 0x3010 )
+#define REG_AP_AHB_AP_URGENCY_BYPASS_ADDRESS   ( CTL_BASE_AP_AHB + 0x3018 )
+#define REG_AP_AHB_AP_FRC_URGENCY              ( CTL_BASE_AP_AHB + 0x301C )
 #define REG_AP_AHB_OTG_PHY_TUNE                ( CTL_BASE_AP_AHB + 0x3020 )
 #define REG_AP_AHB_OTG_PHY_TEST                ( CTL_BASE_AP_AHB + 0x3024 )
 #define REG_AP_AHB_OTG_PHY_CTRL                ( CTL_BASE_AP_AHB + 0x3028 )
 #define REG_AP_AHB_OTG_CTRL1                   ( CTL_BASE_AP_AHB + 0x3030 )
 #define REG_AP_AHB_MST_FRC_LSLP                ( CTL_BASE_AP_AHB + 0x3034 )
-#define REG_AP_AHB_MST_PUB_FRC_DSLP            ( CTL_BASE_AP_AHB + 0x3038 )
+#define REG_AP_AHB_MTX_LSLP_LPC_BYPASS         ( CTL_BASE_AP_AHB + 0x3038 )
+#define REG_AP_AHB_MST_PUB_FRC_DSLP            ( CTL_BASE_AP_AHB + 0x303C )
+#define REG_AP_AHB_MTX_PUB_DSLP_LPC_BYPASS     ( CTL_BASE_AP_AHB + 0x3040 )
+#define REG_AP_AHB_MTX_FRC_DOZE_SLEEP          ( CTL_BASE_AP_AHB + 0x3044 )
+#define REG_AP_AHB_MTX_DOZE_LPC_BYPASS         ( CTL_BASE_AP_AHB + 0x3048 )
+#define REG_AP_AHB_MTX_AXI_FREQ_ALLOW          ( CTL_BASE_AP_AHB + 0x304C )
 #define REG_AP_AHB_M1_LPC                      ( CTL_BASE_AP_AHB + 0x3064 )
 #define REG_AP_AHB_M2_LPC                      ( CTL_BASE_AP_AHB + 0x3068 )
 #define REG_AP_AHB_M3_LPC                      ( CTL_BASE_AP_AHB + 0x306C )
@@ -86,6 +93,9 @@
 
 /* REG_AP_AHB_AP_SYS_FORCE_SLEEP_CFG */
 
+#define BIT_AP_AHB_RESERVED3_REG(x)               (((x) & 0x7FFFFF) << 9)
+#define BIT_AP_AHB_CGM_AP_APB_SEL_SLOW(x)         (((x) & 0x3) << 7)
+#define BIT_AP_AHB_AP_DOZE_SLEEP_SLOW_DOWN_EN     BIT(6)
 #define BIT_AP_AHB_MCU_SLEEP_FOLLOW_CA53_EN       BIT(5)
 #define BIT_AP_AHB_MCU_CORE_SLEEP                 BIT(4)
 #define BIT_AP_AHB_DMA_ACT_LIGHT_EN               BIT(3)
@@ -102,7 +112,9 @@
 
 /* REG_AP_AHB_RESERVED0_REG */
 
-#define BIT_AP_AHB_RESERVED0_REG(x)               (((x) & 0xFFFFFFFF))
+#define BIT_AP_AHB_RESERVED0_REG(x)               (((x) & 0x3FFFFFFF) << 2)
+#define BIT_AP_AHB_CE_EB2                         BIT(1)
+#define BIT_AP_AHB_DMA_EB2                        BIT(0)
 
 /* REG_AP_AHB_RESERVED1_REG */
 
@@ -139,6 +151,44 @@
 #define BIT_AP_AHB_ARQOS_THRESHHOLD(x)            (((x) & 0xF) << 4)
 #define BIT_AP_AHB_AWQOS_THRESHHOLD(x)            (((x) & 0xF))
 
+/* REG_AP_AHB_AP_URGENCY_BYPASS_ADDRESS */
+
+#define BIT_AP_AHB_URGENCY_BYPASS_M10_RD_ADDRESS  BIT(15)
+#define BIT_AP_AHB_URGENCY_BYPASS_M8_RD_ADDRESS   BIT(14)
+#define BIT_AP_AHB_URGENCY_BYPASS_M7_RD_ADDRESS   BIT(13)
+#define BIT_AP_AHB_URGENCY_BYPASS_M6_RD_ADDRESS   BIT(12)
+#define BIT_AP_AHB_URGENCY_BYPASS_M5_RD_ADDRESS   BIT(11)
+#define BIT_AP_AHB_URGENCY_BYPASS_M4_RD_ADDRESS   BIT(10)
+#define BIT_AP_AHB_URGENCY_BYPASS_M3_RD_ADDRESS   BIT(9)
+#define BIT_AP_AHB_URGENCY_BYPASS_M2_RD_ADDRESS   BIT(8)
+#define BIT_AP_AHB_URGENCY_BYPASS_M10_WR_ADDRESS  BIT(7)
+#define BIT_AP_AHB_URGENCY_BYPASS_M8_WR_ADDRESS   BIT(6)
+#define BIT_AP_AHB_URGENCY_BYPASS_M7_WR_ADDRESS   BIT(5)
+#define BIT_AP_AHB_URGENCY_BYPASS_M6_WR_ADDRESS   BIT(4)
+#define BIT_AP_AHB_URGENCY_BYPASS_M5_WR_ADDRESS   BIT(3)
+#define BIT_AP_AHB_URGENCY_BYPASS_M4_WR_ADDRESS   BIT(2)
+#define BIT_AP_AHB_URGENCY_BYPASS_M3_WR_ADDRESS   BIT(1)
+#define BIT_AP_AHB_URGENCY_BYPASS_M2_WR_ADDRESS   BIT(0)
+
+/* REG_AP_AHB_AP_FRC_URGENCY */
+
+#define BIT_AP_AHB_FRC_M10_RD_URGENCY             BIT(15)
+#define BIT_AP_AHB_FRC_M8_RD_URGENCY              BIT(14)
+#define BIT_AP_AHB_FRC_M7_RD_URGENCY              BIT(13)
+#define BIT_AP_AHB_FRC_M6_RD_URGENCY              BIT(12)
+#define BIT_AP_AHB_FRC_M5_RD_URGENCY              BIT(11)
+#define BIT_AP_AHB_FRC_M4_RD_URGENCY              BIT(10)
+#define BIT_AP_AHB_FRC_M3_RD_URGENCY              BIT(9)
+#define BIT_AP_AHB_FRC_M2_RD_URGENCY              BIT(8)
+#define BIT_AP_AHB_FRC_M10_WR_URGENCY             BIT(7)
+#define BIT_AP_AHB_FRC_M8_WR_URGENCY              BIT(6)
+#define BIT_AP_AHB_FRC_M7_WR_URGENCY              BIT(5)
+#define BIT_AP_AHB_FRC_M6_WR_URGENCY              BIT(4)
+#define BIT_AP_AHB_FRC_M5_WR_URGENCY              BIT(3)
+#define BIT_AP_AHB_FRC_M4_WR_URGENCY              BIT(2)
+#define BIT_AP_AHB_FRC_M3_WR_URGENCY              BIT(1)
+#define BIT_AP_AHB_FRC_M2_WR_URGENCY              BIT(0)
+
 /* REG_AP_AHB_OTG_PHY_TUNE */
 
 
@@ -168,6 +218,19 @@
 #define BIT_AP_AHB_MST2_FRC_LSLP                  BIT(2)
 #define BIT_AP_AHB_MST1_FRC_LSLP                  BIT(1)
 
+/* REG_AP_AHB_MTX_LSLP_LPC_BYPASS */
+
+#define BIT_AP_AHB_LIGHT_S3_LPC_BYPASS            BIT(11)
+#define BIT_AP_AHB_LIGHT_M10_LPC_BYPASS           BIT(10)
+#define BIT_AP_AHB_LIGHT_M8_LPC_BYPASS            BIT(8)
+#define BIT_AP_AHB_LIGHT_M7_LPC_BYPASS            BIT(7)
+#define BIT_AP_AHB_LIGHT_M6_LPC_BYPASS            BIT(6)
+#define BIT_AP_AHB_LIGHT_M5_LPC_BYPASS            BIT(5)
+#define BIT_AP_AHB_LIGHT_M4_LPC_BYPASS            BIT(4)
+#define BIT_AP_AHB_LIGHT_M3_LPC_BYPASS            BIT(3)
+#define BIT_AP_AHB_LIGHT_M2_LPC_BYPASS            BIT(2)
+#define BIT_AP_AHB_LIGHT_M1_LPC_BYPASS            BIT(1)
+
 /* REG_AP_AHB_MST_PUB_FRC_DSLP */
 
 #define BIT_AP_AHB_MST10_PUB_FRC_DSLP             BIT(10)
@@ -179,6 +242,69 @@
 #define BIT_AP_AHB_MST3_PUB_FRC_DSLP              BIT(3)
 #define BIT_AP_AHB_MST2_PUB_FRC_DSLP              BIT(2)
 #define BIT_AP_AHB_MST1_PUB_FRC_DSLP              BIT(1)
+
+/* REG_AP_AHB_MTX_PUB_DSLP_LPC_BYPASS */
+
+#define BIT_AP_AHB_PUB_DSLP_S3_LPC_BYPASS         BIT(11)
+#define BIT_AP_AHB_PUB_DSLP_M10_LPC_BYPASS        BIT(10)
+#define BIT_AP_AHB_PUB_DSLP_M8_LPC_BYPASS         BIT(8)
+#define BIT_AP_AHB_PUB_DSLP_M7_LPC_BYPASS         BIT(7)
+#define BIT_AP_AHB_PUB_DSLP_M6_LPC_BYPASS         BIT(6)
+#define BIT_AP_AHB_PUB_DSLP_M5_LPC_BYPASS         BIT(5)
+#define BIT_AP_AHB_PUB_DSLP_M4_LPC_BYPASS         BIT(4)
+#define BIT_AP_AHB_PUB_DSLP_M3_LPC_BYPASS         BIT(3)
+#define BIT_AP_AHB_PUB_DSLP_M2_LPC_BYPASS         BIT(2)
+#define BIT_AP_AHB_PUB_DSLP_M1_LPC_BYPASS         BIT(1)
+
+/* REG_AP_AHB_MTX_FRC_DOZE_SLEEP */
+
+#define BIT_AP_AHB_M10_FRC_DOZE                   BIT(15)
+#define BIT_AP_AHB_M8_FRC_DOZE                    BIT(14)
+#define BIT_AP_AHB_M7_FRC_DOZE                    BIT(13)
+#define BIT_AP_AHB_M6_FRC_DOZE                    BIT(12)
+#define BIT_AP_AHB_M5_FRC_DOZE                    BIT(11)
+#define BIT_AP_AHB_M4_FRC_DOZE                    BIT(10)
+#define BIT_AP_AHB_M3_FRC_DOZE                    BIT(9)
+#define BIT_AP_AHB_M2_FRC_DOZE                    BIT(8)
+#define BIT_AP_AHB_M1_FRC_DOZE                    BIT(7)
+#define BIT_AP_AHB_MAIN_FRC_DOZE                  BIT(6)
+#define BIT_AP_AHB_S5_FRC_DOZE                    BIT(5)
+#define BIT_AP_AHB_S4_FRC_DOZE                    BIT(4)
+#define BIT_AP_AHB_S3_FRC_DOZE                    BIT(3)
+#define BIT_AP_AHB_S2_FRC_DOZE                    BIT(2)
+#define BIT_AP_AHB_S1_FRC_DOZE                    BIT(1)
+#define BIT_AP_AHB_S0_FRC_DOZE                    BIT(0)
+
+/* REG_AP_AHB_MTX_DOZE_LPC_BYPASS */
+
+#define BIT_AP_AHB_DOZE_M10_LPC_BYPASS            BIT(15)
+#define BIT_AP_AHB_DOZE_M8_LPC_BYPASS             BIT(14)
+#define BIT_AP_AHB_DOZE_M7_LPC_BYPASS             BIT(13)
+#define BIT_AP_AHB_DOZE_M6_LPC_BYPASS             BIT(12)
+#define BIT_AP_AHB_DOZE_M5_LPC_BYPASS             BIT(11)
+#define BIT_AP_AHB_DOZE_M4_LPC_BYPASS             BIT(10)
+#define BIT_AP_AHB_DOZE_M3_LPC_BYPASS             BIT(9)
+#define BIT_AP_AHB_DOZE_M2_LPC_BYPASS             BIT(8)
+#define BIT_AP_AHB_DOZE_M1_LPC_BYPASS             BIT(7)
+#define BIT_AP_AHB_DOZE_MAIN_LPC_BYPASS           BIT(6)
+#define BIT_AP_AHB_DOZE_S5_LPC_BYPASS             BIT(5)
+#define BIT_AP_AHB_DOZE_S4_LPC_BYPASS             BIT(4)
+#define BIT_AP_AHB_DOZE_S3_LPC_BYPASS             BIT(3)
+#define BIT_AP_AHB_DOZE_S2_LPC_BYPASS             BIT(2)
+#define BIT_AP_AHB_DOZE_S1_LPC_BYPASS             BIT(1)
+#define BIT_AP_AHB_DOZE_S0_LPC_BYPASS             BIT(0)
+
+/* REG_AP_AHB_MTX_AXI_FREQ_ALLOW */
+
+#define BIT_AP_AHB_M10_AXI_FREQ_ALLOW(x)          (((x) & 0x7) << 24)
+#define BIT_AP_AHB_M8_AXI_FREQ_ALLOW(x)           (((x) & 0x7) << 21)
+#define BIT_AP_AHB_M7_AXI_FREQ_ALLOW(x)           (((x) & 0x7) << 18)
+#define BIT_AP_AHB_M6_AXI_FREQ_ALLOW(x)           (((x) & 0x7) << 15)
+#define BIT_AP_AHB_M5_AXI_FREQ_ALLOW(x)           (((x) & 0x7) << 12)
+#define BIT_AP_AHB_M4_AXI_FREQ_ALLOW(x)           (((x) & 0x7) << 9)
+#define BIT_AP_AHB_M3_AXI_FREQ_ALLOW(x)           (((x) & 0x7) << 6)
+#define BIT_AP_AHB_M2_AXI_FREQ_ALLOW(x)           (((x) & 0x7) << 3)
+#define BIT_AP_AHB_M1_AXI_FREQ_ALLOW(x)           (((x) & 0x7))
 
 /* REG_AP_AHB_M1_LPC */
 

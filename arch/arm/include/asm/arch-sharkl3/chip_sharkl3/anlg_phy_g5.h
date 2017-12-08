@@ -6,7 +6,7 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-06-15 20:32:44
+ * updated at 2017-12-07 16:03:11
  *
  */
 
@@ -31,7 +31,6 @@
 #define REG_ANLG_PHY_G5_ANALOG_BB_TOP_AAPC_CTRL1             ( CTL_BASE_ANLG_PHY_G5 + 0x002C )
 #define REG_ANLG_PHY_G5_ANALOG_BB_TOP_ANA_BB_RSVD            ( CTL_BASE_ANLG_PHY_G5 + 0x0030 )
 #define REG_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_CLK_CTRL          ( CTL_BASE_ANLG_PHY_G5 + 0x0034 )
-#define REG_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_SSC_CTRL          ( CTL_BASE_ANLG_PHY_G5 + 0x0038 )
 #define REG_ANLG_PHY_G5_ANALOG_BB_TOP_TSEN_CTRL0             ( CTL_BASE_ANLG_PHY_G5 + 0x003C )
 #define REG_ANLG_PHY_G5_ANALOG_BB_TOP_TSEN_CTRL1             ( CTL_BASE_ANLG_PHY_G5 + 0x0040 )
 #define REG_ANLG_PHY_G5_ANALOG_BB_TOP_BB_WCN_CTRL1           ( CTL_BASE_ANLG_PHY_G5 + 0x0044 )
@@ -91,6 +90,8 @@
 
 /* REG_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_CTRL0 */
 
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_MACRO_TYPE(x)              (((x) & 0xFF) << 24)
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_REG_VERSION(x)             (((x) & 0xF) << 20)
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_N(x)                       (((x) & 0x7FF) << 8)
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_IBIAS(x)                   (((x) & 0x3) << 6)
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_LPF(x)                     (((x) & 0x7) << 3)
@@ -106,17 +107,18 @@
 /* REG_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_CTRL2 */
 
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_LOCK_DONE                  BIT(31)
-#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_PD                         BIT(25)
-#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_RST                        BIT(24)
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_26M_SEL                    BIT(29)
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_RST                        BIT(25)
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_PD                         BIT(24)
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_REF_SEL(x)                 (((x) & 0x3) << 20)
-#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_DIV_EN                     BIT(1)
-#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_DIV1_EN                    BIT(0)
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_DIV_EN                     BIT(11)
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_DIV1_EN                    BIT(1)
 
 /* REG_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_CTRL3 */
 
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_RESERVED(x)                (((x) & 0xFFFF) << 16)
-#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_26M_SEL                    BIT(6)
-#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_26M_DIV(x)                 (((x) & 0x3F))
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_26M_DIV(x)                 (((x) & 0x3F) << 8)
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_SSC_CTRL(x)                (((x) & 0xFF))
 
 /* REG_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_CTRL4 */
 
@@ -156,10 +158,6 @@
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_CLK_EN                     BIT(3)
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_CLK_OD                     BIT(2)
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_CLK_DIV(x)                 (((x) & 0x3))
-
-/* REG_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_SSC_CTRL */
-
-#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_RPLL_SSC_CTRL(x)                (((x) & 0xFF))
 
 /* REG_ANLG_PHY_G5_ANALOG_BB_TOP_TSEN_CTRL0 */
 

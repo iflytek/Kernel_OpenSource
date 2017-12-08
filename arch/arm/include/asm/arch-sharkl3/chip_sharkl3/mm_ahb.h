@@ -6,7 +6,7 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-06-15 20:32:44
+ * updated at 2017-12-07 16:03:11
  *
  */
 
@@ -29,6 +29,7 @@
 #define REG_MM_AHB_LP_CTRL_MM_0          ( CTL_BASE_MM_AHB + 0x0024 )
 #define REG_MM_AHB_LP_CTRL_MM_1          ( CTL_BASE_MM_AHB + 0x0028 )
 #define REG_MM_AHB_LP_CTRL_ASYNC_BRIDGE  ( CTL_BASE_MM_AHB + 0x002C )
+#define REG_MM_AHB_MTX_MOD_CTRL          ( CTL_BASE_MM_AHB + 0x0030 )
 
 /* REG_MM_AHB_AHB_EB */
 
@@ -41,13 +42,9 @@
 
 /* REG_MM_AHB_AHB_RST */
 
-#define BIT_MM_AHB_ISP_SOFT_RST_MASK            BIT(14)
-#define BIT_MM_AHB_DCAM_SOFT_RST_MASK           BIT(13)
-#define BIT_MM_AHB_CSI_T_SOFT_RST               BIT(12)
-#define BIT_MM_AHB_CSI_S_SOFT_RST               BIT(11)
-#define BIT_MM_AHB_CSI_SOFT_RST                 BIT(10)
-#define BIT_MM_AHB_ISP_FMCU_SOFT_RST            BIT(9)
-#define BIT_MM_AHB_ISP_CFG_SOFT_RST             BIT(8)
+#define BIT_MM_AHB_CSI_T_SOFT_RST               BIT(10)
+#define BIT_MM_AHB_CSI_S_SOFT_RST               BIT(9)
+#define BIT_MM_AHB_CSI_SOFT_RST                 BIT(8)
 #define BIT_MM_AHB_ISP_LOG_SOFT_RST             BIT(7)
 #define BIT_MM_AHB_DCAM_ALL_SOFT_RST            BIT(6)
 #define BIT_MM_AHB_DCAM_AXIM_SOFT_RST           BIT(5)
@@ -119,6 +116,13 @@
 
 #define BIT_MM_AHB_LP_NUM_ASYNC_BRIDGE_W(x)     (((x) & 0xFFFF) << 16)
 #define BIT_MM_AHB_LP_EB_ASYNC_BRIDGE_W         BIT(0)
+
+/* REG_MM_AHB_MTX_MOD_CTRL */
+
+#define BIT_MM_AHB_MOD_CTRL_DCAM_AR(x)          (((x) & 0x3) << 6)
+#define BIT_MM_AHB_MOD_CTRL_DCAM_AW(x)          (((x) & 0x3) << 4)
+#define BIT_MM_AHB_MOD_CTRL_ISP_AR(x)           (((x) & 0x3) << 2)
+#define BIT_MM_AHB_MOD_CTRL_ISP_AW(x)           (((x) & 0x3))
 
 
 #endif /* MM_AHB_H */
