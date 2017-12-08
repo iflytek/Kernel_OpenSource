@@ -28,7 +28,7 @@ int avb_check_vbmeta(uint8_t * vbmeta_img_paddr, uint32_t vbmeta_image_len)
     vbmeta_ret = avb_vbmeta_image_verify(vbmeta_img_paddr, vbmeta_image_len,
                                          &pk_data, &pk_len, &rollback_index);
     debug("vbmeta_ret is %d.\n", vbmeta_ret);
-    debug("rollback_index is %d.\n", rollback_index);
+    debug("rollback_index is %lld.\n", rollback_index);
     if (vbmeta_ret == 0) {
 #ifdef CONFIG_VBOOT_DUMP
         debug("dump pk_data:, pk_len:%d\n", pk_len);
@@ -47,12 +47,12 @@ int avb_check_vbmeta(uint8_t * vbmeta_img_paddr, uint32_t vbmeta_image_len)
             goto out;
         }
         if (rollback_index < stored_rollback_index) {
-            debug("Error: vbmeta rollback_index:%d, < stored_rollback_index:%d.\n",
+            debug("Error: vbmeta rollback_index:%lld, < stored_rollback_index:%lld.\n",
                   rollback_index, stored_rollback_index);
             verify_result = AVB_SLOT_VERIFY_RESULT_ERROR_ROLLBACK_INDEX;
             goto out;
         } else {
-            debug("Info: vbmeta rollback_index:%d, >= stored_rollback_index:%d.\n",
+            debug("Info: vbmeta rollback_index:%lld, >= stored_rollback_index:%lld.\n",
                   rollback_index, stored_rollback_index);
             verify_result = AVB_SLOT_VERIFY_RESULT_OK;
         }

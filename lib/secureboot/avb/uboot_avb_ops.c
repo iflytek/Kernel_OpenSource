@@ -213,7 +213,7 @@ static AvbIOResult read_rollback_index(AvbOps* ops,
   }
 
   ret = sprd_get_imgversion((antirb_image_type)rollback_index_slot, &swVersion);
-  debug(">>>>> rollback_index_slot:0x%llx, swVersion:%d, ret:%d.\n", rollback_index_slot, swVersion, ret);
+  debug(">>>>> rollback_index_slot:0x%llx, swVersion:%lld, ret:%d.\n", rollback_index_slot, swVersion, ret);
 
   if(!ret) {
     *out_rollback_index = (uint64_t)swVersion;
