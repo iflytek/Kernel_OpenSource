@@ -1135,6 +1135,17 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 
 	/* step3: auto calculate linux memory region */
 	if (dump_rst_mode != CMD_TOS_PANIC_MODE) {
+
+		/* calculate specific reserved-memory*/
+		debugf("read reserved-memory region from sysdump node !!!\n");
+		ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-re", temp_mem);
+		if (ret == 0)
+			debugf("ERROR: x86: memory-region-re dump failed !!!\n");
+		else {
+			i += ret;
+			temp_mem += ret;
+		}
+
 		/* calculate linux memory region */
 		debugf("calculate linux memory region !!!\n");
 		ret = recalculate_kernel_memory(fdt_blob, nodeoffset, ofs_remem, dts_version, temp_mem);
@@ -1145,14 +1156,6 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 			temp_mem += ret;
 		}
 
-		/* calculate specific reserved-memory*/
-		debugf("read reserved-memory region from sysdump node !!!\n");
-		ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-re", temp_mem);
-		if (ret == 0)
-			debugf("ERROR: x86: memory-region-re dump failed !!!\n");
-		else {
-			i += ret;
-		}
 	}
 
 	/* step4: return */
@@ -1163,34 +1166,6 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 		debugf("auto x86_dump_mem[%d].size  is 0x%llx\n", i, sprd_dump_mem[i].size);
 	}
 
-	for (i = 0; i < x86_dump_mem_num; i++) {
-		if ((sprd_dump_mem[i].paddr > SYSDUMP_4GB) && (sprd_dump_mem[i].size > SZ_512M)) {
-			debugf("memory section address is more than 4GB and size is more than SZ_512M!!!\n");
-			temp_size = sprd_dump_mem[i].size;
-			debugf("auto x86_dump_mem_num is %d and i is %d\n", x86_dump_mem_num, i);
-			for (j = x86_dump_mem_num; j != i; j--) {
-				sprd_dump_mem[j].paddr = sprd_dump_mem[j-1].paddr;
-				sprd_dump_mem[j].vaddr = sprd_dump_mem[j-1].vaddr;
-				sprd_dump_mem[j].size = sprd_dump_mem[j-1].size;
-				sprd_dump_mem[j].soff  = 0xffffffff;
-				sprd_dump_mem[j].type  = SYSDUMP_RAM;
-			}
-
-			sprd_dump_mem[i].size = SZ_512M;
-
-			sprd_dump_mem[i+1].paddr = sprd_dump_mem[i].paddr + SZ_512M;
-			sprd_dump_mem[i+1].vaddr = __va(sprd_dump_mem[i+1].paddr);
-			sprd_dump_mem[i+1].size = temp_size - SZ_512M;
-
-			x86_dump_mem_num ++;
-		}
-	}
-
-	debugf("auto x86_dump_mem_num is %d\n", x86_dump_mem_num);
-	for (i = 0; i < x86_dump_mem_num; i++) {
-		debugf("auto x86_dump_mem[%d].paddr is 0x%llx\n", i, sprd_dump_mem[i].paddr);
-		debugf("auto x86_dump_mem[%d].size  is 0x%llx\n", i, sprd_dump_mem[i].size);
-	}
 	return x86_dump_mem_num;
 }
 #endif
@@ -1472,8 +1447,9 @@ void write_sysdump_before_boot(int rst_mode)
 #ifdef CONFIG_ARM7_RAM_ACTIVE
 		pmic_arm7_RAM_active();
 #endif
+
 		mem = (struct sysdump_mem *)infop->dump_mem_paddr;
-		for (i = 0; i < infop->mem_num; i++) {
+		for (i = 0; i < sprd_dump_mem_num; i++) {
 			if (0xffffffff != mem[i].soff)
 				waddr = (char *)infop + sizeof(*infop) +
 						infop->elfhdr_size + mem[i].soff;
