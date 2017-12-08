@@ -996,13 +996,14 @@ STATIC_FUNC int _eccAnalyze(NAND_CTL * this, uint32_t num, struct mtd_ecc_stats 
 {
 	uint32_t i;
 	uint32_t n;
-	struct nand_ecc_stats *nand_ecc_sts = this->stsBuf_v;;
-	uint32_t eccbanknum = num / 16;
+	struct nand_ecc_stats *nand_ecc_sts = this->stsBuf_v;
+	uint32_t sector_num = 16;
+	uint32_t ecc_bank_num = num / sector_num;
 	int ret = 0;
-	
+
 #ifndef CONFIG_SPRD_NAND_R4p0
-	for (i = 0; i < eccbanknum; i++) {
-		for(n = 0; n < 16; n++) {
+	for (i = 0; i <= ecc_bank_num; i++) {
+		for (n = 0; n < min((num - sector_num*i), sector_num); n++) {
 			switch (_ECC_STAT(nand_ecc_sts->ecc_stats[n])) {
 			case 0x00:	// pass do nothing
 				break;
