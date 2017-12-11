@@ -4,7 +4,7 @@
 
 #define MB_GPIO    87
 #define LB_GPIO    86
-#define ADC_CHANNEL_FOR_NV  1
+#define ADC_CHANNEL_FOR_NV    3
 
 typedef enum k_less {
 	K32 = 0,
