@@ -34,5 +34,9 @@
 #define BIT_I2C_EB                              BIT_AP_APB_I2C0_EB
 #define BIT_ADI_EB                              BIT_AON_APB_ADI_EB
 
+/* for CE */
+#define REG_AP_AHB_CE_SEC_EB                                           REG_AP_AHB_AHB_EB
+#define BIT_AP_AHB_CE_SEC_EB                                           BIT_AP_AHB_CE_EB
+#define REG_AP_AHB_CE_SEC_SOFT_RST                                     REG_AP_AHB_AHB_RST
 
 #endif
