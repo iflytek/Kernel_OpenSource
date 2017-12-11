@@ -95,16 +95,23 @@ static uint8_t *UCOM_Get_CfgDesc()
 /*****************************************************************************/
 LOCAL int EPO0_config (BOOLEAN is_dma, uint32_t *buffer)
 {
+	unsigned long cache_start, cache_end;
+
 	// Programs DOEPTSIZ0 register with Packet Count and Transfer Size
 	* (volatile uint32_t *) USB_DOEP0TSIZ |= (unsigned int) (BIT_29|BIT_30); //setup packet count , 3 packet
 	* (volatile uint32_t *) USB_DOEP0TSIZ |= (unsigned int) (BIT_3|BIT_4); //set Transfer Size ,24 bytes
 
 	if (is_dma) {
+		cache_start = (unsigned long)buffer;
+		cache_end = cache_start + (unsigned long)0x40;
 		* (volatile uint32_t *) USB_DOEPDMA (0) = (uint32_t) buffer;//lint !e718
+		invalidate_dcache_range(cache_start, cache_end);
 	}
 
+	printf("++EP_Out_0 xfer start:dma(%d) add(0x%p)\n",is_dma, buffer);
 	* (volatile uint32_t *) USB_DOEP0CTL |= (unsigned int) BIT_26;    // set clear NAK
 	* (volatile uint32_t *) USB_DOEP0CTL |= (unsigned int) BIT_31;    // set endpoint enable
+
 	return 0;
 }
 /*****************************************************************************/
@@ -287,6 +294,10 @@ LOCAL void usb_setup_handle (void)
 
 	request1 = (USB_REQUEST_1_U *) (unsigned int) (&s_setup_packet[0]);
 	request2 = (USB_REQUEST_2_U *) (unsigned int) (&s_setup_packet[1]);
+	printf("--setup handle: type(%d) rec(%d) req(0%x) vl(0x%02x) vm(0x%02x)\n",
+		request1->mBits.type, request1->mBits.recipient,
+		request1->mBits.brequest, request1->mBits.value_l,
+		request1->mBits.value_m);
 
 	switch (request1->mBits.type) {
 
@@ -297,7 +308,7 @@ LOCAL void usb_setup_handle (void)
 			volatile USB_DCFG_U *dcfg_ptr = (USB_DCFG_U *) USB_DCFG;
 
 			dcfg_ptr->mBits.devaddr = request1->mBits.value_l;
-			EPI0_config (0, 1, FALSE, NULL);
+			EPI0_config (0, 1, TRUE, NULL);
 		}
 		break;
 		case USB_REQUEST_GET_DESCRIPTOR:
@@ -306,7 +317,7 @@ LOCAL void usb_setup_handle (void)
 
 			break;
 		case USB_REQUEST_SET_CONFIGURATION:
-			EPI0_config (0, 1, FALSE, NULL);
+			EPI0_config (0, 1, TRUE, NULL);
 			break;
 		default:
 			EPI0_config (0, 1, TRUE, &vendor_ack);
@@ -327,7 +338,7 @@ LOCAL void usb_setup_handle (void)
 				usb_EPActive (USB_EP6, USB_EP_DIR_OUT);
 			}
 
-			EPI0_config (0, 1, FALSE, NULL);
+			EPI0_config (0, 1, TRUE, NULL);
 			break;
 		default:
 			EPI0_config (0, 1, TRUE, NULL);
@@ -478,23 +489,28 @@ LOCAL void usb_EP6_handle (void)
 LOCAL void usb_EP0_out_handle (void)
 {
 	volatile USB_DOEPINT_U *doepint_ptr = (USB_DOEPINT_U *) USB_DOEPINT (0);
+	volatile USB_DOEPINT_U  doepint;
+	volatile unsigned int int_reg = 0;
+	unsigned long cache_start = 0;
+	unsigned long cache_end = 0;
 
-	if (doepint_ptr->mBits.timeout_condi) {
+	doepint.dwValue = doepint_ptr->dwValue;
+	/* clear interrupt */
+	doepint_ptr->dwValue = doepint.dwValue;
+
+	if (doepint.mBits.timeout_condi) {
 		usb_setup_handle();
 	}
 
-	if (doepint_ptr->mBits.transfer_com) {
+	if (doepint.mBits.transfer_com) {
+		/* Send NAK */
 		* (volatile uint32_t *) USB_DOEP0CTL |= (unsigned int) BIT_27;
-		doepint_ptr->mBits.transfer_com = 0x1;
 	}
 
-	if (doepint_ptr->mBits.outtokenfifoemp) {
-		doepint_ptr->mBits.outtokenfifoemp = 0x1;
+	if (doepint.mBits.outtokenfifoemp) {
+		/* Enable EP out 0 since out token */
+		EPO0_config (TRUE, s_setup_packet);
 	}
-
-	doepint_ptr->dwValue = 0xffffffff;// clear all interrupt
-
-	EPO0_config (TRUE, s_setup_packet); //renable ep0 nd set packet count
 }
 
 /*****************************************************************************/
