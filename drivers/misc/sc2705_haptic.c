@@ -2,7 +2,12 @@
 #include <i2c.h>
 #include <linux/types.h>
 
-#define SC2705_I2C_BUS 4
+#if defined(CONFIG_SPRD_SOC_SP9853I)
+#define SC2705_I2C_BUS_ISHARKL2 4
+#else
+#define SC2705_I2C_BUS 3
+#endif
+
 #define SC2705_HAPTIC_I2C_ADDR 0x4A
 
 #ifndef BIT
@@ -100,8 +105,12 @@ void set_vibrator(int on)
 	old = i2c_get_bus_num();
 	printf("haptic i2c adapter num: %d\n", old);
 
+#if defined(CONFIG_SPRD_SOC_SP9853I)
 	i2c_set_bus_num(3);
+	i2c_set_bus_num(SC2705_I2C_BUS_ISHARKL2);
+#else
 	i2c_set_bus_num(SC2705_I2C_BUS);
+#endif
 
 	value = i2c_reg_read(SC2705_HAPTIC_I2C_ADDR, H_IRQ_EVENT1);
 	read = i2c_reg_read(SC2705_HAPTIC_I2C_ADDR, H_IRQ_EVENT_WARNING_DIAG);
@@ -127,8 +136,13 @@ void vibrator_hw_init(void)
 
 	old = i2c_get_bus_num();
 	printf("init i2c adapter num: %d\n", old);
-	i2c_set_bus_num(3);
-	i2c_set_bus_num(SC2705_I2C_BUS);
+
+#if defined(CONFIG_SPRD_SOC_SP9853I)
+        i2c_set_bus_num(3);
+        i2c_set_bus_num(SC2705_I2C_BUS_ISHARKL2);
+#else
+        i2c_set_bus_num(SC2705_I2C_BUS);
+#endif
 
 	if (vibrator.type == LRA) {
 		/* LRA type */
