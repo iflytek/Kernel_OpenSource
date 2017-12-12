@@ -11,7 +11,6 @@
 #include <linux/usb/usb_uboot.h>
 
 #define USB_ENUM_MS 300000
-#define USB_IO_MS 100000
 
 
 static const char VERSION_STR[] = {"SPRD4:AutoD"};
@@ -102,16 +101,8 @@ int autodloader_initusb(void)
 	}
 	printf("USB SERIAL CONFIGED\n");
 
-	now = 0;
-	while(!usb_is_port_open()) {
-		mdelay(1);
-		now++;
-		if(now > USB_IO_MS) {
-			printf("USB SERIAL PORT OPEN failed \n");
-			return -1;
-		}
-	}
-
+	printf("Waiting For USB SERIAL PORT OPEN ... ... \n");
+	while(!usb_is_port_open());
 	printf("USB SERIAL PORT OPENED\n");
 
 	//gs_open();
