@@ -33,12 +33,8 @@
                         reg = <0x94100000 0x00300000>;
                 };
 
-		fb_reserved: framebuffer@8fb89000{
-			reg = <0x8fb89000 0x000e1000>;
-		};
-
-		overlay_reserved: overlaybuffer@8fc6a000{
-			reg = <0x8fc6a000 0x00096000>;
+		fb_reserved: framebuffer@99800000{
+			reg = <0x99800000 0x00465000>;
 		};
 	};
 
@@ -48,15 +44,8 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		heap@2 {
-			reg = <2>;
-			label = "carveout_overlay";
-			type = <2>;
-			memory-region = <&overlay_reserved>;
-		};
-
 		heap@3 {
-			reg = <3>;
+			reg = <2>;
 			label = "carveout_fb";
 			type = <2>;
 			memory-region = <&fb_reserved>;
