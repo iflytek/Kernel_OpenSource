@@ -93,8 +93,11 @@ static int32_t st7789_init(struct panel_spec *self)
 
 	ST7789_SpiWriteCmd(0x11);
 	mdelay(120);
-	
+
 	ST7789_SpiWriteCmd(0x36);
+	ST7789_SpiWriteData(0x00);
+
+	ST7789_SpiWriteCmd(0x35);
 	ST7789_SpiWriteData(0x00);
 
 	ST7789_SpiWriteCmd(0x3a);
@@ -106,7 +109,7 @@ static int32_t st7789_init(struct panel_spec *self)
 	ST7789_SpiWriteData(0x00);
 	ST7789_SpiWriteData(0x33);
 	ST7789_SpiWriteData(0x33);
-	
+
 	ST7789_SpiWriteCmd(0xb7);
 	ST7789_SpiWriteData(0x35);
 
