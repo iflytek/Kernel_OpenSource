@@ -72,6 +72,7 @@ typedef unsigned int u32;
 #define BIT_PG_START                    ( BIT(0) )
 #define BIT_RD_START                    ( BIT(1) )
 #define BIT_STANDBY_START               ( BIT(2) )
+#define BIT_NORMAL_RD_FLAG_CLR		( BIT(2) )
 
 /* bits definitions for register ANA_REG_EFUSE_STATUS */
 #define BIT_PGM_BUSY                    ( BIT(0) )
@@ -168,12 +169,13 @@ u32 sprd_pmic_efuse_read(int blk_index)
 
 	pmic_efuse_power_on();
 #if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
+	sci_adi_set(ANA_REG_EFUSE_MODE_CTRL, BIT_NORMAL_RD_FLAG_CLR);
 	if (IS_ERR_VALUE(pmic_efuse_wait_clear(BIT_STANDBY_BUSY)))
 		goto out;
 #endif
 	sci_adi_raw_write(ANA_REG_EFUSE_BLOCK_INDEX,
 			  BITS_READ_WRITE_INDEX(blk_index));
-	sci_adi_raw_write(ANA_REG_EFUSE_MODE_CTRL, BIT_RD_START);
+	sci_adi_set(ANA_REG_EFUSE_MODE_CTRL, BIT_RD_START);
 #if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 	if (IS_ERR_VALUE(pmic_efuse_wait_clear(BIT_NORMAL_RD_DONE)))
 		goto out;
@@ -187,7 +189,7 @@ u32 sprd_pmic_efuse_read(int blk_index)
 	val = BITS_EFUSE_DATA_RD(~val);
 #endif
 #if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)|| defined(CONFIG_ADIE_SC2720)
-	sci_adi_clr(ANA_REG_EFUSE_STATUS, BIT_NORMAL_RD_DONE);
+	sci_adi_set(ANA_REG_EFUSE_MODE_CTRL, BIT_NORMAL_RD_FLAG_CLR);
 #endif
 out:
 	pmic_efuse_power_off();
