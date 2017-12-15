@@ -178,7 +178,8 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9820e_13c10_kaios.dtb \
 	sp9820e_2h10.dtb \
 	sp9820e_2h10_kaios.dtb \
-	sp9855a_haps.dtb
+	sp9855a_haps.dtb \
+	sp9862_haps.dtb
 
 
 targets += $(dtb-y)

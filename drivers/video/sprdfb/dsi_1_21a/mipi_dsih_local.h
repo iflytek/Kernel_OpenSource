@@ -66,7 +66,7 @@
 #define GEN_2
 #endif
 #ifdef CONFIG_FPGA
-#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKL3))
+#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SOC_WHALEK))
 #define MIPI_DPHY_SYSNOPSYS_FOR_FPGA
 #endif
 #endif

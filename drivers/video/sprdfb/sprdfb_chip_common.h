@@ -79,6 +79,10 @@
 #include "sprdfb_chip_9855.h"
 #endif
 
+#ifdef CONFIG_SOC_WHALEK
+#include "sprdfb_chip_9862.h"
+#endif
+
 void __raw_bits_or(unsigned int v, unsigned int a);
 void __raw_bits_and(unsigned int v, unsigned int a);
 void __raw_bits_set_value(unsigned int reg, unsigned int value, unsigned int bit, unsigned int mask);

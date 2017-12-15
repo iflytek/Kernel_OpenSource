@@ -75,7 +75,7 @@ static void dispc_set_exp_mode(uint16_t exp_mode)
 static void dispc_module_enable(void)
 {
 	FB_PRINT("sprdfb:[%s]\n",__FUNCTION__);
-#if !((defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_SHARKLE)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)))
+#if !((defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_SHARKLE)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)) || (defined(CONFIG_SPRD_SOC_WHALEK)))
 	/*dispc module enable */
 	dispc_write((1<<0), DISPC_CTRL);
 #endif
@@ -134,7 +134,7 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 
 	/* alpha mode select  - block alpha*/
 	reg_val |= (1 << 2);
-#if defined(CONFIG_SPRD_SOC_SP9853I) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKL3)
+#if defined(CONFIG_SPRD_SOC_SP9853I) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SOC_WHALEK)
 	reg_val |= (DPU_LAYER_FORMAT_RGB565 << 4);
 	/* B0B1B2B3 */
 	reg_val |= (0 << 8);
@@ -189,7 +189,7 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 	dispc_write(reg_val, DISPC_OSD_PITCH);
 
 	/*OSD base address*/
-#if (defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKL3))
+#if (defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SOC_WHALEK))
 	dispc_write(dev->smem_start - 0x80000000, DISPC_OSD_BASE_ADDR);
 #else
 	dispc_write(dev->smem_start, DISPC_OSD_BASE_ADDR);
@@ -392,7 +392,7 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 			return -1;
 		}
 	}
-#if !((defined(CONFIG_SOC_SHARKLE))|| (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)))
+#if !((defined(CONFIG_SOC_SHARKLE))|| (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)) || (defined(CONFIG_SOC_WHALEK)))
 	misc_noc_ctrl(REG_AON_APB_DISP_NOC_CTRL,
 			dev->smem_start > 0x400000000 ? FULL_MODE : NORMAL_MODE,
 			SIZE_64);
@@ -400,7 +400,7 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 	/*set bg color*/
 //	dispc_set_bg_color(0xFFFFFFFF);
 	dispc_set_bg_color(0xFF);
-#if !((defined(CONFIG_SOC_SHARKLE))||(defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I))|| (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)))
+#if !((defined(CONFIG_SOC_SHARKLE))||(defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I))|| (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)) || (defined(CONFIG_SOC_WHALEK)))
 	/*enable dithering*/
 	dispc_dithering_enable(1);
 #endif
@@ -414,14 +414,14 @@ static int32_t sprdfb_dispc_init(struct sprdfb_device *dev)
 	if(SPRDFB_PANEL_IF_DPI == dev->panel_if_type){
 		if(is_first_frame){
 			/*set dpi register update only with SW*/
-#if !((defined(CONFIG_SOC_SHARKLE))||(defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)))
+#if !((defined(CONFIG_SOC_SHARKLE))||(defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)) || (defined(CONFIG_SOC_WHALEK)))
 			dispc_set_bits((1<<4), DISPC_DPI_CTRL);
 #else
 			dispc_set_bits((1<<4), DISPC_CTRL);
 #endif
 		}else{
 			/*set dpi register update with SW & VSYNC*/
-#if !((defined(CONFIG_SOC_SHARKLE))|| (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)))
+#if !((defined(CONFIG_SOC_SHARKLE))|| (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)) || (defined(CONFIG_SOC_WHALEK)))
 			dispc_clear_bits((1<<4), DISPC_DPI_CTRL);
 #else
 			dispc_clear_bits((1<<4), DISPC_CTRL);
@@ -470,7 +470,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 
 	if(SPRDFB_PANEL_IF_DPI == dev->panel_if_type){
 		/*dpi register update*/
-#if !((defined(CONFIG_SOC_SHARKLE))|| (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)))
+#if !((defined(CONFIG_SOC_SHARKLE))|| (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)) || (defined(CONFIG_SOC_WHALEK)))
 		dispc_set_bits((1<<5), DISPC_DPI_CTRL);
 #else
 		dispc_set_bits((1<<5), DISPC_CTRL);
@@ -478,7 +478,7 @@ static int32_t sprdfb_dispc_refresh (struct sprdfb_device *dev)
 		if(is_first_frame){
 			udelay(30);
 			/*dpi register update with SW and VSync*/
-#if !((defined(CONFIG_SOC_SHARKLE))|| (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)))
+#if !((defined(CONFIG_SOC_SHARKLE))|| (defined(CONFIG_SOC_SHARKLJ1)) || (defined(CONFIG_SC9833)) || (defined(CONFIG_SPRD_SOC_SP9853I)) || (defined(CONFIG_SOC_PIKE2)) || (defined(CONFIG_SOC_SHARKL3)) || (defined(CONFIG_SOC_WHALEK)))
 			dispc_clear_bits((1<<4), DISPC_DPI_CTRL);
 			/* start refresh */
 			dispc_set_bits((1 << 4), DISPC_CTRL);
