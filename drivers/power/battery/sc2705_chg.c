@@ -10,6 +10,7 @@
 
 #include "sprd_chg_helper.h"
 #include "sc2705_chg_registers.h"
+#include <asm/arch/sprd_reg.h>
 
 #define SC2705_CHG_B_IMIN		500000
 #define SC2705_CHG_B_ISTEP		50000
@@ -171,6 +172,8 @@ static void sprdchg_2705_chip_init(void)
 	debugf("%s\n",__func__);
 	sc2705_i2c_init();
 	sc2705_charger_ic_init();
+	sci_adi_write(ANA_REG_GLB_MIXED_CTRL0, BITS_OVLO_V(0x1) | BITS_OVLO_T(0x3),
+		BITS_OVLO_V(0x3) | BITS_OVLO_T(0x3));
 }
 
 static int sc2705_cmd(enum sprdchg_cmd cmd,int value)
