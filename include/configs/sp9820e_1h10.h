@@ -69,7 +69,8 @@
 #define CONFIG_ARCH_SHARK
 #define CONFIG_SOC_SHARKLE
 #define CONFIG_ADIE_SC2721
-
+/* Distinguish different board */
+#define CONFIG_SPRD_SP9820E
 
 /* SPRD Serial Configuration */
 #define CONFIG_SPRD_UART		1

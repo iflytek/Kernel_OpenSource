@@ -69,6 +69,8 @@
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
 #define CONFIG_SOC_SHARKLE
 #define CONFIG_ADIE_SC2721
+/* Distinguish different board */
+#define CONFIG_SPRD_SP9820E
 
 
 /* SPRD Serial Configuration */
