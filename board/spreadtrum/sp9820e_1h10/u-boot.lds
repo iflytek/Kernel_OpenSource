@@ -100,6 +100,14 @@ SECTIONS
 	}
 
 	_image_binary_end = .;
+	/*
+	 * this section is used by fdt and secure
+	 * to avoid conflict with bss
+	 */
+	.reserve_for_fdt_and_secure : {
+		. = . +53k;
+		. = ALIGN(4);
+	}
 
 	/*
 	 * Deprecated: this MMU section is used by pxa at present but
@@ -115,7 +123,7 @@ SECTIONS
  * __bss_base and __bss_limit are for linker only (overlay ordering)
  */
 
-	.bss_start __rel_dyn_start (OVERLAY) : {
+	.bss_start : {
 		KEEP(*(.__bss_start));
 		__bss_base = .;
 	}

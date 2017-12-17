@@ -121,6 +121,7 @@ void update_sec_version(void)
 
 bool sprd_anti_rollback(uint32_t certtype, uint32_t certversion)
 {
+    int ret = 0;
     secf("image type = %d\n", certtype);
     if (certtype == TRUSTED_FIRMWARE) {
         if (Trusted_rollback_version == SEC_VERSION_INIT_VALUE){
@@ -138,8 +139,18 @@ bool sprd_anti_rollback(uint32_t certtype, uint32_t certversion)
         }
     } else if (certtype == NON_TRUSTED_FIRMWARE) {
         if (Non_Trusted_rollback_version == VERSION_INIT_VALUE) {
+	 #ifdef CONFIG_NONTRUSTY_ANTIROLLBACK
+		ret = sprd_get_imgversion(0, &Non_Trusted_rollback_version);
+		if(!ret) {
+			secf("read rpmb version: %d,ret = %d\n", Non_Trusted_rollback_version,ret);
+		} else {
+			secf(">>>>> Warning:read rollback version return error! ret = %d\n",ret);
+			Non_Trusted_rollback_version = 0;
+		}
+	 #else
             sprd_get_version(SW_VERSION_COUNTER2,&Non_Trusted_rollback_version);
             secf("read efuse version: %d\n", Non_Trusted_rollback_version);
+	 #endif
         }
         secf("Non_Trusted_rollback_version = %d  certversion = %d\n",
              Non_Trusted_rollback_version, certversion);

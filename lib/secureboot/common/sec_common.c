@@ -294,6 +294,7 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 {
 	static uint32_t rcv_already = 0;
 	int ret = 0;
+	uint32_t rpmb_version = 0;
 
 	if (SEC_FALSE == _check_secure_part(part_name)){
 		debugf("%s not secure image need to verify \n",part_name);
@@ -305,6 +306,17 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 		return VERIFY_FAIL;
 	}
 #endif
+	#ifdef CONFIG_NONTRUSTY_ANTIROLLBACK
+		ret = sprd_get_imgversion(0, &rpmb_version);
+		if(!ret) {
+			debug("read rpmb version: %d,ret = %d\n", rpmb_version,ret);
+		} else {
+			debug(">>>>> Warning:read rollback version return error! ret = %d\n",ret);
+			rpmb_version = 0;
+		}
+		debug("Transfer non_trusty rollback_version here! rpmb_version = %d\n",rpmb_version);
+		uboot_vboot_set_ver(rpmb_version, sizeof(rpmb_version));
+	#endif
 
 	if (SEC_TRUE == strcmp("uboot", part_name)) {
 		fb_secure_verify("splloader", "", buf, 0);
@@ -360,6 +372,8 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 
 void secboot_init(char *partition_name)
 {
+       int ret = 0;
+       uint32_t rpmb_version = 0;
 #if defined (CONFIG_SANSA_SECBOOT)
 	sansa_calc_hbk();
 #endif
@@ -368,6 +382,19 @@ void secboot_init(char *partition_name)
 	debugf("VERIFY_ADDR:0x%x, KERNEL_ADR:0x%x. \n", VERIFY_ADDR, KERNEL_ADR);
 	vboot_secure_process_prepare();
 	vboot_secure_process_init(partition_name, VERIFY_ADDR, VBMETA_IMG_ADDR);
+#endif
+#ifdef CONFIG_SPRD_SECBOOT
+	#ifdef CONFIG_NONTRUSTY_ANTIROLLBACK
+		ret = sprd_get_imgversion(0, &rpmb_version);
+		if(!ret) {
+			debug("read rpmb version: %d,ret = %d\n", rpmb_version,ret);
+		} else {
+			debug(">>>>> Warning:read rollback version return error! ret = %d\n",ret);
+			rpmb_version = 0;
+		}
+		debug("Transfer non_trusty rollback_version here! rpmb_version = %d\n",rpmb_version);
+		uboot_vboot_set_ver(rpmb_version, sizeof(rpmb_version));
+	#endif
 #endif
 }
 

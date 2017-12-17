@@ -71,6 +71,7 @@
 #define CONFIG_ADIE_SC2721
 /* Distinguish different board */
 #define CONFIG_SPRD_SP9820E
+#define CONFIG_NONTRUSTY_ANTIROLLBACK
 
 /* SPRD Serial Configuration */
 #define CONFIG_SPRD_UART		1
