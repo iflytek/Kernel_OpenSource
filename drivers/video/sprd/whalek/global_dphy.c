@@ -24,27 +24,17 @@ static int dphy_glb_parse_dt(struct dphy_context *ctx)
 
 static void dphy_glb_enable(struct dphy_context *ctx)
 {
-	sci_glb_set(REG_AON_APB_APB_EB2,
-		BIT_AON_APB_DPHY_REF_EB | BIT_AON_APB_DPHY_CFG_EB);
+
 }
 
 static void dphy_glb_disable(struct dphy_context *ctx)
 {
-	sci_glb_clr(REG_AON_APB_APB_EB2,
-		BIT_AON_APB_DPHY_REF_EB | BIT_AON_APB_DPHY_CFG_EB);
+
 }
 
 static void dphy_power_domain(struct dphy_context *ctx, int enable)
 {
-	if (enable) {
-		sci_glb_clr(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_S);
-		udelay(10);
-		sci_glb_clr(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_L);
-	} else {
-		sci_glb_set(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_L);
-		udelay(10);
-		sci_glb_set(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_S);
-	}
+
 }
 
 static struct dphy_glb_ops dphy_glb_ops = {

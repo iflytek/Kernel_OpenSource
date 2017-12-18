@@ -74,8 +74,6 @@ int timer_init(void)
 	writel(readl(REG_AON_APB_APB_EB0) | BIT_AON_APB_AON_TMR_EB, REG_AON_APB_APB_EB0);
 	writel(readl(REG_AON_APB_APB_RTC_EB) | BIT_AON_APB_AON_TMR_RTC_EB, REG_AON_APB_APB_RTC_EB);
 
-	writel(readl(REG_AON_APB_CLK_EB0) | BIT_AON_APB_TMR_EB, REG_AON_APB_CLK_EB0);
-
 	/* enable ts clk output to arch timer */
 	writel(0x1, SPRD_APCPUTS0_BASE);
 

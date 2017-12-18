@@ -6,7 +6,7 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-06-15 20:32:44
+ * updated at 2017-12-14 16:29:53
  *
  */
 
@@ -14,7 +14,7 @@
 #ifndef AP_APB_H
 #define AP_APB_H
 
-#define CTL_BASE_AP_APB 0x71300000
+#define CTL_BASE_AP_APB 0x71000000
 
 
 #define REG_AP_APB_APB_EB         ( CTL_BASE_AP_APB + 0x0000 )
@@ -23,27 +23,34 @@
 
 /* REG_AP_APB_APB_EB */
 
-#define BIT_AP_APB_SPI3_LCD_FMARK_IN_EB     BIT(25)
-#define BIT_AP_APB_SPI2_LCD_FMARK_IN_EB     BIT(24)
-#define BIT_AP_APB_SPI1_LCD_FMARK_IN_EB     BIT(23)
-#define BIT_AP_APB_SPI0_LCD_FMARK_IN_EB     BIT(22)
-#define BIT_AP_APB_I2C6_EB                  BIT(21)
-#define BIT_AP_APB_I2C5_EB                  BIT(20)
-#define BIT_AP_APB_SPI3_EB                  BIT(19)
-#define BIT_AP_APB_SIM0_32K_EB              BIT(18)
-#define BIT_AP_APB_UART4_EB                 BIT(17)
-#define BIT_AP_APB_UART3_EB                 BIT(16)
-#define BIT_AP_APB_UART2_EB                 BIT(15)
-#define BIT_AP_APB_UART1_EB                 BIT(14)
-#define BIT_AP_APB_UART0_EB                 BIT(13)
-#define BIT_AP_APB_I2C4_EB                  BIT(12)
-#define BIT_AP_APB_I2C3_EB                  BIT(11)
-#define BIT_AP_APB_I2C2_EB                  BIT(10)
-#define BIT_AP_APB_I2C1_EB                  BIT(9)
-#define BIT_AP_APB_I2C0_EB                  BIT(8)
+#define BIT_AP_APB_CE_PUB_EB                BIT(31)
+#define BIT_AP_APB_CE_SEC_EB                BIT(30)
+#define BIT_AP_APB_EMMC_32K_EB              BIT(29)
+#define BIT_AP_APB_SDIO2_32K_EB             BIT(28)
+#define BIT_AP_APB_SDIO1_32K_EB             BIT(27)
+#define BIT_AP_APB_SDIO0_32K_EB             BIT(26)
+#define BIT_AP_APB_EMMC_EB                  BIT(25)
+#define BIT_AP_APB_SDIO2_EB                 BIT(24)
+#define BIT_AP_APB_SDIO1_EB                 BIT(23)
+#define BIT_AP_APB_SDIO0_EB                 BIT(22)
+#define BIT_AP_APB_SPI3_LCD_FMARK_IN_EB     BIT(21)
+#define BIT_AP_APB_SPI2_LCD_FMARK_IN_EB     BIT(20)
+#define BIT_AP_APB_SPI1_LCD_FMARK_IN_EB     BIT(19)
+#define BIT_AP_APB_SPI0_LCD_FMARK_IN_EB     BIT(18)
+#define BIT_AP_APB_SIM0_32K_EB              BIT(17)
+#define BIT_AP_APB_UART2_EB                 BIT(16)
+#define BIT_AP_APB_UART1_EB                 BIT(15)
+#define BIT_AP_APB_UART0_EB                 BIT(14)
+#define BIT_AP_APB_I2C4_EB                  BIT(13)
+#define BIT_AP_APB_I2C3_EB                  BIT(12)
+#define BIT_AP_APB_I2C2_EB                  BIT(11)
+#define BIT_AP_APB_I2C1_EB                  BIT(10)
+#define BIT_AP_APB_I2C0_EB                  BIT(9)
+#define BIT_AP_APB_SPI3_EB                  BIT(8)
 #define BIT_AP_APB_SPI2_EB                  BIT(7)
 #define BIT_AP_APB_SPI1_EB                  BIT(6)
 #define BIT_AP_APB_SPI0_EB                  BIT(5)
+#define BIT_AP_APB_APB_REG_EB               BIT(4)
 #define BIT_AP_APB_IIS2_EB                  BIT(3)
 #define BIT_AP_APB_IIS1_EB                  BIT(2)
 #define BIT_AP_APB_IIS0_EB                  BIT(1)
@@ -51,12 +58,13 @@
 
 /* REG_AP_APB_APB_RST */
 
-#define BIT_AP_APB_I2C6_SOFT_RST            BIT(21)
-#define BIT_AP_APB_I2C5_SOFT_RST            BIT(20)
-#define BIT_AP_APB_SPI3_SOFT_RST            BIT(19)
-#define BIT_AP_APB_SIM0_32K_SOFT_RST        BIT(18)
-#define BIT_AP_APB_UART4_SOFT_RST           BIT(17)
-#define BIT_AP_APB_UART3_SOFT_RST           BIT(16)
+#define BIT_AP_APB_AP_DVFS_SOFT_RST         BIT(22)
+#define BIT_AP_APB_CE_PUB_SOFT_RST          BIT(21)
+#define BIT_AP_APB_CE_SEC_SOFT_RST          BIT(20)
+#define BIT_AP_APB_EMMC_SOFT_RST            BIT(19)
+#define BIT_AP_APB_SDIO2_SOFT_RST           BIT(18)
+#define BIT_AP_APB_SDIO1_SOFT_RST           BIT(17)
+#define BIT_AP_APB_SDIO0_SOFT_RST           BIT(16)
 #define BIT_AP_APB_UART2_SOFT_RST           BIT(15)
 #define BIT_AP_APB_UART1_SOFT_RST           BIT(14)
 #define BIT_AP_APB_UART0_SOFT_RST           BIT(13)
@@ -65,9 +73,10 @@
 #define BIT_AP_APB_I2C2_SOFT_RST            BIT(10)
 #define BIT_AP_APB_I2C1_SOFT_RST            BIT(9)
 #define BIT_AP_APB_I2C0_SOFT_RST            BIT(8)
-#define BIT_AP_APB_SPI2_SOFT_RST            BIT(7)
-#define BIT_AP_APB_SPI1_SOFT_RST            BIT(6)
-#define BIT_AP_APB_SPI0_SOFT_RST            BIT(5)
+#define BIT_AP_APB_SPI3_SOFT_RST            BIT(7)
+#define BIT_AP_APB_SPI2_SOFT_RST            BIT(6)
+#define BIT_AP_APB_SPI1_SOFT_RST            BIT(5)
+#define BIT_AP_APB_SPI0_SOFT_RST            BIT(4)
 #define BIT_AP_APB_IIS2_SOFT_RST            BIT(3)
 #define BIT_AP_APB_IIS1_SOFT_RST            BIT(2)
 #define BIT_AP_APB_IIS0_SOFT_RST            BIT(1)
@@ -83,4 +92,5 @@
 
 
 #endif /* AP_APB_H */
+
 

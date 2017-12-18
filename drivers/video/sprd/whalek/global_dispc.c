@@ -34,47 +34,13 @@ enum {
 
 static int dispc_clk_init(struct dispc_context *ctx)
 {
-	uint32_t dpi_clk_src = CONFIG_DPI_CLK_SRC;
-
-	sci_glb_write(REG_AON_CLK_CORE_CGM_DPU_CFG,
-			CLK_DPU_SEL_256M, BIT(0) | BIT(1));
-
-	switch (dpi_clk_src) {
-	case 128000000:
-		sci_glb_write(REG_AON_CLK_CORE_CGM_DPU_DPI_CFG,
-				CLK_DPI_SEL_128M, BIT(0) | BIT(1));
-		break;
-	case 153600000:
-		sci_glb_write(REG_AON_CLK_CORE_CGM_DPU_DPI_CFG,
-				CLK_DPI_SEL_153_6M, BIT(0) | BIT(1));
-		break;
-	case 192000000:
-		sci_glb_write(REG_AON_CLK_CORE_CGM_DPU_DPI_CFG,
-				CLK_DPI_SEL_192M, BIT(0) | BIT(1));
-		break;
-	default:
-		pr_info("invalid dpi clk source: %d\n", dpi_clk_src);
-		break;
-	}
 
 	return 0;
 }
 
 static int dispc_clk_update(struct dispc_context *ctx, int clk_id, int val)
 {
-	uint32_t div;
 
-	div = CONFIG_DPI_CLK_SRC / val;
-	if (CONFIG_DPI_CLK_SRC - div * val > (val / 2))
-		div++;
-	if ((div == 0) || (div > 0x10)) {
-		pr_err("invalid dpi clk dividor (%d)\n", div);
-		return -1;
-	}
-
-	sci_glb_write(REG_AON_CLK_CORE_CGM_DPU_DPI_CFG, (div - 1) << 8, (0xF << 8));
-
-	pr_info("the actual dpi_clk = %d\n", CONFIG_DPI_CLK_SRC / div);
 	return 0;
 }
 
@@ -87,30 +53,22 @@ static int dispc_glb_parse_dt(struct dispc_context *ctx)
 
 static void dispc_glb_enable(struct dispc_context *ctx)
 {
-	sci_glb_set(REG_AON_APB_APB_EB1, BIT_AON_APB_DISP_EMC_EB);
-	sci_glb_set(REG_AON_APB_AON_CLK_TOP_CFG, BIT_AON_APB_CLK_DISP_EB);
+
 }
 
 static void dispc_glb_disable(struct dispc_context *ctx)
 {
-	sci_glb_clr(REG_AON_APB_AON_CLK_TOP_CFG, BIT_AON_APB_CLK_DISP_EB);
-	sci_glb_clr(REG_AON_APB_APB_EB1, BIT_AON_APB_DISP_EMC_EB);
+
 }
 
 static void dispc_reset(struct dispc_context *ctx)
 {
-//after ECO
-	sci_glb_set(REG_AON_APB_APB_RST1, BIT_AON_APB_DISP_SOFT_RST);
-	udelay(10);
-	sci_glb_clr(REG_AON_APB_APB_RST1, BIT_AON_APB_DISP_SOFT_RST);
+
 }
 
 static void dispc_power_domain(struct dispc_context *ctx, int enable)
 {
-	if (enable)
-		sci_glb_clr(REG_PMU_APB_PD_DISP_CFG, BIT_PMU_APB_PD_DISP_FORCE_SHUTDOWN);
-	else
-		sci_glb_set(REG_PMU_APB_PD_DISP_CFG, BIT_PMU_APB_PD_DISP_FORCE_SHUTDOWN);
+
 }
 
 static struct dispc_clk_ops dispc_clk_ops = {

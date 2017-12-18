@@ -23,13 +23,11 @@ static int dsi_glb_parse_dt(struct dsi_context *ctx)
 
 static void dsi_glb_enable(struct dsi_context *ctx)
 {
-	sci_glb_set(REG_AON_APB_AON_CLK_TOP_CFG, BIT_AON_APB_CLK_DISP_EB);
 	pr_info("dsi global enable\n");
 }
 
 static void dsi_glb_disable(struct dsi_context *ctx)
 {
-	sci_glb_clr(REG_AON_APB_AON_CLK_TOP_CFG, BIT_AON_APB_CLK_DISP_EB);
 	pr_info("dsi global disable\n");
 }
 
@@ -42,20 +40,11 @@ static void dsi_reset(struct dsi_context *ctx)
 	sci_glb_clr(REG_AON_APB_APB_RST1, BIT_AON_DISP_SOFT_RST);
 */
 // after ECO
-	sci_glb_set(REG_AON_APB_JVL_DUMMY, BIT(2));
-	udelay(10);
-	sci_glb_clr(REG_AON_APB_JVL_DUMMY, BIT(2));
 }
 
 static void dsi_power_domain(struct dsi_context *ctx, int enable)
 {
-	if (enable) {
-		sci_glb_clr(REG_PMU_APB_PD_DISP_CFG, BIT_PMU_APB_PD_DISP_FORCE_SHUTDOWN);
-		pr_info("dsi power on\n");
-	} else {
-		sci_glb_set(REG_PMU_APB_PD_DISP_CFG, BIT_PMU_APB_PD_DISP_FORCE_SHUTDOWN);
-		pr_info("dsi power off\n");
-	}
+
 }
 
 static struct dsi_glb_ops dsi_glb_ops = {
