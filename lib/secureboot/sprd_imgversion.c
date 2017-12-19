@@ -5,6 +5,8 @@
 #include <linux/types.h>
 #include <malloc.h>
 #include <common.h>
+#include <mmc.h>
+
 
 #include <sprd_imgversion.h>
 #include <sprd_rpmb.h>
@@ -35,6 +37,53 @@ struct sprd_modem_img_ver_t {
     uint32_t recovery_imgver;
 };
 
+#ifdef CONFIG_SPRD_RPMB
+int sprd_get_rpmb_block_cnt(void)
+{
+    u64 rpmb_size = 0;
+
+    rpmb_size = Emmc_GetCapacity(PARTITION_RPMB);
+
+	return (rpmb_size / 8 / MMC_BLOCK_SIZE);
+}
+#endif
+
+
+int get_sprdimgver_blk_ind(void)
+{
+#ifdef CONFIG_SPRD_RPMB
+	int ret;
+
+	ret = sprd_get_rpmb_block_cnt();
+	if (0 > ret ){
+		printf("%s: get rpmb block count error! return code %d \n", __func__, ret);
+		return -1;
+	}
+
+	return (ret - 1) * 2;
+
+#else
+	return SPRD_IMGVERSION_BLK;
+#endif
+}
+
+int get_sprdmodemimgver_blk_ind(void)
+{
+#ifdef CONFIG_SPRD_RPMB
+	int ret;
+
+	ret = sprd_get_rpmb_block_cnt();
+	if (0 > ret ){
+		printf("%s: get rpmb block count error! return code %d \n", __func__, ret);
+		return -1;
+	}
+
+	return (ret - 2) * 2;
+#else
+	return SPRD_MODEM_IMGVERSION_BLK;
+#endif
+}
+
 int sprd_get_imgversion(antirb_image_type imgType, unsigned int* swVersion)
 {
     struct sprd_img_ver_t imgver;
@@ -44,19 +93,21 @@ int sprd_get_imgversion(antirb_image_type imgType, unsigned int* swVersion)
     int ret;
 
     if (IMAGE_SYSTEM == imgType || IMAGE_VENDOR == imgType) {
-        block_ind = SPRD_IMGVERSION_BLK;
+        block_ind = get_sprdimgver_blk_ind();
     } else {
-        block_ind = SPRD_MODEM_IMGVERSION_BLK;
+        block_ind = get_sprdmodemimgver_blk_ind();
     }
 
     memset(data_rd, 0x0, sizeof(data_rd));
     block_count = sizeof(data_rd) / RPMB_DATA_SIZE;
     ret = rpmb_blk_read(data_rd, block_ind, block_count);
     if(ret < 0) {
-        printf("rpmb read fail! return code %d \n", ret);
+        printf("%s: rpmb read blk %d fail! ret %d \n", __func__, block_ind, ret);
         return ret;
     }
-
+	
+    printf("%s: rpmb read blk %d successful \n", __func__, block_ind);
+	
     if (IMAGE_SYSTEM == imgType || IMAGE_VENDOR == imgType) {
         memcpy((void *)&imgver, data_rd, sizeof(struct sprd_img_ver_t));
 

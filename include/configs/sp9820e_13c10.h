@@ -212,6 +212,9 @@
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
 #define CONFIG_EMMC_VERSION_R10P0
+/*sprdimageversion Dynamic acquisition rpmb's size*/
+#define CONFIG_SPRD_RPMB
+
 
 /*eMMC boot*/
 #define CONFIG_EMMC_BOOT
