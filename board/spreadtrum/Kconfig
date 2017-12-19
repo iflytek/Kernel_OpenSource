@@ -286,6 +286,12 @@ config TARGET_SP9862_HAPS
         help
           This is the Spreadtrum whalek Board
 
+config TARGET_SP9863A_1H10
+	bool "Spreadtrum sharkl3"
+	select ARM64
+	help
+	  This is the Spreadtrum sharkl3 Board
+		  
 config ZEBU
 	bool "zebu board"
 	default n
@@ -361,4 +367,5 @@ source "board/spreadtrum/sp9820e_2h10/Kconfig"
 source "board/spreadtrum/sp9855a_haps/Kconfig"
 source "board/spreadtrum/sp9850ka_2c30/Kconfig"
 source "board/spreadtrum/sp9862_haps/Kconfig"
+source "board/spreadtrum/sp9863a_1h10/Kconfig"
 endif
