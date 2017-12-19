@@ -18,8 +18,8 @@ extern   "C"
 #endif
 #ifndef CONFIG_FPGA
 
-#define PMU_CLK_6P5M	0
-#define PMU_CLK_32K	1
+#define PMU_CLK_6P5M	1
+#define PMU_CLK_32K	0
 void pmu_commom_config(void)
 {
 	uint32_t reg_val;
