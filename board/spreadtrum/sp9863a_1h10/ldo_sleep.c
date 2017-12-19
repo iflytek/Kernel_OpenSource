@@ -34,7 +34,6 @@ void DCDC_ldo_power_on()
 void pmic_lowpower_config(uint32_t gen_para)
 {
 #if defined(CONFIG_ADIE_SC2721)
-#ifndef CONFIG_SP9855_HAPS
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE,0x6e7f);
 	while( (ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & 0x8000) != 0x8000 );
 
@@ -308,7 +307,6 @@ void pmic_lowpower_config(uint32_t gen_para)
 
 	/*when bring up we power on all dcdc & ldo*/
 	DCDC_ldo_power_on();
-#endif
 #endif
 }
 

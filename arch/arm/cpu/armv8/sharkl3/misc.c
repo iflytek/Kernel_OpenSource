@@ -73,17 +73,6 @@ static void bb_ldo_auto_en()
 #ifdef CONFIG_OF_LIBFDT
 void scx35_pmu_reconfig(void)
 {
-	/* FIXME:
-	 * turn on gpu/mm domain for clock device initcall, and then turn off asap.
-	 */
-#ifndef CONFIG_SP9855_HAPS
-	REG32(REG_AON_APB_APB_EB0) |= BIT_AON_APB_GPU_EB;
-#endif
-#ifndef CONFIG_SOC_SHARKL3
-	REG32(REG_AON_APB_APB_EB1) |= BIT_AON_APB_DISP_EB;
-	REG32(REG_AON_APB_APB_EB1) |= BIT_AON_APB_CAM_EB;
-	REG32(REG_AON_APB_APB_EB1) |= BIT_AON_APB_VSP_EB;
-#endif
 }
 
 #else
