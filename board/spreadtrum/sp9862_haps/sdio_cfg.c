@@ -39,15 +39,17 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	100000,
 #else
 	REG_AP_CLK_CORE_CGM_EMMC_2X_CFG,
-	BIT_0|BIT_1,
+	BIT2,
 	/* selsect 2x clock source, baseclk = freq / 2 */
 	195000000,
 	400000,
 #endif
-	REG_AP_AHB_AHB_EB,
-	BIT_11,
-	REG_AP_AHB_AHB_RST,
-	BIT_14,
+	REG_AP_APB_APB_EB,
+	BIT_AP_APB_EMMC_EB,
+	REG_AP_APB_APB_RST,
+	BIT_AP_APB_EMMC_SOFT_RST,
+	REG_AON_APB_CGM_CLK_TOP_REG1,
+	BIT_AON_APB_CGM_EMMC_2X_EN|BIT_AON_APB_CGM_EMMC_1X_EN,
 
 	"vddgen",
 	"vddemmccore",
@@ -62,16 +64,18 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	100000,
 #else
 	REG_AP_CLK_CORE_CGM_SDIO0_2X_CFG,
-	BIT_0|BIT_1,
+	BIT2,
 	/* selsect 2x clock source, baseclk = freq / 2 */
 	195000000,
 	400000,
 #endif
 
-	REG_AP_AHB_AHB_EB,
-	BIT_8,
-	REG_AP_AHB_AHB_RST,
-	BIT_11,
+	REG_AP_APB_APB_EB,
+	BIT_AP_APB_SDIO0_EB,
+	REG_AP_APB_APB_RST,
+	BIT_AP_APB_SDIO0_SOFT_RST,
+	REG_AON_APB_CGM_CLK_TOP_REG1,
+	BIT_AON_APB_CGM_SDIO0_2X_EN|BIT_AON_APB_CGM_SDIO0_1X_EN ,
 
 	"vddsdio",
 	"vddsdcore",
