@@ -2100,6 +2100,10 @@ int mmc_init(struct mmc *mmc)
 	int err = 0;
 	unsigned start;
 
+	if(!mmc) {
+		printf("%s: no mmc \n", __func__);
+		return NO_CARD_ERR;
+	}
 	if (mmc->has_init)
 		return 0;
 

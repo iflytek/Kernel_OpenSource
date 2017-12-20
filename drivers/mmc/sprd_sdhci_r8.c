@@ -513,10 +513,10 @@ int sdhci_query_command_backstage(struct mmc *mmc, struct mmc_data *data)
 	int ret = 0;
 	unsigned int stat = 0;
 
-	if (NULL != data)
+	if (NULL != data) {
 		ret = sdhci_transfer_data(host, data, start_addr);
-
-	start_addr = (unsigned int)data->src;
+		start_addr = (unsigned int)data->src;
+	}
 
 	stat = sdhci_readl(host, SDHCI_INT_STATUS);
 	sdhci_writel(host, SDHCI_INT_ALL_MASK, SDHCI_INT_STATUS);
