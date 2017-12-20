@@ -2608,6 +2608,8 @@ u64 emmc_get_capacity(char part_num)
 	case 1:
 	case 2:
 		return mmc->capacity_boot;
+	case 3:
+		return mmc->capacity_rpmb;
 	default:
 		return 0;
 	}

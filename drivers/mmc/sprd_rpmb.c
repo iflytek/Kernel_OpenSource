@@ -37,6 +37,8 @@
 #define RPMB_NONCE_SIZE                             16
 #define RPMB_DATA_FRAME_SIZE                        512
 #define RPMB_RESULT_OK                              0x00
+#define RPMB_RES_NO_AUTH_KEY                        0x0007
+
 #define RPMB_BLOCK_COUNT    1
 
 #define BLOCK_SIZE 512
@@ -134,6 +136,49 @@ int mmc_set_blockcount(struct mmc *mmc, unsigned int blockcount,
 	cmd.resp_type = MMC_RSP_R1;
 	return mmc_send_cmd(mmc, &cmd, NULL);
 }
+
+/**@retrun 0 rpmb key unwritten*/
+int is_wr_rpmb_key(void)
+{
+	struct rpmb_data_frame *data_frame;
+	uint16_t msg_type;
+	uint16_t op_result;
+	uint32_t writecount;
+	int result = -1;
+	struct mmc *mmc = find_mmc_device(0);	//0 is emmc
+
+	if (NULL == mmc)
+		return -1;
+
+	msg_type = RPMB_MSG_TYPE_REQ_WRITE_COUNTER_VAL_READ;
+	data_frame = (uint8_t *) malloc(RPMB_DATA_FRAME_SIZE);
+	memset(data_frame, 0, RPMB_DATA_FRAME_SIZE);
+	u16_to_bytes(msg_type, data_frame->msg_type);
+	mmc_switch_part(EMMC, RPMB_PARTITION);
+	mmc_set_blockcount(mmc, RPMB_BLOCK_COUNT, 0);
+	rpmb_write_cmd(mmc, RPMB_BLOCK_COUNT, BLOCK_SIZE, data_frame);
+	memset(data_frame, 0, RPMB_DATA_FRAME_SIZE);
+	mmc_set_blockcount(mmc, RPMB_BLOCK_COUNT, 0);
+	rpmb_read_cmd(mmc, data_frame, RPMB_BLOCK_COUNT);
+
+/*result check*/
+	bytes_to_u16(data_frame->op_result, &op_result);
+	bytes_to_u16(data_frame->msg_type, &msg_type);
+	if (RPMB_RES_NO_AUTH_KEY == op_result) {
+		printf("%s rpmb key not write\n", __func__);
+		result = 0;
+	} else {
+		printf("%s rpmb key has been written\n", __func__);
+		result = -1;
+
+	}
+
+
+	free(data_frame);
+	mmc_switch_part(EMMC, USER_PARTITION);
+	return result;		//should not run here;
+}
+
 
 uint32_t rpmb_read_writecount(void)
 {

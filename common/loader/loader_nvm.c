@@ -1416,6 +1416,12 @@ extern boot_image_required_t *get_cp_load_table(void);
 #endif
         // add for SOTER end
 
+//#if defined(TOS_TRUSTY) && defined(CONFIG_EMMC_BOOT) && defined(CONFIG_SPRD_RPMB)
+#if defined(CONFIG_EMMC_BOOT) && defined(CONFIG_SPRD_RPMB)
+	uboot_set_rpmb_size();
+	uboot_is_wr_rpmb_key();
+#endif
+
 #ifdef CONFIG_TEE_FIREWALL
 	fdt_reserved_mem_multimedia_parse(dt_adr);
 #endif

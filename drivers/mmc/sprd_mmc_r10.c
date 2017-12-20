@@ -20,15 +20,12 @@
 #include <asm/arch/sdio_cfg.h>
 #include <asm/arch/common.h>
 #include <errno.h>
-#include <uboot_sec_drv.h>
-#include <chipram_env.h>
 
 /* Set block count limit because of 16 bit register limit on some hardware*/
 #ifndef CONFIG_SYS_MMC_MAX_BLK_COUNT
 #define CONFIG_SYS_MMC_MAX_BLK_COUNT 65535
 #endif
 
-u64 rpmb_size __attribute__((aligned(4096)));
 
 static struct list_head mmc_devices;
 static int cur_dev_num = -1;
@@ -2513,14 +2510,6 @@ int board_mmc_initialize(bd_t *bis)
 #endif
 
 	do_preinit();
-
-	boot_mode_t boot_role = get_boot_role();
-	if (boot_role == BOOTLOADER_MODE_DOWNLOAD)
-		return 0;
-
-	rpmb_size = emmc_get_capacity(PARTITION_RPMB);
-	debugf("%s: rpmb size %lld\n", __func__, rpmb_size);
-	uboot_set_rpmb_size(&rpmb_size, sizeof(rpmb_size));
 
 	return 0;
 }

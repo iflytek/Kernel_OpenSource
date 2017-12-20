@@ -15,5 +15,8 @@ obj-y += native/
 endif
 #need drivers/mmc/sprd_rpmb.o
 obj-y += sprd_imgversion_comm.o
-obj-$(CONFIG_EMMC_VERSION_R10P0) += sprd_imgversion.o
-obj-$(CONFIG_EMMC_VERSION_R8P0) += sprd_imgversion.o
+#ifdef TOS_TRUSTY
+#ifdef CONFIG_EMMC_BOOT
+obj-$(CONFIG_SPRD_RPMB) += sprd_imgversion.o
+#endif
+#endif
