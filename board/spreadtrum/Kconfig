@@ -183,6 +183,12 @@ config TARGET_SP7731E_1H20
         help
           This is the Spreadtrum sp7731e_1h20 Board
 
+config TARGET_SP7731E_14C20
+        bool "Spreadtrum sp7731e_14c20"
+        select CPU_V7
+        help
+          This is the Spreadtrum sp7731e_14c20 Board
+
 config TARGET_SP7731E_14C10
         bool "Spreadtrum sp7731e_14c10"
         select CPU_V7
@@ -355,6 +361,7 @@ source "board/spreadtrum/pike2/Kconfig"
 source "board/spreadtrum/sp7731e_fpga/Kconfig"
 source "board/spreadtrum/sp7731e_1h10/Kconfig"
 source "board/spreadtrum/sp7731e_1h20/Kconfig"
+source "board/spreadtrum/sp7731e_14c20/Kconfig"
 source "board/spreadtrum/sp7731e_14c10/Kconfig"
 source "board/spreadtrum/j1vdk/Kconfig"
 source "board/spreadtrum/j1fpga/Kconfig"
