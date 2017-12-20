@@ -5,8 +5,8 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#ifndef __TSHARK_L_H
-#define __TSHARK_L_H
+#ifndef __CONFIG_H
+#define __CONFIG_H
 
 #define SPRD_DEBUG_LEVEL		2
 
@@ -20,7 +20,6 @@
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
 
-#define CONFIG_SP9862_HAPS
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
@@ -288,7 +287,7 @@
 /* display config */
 #define CONFIG_LCD
 #define CONFIG_CMD_BMP
-#define CONFIG_SPLASH_SCREEN
+//#define CONFIG_SPLASH_SCREEN
 #define CONFIG_VIDEO_SPRD
 #define CONFIG_DPU_R2P0
 #define CONFIG_DSIH_SPRD_CTRL_RXP0
@@ -352,4 +351,4 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
-#endif /* __TSHARK_L_H */
+#endif /* __CONFIG_H  */

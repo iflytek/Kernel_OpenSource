@@ -76,9 +76,7 @@ void scx35_pmu_reconfig(void)
 	/* FIXME:
 	 * turn on gpu/mm domain for clock device initcall, and then turn off asap.
 	 */
-#ifndef CONFIG_SP9862_HAPS
 	REG32(REG_AON_APB_APB_EB0) |= BIT_AON_APB_GPU_EB;
-#endif
 #ifndef CONFIG_SOC_WHALEK
 	REG32(REG_AON_APB_APB_EB1) |= BIT_AON_APB_DISP_EB;
 	REG32(REG_AON_APB_APB_EB1) |= BIT_AON_APB_CAM_EB;

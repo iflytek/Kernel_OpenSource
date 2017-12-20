@@ -27,6 +27,8 @@ void memset_dsp_share_memory()
 
 void modem_entry()
 {
+	return;
+
 	memset_dsp_share_memory();
 
 #ifndef CONFIG_KERNEL_BOOT_CP
