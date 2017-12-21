@@ -99,8 +99,7 @@
 #define CONFIG_SPRD_ADI
 #define ADI_R3P0_VER
 /*sprd gpio*/
-#define CONFIG_SPRD_GPIO
-#define CONFIG_SPRD_EIC_EXT1
+#define CONFIG_SPRD_GPIO_PLUS
 #define CONFIG_POWERKEY_DEFAULT_HIGH
 /* Chip Driver Macro Definitions End*/
 

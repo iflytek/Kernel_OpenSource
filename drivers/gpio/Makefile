@@ -48,3 +48,4 @@ obj-$(CONFIG_ZYNQ_GPIO)		+= zynq_gpio.o
 obj-$(CONFIG_VYBRID_GPIO)	+= vybrid_gpio.o
 
 obj-$(CONFIG_SPRD_GPIO)		+= gpio.o gpio_phy.o eic.o
+obj-$(CONFIG_SPRD_GPIO_PLUS)	+= gpio_plus.o eic.o

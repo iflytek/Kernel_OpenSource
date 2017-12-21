@@ -84,6 +84,7 @@ static void __get_eic_base_info (u32 eic_id, struct eic_info *info)
 		info->die	   = A_DIE;
 
 	}
+#ifndef CONFIG_SPRD_GPIO_PLUS
 	else if (eic_id>=SPRD_DDIE_EIC_START && eic_id<=SPRD_DDIE_EIC_END)
 	{
 		info->base_addr= SPRD_EIC_PHYS;
@@ -105,6 +106,7 @@ static void __get_eic_base_info (u32 eic_id, struct eic_info *info)
 		info->bit_num  = eic_id&0x7;
 		info->die	   = D_DIE;
 	}
+#endif
 #endif
 	else
 	{
@@ -241,8 +243,10 @@ static void sprd_eic_free(unsigned offset)
 
 void sprd_eic_init(void)
 {
+#ifndef CONFIG_SPRD_GPIO_PLUS
 	REG32(REG_AON_APB_APB_EB0) |= BIT_EIC_EB;
 	REG32(REG_AON_APB_APB_RTC_EB) |= BIT_EIC_RTC_EB|BIT_EIC_RTCDV5_EB;
+#endif
 	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_EIC_EN);
 	ANA_REG_OR(ANA_REG_GLB_RTC_CLK_EN,    BIT_RTC_EIC_EN);
 }
