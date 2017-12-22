@@ -75,3 +75,7 @@ endif
 ifdef CONFIG_SPRD_SP9832E
 obj-y += sprd_boardid_sp9832e.o
 endif
+# board id for pike2
+ifdef CONFIG_SOC_PIKE2
+obj-$(CONFIG_BOARDID_NATIVE) += sprd_boardid_pike2.o
+endif
