@@ -53,6 +53,11 @@
 #define CONFIG_ARCH_SCX35L
 #define CONFIG_SPRD_UID
 
+/* itel board id */
+#define CONFIG_BOARDID_ITEL
+/* board id switch */
+//#define CONFIG_BOARD_ID
+
 //#define DFS_ON_ARM7
 #define DFS_PARAM_SRC_ADDR     0x0001c0c
 #define DFS_PARAM_TARGET_ADDR  0x50805400

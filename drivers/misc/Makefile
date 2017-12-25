@@ -78,4 +78,5 @@ endif
 # board id for pike2
 ifdef CONFIG_SOC_PIKE2
 obj-$(CONFIG_BOARDID_NATIVE) += sprd_boardid_pike2.o
+obj-$(CONFIG_BOARDID_ITEL) += sprd_boardid_pike2_itel.o
 endif
