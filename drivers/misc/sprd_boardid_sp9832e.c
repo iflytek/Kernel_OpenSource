@@ -2,7 +2,6 @@
 #include <sprd_adc.h>
 #include "otp_helper.h"
 
-#define MB_GPIO    87
 #define LB_GPIO    86
 #define ADC_CHANNEL_FOR_NV    3
 
@@ -25,16 +24,25 @@ struct clock_table {
 
 static const struct clock_table clock_table[] = {
 	{K_LESS, TSX},
-	{K_LESS, DCXO},
-	{K_LESS, TSX},
 	{K32, TCXO},
+};
+
+static const int adc2deltanv_table[] = {
+	-1, /* reserved */
+	-1, /* reserved */
+	-1, /* reserved */
+	-1, /* reserved */
+	-1, /* reserved */
+	-1, /* reserved */
+	1, /* hw_ver01.nv */
+	0 /* hw_ver00.nv */
 };
 
 extern int sprd_gpio_request(struct gpio_chip *chip, unsigned offset);
 extern int sprd_gpio_direction_input(struct gpio_chip *chip, unsigned offset);
 extern int sprd_gpio_get(struct gpio_chip *chip, unsigned offset);
 
-static unsigned int gpio_state(unsigned int GPIO_NUM)
+static int gpio_state(unsigned int GPIO_NUM)
 {
 	int value = 0 ;
 
@@ -42,7 +50,15 @@ static unsigned int gpio_state(unsigned int GPIO_NUM)
 	sprd_gpio_direction_input(NULL, GPIO_NUM);
 	value = sprd_gpio_get(NULL,GPIO_NUM);
 
-	return value > 0;
+	if(value != 0)
+	{
+	/* value may be -EINVAL in theory when gpio num is wrong! */
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 static int get_adc_value_board(int channel)
@@ -58,36 +74,37 @@ static int get_adc_value_board(int channel)
 		return -1;
 	}
 
-	if (vol >0 && vol <= 100)
+
+	if (vol >= 9 && vol <= 31)
 		vol = 0;
-	if (vol > 100 && vol <= 250 )
+	if (vol >= 180 && vol <= 220)
 		vol = 1;
-	if (vol > 250 && vol <= 400)
+	if (vol >= 275 && vol <= 325)
 		vol = 2;
-	if (vol > 400 && vol <= 500)
+	if (vol >= 465 && vol <= 495)
 		vol = 3;
-	if (vol > 500 && vol <= 700)
+	if (vol >= 584 && vol <= 616)
 		vol = 4;
-	if (vol > 700 && vol <= 800)
+	if (vol >= 762 && vol <= 798)
 		vol = 5;
-	if (vol > 900 && vol <= 1000)
+	if (vol >= 920 && vol <= 960)
 		vol = 6;
-	if (vol > 1000 && vol < 1200)
+	if (vol >= 1054 && vol <= 1186)
 		vol = 7;
 
-	return vol;
+	if(vol < 0 || vol > 7) {
+		errorf("Adc value of rf band if is wrong, the rfboard.id will be set to -1\n");
+		return -1;
+	}
+
+	return adc2deltanv_table[vol];
 }
 
 static int get_clockid(void)
 {
 	unsigned int gpio_val = 0;
-	unsigned int shift_bit = 0;
 
-	gpio_val |= gpio_state(LB_GPIO) << shift_bit;
-	shift_bit++;
-
-	gpio_val |= gpio_state(MB_GPIO) << shift_bit;
-	shift_bit++;
+	gpio_val = gpio_state(LB_GPIO);
 
 	return gpio_val;
 }
@@ -98,7 +115,7 @@ int sprd_get_rfid(void)
 	unsigned int adc_val = 0;
 
 	adc_val = get_adc_value_board(ADC_CHANNEL_FOR_NV);
-	debugf("adc_val: %d\n", adc_val);
+	debugf("rfboard.id = %d\n", adc_val);
 
 	return adc_val;
 }
