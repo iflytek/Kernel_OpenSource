@@ -51,6 +51,7 @@
 #define CONFIG_ADIE_SC2720
 #define CONFIG_ARCH_SCX35L2
 #define CONFIG_ARCH_SCX35L
+#define CONFIG_SPRD_UID
 
 /* sprd native board id */
 #define CONFIG_BOARDID_NATIVE
