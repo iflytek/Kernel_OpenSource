@@ -38,8 +38,8 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	36000000,
 	100000,
 #else
-	REG_AP_CLK_CORE_CGM_EMMC_2X_CFG,
-	BIT_0|BIT_1,
+	REG_AON_CLK_CORE_CGM_EMMC_2X_CFG,
+	BIT_0 | BIT_1, /* div = 3,source:390m_rpll */
 	/* selsect 2x clock source, baseclk = freq / 2 */
 	195000000,
 	400000,
@@ -52,6 +52,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	"vddgen",
 	"vddemmccore",
 },
+
 {
 	SD,
 	SPRD_SDIO0_BASE,
@@ -61,8 +62,8 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	36000000,
 	100000,
 #else
-	REG_AP_CLK_CORE_CGM_SDIO0_2X_CFG,
-	BIT_0|BIT_1,
+	REG_AON_CLK_CORE_CGM_SDIO0_2X_CFG,
+	BIT_0 | BIT_1, /* div = 3,source:390m_rpll */
 	/* selsect 2x clock source, baseclk = freq / 2 */
 	195000000,
 	400000,
