@@ -131,6 +131,16 @@ static struct usb_gadget_strings *gser_strings[] = {
 int usb_port_open = false;
 
 /*-------------------------------------------------------------------------*/
+static void gser_port_open_complete(void)
+{
+	usb_port_open = true;
+}
+
+static void gser_port_close_complete(void)
+{
+	usb_port_open = false;
+}
+
 static int gser_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
 {
 	struct usb_composite_dev *cdev = f->config->cdev;
@@ -144,10 +154,10 @@ static int gser_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl
 		switch (ctrl->bRequest) {
 			case 0x22:
 				value = 0;
-				if ((w_value & 0xff) == 1)
-					usb_port_open = true;
+				if((w_value & 0xff) == 1)
+					cdev->req->complete = gser_port_open_complete;
 				else
-					usb_port_open = false;
+					cdev->req->complete = gser_port_close_complete;
 				break;
 		}
 	}
