@@ -25,6 +25,8 @@ typedef enum {
 #define ERR_FLAG_MASK				0xFFFF
 #define BIT_MASK(bit)  				(~(1<<bit))
 
+/*********EFUSE CLK**************************************/
+#define REG_AON_SEC_APB_EFUSE_SEC_ENABLE	REG_AON_SEC_APB_EFUSE_SEC_EB
 
 /*******EFUSE CONTROL REGISTER***************************/
 #define REG_AON_EFUSE_BASE			0x40240000
@@ -47,7 +49,8 @@ typedef enum {
 #define CE_RNG_EB_REG    			(CTL_AP_BASE_CE + 0x0200)		// ce module enable
 #define CE_SEC_KEY_USE_WAY_REG   	(CTL_AP_BASE_CE + 0x0340)		// ce secure key work mode register
 
-
+extern void efuse_enable(void);
+extern void efuse_disable(void);
 extern Efuse_Result_Ret efuse_write_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble);
 extern Efuse_Result_Ret efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble);
 extern Efuse_Result_Ret efuse_rewrite_double_bit(uint32 start_id, uint32 end_id, uint32 *pReadData);
