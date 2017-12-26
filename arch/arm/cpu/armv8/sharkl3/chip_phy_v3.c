@@ -47,12 +47,12 @@ void CHIP_ResetMCU (void)  //reset interrupt disable??
     // @Richard
     uint32_t i = 10000;
 
-	start_watchdog(5);
-    
-    while (i--);    
+    start_watchdog(5);
+
+    while (i--);
 
     wdt_reset_MCU();
-    
+
     {
         volatile uint32_t tick1 = SCI_GetTickCount();
         volatile uint32_t tick2 = SCI_GetTickCount();
@@ -62,19 +62,6 @@ void CHIP_ResetMCU (void)  //reset interrupt disable??
             tick2 = SCI_GetTickCount();
         }
     }
-}
-
-
-/************************************************************
-*select TDPLL's reference crystal,
-*(1)--RF0---------xtlbuf0-----------
-*                               -?-tdpll_ref_sel-----TDPLL
-*(2)--RF1---------xtlbuf1-----------
-1)rf_id = 0,TDPLL will select (1), or select (2)
-************************************************************/
-PUBLIC uint32_t TDPllRefConfig(TDPLL_REF_T rf_id)
-{
-    return 0;
 }
 
 /**---------------------------------------------------------------------------*

@@ -6,78 +6,15 @@
 #include <otp_helper.h>
 #include <sprd_pmic_misc.h>
 
-/*
-	REG_AON_APB_BOND_OPT0  ==> romcode set
-	REG_AON_APB_BOND_OPT1  ==> set it later
-
-	!!! notice: these two registers can be set only one time!!!
-
-	B1[0] : B0[0]
-	0     : 0     Jtag enable
-	0     : 1     Jtag disable
-	1     : 0     Jtag enable
-	1     : 1     Jtag enable
-*/
-
-/*************************************************
-* 1 : enable jtag success                        *
-* 0 : enable jtag fail                           *
-*************************************************/
-int sprd_jtag_enable()
-{
-	return 1;
-}
-
-/*************************************************
-* 1 : disable jtag success                       *
-* 0 : disable jtag fail                          *
-*************************************************/
-int sprd_jtag_disable()
-{
-}
-
-static void ap_slp_cp_dbg_cfg()
-{
-//	*((volatile unsigned int *)(REG_AP_AHB_MCU_PAUSE)) |= BIT_MCU_SLEEP_FOLLOW_APCPU_EN; //when ap sleep, cp can continue debug
-}
-
-static void ap_cpll_rel_cfg()
-{
-}
-
 static void bb_bg_auto_en()
 {
 	*((volatile unsigned int *)(REG_AON_APB_RES_REG0)) |= 1<<8;
 }
 
-
-static void ap_close_wpll_en()
-{
-}
-
-static void ap_close_cpll_en()
-{
-}
-
-static void ap_close_wifipll_en()
-{
-}
-
-
 static void bb_ldo_auto_en()
 {
 	*((volatile unsigned int *)(REG_AON_APB_RES_REG0)) |= 1<<9;
 }
-
-
-#ifdef CONFIG_OF_LIBFDT
-void scx35_pmu_reconfig(void)
-{
-}
-
-#else
-void scx35_pmu_reconfig(void) {}
-#endif
 
 #define KLT8	0x6B4C5438
 #define KL	0x6B4C0000
@@ -139,41 +76,14 @@ int sprd_get_chipid(int *chip_id, int *version_id)
 	return 0;
 }
 
-#if defined CONFIG_SMT
-
-void set_smt(void)
-{
-	if(0x00 == CONFIG_SMT_VALUE){
-		__raw_writel(__raw_readl(JVT_MT_CFG) & (~(0x3)),JVT_MT_CFG);/*open smt*/
-	}else if(0x01 == CONFIG_SMT_VALUE){
-		__raw_writel(__raw_readl(JVT_MT_CFG) | 0x3,JVT_MT_CFG);/*close smt*/
-	}else if(0x10 == CONFIG_SMT_VALUE){
-		/*get config info from mmc*/
-	}
-}
-
-#endif
-
 void misc_init()
 {
-	scx35_pmu_reconfig();
-	ap_slp_cp_dbg_cfg();
-	ap_cpll_rel_cfg();
-#ifndef  CONFIG_SPX15
-	ap_close_wpll_en();
-	ap_close_cpll_en();
-	ap_close_wifipll_en();
-#endif
 	bb_bg_auto_en();
 	bb_ldo_auto_en();
 
 	pmic_misc_init();
 
 	sprd_get_chipid(NULL, NULL);
-
-#if defined CONFIG_SMT
-	set_smt();
-#endif
 }
 
 typedef struct mem_cs_info
