@@ -84,3 +84,7 @@ ifdef CONFIG_SOC_PIKE2
 obj-$(CONFIG_BOARDID_NATIVE) += sprd_boardid_pike2.o
 obj-$(CONFIG_BOARDID_ITEL) += sprd_boardid_pike2_itel.o
 endif
+# board id for 9863a(sharkl3)
+ifdef CONFIG_SOC_SHARKL3
+obj-y += sprd_boardid_sharkl3.o
+endif
