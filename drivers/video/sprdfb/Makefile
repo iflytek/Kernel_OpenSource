@@ -55,6 +55,8 @@ obj-$(CONFIG_SOC_WHALEK) += sprdfb_chip_9862.o
 obj-$(CONFIG_SOC_IWHALE2) += sprdfb_chip_9861.o
 obj-$(CONFIG_SPRD_SOC_SP9853I) += sprdfb_chip_9853i.o
 obj-$(CONFIG_SOC_PIKE2) += sprdfb_chip_7731e.o
+
+obj-$(CONFIG_ROUND_CORNER_SUPPORT) += sprdfb_round_corner.o
 endif
 
 ## only related to FPGA

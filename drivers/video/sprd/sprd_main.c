@@ -14,6 +14,9 @@
 #include <malloc.h>
 #include <fdtdec.h>
 #include "sprd_dispc.h"
+#ifdef CONFIG_ROUND_CORNER_SUPPORT
+#include "sprd_round_corner.h"
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -109,6 +112,12 @@ void lcd_disable(void)
 
 void lcd_enable(void)
 {
+#ifdef CONFIG_ROUND_CORNER_SUPPORT
+	struct panel_info *panel = panel_info_attach();
+	dispc_logo_show_corner(panel->height, panel->width, gd->fb_base);
+	lcd_set_flush_dcache(TRUE);
+	lcd_sync();
+#endif
 	pr_info("start flip\n");
 	logo_flip();
 }

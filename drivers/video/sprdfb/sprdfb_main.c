@@ -18,6 +18,10 @@
 #include <malloc.h>
 #include <fdtdec.h>
 
+#ifdef CONFIG_ROUND_CORNER_SUPPORT
+#include "sprdfb_round_corner.h"
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 #define BMP_RESERVED_ADDR(p, sz) ((p) + ALIGN((sz), PAGE_SIZE))
@@ -188,6 +192,13 @@ void lcd_refresh(void *base)
 
 void lcd_enable(void)
 {
+#ifdef CONFIG_ROUND_CORNER_SUPPORT
+	struct sprdfb_device *dev = &s_sprdfb_dev;
+	dispc_logo_show_corner(dev->panel->height, dev->panel->width, gd->fb_base);
+	lcd_set_flush_dcache(TRUE);
+	lcd_sync();
+	debugf("dispc_logo_show_corner\n");
+#endif
 	debugf("sprdfb: [%s]\n", __FUNCTION__);
 	real_refresh(&s_sprdfb_dev);
 	is_lcd_enable = true;

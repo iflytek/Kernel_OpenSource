@@ -116,6 +116,7 @@ enum {
 	DPU_LAYER_FORMAT_AFBC,
 	DPU_LAYER_FORMAT_MAX_TYPES,
 };
+
 static void dispc_layer_init(struct sprdfb_device *dev)
 {
 	uint32_t reg_val = 0;
@@ -184,8 +185,8 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 
 #endif
 	}else
- #endif
-	reg_val = ( dev->panel->width & 0xfff) ;
+#endif
+	reg_val = (dev->panel->width & 0xfff) ;
 	dispc_write(reg_val, DISPC_OSD_PITCH);
 
 	/*OSD base address*/
