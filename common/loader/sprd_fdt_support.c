@@ -75,6 +75,9 @@ typedef struct {
 extern AvbSlotVerifyData* avb_slot_data[2];
 #endif
 
+#define LOGLEVEL_DATA_OFFSET	(9 * 1024)
+#define LOGLEVEL_DATA_LEN		32
+
 int fdt_fixup_verified_boot(void *fdt)
 {
 	int ret = 0;
@@ -1126,3 +1129,211 @@ int fdt_fixup_socid(void *fdt)
 	return ret;
 }
 #endif
+
+#ifdef CONFIG_BOARD_KERNEL_CMDLINE
+/**
+ *  Fix me:
+ *  merge board kernel cmdline to bootargs
+ */
+int fdt_fixup_board_kernel_cmdline(void *fdt)
+{
+	int nodeoffset;
+	int err, ret;
+	int append_flag = 0;
+	const char *path;
+	char buf[BOOT_ARGS_SIZE+1];
+	boot_img_hdr *hdr = (boot_img_hdr *)raw_header;
+	char *v, *k, *tmp_v, *tmp_k, *cmdline, *v_copy, *path_copy, *s;
+
+	memset(buf, 0, sizeof(buf));
+	memcpy(buf, hdr->cmdline, BOOT_ARGS_SIZE);
+	cmdline = buf;
+
+	debugf("android kernel cmdline :%s\n",cmdline);
+
+	/* first, get bootargs value */
+	err = fdt_check_header(fdt);
+	if (err < 0) {
+		errorf("fdt_chosen_bootargs_replace: %s\n", fdt_strerror(err));
+		return err;
+	}
+
+	/*
+	 * Find the "chosen" node.
+	 */
+	nodeoffset = fdt_path_offset(fdt, "/chosen");
+
+	/*
+	 * If there is no "chosen" node in the blob, leave.
+	 */
+	if (nodeoffset < 0) {
+		errorf("fdt_chosen_bootargs_replace: cann't find chosen");
+		return -1;
+	}
+
+	/*
+	 * If the property exists, get the value
+	 */
+	path = fdt_getprop(fdt, nodeoffset, "bootargs", NULL);
+	debugf("before bootargs:%s\n",path);
+
+	/* second, append */
+	if (path == NULL) {/* It's almost never gonna happen */
+		printf("bootargs empty, board kernel cmdline append!\n");
+		ret = fdt_chosen_bootargs_append(fdt, cmdline, 1);
+		if (ret < 0)
+			errorf("failed to append board kernel cmdline to bootargs\n");
+
+		return ret;
+	}
+
+	/* loop for matching */
+	while ((v = strsep(&cmdline, " ")) != NULL) {
+		v_copy = strdup(v);
+		if (v_copy == NULL) {
+			errorf("string copy failed!\n");
+			return -1;
+		}
+
+		k = strsep(&v, "=");
+		if (!k)
+			break;
+
+		path_copy = strdup(path);
+		if (path_copy == NULL) {
+			errorf("pathcopy string copy failed!\n");
+			free(v_copy);
+			return -1;
+		}
+		s = path_copy;
+
+		while ((tmp_v = strsep(&s, " ")) != NULL) {
+			tmp_k = strsep(&tmp_v, "=");
+			if (!tmp_k)
+				break;
+
+			if (strcmp(tmp_k, k) == 0) {
+				append_flag = 0;
+				break;
+			}
+
+			append_flag = 1;
+		}
+
+		if (append_flag) {
+			ret = fdt_chosen_bootargs_append(fdt, v_copy, 1);
+			if (ret < 0) {
+				errorf("failed to append board kernel cmdline to bootargs\n");
+				free(v_copy);
+				free(path_copy);
+				return -1;
+			}
+			append_flag = 0;
+		}
+
+		free(path_copy);
+		free(v_copy);
+	}
+
+	path = fdt_getprop(fdt, nodeoffset, "bootargs", NULL);
+	debugf("after bootargs:%s\n",path);
+
+	return 0;
+}
+#endif
+
+/**
+ *  Fix me:
+ *  set loglevel = 7
+ */
+int fdt_fixup_loglevel(void *fdt)
+{
+	int nodeoffset;
+	const char *path;
+	int ret = 0;
+	int loglevel;
+	char *path_copy, *s, *v, *v_copy, *k, *p;
+	char buf[LOGLEVEL_DATA_LEN];
+
+	memset(buf, 0, sizeof(buf));
+	p = buf;
+
+	/*
+	 * Find the "chosen" node.
+	 */
+	nodeoffset = fdt_path_offset(fdt, "/chosen");
+
+	/*
+	 * If there is no "chosen" node in the blob, leave.
+	 */
+	if (nodeoffset < 0) {
+		errorf("fdt_chosen_bootargs_replace: cann't find chosen");
+		return -1;
+	}
+
+	/*
+	 * If the property exists, get the value
+	 */
+	path = fdt_getprop(fdt, nodeoffset, "bootargs", NULL);
+	if (path == NULL) {
+		errorf("bootargs is null\n");
+		return -1;
+	}
+
+	path_copy = strdup(path);
+	if (path_copy == NULL) {
+		errorf("pathcopy string copy failed!\n");
+		return -1;
+	}
+	s = path_copy;
+
+	while ((v = strsep(&s, " ")) != NULL) {
+		v_copy = strdup(v);
+		if (v_copy == NULL) {
+			errorf("string copy failed!\n");
+			free(path_copy);
+			return -1;
+		}
+
+		k = strsep(&v, "=");
+		if (!k) {
+			free(v_copy);
+			continue;
+		}
+
+		if (strcmp("loglevel", k) == 0) {
+			/* get value */
+			k = strsep(&v, "=");
+			if (!k) {
+				free(v_copy);
+				continue;
+			}
+
+			loglevel = simple_strtol(k, NULL, 10);
+			debugf("kernel loglevel = %d\n",loglevel);
+			if (loglevel >= 7) {
+				free(v_copy);
+				break;
+			}
+
+			if(common_raw_read("miscdata", (uint64_t)LOGLEVEL_DATA_LEN, LOGLEVEL_DATA_OFFSET, p)) {
+				errorf("read miscdata loglevel data error.\n");
+				break;
+			}
+
+			if (strcmp("enable", p) == 0) {
+				ret = fdt_chosen_bootargs_replace(fdt, v_copy, "loglevel=7");
+				if (ret < 0)
+					errorf("set logleve = 7 failed!\n");
+			}
+
+			free(v_copy);
+			break;
+		}
+
+		free(v_copy);
+	}
+
+	free(path_copy);
+	return ret;
+}

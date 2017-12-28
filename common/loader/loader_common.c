@@ -240,6 +240,13 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 	/* for non iq mode, remove reserved iq memory from dtb */
 	fdt_fixup_iq_reserved_mem(fdt_blob);
 
+#ifdef CONFIG_BOARD_KERNEL_CMDLINE
+	/* board kernel cmdline in header of boot.img */
+	fdt_fixup_board_kernel_cmdline(fdt_blob);
+#endif
+
+	/* if enabled, set loglevel = 7*/
+	fdt_fixup_loglevel(fdt_blob);
 	return;
 }
 
@@ -288,6 +295,13 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 
 	fdt_fixup_pmic_wa(fdt_blob);
 
+#ifdef CONFIG_BOARD_KERNEL_CMDLINE
+	/* board kernel cmdline in header of boot.img */
+	fdt_fixup_board_kernel_cmdline(fdt_blob);
+#endif
+
+	/* if enabled, set loglevel = 7*/
+	fdt_fixup_loglevel(fdt_blob);
 }
 
 #ifdef CONFIG_X86
