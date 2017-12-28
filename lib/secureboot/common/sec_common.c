@@ -59,6 +59,8 @@ static uchar *const s_force_secure_check[] = {
 	"l_tgdsp",
 	"l_agdsp",
 	"wdsp",
+	"w_modem",
+	"w_gdsp",
 	#ifdef CONFIG_SUPPORT_WIFI
 	"wcnmodem",
 	#endif
