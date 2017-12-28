@@ -6,16 +6,6 @@
 #include <otp_helper.h>
 #include <sprd_pmic_misc.h>
 
-static void bb_bg_auto_en()
-{
-	*((volatile unsigned int *)(REG_AON_APB_RES_REG0)) |= 1<<8;
-}
-
-static void bb_ldo_auto_en()
-{
-	*((volatile unsigned int *)(REG_AON_APB_RES_REG0)) |= 1<<9;
-}
-
 #define KLT8	0x6B4C5438
 #define KL	0x6B4C0000
 #define SHAR	0x53686172
@@ -78,9 +68,6 @@ int sprd_get_chipid(int *chip_id, int *version_id)
 
 void misc_init()
 {
-	bb_bg_auto_en();
-	bb_ldo_auto_en();
-
 	pmic_misc_init();
 
 	sprd_get_chipid(NULL, NULL);
