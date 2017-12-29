@@ -3,7 +3,7 @@
  ** Author:         mingming.Ji                                              *
  ** DATE:           01/15/2016                                                *
  ** Copyright:      2016 Spreatrum, Incoporated. All Rights Reserved.         *
- ** Description:    This file defines the regiters of 2731.                *
+ ** Description:    This file defines the regiters of 2721.                *
 
  ******************************************************************************/
 
@@ -53,4 +53,4 @@
 #define BIT_ANA_PIN_SLP_Z               	( 0 )
 #define	BIT_ANA_PIN_NUL				( 0 )
 
-#endif //_SPRD_2731_H_
+#endif //_SPRD_2721_H_
