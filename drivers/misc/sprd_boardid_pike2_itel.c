@@ -31,11 +31,11 @@ static const struct clock_table clock_table[] = {
 };
 
 static const int adc2deltanv_table[] = {
-	7, /* hw_ver07.nv */
-	6, /* hw_ver06.nv */
-	5, /* hw_ver05.nv */
-	4, /* hw_ver04.nv */
+	-1, /* reserved */
+	-1, /* reserved */
+	-1, /* reserved */
 	3, /* hw_ver03.nv */
+	-1, /* reserved */
 	2, /* hw_ver02.nv */
 	1, /* hw_ver01.nv */
 	0 /* hw_ver00.nv */
