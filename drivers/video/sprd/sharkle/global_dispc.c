@@ -14,47 +14,64 @@
 #include <asm/arch/sprd_reg.h>
 #include "sprd_dispc.h"
 
-enum {
-	CLK_DPU_SEL_153_6M = 0,
-	CLK_DPU_SEL_192M,
-	CLK_DPU_SEL_256M,
-	CLK_DPU_SEL_384M,
+static uint32_t dpu_core_clk[] = {
+	153600000,
+	192000000,
+	256000000,
+	384000000
 };
 
-enum {
-	CLK_DPI_SEL_128M = 0,
-	CLK_DPI_SEL_153_6M,
-	CLK_DPI_SEL_192M,
+static uint32_t dpi_clk_src[] = {
+	128000000,
+	153600000,
+	192000000
 };
 
-#ifndef CONFIG_DPI_CLK_SRC
-#define CONFIG_DPI_CLK_SRC 128000000
-#endif
+static uint32_t dpi_src_val;
+
+static uint8_t calc_dpu_core_clk(uint32_t pclk)
+{
+	int i;
+
+	pclk *= 2;
+
+	for (i = 0; i < ARRAY_SIZE(dpu_core_clk); i++) {
+		if (pclk <= dpu_core_clk[i])
+			return i;
+	}
+
+	pr_err("calc DPU_CORE_CLK failed, use default\n");
+	return 2;
+}
+
+static uint8_t calc_dpi_clk_src(uint32_t pclk)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(dpi_clk_src); i++) {
+		if ((dpi_clk_src[i] % pclk) == 0)
+			return i;
+	}
+
+	pr_err("calc DPI_CLK_SRC failed, use default\n");
+	return 0;
+}
 
 static int dispc_clk_init(struct dispc_context *ctx)
 {
-	uint32_t dpi_clk_src = CONFIG_DPI_CLK_SRC;
+	uint8_t core_sel = calc_dpu_core_clk(ctx->panel->pixel_clk);
+	uint8_t dpi_sel = calc_dpi_clk_src(ctx->panel->pixel_clk);
+
+	pr_info("DPU_CORE_CLK = %u\n", dpu_core_clk[core_sel]);
+	pr_info("DPI_CLK_SRC = %u\n", dpi_clk_src[dpi_sel]);
 
 	sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_CFG,
-			CLK_DPU_SEL_384M, BIT(0) | BIT(1));
+			core_sel, BIT(0) | BIT(1));
 
-	switch (dpi_clk_src) {
-	case 128000000:
-		sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG,
-				CLK_DPI_SEL_128M, BIT(0) | BIT(1));
-		break;
-	case 153600000:
-		sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG,
-				CLK_DPI_SEL_153_6M, BIT(0) | BIT(1));
-		break;
-	case 192000000:
-		sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG,
-				CLK_DPI_SEL_192M, BIT(0) | BIT(1));
-		break;
-	default:
-		pr_info("invalid dpi clk source: %d\n", dpi_clk_src);
-		break;
-	}
+	sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG,
+			dpi_sel, BIT(0) | BIT(1));
+
+	dpi_src_val = dpi_clk_src[dpi_sel];
 
 	return 0;
 }
@@ -63,8 +80,8 @@ static int dispc_clk_update(struct dispc_context *ctx, int clk_id, int val)
 {
 	uint32_t div;
 
-	div = CONFIG_DPI_CLK_SRC / val;
-	if (CONFIG_DPI_CLK_SRC - div * val > (val / 2))
+	div = dpi_src_val / val;
+	if (dpi_src_val - div * val > (val / 2))
 		div++;
 	if ((div == 0) || (div > 0x10)) {
 		pr_err("invalid dpi clk dividor (%d)\n", div);
@@ -73,7 +90,7 @@ static int dispc_clk_update(struct dispc_context *ctx, int clk_id, int val)
 
 	sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG, (div - 1) << 8, (0xF << 8));
 
-	pr_info("the actual dpi_clk = %d\n", CONFIG_DPI_CLK_SRC / div);
+	pr_info("the actual dpi_clk = %d\n", dpi_src_val / div);
 	return 0;
 }
 
