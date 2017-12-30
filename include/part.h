@@ -38,6 +38,11 @@ typedef struct block_dev_desc {
 	unsigned long   (*block_erase)(int dev,
 				       lbaint_t start,
 				       lbaint_t blkcnt);
+#ifdef CONFIG_EMMC_WP
+	unsigned long   (*block_pwr_wp)(int dev,
+				       lbaint_t start,
+				       lbaint_t blkcnt);
+#endif
 	void		*priv;		/* driver private struct pointer */
 }block_dev_desc_t;
 

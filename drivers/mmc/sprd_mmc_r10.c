@@ -247,6 +247,141 @@ err_out:
 	return err;
 }
 
+static int mmc_switch(struct mmc *mmc, u8 set, u8 index, u8 value)
+{
+	struct mmc_cmd cmd;
+	int timeout = 10000;
+	int ret;
+
+	cmd.cmdidx = MMC_CMD_SWITCH;
+	cmd.resp_type = MMC_RSP_R1b;
+	cmd.cmdarg = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
+			(index << 16) | (value << 8);
+
+	ret = mmc_send_cmd(mmc, &cmd, NULL);
+	if (index == 171)
+		printf("%s: send EXT_CSD_USER_WP return %d\n", __func__, ret);
+
+	/* Waiting for the ready status */
+	if (!ret)
+		ret = mmc_send_status(mmc, timeout);
+	if (index == 171)
+		printf("%s: send status return %d\n", __func__, ret);
+
+	return ret;
+}
+
+static int mmc_send_ext_csd(struct mmc *mmc, u8 *ext_csd)
+{
+	struct mmc_cmd cmd;
+	struct mmc_data data;
+	int err;
+
+	/* Get the Card Status Register */
+	cmd.cmdidx = MMC_CMD_SEND_EXT_CSD;
+	cmd.resp_type = MMC_RSP_R1;
+	cmd.cmdarg = 0;
+
+	data.dest = (char *)ext_csd;
+	data.blocks = 1;
+	data.blocksize = MMC_MAX_BLOCK_LEN;
+	data.flags = MMC_DATA_READ;
+
+	err = mmc_send_cmd(mmc, &cmd, &data);
+	debugf("mmc_send_ext_csd=%d\n", err);
+
+	return err;
+}
+
+#ifdef CONFIG_EMMC_WP
+/*
+ * mmc_set_pwr_wp - set block-oriented emmc write protection.
+ * @dev_num: must be 0, instead of emmc device
+ * @start: a 32 bit sector(512 B) data address
+ * @grp_cnt: the number of write protect group size (grp_cnt <= 32)
+ */
+ulong mmc_set_pwr_wp(int dev_num, lbaint_t start, int grp_cnt)
+{
+	int err = 0;
+	struct mmc_cmd cmd;
+	struct mmc_data data;
+	int i;
+	lbaint_t cur_start = start;
+	ALLOC_CACHE_ALIGN_BUFFER(u8, wp_status, 4);
+	ALLOC_CACHE_ALIGN_BUFFER(u8, wp_type, 8);
+	unsigned long long actual_type = 0, expected_type = 0;
+	uint wp_bits_sts = 0;
+
+	struct mmc *mmc = find_mmc_device(dev_num);
+	if (!mmc) {
+		printf("%s: no emmc device\n", __func__);
+		return -1;
+	}
+
+	if (!mmc->wp_enable) {
+		printf("emmc power-up write protection never be eanbled\n");
+		return -1;
+	}
+
+	printf("%s: write protection start addr: 0x" LBAF ", group count: %d\n",
+		__func__, cur_start, grp_cnt);
+	for (i = 0; i < grp_cnt; i++) {
+		cmd.cmdidx = MMC_CMD_SET_WR_PROT;
+		cmd.cmdarg = cur_start;
+		cmd.resp_type = MMC_RSP_R1b;
+		if (mmc_send_cmd(mmc, &cmd, NULL)) {
+			printf("%s: send CMD%d fail\n", __func__, cmd.cmdidx);
+		}
+		cur_start += mmc->hc_wp_grp_size;
+	}
+
+	cmd.cmdidx = MMC_CMD_SEND_WR_PROT;
+	cmd.cmdarg = start;
+	cmd.resp_type = MMC_RSP_R1;
+	data.dest = (char *)wp_status;
+	data.blocks = 1;
+	data.blocksize = 4;
+	data.flags = MMC_DATA_READ;
+	err = mmc_send_cmd(mmc, &cmd, &data);
+	if (err)
+		printf("%s: send CMD%d fail, return %d\n",
+		       __func__, cmd.cmdidx, err);
+	for (i = 0; i < 4; i++)
+		wp_bits_sts = (wp_bits_sts << 8) + (u8)wp_status[i];
+	printf("%s: the status of write protection bits: 0x%x\n",
+	       __func__, wp_bits_sts);
+
+	cmd.cmdidx = MMC_CMD_SEND_WR_PROT_TYPE;
+	cmd.cmdarg = start;
+	cmd.resp_type = MMC_RSP_R1;
+	data.dest = (char *)wp_type;
+	data.blocks = 1;
+	data.blocksize = 8;
+	data.flags = MMC_DATA_READ;
+	err = mmc_send_cmd(mmc, &cmd, &data);
+	if (err)
+		printf("%s: send CMD%d fail, return %d\n",
+		       __func__, cmd.cmdidx, err);
+
+	for (i = 0; i < 8; i++)
+		actual_type = (actual_type << 8) + (u8)wp_type[i];
+	printf("%s: the really type of write protection grout: 0x%llx\n",
+	       __func__, actual_type);
+
+	for (i = 0; i < grp_cnt; i++)
+		expected_type = (expected_type << 2) + 0x2;
+	printf("%s: the expected type of write protection group: 0x%llx\n",
+	       __func__, expected_type);
+
+	if (actual_type != expected_type) {
+		printf("%s: power-on write protection set failed\n", __func__);
+		return -1;
+	}
+
+	return 0;
+}
+#endif
+
 unsigned long mmc_berase(int dev_num, lbaint_t start, lbaint_t blkcnt)
 {
 	int err = 0;
@@ -718,48 +853,6 @@ static int mmc_complete_op_cond(struct mmc *mmc)
 	mmc->rca = 1;
 
 	return 0;
-}
-
-static int mmc_send_ext_csd(struct mmc *mmc, u8 *ext_csd)
-{
-	struct mmc_cmd cmd;
-	struct mmc_data data;
-	int err;
-
-	/* Get the Card Status Register */
-	cmd.cmdidx = MMC_CMD_SEND_EXT_CSD;
-	cmd.resp_type = MMC_RSP_R1;
-	cmd.cmdarg = 0;
-
-	data.dest = (char *)ext_csd;
-	data.blocks = 1;
-	data.blocksize = MMC_MAX_BLOCK_LEN;
-	data.flags = MMC_DATA_READ;
-
-	err = mmc_send_cmd(mmc, &cmd, &data);
-	debugf("mmc_send_ext_csd=%d\n", err);
-
-	return err;
-}
-
-static int mmc_switch(struct mmc *mmc, u8 set, u8 index, u8 value)
-{
-	struct mmc_cmd cmd;
-	int timeout = 10000;
-	int ret;
-
-	cmd.cmdidx = MMC_CMD_SWITCH;
-	cmd.resp_type = MMC_RSP_R1b;
-	cmd.cmdarg = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
-			(index << 16) | (value << 8);
-
-	ret = mmc_send_cmd(mmc, &cmd, NULL);
-
-	/* Waiting for the ready status */
-	if (!ret)
-		ret = mmc_send_status(mmc, timeout);
-
-	return ret;
 }
 
 static int mmc_change_freq(struct mmc *mmc)
@@ -1725,6 +1818,18 @@ static int mmc_startup(struct mmc *mmc)
 	}
 #endif
 
+#ifdef CONFIG_EMMC_WP
+	err = mmc_enable_pwr_wp(mmc);
+	if (err)
+		printf("%s: emmc power-up protection can't be eanbled\n",
+			 __func__);
+	mmc->wp_enable = !err;
+#endif
+
+#ifdef CONFIG_MMC_TEST
+	mmc->erase_mem_cont = ext_csd[EXT_CSD_ERASE_MEM_CONT];
+#endif
+
 	err = mmc_set_capacity(mmc, mmc->part_num);
 	if (err) {
 		errorf("mmc_set_capacityerr=%x\n", err);
@@ -1985,6 +2090,9 @@ struct mmc *mmc_create(const struct mmc_config *cfg, void *priv)
 	mmc->block_dev.block_read = mmc_bread;
 	mmc->block_dev.block_write = mmc_bwrite;
 	mmc->block_dev.block_erase = mmc_berase;
+#ifdef CONFIG_EMMC_WP
+	mmc->block_dev.block_pwr_wp = mmc_set_pwr_wp;
+#endif
 
 	/* setup initial part type */
 	mmc->block_dev.part_type = mmc->cfg->part_type;
@@ -2195,74 +2303,114 @@ static void do_preinit(void)
 }
 
 #ifdef CONFIG_MMC_TEST
-void board_mmc_test(void)
+int board_mmc_test(struct mmc *mmc)
 {
-	uint8_t testbuf_write[512];
-	uint8_t testbuf_read[512];
-	uint8_t *pc_buffer = NULL;
-	int i = 0, j = 0;
-	int flag = 0;
+	int i, j, err = 0;
+	lbaint_t start = 0x800000;	/* start data address: 4GB */
+	uint mrw_size = MMC_MAX_BLOCK_LEN * 16;		/* 8MByte */
+	uint wp_cnt = 2;	/* wp_cnt <= 32 (32 * 8Mbyte) */
+	u8 cont;
+	u8 srd_tst_dat = 0xa5;
+	u8 mrd_tst_dat = 0xaa;
 
-	pc_buffer = malloc(5120);
-	if (NULL == pc_buffer) {
-		printf("malloc fail! test fail!\n");
-		return;
-	}
-	memset(pc_buffer, 0x5a, 5120);
+	ALLOC_CACHE_ALIGN_BUFFER(u8, wr_buf, MMC_MAX_BLOCK_LEN);
+	ALLOC_CACHE_ALIGN_BUFFER(u8, rd_buf, MMC_MAX_BLOCK_LEN);
+	ALLOC_CACHE_ALIGN_BUFFER(u8, mrw_buf, mrw_size);
 
-	printf("test emmc block 0x%x\n", j);
-	for (i = 0; i < 512; i++) {
-		testbuf_write[i] = 0x5a;
-		testbuf_read[i] = 0x0;
-	}
+#ifdef CONFIG_EMMC_WP
+	lbaint_t wp_start;
+	u8 wp_tst_dat = 0x11;	/* can't be equal to mrd_tst_dat */
 
-	mmc_bwrite(0, j, 1, testbuf_write);
-	mmc_berase(0, j, 1);
-	mmc_bread(0, j, 1, testbuf_read);
-
-	for (i = 0; i < 512; i++) {
-		if (0 != testbuf_read[i])
-			flag = 1;
-	}
-
-	if (flag)
-		errorf("emmc first test fail!\n");
-	else
-		printf("emmc first test OK\n");
-
-	flag = 0;
-	mmc_bwrite(0, j, 1, testbuf_write);
-	mmc_bread(0, j, 1, testbuf_read);
-
-	for (i = 0; i < 512; i++) {
-		if (0X5a != testbuf_read[i])
-			flag = 1;
-	}
-
-	if (flag)
-		errorf("emmc second test fail !\n");
-	else
-		debugf("emmc second test OK\n");
-
-	flag = 0;
-	mmc_bwrite(0, 1, 10, pc_buffer);
-	memset(pc_buffer, 0, 5120);
-	mmc_bread(0, 1, 10, pc_buffer);
-
-	for (i = 0; i < 5120; i++) {
-		if (0X5a != pc_buffer[i])
-			flag = 1;
-	}
-
-	free(pc_buffer);
-	pc_buffer = NULL;
-
-	if (flag)
-		debugf("emmc third test fail !\n");
-	else
-		debugf("emmc third test OK\n");
-}
+	wp_start = start;
 #endif
+
+	printf("%s: test start addr: 0x" LBAF "\n", __func__, start);
+	for (i = 0; i < MMC_MAX_BLOCK_LEN; i++) {
+		wr_buf[i] = srd_tst_dat;
+		rd_buf[i] = 0;
+	}
+
+	/* single block erase test */
+	printf("%s: emmc erased memory content shall be 0x%x\n",
+	       __func__, mmc->erase_mem_cont);
+	if (mmc->erase_mem_cont)
+		cont = 0xff;
+	else
+		cont = 0;
+
+	mmc->block_dev.block_write(EMMC, start, 1, wr_buf);
+	mmc->block_dev.block_erase(EMMC, start, 1);
+	mmc->block_dev.block_read(EMMC, start, 1, rd_buf);
+	for (i = 0, err = 0; i < MMC_MAX_BLOCK_LEN; i++) {
+		if (rd_buf[i] != cont) {
+			printf("single block erase test fail\n");
+			err = 1;
+			break;
+		}
+	}
+	if (!err)
+		printf("%s: single block erase test is successful\n", __func__);
+
+	/* single block read test */
+	mmc->block_dev.block_write(EMMC, start, 1, wr_buf);
+	mmc->block_dev.block_read(EMMC, start, 1, rd_buf);
+	for (i = 0, err = 0; i < MMC_MAX_BLOCK_LEN; i++) {
+		if (rd_buf[i] != srd_tst_dat) {
+			printf("single block read test fail\n");
+			err = 1;
+			break;
+		}
+	}
+	if (!err)
+		printf("%s: single block read test is successful\n", __func__);
+
+	/* multiple block read test */
+	for (i = 0; i < wp_cnt; i++) {
+		memset(mrw_buf, mrd_tst_dat, mrw_size);
+		mmc->block_dev.block_write(EMMC, start , 16, mrw_buf);
+		mmc->block_dev.block_read(EMMC, start, 16, mrw_buf);
+		for (j = 0; j < mrw_size; j++) {
+			if (mrw_buf[j] != mrd_tst_dat)
+				goto mul_fail;
+		}
+		start += 0x4000;
+	}
+	printf("%s: multiple block read test is successful\n", __func__);
+
+#ifdef CONFIG_EMMC_WP
+	/* emmc power-on write protection test */
+	printf("%s: emm write protection test start addr: 0x" LBAF "\n",
+	       __func__, wp_start);
+	err = mmc->block_dev.block_pwr_wp(EMMC, wp_start, wp_cnt);
+	if (err) {
+		printf("emmc power-on write protection set fail\n");
+		goto wp_fail;
+	}
+
+	for (i = 0; i < wp_cnt; i++) {
+		memset(mrw_buf, wp_tst_dat, mrw_size);
+		mmc->block_dev.block_write(EMMC, wp_start , 16, mrw_buf);
+		mmc->block_dev.block_read(EMMC, wp_start, 16, mrw_buf);
+		for (j = 0; j < mrw_size; j++) {
+			if (mrw_buf[j] != mrd_tst_dat)
+				goto wp_fail;
+		}
+		wp_start += 0x4000;
+	}
+	printf("%s: emmc write protect test is successful\n", __func__);
+#endif
+
+	return 0;
+
+mul_fail:
+	printf("%s: emmc multiple block read/write test fail\n", __func__);
+#ifdef CONFIG_EMMC_WP
+wp_fail:
+	printf("%s: emmc power-on write protection test fail\n", __func__);
+#endif
+	return -1;
+}
+#endif /* CONFIG_MMC_TEST */
 
 struct mmc* board_sd_init(void)
 {
@@ -2299,6 +2447,10 @@ int board_mmc_init(bd_t *bis)
 	if (!ret) {
 		mmc_switch_part(EMMC, 0);
 	}
+
+#ifdef CONFIG_MMC_TEST
+	board_mmc_test(mmc);
+#endif
 
 	return 0;
 }
@@ -2387,6 +2539,48 @@ int mmc_set_rst_n_function(struct mmc *mmc, u8 enable)
 			  enable);
 }
 
+/* Enable emmc power-up write protection */
+int mmc_enable_pwr_wp(struct mmc *mmc)
+{
+	int err = 0;
+	ALLOC_CACHE_ALIGN_BUFFER(u8, ext_csd, MMC_MAX_BLOCK_LEN);
+
+	err = mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL,
+			 EXT_CSD_ERASE_GROUP_DEF, 1);
+	if (err) {
+		printf("%s: set EXT_CSD_ERASE_GROUP_DEF fail, err: %d\n",
+		       __func__, err);
+		goto out;
+	}
+
+	err = mmc_send_ext_csd(mmc, ext_csd);
+	if (err) {
+		printf("%s-->mmc_send_ext_csd fail, err: %d\n", __func__, err);
+		goto out;
+	}
+	if (ext_csd[EXT_CSD_USER_WP] & EXT_CSD_US_PWR_WP_DIS) {
+		printf("%s: power-on protection can't be enabled\n", __func__);
+		goto out;
+	}
+
+	mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_USER_WP,
+		   EXT_CSD_US_PWR_WP_EN);
+	err = mmc_send_ext_csd(mmc, ext_csd);
+	if (err) {
+		printf("%s-->mmc_send_ext_csd fail, err: %d\n", __func__, err);
+		goto out;
+	}
+
+	mmc->hc_wp_grp_size = 1024 *
+		ext_csd[EXT_CSD_HC_ERASE_GRP_SIZE] *
+		ext_csd[EXT_CSD_HC_WP_GRP_SIZE];
+
+	printf("%s: emmc write protection group size: 0x%x\n",
+	       __func__, mmc->hc_wp_grp_size);
+
+out:
+	return err;
+}
 
 /*
  * TODO:

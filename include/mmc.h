@@ -89,6 +89,9 @@
 #define MMC_CMD_SET_BLOCK_COUNT         23
 #define MMC_CMD_WRITE_SINGLE_BLOCK	24
 #define MMC_CMD_WRITE_MULTIPLE_BLOCK	25
+#define MMC_CMD_SET_WR_PROT		28
+#define MMC_CMD_SEND_WR_PROT		30
+#define MMC_CMD_SEND_WR_PROT_TYPE	31
 #define MMC_CMD_ERASE_GROUP_START	35
 #define MMC_CMD_ERASE_GROUP_END		36
 #define MMC_CMD_ERASE			38
@@ -175,9 +178,11 @@
 #define EXT_CSD_WR_REL_PARAM		166	/* R */
 #define EXT_CSD_WR_REL_SET		167	/* R/W */
 #define EXT_CSD_RPMB_MULT		168	/* RO */
+#define EXT_CSD_USER_WP			171	/* R/W */
 #define EXT_CSD_ERASE_GROUP_DEF		175	/* R/W */
 #define EXT_CSD_BOOT_BUS_WIDTH		177
 #define EXT_CSD_PART_CONF		179	/* R/W */
+#define EXT_CSD_ERASE_MEM_CONT		181	/* R */
 #define EXT_CSD_BUS_WIDTH		183	/* R/W */
 #define EXT_CSD_HS_TIMING		185	/* R/W */
 #define EXT_CSD_REV			192	/* RO */
@@ -212,6 +217,11 @@
 #define EXT_CSD_BOOT_PARTITION_ENABLE		(1 << 3)
 #define EXT_CSD_PARTITION_ACCESS_ENABLE		(1 << 0)
 #define EXT_CSD_PARTITION_ACCESS_DISABLE	(0 << 0)
+
+#define EXT_CSD_US_PWR_WP_EN	(1 << 0) /* power-on write protection */
+#define EXT_CSD_US_PERM_EN	(1 << 2) /* permanent write protection */
+#define EXT_CSD_US_PWR_WP_DIS	(1 << 3) /* disable power-on write protection */
+#define EXT_CSD_US_PERM_DIS	(1 << 4) /* disable permanent write protection */
 
 #define EXT_CSD_BOOT_ACK(x)		(x << 6)
 #define EXT_CSD_BOOT_PART_NUM(x)	(x << 3)
@@ -354,6 +364,7 @@ struct mmc {
 	uint write_bl_len;
 	uint erase_grp_size;	/* in 512-byte sectors */
 	uint hc_wp_grp_size;	/* in 512-byte sectors */
+	u8 erase_mem_cont;
 	u64 capacity;
 	u64 capacity_user;
 	u64 capacity_boot;
@@ -366,6 +377,7 @@ struct mmc {
 	char init_in_progress;	/* 1 if we have done mmc_start_init() */
 	char preinit;		/* start init as early as possible */
 	int ddr_mode;
+	uint wp_enable;		/* emmc write protection flag */
 };
 
 struct mmc_hwpart_conf {
