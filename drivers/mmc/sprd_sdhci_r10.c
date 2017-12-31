@@ -275,16 +275,15 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 	sdhci_writel(host, cmd->cmdarg, SDHCI_ARGUMENT);
 
 #ifdef CONFIG_MMC_SDMA
-
-//flush cache operation is different between X86 and ARM
+/* flush cache operation is different between X86 and ARM */
 #ifndef CONFIG_X86
 	flush_cache(start_addr, trans_bytes);
 #else
-	if (data != NULL)
-              flush_dcache_range((unsigned long)start_addr, (unsigned long)(start_addr+trans_bytes));
+	if (!data)
+		flush_dcache_range((unsigned long)start_addr,
+				   (unsigned long)(start_addr+trans_bytes));
 #endif
-
-#endif
+#endif /* CONFIG_MMC_SDMA */
 
 	sdhci_writel(host, ultemp, SDHCI_TRANSFER_MODE);
 	do {
@@ -450,17 +449,17 @@ int sdhci_send_command_backstage(struct mmc *mmc, struct mmc_cmd *cmd,
 	}
 
 	sdhci_writel(host, cmd->cmdarg, SDHCI_ARGUMENT);
-#ifdef CONFIG_MMC_SDMA
 
-//flush cache operation is different between X86 and ARM
+#ifdef CONFIG_MMC_SDMA
+/* flush cache operation is different between X86 and ARM */
 #ifndef CONFIG_X86
 	flush_cache(start_addr, trans_bytes);
 #else
-	if (data != NULL)
-              flush_dcache_range((unsigned long)start_addr, (unsigned long)(start_addr+trans_bytes));
+	if (!data)
+		flush_dcache_range((unsigned long)start_addr,
+				   (unsigned long)(start_addr + trans_bytes));
 #endif
-
-#endif
+#endif /* CONFIG_MMC_SDMA */
 
 	sdhci_writel(host, ultemp, SDHCI_TRANSFER_MODE);
 	do {

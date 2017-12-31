@@ -238,8 +238,8 @@
 
 #define EXT_CSD_HS_CTRL_REL	(1 << 0)	/* host controlled WR_REL_SET */
 
-#define EXT_CSD_WR_DATA_REL_USR		(1 << 0)	/* user data area WR_REL */
-#define EXT_CSD_WR_DATA_REL_GP(x)	(1 << ((x)+1))	/* GP part (x+1) WR_REL */
+#define EXT_CSD_WR_DATA_REL_USR		(1 << 0) /* user data area WR_REL */
+#define EXT_CSD_WR_DATA_REL_GP(x)	(1 << ((x)+1)) /* GP part (x+1) WR_REL */
 
 #define R1_ILLEGAL_COMMAND		(1 << 22)
 #define R1_APP_CMD			(1 << 5)
@@ -384,14 +384,14 @@ struct mmc_hwpart_conf {
 	struct {
 		uint enh_start;	/* in 512-byte sectors */
 		uint enh_size;	/* in 512-byte sectors, if 0 no enh area */
-		unsigned wr_rel_change : 1;
-		unsigned wr_rel_set : 1;
+		unsigned wr_rel_change:1;
+		unsigned wr_rel_set:1;
 	} user;
 	struct {
 		uint size;	/* in 512-byte sectors */
-		unsigned enhanced : 1;
-		unsigned wr_rel_change : 1;
-		unsigned wr_rel_set : 1;
+		unsigned enhanced:1;
+		unsigned wr_rel_change:1;
+		unsigned wr_rel_set:1;
 	} gp_part[4];
 };
 
@@ -472,7 +472,10 @@ void mmc_set_preinit(struct mmc *mmc, int preinit);
 struct mmc *mmc_spi_init(uint bus, uint cs, uint speed, uint mode);
 #else
 int mmc_legacy_init(int verbose);
-/* for vp board which not CONFIG_GENERIC_MMC and not init mmc but still compile mmc code*/
+/*
+ * for vp board which not CONFIG_GENERIC_MMC and not init mmc
+ * but still compile mmc code
+ */
 #define mmc_host_is_spi(mmc)	0
 #endif
 

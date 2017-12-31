@@ -76,16 +76,16 @@ int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 		printf("\t\tMMC_RSP_NONE\n");
 		break;
 	case MMC_RSP_R1:
-		printf("\t\tMMC_RSP_R1,5,6,7 \t 0x%08X \n", cmd->response[0]);
+		printf("\t\tMMC_RSP_R1,5,6,7 \t 0x%08X\n", cmd->response[0]);
 		break;
 	case MMC_RSP_R1b:
-		printf("\t\tMMC_RSP_R1b\t\t 0x%08X \n", cmd->response[0]);
+		printf("\t\tMMC_RSP_R1b\t\t 0x%08X\n", cmd->response[0]);
 		break;
 	case MMC_RSP_R2:
-		printf("\t\tMMC_RSP_R2\t\t 0x%08X \n", cmd->response[0]);
-		printf("\t\t          \t\t 0x%08X \n", cmd->response[1]);
-		printf("\t\t          \t\t 0x%08X \n", cmd->response[2]);
-		printf("\t\t          \t\t 0x%08X \n", cmd->response[3]);
+		printf("\t\tMMC_RSP_R2\t\t 0x%08X\n", cmd->response[0]);
+		printf("\t\t          \t\t 0x%08X\n", cmd->response[1]);
+		printf("\t\t          \t\t 0x%08X\n", cmd->response[2]);
+		printf("\t\t          \t\t 0x%08X\n", cmd->response[3]);
 		printf("\n");
 		printf("\t\t\t\t\tDUMPING DATA\n");
 		for (i = 0; i < 4; i++) {
@@ -133,7 +133,8 @@ int mmc_send_status(struct mmc *mmc, int timeout)
 				break;
 			else if (cmd.response[0] & MMC_STATUS_MASK) {
 #if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
-				errorf("Status Error: 0x%08X\n", cmd.response[0]);
+				errorf("Status Error: 0x%08x\n",
+				       cmd.response[0]);
 #endif
 				return COMM_ERR;
 			}
@@ -196,7 +197,8 @@ struct mmc *find_mmc_device(int dev_num)
 	return NULL;
 }
 
-static ulong mmc_erase_t(struct mmc *mmc, ulong start, lbaint_t blkcnt, uint erase_type)
+static ulong mmc_erase_t(struct mmc *mmc, ulong start,
+			 lbaint_t blkcnt, uint erase_type)
 {
 	struct mmc_cmd cmd;
 	ulong end;
@@ -324,14 +326,14 @@ ulong mmc_set_pwr_wp(int dev_num, lbaint_t start, int grp_cnt)
 	}
 
 	printf("%s: write protection start addr: 0x" LBAF ", group count: %d\n",
-		__func__, cur_start, grp_cnt);
+	       __func__, cur_start, grp_cnt);
 	for (i = 0; i < grp_cnt; i++) {
 		cmd.cmdidx = MMC_CMD_SET_WR_PROT;
 		cmd.cmdarg = cur_start;
 		cmd.resp_type = MMC_RSP_R1b;
-		if (mmc_send_cmd(mmc, &cmd, NULL)) {
+		if (mmc_send_cmd(mmc, &cmd, NULL))
 			printf("%s: send CMD%d fail\n", __func__, cmd.cmdidx);
-		}
+
 		cur_start += mmc->hc_wp_grp_size;
 	}
 
@@ -942,7 +944,7 @@ static int mmc_change_freq(struct mmc *mmc)
 
 static int mmc_set_capacity(struct mmc *mmc, int part_num)
 {
-	debugf("capacity_user:0x%llx, capacity_boot:0x%llx, capacity_rpmb:0x%llx\n",
+	debugf("capacity -user: 0x%llx, -boot: 0x%llx, -rpmb: 0x%llx\n",
 	       mmc->capacity_user, mmc->capacity_boot, mmc->capacity_rpmb);
 
 	switch (part_num) {
@@ -1078,11 +1080,12 @@ int mmc_hwpart_config(struct mmc *mmc,
 
 	for (pidx = 0; pidx < 4; pidx++) {
 		if (conf->gp_part[pidx].size % mmc->hc_wp_grp_size) {
-			printf("GP%i partition not HC WP group size "
-			       "aligned\n", pidx+1);
+			printf("GP%i partition not HC WP group size aligned\n",
+			       pidx+1);
 			return -EINVAL;
 		}
-		gp_size_mult[pidx] = conf->gp_part[pidx].size / mmc->hc_wp_grp_size;
+		gp_size_mult[pidx] =
+			conf->gp_part[pidx].size / mmc->hc_wp_grp_size;
 		if (conf->gp_part[pidx].size && conf->gp_part[pidx].enhanced) {
 			part_attrs |= EXT_CSD_ENH_GP(pidx);
 			tot_enh_size_mult += gp_size_mult[pidx];
@@ -1756,8 +1759,8 @@ static int mmc_startup(struct mmc *mmc)
 				EXT_CSD_ERASE_GROUP_DEF, 1);
 
 			if (err) {
-				debugf("mmc_switch EXT_CSD_ERASE_GROUP_DEF=%x\n",
-				       err);
+				debugf("enable high-capacity erase unit size "
+				       "fail, return %d\n", err);
 				return err;
 			} else {
 				ext_csd[EXT_CSD_ERASE_GROUP_DEF] = 1;
@@ -1822,7 +1825,7 @@ static int mmc_startup(struct mmc *mmc)
 	err = mmc_enable_pwr_wp(mmc);
 	if (err)
 		printf("%s: emmc power-up protection can't be eanbled\n",
-			 __func__);
+		       __func__);
 	mmc->wp_enable = !err;
 #endif
 
@@ -2412,18 +2415,19 @@ wp_fail:
 }
 #endif /* CONFIG_MMC_TEST */
 
-struct mmc* board_sd_init(void)
+struct mmc *board_sd_init(void)
 {
 	struct mmc *mmc;
 	int ret;
 
+	/* 1 instead of sd device, while 0 instead of emmc */
 	cur_dev_num = 1;
-	sprd_host_init(1);
-	mmc = find_mmc_device(1);// 1 is  sd, 0 is emmc
-	if(mmc) {
+	sprd_host_init(cur_dev_num);
+	mmc = find_mmc_device(cur_dev_num);
+	if (mmc) {
 		ret = mmc_init(mmc);
-		if(ret < 0){
-			debugf("sdcard init failed %d\n",ret);
+		if (ret < 0) {
+			debugf("sdcard init failed %d\n", ret);
 			return NULL;
 		}
 	} else {
@@ -2444,9 +2448,8 @@ int board_mmc_init(bd_t *bis)
 	ret = mmc_init(mmc);
 
 	/* code as below for emmc test */
-	if (!ret) {
+	if (!ret)
 		mmc_switch_part(EMMC, 0);
-	}
 
 #ifdef CONFIG_MMC_TEST
 	board_mmc_test(mmc);
@@ -2461,16 +2464,16 @@ int sprd_host_init(int sdio_type)
 	uint32_t ret, i;
 	struct sdio_base_info *sprd_host_info;
 	sprd_host_info = get_sdcontrol_info(sdio_type);
-	if( 0 != sprd_host_info->ldo_core)
+	if (sprd_host_info->ldo_core != 0)
 		regulator_enable(sprd_host_info->ldo_core);
-	if( 0 != sprd_host_info->ldo_io)
+	if (sprd_host_info->ldo_io != 0)
 		regulator_enable(sprd_host_info->ldo_io);
 
 #ifndef CONFIG_FPGA
 	CHIP_REG_SET(sprd_host_info->baseclk_reg, sprd_host_info->baseclk_mask);
 #endif
 
-	debugf("sprd_host_info->ldo_core:%s,sprd_host_info->ldo_io:%s\n",
+	debugf("mmc ldo_core:%s, ldo_io:%s\n",
 	       sprd_host_info->ldo_core, sprd_host_info->ldo_io);
 	udelay(1000);
 	CHIP_REG_OR(sprd_host_info->ahb_enable_reg,
@@ -2480,13 +2483,12 @@ int sprd_host_init(int sdio_type)
 	CHIP_REG_AND(sprd_host_info->ahb_reset_reg,
 		     ~(sprd_host_info->ahb_reset_bit));
 
-	if( 0 != sprd_host_info->aon_clk_reg){
+	if (sprd_host_info->aon_clk_reg != 0)
 		CHIP_REG_OR(sprd_host_info->aon_clk_reg,
-		    sprd_host_info->aon_clk_bit);
-	}
-	else{
+			    sprd_host_info->aon_clk_bit);
+	else
 		debugf("%s, no aon_clk_reg\n", __func__);
-	}
+
 	ret = sprd_sdhci_init(sprd_host_info->regbase,
 		sprd_host_info->maxclk, sprd_host_info->minclk, 0);
 
@@ -2508,12 +2510,11 @@ int board_mmc_initialize(bd_t *bis)
 	do_preinit();
 
 	boot_mode_t boot_role = get_boot_role();
-	if(BOOTLOADER_MODE_DOWNLOAD == boot_role) {
+	if (boot_role == BOOTLOADER_MODE_DOWNLOAD)
 		return 0;
-	}
 
 	rpmb_size = Emmc_GetCapacity(PARTITION_RPMB);
-	debugf("%s: rpmb size %lld \n", __func__, rpmb_size);
+	debugf("%s: rpmb size %lld\n", __func__, rpmb_size);
 	uboot_set_rpmb_size(&rpmb_size, sizeof(rpmb_size));
 
 	return 0;
@@ -2821,7 +2822,5 @@ u64 Emmc_GetCapacity(char part_num)
 		return 0;
 	}
 }
-
-
 
 #endif
