@@ -23,7 +23,6 @@
 #define SPRD_SDIO1_PHYS                                    0x20400000
 #define SPRD_SDIO2_PHYS                                    0x20500000
 #define SPRD_EMMC_PHYS                                     0x20600000
-#define SPRD_DISPC0_PHYS                                   0x20800000
 #define SPRD_AHB_PHYS                                      0x20E00000
 #define SPRD_NANDC_PHYS                                    0x20F00000
 #define SPRD_PUBLIC_CE_PHYS                                0x21300000
@@ -83,8 +82,6 @@
 #define SPRD_THM1_PHYS                                     0x40390000
 #define SPRD_WCN_PHYS                                      0x403A0000
 #define SPRD_SCC_PHYS                                      0x403B0000
-#define SPRD_ADI_PHYS                                      0x403C0000
-#define SPRD_ADISLV_PHYS                                   0x403C8000
 #define SPRD_APCPUTS0_PHYS                                 0x40400000
 #define SPRD_SEC_TZPC_PHYS                                 0x40420000
 #define SPRD_SEC_TIMER_PHYS                                0x40430000
@@ -103,6 +100,8 @@
 #define SPRD_AP_INTC3_PHYS                                 0x40530000
 #define SPRD_AP_INTC4_PHYS                                 0x40540000
 #define SPRD_AP_INTC5_PHYS                                 0x40550000
+#define SPRD_ADI_PHYS                                      0x41800000
+#define SPRD_ADISLAVE_PHYS                                 0x41808000
 #define SPRD_IMG_GE8322_PHYS                               0x60000000
 #define SPRD_GPUAPB_PHYS                                   0x60100000
 #define SPRD_MMAHB_PHYS                                    0x60800000

@@ -13,17 +13,16 @@
 #define _REDEFINE_H
 
 /* macro definition for compatible */
-/*adi*/
-#define SPRD_ADISLAVE_PHYS SPRD_ADISLV_PHYS
 
 /* bit redefinition for compatible */
 #define BIT_EFUSE_EB                            BIT_AON_APB_EFUSE_EB
-#define BIT_AON_APB_EFUSE_NORMAL_EB                           BIT_AON_APB_EFUSE_EB
+#define BIT_AON_APB_EFUSE_NORMAL_EB             BIT_AON_APB_EFUSE_EB
 #define BIT_EFUSE_SOFT_RST                      BIT_AON_APB_EFUSE_SOFT_RST
 #define BIT_GPIO_EB                             BIT_AON_APB_GPIO_EB
 #define BIT_EIC_EB                              BIT_AON_APB_EIC_EB
 #define BIT_EIC_RTC_EB                          BIT_AON_APB_EIC_RTC_EB
 #define BIT_EIC_RTCDV5_EB                       BIT_AON_APB_EIC_RTCDV5_EB
+
 /* there is no uart0 on sharkle, just tricky */
 #define BIT_UART0_EB                            BIT_AP_APB_UART1_EB
 #define BIT_UART1_EB                            BIT_AP_APB_UART1_EB
