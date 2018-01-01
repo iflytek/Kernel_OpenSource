@@ -85,18 +85,3 @@ struct sdio_base_info *get_sdcontrol_info(uint32_t device_type)
 {
 	return  &sdio_ctrl_info[device_type];
 }
-
-void sdio_dump(u32 regbase)
-{
-	u32  i;
-
-	printf("*****SDIO REGISTER DUMP*****\n");
-	for (i = 0; i < 8; i++) {
-		printf("0x%08x, 0x%08x, 0x%08x, 0x%08x\n",
-		       CHIP_REG_GET(regbase + i * 16 + 0),
-		       CHIP_REG_GET(regbase + i * 16 + 4),
-		       CHIP_REG_GET(regbase + i * 16 + 8),
-		       CHIP_REG_GET(regbase + i * 16 + 0xc));
-	}
-}
-

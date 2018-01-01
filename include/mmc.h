@@ -431,6 +431,8 @@ int mmc_set_part_conf(struct mmc *mmc, u8 ack, u8 part_num, u8 access);
 int mmc_set_boot_bus_width(struct mmc *mmc, u8 width, u8 reset, u8 mode);
 /* Function to modify the RST_n_FUNCTION field of EXT_CSD */
 int mmc_set_rst_n_function(struct mmc *mmc, u8 enable);
+/* Funtion to modify the USER_WP field of EXT_CSD */
+int mmc_enable_pwr_wp(struct mmc *mmc);
 /* Functions to read / write the RPMB partition */
 int mmc_rpmb_set_key(struct mmc *mmc, void *key);
 int mmc_rpmb_get_counter(struct mmc *mmc, unsigned long *counter);
@@ -498,7 +500,7 @@ struct pci_device_id;
 int pci_mmc_init(const char *name, struct pci_device_id *mmc_supported,
 		 int num_ids);
 
-u64 Emmc_GetCapacity(char part_num);
+u64 emmc_get_capacity(char part_num);
 int emmc_write_backstage(char part_num, uint32_t start_block,
 			uint32_t num, uint8_t *buf);
 int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf);

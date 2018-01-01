@@ -697,21 +697,21 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 	if (0 == strcmp(part_name, "erase_all")) {
 		debugf("erase all the flash\n");
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
-		total_part_size = Emmc_GetCapacity(PARTITION_BOOT1);
+		total_part_size = emmc_get_capacity(PARTITION_BOOT1);
 		if (NULL == dev_desc || 0 == total_part_size)
 			return -1;
 		if (0 != block_dev_erase(dev_desc, total_part_size, 0))
 			return -1;
 
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-		total_part_size = Emmc_GetCapacity(PARTITION_BOOT2);
+		total_part_size = emmc_get_capacity(PARTITION_BOOT2);
 		if (NULL == dev_desc || 0 == total_part_size)
 			return -1;
 		if (0 != block_dev_erase(dev_desc, total_part_size, 0))
 			return -1;
 
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-		total_part_size = Emmc_GetCapacity(PARTITION_USER);
+		total_part_size = emmc_get_capacity(PARTITION_USER);
 		if (NULL == dev_desc || 0 == total_part_size)
 			return -1;
 		if (0 != block_dev_erase(dev_desc, total_part_size, 0))
@@ -721,17 +721,17 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 
 	if (0 == strcmp(part_name, "splloader")) {
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
-		total_part_size = Emmc_GetCapacity(PARTITION_BOOT1);
+		total_part_size = emmc_get_capacity(PARTITION_BOOT1);
 	} else if (0 == strcmp(part_name, "splloader_bak")) {
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-		total_part_size = Emmc_GetCapacity(PARTITION_BOOT2);
+		total_part_size = emmc_get_capacity(PARTITION_BOOT2);
 	} else if (0 == strcmp(part_name, "uboot")) {
 		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
 		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		if (-1 == ret) {
 			ret = 0;
 			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-			total_part_size = Emmc_GetCapacity(PARTITION_BOOT2);
+			total_part_size = emmc_get_capacity(PARTITION_BOOT2);
 		} else {
 			part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;

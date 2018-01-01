@@ -70,7 +70,7 @@ typedef struct _LOG_STRUCT {
 	LOG_PARTITION_HEADER log_par_hdr;
 } LOG_STRUCT;
 
-void flush_log_buffer();
+void flush_log_buffer(void);
 
 #define init_write_log()
 #define reinit_write_log()

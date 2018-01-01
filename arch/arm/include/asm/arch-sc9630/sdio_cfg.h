@@ -32,6 +32,5 @@ struct sdio_base_info {
 };
 
 struct sdio_base_info *get_sdcontrol_info(uint32_t device_type);
-void sdio_dump(uint32_t device_type);
 
 #endif

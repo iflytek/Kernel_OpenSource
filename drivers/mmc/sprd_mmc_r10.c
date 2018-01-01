@@ -544,7 +544,6 @@ static ulong mmc_write_blocks_backstage(struct mmc *mmc,
 
 ulong mmc_query_bwrite_backstage(int dev_num, lbaint_t blkcnt, const void *src)
 {
-	lbaint_t cur, blocks_todo = blkcnt;
 	int timeout = 1000;
 	struct mmc_data data;
 	struct mmc_cmd cmd;
@@ -571,12 +570,12 @@ ulong mmc_query_bwrite_backstage(int dev_num, lbaint_t blkcnt, const void *src)
 		cmd.cmdarg = 0;
 		cmd.resp_type = MMC_RSP_R1b;
 		if (mmc_send_cmd(mmc, &cmd, NULL)) {
-			errorf("mmc fail to send stop cmd\n");
+			errorf("mmc failed to send stop cmd\n");
 			return 0;
 		}
 	}
 	if (mmc_send_status(mmc, timeout)) {
-		errorf("mmc_query_bwrite_backstage mmc_send_status fail\n");
+		errorf("mmc failed to send status cmd\n");
 		return 0;
 	}
 
@@ -596,12 +595,13 @@ ulong mmc_bwrite_backstage(int dev_num, lbaint_t start,
 		return 0;
 
 	if (blkcnt > mmc->cfg->b_max) {
-		errorf("%s can not support more than <%s> blocks\n",
+		errorf("%s can not support more than <%d> blocks\n",
 		       __func__, mmc->cfg->b_max);
 		return 0;
 	}
 	if (mmc_write_blocks_backstage(mmc, start, blkcnt, src) != cur)
 		return 0;
+
 	return blkcnt;
 }
 
@@ -1439,7 +1439,6 @@ static int mmc_startup(struct mmc *mmc)
 	int err, i;
 	uint mult, freq;
 	u64 cmult, csize, capacity;
-	struct sdio_base_info *sprd_host_info;
 	struct mmc_cmd cmd;
 	ALLOC_CACHE_ALIGN_BUFFER(u8, ext_csd, MMC_MAX_BLOCK_LEN);
 	ALLOC_CACHE_ALIGN_BUFFER(u8, test_csd, MMC_MAX_BLOCK_LEN);
@@ -2308,10 +2307,11 @@ static void do_preinit(void)
 #ifdef CONFIG_MMC_TEST
 int board_mmc_test(struct mmc *mmc)
 {
-	int i, j, err = 0;
+	int i, j;
+	ulong err = 0;
 	lbaint_t start = 0x800000;	/* start data address: 4GB */
 	uint mrw_size = MMC_MAX_BLOCK_LEN * 16;		/* 8MByte */
-	uint wp_cnt = 2;	/* wp_cnt <= 32 (32 * 8Mbyte) */
+	int wp_cnt = 2;	/* wp_cnt <= 32 (32 * 8Mbyte) */
 	u8 cont;
 	u8 srd_tst_dat = 0xa5;
 	u8 mrd_tst_dat = 0xaa;
@@ -2415,54 +2415,11 @@ wp_fail:
 }
 #endif /* CONFIG_MMC_TEST */
 
-struct mmc *board_sd_init(void)
-{
-	struct mmc *mmc;
-	int ret;
-
-	/* 1 instead of sd device, while 0 instead of emmc */
-	cur_dev_num = 1;
-	sprd_host_init(cur_dev_num);
-	mmc = find_mmc_device(cur_dev_num);
-	if (mmc) {
-		ret = mmc_init(mmc);
-		if (ret < 0) {
-			debugf("sdcard init failed %d\n", ret);
-			return NULL;
-		}
-	} else {
-		debugf("no sdcard found\n");
-		return NULL;
-	}
-
-	return mmc;
-}
-
-int board_mmc_init(bd_t *bis)
-{
-	struct mmc *mmc;
-	uint32_t ret, i;
-
-	sprd_host_init(EMMC);
-	mmc = find_mmc_device(EMMC);
-	ret = mmc_init(mmc);
-
-	/* code as below for emmc test */
-	if (!ret)
-		mmc_switch_part(EMMC, 0);
-
-#ifdef CONFIG_MMC_TEST
-	board_mmc_test(mmc);
-#endif
-
-	return 0;
-}
-
 int sprd_host_init(int sdio_type)
 {
-	struct mmc *mmc;
-	uint32_t ret, i;
+	uint32_t ret;
 	struct sdio_base_info *sprd_host_info;
+
 	sprd_host_info = get_sdcontrol_info(sdio_type);
 	if (sprd_host_info->ldo_core != 0)
 		regulator_enable(sprd_host_info->ldo_core);
@@ -2496,6 +2453,49 @@ int sprd_host_init(int sdio_type)
 	return ret;
 }
 
+struct mmc *board_sd_init(void)
+{
+	struct mmc *mmc;
+	int ret;
+
+	/* 1 instead of sd device, while 0 instead of emmc */
+	cur_dev_num = 1;
+	sprd_host_init(cur_dev_num);
+	mmc = find_mmc_device(cur_dev_num);
+	if (mmc) {
+		ret = mmc_init(mmc);
+		if (ret < 0) {
+			debugf("sdcard init failed %d\n", ret);
+			return NULL;
+		}
+	} else {
+		debugf("no sdcard found\n");
+		return NULL;
+	}
+
+	return mmc;
+}
+
+int board_mmc_init(bd_t *bis)
+{
+	struct mmc *mmc;
+	uint32_t ret;
+
+	sprd_host_init(EMMC);
+	mmc = find_mmc_device(EMMC);
+	ret = mmc_init(mmc);
+
+	/* code as below for emmc test */
+	if (!ret)
+		mmc_switch_part(EMMC, 0);
+
+#ifdef CONFIG_MMC_TEST
+	board_mmc_test(mmc);
+#endif
+
+	return 0;
+}
+
 int board_mmc_initialize(bd_t *bis)
 {
 	debugf("%s entry\n", __func__);
@@ -2513,7 +2513,7 @@ int board_mmc_initialize(bd_t *bis)
 	if (boot_role == BOOTLOADER_MODE_DOWNLOAD)
 		return 0;
 
-	rpmb_size = Emmc_GetCapacity(PARTITION_RPMB);
+	rpmb_size = emmc_get_capacity(PARTITION_RPMB);
 	debugf("%s: rpmb size %lld\n", __func__, rpmb_size);
 	uboot_set_rpmb_size(&rpmb_size, sizeof(rpmb_size));
 
@@ -2805,11 +2805,12 @@ int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf)
 	return ret;
 }
 
-u64 Emmc_GetCapacity(char part_num)
+u64 emmc_get_capacity(char part_num)
 {
 	struct mmc *mmc = find_mmc_device(EMMC);
 	if (!mmc)
 		return 0;
+
 	switch (part_num) {
 	case 0:
 		return mmc->capacity_user;
@@ -2822,5 +2823,4 @@ u64 Emmc_GetCapacity(char part_num)
 		return 0;
 	}
 }
-
-#endif
+#endif /* CONFIG_EMMC_BOOT */

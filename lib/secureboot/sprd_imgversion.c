@@ -42,7 +42,7 @@ int sprd_get_rpmb_block_cnt(void)
 {
     u64 rpmb_size = 0;
 
-    rpmb_size = Emmc_GetCapacity(PARTITION_RPMB);
+    rpmb_size = emmc_get_capacity(PARTITION_RPMB);
 
 	return (rpmb_size / 8 / MMC_BLOCK_SIZE);
 }

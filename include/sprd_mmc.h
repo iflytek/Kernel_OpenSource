@@ -301,7 +301,7 @@ struct mmc {
 	uint op_cond_response;	/* the response byte from the last op_cond */
 };
 
-uint64_t Emmc_GetCapacity(char  part_num);
+u64 emmc_get_capacity(char part_num);
 int emmc_write_backstage(char part_num, uint32_t start_block, uint32_t num, uint8_t *buf);
 int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf);
 

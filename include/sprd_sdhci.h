@@ -334,4 +334,6 @@ static inline u8 sdhci_readb(struct sdhci_host *host, int reg)
 #endif
 
 int add_sdhci(struct sdhci_host *host, u32 max_clk, u32 min_clk);
+void sdio_dump(void *addr);
+
 #endif /* __SDHCI_HW_H */

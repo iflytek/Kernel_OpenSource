@@ -868,11 +868,12 @@ int sprd_sdhci_init(u32 regbase, u32 max_clk, u32 min_clk, u32 quirks)
 	return add_sdhci(host, max_clk, min_clk);
 }
 
-void sdio_dump(u32 regbase)
+void sdio_dump(void *addr)
 {
-	u32  i;
+	u32  i, regbase;
 
 	printf("*****SDIO REGISTER DUMP*****\n");
+	regbase = (u32)addr;
 	for (i = 0; i < 8; i++) {
 		printf("0x%08x, 0x%08x, 0x%08x, 0x%08x\n",
 		       CHIP_REG_GET(regbase + i * 16 + 0),

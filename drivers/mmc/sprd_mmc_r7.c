@@ -2600,7 +2600,7 @@ int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf)
 	return ret;
 }
 
-u64 Emmc_GetCapacity(char part_num)
+u64 emmc_get_capacity(char part_num)
 {
 	struct mmc *mmc = find_mmc_device(EMMC);
 	if (!mmc)

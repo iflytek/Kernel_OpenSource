@@ -344,8 +344,7 @@ int sdhci_send_command_backstage(struct mmc *mmc, struct mmc_cmd *cmd,
 {
 	struct sdhci_host *host = (struct sdhci_host *)mmc->priv;
 	unsigned int stat = 0;
-	int ret = 0;
-	int trans_bytes = 0, is_aligned = 1;
+	int trans_bytes = 0;
 	u32 mask, flags, mode;
 	unsigned int time = 0;
 	unsigned long start_addr = 0;
@@ -424,7 +423,6 @@ int sdhci_send_command_backstage(struct mmc *mmc, struct mmc_cmd *cmd,
 			start_addr = (unsigned long)data->src;
 		if ((host->quirks & SDHCI_QUIRK_32BIT_DMA_ADDR) &&
 		    (start_addr & 0x7) != 0x0) {
-			is_aligned = 0;
 			start_addr = (unsigned long)aligned_buffer;
 			if (data->flags != MMC_DATA_READ)
 				memcpy(aligned_buffer, data->src, trans_bytes);
@@ -867,11 +865,12 @@ int sprd_sdhci_init(u32 regbase, u32 max_clk, u32 min_clk, u32 quirks)
 	return add_sdhci(host, max_clk, min_clk);
 }
 
-void sdio_dump(u32 regbase)
+void sdio_dump(void *addr)
 {
-	u32  i;
+	u32  i, regbase;
 
 	printf("*****SDIO REGISTER DUMP*****\n");
+	regbase = (u32)addr;
 	for (i = 0; i < 8; i++) {
 		printf("0x%08x, 0x%08x, 0x%08x, 0x%08x\n",
 		       CHIP_REG_GET(regbase + i * 16 + 0),
