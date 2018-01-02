@@ -1318,6 +1318,7 @@ int fdt_fixup_loglevel(void *fdt)
 
 			if(common_raw_read("miscdata", (uint64_t)LOGLEVEL_DATA_LEN, LOGLEVEL_DATA_OFFSET, p)) {
 				errorf("read miscdata loglevel data error.\n");
+				free(v_copy);
 				break;
 			}
 
