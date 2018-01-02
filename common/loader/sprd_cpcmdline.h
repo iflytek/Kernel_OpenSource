@@ -26,6 +26,9 @@
 #define CHIPUID          "chip.uid"
 #define INVALID_BOARD_ID 0xFF
 
+#ifdef CONFIG_SC9833
+#define RF_CHIP_ID       "rf.type"
+#endif
 void cp_cmdline_fixup(void);
 char *cp_getcmdline(void);
 

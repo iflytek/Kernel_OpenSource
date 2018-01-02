@@ -19,6 +19,9 @@ static const char *cmd_arr[] = {
 	CRYSTAL_TYPE,
 	RF_HW_ID,
 #endif
+#ifdef CONFIG_SC9833
+	RF_CHIP_ID,
+#endif
 	CHIPUID,
 	NULL
 };
@@ -163,6 +166,17 @@ void cp_cmdline_fixup(void)
 	sprintf(buf,"%d", sprd_get_32k());
 	cmdline_add_cp_cmdline(K32_LESS, buf);
 #endif
+
+#ifdef CONFIG_SC9833
+	{
+		extern u8 DRV_RF_Get_Type(void);
+
+		u8 type = DRV_RF_Get_Type();
+		sprintf(buf, "%d", type);
+		cmdline_add_cp_cmdline(RF_CHIP_ID, buf);
+	}
+#endif
+
 	debugf("cp cmdline: %s\n", g_CPcmdlineBuf);
 }
 

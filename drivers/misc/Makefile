@@ -88,3 +88,8 @@ endif
 ifdef CONFIG_SOC_SHARKL3
 obj-y += sprd_boardid_sharkl3.o
 endif
+
+#rfti for shakl2
+ifdef CONFIG_SC9833
+obj-y += sprd_rfti_sharkl2.o
+endif
