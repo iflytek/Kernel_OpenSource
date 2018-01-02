@@ -44,7 +44,7 @@ int sprd_get_rpmb_block_cnt(void)
 
     rpmb_size = emmc_get_capacity(PARTITION_RPMB);
 
-	return (rpmb_size / 8 / MMC_BLOCK_SIZE);
+	return (rpmb_size / MMC_BLOCK_SIZE);
 }
 #endif
 
