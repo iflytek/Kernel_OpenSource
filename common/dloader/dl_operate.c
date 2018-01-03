@@ -28,6 +28,7 @@ unsigned char *g_eMMCBuf = (unsigned char *)0x35000000;
 #else
 unsigned char *g_eMMCBuf = (unsigned char *)0x82000000;
 #endif
+uint64_t  emmc_buf_size = SZ_256M;
 
 /**
 	partitions not for raw data or normal usage(e.g. nv and prodinfo) should config here.
@@ -335,7 +336,7 @@ uchar *_get_backup_partition_name(uchar * partition_name)
 void prepare_alternative_buffers(void)
 {
 
-	alter_buffer1.addr = g_eMMCBuf + EMMC_BUF_SIZE+ALTERNATIVE_BUFFER_SIZE;
+	alter_buffer1.addr = g_eMMCBuf + emmc_buf_size+ALTERNATIVE_BUFFER_SIZE;
 	alter_buffer1.pointer = alter_buffer1.addr;
 	alter_buffer1.size = ALTERNATIVE_BUFFER_SIZE;
 	alter_buffer1.used = 0;
@@ -549,7 +550,6 @@ OPERATE_STATUS _download_image(void)
 			g_dl_eMMCStatus.curUserPartitionName,
 			g_status.unsave_recv_size, g_status.total_size, g_eMMCBuf);
 	}
-
 	switch (verify_res) {
 	case VERIFY_FAIL:
 		if (0 == strcmp("system", g_dl_eMMCStatus.curUserPartitionName))
@@ -631,8 +631,7 @@ OPERATE_STATUS regular_download_process(uint16_t size, char *buf)
 {
 	uint32_t lastSize;
 	OPERATE_STATUS ret;
-
-	if (EMMC_BUF_SIZE >= (g_status.unsave_recv_size + size)) {
+	if (emmc_buf_size >= (g_status.unsave_recv_size + size)) {
 		memcpy((uchar *) g_sram_addr, buf, size);
 		g_sram_addr += size;
 		g_status.unsave_recv_size += size;
@@ -642,12 +641,12 @@ OPERATE_STATUS regular_download_process(uint16_t size, char *buf)
 			return ret;
 		}
 	} else {
-		lastSize = EMMC_BUF_SIZE - g_status.unsave_recv_size;
+		lastSize = emmc_buf_size - g_status.unsave_recv_size;
 		debugf("Unsaved buf size overflow the whole buffer size,lastsize=%u,unsavedsize=%u\n", lastSize, g_status.unsave_recv_size);
 		if (0 != lastSize)
 			memcpy((unsigned char *)g_sram_addr, buf, lastSize);
 
-		g_status.unsave_recv_size = EMMC_BUF_SIZE;
+		g_status.unsave_recv_size = emmc_buf_size;
 
 		ret = _download_image();
 		if (OPERATE_SUCCESS != ret)
