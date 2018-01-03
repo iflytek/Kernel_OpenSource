@@ -96,8 +96,12 @@ BOOLEAN sprdfb_sprd_spi_init(struct sprdfb_device *dev)
 	sprd_spi_enable(1);
 	sprd_spi_clk_set(1,3,0);
 	sprd_spi_init( spi_int_parm);
-	sprd_spi_set_spi_mode(SPIMODE_4WIRE_8BIT_SDA);
 
+	#ifdef CONFIG_SPIMODE_4WIRE_8BIT_SDIO
+	sprd_spi_set_spi_mode(SPIMODE_4WIRE_8BIT_SDIO);
+	#else
+	sprd_spi_set_spi_mode(SPIMODE_4WIRE_8BIT_SDA);
+	#endif
 	return TRUE;
 }
 
