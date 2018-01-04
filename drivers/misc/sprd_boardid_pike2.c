@@ -84,13 +84,13 @@ static int get_adc_value_board(int channel)
 		vol = 1;
 	if (vol >= 275 && vol <= 325)
 		vol = 2;
-	if (vol >= 380 && vol <= 420)
+	if (vol >= 370 && vol <= 430)
 		vol = 3;
-	if (vol >= 584 && vol <= 616)
+	if (vol >= 560 && vol <= 640)
 		vol = 4;
-	if (vol >= 762 && vol <= 798)
+	if (vol >= 731 && vol <= 829)
 		vol = 5;
-	if (vol >= 920 && vol <= 960)
+	if (vol >= 883 && vol <= 997)
 		vol = 6;
 	if (vol >= 1054 && vol <= 1186)
 		vol = 7;
