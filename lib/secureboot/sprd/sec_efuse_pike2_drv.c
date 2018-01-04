@@ -42,7 +42,7 @@ Efuse_Result_Ret efuse_write_drv(uint32 start_id, uint32 end_id, uint32 *pReadDa
 	uint32  i, j;
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	efuse_lock();
-
+	efuse_enable();
 	write32(EFUSE_SEC_MAGIC_NUM, EFUSE_MAGIC);		// SET magic number
 	write32(EFUSE_SEC_FLAG_CLR, ERR_FLAG_MASK);		// CLR err flag
 	set_reg_bit(EFUSE_SEC_EN, 4);					// SET lock bit
@@ -75,7 +75,7 @@ Efuse_Result_Ret efuse_write_drv(uint32 start_id, uint32 end_id, uint32 *pReadDa
 	clr_reg_bit(EFUSE_PW_SWT, 2);					// CLR PG_EN
 	clr_reg_bit(EFUSE_SEC_EN, 4);					// CLR lock bit
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
-
+	efuse_disable();
 	efuse_unlock();
 
 	return ret;
@@ -88,7 +88,7 @@ Efuse_Result_Ret efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadDat
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 
 	efuse_lock();
-
+	efuse_enable();
 	write32(EFUSE_SEC_MAGIC_NUM, EFUSE_MAGIC);		// SET magic number
 	write32(EFUSE_SEC_FLAG_CLR, ERR_FLAG_MASK);		// CLR err flag
 	set_reg_bit(EFUSE_SEC_EN, 0);					// SET vdd on
@@ -110,6 +110,7 @@ Efuse_Result_Ret efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadDat
 
 	clr_reg_bit(EFUSE_SEC_EN, 0);					// CLR vdd on
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
+	efuse_disable();
 	efuse_unlock();
 
 	return ret;
@@ -121,7 +122,7 @@ Efuse_Result_Ret efuse_rewrite_double_bit(uint32 start_id, uint32 end_id, uint32
 	uint32  i, j;
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	efuse_lock();
-
+	efuse_enable();
 	write32(EFUSE_SEC_MAGIC_NUM, EFUSE_MAGIC);		// SET magic number
 	write32(EFUSE_SEC_FLAG_CLR, ERR_FLAG_MASK);		// CLR err flag
 	set_reg_bit(EFUSE_PW_SWT, 2);					// SET PG_EN
@@ -149,7 +150,7 @@ Efuse_Result_Ret efuse_rewrite_double_bit(uint32 start_id, uint32 end_id, uint32
 	msleep(1);										// SLP
 	clr_reg_bit(EFUSE_PW_SWT, 2);					// CLR PG_EN
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
-
+	efuse_disable();
 	efuse_unlock();
 
 	return ret;
@@ -160,7 +161,7 @@ Efuse_Result_Ret efuse_huk_program(void)
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 
 	efuse_lock();
-
+	efuse_enable();
 	write32(EFUSE_SEC_MAGIC_NUM, EFUSE_MAGIC);		// SET magic number
 	write32(EFUSE_SEC_FLAG_CLR, ERR_FLAG_MASK);		// CLR err flag
 	set_reg_bit(EFUSE_SEC_EN, 4);					// SET lock bit
@@ -172,7 +173,7 @@ Efuse_Result_Ret efuse_huk_program(void)
 	set_reg_bit(EFUSE_SEC_EN, 1);					// SET auto check
 	set_reg_bit(EFUSE_SEC_EN, 2);					// SET doublt bit en
 
-	set_reg_bit(REG_AP_AHB_CE_SEC_EB,0);			// enable ce module
+	set_reg_bit(REG_AP_AHB_CE_SEC_EB,12);			// enable ce module
 
 	write32(CE_CLK_EB_REG, 0x20);					// enable trng clk
 	write32(CE_RNG_EB_REG, 0x02);					// enable trng ring
@@ -185,7 +186,7 @@ Efuse_Result_Ret efuse_huk_program(void)
 													// Poll for write huk finish
 	write32(CE_RNG_EB_REG, 0x0);					// disable trng ring
 	write32(CE_CLK_EB_REG, 0x0);					// disable trng clk
-	clr_reg_bit(REG_AP_AHB_CE_SEC_EB,0); 			// disable ce module
+	clr_reg_bit(REG_AP_AHB_CE_SEC_EB,12); 			// disable ce module
 
 	if (read32(EFUSE_SEC_ERR_FLAG) != 0)			// Read err register
 	{
@@ -200,8 +201,19 @@ Efuse_Result_Ret efuse_huk_program(void)
 	clr_reg_bit(EFUSE_PW_SWT, 2);					// CLR PG_EN
 	clr_reg_bit(EFUSE_SEC_EN, 4);					// CLR lock bit
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
-
+	efuse_disable();
 	efuse_unlock();
 
 	return ret;
 }
+
+void efuse_enable(void)
+{
+	set_reg_bit(REG_AON_SEC_APB_EFUSE_SEC_ENABLE, 0);	//enable sec efuse
+}
+
+void efuse_disable(void)
+{
+	clr_reg_bit(REG_AON_SEC_APB_EFUSE_SEC_ENABLE, 0);	//disable sec efuse
+}
+
