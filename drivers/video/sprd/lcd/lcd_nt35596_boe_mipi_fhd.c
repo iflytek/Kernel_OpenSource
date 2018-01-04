@@ -549,18 +549,14 @@ static int nt35596_readid(void)
 
 static int nt35596_power(int on)
 {
+#ifndef CONFIG_FPGA
 	if (on) {
-#ifdef CONFIG_LCM_GPIO_AVDDEN
 		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_AVDDEN);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVDDEN, 1);
 		mdelay(10);
-#endif
-#ifdef CONFIG_LCM_GPIO_AVEEEN
 		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_AVEEEN);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVEEEN, 1);
 		mdelay(20);
-#endif
-#ifdef CONFIG_LCM_GPIO_RSTN
 		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_RSTN);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 1);
 		mdelay(5);
@@ -572,22 +568,15 @@ static int nt35596_power(int on)
 		mdelay(5);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 1);
 		mdelay(20);
-#endif
 	} else {
-#ifdef CONFIG_LCM_GPIO_AVEEEN
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVEEEN, 0);
 		mdelay(20);
-#endif
-#ifdef CONFIG_LCM_GPIO_AVDDEN
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVDDEN, 0);
 		mdelay(10);
-#endif
-#ifdef CONFIG_LCM_GPIO_RSTN
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 0);
 		mdelay(5);
-#endif
 	}
-
+#endif
 	return 0;
 }
 
@@ -607,7 +596,11 @@ static struct panel_info nt35596_info = {
 	.height = 1920,
 
 	/* DPI specific parameters */
+#ifdef CONFIG_FPGA
 	.pixel_clk = 6500000, /*Hz*/
+#else
+	.pixel_clk = 128000000, /*Hz*/
+#endif
 	.rgb_timing = {
 		.hfp = 6,
 		.hbp = 6,
@@ -618,7 +611,11 @@ static struct panel_info nt35596_info = {
 	},
 
 	/* MIPI DSI specific parameters */
+#ifdef CONFIG_FPGA
 	.phy_freq = 300000, /*Kbps*/
+#else
+	.phy_freq = 1000000, /*Kbps*/
+#endif
 	.lane_num = 4,
 	.work_mode = SPRD_MIPI_MODE_VIDEO,
 	.burst_mode = PANEL_VIDEO_BURST_MODE,
