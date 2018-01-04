@@ -2456,12 +2456,17 @@ int sprd_host_init(int sdio_type)
 struct mmc *board_sd_init(void)
 {
 	struct mmc *mmc;
-	int ret;
+	int ret, sd_dev;
 
-	/* 1 instead of sd device, while 0 instead of emmc */
+	/*
+	 * 1: sd, 0: emmc
+	 * Setting cur_dev_num to 1 is used for nand.
+	 * We need a good idea to deal with the cur_dev_num for nand.
+	 */
 	cur_dev_num = 1;
-	sprd_host_init(cur_dev_num);
-	mmc = find_mmc_device(cur_dev_num);
+	sd_dev = cur_dev_num;
+	sprd_host_init(sd_dev);
+	mmc = find_mmc_device(sd_dev);
 	if (mmc) {
 		ret = mmc_init(mmc);
 		if (ret < 0) {
