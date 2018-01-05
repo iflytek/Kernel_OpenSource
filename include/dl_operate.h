@@ -12,8 +12,6 @@
 #define ORIGIN_NV_DAMAGED      0x1
 #define BACKUP_NV_DAMAGED   0x2
 
-#define EMMC_BUF_SIZE
-
 #define MAGIC_DATA	0xAA55A5A5
 
 /*according to standard ,the first usable LBA is 34,
