@@ -120,7 +120,17 @@ ENTRY(cpu_init_cp15)
 	/*
 	 * disable MMU stuff and caches
 	 */
+#ifdef CONFIG_SOC_SHARKLE
+	cmp	r1, #0x1a
+	beq	hyp_cp15_rd
+#endif
 	mrc	p15, 0, r0, c1, c0, 0
+#ifdef CONFIG_SOC_SHARKLE
+	b	skip_hyp_cp15_rd
+hyp_cp15_rd:
+	mrc	p15, 4, r0, c1, c0, 0
+skip_hyp_cp15_rd:
+#endif
 	bic	r0, r0, #0x00002000	@ clear bits 13 (--V-)
 	bic	r0, r0, #0x00000007	@ clear bits 2:0 (-CAM)
 	orr	r0, r0, #0x00000002	@ set bit 1 (--A-) Align
@@ -130,7 +140,17 @@ ENTRY(cpu_init_cp15)
 #else
 	orr	r0, r0, #0x00001000	@ set bit 12 (I) I-cache
 #endif
+#ifdef CONFIG_SOC_SHARKLE
+	cmp	r1, #0x1a
+	beq	hyp_cp15_wr
+#endif
 	mcr	p15, 0, r0, c1, c0, 0
+#ifdef CONFIG_SOC_SHARKLE
+	b	skip_hyp_cp15_wr
+hyp_cp15_wr:
+	mcr	p15, 4, r0, c1, c0, 0
+skip_hyp_cp15_wr:
+#endif
 
 	/* Enable coherent requested to the processor.*/
 	mrc	p15, 0, r0, c1, c0, 1	@ read system control register
