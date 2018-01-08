@@ -30,7 +30,7 @@ void enable_global_clocks(void)
 	__raw_writel(BIT_AON_APB_MM_VSP_EB, REG_AON_APB_APB_EB1 + 0x1000);
 	__raw_writel(BIT_AON_APB_CLK_GPU_EB | BIT_AON_APB_CLK_DISP_EB,
 			REG_AON_APB_AON_CLK_TOP_CFG + 0x1000);
-	while (__raw_readl(REG_PMU_APB_PWR_STATUS0_DBG) && BIT_PMU_APB_PD_MM_TOP_STATE(~0));
+	while (__raw_readl(REG_PMU_APB_PWR_STATUS0_DBG) & BIT_PMU_APB_PD_MM_TOP_STATE(~0));
 	__raw_writel(BIT_MM_AHB_CKG_EB, REG_MM_AHB_AHB_EB + 0x1000);
 }
 
