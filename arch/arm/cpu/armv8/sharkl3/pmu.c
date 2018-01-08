@@ -39,8 +39,8 @@ void pmu_commom_config(void)
 	CHIP_REG_SET(REG_PMU_APB_CGM_PMU_SEL,
 		reg_val |
 		BIT_PMU_APB_CGM_PMU_26M_EN |
-		BIT_PMU_APB_CGM_PMU_26M_SEL(0x01) |
-		BIT_PMU_APB_CGM_PMU_SEL(0x01) |
+		BIT_PMU_APB_CGM_PMU_26M_SEL(0x10) |
+		BIT_PMU_APB_CGM_PMU_SEL(0x10) |
 		0
 	);
 	/*The all power domains pd_sel can be 0(default) accord to asic*/
