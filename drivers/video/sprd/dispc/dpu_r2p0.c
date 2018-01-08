@@ -511,6 +511,12 @@ static int dpu_init(struct dispc_context *ctx)
 	reg->panel_size = size;
 	reg->blend_size = size;
 
+	reg->dpu_cfg0 = 0;
+	reg->dpu_cfg1 = 0x00447171;
+	reg->dpu_cfg2 = 0;
+	dpu_clean(ctx);
+	reg->dpu_enhance_cfg = 0;
+
 	reg->mmu_min_ppn1 = 0;
 	reg->mmu_ppn_range1 = 0xffff;
 	reg->mmu_min_ppn2 = 0;

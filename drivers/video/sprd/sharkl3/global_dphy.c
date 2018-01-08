@@ -40,7 +40,9 @@ static void dphy_power_domain(struct dphy_context *ctx, int enable)
 		sci_glb_clr(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_S);
 		udelay(10);
 		sci_glb_clr(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_L);
+		sci_glb_clr(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_ISO_SW_EN);
 	} else {
+		sci_glb_set(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_ISO_SW_EN);
 		sci_glb_set(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_L);
 		udelay(10);
 		sci_glb_set(REG_AON_APB_PWR_CTRL, BIT_AON_APB_MIPI_DSI_PS_PD_S);
