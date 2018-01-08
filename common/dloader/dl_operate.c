@@ -608,7 +608,7 @@ OPERATE_STATUS _download_image(void)
 		if (retval > 0) {
 			memmove(g_eMMCBuf, write_start + retval, write_size - retval);
 			g_status.unsave_recv_size = write_size - retval;
-			debugf("After simg , unsave_recv_size=%d, saved value=%d\n", g_status.unsave_recv_size, retval);
+			debugf("After simg , unsave_recv_size=%lld, saved value=%d\n", g_status.unsave_recv_size, retval);
 		} else {
 			g_status.unsave_recv_size = 0;
 		}
@@ -656,7 +656,7 @@ OPERATE_STATUS regular_download_process(uint16_t size, char *buf)
 		memcpy((uchar *) g_sram_addr, (char *)(&buf[lastSize]), size - lastSize);
 		g_status.unsave_recv_size += size - lastSize;
 		g_sram_addr = (unsigned long) (g_eMMCBuf + g_status.unsave_recv_size);
-		debugf("After write,unsaved recv size=%d\n", g_status.unsave_recv_size);
+		debugf("After write,unsaved recv size=%lld\n", g_status.unsave_recv_size);
 
 		if (g_status.total_recv_size == g_status.total_size) {
 			ret = _download_image();

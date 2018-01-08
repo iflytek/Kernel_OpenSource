@@ -183,7 +183,7 @@ int autodloader_mainhandler(void)
 	act_as_romcode = 1;
 	#ifdef	CONFIG_EMMC_BOOT
 	emmc_buf_size = SZ_128M;
-	debugf("emmc_buf_size = 0x%lx\n",emmc_buf_size);
+	debugf("emmc_buf_size = 0x%llx\n",emmc_buf_size);
 	#endif
 	/* initialize usb module*/
 	if(autodloader_initusb())
