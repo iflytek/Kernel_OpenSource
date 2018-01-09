@@ -37,8 +37,8 @@ static const int adc2deltanv_table[] = {
 	3, /* hw_ver03.nv */
 	-1, /* reserved */
 	2, /* hw_ver02.nv */
-	1, /* hw_ver01.nv */
-	0 /* hw_ver00.nv */
+	0, /* hw_ver00.nv */
+	1 /* hw_ver01.nv */
 };
 
 extern int sprd_gpio_request(struct gpio_chip *chip, unsigned offset);
