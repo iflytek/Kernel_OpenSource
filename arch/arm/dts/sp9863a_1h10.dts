@@ -21,8 +21,8 @@
 		ranges;
 
 		/* 1080x1920x4Bytes x 4Buffers */
-		fb_reserved: framebuffer@be05c000{
-			reg = <0x0 0xbe05c000 0x0 0x01fa4000>;
+		fb_reserved: framebuffer@9d000000{
+			reg = <0x0 0x9d000000 0x0 0x2000000>;
 		};
 	};
 
