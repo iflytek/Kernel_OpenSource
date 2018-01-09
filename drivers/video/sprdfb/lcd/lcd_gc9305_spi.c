@@ -120,8 +120,8 @@ static int32_t gc9305_init(struct panel_spec *self)
 	GC9305_SpiWriteData(0x88);
 
 	GC9305_SpiWriteCmd(0xe8);
-	GC9305_SpiWriteData(0x16);
-	GC9305_SpiWriteData(0x40);
+	GC9305_SpiWriteData(0x13);
+	GC9305_SpiWriteData(0x60);
 
 	GC9305_SpiWriteCmd(0xe3);
 	GC9305_SpiWriteData(0x01);
