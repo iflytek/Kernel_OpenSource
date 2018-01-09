@@ -678,8 +678,8 @@ static struct panel_info nt35532_info = {
 	.type = SPRD_PANEL_TYPE_MIPI,
 	.bpp = 24,
 //	.fps = 60,
-	.width = 720,
-	.height = 1280,
+	.width = 1080,
+	.height = 1920,
 
 	/* DPI specific parameters */
 	.pixel_clk = 153600000, /*Hz*/

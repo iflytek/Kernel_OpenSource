@@ -42,12 +42,6 @@ static struct panel_cfg supported_panel[] = {
 		.drv = &nt35532_truly_driver,
 	},
 #endif
-#ifdef CONFIG_LCD_NT35695_TRULY_MIPI_FHD
-	{
-		.lcd_id = 0x35695,
-		.drv = &nt35695_truly_driver,
-	},
-#endif
 #ifdef CONFIG_LCD_NT35596_BOE_MIPI_FHD
 	{
 		.lcd_id = 0x96,
@@ -64,6 +58,12 @@ static struct panel_cfg supported_panel[] = {
 	{
 		.lcd_id = 0x97,
 		.drv = &nt35597_fpga_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_NT35695_TRULY_MIPI_FHD
+	{
+		.lcd_id = 0x35695,
+		.drv = &nt35695_truly_driver,
 	},
 #endif
 #ifdef CONFIG_LCD_JD9161_XXX_MIPI_WVGA
