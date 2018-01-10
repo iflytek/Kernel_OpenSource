@@ -297,11 +297,7 @@ static int32_t gc9305_read_id(struct panel_spec *self)
 		GC9305_SpiWriteCmd(0x04);
 		GC9305_SpiRead(lcm_id,4);
 		LCD_PRINT("sprdfb:gc9305_read_id lcm id[0-3] = 0x%x %x %x %x\n",lcm_id[0],lcm_id[1],lcm_id[2],lcm_id[3]);
-		#ifdef CONFIG_SPIMODE_4WIRE_8BIT_SDIO
-		if(lcm_id[1] == 0x93 && ( lcm_id[2] == 0x05||lcm_id[2] == 0x06))
-		#else
 		if(lcm_id[1] == 0x93 && lcm_id[2] == 0x05)
-		#endif
 		{
 			spi_clock_set(24000000);
 			return 0x9305;
