@@ -30,6 +30,44 @@ extern   "C"
 #endif
 
 #ifndef CONFIG_FPGA
+#define REFIN 26
+#define NINT(FREQ,REFIN)	(FREQ/REFIN)
+#define KINT(FREQ,REFIN)	((FREQ-(FREQ/REFIN)*REFIN)*(BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_KINT(~0x0)+1)/REFIN)
+
+#define SPRD_PLL_MAX_RATE               (0xFFFFFFFFUL)
+
+struct sprd_ibias_table {
+	unsigned long rate;
+	u8 ibias;
+};
+
+static struct sprd_ibias_table mpll_ibias_table[] = {
+	{
+		.rate = 1000000000UL,
+		.ibias = 0x0,
+	},
+	{
+		.rate = 1200000000UL,
+		.ibias = 0x1,
+	},
+	{
+		.rate = 1400000000UL,
+		.ibias = 0x2,
+	},
+	{
+		.rate = 1600000000,
+		.ibias = 0x3,
+	},
+	{
+		.rate = 1800000000,
+		.ibias = 0x4,
+	},
+	{
+		.rate = SPRD_PLL_MAX_RATE,
+		.ibias = 0x5,
+	},
+};
+
 void pmu_commom_config(void)
 {
 	uint32_t reg_val;
@@ -39,8 +77,8 @@ void pmu_commom_config(void)
 	CHIP_REG_SET(REG_PMU_APB_CGM_PMU_SEL,
 		reg_val |
 		BIT_PMU_APB_CGM_PMU_26M_EN |
-		BIT_PMU_APB_CGM_PMU_26M_SEL(0x02) |
-		BIT_PMU_APB_CGM_PMU_SEL(0x02) |
+		BIT_PMU_APB_CGM_PMU_26M_SEL(0x01) |
+		BIT_PMU_APB_CGM_PMU_SEL(0x01) |
 		0
 	);
 	/*The all power domains pd_sel can be 0(default) accord to asic*/
@@ -422,9 +460,93 @@ void pmu_commom_config(void)
 	);
 }
 
+extern void tmr_udelay (unsigned long usec);
+
+static int set_clk_mpll(uint32_t clk, uint32_t index)
+{
+	uint32_t reg1, reg2, reg3, reg4, clk_cfg1, clk_cfg2;
+	uint32_t nint, kint;
+	struct sprd_ibias_table *itable = mpll_ibias_table;
+	uint32_t refin = REFIN;
+
+	switch (index) {
+	case 0:
+		reg1 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_CTRL0;
+		reg2 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_CTRL1;
+		reg3 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_CTRL2;
+		reg4 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_CTRL3;
+		break;
+
+	case 1:
+		reg1 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL1_CTRL0;
+		reg2 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL1_CTRL1;
+		reg3 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL1_CTRL2;
+		reg4 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL1_CTRL3;
+		break;
+
+	case 2:
+		reg1 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL2_CTRL0;
+		reg2 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL2_CTRL1;
+		reg3 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL2_CTRL2;
+		reg4 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL2_CTRL3;
+		break;
+
+	default:
+		return -1;
+	}
+
+	if (clk < 800000000) {
+		CHIP_REG_OR(reg3, BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL2_POSTDIV);
+		clk = clk * 2;
+	}
+
+	clk = clk/1000000;
+
+	clk_cfg1 = CHIP_REG_GET(reg1);
+	clk_cfg1 |= BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_DIV_S | BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_SDM_EN;
+
+	/* calc kint/nint */
+	nint = BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_NINT(NINT(clk, refin));
+	kint = BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_KINT(KINT(clk, refin));
+	clk_cfg2 = CHIP_REG_GET(reg2);
+	clk_cfg2 = ~(BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_NINT(~0) |
+		BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_KINT(~0));
+	clk_cfg2 |= (nint | kint);
+
+	clk_cfg1 &= ~BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_IBIAS(3);
+	CHIP_REG_AND(reg4, ~BIT(22));
+	if ((clk > 1600) && (clk < 1800))
+		CHIP_REG_OR(reg4, BIT(22));
+	else if ( clk >= 1800) {
+		CHIP_REG_OR(reg4, BIT(22));
+		clk_cfg1 |= BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_IBIAS(1);
+	} else
+		for (; itable->rate <= SPRD_PLL_MAX_RATE; itable++) {
+			if (clk*1000000 <= itable->rate) {
+				clk_cfg1 |= BIT_ANLG_PHY_G2_ANALOG_PLL_TOP_IPLL_IBIAS(itable->ibias);
+				break;
+			}
+		}
+
+	CHIP_REG_SET(reg1, clk_cfg1);
+	CHIP_REG_SET(reg2, clk_cfg2);
+
+	tmr_udelay(200);
+
+	return 0;
+}
+
+static uint32_t clk_mcu_config(uint32_t arm_clk)
+{
+	set_clk_mpll(arm_clk, 0);
+	REG32(REG_APCPU_TOP_CLK_CORE_CGM_CORE0_CFG) |= BIT_APCPU_TOP_CLK_CORE_CGM_CORE0_CFG_CGM_CORE0_SEL(6);
+
+	return 0;
+}
 
 void CSP_Init(uint32_t gen_para)
 {
+	clk_mcu_config(1000000000);
 	//uint32_t reg_val;
 	pmu_commom_config();
 }
