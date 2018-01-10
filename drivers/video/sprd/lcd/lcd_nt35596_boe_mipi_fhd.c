@@ -599,15 +599,15 @@ static struct panel_info nt35596_info = {
 #ifdef CONFIG_FPGA
 	.pixel_clk = 6500000, /*Hz*/
 #else
-	.pixel_clk = 128000000, /*Hz*/
+	.pixel_clk = 153600000, /*Hz*/
 #endif
 	.rgb_timing = {
-		.hfp = 6,
-		.hbp = 6,
-		.hsync = 8,
-		.vfp = 6,
-		.vbp = 6,
-		.vsync = 8,
+		.hfp = 176,
+		.hbp = 16,
+		.hsync = 10,
+		.vfp = 32,
+		.vbp = 32,
+		.vsync = 4,
 	},
 
 	/* MIPI DSI specific parameters */
