@@ -14,7 +14,6 @@
 #include <boot_mode.h>
 #include <common.h>
 #include <linux/input.h>
-#include <sprd_log.h>
 #include <linux/mtd/mtd.h>
 #include <linux/sizes.h>
 #include <asm/arch/check_reboot.h>
@@ -24,7 +23,9 @@
 #include <chipram_env.h>
 #include <sprd_common_rw.h>
 
-DECLARE_GLOBAL_DATA_PTR;
+#ifdef CONFIG_SPRD_LOG
+extern LOG_BUFFER *p_log_buffer;
+#endif
 
 #if defined(CONFIG_LOG_2_SD)
 int sd_fs_type;  /* file system type on sd card */
@@ -69,7 +70,7 @@ void flush_log_buffer()
 		unsigned long max_size = 0;
 
 		debugf("FileSystem is FAT32 !!!\n");
-		max_size = gd->log_buffer.size;
+		max_size = p_log_buffer->size;
 
 		mod = fat_checksys(max_size);
 		if (mod &(FSFATAL | FSNOSPACE)) {
@@ -167,7 +168,7 @@ void flush_log_buffer()
 		unsigned long max_size;
 
 		debugf("FileSystem is exFAT !!!\n");
-		max_size = gd->log_buffer.size;
+		max_size = p_log_buffer->size;
 		debugf("ExFAT max space size is %lx\n",max_size);
 
 		mod = exfat_checksys(max_size);
@@ -198,7 +199,7 @@ void flush_log_buffer()
 			tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
 	write_log_to_mmc(fnbuf, sd_fs_type,
-			(uchar *)gd->log_buffer.addr, gd->log_buffer.used);
+			(uchar *)p_log_buffer->addr, p_log_buffer->used);
 
 FINISH:
 	debugf ("Write  finish or happen abnormally!!!\n");
@@ -331,7 +332,7 @@ void flush_log_buffer()
 		cur_body = LOG_BODY_NUM - 1;
 
 	body = &p_hdr->body[cur_body];
-	p_log = &gd->log_buffer;
+	p_log = p_log_buffer;
 
 	buf = p_log->addr + body->b_offset;
 	buf_size = p_log->used - body->b_offset;

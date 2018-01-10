@@ -127,8 +127,7 @@
 #define CONFIG_SPRD_LOG
 //#define CONFIG_LOG_2_SD
 #define CONFIG_LOG_2_EMMC
-#define LOG_BUFFER_START_ADDR   0x9EA00000
-#define LOG_BUFFER_SIZE         0x040000 /* 256KB */
+#define LOG_BUFFER_ADDR			0x9EA00000
 
 /*
  * MMC definition

@@ -59,6 +59,10 @@ extern void dataflash_print_info(void);
 #include <i2c.h>
 #endif
 
+#ifdef CONFIG_SPRD_LOG
+LOG_BUFFER *p_log_buffer = (LOG_BUFFER *)LOG_BUFFER_ADDR;
+#endif
+
 /************************************************************************
  * Coloured LED functionality
  ************************************************************************
@@ -96,13 +100,13 @@ static int init_baudrate(void)
 #ifdef CONFIG_SPRD_LOG
 static int init_log_buffer(void)
 {
-	gd->log_buffer.addr = LOG_BUFFER_START_ADDR;
-	gd->log_buffer.pointer = LOG_BUFFER_START_ADDR;
-	gd->log_buffer.size = LOG_BUFFER_SIZE;
-	gd->log_buffer.used = 0;
-	gd->log_buffer.spare = gd->log_buffer.size - gd->log_buffer.used;
+	p_log_buffer->addr = LOG_BUFFER_START_ADDR;
+	p_log_buffer->pointer = LOG_BUFFER_START_ADDR;
+	p_log_buffer->size = LOG_BUFFER_SIZE;
+	p_log_buffer->used = 0;
+	p_log_buffer->spare = p_log_buffer->size - p_log_buffer->used;
 
-	memset((void *)gd->log_buffer.addr, 0, gd->log_buffer.size);
+	memset((void *)p_log_buffer->addr, 0, p_log_buffer->size);
 
 	return (0);
 }

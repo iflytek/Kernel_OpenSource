@@ -14,9 +14,12 @@
 #include <stdio_dev.h>
 #include <exports.h>
 #include <environment.h>
-#include <sprd_log.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+#ifdef CONFIG_SPRD_LOG
+extern LOG_BUFFER *p_log_buffer;
+#endif
 
 static int on_console(const char *name, const char *value, enum env_op op,
 	int flags)
@@ -539,11 +542,11 @@ int printf(const char *fmt, ...)
 #ifdef CONFIG_SPRD_LOG
 	/* used for log
 	*/
-	if(i > 0 && (gd->log_buffer.spare - 1) >= i) {
-		memcpy(gd->log_buffer.pointer, printbuffer, i);
-		gd->log_buffer.used += i;
-		gd->log_buffer.pointer += i;
-		gd->log_buffer.spare = gd->log_buffer.size - gd->log_buffer.used;
+	if(i > 0 && (p_log_buffer->spare - 1) >= i) {
+		memcpy(p_log_buffer->pointer, printbuffer, i);
+		p_log_buffer->used += i;
+		p_log_buffer->pointer += i;
+		p_log_buffer->spare = p_log_buffer->size - p_log_buffer->used;
 	}
 #endif
 

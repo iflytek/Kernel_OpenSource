@@ -17,6 +17,9 @@
 #include "../common/loader/sysdump.h"
 #endif
 
+#define LOG_BUFFER_START_ADDR   ALIGN(LOG_BUFFER_ADDR + sizeof(LOG_BUFFER), 8)
+#define LOG_BUFFER_SIZE         0x040000 /* 256KB */
+
 #define LOG_FOLDER_NUM		3
 #define LOG_FOLDER_NAME		"ylog/ap/uboot"
 #define LOG_AUTO_TEST		"ylog/uboot/uboot_log_auto_test.txt"
@@ -117,5 +120,4 @@ void flush_log_buffer(void);
 
 #endif
 #endif
-
 #endif //__SPRD_LOG_H__
