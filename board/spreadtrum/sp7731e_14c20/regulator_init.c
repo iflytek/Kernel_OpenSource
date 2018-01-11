@@ -10,8 +10,8 @@ static int power_on_voltage_init(void)
 	chip_version = __raw_readl(REG_AON_APB_AON_VER_ID) & 0xFF;
 
 	if (!chip_version) {
-		regulator_set_voltage("vddgen", 1950);
-		regulator_set_voltage("vddrf18a", 1850);
+		regulator_set_voltage("vddgen", 1900);
+		regulator_set_voltage("vddrf18a", 1830);
 	} else {
 		regulator_set_voltage("vddgen", 1875);
 		regulator_set_voltage("vddrf18a", 1800);
