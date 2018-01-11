@@ -2,6 +2,7 @@
 #define _PIKE2_EFUSE_DRIVE_H
 #include "asm/arch-pike2/chip_pike2/hardware.h"
 #include "asm/arch-pike2/chip_pike2/aon_sec_apb.h"
+#include "asm/arch-pike2/chip_pike2/aon_apb.h"
 
 typedef unsigned char       uint8;
 typedef unsigned short      uint16;
@@ -26,7 +27,7 @@ typedef enum {
 #define BIT_MASK(bit)  				(~(1<<bit))
 
 /*********EFUSE CLK**************************************/
-#define REG_AON_SEC_APB_EFUSE_SEC_ENABLE	REG_AON_SEC_APB_EFUSE_SEC_EB
+#define REG_AON_SEC_APB_EFUSE_SEC_ENABLE	REG_AON_APB_APB_SEC_EB
 
 /*******EFUSE CONTROL REGISTER***************************/
 #define REG_AON_EFUSE_BASE			0x40240000
