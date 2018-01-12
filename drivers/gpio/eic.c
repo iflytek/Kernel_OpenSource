@@ -243,10 +243,8 @@ static void sprd_eic_free(unsigned offset)
 
 void sprd_eic_init(void)
 {
-#ifndef CONFIG_SPRD_GPIO_PLUS
 	REG32(REG_AON_APB_APB_EB0) |= BIT_EIC_EB;
 	REG32(REG_AON_APB_APB_RTC_EB) |= BIT_EIC_RTC_EB|BIT_EIC_RTCDV5_EB;
-#endif
 	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_EIC_EN);
 	ANA_REG_OR(ANA_REG_GLB_RTC_CLK_EN,    BIT_RTC_EIC_EN);
 }
