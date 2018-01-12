@@ -170,6 +170,7 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
         sp9850kh_1h10.dtb \
 	sp9850kh_2c20.dtb \
 	pike2_vp.dtb \
+	sp9850e_1h10.dtb \
 	sp9832e_1h10.dtb \
         sp9832e_10c10_32b.dtb \
 	sp9832e_1h10_32b.dtb \
