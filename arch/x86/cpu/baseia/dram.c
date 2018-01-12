@@ -23,6 +23,10 @@
 
 ddr_info_t local_ddr_range;
 
+#ifdef CONFIG_SPRD_SOC_SP9853I
+static uint64_t real_ram_size_x86 = 0x80000000;
+#endif
+
 static unsigned install_e820_map_fdt(unsigned max_entries,
 			struct e820entry *entries)
 {
@@ -107,11 +111,35 @@ unsigned install_e820_map_auto_detect(unsigned max_entries, struct e820entry *en
 
 int dram_init(void)
 {
+#ifdef CONFIG_SPRD_SOC_SP9853I
+	u64 ddr_size = 0, start_addr;
+	u8 e820_entries_detect = 0;
+	int i = 0;
+	setup_chipram_ddr_range();
+	ddr_info_t* ddr_info = get_ddr_range();
+	e820_entries_detect = ddr_info->section_number;
+
+	for (i = 0; i < e820_entries_detect; i++) {
+		start_addr = U32_TO_U64(ddr_info->sec_info[i].start_address_high,ddr_info->sec_info[i].start_address_low);
+		ddr_size += U32_TO_U64(ddr_info->sec_info[i].end_address_high,ddr_info->sec_info[i].end_address_low)-start_addr+0x1;
+	}
+	real_ram_size_x86 = ddr_size - VMM_RESERVE_SIZE;
+#endif
+
 	gd->ram_size = PHYS_SDRAM_1_SIZE;
 	post_code(POST_DRAM);
 
 	return 0;
 }
+
+#ifdef CONFIG_SPRD_SOC_SP9853I
+uint64_t get_real_ram_size_x86(void)
+{
+	return real_ram_size_x86;
+}
+#endif
+
+
 
 void dram_init_banksize(void)
 {
