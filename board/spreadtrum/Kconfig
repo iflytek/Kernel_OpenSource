@@ -257,6 +257,12 @@ config TARGET_SP9832E_1H10_32B
 	help
 	  This is the Spreadtrum sharkle Board
 
+config TARGET_SP9832E_2C10_32B
+	bool "Spreadtrum sharkle"
+	select CPU_V7
+	help
+	  This is the Spreadtrum sharkle Board
+
 config TARGET_SP9832E_10C10_32B
         bool "Spreadtrum sharkle"
         select CPU_V7
@@ -398,6 +404,7 @@ source "board/spreadtrum/sp9835_haps/Kconfig"
 source "board/spreadtrum/sp9850e_1h10/Kconfig"
 source "board/spreadtrum/sp9832e_1h10/Kconfig"
 source "board/spreadtrum/sp9832e_1h10_32b/Kconfig"
+source "board/spreadtrum/sp9832e_2c10_32b/Kconfig"
 source "board/spreadtrum/sp9832e_10c10_32b/Kconfig"
 source "board/spreadtrum/sp9820e_64b/Kconfig"
 source "board/spreadtrum/sp9820e_1h10/Kconfig"
