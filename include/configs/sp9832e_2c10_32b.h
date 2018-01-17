@@ -319,9 +319,6 @@
 #endif
 #endif
 
-/*rf board id */
-#define CONFIG_BOARD_ID
-
 /*fastboot*/
 #define SCRATCH_ADDR    (CONFIG_SYS_SDRAM_BASE + 0x100000)
 #define FB_DOWNLOAD_BUF_SIZE           (CONFIG_SYS_TEXT_BASE - SCRATCH_ADDR-0x800000)
