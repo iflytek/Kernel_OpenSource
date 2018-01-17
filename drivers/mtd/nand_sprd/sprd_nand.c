@@ -483,7 +483,7 @@ STATIC_FUNC void nand_set_timing_config(NAND_CTL * this,struct sprd_nand_timing 
 		reg_val |= ((2 & 0x1F) << NFC_RWE_OFFSET);
 
 		/* get rwh value */
-		temp_val = (timing->rwh_ns + 6) * nfc_clk_MHz / 1000;
+		temp_val = timing->rwh_ns * nfc_clk_MHz / 1000;
 		if (((timing->ace_ns * nfc_clk_MHz) % 1000)  != 0) {
 			temp_val++;
 		}
@@ -491,7 +491,7 @@ STATIC_FUNC void nand_set_timing_config(NAND_CTL * this,struct sprd_nand_timing 
 		reg_val |= ((temp_val & 0x1F) << NFC_RWH_OFFSET);
 
 		/* get rwl value, 6 is read delay time*/
-		temp_val = (timing->rwl_ns + 6) * nfc_clk_MHz / 1000;
+		temp_val = timing->rwl_ns * nfc_clk_MHz / 1000;
 		if (((timing->ace_ns * nfc_clk_MHz) % 1000)  != 0) {
 			temp_val++;
 		}
