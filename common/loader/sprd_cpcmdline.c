@@ -152,15 +152,18 @@ void cp_cmdline_fixup(void)
 	sprintf(buf,"%d",value_less);
 	cmdline_add_cp_cmdline(RF_HW_ID, buf);
 
-	//32k less
-	sprintf(buf,"%d", sprd_get_32k());
-	cmdline_add_cp_cmdline(K32_LESS, buf);
-
 	//26m crystal
 	sprintf(buf,"%d", sprd_get_crystal());
 	cmdline_add_cp_cmdline(CRYSTAL_TYPE, buf);
 #endif
 
+/* Ugly but no other way, 32k type must be passed */
+#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SOC_SP9853I))
+	//32k less
+	sprintf(buf,"%d", sprd_get_32k());
+	cmdline_add_cp_cmdline(K32_LESS, buf);
+
+#endif
 	debugf("cp cmdline: %s\n", g_CPcmdlineBuf);
 }
 

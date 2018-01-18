@@ -4,13 +4,10 @@
 #include <asm/arch/sprd_reg.h>
 #include <adi_hal_internal.h>
 
-#define TSX_32KLESS 0
-#define DCXO_TCXO_32KLESS 1
-#define IS_32K 3  /*TCXO_32K*/
+#define IS_32K 0
+#define IS_32KLESS 1
 
-#if defined(CONFIG_BOARD_ID)
-extern int sprd_get_boardid(void);
-#endif
+extern int sprd_get_32k(void);
 
 void DCDC_ldo_power_on()
 {
@@ -44,9 +41,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 {
 	unsigned int feature_32k_less = 0;
 
-#if defined(CONFIG_BOARD_ID)
-	feature_32k_less = sprd_get_boardid();
-#endif
+	feature_32k_less = sprd_get_32k();
 
 #if defined(CONFIG_ADIE_SC2721)
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE,0x6e7f);

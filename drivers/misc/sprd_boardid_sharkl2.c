@@ -114,9 +114,20 @@ int sprd_get_crystal(void)
 /* Return 32k less or not */
 int sprd_get_32k(void)
 {
+/* sw auto-adaption */
+#ifdef CONFIG_BOARD_ID
 	int id = get_clockid();
 
 	return clock_table[id].k32_less_data;
+#else
+/* dedicate definition */
+#ifdef CONFIG_32K_TYPE
+        return CONFIG_32K_TYPE;
+#else
+/* default setting */
+        return K_LESS;
+#endif
+#endif
 }
 
 /* Return board id */

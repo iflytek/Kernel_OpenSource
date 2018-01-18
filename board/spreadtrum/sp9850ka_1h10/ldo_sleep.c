@@ -2,17 +2,15 @@
 #include <asm/arch/sprd_reg.h>
 #include <adi_hal_internal.h>
 
-#define TSX_32KLESS 0
-#define DCXO_TCXO_32KLESS 1
-#define IS_32K 3  /*TCXO_32K*/
+#define IS_32K 0
+#define IS_32KLESS 1
 #define W_EFFUSE_2721 0x0
 #define R_EFFUSE_2721 0x8000
 #define CPU_PD_BLOCK 4
 #define CPU_PD_BIT 15
 
-#if defined(CONFIG_BOARD_ID)
-extern int sprd_get_boardid(void);
-#endif
+extern int sprd_get_32k(void);
+
 extern u32 sprd_pmic_efuse_read(int blk_index);
 
 void DCDC_ldo_power_on()
@@ -48,9 +46,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 	unsigned int cpu_pd_mode;
 	unsigned int feature_32k_less = 0;
 
-#if defined(CONFIG_BOARD_ID)
-	feature_32k_less = sprd_get_boardid();
-#endif
+	feature_32k_less = sprd_get_32k();
 
 	cpu_pd_mode = sprd_pmic_efuse_read(CPU_PD_BLOCK) & BIT(CPU_PD_BIT);
 
@@ -118,7 +114,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 			//BIT_SLP_LDOSIM1_PD_EN |      /*used by sim1*/
 			0
 		);
-	} else if (feature_32k_less == TSX_32KLESS) {
+	} else {
 		ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
 			BIT_SLP_LDORF15_PD_EN |        /*SR3596G*/
 			BIT_SLP_LDORF18_PD_EN |        /*SR3596G*/
@@ -134,28 +130,6 @@ void pmic_lowpower_config(uint32_t gen_para)
 			//BIT_SLP_LDOCAMD_PD_EN |      /*used by camera*/
 			//BIT_SLP_LDOCAMA_PD_EN |      /*used by camera*/
 			BIT_SLP_LDOSIM2_PD_EN |      /*used by gps lna and rf switch*/
-			//BIT_SLP_LDOSIM1_PD_EN |      /*used by sim1*/
-			0
-		);
-		ANA_REG_OR(ANA_REG_GLB_CLK32KLESS_CTRL0,
-			BIT_SLP_XO_LOW_CUR_EN
-		);
-	} else if (feature_32k_less == DCXO_TCXO_32KLESS) {
-		ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-			BIT_SLP_LDORF15_PD_EN |        /*SR3596G*/
-			BIT_SLP_LDORF18_PD_EN |        /*SR3596G*/
-			//BIT_SLP_LDOEMMCCORE_PD_EN |    /*used by emmc core*/
-			//BIT_SLP_LDODCXO_PD_EN |        /*used by SR3596G, TCXO and GE2*/
-			//BIT_SLP_LDOWIFIPA_PD_EN |    /*used by marlin2*/
-			//BIT_SLP_LDOVDD28_PD_EN |     /*used by sensor, lcd/ctp, audio, rf*/
-			//BIT_SLP_LDOSDCORE_PD_EN |    /*used by sd*/
-			//BIT_SLP_LDOSDIO_PD_EN |      /*used by sd io*/
-			//BIT_SLP_LDOUSB33_PD_EN |     /*used by usb*/
-			//BIT_SLP_LDOCAMMOT_PD_EN |    /*used by camera*/
-			//BIT_SLP_LDOCAMIO_PD_EN |     /*used by camera*/
-			//BIT_SLP_LDOCAMD_PD_EN |      /*used by camera*/
-			//BIT_SLP_LDOCAMA_PD_EN |      /*used by camera*/
-			BIT_SLP_LDOSIM2_PD_EN |      /*used by gps lna*/
 			//BIT_SLP_LDOSIM1_PD_EN |      /*used by sim1*/
 			0
 		);
