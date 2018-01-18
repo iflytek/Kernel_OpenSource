@@ -249,7 +249,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
   size_t vbmeta_size;
   uint8_t* vbmeta_buf = NULL;
   size_t vbmeta_num_read;
-  AvbVBMetaVerifyResult vbmeta_ret;
+  AvbVBMetaVerifyResult vbmeta_ret = AVB_VBMETA_VERIFY_RESULT_OK;
   const uint8_t* pk_data;
   size_t pk_len;
   AvbVBMetaImageHeader vbmeta_header;
@@ -461,7 +461,7 @@ static AvbSlotVerifyResult load_and_verify_vbmeta(
   }
 
 #ifdef CONFIG_VBOOT_DUMP
-  extern int do_hex_dump(void * vaddr, int buflen);
+  extern void do_hex_dump(void * vaddr, int buflen);
 
   debug("begin to dump pk_data.  pk_len:%d>>>>>>>> \n", pk_len);
   if(pk_data != NULL) {

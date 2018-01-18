@@ -74,7 +74,7 @@ typedef struct {
 bool g_sprd_vbmeta_checked_flag = false;
 
 /* This function hex dumps a buffer of characters */
-int do_hex_dump(void * vaddr, int buflen)
+void do_hex_dump(void * vaddr, int buflen)
 {
 	uint8_t *p;
 	uint32_t bytes = buflen;
