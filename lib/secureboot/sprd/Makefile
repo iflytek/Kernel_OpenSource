@@ -20,3 +20,7 @@ ifneq ($(CONFIG_SOC_SHARKLE),)
 obj-y += sec_efuse_sharkle.o
 obj-y += sec_efuse_sharkle_drv.o
 endif
+ifneq ($(CONFIG_SOC_SHARKL3),)
+obj-y += sec_efuse_sharkl3.o
+obj-y += sec_efuse_sharkl3_drv.o
+endif

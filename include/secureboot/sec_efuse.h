@@ -17,5 +17,8 @@
 #ifdef CONFIG_SOC_SHARKLE
 #include "sec_efuse_sharkle.h"
 #endif
+#ifdef CONFIG_SOC_SHARKL3
+#include "sec_efuse_sharkl3.h"
+#endif
 
 #endif
