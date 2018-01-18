@@ -130,6 +130,8 @@
 #define CONFIG_EMMC_BOOT
 #define CONFIG_EMMC_VERSION_R10P0
 #define CONFIG_SUPPORT_EMMC_BOOT
+/*sprdimageversion Dynamic acquisition rpmb's size*/
+#define CONFIG_SPRD_RPMB
 //#define CONFIG_MMC_TRACE
 #ifdef  CONFIG_EMMC_BOOT
 #define EMMC_SECTOR_SIZE 512
