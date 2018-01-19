@@ -1667,7 +1667,7 @@ int nand_write_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
 	__32reg_write(NFC_CFG1_REG, (uint32_t)this->NFC_cfg1);
 	__32reg_write(NFC_CFG2_REG, (uint32_t)this->NFC_cfg2);
 	__32reg_write(NFC_CFG4_REG, cfg4);
-	GenPageSeed(0);
+	GenPageSeed(page);
 	NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
 	flush_cache((unsigned int)seedBuf,sizeof(seedBuf));
 	callback_writePageInBlk(nfcBase, page,
