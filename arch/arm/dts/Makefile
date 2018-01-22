@@ -177,12 +177,10 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9832e_2c10_32b.dtb \
 	sp9820e_64b.dtb \
 	sp9820e_1h10.dtb \
-	sp9820e_15c10.dtb \
 	sp9820e_13c10.dtb \
 	sp9820e_5c10.dtb \
 	sp9820e_2c10.dtb \
 	sp9820e_1h10_kaios.dtb \
-	sp9820e_15c10_kaios.dtb \
 	sp9820e_13c10_kaios.dtb \
 	sp9820e_5c10_kaios.dtb \
 	sp9820e_2c10_kaios.dtb \

@@ -281,12 +281,6 @@ config TARGET_SP9820E_1H10
 	help
 	  This is the Spreadtrum sharkle Board
 
-config TARGET_SP9820E_15C10
-	bool "Spreadtrum sharkle"
-	select CPU_V7
-	help
-	  This is the Spreadtrum sharkle Board
-
 config TARGET_SP9820E_13C10
 	bool "Spreadtrum sharkle"
 	select CPU_V7
@@ -414,7 +408,6 @@ source "board/spreadtrum/sp9832e_2c10_32b/Kconfig"
 source "board/spreadtrum/sp9832e_10c10_32b/Kconfig"
 source "board/spreadtrum/sp9820e_64b/Kconfig"
 source "board/spreadtrum/sp9820e_1h10/Kconfig"
-source "board/spreadtrum/sp9820e_15c10/Kconfig"
 source "board/spreadtrum/sp9820e_13c10/Kconfig"
 source "board/spreadtrum/sp9820e_5c10/Kconfig"
 source "board/spreadtrum/sp9820e_2c10/Kconfig"
