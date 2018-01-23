@@ -141,28 +141,27 @@ void cp_cmdline_fixup(void)
 		cmdline_add_cp_cmdline(CHIPUID,buf);
 	}
 #endif
-#ifdef CONFIG_BOARD_ID
-	//rf borad id
-	boardid = sprd_get_rfid();
+/* crystal and rf band auto adaption used on some platforms, such as sharkl, pike series */
+#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SOC_SP9853I))
+#if (defined(CONFIG_BOARD_ID) || defined(CONFIG_BAND_DETECT))
+	//rf band auto adaption
+	boardid = sprd_get_bandinfo();
 	sprintf(buf,"%d",boardid);
 	cmdline_add_cp_cmdline(RF_BOARD_ID, buf);
-
+#endif
+#ifdef CONFIG_BOARD_ID
 	//board id
 	value_less=sprd_get_boardid();
 	sprintf(buf,"%d",value_less);
 	cmdline_add_cp_cmdline(RF_HW_ID, buf);
 
-	//26m crystal
+	//26m crystal auto adaption
 	sprintf(buf,"%d", sprd_get_crystal());
 	cmdline_add_cp_cmdline(CRYSTAL_TYPE, buf);
 #endif
-
-/* Ugly but no other way, 32k type must be passed */
-#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SOC_SP9853I))
-	//32k less
+	//32k crystal auto adaption
 	sprintf(buf,"%d", sprd_get_32k());
 	cmdline_add_cp_cmdline(K32_LESS, buf);
-
 #endif
 	debugf("cp cmdline: %s\n", g_CPcmdlineBuf);
 }

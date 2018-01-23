@@ -93,7 +93,7 @@ static int get_clockid(void)
 }
 
 /* Return rf band info */
-int sprd_get_rfid(void)
+int sprd_get_bandinfo(void)
 {
 	unsigned int adc_val = 0;
 

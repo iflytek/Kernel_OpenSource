@@ -117,7 +117,7 @@ static int get_clockid(void)
 }
 
 /* Return rf band info */
-int sprd_get_rfid(void)
+int sprd_get_bandinfo(void)
 {
 	int rfid = 0;
 
