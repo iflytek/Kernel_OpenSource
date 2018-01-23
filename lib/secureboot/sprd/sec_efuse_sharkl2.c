@@ -29,7 +29,7 @@
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_efuse.h>
-
+#include "asm/arch/sys_timer_reg_v5.h"
 #define efuse_printf(fmt, args...)
 #if 0
 #include <common.h>
@@ -45,7 +45,7 @@ uint32_t sec_efuse_gettickcnt(void)
 {
     volatile uint32_t tmp_tick1;
     volatile uint32_t tmp_tick2;
-#if 0
+
     tmp_tick1 = SYSTEM_CURRENT_CLOCK;
     tmp_tick2 = SYSTEM_CURRENT_CLOCK;
 
@@ -53,7 +53,7 @@ uint32_t sec_efuse_gettickcnt(void)
         tmp_tick1 = tmp_tick2;
         tmp_tick2 = SYSTEM_CURRENT_CLOCK;
     }
-#endif
+
     return tmp_tick1;
 }
 
