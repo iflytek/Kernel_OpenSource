@@ -254,16 +254,8 @@ static int nt35695_power(int on)
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 0);
 		mdelay(5);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 1);
-		mdelay(5);
-		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 0);
-		mdelay(5);
-		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 1);
 		mdelay(20);
 	} else {
-		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVEEEN, 0);
-		mdelay(20);
-		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVDDEN, 0);
-		mdelay(10);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 0);
 		mdelay(5);
 	}
