@@ -602,45 +602,64 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 {
 	uint8_t pubk[SPRD_RSAPUBKLEN] = {0};
 	uint8_t hash[HASH_BYTE_LEN] = {0};
-	uint8_t ret =1;
+	uint8_t ret = 1;
+	sys_img_header *imghdr;
+        uint32_t i;
 
 	secf("name: %s enter\r\n",name);
 	if(name){/*splloader is spl partiton, uboot is uboot partition which img the pubk hash stored*/
-	#ifdef TOS_TRUSTY
+#ifdef TOS_TRUSTY
 		secboot_param_set(header,img_verify_info_tos);
-	#else
+#else
 		secboot_param_set(header,&img_verify_info);
-	#endif
+#endif
 		if(strcmp("splloader",name) == 0 || strcmp("fdl1",name) == 0){
-		#ifdef TOS_TRUSTY
+#ifdef TOS_TRUSTY
 		img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
 		sprd_get_hash_key(IRAM_BEGIN,img_verify_info_tos->pubkeyhash);
-		#else
+#else
 		if(0 !=common_raw_read("splloader",(uint64_t)SPL_IMAGE_SIZE, (uint64_t)0, (unsigned char *)(header+fastboot_image_size)))
 			secf("splloader read error");
 		sprd_get_hash_key((uint8_t *)(header+fastboot_image_size),img_verify_info.pubkeyhash);
-		#endif
+#endif
 		}else if(strcmp("fdl2",name) == 0|| strcmp("uboot",name) == 0){
-			#ifdef TOS_TRUSTY
+#ifdef TOS_TRUSTY
 			img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
 			sprd_get_hash_key((CONFIG_SYS_TEXT_BASE - 0x200),img_verify_info_tos->pubkeyhash);
-			#else
+#else
 			sprd_get_hash_key((CONFIG_SYS_TEXT_BASE - 0x200),img_verify_info.pubkeyhash);
-			#endif
+#endif
 		}else if(strcmp("splloader0",name) == 0){
-			#ifdef TOS_TRUSTY
+#ifdef TOS_TRUSTY
+                        if (header) {
+				imghdr =  (sys_img_header *) header;
+				if (imghdr->mMagicNum != IMG_BAK_HEADER ) {
+					secf("Invalid image");
+					while(1);
+				}
+				for (i = 0; i < 32; i++) {
+					if (imghdr->mPayloadHash[i] != 0) {
+						secf("Invalid image");
+						while(1);
+					}
+				}
+			} else 	{
+				secf("Image header empty");
+				while(1);
+			}
+
 			img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
 			memset(img_verify_info_tos->pubkeyhash,0xff,HASH_BYTE_LEN);
-			#else
+#else
 			memset(img_verify_info.pubkeyhash,0xff,HASH_BYTE_LEN);
-			#endif
+#endif
 		}
-	#ifdef TOS_TRUSTY
+#ifdef TOS_TRUSTY
 		ret = uboot_verify_img((imgToVerifyInfo*)img_verify_info_tos,sizeof(imgToVerifyInfo));
 		while(ret);
-	#else
+#else
 		uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
-	#endif
+#endif
 	}
 }
 
