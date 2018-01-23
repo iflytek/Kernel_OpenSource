@@ -22,6 +22,7 @@ extern void power_down_devices(unsigned pd_cmd);
 #define REG_FGU_CONFIG                  SCI_ADDR(REGS_FGU_BASE, 0x0004)
 #define REG_FGU_INT_EN                  SCI_ADDR(REGS_FGU_BASE, 0x0010)
 #define REG_FGU_INT_CLR                 SCI_ADDR(REGS_FGU_BASE, 0x0014)
+#define REG_FGU_INT_RAW                 SCI_ADDR(REGS_FGU_BASE, 0x0018)
 #define REG_FGU_VOLT_VAL                SCI_ADDR(REGS_FGU_BASE, 0x0020)
 #define REG_FGU_OCV_VAL                 SCI_ADDR(REGS_FGU_BASE, 0x0024)
 #define REG_FGU_POCV_VAL                SCI_ADDR(REGS_FGU_BASE, 0x0028)
@@ -29,6 +30,7 @@ extern void power_down_devices(unsigned pd_cmd);
 #define REG_FGU_CURT_OFFSET             SCI_ADDR(REGS_FGU_BASE, 0x0090)
 #define BIT_VOLT_H_VALID                ( BIT(12) )
 #define BITS_VOLT_DUTY(_x_)             ( (_x_) << 5 & (BIT(5)|BIT(6)) )
+#define BIT_VOL_READY_INT				(BIT(6))
 
 #define REG_FGU_USER_AREA_SET             SCI_ADDR(REGS_FGU_BASE, 0x00A0)
 #define REG_FGU_USER_AREA_CLEAR             SCI_ADDR(REGS_FGU_BASE, 0x00A4)
@@ -47,6 +49,8 @@ extern void power_down_devices(unsigned pd_cmd);
 #define SPRDBAT_FGUADC_CAL_NO         	0
 #define SPRDBAT_FGUADC_CAL_NV         	1
 #define SPRDBAT_FGUADC_CAL_CHIP		2
+#define VOL_READY_INT_THRESHOLD		1000
+
 
 static int fgu_nv_4200mv = 2752;
 static int fgu_nv_3600mv = 2374;
@@ -178,6 +182,8 @@ static int sprdfgu_cal_from_chip(void)
 
 void sprdfgu_init(void)
 {
+	int cnt = VOL_READY_INT_THRESHOLD;
+
 	sci_adi_set(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_FGU_EN);
 #if defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
 	sci_adi_set(ANA_REG_GLB_RTC_CLK_EN, BIT_RTC_FGU_EN);
@@ -187,6 +193,16 @@ void sprdfgu_init(void)
 	sci_adi_clr(REG_FGU_INT_EN, 0xFFFF);	//disable int after watchdog reset
 	sci_adi_set(REG_FGU_INT_CLR, 0xFFFF);
 	sci_adi_write(REG_FGU_CURT_OFFSET, 0, ~0);	//init offset after watchdog reset
+
+	/* When the symbol position BIT_VOL_READY_INT is 1,
+	 * the FGU voltage can be picked up
+	 */
+	while (!(sci_adi_read(REG_FGU_INT_RAW) & BIT_VOL_READY_INT) && cnt--){
+		mdelay(2);
+	}
+
+	if (cnt <= 0)
+		printf("error!!! fgu voltage not ready!");
 
 	sprdfgu_cal_from_chip();
 	sprdfgu_cal_init();
