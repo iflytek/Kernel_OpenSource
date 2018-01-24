@@ -122,7 +122,9 @@ typedef struct {
 STATIC_FUNC NAND_CTL controller;
 STATIC_FUNC NFC_BASE_T nfc_base;
 
-#define SPRD_NAND_CLOCK	(390)
+#define SPRD_NAND_CLOCK	(195)
+static struct sprd_nand_timing default_timing = {10, 25, 15};
+
 static uint32_t mMcInsNum;
 typedef struct {
 	uint8_t *programName;
@@ -465,40 +467,35 @@ STATIC_FUNC void nand_set_timing_config(NAND_CTL * this,struct sprd_nand_timing 
 		/* get acs value : 0ns */
 		reg_val |= ((2 & 0x1F) << NFC_ACS_OFFSET);
 
-		/* get ace value + 6ns read delay time, and rwl added */
-		temp_val = (timing->ace_ns + 6) * nfc_clk_MHz / 1000;
+		/* temp_val: 0: 1clock, 1: 2clocks... */
+		temp_val = timing->ace_ns * nfc_clk_MHz / 1000 - 1;
 		if (((timing->ace_ns * nfc_clk_MHz) % 1000)  != 0) {
 			temp_val++;
 		}
 		reg_val |= ((temp_val & 0x1F) << NFC_ACE_OFFSET);
 
 		/* get rws value : 20 ns */
-		temp_val = 20 * nfc_clk_MHz / 1000;
-		if (((timing->ace_ns * nfc_clk_MHz) % 1000)  != 0) {
-			temp_val++;
-		}
+		temp_val = 20 * nfc_clk_MHz / 1000 - 1;
 		reg_val |= ((temp_val & 0x3F) << NFC_RWS_OFFSET);
 
-		/* get rws value : 0 ns */
+		/* get rwe value : 0 ns */
 		reg_val |= ((2 & 0x1F) << NFC_RWE_OFFSET);
 
 		/* get rwh value */
-		temp_val = timing->rwh_ns * nfc_clk_MHz / 1000;
-		if (((timing->ace_ns * nfc_clk_MHz) % 1000)  != 0) {
+		temp_val = timing->rwh_ns * nfc_clk_MHz / 1000 -1;
+		if (((timing->rwh_ns * nfc_clk_MHz) % 1000)  != 0) {
 			temp_val++;
 		}
-		//temp_val = 0;
 		reg_val |= ((temp_val & 0x1F) << NFC_RWH_OFFSET);
 
 		/* get rwl value, 6 is read delay time*/
-		temp_val = timing->rwl_ns * nfc_clk_MHz / 1000;
-		if (((timing->ace_ns * nfc_clk_MHz) % 1000)  != 0) {
+		temp_val = timing->rwl_ns * nfc_clk_MHz / 1000 - 1;
+		if (((timing->rwl_ns * nfc_clk_MHz) % 1000)  != 0) {
 			temp_val++;
 		}
-		//temp_val = 2;
 		reg_val |= (temp_val & 0x3F);
 
-		DPRINT("%s nand timing val: 0x%x\n\r", __func__, reg_val);
+		DPRINT("%s nand timing val: 0x%x, base clk:%d\n\r", __func__, reg_val, nfc_clk_MHz);
 
 		this->NFC_Time0_R = reg_val ;
 		this->NFC_Time0_W = reg_val;
@@ -1970,7 +1967,7 @@ STATIC_FUNC int nand_drv_probe(NAND_CTL *dev)
 	int ret;
 
 	memset(this, 0, sizeof(NAND_CTL));
-	
+
 	printf("nand_drv_probe\n");
 
 	ret = _getGlobeResource(this);
@@ -1983,6 +1980,8 @@ STATIC_FUNC int nand_drv_probe(NAND_CTL *dev)
 	}
 
 	_init_reg_state0(this);
+
+	nand_set_timing_config(this, &default_timing, SPRD_NAND_CLOCK);
 
 	this->csNum = 1;
 	this->cs[0] = 0;
