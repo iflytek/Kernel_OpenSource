@@ -19,6 +19,8 @@
 #include <secureboot/sec_common.h>
 #include "uboot_sec_drv.h"
 
+DECLARE_GLOBAL_DATA_PTR;
+
 #define  SOCID_SIZE_IN_WORDS 8
 #define  KCE_SIZE_IN_BYTES   16
 
@@ -29,9 +31,9 @@ int secure_efuse_program_sansa(void)
   int ret=0;
   printf("###### read_spl_image ######\n");
   /**read spl image**/
-  common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)SAVE_SPL_IMAGE);
+  common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)gd->verify_base);
 
-  g_imgToVerInfo.img_addr = SAVE_SPL_IMAGE;
+  g_imgToVerInfo.img_addr = gd->verify_base;
   g_imgToVerInfo.img_len = SPL_IMAGE_SIZE;
   g_imgToVerInfo.flag = SANSA_FLAG;
 
@@ -119,9 +121,9 @@ void sansa_calc_hbk(void)
   if(DISABLE_DX_DEBUG_CONTROL != (t_readValue&DISABLE_DX_DEBUG_CONTROL))
   {
     /**read spl image**/
-    common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)SAVE_SPL_IMAGE);
+    common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)gd->verify_base);
 
-    g_imgToVerInfo.img_addr = SAVE_SPL_IMAGE;
+    g_imgToVerInfo.img_addr = gd->verify_base;
     g_imgToVerInfo.img_len = SPL_IMAGE_SIZE;
     g_imgToVerInfo.flag = SANSA_FLAG;
 

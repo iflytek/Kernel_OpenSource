@@ -7,7 +7,7 @@
 #include<crypto/sprdrsa.h>
 #include<secure_efuse.h>
 #include<asm/arch/chip_releted_def.h>
-#include <sprd_imgversion.h>
+#include<sprd_imgversion.h>
 
 #define VBOOT_STATUS_LOCK (0)
 #define VBOOT_STATUS_UNLOCK (1)
@@ -84,7 +84,7 @@ extern imgToVerifyInfo img_verify_info;
 #ifdef TOS_TRUSTY
 extern imgToVerifyInfo *img_verify_info_tos;
 #define  PAGE_ALIGN 4096
-#define  ARG_START_ADRESS 0x98100000//0x94000000+64M
+//#define  ARG_START_ADRESS 0x98100000//0x94000000+64M
 #endif
 extern VbootVerifyInfo *vboot_verify_info;
 
@@ -107,13 +107,13 @@ extern VbootVerifyInfo *vboot_verify_info;
 #ifdef CONFIG_SOC_IWHALE2
 #define VERIFY_ADDR  (0x29000000)
 #else
-#define VERIFY_ADDR  (CONFIG_SYS_TEXT_BASE - RESERVE_SIZE)
+//#define VERIFY_ADDR  (CONFIG_SYS_TEXT_BASE - RESERVE_SIZE)
 #endif
 
 #ifdef CONFIG_VBOOT_V2
 //#define VBMETA_IMG_MAX_SIZE 0x800000
 //#define VBOOT_BUFFER_ADDR  (VERIFY_ADDR - RESERVE_SIZE+ VBMETA_IMG_MAX_SIZE) /*0x99800000 ~ 0x9c000000 40MB*/
-#define VBMETA_IMG_ADDR  (VERIFY_ADDR - RESERVE_SIZE) /*0x99000000 ~ 0x99800000 8MB*/
+//#define VBMETA_IMG_ADDR  (VERIFY_ADDR - RESERVE_SIZE) /*0x99000000 ~ 0x99800000 8MB*/
 #define VBMETA_PARTITION_MAX_SIZE (1024*1024)
 
 typedef enum GetKeyFrom {
@@ -132,7 +132,7 @@ typedef enum GetKeyFrom {
 SPL_EMMC_SECTOR_NUM=SPL_IMAGE_SIZE / SECTOR_SIZE
 **/
 #define SPL_EMMC_SECTOR_NUM  (SPL_IMAGE_SIZE/SECTION_SIZE)
-#define SAVE_SPL_IMAGE  VERIFY_ADDR
+//#define SAVE_SPL_IMAGE  VERIFY_ADDR
 
 #define MAX_PACKED_IMAGE_SIZE  0x1400000  // 20MB
 #define IMG_BAK_HEADER 0x42544844
@@ -155,6 +155,8 @@ typedef enum VERIFY_RESULT {
 	VERIFY_STOP_WRITE,
 	VERIFY_SPECIAL
 } VERIFY_RESULT;
+
+int get_secboot_base_from_dt(void);
 
 VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name, 
 				uint32_t rcv_size, uint32_t total_size, unsigned char * buf);

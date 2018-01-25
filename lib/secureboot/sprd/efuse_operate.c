@@ -4,6 +4,8 @@
 #include <sprd_mmc.h>
 #include <secureboot/sec_common.h>
 
+DECLARE_GLOBAL_DATA_PTR;
+
 #define DDIE_EFUSE		(0)
 #define ARM7_EFUSE		(1)
 #define ADIE_EFUSE		(2)
@@ -374,9 +376,9 @@ int secure_efuse_program_sprd(void)
 	//unsigned char t_splImageBuf[SPL_IMAGE_SIZE];
 	printf("###### secure_efuse_program_sprd ######\n"); 
 	/**read spl image**/
-	//Emmc_Read(PARTITION_BOOT1, 0, SPL_EMMC_SECTOR_NUM, (unsigned char *)SAVE_SPL_IMAGE);
-	common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)SAVE_SPL_IMAGE);
-	sprd_get_pubk(SAVE_SPL_IMAGE,sprd_pubkey);
+	//Emmc_Read(PARTITION_BOOT1, 0, SPL_EMMC_SECTOR_NUM, (unsigned char *)gd->verify_base);
+	common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)gd->verify_base);
+	sprd_get_pubk(gd->verify_base,sprd_pubkey);
 	cal_sha256(sprd_pubkey,SPRD_PUBKEY_HASHLEN,sha256.sha256_char);
 	sprintf(sha256_string,"%08x%08x%08x%08x%08x%08x%08x%08x", sha256.sha256_int[0],
 	sha256.sha256_int[1],
@@ -389,7 +391,7 @@ int secure_efuse_program_sprd(void)
 	//  -----   write SHA256 key Efuse   -----
 	//dumpHex("sha256",&sha256,32);
 	//dumpHex("sha256_string",sha256_string,64);
-	//g_imgToVerInfo.img_addr = SAVE_SPL_IMAGE;
+	//g_imgToVerInfo.img_addr = gd->verify_base;
 	//g_imgToVerInfo.img_len = SPL_IMAGE_SIZE;
 	g_imgToVerInfo.img_addr = sha256_string;
 	g_imgToVerInfo.img_len = 64;

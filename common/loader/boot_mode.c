@@ -183,6 +183,10 @@ extern int drv_lcd_init (void);
 	set_vibrator(0);
 #endif
 	//MMU_DisableIDCM();
+#ifdef CONFIG_SECBOOT
+	get_secboot_base_from_dt();
+#endif
+
 	do_fastboot();
 
 	return;
@@ -193,6 +197,9 @@ void autodloader_mode(void)
 {
 	debugf("Enter autodloader mode\n");
 
+#ifdef CONFIG_SECBOOT
+	get_secboot_base_from_dt();
+#endif
 	/* remap iram */
 	//autodlader_remap();
 	/* main handler receive and jump */

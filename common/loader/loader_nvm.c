@@ -40,6 +40,8 @@ extern void aon_lpc_config();
 #include "dev_tree.h"
 #endif
 
+DECLARE_GLOBAL_DATA_PTR;
+
 extern int lcd_line_length;
 extern enVerifiedState g_verifiedbootstate;
 
@@ -549,11 +551,11 @@ int _boot_load_required_image(boot_image_required_t img_info)
 		       exe_size);
 #elif defined (CONFIG_SECBOOT)
 		/***secboot 2nd step***/
-		secboot_secure_process_flow(img_info.partition,(img_info.size + CERT_SIZE),0,(char *)VERIFY_ADDR);
+		secboot_secure_process_flow(img_info.partition,(img_info.size + CERT_SIZE),0,(char *)gd->verify_base);
 #if defined (CONFIG_VBOOT_V2)
-		memcpy(img_info.mem_addr,VERIFY_ADDR,img_info.size);
+		memcpy(img_info.mem_addr,gd->verify_base,img_info.size);
 #else
-		memcpy(img_info.mem_addr,(VERIFY_ADDR + SYS_HEADER_SIZE),img_info.size);
+		memcpy(img_info.mem_addr,(gd->verify_base + SYS_HEADER_SIZE),img_info.size);
 #endif
 #else  // Secure boot is not turned on
 		exe_offset = get_modem_img_info(&img_info, 0,
@@ -1229,7 +1231,7 @@ int take_action_with_vbootret(void)
 void pass_chip_uid_to_tos()
 {
     //u32 blocks[2]/* = {0} */__attribute__((aligned(4096)));
-    u32 *blocks = VERIFY_ADDR;
+    u32 *blocks = gd->verify_base;
 
     printf("pass_chip_uid_to_tos()...\n");
 #if defined (CONFIG_SPRD_UID)
@@ -1328,7 +1330,7 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	if((strncmp(boot_mode_type_str, "cali", 4)) || (SECURE_LCS == lcs))
 	{
 		printf("partition:%s\n",partition);
-		secboot_secure_process_flow(partition,0,0,(char *)VERIFY_ADDR);
+		secboot_secure_process_flow(partition,0,0,(char *)gd->verify_base);
 	}
 #else
 	/*set v-boot binding data eg:lock status*/
@@ -1336,7 +1338,7 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	pass_pubkey_to_tos();
 
 	/***secboot 2nd step***/
-	secboot_secure_process_flow(partition,0,0,(char *)VERIFY_ADDR);
+	secboot_secure_process_flow(partition,0,0,(char *)gd->verify_base);
 
 	//things to do refer to verify ret
 	take_action_with_vbootret();

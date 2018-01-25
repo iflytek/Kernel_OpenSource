@@ -1,6 +1,8 @@
 #include <malloc.h>
 #include "sansa_secure_boot.h"
 
+DECLARE_GLOBAL_DATA_PTR;
+
 void flush_dcache_area(void *va,size_t len)
 {
 	flush_dcache_range(va, (char *)va + len -1);
@@ -246,7 +248,7 @@ void hexdump(const char *title, const unsigned char *s, int l)
 uint8_t *sansa_reassemble_packed_img(uint8_t *p_in)
 {
     sys_img_header  *p_imgh = NULL;
-    uint8_t         *p_out = VERIFY_ADDR;
+    uint8_t         *p_out = gd->verify_base;
     uint32_t         header_len = sizeof(sys_img_header);
     uint32_t         in_off = 0, out_off = 0, new_size = 0;
 
@@ -320,8 +322,8 @@ void sansa_fb_secure_verify(uint8_t *name, uint8_t *header, uint8_t *code)
         secboot_param_set((uint8_t *)header,&img_verify_info);
         /*verify sml,trustos,uboot*/
         if (strcmp("splloader",name) == 0) {
-            common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)SAVE_SPL_IMAGE);
-            sansa_get_hash_key(SAVE_SPL_IMAGE,img_verify_info.pubkeyhash);
+            common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)gd->verify_base);
+            sansa_get_hash_key(gd->verify_base,img_verify_info.pubkeyhash);
         }
         /*verify boot,recovery,modem ..*/
         else if (strcmp("uboot",name) == 0) {

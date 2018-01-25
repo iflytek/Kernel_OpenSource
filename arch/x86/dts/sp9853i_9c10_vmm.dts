@@ -26,6 +26,18 @@
 		#address-cells = <2>;
                 #size-cells = <2>;
                 ranges;
+		secboot_arg_reserved: secboot-arg-mem@57a58000{
+			reg = <0x0 0x57a58000 0x0 0xf00000>;
+		};
+
+		secboot_vbmeta_reserved: secboot-vbmeta-mem@58958000{
+			reg = <0x0 0x58958000 0x0 0x800000>;
+		};
+
+		secboot_verify_reserved: secboot-verify-mem@59158000{
+			reg = <0x0 0x59158000 0x0 0x3000000>;
+		};
+
 		/* fb */
 		fb_reserved: fb-mem@5c158000{
 			reg = <0 0x5c158000 0 0x02060000>;

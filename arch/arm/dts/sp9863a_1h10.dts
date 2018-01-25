@@ -33,6 +33,18 @@
 			reg = <0x0 0x96000000 0x0 0x00100000>;
 		};
 
+		secboot_arg_reserved: secboot-arg-mem@98100000{
+			reg = <0x0 0x98100000 0x0 0xf00000>;
+		};
+
+		secboot_vbmeta_reserved: secboot-vbmeta-mem@99000000{
+			reg = <0x0 0x99000000 0x0 0x800000>;
+		};
+
+		secboot_verify_reserved: secboot-verify-mem@99800000{
+			reg = <0x0 0x99800000 0x0 0x3000000>;
+		};
+
 		/* 1080x1920x4Bytes x 4Buffers */
 		fb_reserved: framebuffer@9d000000{
 			reg = <0x0 0x9d000000 0x0 0x2000000>;

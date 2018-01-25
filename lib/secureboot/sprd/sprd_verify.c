@@ -11,6 +11,7 @@
 #include <avb/avb_sha.h>
 #endif
 
+DECLARE_GLOBAL_DATA_PTR;
 
 #define SEC_DEBUG
 
@@ -560,14 +561,14 @@ void sprd_fb_secure_vboot_verify(uint8_t *name,uint8_t *partition_name,uint8_t *
 			}
 
 			sys_img_header *img_header = (sys_img_header *)(header);
-			//header+sizeof(sys_img_header) will not be aigned to 4K for tos, so copy to VBMETA_IMG_ADDR
-			memcpy(VBMETA_IMG_ADDR,header+sizeof(sys_img_header),img_header->mImgSize);
-			sprd_fb_secure_vboot_prepare(partition_name, VBMETA_IMG_ADDR, VBMETA_IMG_ADDR);
+			//header+sizeof(sys_img_header) will not be aigned to 4K for tos, so copy to gd->vbmeta_img_base
+			memcpy(gd->vbmeta_img_base,header+sizeof(sys_img_header),img_header->mImgSize);
+			sprd_fb_secure_vboot_prepare(partition_name, gd->vbmeta_img_base, gd->vbmeta_img_base);
 		}
 		else
 		{
 		//prepare verify infomation
-			sprd_fb_secure_vboot_prepare(partition_name, header, VBMETA_IMG_ADDR);
+			sprd_fb_secure_vboot_prepare(partition_name, header, gd->vbmeta_img_base);
 		}
 		uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
 	}
@@ -604,7 +605,7 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 	uint8_t hash[HASH_BYTE_LEN] = {0};
 	uint8_t ret = 1;
 	sys_img_header *imghdr;
-        uint32_t i;
+  uint32_t i;
 
 	secf("name: %s enter\r\n",name);
 	if(name){/*splloader is spl partiton, uboot is uboot partition which img the pubk hash stored*/
@@ -615,7 +616,7 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 #endif
 		if(strcmp("splloader",name) == 0 || strcmp("fdl1",name) == 0){
 #ifdef TOS_TRUSTY
-		img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
+		img_verify_info_tos->pubkeyhash = (uint8_t*)(gd->arg_start_base+PAGE_ALIGN);
 		sprd_get_hash_key(IRAM_BEGIN,img_verify_info_tos->pubkeyhash);
 #else
 		if(0 !=common_raw_read("splloader",(uint64_t)SPL_IMAGE_SIZE, (uint64_t)0, (unsigned char *)(header+fastboot_image_size)))
@@ -624,14 +625,14 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 #endif
 		}else if(strcmp("fdl2",name) == 0|| strcmp("uboot",name) == 0){
 #ifdef TOS_TRUSTY
-			img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
+			img_verify_info_tos->pubkeyhash = (uint8_t*)(gd->arg_start_base+PAGE_ALIGN);
 			sprd_get_hash_key((CONFIG_SYS_TEXT_BASE - 0x200),img_verify_info_tos->pubkeyhash);
 #else
 			sprd_get_hash_key((CONFIG_SYS_TEXT_BASE - 0x200),img_verify_info.pubkeyhash);
 #endif
 		}else if(strcmp("splloader0",name) == 0){
 #ifdef TOS_TRUSTY
-                        if (header) {
+        if (header) {
 				imghdr =  (sys_img_header *) header;
 				if (imghdr->mMagicNum != IMG_BAK_HEADER ) {
 					secf("Invalid image");
@@ -648,7 +649,7 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 				while(1);
 			}
 
-			img_verify_info_tos->pubkeyhash = (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
+			img_verify_info_tos->pubkeyhash = (uint8_t*)(gd->arg_start_base+PAGE_ALIGN);
 			memset(img_verify_info_tos->pubkeyhash,0xff,HASH_BYTE_LEN);
 #else
 			memset(img_verify_info.pubkeyhash,0xff,HASH_BYTE_LEN);
@@ -676,7 +677,7 @@ void sprd_calc_hbk(void)
 		{
 		/**read spl image**/
 		#ifdef TOS_TRUSTY
-		img_verify_info_tos->img_addr= (uint8_t*)(ARG_START_ADRESS+PAGE_ALIGN);
+		img_verify_info_tos->img_addr= (uint8_t*)(gd->arg_start_base+PAGE_ALIGN);
 		memcpy((unsigned char *)img_verify_info_tos->img_addr,IRAM_BEGIN,SPL_IMAGE_SIZE);
 		//common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)img_verify_info_tos->img_addr);
 		img_verify_info_tos->img_len = SPL_IMAGE_SIZE;

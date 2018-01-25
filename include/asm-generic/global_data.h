@@ -35,6 +35,11 @@ typedef struct global_data {
 #if defined(CONFIG_LCD) || defined(CONFIG_VIDEO)
 	unsigned long fb_base;	/* Base address of framebuffer mem */
 #endif
+#ifdef CONFIG_SECBOOT
+  unsigned long arg_start_base;
+  unsigned long vbmeta_img_base;
+  unsigned long verify_base;
+#endif
 #if defined(CONFIG_POST) || defined(CONFIG_LOGBUFFER)
 	unsigned long post_log_word;  /* Record POST activities */
 	unsigned long post_log_res; /* success of POST test */

@@ -7,6 +7,7 @@
 #include <asm/arch/sprd_reg.h>
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>
+#include <fdtdec.h>
 #ifdef CONFIG_VBOOT_V2
 #include <avb/uboot_avb_ops.h>
 #include <avb/avb_footer.h>
@@ -15,15 +16,17 @@
 #include "sprd_common_rw.h"
 #include "loader_common.h"
 
+DECLARE_GLOBAL_DATA_PTR;
+
 #define EFUSE_HASH_STARTID 2
 #ifdef TOS_TRUSTY
-imgToVerifyInfo *img_verify_info_tos = ARG_START_ADRESS;
-VbootVerifyInfo *vboot_verify_info = ARG_START_ADRESS;
+imgToVerifyInfo *img_verify_info_tos;
+VbootVerifyInfo *vboot_verify_info;
 #else
 VbootVerifyInfo vboot_verify_info_s = {0};
 VbootVerifyInfo *vboot_verify_info = &vboot_verify_info_s;
 #endif
- imgToVerifyInfo img_verify_info = {0};
+imgToVerifyInfo img_verify_info = {0};
 uint8_t pubkhash[32];
 VbootVerInfo vboot_ver_info __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
 unsigned char vboot_para_partition_name[SEC_MAX_PARTITION_NAME_LEN] __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
@@ -372,38 +375,106 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 	return VERIFY_OK;
 }
 
+int get_secboot_base_from_dt(void)
+{
+	int str_len = 0, offset;
+	unsigned long base, size;
+	char nodename[256];
+	char *pStr = NULL;
+	const void *fdt_blob = gd->fdt_blob;
+	int parentoffset = fdt_path_offset(fdt_blob, "/reserved-memory");
+
+	if (parentoffset < 0) {
+		debugf("fdt_reserved_mem_multimedia_parse: cann't find mm_reserved \n");
+		return -1;
+	}
+
+	for (offset = fdt_first_subnode(fdt_blob, parentoffset);
+		 offset >= 0; offset = fdt_next_subnode(fdt_blob, offset)) {
+		sprintf(nodename, "%s", fdt_get_name(fdt_blob, offset, NULL));
+		str_len = strlen(nodename);
+		nodename[str_len] = '\0';
+
+		pStr = strstr(nodename,"secboot-arg-mem");
+		if (pStr) {
+			if (fdtdec_decode_region(fdt_blob, offset, "reg", &base, &size) < 0) {
+				debugf("cannot find reg prop, go to next node.\n" );
+				goto next;
+			}
+			gd->arg_start_base = base;
+		}
+
+		pStr = strstr(nodename,"secboot-vbmeta-mem");
+		if (pStr) {
+			if (fdtdec_decode_region(fdt_blob, offset, "reg", &base, &size) < 0) {
+				debugf("cannot find reg prop, go to next node.\n" );
+				goto next;
+			}
+			gd->vbmeta_img_base = base;
+		}
+
+		pStr = strstr(nodename,"secboot-verify-mem");
+		if (pStr) {
+			if (fdtdec_decode_region(fdt_blob, offset, "reg", &base, &size) < 0) {
+				debugf("cannot find reg prop, go to next node.\n" );
+				goto next;
+			}
+			gd->verify_base = base;
+		}
+
+next:;
+	}
+
+	debugf("gd->arg_start_base: 0x%08x, gd->vbmeta_img_base: 0x%08x, gd->verify_base: 0x%08x\n",
+					gd->arg_start_base, gd->vbmeta_img_base, gd->verify_base);
+
+#ifdef TOS_TRUSTY
+	img_verify_info_tos = (imgToVerifyInfo *)gd->arg_start_base;
+	vboot_verify_info = (VbootVerifyInfo *)gd->arg_start_base;
+#endif
+
+	return 0;
+}
+
+
 void secboot_init(char *partition_name)
 {
-       int ret = 0;
-       uint32_t rpmb_version = 0;
+	int ret = 0;
+	uint32_t rpmb_version = 0;
+
+	if (ret = get_secboot_base_from_dt()) {
+		debugf("Getting secure boot base failed\n");
+		while(ret);
+	}
+
 #if defined (CONFIG_SANSA_SECBOOT)
 	sansa_calc_hbk();
 #endif
 #ifdef CONFIG_VBOOT_V2
 	/*malloc one memory to vbmeta image buffer use. ok? 2KB*/
-	debugf("VERIFY_ADDR:0x%x, KERNEL_ADR:0x%x. \n", VERIFY_ADDR, KERNEL_ADR);
+	debugf("gd->verify_base:0x%x, KERNEL_ADR:0x%x. \n", gd->verify_base, KERNEL_ADR);
 	vboot_secure_process_prepare();
-	vboot_secure_process_init(partition_name, VERIFY_ADDR, VBMETA_IMG_ADDR);
+	vboot_secure_process_init(partition_name, gd->verify_base, gd->vbmeta_img_base);
 #endif
 #ifdef CONFIG_SPRD_SECBOOT
-	#ifdef CONFIG_NONTRUSTY_ANTIROLLBACK
-		ret = sprd_get_imgversion(0, &rpmb_version);
-		if(!ret) {
-			debug("read rpmb version: %d,ret = %d\n", rpmb_version,ret);
-		} else {
-			debug(">>>>> Warning:read rollback version return error! ret = %d\n",ret);
-			rpmb_version = 0;
-		}
-		debug("Transfer non_trusty rollback_version here! rpmb_version = %d\n",rpmb_version);
-		uboot_vboot_set_ver(rpmb_version, sizeof(rpmb_version));
-	#endif
+#ifdef CONFIG_NONTRUSTY_ANTIROLLBACK
+	ret = sprd_get_imgversion(0, &rpmb_version);
+	if(!ret) {
+		debug("read rpmb version: %d,ret = %d\n", rpmb_version,ret);
+	} else {
+		debug(">>>>> Warning:read rollback version return error! ret = %d\n",ret);
+		rpmb_version = 0;
+	}
+	debug("Transfer non_trusty rollback_version here! rpmb_version = %d\n",rpmb_version);
+	uboot_vboot_set_ver(rpmb_version, sizeof(rpmb_version));
+#endif
 #endif
 }
 
 void secboot_terminal(void)
 {
 	#if defined (CONFIG_SPRD_SECBOOT)
-	secboot_param_set(VERIFY_ADDR,&img_verify_info);
+	secboot_param_set(gd->verify_base,&img_verify_info);
 	sprd_calc_hbk();
 	#endif
 }
@@ -426,15 +497,15 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 #else
 	secure_load_partition(partition_name,size,offset,ram_addr);
 #if defined (TOS_TRUSTY)
-	secboot_param_set(VERIFY_ADDR,img_verify_info_tos);
-	img_verify_info_tos->pubkeyhash = (uint8_t*)ARG_START_ADRESS+PAGE_ALIGN;
+	secboot_param_set(gd->verify_base,img_verify_info_tos);
+	img_verify_info_tos->pubkeyhash = (uint8_t*)gd->arg_start_base+PAGE_ALIGN;
 	secboot_get_pubkhash(UBOOT_START,img_verify_info_tos->pubkeyhash);
 
 	printf("p1:%x, p2:%x,P3:%x,p4:%x,p5:%x\n",img_verify_info_tos->img_addr,img_verify_info_tos->img_len,img_verify_info_tos->pubkeyhash,img_verify_info_tos->hash_len,img_verify_info_tos->flag);
 	ret = uboot_verify_img((imgToVerifyInfo*)img_verify_info_tos,sizeof(imgToVerifyInfo));
 	while(ret);
 #else
-	secboot_param_set(VERIFY_ADDR,&img_verify_info);
+	secboot_param_set(gd->verify_base,&img_verify_info);
 	secboot_get_pubkhash(UBOOT_START,img_verify_info.pubkeyhash);
 	uboot_verify_img(&img_verify_info,sizeof(imgToVerifyInfo));
 #endif
