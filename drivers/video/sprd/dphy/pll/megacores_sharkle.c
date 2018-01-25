@@ -504,7 +504,7 @@ static int dphy_timing_config(struct dphy_context *ctx)
 	range[H] = INFINITY;
 	val[CLK] = ROUND_UP(range[L] * factor - constant, t_half_byteck);
 	range[L] = MAX(8 * t_ui, 60 * scale + 4 * t_ui);
-	val[DATA] = ROUND_UP(range[L] * 3 / 2 - constant, t_half_byteck) - 1;
+	val[DATA] = ROUND_UP(range[L] * 3 / 2 - constant, t_half_byteck) - 2;
 	dphy_set_timing_regs(regmap, TRAIL_TIME, val);
 
 	/* EXIT_TIME: */
