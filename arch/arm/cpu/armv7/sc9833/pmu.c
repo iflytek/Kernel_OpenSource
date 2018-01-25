@@ -256,7 +256,7 @@ void pmu_commom_config(void)
 	);
 }
 
-/*deep_sleep: 0.8V, normal: 1.05V; OD: 1.2V*/
+/*deep_sleep: 0.85V, normal: 1.05V; OD: 1.2V*/
 static void dcdc_core_ds_config(uint32_t core_cal_para, uint32_t core_ctrl_para)
 {
 	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1,
@@ -311,7 +311,7 @@ void CSP_Init(uint32_t gen_para)
 {
 	//uint32_t reg_val;
 	pmu_commom_config();
-	dcdc_core_ds_config(0,4);
+	dcdc_core_ds_config(16,4);
 	clk_auto_gate_enable();
 }
 #endif
