@@ -458,6 +458,17 @@ void pmu_commom_config(void)
 		BIT_PMU_APB_DCDC_PWR_ON_DLY(0x82) |
 		0
 	);
+
+	reg_val = CHIP_REG_GET(REG_PMU_APB_SLEEP_CTRL3) & 0xFF83FFFF;
+	CHIP_REG_SET(REG_PMU_APB_SLEEP_CTRL3,
+		reg_val |
+		BIT_PMU_APB_GPU_PWR_HS_ACK_EN |
+		BIT_PMU_APB_MM_VSP_PWR_HS_ACK_EN |
+		BIT_PMU_APB_MM_PWR_HS_ACK_EN |
+		BIT_PMU_APB_DISP_PWR_HS_ACK_EN |
+		BIT_PMU_APB_AON_DMA_PWR_HS_ACK_EN |
+		0
+	);
 }
 
 extern void tmr_udelay (unsigned long usec);
