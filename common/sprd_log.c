@@ -269,9 +269,9 @@ int init_log_partition_hdr()
 		p_hdr->next_body = 1;
 
 		for(i = 0; i < LOG_BODY_NUM; i++) {
-			p_hdr->body[i].p_offset =  LOG_HEADER_SIZE + i * LOG_BODY_SIZE;
+			p_hdr->body[i].p_offset =  LOG_HEADER_SIZE + i *LOG_BODY_SIZE;
 			p_hdr->body[i].b_offset = 0;
-			p_hdr->body[i].size = LOG_BODY_SIZE;
+			p_hdr->body[i].size = LOG_BODY_SIZE;	//the same as buffer size
 		}
 
 		if (0 != common_raw_write(UBOOT_LOG_PARTITION, (uint64_t)LOG_HEADER_SIZE, (uint64_t)0, log_st.log_type_p_offset, hdr_buf)) {
@@ -280,7 +280,7 @@ int init_log_partition_hdr()
 		}
 	}else {
 		if(log_st.flag == SUCESS) {
-			printf("%s(): log partiton has been initialied!/n",__func__);
+			printf("%s(): log partiton has been initialied!\n",__func__);
 			return 0;
 		}
 

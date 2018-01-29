@@ -60,7 +60,12 @@ extern void dataflash_print_info(void);
 #endif
 
 #ifdef CONFIG_SPRD_LOG
+#ifndef CONFIG_DTS_MEM_LAYOUT
 LOG_BUFFER *p_log_buffer = (LOG_BUFFER *)LOG_BUFFER_ADDR;
+#else
+LOG_BUFFER *p_log_buffer = NULL;
+uint32_t log_buffer_enabled_flag = 0;
+#endif
 #endif
 
 /************************************************************************
@@ -100,16 +105,49 @@ static int init_baudrate(void)
 #ifdef CONFIG_SPRD_LOG
 static int init_log_buffer(void)
 {
+#ifdef CONFIG_DTS_MEM_LAYOUT
+	unsigned long buf_base, buf_size;
+	get_buffer_base_size_from_dt("heap@8", &buf_base, &buf_size);
+
+	p_log_buffer = (LOG_BUFFER *)buf_base;
+	p_log_buffer->addr = (unsigned char *)ALIGN(buf_base + sizeof(LOG_BUFFER), 8);
+
+	//debug("dts log buffer size %lx\n", buf_size);
+	if (buf_size < LOG_BUFFER_SIZE + sizeof(LOG_BUFFER)) {
+		errorf("log buf size in uboot dts is too small\n");
+		return -1;
+	}
+#else
 	p_log_buffer->addr = LOG_BUFFER_START_ADDR;
-	p_log_buffer->pointer = LOG_BUFFER_START_ADDR;
+#endif
+
 	p_log_buffer->size = LOG_BUFFER_SIZE;
+	p_log_buffer->pointer = p_log_buffer->addr;
 	p_log_buffer->used = 0;
 	p_log_buffer->spare = p_log_buffer->size - p_log_buffer->used;
 
 	memset((void *)p_log_buffer->addr, 0, p_log_buffer->size);
 
+#ifdef CONFIG_DTS_MEM_LAYOUT
+	log_buffer_enabled_flag = 1;
+#endif
+
+	//debug("log base %lx, log buffer addr %x, log buffer size %x\n", p_log_buffer, p_log_buffer->addr, p_log_buffer->size);
 	return (0);
 }
+
+#ifdef CONFIG_DTS_MEM_LAYOUT
+static int get_log_buffer()
+{
+	unsigned long buf_base, buf_size;
+	get_buffer_base_size_from_dt("heap@8", &buf_base, &buf_size);
+	p_log_buffer = (LOG_BUFFER *)buf_base;
+	log_buffer_enabled_flag = 1;
+	debug("log base %lx\n", p_log_buffer);
+
+	return 0;
+}
+#endif
 #endif
 
 static int display_banner(void)
@@ -532,6 +570,11 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #if !defined(CONFIG_SYS_NO_FLASH)
 	ulong flash_size;
 #endif
+
+#if defined(CONFIG_SPRD_LOG) && defined(CONFIG_DTS_MEM_LAYOUT)
+	get_log_buffer();
+#endif
+
 	uboot_start_time = SCI_GetTickCount();
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */

@@ -96,5 +96,7 @@ OPERATE_STATUS dl_read_ref_info(char *part_name, uint16_t size, uint64_t offset,
 
 OPERATE_STATUS dl_record_pacdatetime(uchar * buf, uint64_t size);
 
-
+#ifdef CONFIG_DTS_MEM_LAYOUT
+int set_buf_base_size();
+#endif
 #endif //_FDL_EMMC_OPERATE_H

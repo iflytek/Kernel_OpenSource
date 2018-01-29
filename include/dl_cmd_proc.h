@@ -58,4 +58,8 @@ int dl_cmd_end_process(dl_packet_t *packet, void *arg);
 int dl_cmd_read_ref_info(dl_packet_t *packet, void *arg);
 int dl_cmd_disable_hdlc(dl_packet_t *packet, void *arg);
 int dl_cmd_write_datetime(dl_packet_t *packet, void *arg);
+
+#ifdef CONFIG_DTS_MEM_LAYOUT
+int dl_set_buf_base_size();
+#endif
 #endif /*DL_CMD_PROC_H */

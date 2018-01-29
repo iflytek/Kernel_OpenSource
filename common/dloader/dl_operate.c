@@ -1,5 +1,4 @@
 #include "common.h"
-
 #include <malloc.h>
 #include <asm/arch/chip_releted_def.h>
 #include "dl_common.h"
@@ -13,7 +12,6 @@
 #include <otp_helper.h>
 #include <chipram_env.h>
 
-
 static DL_EMMC_FILE_STATUS g_status;
 static DL_EMMC_STATUS g_dl_eMMCStatus;
 
@@ -23,12 +21,18 @@ static unsigned int img_backup_flag = 0;
 
 extern fastboot_image_size;
 
+# ifndef CONFIG_DTS_MEM_LAYOUT
 #ifdef CONFIG_X86
 unsigned char *g_eMMCBuf = (unsigned char *)0x35000000;
 #else
 unsigned char *g_eMMCBuf = (unsigned char *)0x82000000;
 #endif
 uint64_t  emmc_buf_size = SZ_256M;
+
+# else
+unsigned char *g_eMMCBuf = NULL;
+uint64_t  emmc_buf_size = 0;
+# endif
 
 /**
 	partitions not for raw data or normal usage(e.g. nv and prodinfo) should config here.
@@ -69,6 +73,43 @@ ALTER_BUFFER_ATTR alter_buffer2;
 ALTER_BUFFER_ATTR* current_buffer;
 
 /***********************************************************/
+#ifdef CONFIG_DTS_MEM_LAYOUT
+
+#define SET_DOWNLOAD_BUFFER_BASE_SIZE(basep, sizep)		get_buffer_base_size_from_dt("heap@5", basep, sizep)
+#define SET_ALT_BUFFER1_BASE_SIZE(basep, sizep)			get_buffer_base_size_from_dt("heap@6", basep, sizep)
+#define SET_ALT_BUFFER2_BASE_SIZE(basep, sizep)			get_buffer_base_size_from_dt("heap@7", basep, sizep)
+
+int set_buf_base_size()
+{
+	unsigned long buf_base, alt_buf1_base, alt_buf2_base;
+
+	if (SET_DOWNLOAD_BUFFER_BASE_SIZE(&buf_base, &emmc_buf_size) < 0) {
+		errorf("set download buffer error\n");
+		return -1;
+	}
+
+	if (SET_ALT_BUFFER1_BASE_SIZE(&alt_buf1_base, &alter_buffer1.size) < 0) {
+		errorf("set download alt buffer1 error\n");
+		return -1;
+	}
+
+	if (SET_ALT_BUFFER2_BASE_SIZE(&alt_buf2_base, &alter_buffer2.size) < 0) {
+		errorf("set download alt buffer2 error\n");
+		return -1;
+	}
+
+	g_eMMCBuf = (unsigned char *)ALIGN(buf_base , 8);
+	alter_buffer1.addr = (unsigned char *)ALIGN(alt_buf1_base , 8);
+	alter_buffer2.addr = (unsigned char *)ALIGN(alt_buf2_base , 8);
+
+	debugf("download buffer base %lx, size %llx\nalter buffer1 base %lx, size %x\nalter buffer2 base %lx, size %x\n",
+			g_eMMCBuf, emmc_buf_size,
+			alter_buffer1.addr, alter_buffer1.size,
+			alter_buffer2.addr, alter_buffer2.size);
+
+	return 0;
+}
+#endif
 
 uint16_t eMMCCheckSum(const uint32_t * src, int32_t len)
 {
@@ -335,27 +376,27 @@ uchar *_get_backup_partition_name(uchar * partition_name)
 
 void prepare_alternative_buffers(void)
 {
-
+#ifndef CONFIG_DTS_MEM_LAYOUT
 	alter_buffer1.addr = g_eMMCBuf + emmc_buf_size+ALTERNATIVE_BUFFER_SIZE;
-	alter_buffer1.pointer = alter_buffer1.addr;
 	alter_buffer1.size = ALTERNATIVE_BUFFER_SIZE;
+
+	alter_buffer2.addr = alter_buffer1.addr + 2*ALTERNATIVE_BUFFER_SIZE;
+	alter_buffer2.size = ALTERNATIVE_BUFFER_SIZE;
+#endif
+	alter_buffer1.pointer = alter_buffer1.addr;
 	alter_buffer1.used = 0;
 	alter_buffer1.spare = alter_buffer1.size;
 	alter_buffer1.status = BUFFER_CLEAN;
 	alter_buffer1.next = &alter_buffer2;
 
-	alter_buffer2.addr = alter_buffer1.addr + 2*ALTERNATIVE_BUFFER_SIZE;
 	alter_buffer2.pointer = alter_buffer2.addr;
-	alter_buffer2.size = ALTERNATIVE_BUFFER_SIZE;
 	alter_buffer2.used = 0;
 	alter_buffer2.spare = alter_buffer2.size;
 	alter_buffer2.status = BUFFER_CLEAN;
 	alter_buffer2.next = &alter_buffer1;
 
 	current_buffer = &alter_buffer1;
-
 	return;
-
 }
 
 int speedup_download_process(uint16_t size, char *buf)

@@ -25,7 +25,6 @@
 #include <asm/arch/chip_id.h>
 #endif
 
-
 static int dl_times=0;
 static struct dl_cmd *cmdlist = NULL;
 extern int sprd_clean_rtc(void);
@@ -35,7 +34,6 @@ typedef struct _DA_INFO_T_
 	uint32_t   dwVersion;
 	bool    bDisableHDLC; //0: Enable hdl; 1:Disable hdl
 }DA_INFO_T;
-
 
 void dl_cmd_register(enum dl_cmd_type type,
 		       int (*handle)(struct dl_packet *pkt, void *arg))
@@ -114,6 +112,10 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 #ifdef CONFIG_DL_POWER_CONTROL
 	dl_power_control();
+#endif
+
+#ifdef CONFIG_DTS_MEM_LAYOUT
+	dl_set_buf_base_size();
 #endif
 
 	/* register all cmd process functions */

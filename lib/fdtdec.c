@@ -623,7 +623,7 @@ int fdtdec_lookup_phandle(const void *blob, int node, const char *prop_name)
 	const u32 *phandle;
 	int lookup;
 
-	debug("%s: %s\n", __func__, prop_name);
+	//debug("%s: %s\n", __func__, prop_name);
 	phandle = fdt_getprop(blob, node, prop_name, NULL);
 	if (!phandle)
 		return -FDT_ERR_NOTFOUND;
@@ -926,8 +926,10 @@ int fdtdec_decode_region(const void *blob, int node, const char *prop_name,
 	const fdt_addr_t *cell;
 	int len;
 
+	/*
 	debug("%s: %s: %s\n", __func__, fdt_get_name(blob, node, NULL),
 	      prop_name);
+	*/
 	cell = fdt_getprop(blob, node, prop_name, &len);
 	if (!cell || (len < sizeof(fdt_addr_t) * 2)) {
 		debug("cell=%p, len=%d\n", cell, len);
@@ -947,9 +949,10 @@ In x86 ,we need to read 32bit address from 64bit dts for lcd frambuffer.
 	*basep = fdt_addr_to_cpu(temp[0]);
 	*sizep = fdt_size_to_cpu(temp[1]);
 #endif
-	debug("%s: base=%08lx, size=%lx\n", __func__, (ulong)*basep,
+	/*
+	debug(format, arg...)("%s: base=%08lx, size=%lx\n", __func__, (ulong)*basep,
 	      (ulong)*sizep);
-
+	*/
 	return 0;
 }
 

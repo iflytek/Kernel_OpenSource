@@ -215,6 +215,7 @@ obj-$(CONFIG_USB_KEYBOARD) += usb_kbd.o
 obj-$(CONFIG_CMD_DFU) += cmd_dfu.o
 obj-$(CONFIG_CMD_GPT) += cmd_gpt.o
 obj-$(CONFIG_SPRD_LOG) += sprd_log.o
+obj-$(CONFIG_DTS_MEM_LAYOUT) += sprd_fdt_uboot_dts.o
 
 # Power
 obj-$(CONFIG_CMD_PMIC) += cmd_pmic.o

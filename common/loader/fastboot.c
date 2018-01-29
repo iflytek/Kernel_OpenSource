@@ -127,10 +127,36 @@ extern unsigned int get_fblockflag(void);
 extern int set_fblockflag(unsigned int flag);
 #endif
 
+# ifndef CONFIG_DTS_MEM_LAYOUT
 #ifdef CONFIG_X86
 unsigned char *g_FbBuf = (unsigned char *)0x35000000;
 #else
 unsigned char *g_FbBuf = (unsigned char *)0x82000000;
+#endif
+
+# else
+unsigned char *g_FbBuf = NULL;
+uint64_t g_FbBuf_size = 0;
+# endif
+
+#ifdef CONFIG_DTS_MEM_LAYOUT
+#define SET_FASTBOOT_BUFFER_BASE_SIZE(basep, sizep)		get_buffer_base_size_from_dt("heap@4", basep, sizep)
+
+int set_fastboot_buf_base_size()
+{
+	unsigned long buf_base, buf_size;
+	if (SET_FASTBOOT_BUFFER_BASE_SIZE(&buf_base, &buf_size) < 0) {
+		errorf("set fastboot buffer error\n");
+		return -1;
+	}
+
+	g_FbBuf = (unsigned char *)ALIGN(buf_base , 8);
+	g_FbBuf_size = buf_size;
+
+	debugf("fastboot buffer base %lx, size %llx\n", g_FbBuf, g_FbBuf_size);
+
+	return 0;
+}
 #endif
 
 void fastboot_register(const char *prefix, void (*handle) (const char *arg, void *data, uint64_t sz))
@@ -951,9 +977,18 @@ int do_fastboot(void)
     tos_start_notify();
 #endif
 
+#ifdef CONFIG_DTS_MEM_LAYOUT
+	ret = set_fastboot_buf_base_size();
+	if (ret < 0)
+		return ret;
+#endif
+
 	ImageInfo.base_address = g_FbBuf;
 	/*except the u-boot occupied area , all RAM can be used as fastboot buffer */
 	ImageInfo.max_size = (uint64_t) (CONFIG_SYS_TEXT_BASE - (uint64_t)g_FbBuf);
+#ifdef CONFIG_DTS_MEM_LAYOUT
+	ImageInfo.max_size = g_FbBuf_size;
+#endif
 	ImageInfo.data_size = 0;
 
 	fastboot_register("getvar:", fb_cmd_getvar);

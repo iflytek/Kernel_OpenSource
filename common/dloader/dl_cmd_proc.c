@@ -77,6 +77,13 @@ static __inline void _send_reply(uint32_t err)
 	return;
 }
 
+#ifdef CONFIG_DTS_MEM_LAYOUT
+int dl_set_buf_base_size()
+{
+	return set_buf_base_size();
+}
+#endif
+
 int _parse_repartition_header(uchar * data, REPARTITION_TABLE_INFO * info, uchar ** list)
 {
 	uchar *  pointer = data;

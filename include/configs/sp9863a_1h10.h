@@ -70,6 +70,7 @@
 #define CONFIG_SOC_SHARKL3
 #define CONFIG_ADIE_SC2721
 
+#define CONFIG_DTS_MEM_LAYOUT
 
 /* SPRD Serial Configuration */
 #define CONFIG_SPRD_UART		1
@@ -82,6 +83,13 @@
 /* Default baud rate */
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+
+/*
+ * log config
+ */
+#define CONFIG_SPRD_LOG
+//#define CONFIG_LOG_2_SD
+#define CONFIG_LOG_2_EMMC
 
 /*sprd watchdog*/
 #define CONFIG_HW_WATCHDOG
