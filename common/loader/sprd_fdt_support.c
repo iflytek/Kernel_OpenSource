@@ -636,6 +636,62 @@ int fdt_fixup_iq_reserved_mem(void *fdt)
 	return ret;
 }
 
+int fdt_fixup_cp_reserved_mem(void *fdt)
+{
+	int i;
+	int offset, lenp;
+	int ret = 0;
+	uint32_t value[16];
+	char *mode;
+	fdt_addr_t  s_addr;
+	fdt_addr_t  s_size;
+	const fdt_addr_t *cell;
+
+	offset = fdt_path_offset(fdt, "/reserved-memory");
+	if (offset < 0) {
+		errorf("cann't find reserved-memory node");
+		return -1;
+	}
+
+	offset = fdt_subnode_offset(fdt, offset, "cp-modem");
+	if (offset == -FDT_ERR_NOTFOUND) {
+		errorf("cann't find cp-modem@xxxx node\n");
+		return -1;
+	}
+
+	cell = fdt_getprop(fdt, offset, "sprd,cpdbg-size", &lenp);
+	if (!cell) {
+		debugf("the cp has no debug area");
+		return 0;
+	}
+
+	memcpy(&value[0], cell, sizeof(value[0]));
+	value[0] = __be32_to_cpu(value[0]);
+	debugf("cpdbg-size = %x\n", value[0]);
+
+	if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
+	{
+		errorf("cannot find reg prop in cp-modem@xxxx node");
+		return -1;
+	}
+	debugf("s_addr = %p, s_size = %p\n", s_addr, s_size);
+
+	s_size -= value[0];
+#ifdef CONFIG_PHYS_64BIT
+	s_addr = __cpu_to_be64(s_addr);
+	s_size = __cpu_to_be64(s_size);
+#else
+	s_addr = __cpu_to_be32(s_addr);
+	s_size = __cpu_to_be32(s_size);
+#endif
+	memcpy((char *)value, &s_addr, sizeof(fdt_addr_t));
+	memcpy((char *)value + sizeof(fdt_addr_t), &s_size, sizeof(fdt_addr_t));
+
+	ret = fdt_setprop(fdt, offset, "reg", value, 2 * sizeof(fdt_addr_t));
+
+	return ret;
+}
+
 int fdt_fixup_cp_boot(void *fdt)
 {
 	int ret = 0;

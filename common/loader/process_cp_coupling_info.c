@@ -19,6 +19,7 @@ extern void of_bus_default_count_cells(void *blob, int parentoffset,
 				       int *addrc, int *sizec);
 extern int common_raw_read(char *part_name, uint64_t size,
 			   uint64_t offset, char *buf);
+extern int fdt_fixup_cp_reserved_mem(void *fdt);
 
 static boot_image_required_t s_boot_image_cp_table[MAX_REGION_NUM];
 static struct partition_name_info g_partition_info[MAX_REGION_NUM];
@@ -644,7 +645,7 @@ err0:
 
 int fdt_fixup_cp_coupling_info(void *blob)
 {
-	int ret;
+	int ret, has_dbg_region = 0;
 	uint64_t secure_boot_offset = 0;
 	uint64_t normal_boot_offset = 0;
 	union composite_header *c_header;
@@ -710,6 +711,18 @@ int fdt_fixup_cp_coupling_info(void *blob)
 		debugf("magic = 0x%x, it's not new format\n", ih_desc->magic);
 		decoup_data = &c_header->mem_decoup;
 		if (decoup_data->magic == DECOUPLE_MAGIC_INFO) {
+			int i;
+
+			for (i = 0; i < MAX_RSVMEM_NUM; i++) {
+				if (!strcmp(decoup_data->rsvmem_info.rsvmem[i].res.name, "debug-mem")) {
+					has_dbg_region = 1;
+					break;
+				}
+			}
+
+			if (!has_dbg_region)
+				fdt_fixup_cp_reserved_mem(fdt);
+
 			do_parse_decoup_sipc_info(decoup_data, fdt);
 			return do_parse_decoup_info_v1(decoup_data, fdt);
 
@@ -722,9 +735,17 @@ int fdt_fixup_cp_coupling_info(void *blob)
 		if (!strcmp("decoup-desc", i_desc->desc)) {
 			debugf("decoup desc was found\n");
 			c_info = (struct mem_coupling_info *)((char *)raw_decouple_data + i_desc->offs);
-			return do_parse_decoup_info(c_info, fdt);
+			ret = do_parse_decoup_info(c_info, fdt);
+
+		} else if (!strcmp("debug-desc", i_desc->desc)) {
+			has_dbg_region = 1;
 		}
 	}
+
+	if (!ret && !has_dbg_region)
+		fdt_fixup_cp_reserved_mem(fdt);
+
+	return ret;
 
 err:
 	errorf("cp memory decoupling failed\n");
