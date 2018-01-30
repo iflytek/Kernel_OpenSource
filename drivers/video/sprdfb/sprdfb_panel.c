@@ -555,6 +555,13 @@ static struct panel_cfg panel_cfg[] = {
 },
 #endif
 
+#ifdef CONFIG_FB_LCD_JD9161_HLT_MIPI_WVGA
+{
+	.lcd_id = 0x91613,
+	.panel = &lcd_jd9161_mipi_spec,
+},
+#endif
+
 #ifdef CONFIG_FB_LCD_DUMMY_MIPI_QVGA
 {
 	.lcd_id = 0xFFFF,
