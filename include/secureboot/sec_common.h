@@ -21,18 +21,11 @@
 #define VBOOT_UNLOCK_PWD_CHECK_SUCC (0)
 
 typedef struct{
-#if defined (CONFIG_SC9833)||defined (CONFIG_SOC_SHARKLJ1) || defined (CONFIG_SOC_SHARKLE) || defined (CONFIG_SOC_PIKE2)
-	uint32_t img_addr; //the base address of image to verify
-	uint32_t img_len; //length of image
-	uint32_t pubkeyhash;//pubkey hash for verifying image
-	uint32_t hash_len; //length of pubkeyhash
-#else
-	uint64_t img_addr; //the base address of image to verify
-	uint64_t img_len; //length of image
-	uint64_t pubkeyhash;//pubkey hash for verifying image
-	uint64_t hash_len; //length of pubkeyhash
-#endif
-	uint32_t flag;//sprd or sansa plan
+	unsigned long img_addr; //the base address of image to verify
+	unsigned long img_len; //length of image
+	unsigned long pubkeyhash;//pubkey hash for verifying image
+	unsigned long hash_len; //length of pubkeyhash
+	unsigned long flag;//sprd or sansa plan
 }imgToVerifyInfo;
 
 /*add for vboot v2*/
