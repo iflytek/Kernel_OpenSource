@@ -314,6 +314,8 @@
 #define CONSOLE_COLOR_CYAN 0x001f
 #endif
 #endif
+/* clock and rf band auto-adaption */
+#define CONFIG_BOARD_ID
 
 /*fastboot*/
 #define SCRATCH_ADDR    (CONFIG_SYS_SDRAM_BASE + 0x100000)
