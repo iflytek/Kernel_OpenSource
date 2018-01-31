@@ -10,13 +10,9 @@
 
 void board_keypad_init(void)
 {
-/*
-	sprd_gpio_request(NULL, 124);
-	sprd_gpio_direction_input(NULL, 124);
+	sprd_gpio_request(NULL, SPRD_VOLUMEDOWN_GPIO);
+	sprd_gpio_direction_input(NULL, SPRD_VOLUMEDOWN_GPIO);
 
-	sprd_gpio_request(NULL, 125);
-	sprd_gpio_direction_input(NULL, 125);
-*/
 	printf("[gpio keys] init!\n");
 	return;
 }
@@ -39,9 +35,7 @@ unsigned char board_key_scan(void)
 		debugf("[eic keys] volumeup pressed!\n");
 	 }
 
-	sprd_gpio_request(SPRD_VOLUMEDOWN_GPIO);
-	udelay(3000);
-	gpio_volumedown = sprd_gpio_get(SPRD_VOLUMEDOWN_GPIO);
+	gpio_volumedown = sprd_gpio_get(NULL, SPRD_VOLUMEDOWN_GPIO);
 		debugf("gpio_volumedown = %d\n",gpio_volumedown);
 	if(gpio_volumedown < 0)
 		errorf("[eic keys] volumedown : sprd_eic_get return ERROR!\n");
