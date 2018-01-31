@@ -19,11 +19,11 @@ void DCDC_ldo_power_on()
 	regulator_enable("vddsdcore");
 	regulator_enable("vddsdio");
 	regulator_enable("vdd28");
-	regulator_enable("vddwifipa");
+	//regulator_enable("vddwifipa");
 	regulator_enable("vdddcxo");
 	regulator_enable("vddusb33");
 	regulator_enable("vddcamd");
-	regulator_enable("vddcon");
+	//regulator_enable("vddcon");
 	regulator_enable("vddcamio");
 	regulator_enable("vdd18");
 	regulator_enable("vddrf18");
@@ -275,9 +275,9 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN9,
-		BIT_LDO_CON_EXT_XTL0_EN |
-		BIT_LDO_CON_EXT_XTL1_EN |
-		BIT_LDO_CON_EXT_XTL2_EN |
+		//BIT_LDO_CON_EXT_XTL0_EN |
+		//BIT_LDO_CON_EXT_XTL1_EN |
+		//BIT_LDO_CON_EXT_XTL2_EN |
 		BIT_LDO_CON_EXT_XTL3_EN |
 		BIT_LDO_AVDD18_EXT_XTL0_EN |
 		BIT_LDO_AVDD18_EXT_XTL1_EN |
@@ -287,9 +287,9 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN10,
-		BIT_LDO_WIFIPA_EXT_XTL0_EN |
-		BIT_LDO_WIFIPA_EXT_XTL1_EN |
-		BIT_LDO_WIFIPA_EXT_XTL2_EN |
+		//BIT_LDO_WIFIPA_EXT_XTL0_EN |
+		//BIT_LDO_WIFIPA_EXT_XTL1_EN |
+		//BIT_LDO_WIFIPA_EXT_XTL2_EN |
 		BIT_LDO_WIFIPA_EXT_XTL3_EN |
 		0
 	);
