@@ -13,17 +13,17 @@
  */
 static struct key_info KEYS[] = {
 	{
-		.tag = "Volume Up",
+		.tag = "Volume Down",
 		.offset = EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE,
 		.type = TYPE_EIC,
-		.keycode = KEY_VOLUMEUP,
+		.keycode = KEY_VOLUMEDOWN,
 		.active = 1,
 	},
 	{
-		.tag = "Volume Down",
+		.tag = "Volume Up",
 		.offset = 2, // TODO: refer to sprd_eic.h for EIC name
 		.type = TYPE_EIC,
-		.keycode = KEY_VOLUMEDOWN,
+		.keycode = KEY_VOLUMEUP,
 		.active = 0,
 	},
 	{

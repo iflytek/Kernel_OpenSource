@@ -49,6 +49,9 @@
 #define CONFIG_LCD_1080P
 #endif
 
+/*rf board id */
+#define CONFIG_BOARD_ID
+
 #define CONFIG_MISC_INIT_R
 /**********vmm related***********/
 #define VMM_RESERVE_SIZE 0

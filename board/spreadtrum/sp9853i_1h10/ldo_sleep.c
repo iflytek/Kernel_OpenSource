@@ -116,6 +116,8 @@ void pll_sel_config(uint32_t gen_para)
 }
 #endif
 
+extern int sprd_get_32k(void);
+
 void DCDC_ldo_power_on()
 {
 	//regulator_enable("vddarm0");
@@ -152,6 +154,10 @@ void pmic_lowpower_config(uint32_t gen_para)
 {
 #if defined(CONFIG_ADIE_SC2731)
 	uint32_t reg_val;
+	unsigned int feature_32k_less = 0; /*default 32K*/
+
+	/* 1 for 32k_less, 0 for 32k */
+	feature_32k_less = sprd_get_32k();
 
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE,0x6e7f);
 	while( (ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & 0x8000) != 0x8000 );
@@ -195,25 +201,91 @@ void pmic_lowpower_config(uint32_t gen_para)
 		0
 	);
 
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-		BIT_SLP_LDORF0_PD_EN |	/*?*/
-		//BIT_SLP_LDOEMMCCORE_PD_EN |	/*control by emmc drv*/
-		BIT_SLP_LDODCXO_PD_EN |	/*use by the dcxo 32k*/
-		//BIT_SLP_LDOWIFIPA_PD_EN |	/*control by wifi drv*/
-		//BIT_SLP_LDOVDD28_PD_EN |	/*use by IO no pd*/
-		//BIT_SLP_LDOSDCORE_PD_EN |	/*control by sd drv*/
-		//BIT_SLP_LDOSDIO_PD_EN |	/*control by sd drv*/
-		//BIT_SLP_LDOUSB33_PD_EN |	/*control by usb phy*/
-		//BIT_SLP_LDOCAMMOT_PD_EN |	/*control by the drv*/
-		//BIT_SLP_LDOCAMIO_PD_EN |	/*control by the drv*/
-		//BIT_SLP_LDOCAMD0_PD_EN |	/*control by the drv*/
-		//BIT_SLP_LDOCAMD1_PD_EN |	/*control by the drv*/
-		//BIT_SLP_LDOCAMA0_PD_EN |	/*control by the drv*/
-		//BIT_SLP_LDOCAMA1_PD_EN |	/*control by the drv*/
-		BIT_SLP_VLDO_PD_EN |		/*control by the drv*/
-		//BIT_SLP_LDOSIM1_PD_EN |	/*control by the drv*/
-		0
-	);
+	if (!feature_32k_less) {
+		ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
+			BIT_SLP_LDORF0_PD_EN |
+			//BIT_SLP_LDOEMMCCORE_PD_EN | /*control by emmc drv*/
+			BIT_SLP_LDODCXO_PD_EN |		/*use by the dcxo 32k*/
+			//BIT_SLP_LDOWIFIPA_PD_EN |	/*control by wifi drv*/
+			//BIT_SLP_LDOVDD28_PD_EN |	/*use by IO no pd*/
+			//BIT_SLP_LDOSDCORE_PD_EN |	/*control by sd drv*/
+			//BIT_SLP_LDOSDIO_PD_EN |	/*control by sd drv*/
+			//BIT_SLP_LDOUSB33_PD_EN |	/*control by usb phy*/
+			//BIT_SLP_LDOCAMMOT_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMIO_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMD0_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMD1_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMA0_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMA1_PD_EN |	/*control by the drv*/
+			BIT_SLP_VLDO_PD_EN |		/*control by the drv*/
+			//BIT_SLP_LDOSIM1_PD_EN |	/*control by the drv*/
+			0
+		);
+
+		ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL0,
+			//BIT_SLP_LDORF0_LP_EN |
+			//BIT_SLP_LDOEMMCCORE_LP_EN | /*control by emmc drv*/
+			//BIT_SLP_LDODCXO_LP_EN |
+			//BIT_SLP_LDOWIFIPA_LP_EN |
+			BIT_SLP_LDOVDD28_LP_EN |
+			//BIT_SLP_LDOSDCORE_LP_EN |
+			//BIT_SLP_LDOSDIO_LP_EN |
+			//BIT_SLP_LDOUSB33_LP_EN |
+			//BIT_SLP_LDOCAMMOT_LP_EN |
+			//BIT_SLP_LDOCAMIO_LP_EN |
+			//BIT_SLP_LDOCAMD0_LP_EN |
+			//BIT_SLP_LDOCAMD1_LP_EN |
+			//BIT_SLP_LDOCAMA0_LP_EN |
+			//BIT_SLP_LDOCAMA1_LP_EN |
+			//BIT_SLP_VLDO_LP_EN |
+			//BIT_SLP_LDOSIM1_LP_EN |
+			0
+		);
+	} else {
+		ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
+			BIT_SLP_LDORF0_PD_EN |
+			//BIT_SLP_LDOEMMCCORE_PD_EN | /*control by emmc drv*/
+			//BIT_SLP_LDODCXO_PD_EN |	/*32kless dcxo not pd*/
+			//BIT_SLP_LDOWIFIPA_PD_EN |	/*control by wifi drv*/
+			//BIT_SLP_LDOVDD28_PD_EN |	/*use by IO no pd*/
+			//BIT_SLP_LDOSDCORE_PD_EN |	/*control by sd drv*/
+			//BIT_SLP_LDOSDIO_PD_EN |	/*control by sd drv*/
+			//BIT_SLP_LDOUSB33_PD_EN |	/*control by usb phy*/
+			//BIT_SLP_LDOCAMMOT_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMIO_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMD0_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMD1_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMA0_PD_EN |	/*control by the drv*/
+			//BIT_SLP_LDOCAMA1_PD_EN |	/*control by the drv*/
+			BIT_SLP_VLDO_PD_EN |		/*control by the drv*/
+			//BIT_SLP_LDOSIM1_PD_EN |	/*control by the drv*/
+			0
+		);
+
+		ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL0,
+			//BIT_SLP_LDORF0_LP_EN |
+			//BIT_SLP_LDOEMMCCORE_LP_EN | /*control by emmc drv*/
+			BIT_SLP_LDODCXO_LP_EN |
+			//BIT_SLP_LDOWIFIPA_LP_EN |
+			BIT_SLP_LDOVDD28_LP_EN |
+			//BIT_SLP_LDOSDCORE_LP_EN |
+			//BIT_SLP_LDOSDIO_LP_EN |
+			//BIT_SLP_LDOUSB33_LP_EN |
+			//BIT_SLP_LDOCAMMOT_LP_EN |
+			//BIT_SLP_LDOCAMIO_LP_EN |
+			//BIT_SLP_LDOCAMD0_LP_EN |
+			//BIT_SLP_LDOCAMD1_LP_EN |
+			//BIT_SLP_LDOCAMA0_LP_EN |
+			//BIT_SLP_LDOCAMA1_LP_EN |
+			//BIT_SLP_VLDO_LP_EN |
+			//BIT_SLP_LDOSIM1_LP_EN |
+			0
+		);
+
+		ANA_REG_OR(ANA_REG_GLB_CLK32KLESS_CTRL0,
+			BIT_SLP_XO_LOW_CUR_EN
+		);
+	}
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
 		BIT_SLP_LDOCON_PD_EN |	    /*control by marlin*/
@@ -232,26 +304,6 @@ void pmic_lowpower_config(uint32_t gen_para)
 		//BIT_SLP_DCDCARM0_LP_EN |
 		BIT_SLP_DCDCGEN_LP_EN |
 		//BIT_SLP_DCDCWPA_LP_EN |
-		0
-	);
-
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL0,
-		//BIT_SLP_LDORF0_LP_EN |
-		//BIT_SLP_LDOEMMCCORE_LP_EN |	/*control by emmc drv*/
-		//BIT_SLP_LDODCXO_LP_EN |
-		//BIT_SLP_LDOWIFIPA_LP_EN |
-		BIT_SLP_LDOVDD28_LP_EN |
-		//BIT_SLP_LDOSDCORE_LP_EN |
-		//BIT_SLP_LDOSDIO_LP_EN |
-		//BIT_SLP_LDOUSB33_LP_EN |
-		//BIT_SLP_LDOCAMMOT_LP_EN |
-		//BIT_SLP_LDOCAMIO_LP_EN |
-		//BIT_SLP_LDOCAMD0_LP_EN |
-		//BIT_SLP_LDOCAMD1_LP_EN |
-		//BIT_SLP_LDOCAMA0_LP_EN |
-		//BIT_SLP_LDOCAMA1_LP_EN |
-		//BIT_SLP_VLDO_LP_EN |
-		//BIT_SLP_LDOSIM1_LP_EN |
 		0
 	);
 

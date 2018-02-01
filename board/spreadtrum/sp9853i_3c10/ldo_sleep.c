@@ -196,9 +196,9 @@ void pmic_lowpower_config(uint32_t gen_para)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-		BIT_SLP_LDORF0_PD_EN |	/*?*/
-		//BIT_SLP_LDOEMMCCORE_PD_EN |	/*control by emmc drv*/
-		BIT_SLP_LDODCXO_PD_EN |	/*use by the dcxo 32k*/
+		BIT_SLP_LDORF0_PD_EN |
+		//BIT_SLP_LDOEMMCCORE_PD_EN |  /*control by emmc drv*/
+		BIT_SLP_LDODCXO_PD_EN |     /*use by the dcxo 32k*/
 		//BIT_SLP_LDOWIFIPA_PD_EN |	/*control by wifi drv*/
 		//BIT_SLP_LDOVDD28_PD_EN |	/*use by IO no pd*/
 		//BIT_SLP_LDOSDCORE_PD_EN |	/*control by sd drv*/
@@ -237,7 +237,7 @@ void pmic_lowpower_config(uint32_t gen_para)
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL0,
 		//BIT_SLP_LDORF0_LP_EN |
-		//BIT_SLP_LDOEMMCCORE_LP_EN |	/*control by emmc drv*/
+		//BIT_SLP_LDOEMMCCORE_LP_EN |  /*control by emmc drv*/
 		//BIT_SLP_LDODCXO_LP_EN |
 		//BIT_SLP_LDOWIFIPA_LP_EN |
 		BIT_SLP_LDOVDD28_LP_EN |
