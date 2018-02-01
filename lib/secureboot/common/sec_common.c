@@ -428,6 +428,11 @@ next:;
 	debugf("gd->arg_start_base: 0x%08x, gd->vbmeta_img_base: 0x%08x, gd->verify_base: 0x%08x\n",
 					gd->arg_start_base, gd->vbmeta_img_base, gd->verify_base);
 
+	if (!gd->arg_start_base || !gd->vbmeta_img_base || !gd->verify_base) {
+		debugf("secboot base address error\n");
+		return -1;
+	}
+
 #ifdef TOS_TRUSTY
 	img_verify_info_tos = (imgToVerifyInfo *)gd->arg_start_base;
 	vboot_verify_info = (VbootVerifyInfo *)gd->arg_start_base;
