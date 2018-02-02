@@ -71,7 +71,7 @@ void pmic_dcdc_ldo_config(void)
 		//BIT_SLP_LDOCAMIO_PD_EN|
 		//BIT_SLP_LDOCAMD_PD_EN|
 		//BIT_SLP_LDOCAMA_PD_EN|
-		//BIT_SLP_LDOSIM2_PD_EN|
+		BIT_SLP_LDOSIM2_PD_EN|
 		//BIT_SLP_LDOSIM1_PD_EN |
 		0
 	);
