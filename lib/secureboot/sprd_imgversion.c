@@ -44,7 +44,7 @@ int sprd_get_rpmb_block_cnt(void)
 
     rpmb_size = emmc_get_capacity(PARTITION_RPMB);
 
-	return (rpmb_size / MMC_BLOCK_SIZE);
+    return (rpmb_size / MMC_BLOCK_SIZE);
 }
 #endif
 
@@ -105,9 +105,9 @@ int sprd_get_imgversion(antirb_image_type imgType, unsigned int* swVersion)
         printf("%s: rpmb read blk %d fail! ret %d \n", __func__, block_ind, ret);
         return ret;
     }
-	
+
     printf("%s: rpmb read blk %d successful \n", __func__, block_ind);
-	
+
     if (IMAGE_SYSTEM == imgType || IMAGE_VENDOR == imgType) {
         memcpy((void *)&imgver, data_rd, sizeof(struct sprd_img_ver_t));
 

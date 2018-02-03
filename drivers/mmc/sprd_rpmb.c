@@ -152,6 +152,10 @@ int is_wr_rpmb_key(void)
 
 	msg_type = RPMB_MSG_TYPE_REQ_WRITE_COUNTER_VAL_READ;
 	data_frame = (uint8_t *) malloc(RPMB_DATA_FRAME_SIZE);
+	if (NULL == data_frame) {
+		printf("%s malloc error\n", __func__);
+		return -1;
+	}
 	memset(data_frame, 0, RPMB_DATA_FRAME_SIZE);
 	u16_to_bytes(msg_type, data_frame->msg_type);
 	mmc_switch_part(EMMC, RPMB_PARTITION);

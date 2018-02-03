@@ -7,8 +7,8 @@
 #include <mmc.h>
 #include <sprd_rpmb.h>
 
-u64 rpmb_size __attribute__((aligned(4096)));
-int is_rpmb_key __attribute__((aligned(4096)));
+static u64 rpmb_size __attribute__((aligned(4096)));
+static int is_rpmb_key __attribute__((aligned(4096)));
 
 int uboot_set_rpmb_size()
 {
