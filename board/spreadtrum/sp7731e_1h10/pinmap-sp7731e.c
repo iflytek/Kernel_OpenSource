@@ -1,7 +1,7 @@
 /*This file is created by PINMAP tool
  *Device: Pike2_SC7731E
  *Version: SC7731_1_IRD_E_SCH_V1.0.0_PINMAP_V1.0
- *Creat Time: 2017/9/30 12:00:44
+ *Creat Time: 2018/2/5 10:41:38
  *Author: weiwu.wang
  */
 
@@ -144,7 +144,7 @@ static pinmap_t pinmap[]={
 {REG_PIN_CMPD1,                         BITS_PIN_AF(3)|BIT_PIN_SLP_AP|BIT_PIN_SLP_OE},
 {REG_MISC_PIN_CMPD1,                    BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_NUL},//CAM_PWDN1
 {REG_PIN_SD0_CLK0,                      BITS_PIN_AF(0)|BIT_PIN_SLP_AP|BIT_PIN_SLP_OE},
-{REG_MISC_PIN_SD0_CLK0,                 BITS_PIN_DS(7)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_NUL},//TF_SD0_CLK
+{REG_MISC_PIN_SD0_CLK0,                 BITS_PIN_DS(8)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_NUL},//TF_SD0_CLK
 {REG_PIN_SD0_CMD,                       BITS_PIN_AF(0)|BIT_PIN_SLP_AP|BIT_PIN_SLP_Z},
 {REG_MISC_PIN_SD0_CMD,                  BITS_PIN_DS(4)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_WPD},//TF_SD0_CMD
 {REG_PIN_SD0_D0,                        BITS_PIN_AF(0)|BIT_PIN_SLP_AP|BIT_PIN_SLP_Z},
