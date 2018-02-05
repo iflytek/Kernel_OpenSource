@@ -91,23 +91,29 @@ static int st7701_init(void)
 static int st7701_readid(void)
 {
 	struct sprd_dsi *dsi = &dsi_device;
-	uint8_t cmd[] = {0x00, 0x02, 0x37, 0x00};
 	uint8_t read_buf[4] = {0};
-        unsigned int id = 0;
+	int value = 0 ;
+
+	mdelay(150);
+	sprd_gpio_request(NULL, CONFIG_LCM_GPIO_ID);
+	sprd_gpio_direction_input(NULL, CONFIG_LCM_GPIO_ID);
+	value = sprd_gpio_get(NULL,CONFIG_LCM_GPIO_ID);
+
+	if(value == 0x0) {
+		pr_err("st7701 boe match value failed!\n");
+		return -1;
+	}
 
 	mipi_dsi_lp_cmd_enable(dsi, true);
-	mipi_dsi_gen_write(dsi, cmd, ARRAY_SIZE(cmd));
-	mipi_dsi_set_max_return_size(dsi, 3);
-	mipi_dsi_dcs_read(dsi, 0xa1, &read_buf[0], 3);
-        id = read_buf[0]<<8|read_buf[1];
-	pr_err("st7701 read id 0x%x \n", id);
+	mipi_dsi_set_max_return_size(dsi, 2);
+	mipi_dsi_dcs_read(dsi, 0xa1, &read_buf[0], 2);
 
-        if(0x8802 == id) {
-		pr_info("st7701 read id success!\n");
+	if ((read_buf[0] == 0x88) && (read_buf[1] == 0x02)) {
+		pr_info("st7701 boe read id success!\n");
 		return 0;
 	}
 
-	pr_err("st7701 read id failed!\n");
+	pr_err("st7701 boe read id failed!\n");
 	return -1;
 }
 
@@ -137,7 +143,7 @@ static struct panel_ops st7701_ops = {
 
 static struct panel_info st7701_info = {
 	/* common parameters */
-	.lcd_name = "lcd_st7701_2lane_mipi_wvga",
+	.lcd_name = "lcd_st7701_boe_mipi_wvga",
 	.type = SPRD_PANEL_TYPE_MIPI,
 	.bpp = 24,
 //	.fps = 3,
@@ -163,7 +169,7 @@ static struct panel_info st7701_info = {
 	.nc_clk_en = false,
 };
 
-struct panel_driver st7701_2lane_driver = {
+struct panel_driver st7701_boe_driver = {
 	.info = &st7701_info,
 	.ops = &st7701_ops,
 };
