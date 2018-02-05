@@ -118,8 +118,8 @@ Efuse_Result_Ret sprd_get_lock_bits(unsigned int start_id, unsigned int end_id, 
 
 Efuse_Result_Ret sprd_ce_efuse_read(unsigned int block_id, unsigned int *read_ptr)
 {
-	/*Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
-	uint32 real_block;
+	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
+	/*uint32 real_block;
 
 	if (KCE_BLOCK_START <= block_id && KCE_BLOCK_END >= block_id )
 	{
@@ -150,10 +150,9 @@ Efuse_Result_Ret sprd_ce_efuse_read(unsigned int block_id, unsigned int *read_pt
 	}
 
 	real_block = pmap[block_id];
-	ret = efuse_read_drv(real_block, real_block, read_ptr, 1);
-
-	return ret;*/
-	return 0;
+	ret = efuse_read_drv(real_block, real_block, read_ptr, 1);*/
+	*read_ptr = 0;
+	return ret;
 }
 
 Efuse_Result_Ret sprd_ce_efuse_program(unsigned int block_id, unsigned int WriteData)
