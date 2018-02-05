@@ -88,7 +88,7 @@ extern VbootVerifyInfo *vboot_verify_info;
 #define RESERVE_SIZE 0x3000000
 #if defined (CONFIG_SOC_IWHALE2)||defined (CONFIG_SPRD_SOC_SP9853I)
 #define IRAM_BEGIN   0xe6000000
-#elif defined (CONFIG_SOC_SHARKLE)
+#elif defined (CONFIG_SOC_SHARKLE)||defined (CONFIG_SOC_SHARKL3)
 #define IRAM_BEGIN   0x5000
 #elif defined (CONFIG_SOC_PIKE2)
 #define IRAM_BEGIN 0x50002e00
