@@ -1228,22 +1228,29 @@ int take_action_with_vbootret(void)
 #endif
 // add for SOTER start
 #if defined (CONFIG_CHIP_UID)
+static u32 blocks[2] __attribute__((aligned(4096)));
+
 void pass_chip_uid_to_tos()
 {
     //u32 blocks[2]/* = {0} */__attribute__((aligned(4096)));
-    u32 *blocks = gd->verify_base;
+    //u32 *blocks = gd->verify_base;
+    smc_param *param;
 
-    printf("pass_chip_uid_to_tos()...\n");
+    printf("pass_chip_uid_to_tos()... sizeof(blocks)=%d\n", sizeof(blocks));
+    memset(blocks, 0, sizeof(blocks));
 #if defined (CONFIG_SPRD_UID)
-    // implements if nessary
+    blocks[1] = sprd_efuse_double_read(UID_START, UID_DOUBLE);
+    blocks[0] = sprd_efuse_double_read(UID_END, UID_DOUBLE);
+    param = tee_common_call(FUNCTYPE_SET_CHIP_UID, (uint32_t)blocks, sizeof(u32)*2);
+    printf("blks:0x%08x 0x%08x, result: 0x%x \n", blocks[0], blocks[1], param->a0);
 #elif defined (CONFIG_X86)
     // implements if nessary
+    printf("mocor CONFIG_X86\n");
 #else
     blocks[0]= sprd_ap_efuse_read(0);
     blocks[1]= sprd_ap_efuse_read(1);
-    printf("0x%08x, blocks0: 0x%08x, blk1: 0x%08x\n", blocks, blocks[0], blocks[1]);
-    smc_param *param = tee_common_call(FUNCTYPE_SET_CHIP_UID, (uint32_t)blocks, sizeof(u32)*2);
-    printf("result: 0x%x \n", param->a0);
+    param = tee_common_call(FUNCTYPE_SET_CHIP_UID, (uint32_t)blocks, sizeof(u32)*2);
+    printf("blks:0x%08x 0x%08x, result: 0x%x \n", blocks[0], blocks[1], param->a0);
 #endif
     return;
 }
@@ -1413,7 +1420,6 @@ extern boot_image_required_t *get_cp_load_table(void);
 
         // add for SOTER start
 #if defined (CONFIG_CHIP_UID)
-        printf("pass chip id to tos here.\n");
         pass_chip_uid_to_tos();
 #endif
         // add for SOTER end
