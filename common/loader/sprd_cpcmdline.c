@@ -142,7 +142,7 @@ void cp_cmdline_fixup(void)
 	}
 #endif
 /* crystal and rf band auto adaption used on some platforms, such as sharkl, pike series */
-#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SOC_SP9853I))
+#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SPRD_SOC_SP9853I))
 #if (defined(CONFIG_BOARD_ID) || defined(CONFIG_BAND_DETECT))
 	//rf band auto adaption
 	boardid = sprd_get_bandinfo();
