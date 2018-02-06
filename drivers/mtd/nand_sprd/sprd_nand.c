@@ -1510,6 +1510,7 @@ void set_header_info(u8 *bl_data, struct mtd_info *nand, int ecc_pos)
 	struct sprd_ecc_param param;
 	u8 *ecc;
 	ecc = memalign(ARCH_DMA_MINALIGN, 108);
+
 	header = (struct bootloader_header *)(bl_data);
 	memset(header, 0, sizeof(struct bootloader_header));
 	memset(ecc, 0xff, 108);
@@ -1546,6 +1547,7 @@ void set_header_info(u8 *bl_data, struct mtd_info *nand, int ecc_pos)
 	header->info_size = 0;
 	header->mBlkShift = chip->blkShift;
 	header->mPageShift = chip->pageShift;
+
 	param.mode = 60;
 	param.ecc_pos = 0;
 	param.sinfo_size = 1;
@@ -1647,34 +1649,6 @@ void set_header_info(u8 *bl_data, struct mtd_info *nand, int ecc_pos)
 	while(1);
 #endif
 }
-
-int nand_write_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
-{
-	uint32_t ifHasMBuf = 1;
-	uint32_t ifHasSBuf = 1;
-	uint32_t cfg4 = 0;
-	NFC_BASE_T *nfcBase = (NFC_BASE_T * )mtd->priv ;
-	NAND_CTL *this = (NAND_CTL *) nfcBase->priv;
-
-	cfg4 = sprd_dolphin_reg_read(NFC_CFG4_REG);
-	cfg4 &=(~_CFG4_ONLY_SEL_MODE);
-	memset(this->mBuf_p,0xff,(1 << this->pageShift));
-	memcpy(this->mBuf_p,buf,(1 << this->pageShift));
-	memset(this->sBuf_p,0xFF, (1 << (this->bufShift - this->sectShift)));
-	__32reg_write(NFC_CFG1_REG, (uint32_t)this->NFC_cfg1);
-	__32reg_write(NFC_CFG2_REG, (uint32_t)this->NFC_cfg2);
-	__32reg_write(NFC_CFG4_REG, cfg4);
-	GenPageSeed(page);
-	NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
-	flush_cache((unsigned int)seedBuf,sizeof(seedBuf));
-	callback_writePageInBlk(nfcBase, page,
-					1, NULL,ifHasMBuf, ifHasSBuf,
-					MTD_OPS_PLACE_OOB);
-	__32reg_write(NFC_CFG3_REG,0x0);//disable random
-	return 0;
-}
-
-
 
 STATIC_FUNC int callback_writePageInBlk(NFC_BASE_T * nfcBase, uint32_t page,
 					uint32_t num, uint32_t * retNum, uint32_t ifHasMBuf, uint32_t ifHasSBuf, uint32_t mode)
@@ -1783,6 +1757,53 @@ STATIC_FUNC int callback_writePageInBlk(NFC_BASE_T * nfcBase, uint32_t page,
 	*retNum = num;
 	_deSelectCS(this, 0);
 	return 0;
+}
+
+int nand_write_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
+{
+	uint32_t ifHasMBuf = 1;
+	uint32_t ifHasSBuf = 1;
+	int ret = 0;
+	uint32_t cfg4 = 0;
+	NFC_BASE_T *nfcBase = (NFC_BASE_T * )mtd->priv ;
+	NAND_CTL *this = (NAND_CTL *) nfcBase->priv;
+
+	cfg4 = sprd_dolphin_reg_read(NFC_CFG4_REG);
+	cfg4 &=(~_CFG4_ONLY_SEL_MODE);
+	memset(this->mBuf_p,0xff,(1 << this->pageShift));
+	memcpy(this->mBuf_p,buf,(1 << this->pageShift));
+	memset(this->sBuf_p,0xFF, (1 << (this->bufShift - this->sectShift)));
+	__32reg_write(NFC_CFG1_REG, (uint32_t)this->NFC_cfg1);
+	__32reg_write(NFC_CFG2_REG, (uint32_t)this->NFC_cfg2);
+	__32reg_write(NFC_CFG4_REG, cfg4);
+
+	GenPageSeed(page);
+	NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
+	flush_cache((unsigned int)seedBuf,sizeof(seedBuf));
+	ret = callback_writePageInBlk(nfcBase, page,
+					1, NULL,ifHasMBuf, ifHasSBuf,
+					MTD_OPS_PLACE_OOB);
+	__32reg_write(NFC_CFG3_REG,0x0);//disable random
+	return ret;
+}
+
+int nand_read_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
+{
+	uint32_t ifHasMBuf = 1;
+	uint32_t ifHasSBuf = 1;
+	int ret = 0;
+	NFC_BASE_T *nfcBase = (NFC_BASE_T * )mtd->priv ;
+	NAND_CTL *this = (NAND_CTL *) nfcBase->priv;
+
+	GenPageSeed(page);
+	NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
+	flush_cache((unsigned int)seedBuf,sizeof(seedBuf));
+	ret = callback_readPageInBlk(nfcBase, page,
+					1, NULL,ifHasMBuf, ifHasSBuf,
+					MTD_OPS_PLACE_OOB, &(mtd->ecc_stats));
+	memcpy(buf, this->mBuf_p, (1 << this->pageShift));
+	__32reg_write(NFC_CFG3_REG,0x0);//disable random
+	return ret;
 }
 
 STATIC_FUNC int callback_eraseBlk(NFC_BASE_T * nfcBase, uint32_t page)

@@ -130,3 +130,22 @@ int sprd_nand_write_spl(u8 *buf, struct mtd_info *mtd)
 	}
 	return ret;
 }
+
+int sprd_nand_read_spl(u8 *buf, struct mtd_info *mtd, uint32_t size)
+{
+	u32 pg_start=0;
+	u32 pg_end;
+	u32 pg;
+	u8 * data;
+	int ret = 0;
+
+	pg_end = size / mtd->writesize;
+	if((size % mtd->writesize) != 0)
+		pg_end++;
+	data = buf;
+	for(pg  = pg_start; pg < pg_end; pg += 1) {
+		ret = nand_read_spl_page(data, mtd, pg, CONFIG_SYS_SPL_ECC_POS);
+		data += mtd->writesize;
+	}
+	return ret;
+}

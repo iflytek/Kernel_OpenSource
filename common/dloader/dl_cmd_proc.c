@@ -174,7 +174,7 @@ int dl_cmd_read_start(dl_packet_t *packet, void *arg)
 
 	debugf("partition_name=%s,size=0x%llx\n", partition_name, size);
 #ifdef CONFIG_NAND_BOOT
-	if(0 == strcmp(partition_name,"uboot"))
+	if(0 == strcmp(partition_name,"uboot") || 0 == strcmp(partition_name,"splloader"))
 		spl_read_size = size;
 #endif
 	op_res = dl_read_start(partition_name, size);

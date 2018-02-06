@@ -438,11 +438,13 @@ static void _dl_nand_write(nand_info_t * nand, unsigned long long offset, unsign
 	int ret;
 
 	printf("_dl_nand_write:partname:%s,offset:0x%llx,len:0x%x\n", dl_stat.mtd.name, offset, length);
-
 	//TODO:temp here for step 1 debug
 	if (strcmp(dl_stat.mtd.name, "splloader") == 0) {
-		sprd_nand_write_spl(buffer, dl_stat.nand);
-		printf("write spl\n");
+		ret = sprd_nand_write_spl(buffer, dl_stat.nand);
+		if (ret)
+			printf("write spl fail\n");
+		else
+			printf("write spl\n");
 		dl_stat.wp = 0;
 		dl_stat.unsv_size = 0;
 		return;
@@ -873,17 +875,24 @@ OPERATE_STATUS dl_read_midst(uint32_t size, uint32_t off, uchar * buf)
 	int ret;
 	size_t read_size = (size_t) size;
 	size_t read_offset = (size_t) off;
-	static int  read_spl = 0;
 	switch (dl_stat.part_type) {
 	case PART_TYPE_MTD:
-		if(0 == strcmp(dl_stat.mtd.name, "uboot")){
-			read_spl ++;
-			if(read_spl == 1){
+		if(0 == strcmp(dl_stat.mtd.name,"splloader")) {
+			if(off == 0){
+				ret = sprd_nand_read_spl(fdl_buf, dl_stat.nand, spl_read_size);
+				if (ret)
+					goto err;
+				debugf("read %s finish\n", dl_stat.mtd.name);
+			}
+			memcpy(buf, fdl_buf+off, read_size);
+		} else if (strcmp(dl_stat.mtd.name,"uboot") == 0) {
+			if(off == 0){
 				ret = nand_read_skip_bad(dl_stat.nand, dl_stat.mtd.rw_point + off, &spl_read_size, NULL, dl_stat.mtd.size, fdl_buf);
 				if (ret)
 					goto err;
+				debugf("read %s finish\n", dl_stat.mtd.name);
 			}
-		memcpy(buf, fdl_buf+off, read_size);
+			memcpy(buf, fdl_buf+off, read_size);
 		}else{
 			ret = nand_read_skip_bad(dl_stat.nand, dl_stat.mtd.rw_point + off, &read_size, NULL, dl_stat.mtd.size, buf);
 			if (ret)

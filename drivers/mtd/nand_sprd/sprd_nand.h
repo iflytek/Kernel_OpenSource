@@ -301,8 +301,8 @@ struct bootloader_header
 #define _RAM_STAT_ADDR(addr)		((uint32_t)(addr))	/* 0xFFFF'FFFF means not to move data to read buf, when read. */
 #define _RAM_SEED_ADDR(addr)		((uint32_t)(addr))
 /*NFC status mach --checked*/
-#define _MACH_ERASE					((1)|(1<<8)|(1<<16))	// check IO 0_bit, stop if error
-#define _MACH_WRITE					((1)|(1<<8)|(1<<16))	// check IO 0_bit, stop if error
+#define _MACH_ERASE					((1)|(1<<11)|(1<<22))	// check IO 0_bit, stop if error
+#define _MACH_WRITE					((1)|(1<<11)|(1<<22))	// check IO 0_bit, stop if error
 #define _MACH_READ					(0)	// no check
 #define _DEF0_MATCH					(0)
 /*NFC_STATUS0_REG bit define --checked*/
@@ -338,7 +338,6 @@ struct bootloader_header
 #define SPRD_NFC_REG_BASE  SPRD_NFC_BASE
 #define SPRD_NFC_TIMING_REG  (SPRD_NFC_REG_BASE + 0x14)
 #define SPRD_NFC_TIMEOUT_REG  (SPRD_NFC_REG_BASE + 0x34)
-
 struct nand_ecc_stats {
 	__u16 ecc_stats[16];
 	__u32 layout4_ecc_stats;
@@ -358,4 +357,5 @@ struct sprd_ecc_param {
 	u8 *sts;
 };
 
-#endif /*  */
+#endif
+
