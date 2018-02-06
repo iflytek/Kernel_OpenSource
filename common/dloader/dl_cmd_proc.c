@@ -489,3 +489,34 @@ int dl_cmd_write_datetime(dl_packet_t *packet, void *arg)
 	_send_reply(op_res);
 	return 0;
 }
+
+int dl_cmd_set_debuginfo(dl_packet_t *packet, void *arg)
+{
+	int32_t op_res = OPERATE_SUCCESS;
+	uint64_t debuginfo_size, offset;
+	uchar debuginfo_buf[DEBUG_INFO_LEN] = "enable";
+
+	uint64_t size = (uint64_t)packet->body.size;
+	uchar * raw_data = (uchar *)packet->body.content;
+
+	if(size == 0){
+		uint64_t debuginfo_size = (uint64_t)strlen(debuginfo_buf) + 1;
+                if(0 != common_raw_write("miscdata", debuginfo_size, (uint64_t)0, (uint64_t)DEBUG_INFO_OFFSET, debuginfo_buf)){
+                        op_res = OPERATE_WRITE_ERROR;
+                }
+	}else if(size > 0 && size < DEBUG_INFO_LEN){
+			memcpy(debuginfo_buf, raw_data, size);
+			debuginfo_buf[size + 1] = '\0';
+			debuginfo_size = size + 1;
+			offset = DEBUG_INFO_OFFSET + 0x200;
+			if(0 != common_raw_write("miscdata", debuginfo_size, (uint64_t)0, offset, debuginfo_buf)){
+				op_res = OPERATE_WRITE_ERROR;
+			}
+		}else{
+			errorf("debug info size cannot over %d Bytes!\n", (DEBUG_INFO_LEN-1));
+			op_res = OPERATE_INVALID_SIZE;
+		}
+	_send_reply(op_res);
+	return 0;
+}
+

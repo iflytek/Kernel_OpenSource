@@ -14,6 +14,9 @@
 #define REPARTITION_UNIT_LENGTH_V1    (MAX_PARTITION_NAME_SIZE *2 +  PARTITION_SIZE_LENGTH_V1 + GAP_SIZE_LENGTH)
 #define REF_INFO_OFF 0XFA000
 
+#define DEBUG_INFO_OFFSET (9 * 1024)
+#define DEBUG_INFO_LEN    32
+
 typedef enum OPERATE_STATUS {
 	OPERATE_SUCCESS = 1,
 	OPERATE_SYSTEM_ERROR,
@@ -58,6 +61,7 @@ int dl_cmd_end_process(dl_packet_t *packet, void *arg);
 int dl_cmd_read_ref_info(dl_packet_t *packet, void *arg);
 int dl_cmd_disable_hdlc(dl_packet_t *packet, void *arg);
 int dl_cmd_write_datetime(dl_packet_t *packet, void *arg);
+int dl_cmd_set_debuginfo(dl_packet_t *packet, void *arg);
 
 #ifdef CONFIG_DTS_MEM_LAYOUT
 int dl_set_buf_base_size();

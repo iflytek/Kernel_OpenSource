@@ -1009,6 +1009,12 @@ OPERATE_STATUS dl_download_midst(uint16_t size, char *buf)
 
 OPERATE_STATUS dl_download_end(void)
 {
+	if(!strcmp(g_dl_eMMCStatus.curUserPartitionName,"miscdata")){
+		if(0 != common_raw_erase(g_dl_eMMCStatus.curUserPartitionName, 0x400, DATETIME_OFFSET))
+			return OPERATE_WRITE_ERROR;
+		if(0 != common_raw_erase(g_dl_eMMCStatus.curUserPartitionName, 0x400, DEBUG_INFO_OFFSET))
+			return OPERATE_WRITE_ERROR;
+	}
 	if (g_status.unsave_recv_size != 0) {
 		debugf("unsaved size is not zero!\n");
 		return OPERATE_SYSTEM_ERROR;

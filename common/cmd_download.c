@@ -145,6 +145,7 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	dl_cmd_register(BSL_CMD_READ_REFINFO, dl_cmd_read_ref_info);
 	dl_cmd_register(BSL_CMD_DIS_HDLC, dl_cmd_disable_hdlc);
 	dl_cmd_register(BSL_CMD_WRITE_DATETIME, dl_cmd_write_datetime);
+	dl_cmd_register(BSL_CMD_SET_DEBUGINFO, dl_cmd_set_debuginfo);
 	usb_init(0);
 
 	/* uart download doesn't supoort disable hdlc, so need check it */

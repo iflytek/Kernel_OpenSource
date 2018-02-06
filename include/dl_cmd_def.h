@@ -50,6 +50,7 @@ typedef enum dl_cmd_type {
     BSL_CMD_READ_REFINFO = 0x20,
     BSL_CMD_DIS_HDLC = 0x21,
     BSL_CMD_WRITE_DATETIME = 0x22,
+    BSL_CMD_SET_DEBUGINFO = 0x25,
 
     BSL_CMD_END_PROCESS = 0x7F,
     /* Start of the Command can be transmited by phone*/
