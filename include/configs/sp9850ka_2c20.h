@@ -120,6 +120,8 @@
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
+#define CONFIG_DTS_MEM_LAYOUT
+
 /*
  * MMC definition
  */

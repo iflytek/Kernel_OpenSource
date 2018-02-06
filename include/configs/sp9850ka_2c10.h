@@ -120,6 +120,15 @@
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
+#define CONFIG_DTS_MEM_LAYOUT
+
+/*
+ * log config
+ */
+#define CONFIG_SPRD_LOG
+//#define CONFIG_LOG_2_SD
+#define CONFIG_LOG_2_EMMC
+
 /*
  * MMC definition
  */

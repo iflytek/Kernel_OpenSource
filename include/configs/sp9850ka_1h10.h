@@ -121,13 +121,14 @@
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
+#define CONFIG_DTS_MEM_LAYOUT
+
 /*
  * log config
  */
 #define CONFIG_SPRD_LOG
 //#define CONFIG_LOG_2_SD
 #define CONFIG_LOG_2_EMMC
-#define LOG_BUFFER_ADDR			0x9EA00000
 
 /*
  * MMC definition
