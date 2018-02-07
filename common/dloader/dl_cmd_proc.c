@@ -16,6 +16,10 @@
 
 #include "root_inspect.h"
 
+#ifdef CONFIG_PCTOOL_CHECK_WRITE_PROTECT
+static int enable_write_flash = 0;
+#endif
+
 static root_stat_t root_stat;
 
 #ifdef CONFIG_NAND_BOOT
@@ -122,12 +126,29 @@ int _parse_repartition_header(uchar * data, REPARTITION_TABLE_INFO * info, uchar
 	return 0;
 }
 
+#ifdef CONFIG_PCTOOL_CHECK_WRITE_PROTECT
+void dl_enable_write_flash(void)
+{
+	printf("enable write flash\n");
+	enable_write_flash = 1;
+	dl_send_ack(BSL_REP_ACK);
+}
+#endif
+
 int dl_cmd_write_start (dl_packet_t *packet, void *arg)
 {
 	uchar partition_name[MAX_PARTITION_NAME_SIZE] = {0};
 	uint64_t size;
 	uint32_t nv_checksum;
 	int32_t           op_res = 1;
+
+	#ifdef CONFIG_PCTOOL_CHECK_WRITE_PROTECT
+	if(0 == enable_write_flash) {
+		debugf(" cannot write flash\n");
+		dl_send_ack(BSL_REP_NOT_ENABLE_WRITE_FLASH);
+		return 0;
+	}
+	#endif
 
 	_decode_packet_data(packet, partition_name, &size, &nv_checksum);
 
@@ -520,3 +541,28 @@ int dl_cmd_set_debuginfo(dl_packet_t *packet, void *arg)
 	return 0;
 }
 
+#ifdef CONFIG_PCTOOL_CHECK_MULTI_FIXNV
+int dl_cmd_check_NV_type(dl_packet_t *packet, void *arg)
+{
+	uint32_t size ;
+	uint8_t type;
+	char temp[4];
+	int i = 0,j = 4;
+	memset(temp,0,4);
+	type = DRV_RF_Get_Type();
+	debugf("id = %d\n",type);
+	size = (uint32_t)type;
+	memcpy(temp,&size,4);
+
+	if(0xff == type){
+		dl_send_ack(BSL_REP_OPERATION_FAILED);
+	}else{
+		memcpy(packet->body.content,temp,sizeof(temp));
+		packet->body.type= BSL_CHECK_NV_TYPE;
+		packet->body.size = 4;
+		dl_send_packet (packet);
+	}
+
+	return 1;
+}
+#endif

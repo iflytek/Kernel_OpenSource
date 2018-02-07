@@ -146,6 +146,12 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	dl_cmd_register(BSL_CMD_DIS_HDLC, dl_cmd_disable_hdlc);
 	dl_cmd_register(BSL_CMD_WRITE_DATETIME, dl_cmd_write_datetime);
 	dl_cmd_register(BSL_CMD_SET_DEBUGINFO, dl_cmd_set_debuginfo);
+#ifdef CONFIG_PCTOOL_CHECK_MULTI_FIXNV	
+	dl_cmd_register(BSL_CMD_CHECK_NV_TYPE, dl_cmd_check_NV_type);
+#endif
+#ifdef CONFIG_PCTOOL_CHECK_WRITE_PROTECT
+	dl_cmd_register(BSL_CMD_ENABLE_WRITE_FLASH, dl_enable_write_flash);
+#endif	
 	usb_init(0);
 
 	/* uart download doesn't supoort disable hdlc, so need check it */

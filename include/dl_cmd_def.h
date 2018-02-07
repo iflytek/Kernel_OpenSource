@@ -46,10 +46,12 @@ typedef enum dl_cmd_type {
     BSL_CMD_POWER_DOWN_TYPE = 0x17,             /* 0x17*/
     BSL_CMD_CHECK_ROOTFLAG = 0x19,               /* 0x19*/
     BSL_CMD_READ_UID = 0x1A,               /*0x1A*/
+    BSL_CMD_ENABLE_WRITE_FLASH = 0x1B,
     BSL_CMD_TYPE_MAX,
     BSL_CMD_READ_REFINFO = 0x20,
     BSL_CMD_DIS_HDLC = 0x21,
     BSL_CMD_WRITE_DATETIME = 0x22,
+    BSL_CMD_CHECK_NV_TYPE=0x24,                /* 0xC, just sharkl2 */
     BSL_CMD_SET_DEBUGINFO = 0x25,
 
     BSL_CMD_END_PROCESS = 0x7F,
@@ -106,7 +108,9 @@ typedef enum dl_cmd_type {
     /*phone root return value*/
     BSL_PHONE_ROOTFLAG = 0xA7,
     BSL_REP_READ_CHIP_UID = 0xAB,
+    BSL_REP_NOT_ENABLE_WRITE_FLASH = 0xAC,
     BSL_REP_READ_REFINFO=0xB1,
+    BSL_CHECK_NV_TYPE=0xB5,
     BSL_UNSUPPORTED_CMD = 0xFE,
     BSL_PKT_TYPE_MAX
 }dl_cmd_type_t ;

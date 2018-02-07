@@ -62,7 +62,12 @@ int dl_cmd_read_ref_info(dl_packet_t *packet, void *arg);
 int dl_cmd_disable_hdlc(dl_packet_t *packet, void *arg);
 int dl_cmd_write_datetime(dl_packet_t *packet, void *arg);
 int dl_cmd_set_debuginfo(dl_packet_t *packet, void *arg);
-
+#ifdef CONFIG_PCTOOL_CHECK_MULTI_FIXNV
+int dl_cmd_check_NV_type(dl_packet_t *pakcet, void *arg);
+#endif
+#ifdef CONFIG_PCTOOL_CHECK_WRITE_PROTECT
+void dl_enable_write_flash(void);
+#endif
 #ifdef CONFIG_DTS_MEM_LAYOUT
 int dl_set_buf_base_size();
 #endif
