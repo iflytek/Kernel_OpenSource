@@ -23,7 +23,11 @@ extern fastboot_image_size;
 
 # ifndef CONFIG_DTS_MEM_LAYOUT
 #ifdef CONFIG_X86
+#ifdef CONFIG_SPRD_SOC_SP9853I
+unsigned char *g_eMMCBuf = (unsigned char *)0x00800000;
+#else
 unsigned char *g_eMMCBuf = (unsigned char *)0x35000000;
+#endif
 #else
 unsigned char *g_eMMCBuf = (unsigned char *)0x82000000;
 #endif

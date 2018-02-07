@@ -129,7 +129,11 @@ extern int set_fblockflag(unsigned int flag);
 
 # ifndef CONFIG_DTS_MEM_LAYOUT
 #ifdef CONFIG_X86
+#ifdef CONFIG_SPRD_SOC_SP9853I
+unsigned char *g_FbBuf = (unsigned char *)0x00800000;
+#else
 unsigned char *g_FbBuf = (unsigned char *)0x35000000;
+#endif
 #else
 unsigned char *g_FbBuf = (unsigned char *)0x82000000;
 #endif
@@ -985,7 +989,11 @@ int do_fastboot(void)
 
 	ImageInfo.base_address = g_FbBuf;
 	/*except the u-boot occupied area , all RAM can be used as fastboot buffer */
+#ifdef CONFIG_SPRD_SOC_SP9853I
+	ImageInfo.max_size = (uint64_t)0x10000000;
+#else
 	ImageInfo.max_size = (uint64_t) (CONFIG_SYS_TEXT_BASE - (uint64_t)g_FbBuf);
+#endif
 #ifdef CONFIG_DTS_MEM_LAYOUT
 	ImageInfo.max_size = g_FbBuf_size;
 #endif
