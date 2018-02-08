@@ -13,7 +13,6 @@ struct recovery_message {
 	char recovery[1024];
 };
 
-#ifdef CONFIG_EMMC_BOOT
 int get_recovery_message(struct recovery_message *out)
 {
 #ifdef OTA_BACKUP_MISC_RECOVERY
@@ -49,6 +48,7 @@ int get_recovery_message(struct recovery_message *out)
 
 }
 
+#ifdef CONFIG_EMMC_BOOT
 int set_recovery_message(const struct recovery_message *in)
 {
 	if (common_raw_write("misc", sizeof(struct recovery_message), (uint64_t)0, (uint64_t)0, (char *)in)) {
@@ -57,6 +57,20 @@ int set_recovery_message(const struct recovery_message *in)
 	}
 	return 0;
 }
+
+#else
+
+int set_recovery_message(const struct recovery_message *in)
+{
+	uint32_t size = sizeof(struct recovery_message);
+
+	if (do_raw_data_write("misc", size, size, (uint32_t)0, (char *)in)) {
+		errorf("write misc data error");
+		return -1;
+	}
+	return 0;
+}
+#endif
 
 int get_mode_from_file(void)
 {
@@ -88,21 +102,3 @@ int get_mode_from_file(void)
 		return 0;
 	}
 }
-#else
-int get_recovery_message(struct recovery_message *out)
-{
-          /*to do for slc nand driver*/
-
-}
-
-int set_recovery_message(const struct recovery_message *in)
-{
-	/*to do for slc nand driver*/
-}
-
-int get_mode_from_file(void)
-{
-	/*to do for slc nand driver*/
-}
-
-#endif
