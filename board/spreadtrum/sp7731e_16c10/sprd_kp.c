@@ -23,14 +23,14 @@ struct key_info {
 static struct key_info KEYS[] = {
 	{
 		.tag = "Volume Up",
-		.offset = EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE,
+		.offset = SPRD_DDIE_EIC_KEYIN0,
 		.type = TYPE_EIC,
 		.keycode = KEY_VOLUMEUP,
-		.active = 1,
+		.active = 0,
 	},
 	{
 		.tag = "Volume Down",
-		.offset = SPRD_DDIE_EIC_KEYIN0,
+		.offset = SPRD_DDIE_EIC_KEYIN1,
 		.type = TYPE_EIC,
 		.keycode = KEY_VOLUMEDOWN,
 		.active = 0,
