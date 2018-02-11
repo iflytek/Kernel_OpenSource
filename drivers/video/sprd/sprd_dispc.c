@@ -71,7 +71,7 @@ int32_t sprd_dispc_flip(struct sprd_dispc *dispc,
 
 	dispc->core->flip(ctx, config);
 
-	if (!ctx->is_stopped)
+	if (!ctx->is_stopped || (dispc->ctx.if_type == SPRD_DISPC_IF_EDPI))
 		dispc->core->run(ctx);
 
 	return 0;

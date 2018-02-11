@@ -426,10 +426,6 @@ static void dpu_run(struct dispc_context *ctx)
 		reg->dpu_int_en |= DISPC_INT_ERR_MASK;
 
 	} else if (ctx->if_type == SPRD_DISPC_IF_EDPI) {
-		/* make sure the dpu is in stop status, because shadow regs */
-		/* can only be updated in the rising edge of dpu_RUN bit */
-		dpu_wait_stop_done(ctx);
-
 		/* dpu run */
 		reg->dpu_ctrl |= BIT(0);
 
@@ -786,6 +782,11 @@ static void dpu_flip(struct dispc_context *ctx,
 	int i;
 	struct sprd_adf_hwlayer *hwlayer;
 
+	if (ctx->if_type == SPRD_DISPC_IF_EDPI)
+		/* make sure the dpu is in stop status, because sharkl3 edpi no shadow regs */
+		/* can only be updated in the rising edge of dpu_RUN bit */
+		dpu_wait_stop_done(ctx);
+
 	vsync_count = 0;
 	if (max_vsync_count && (config->number_hwlayer > 1))
 		wb_en = false;
@@ -854,13 +855,11 @@ static void dpu_dpi_init(struct dispc_context *ctx)
 		/*te pol */
 		if (panel->te_pol == SPRD_POLARITY_NEG)
 			reg_val |= BIT(9);
-
 		/*use external te */
 		reg_val |= BIT(10);
 
 		/*enable te */
 		reg_val |= BIT(8);
-
 		reg->dpi_ctrl = reg_val;
 
 		/* enable dpu DONE  INT */

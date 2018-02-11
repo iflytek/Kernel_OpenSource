@@ -17,6 +17,7 @@
 #include "sprd_dphy.h"
 #include <i2c.h>
 
+//#define CMD_MODE_ENABLE
 static uint8_t init_data[] = {
 	//CMD2_P0
 	0x23, 0x00, 0x00, 0x02, 0xFF, 0x20,
@@ -170,7 +171,12 @@ static uint8_t init_data[] = {
 	0x39, 0x00, 0x00, 0x04, 0x3B, 0x03, 0x24, 0x20,
 	//TE ON
 	0x23, 0x00, 0x00, 0x02, 0x35, 0x00,
-	0x23, 0x00, 0x00, 0x02, 0xBB, 0x03,//video:0x03  cmd:0x10 0x13: video 过ram
+#ifdef CMD_MODE_ENABLE
+	0x23, 0x00, 0x00, 0x02, 0xBB, 0x10,//video:0x03  cmd:0x10 0x13: video 过ram
+	0x39, 0x00, 0x00, 0x03, 0x44, 0x03, 0xc0,
+#else
+	0x23, 0x00, 0x00, 0x02, 0xBB, 0x13,//video:0x03  cmd:0x10 0x13: video 过ram
+#endif
 	//CABC ON
 	0x39, 0x00, 0x00, 0x03, 0x51, 0xFF, 0x00,
 	0x23, 0x00, 0x00, 0x02, 0x53, 0x2C,
@@ -210,7 +216,11 @@ static int nt35695_init(void)
 
 	mipi_dsi_lp_cmd_enable(dsi, true);
 	mipi_dsi_send_cmds(dsi, init_data);
+#ifdef CMD_MODE_ENABLE
+	mipi_dsi_set_work_mode(dsi, SPRD_MIPI_MODE_CMD);
+#else
 	mipi_dsi_set_work_mode(dsi, SPRD_MIPI_MODE_VIDEO);
+#endif
 	mipi_dsi_state_reset(dsi);
 	mipi_dphy_hs_clk_en(dphy, true);
 
@@ -292,7 +302,11 @@ static struct panel_info nt35695_info = {
 	/* MIPI DSI specific parameters */
 	.phy_freq = 9798*100,
 	.lane_num = 4,
+#ifdef CMD_MODE_ENABLE
+	.work_mode = SPRD_MIPI_MODE_CMD,
+#else
 	.work_mode = SPRD_MIPI_MODE_VIDEO,
+#endif
 	.burst_mode = PANEL_VIDEO_BURST_MODE,
 	.nc_clk_en = false,
 };
