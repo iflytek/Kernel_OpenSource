@@ -210,14 +210,14 @@ static uint32_t ili9881p_readid(struct panel_spec *self)
 
 		if((0x00 == read_data[0]) && (0x80 == read_data[1])  && (0x00 == read_data[2]) ){ // && (lcd_adc > 300) && (lcd_adc < 700) //504
 			printk("lcd_ili9881p_mipi read id success!\n");
-			return 0x988102;
+			return 0x988103;
 		}
 	}
 
 	mdelay(5);
 	//mipi_set_hs_mode();
 #endif
-	return 0x988102;
+	return 0x00;
 }
 
 static int32_t ili9881p_reset(struct panel_spec *self)

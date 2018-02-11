@@ -532,7 +532,7 @@ static struct panel_cfg panel_cfg[] = {
 #endif
 #ifdef CONFIG_FB_LCD_L505
 {
-	.lcd_id = 0x988102,
+	.lcd_id = 0x988103,
 	.panel = &lcd_ili9881p_mipi_spec,
 },
 {
