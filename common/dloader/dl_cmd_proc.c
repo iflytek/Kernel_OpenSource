@@ -506,7 +506,7 @@ int dl_cmd_set_debuginfo(dl_packet_t *packet, void *arg)
                 }
 	}else if(size > 0 && size < DEBUG_INFO_LEN){
 			memcpy(debuginfo_buf, raw_data, size);
-			debuginfo_buf[size + 1] = '\0';
+			debuginfo_buf[size] = '\0';
 			debuginfo_size = size + 1;
 			offset = DEBUG_INFO_OFFSET + 0x200;
 			if(0 != common_raw_write("miscdata", debuginfo_size, (uint64_t)0, offset, debuginfo_buf)){
