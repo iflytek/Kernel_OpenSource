@@ -29,7 +29,6 @@ void DCDC_ldo_power_on()
 	regulator_enable("vddrf18");
 	regulator_enable("vddrf15");
 	regulator_enable("vddldomem");
-	regulator_enable("vddkpled");
 }
 
 void pmic_lowpower_config(uint32_t gen_para)
