@@ -14,15 +14,9 @@
 
 #include "sprd_cpcmdline.h"
 
-#if defined (CONFIG_SECBOOT)
-#include "secureboot/sec_common.h"
-#endif
 unsigned char raw_header[8192];
 unsigned int g_charger_mode = 0;
 char serial_number_to_transfer[SP15_MAX_SN_LEN];
-
-/*for verified boot*/
-unsigned int g_fb_lockflag = 0;
 
 extern int charger_connected(void);
 extern void modem_entry(void);
@@ -89,90 +83,6 @@ char *get_product_sn(void)
 	}
 	return serial_number_to_transfer;
 }
-
-#if defined (CONFIG_SECBOOT)
-/*
-* flag:1 means jump secure check or verify.
-* flag:0 means normal check
-* default: 0
-*/
-unsigned int get_fblockflag(void)
-{
-	unsigned char tmp_buffer[PDT_INFO_LOCK_FLAG_SECTION_SIZE];
-	unsigned char * tmp_p = tmp_buffer;
-	int ret;
-
-	memset(tmp_buffer, 0, sizeof(tmp_buffer));
-	if (common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(tmp_buffer), PDT_INFO_LOCK_FLAG_OFFSET, (char *)tmp_buffer)) {
-		debugf("read miscdata error.\n");
-	}
-
-	ret = sprd_sec_verify_unlockstatus(tmp_p, PDT_INFO_LOCK_FLAG_MAX_SIZE);
-	debugf("sprd_sec_verify_unlockstatus ret %d.\n", ret);
-
-	if(ret != 0) {
-		g_fb_lockflag = VBOOT_STATUS_LOCK; /*default lock status.*/
-	}
-	else {
-		g_fb_lockflag = VBOOT_STATUS_UNLOCK; /*unlock status.*/
-	}
-
-	return g_fb_lockflag;
-}
-
-int set_fblockflag(unsigned int flag)
-{
-	unsigned char tmp_buffer_flag[PDT_INFO_LOCK_FLAG_MAX_SIZE] __attribute__((aligned(4096)));
-	unsigned char tmp_buffer[PDT_INFO_LOCK_FLAG_SECTION_SIZE];
-	//unsigned int fb_lockflag_old = VBOOT_STATUS_LOCK;
-	//unsigned int fb_lockflag_new = VBOOT_STATUS_LOCK;
-
-	memset(tmp_buffer_flag, 0, sizeof(tmp_buffer_flag));
-	memset(tmp_buffer, 0, sizeof(tmp_buffer));
-
-	if (flag == VBOOT_STATUS_UNLOCK) {
-		strcat(tmp_buffer_flag, "VerifiedBoot-UNLOCK");
-	}
-	else if(flag == VBOOT_STATUS_LOCK) {
-		strcat(tmp_buffer_flag, "VerifiedBoot-LOCK");
-	}
-	else {
-		debugf("lockflag is invalid.\n");
-		return -2;
-	}
-
-	//fb_lockflag_old = get_fblockflag();
-	if (common_raw_read(PRODUCTINFO_FILE_PATITION, PDT_INFO_LOCK_FLAG_SECTION_SIZE, PDT_INFO_LOCK_FLAG_OFFSET, (char *)tmp_buffer)) {
-		debugf("read miscdata error.\n");
-		return -1;
-	}
-
-#ifdef DEBUG_LOCK_CTRL
-	dumpHex("data before encrypt.", tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
-#endif
-
-#if defined CONFIG_VBOOT_V2
-	uboot_encrypt_data(tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
-#endif
-
-#ifdef DEBUG_LOCK_CTRL
-	dumpHex("data after encrypt.", tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
-#endif
-
-	/*data ready*/
-	memcpy((char *)tmp_buffer , tmp_buffer_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
-
-	/*write to emmc*/
-	if (common_raw_write(PRODUCTINFO_FILE_PATITION, sizeof(tmp_buffer), sizeof(tmp_buffer), PDT_INFO_LOCK_FLAG_OFFSET, (char *)tmp_buffer)) {
-		debugf("write miscdata error.\n");
-		return -1;
-	}
-
-	//fb_lockflag_new = get_fblockflag();
-	//debugf("old value:%d, new value:%d\n", fb_lockflag_old, fb_lockflag_new);
-	return 0;
-}
-#endif
 
 void fdt_fixup_all(u8 *fdt_blob)
 {
@@ -286,8 +196,8 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 	fdt_fixup_flash_lock_state(fdt_blob);
 
 #ifdef CONFIG_VBOOT_V2
-		/*for Android O VBooot*/
-		fdt_fixup_ando_vboot(fdt_blob);
+	/*for Android O VBooot*/
+	fdt_fixup_ando_vboot(fdt_blob);
 #endif
 
 	/* for non iq mode, remove reserved iq memory from dtb */

@@ -134,9 +134,8 @@ int autodloader_mainhandler(void);
 extern char* get_calibration_parameter(void);
 extern bool is_calibration_by_uart(void);
 #if defined (CONFIG_SECBOOT)
-extern int set_fblockflag(unsigned int flag);
-extern unsigned int get_fblockflag(void);
-//extern unsigned int get_fbunlockpwd(unsigned char * buffer);
+extern int set_lock_status(unsigned int flag);
+extern unsigned int get_lock_status(void);
 extern int uboot_encrypt_data(uint64_t start_addr, uint64_t lenth);
 #endif
 #endif /* _LOADER_COMMON_H_ */

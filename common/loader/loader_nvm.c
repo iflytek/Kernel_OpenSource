@@ -1061,7 +1061,7 @@ void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
 int loader_binding_data_set(void)
 {
 	/*set device state*/
-	g_DeviceStatus = get_fblockflag();
+	get_lock_status();
 
 	if(g_DeviceStatus == VBOOT_STATUS_LOCK){
 		debugf("INFO: LOCK FLAG IS : LOCK!!!\n");
@@ -1083,7 +1083,7 @@ int loader_binding_state_get(void)
 	return g_DeviceStatus;
 }
 
-int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status_len)
+int sprd_sec_verify_lockstatus(unsigned char *lockstatus, unsigned int status_len)
 {
 #ifndef CONFIG_VBOOT_V2
 	return -1; /*default status : locked*/
@@ -1106,50 +1106,11 @@ int sprd_sec_verify_unlockstatus(unsigned char * lockstatus, unsigned int status
 	do_hex_dump(data_buffer, status_len);
 #endif
 
-	ret = uboot_verify_unlockstatus(data_buffer, sizeof(data_buffer));
+	ret = uboot_verify_lockstatus(data_buffer, sizeof(data_buffer));
 
 	if(*v_lock_state_ret == VBOOT_STATUS_LOCK)
 	{
 		debugf("verify unlock status failed. \n");
-		ret = -1;
-	}
-
-	return ret;
-#endif
-}
-
-int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len)
-{
-#ifndef CONFIG_VBOOT_V2
-	return 0; /*default : verify pwd pass.*/
-#else
-	uint8_t data_buffer[256] __attribute__((aligned(4096)));
-	//uint8_t *pwdptr = (uint8_t *)data_buffer + PDT_INFO_UNLOCK_PWD_MAX_SIZE;
-
-	uint32_t ret;
-	uint8_t * v_ret = (uint8_t *)data_buffer + PDT_INFO_UNLOCK_PWD_MAX_SIZE * 2;
-
-	if(!password || !pwd_len || (pwd_len > PDT_INFO_UNLOCK_PWD_MAX_SIZE))
-	{
-		debugf("para error. \n");
-		return -1;
-	}
-
-	memset(data_buffer, 0, sizeof(data_buffer));
-	memcpy(data_buffer, password, pwd_len);
-
-	//get_fbunlockpwd(pwdptr);
-
-#ifdef CONFIG_VBOOT_DUMP
-	printf("input pwd:\n");
-	do_hex_dump(password, PDT_INFO_UNLOCK_PWD_MAX_SIZE);
-#endif
-
-	ret = uboot_verify_pwd(data_buffer, sizeof(data_buffer));
-
-	if(*v_ret == VBOOT_UNLOCK_PWD_CHECK_FAIL)
-	{
-		debugf("verify password failed. \n");
 		ret = -1;
 	}
 
@@ -1305,7 +1266,7 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 #endif
 
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SOC_IWHALE2) && (defined CONFIG_SECBOOT)
-        tos_status_check();
+	tos_status_check();
 #endif
 
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)

@@ -20,12 +20,15 @@
 #define VBOOT_UNLOCK_PWD_CHECK_FAIL (1)
 #define VBOOT_UNLOCK_PWD_CHECK_SUCC (0)
 
+#define PRODUCT_SN_TOKEN_MAX_SIZE	(64)
+#define PRODUCT_SN_SIGNATURE_SIZE	(512)
+
 typedef struct{
-	unsigned long img_addr; //the base address of image to verify
-	unsigned long img_len; //length of image
-	unsigned long pubkeyhash;//pubkey hash for verifying image
-	unsigned long hash_len; //length of pubkeyhash
-	unsigned long flag;//sprd or sansa plan
+	unsigned long img_addr;		//the base address of image to verify
+	unsigned long img_len;		//length of image
+	unsigned long pubkeyhash;	//pubkey hash for verifying image
+	unsigned long hash_len;		//length of pubkeyhash
+	unsigned long flag;		//sprd or sansa plan
 }imgToVerifyInfo;
 
 /*add for vboot v2*/
@@ -51,6 +54,21 @@ typedef struct{
 	uint32_t verify_return_data_len;
 	uint32_t vboot_unlock_status;
 }VbootVerifyInfo;
+
+/* Add for fastboot flashing lock_bootloader/unlock bootloader command */
+typedef struct {
+	char *vbmeta_img_addr;				//vbmeta image addr
+	uint32_t vbmeta_img_len;			//vbmeta image size
+	char *vbmeta_pubkey_addr;			//address to save vbmeta image hash
+	uint32_t vbmeta_pubkey_len;			//hash length
+	char *product_sn_addr;				//product serial number addr
+	uint32_t product_sn_len;			//product serial number length
+	char *product_sn_signature_addr;		//product serial number addr
+	uint32_t product_sn_signature_len;		//product serial number length
+	VBootResultInfo * verify_return_data;
+	uint32_t verify_return_data_len;
+}VbootUnlockVerifyInfo;
+
 #if 0
 typedef enum enAntiRBImageType{
 	IMAGE_VBMETA = 0, /**/
@@ -80,6 +98,8 @@ extern imgToVerifyInfo *img_verify_info_tos;
 //#define  ARG_START_ADRESS 0x98100000//0x94000000+64M
 #endif
 extern VbootVerifyInfo *vboot_verify_info;
+extern VbootUnlockVerifyInfo *vboot_unlock_verify_info;
+extern unsigned int g_DeviceStatus;
 
 /*this two marco is diffent among products, pls check it!*/
 #define SIMG_BUF     0x2E00000
@@ -175,7 +195,7 @@ void vboot_secure_process_prepare(void);
 
 #ifdef CONFIG_SECBOOT
 extern char * strtok(char * s,const char * ct);
-extern int sprd_sec_verify_password(unsigned char * password, unsigned int pwd_len);
+extern int verify_product_sn_signature(void);
 #endif
 void secboot_update_swVersion(void);
 

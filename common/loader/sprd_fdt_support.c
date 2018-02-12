@@ -31,7 +31,7 @@ extern int fdtdec_decode_region_private(const void *blob, int node, const char *
 extern int poweron_by_calibration(void);
 /*for verified boot*/
 enVerifiedState g_verifiedbootstate = v_state_green;
-extern unsigned int g_fb_lockflag;
+extern unsigned int g_DeviceStatus;
 int fdt_chosen_bootargs_append(void *fdt, char *append_args, int force);
 #define MAX_BOOTARG_LEN  (0x1000)  /*4kb*/
 
@@ -118,7 +118,7 @@ int fdt_fixup_flash_lock_state(void *fdt)
 	int str_len;
 	memset(buf, 0, 64);
 
-	switch(g_fb_lockflag)
+	switch(g_DeviceStatus)
 	{
 		case 1:
 			sprintf(buf,"androidboot.flash.locked=0");

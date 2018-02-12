@@ -47,7 +47,6 @@
 
 extern AvbOps g_avb_ops;
 extern unsigned char *g_eMMCBuf;
-extern unsigned int g_DeviceStatus;
 
 AvbCheckType g_ulAvbCheckType = AVB_CHECK_BOOTING;
 unsigned char g_sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN] __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/

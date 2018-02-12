@@ -37,14 +37,8 @@
 
 #include "dl_operate.h"
 #include <asm/arch/chip_releted_def.h>
-
-#include <secureboot/sec_common.h>
-#ifdef CONFIG_SECBOOT
 #include <linux/input.h>
-#endif
-
-/*oem user command unlock flag, default is false*/
-bool g_oem_user_cmd_unlock_flag = false;
+#include <secureboot/sec_common.h>
 
 extern SPECIAL_PARTITION_CFG const s_special_partition_cfg[];
 extern uchar *_get_backup_partition_name(uchar * partition_name);
@@ -123,8 +117,9 @@ extern void splFillCheckData(uchar * splBuf);
 extern int get_lcs(uint32_t *p_lcs);
 extern int get_socid(uint64_t start_addr, uint64_t lenth);
 extern int set_rma(void);
-extern unsigned int get_fblockflag(void);
-extern int set_fblockflag(unsigned int flag);
+extern unsigned int get_lock_status(void);
+extern int set_lock_status(unsigned int flag);
+extern char *get_product_sn();
 #endif
 
 # ifndef CONFIG_DTS_MEM_LAYOUT
@@ -228,6 +223,17 @@ void fastboot_response_socid(const char *info)
 		debugf("too long string\r\n");
 	}
 	sprintf(response, "%s%s", "SOCID", info);
+	fb_usb_write(response, strlen(response));
+}
+
+void fastboot_response_sn(const char *info)
+{
+	if (info == 0)
+		info = "";
+	if (strlen("SN") + strlen(info) >= 64) {
+		debugf("too long string\r\n");
+	}
+	sprintf(response, "%s%s", "SN", info);
 	fb_usb_write(response, strlen(response));
 }
 #endif
@@ -410,7 +416,7 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 	debugf("data = %p,ImageInfo[0].base_address = %p\n", data, ImageInfo.base_address);
 
 #if defined (CONFIG_SECBOOT) && !defined (DEBUG)
-	if(!get_fblockflag()) {
+	if(get_lock_status() == VBOOT_STATUS_LOCK) {
 		fastboot_fail("Flashing Lock Flag is locked. Please unlock it first!");
 		return;
 	}
@@ -473,6 +479,13 @@ void fb_cmd_erase(const char *arg, void *data, uint64_t size)
 	char partition_name[PARTNAME_SZ];
 	char *partition_name_p = NULL;
 	uchar *backup_partition_name = NULL;
+
+#if defined (CONFIG_SECBOOT) && !defined (DEBUG)
+	if(get_lock_status() == VBOOT_STATUS_LOCK) {
+		fastboot_fail("Flashing Lock Flag is locked. Please unlock it first!");
+		return;
+	}
+#endif
 
 	for (i = 0; i < PARTNAME_SZ; i++) {
 		partition_name[i] = arg[i];
@@ -629,137 +642,170 @@ void boot_linux(unsigned kaddr, unsigned taddr)
 }
 
 #ifdef CONFIG_SECBOOT
-void fb_cmd_oemcmd(const char *arg, void *data, uint64_t sz)
+char product_sn_token[PRODUCT_SN_TOKEN_MAX_SIZE] __attribute__ ((aligned(4096)));
+char product_sn_signature[PRODUCT_SN_SIGNATURE_SIZE] __attribute__((aligned(4096)));
+
+void fb_cmd_oem(const char *arg, void *data, uint64_t sz)
 {
 	char subcmd[64];
-	char password[PDT_INFO_UNLOCK_PWD_MAX_SIZE]; /*size must be PDT_INFO_UNLOCK_PWD_MAX_SIZE*/
+	char s[32];
 	int pwd_verify_ret = 0;
+	int i, j;
 
 	const char *delim = " ";
 
 	debugf("arg#%s#, data: %p, sz: 0x%x\n", arg, data, sz);
 
 	memset(subcmd, 0, sizeof(subcmd));
-	memset(password, 0, sizeof(password));
+	memset(s, 0, sizeof(s));
+	memset(product_sn_token, 0, sizeof(product_sn_token));
 
 	strcpy(subcmd, strtok(arg, delim));
-	if(strlen(subcmd)){
+	if (strlen(subcmd)) {
 		debugf("subcmd +%s+\n", subcmd);
-	}else{
-		debugf("cmd is null.\n");
+	} else {
+		debugf("subcmd is null.\n");
+		fastboot_fail("subcmd is null.");
 		return;
 	}
 
-	if(strcmp(subcmd, "unlock"))	{
-		fastboot_fail("unknown cmd.");
-		return;
-	}
+	if (!strcmp(subcmd, "get_identifier_token")) {
+		strcpy(product_sn_token, get_product_sn());
+		debugf("Identifier token: %s.\n", product_sn_token);
+		fastboot_response_sn("Identifier token:\n");
 
-	strcpy(password, strtok(NULL, arg));
-	if(strlen(password)){
-		debugf("pwd +%s+\n", password);
-	}else{
-		debugf("pwd is null.\n");
-		return;
-	}
+		for (j = 0; j < 4; j++){
 
-	pwd_verify_ret = sprd_sec_verify_password(password, sizeof(password));
+			for (i = 0; i < 16; i++){
+				if (product_sn_token[16*j+i] == '\0') {
+					strcat(s,"\n");
+					break;
+				}
+				if (i < 15) {
+					sprintf(s+i*2, "%02x", product_sn_token[16*j+i]);
+				} else {
+					sprintf(s+i*2, "%02x\n", product_sn_token[16*j+i]);
+				}
+			}
 
-	/*unlock oem user command*/
-	if(pwd_verify_ret == 0) {
-		g_oem_user_cmd_unlock_flag = true;
-		debugf("unlock oem user command successfully.\n");
+			fastboot_response_sn(s);
+
+			if (product_sn_token[16*j+i] == '\0') {
+				break;
+			}
+		}
+
 		fastboot_okay("");
 	} else {
-		debugf("unlock oem user command failed.\n");
-		fastboot_fail("unlock failed.");
+		fastboot_fail("unknown cmd.");
 	}
+
 }
 
-void fb_cmd_getlockflag(const char *arg, void *data, uint64_t sz)
+void fb_cmd_flashing(const char *arg, void *data, uint64_t sz)
 {
-	unsigned int fb_cmdtmpflag = 0;
-
-	fb_cmdtmpflag = get_fblockflag();
-
-	if(fb_cmdtmpflag == 0)
-		debugf("lock flag is lock.\n");
-	else
-		debugf("lock flag is unlock.\n");
-
-	fastboot_okay("");
-}
-
-void fb_cmd_setlockflag(const char *arg, void *data, uint64_t sz)
-{
-	char * search = arg;
-	unsigned int fb_cmdtmpflag = VBOOT_STATUS_LOCK;
-	int tmp_ret = 0;
-	char flag_name[FLASHING_LOCK_PARA_LEN];
-	int i;
+	char subcmd[64];
+	const char *delim = " ";
+	int i = 0;
+	unsigned int all_zero_flag = 1;
+	bool butt_check = false;
+	int key_code;
 
 	debugf("arg#%s#, data: %p, sz: 0x%x\n", arg, data, sz);
 
-	if(g_oem_user_cmd_unlock_flag == false) {
-		fastboot_fail("Warning: need authentication before set lock flag.");
+	memset(subcmd, 0, sizeof(subcmd));
+
+	strcpy(subcmd, strtok(arg, delim));
+	if (strlen(subcmd)) {
+		debugf("subcmd +%s+\n", subcmd);
+	} else {
+		debugf("submd is null.\n");
+		fastboot_fail("subcmd is null.");
 		return;
 	}
 
-	memset(flag_name, 0, sizeof(flag_name));
-	for (i = 0; i < FLASHING_LOCK_PARA_LEN; i++) {
-		flag_name[i] = arg[i];
-		if (0 == arg[i])
-			break;
-	}
+	if (!strcmp(subcmd, "unlock")) {
+		fastboot_fail("Not implemet.");
+	} else if (!strcmp(subcmd, "lock")) {
+		fastboot_fail("Not implement.");
+	} else if (!strcmp(subcmd, "unlock_critical")) {
+		fastboot_fail("Not implement.");
+	} else if (!strcmp(subcmd, "lock_critical")) {
+		fastboot_fail("Not implement.");
+	} else if (!strcmp(subcmd, "get_unlock_ability")) {
+		fastboot_fail("Not implement.");
+	} else if (!strcmp(subcmd, "get_unlock_bootloader_nonce")) {
+		fastboot_fail("Not implement.");
+	} else if (!strcmp(subcmd, "lock_bootloader")) {
+		if (get_lock_status() == VBOOT_STATUS_LOCK) {
+			fastboot_fail("Bootloader can not been locked repeatly.");
+			return;
+		}
 
-	debugf("flag_name#%s#\n", flag_name);
+		if (set_lock_status(VBOOT_STATUS_LOCK)) {
+			debugf("execute <fastboot flashing lock_bootloader> command fail.\n");
+			fastboot_fail("Lock bootloader fail.");
+			return;
+		}
 
-	/*check bootimage(recoveryimage) when flash or bootup*/
-	if(0 == strcmp(" lock", flag_name))	{
-		/*normal secure check*/
-		fb_cmdtmpflag = VBOOT_STATUS_LOCK;
-	}
-	else if(0 == strcmp(" unlock", flag_name)) {
-		/*jump secure check*/
-		fb_cmdtmpflag = VBOOT_STATUS_UNLOCK;
-	}
-	else	{
-		fastboot_fail("invalid arg.");
-		return;
-	}
+		debugf("execute <fastboot flashing lock_bootloader> command successfully.\n");
+		lcd_printf("   Info:Lock bootloader success!\n");
+		fastboot_okay("Lock bootloader successfully!   ");
+	} else if (!strcmp(subcmd, "unlock_bootloader")) {
+		if (get_lock_status() == VBOOT_STATUS_UNLOCK) {
+			debugf("bootloader has been unlocked\n");
+			fastboot_fail("Bootloader can not been unlocked repeatly.");
+			return ;
+		}
 
-	//erase user data partition
-	if(fb_cmdtmpflag == VBOOT_STATUS_UNLOCK){
-		bool butt_check = false;
-		int key_code;
-		//extern void lcd_printf(const char *fmt, ...);
-		lcd_printf("Warning: unlock device may result in user data is lost.\n");
-		lcd_printf("                 Press volume down button to confirm that.\n");
-		lcd_printf("                 Press volume up button to cancel.\n");
-		while(!butt_check){
-			//continue check till button pressed.
+		for (i = 0; i < 64; i++) {
+			if (product_sn_token[i]) {
+				all_zero_flag = 0;
+			}
+		}
+		if (all_zero_flag){
+			fastboot_fail("Please firstly execute <fastboot oem get_identifier_token>");
+			return;
+		}
+
+		memset(product_sn_signature, 0, sizeof(product_sn_signature));
+		memcpy(product_sn_signature, data, PRODUCT_SN_SIGNATURE_SIZE);
+
+		//dumpHex("flashing unlock_bootloader", data, PRODUCT_SN_SIGNATURE_SIZE);
+
+		if (verify_product_sn_signature()) {
+			debugf("execute <fastboot flashing unlock_bootloader> command fail.\n");
+			fastboot_fail("Unlock bootloader fail.");
+			return;
+		}
+
+		lcd_printf("\n   Warning: Unlock device may erase user data.\n");
+		lcd_printf("   Press volume down button to confirm that.\n");
+		lcd_printf("   Press volume up button to cancel.\n");
+		while(!butt_check) {
+			/* continue check till button pressed */
 			key_code = wait_for_keypress();
 			if (key_code == KEY_VOLUMEDOWN) {
 				butt_check = true;
 			} else if (key_code == KEY_VOLUMEUP) {
-				fastboot_okay("Info:user cancelled");
+				lcd_printf("   Info:user cancelled!\n");
+				fastboot_okay("Info:user cancel unlock bootloader!   ");
 				return;
 			}
 		}
-		lcd_printf("Info:Begin to erase user data.\n");
-		common_raw_erase("userdata", 0, 0);
+
+		if (set_lock_status(VBOOT_STATUS_UNLOCK)) {
+			debugf("set_lock_status failed\n");
+			fastboot_fail("Unlock bootloader fail.");
+			return;
+		}
+
+		debugf("execute <fastboot flashing lock_bootloader> successfully.\n");
+		lcd_printf("   Info:Unlock bootloader success!\n");
+		fastboot_okay("Info:Unlock bootloader success!   ");
+	} else {
+		fastboot_fail("unknown cmd.");
 	}
-
-	tmp_ret = set_fblockflag(fb_cmdtmpflag);
-	if(tmp_ret)
-		debugf("set_fblockflag failed, ret:%d\n", tmp_ret);
-
-	if(fb_cmdtmpflag == VBOOT_STATUS_LOCK)
-		debugf("set lock flag to lock.\n");
-	else
-		debugf("set lock flag to unlock.\n");
-
-	fastboot_okay("Info:user data is erased!");
 }
 #endif
 
@@ -973,6 +1019,11 @@ int do_fastboot(void)
 	int ret = 0;
 	debugf("start fastboot\n");
 
+#ifdef CONFIG_SECBOOT
+	/*Initialize product_sn_token to 0 */
+	memset(product_sn_token, 0, PRODUCT_SN_TOKEN_MAX_SIZE);
+#endif
+
 	ret = usb_fastboot_init();
 	if (ret < 0)
 		return ret;
@@ -1012,15 +1063,14 @@ int do_fastboot(void)
 	fastboot_register("powerdown", fb_cmd_powerdown);
 	fastboot_register("continue", fb_cmd_continue);
 	fastboot_register("reboot-bootloader", fb_cmd_reboot_bootloader);
-	#ifdef CONFIG_SECBOOT
-	fastboot_register("flashing", fb_cmd_setlockflag);
-	fastboot_register("getflag", fb_cmd_getlockflag);
-	fastboot_register("oem", fb_cmd_oemcmd);
+#ifdef CONFIG_SECBOOT
+	fastboot_register("flashing", fb_cmd_flashing);
+	fastboot_register("oem", fb_cmd_oem);
 	/*add fastboot cmd for sharkl2*/
 	fastboot_register("getlcs", fb_cmd_getlcs);
 	fastboot_register("setrma", fb_cmd_setrma);
 	fastboot_register("getsocid", fb_cmd_getsocid);
-	#endif
+#endif
 
 	fastboot_handler(0);
 

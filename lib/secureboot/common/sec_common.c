@@ -19,12 +19,15 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #define EFUSE_HASH_STARTID 2
+
 #ifdef TOS_TRUSTY
 imgToVerifyInfo *img_verify_info_tos;
 VbootVerifyInfo *vboot_verify_info;
+VbootUnlockVerifyInfo *vboot_unlock_verify_info;
 #else
 VbootVerifyInfo vboot_verify_info_s = {0};
 VbootVerifyInfo *vboot_verify_info = &vboot_verify_info_s;
+VbootUnlockVerifyInfo vboot_unlock_verify_info;
 #endif
 imgToVerifyInfo img_verify_info = {0};
 uint8_t pubkhash[32];
@@ -73,7 +76,6 @@ static uchar *const s_force_secure_check[] = {
 	NULL
 };
 
-extern unsigned int g_DeviceStatus;
 extern enVerifiedState g_verifiedbootstate;
 static int dl_secure_verify(void *partition_name,void *tocheck_partition_name,void *header,void *code)
 {
@@ -436,6 +438,7 @@ next:;
 #ifdef TOS_TRUSTY
 	img_verify_info_tos = (imgToVerifyInfo *)gd->arg_start_base;
 	vboot_verify_info = (VbootVerifyInfo *)gd->arg_start_base;
+	vboot_unlock_verify_info = (VbootUnlockVerifyInfo *)gd->arg_start_base;
 #endif
 
 	return 0;
@@ -540,14 +543,11 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 
 
 		vboot_verify_info->vbmeta_img_len = (uint32_t)partition_size;
-		vboot_verify_info->vbmeta_img_addr = img_ram_addr;
+		vboot_verify_info->vbmeta_img_addr = vbmeta_ram_addr;
 
-		debug("partintion:%s, partition_size:0x%x\n", partition_name, vboot_verify_info->img_len);
+		debugf("partintion:%s, partition_size:0x%x.\n", "vbmeta", vboot_verify_info->vbmeta_img_len);
 
-		debug("partintion:%s, partition_size:0x%x.\n", "vbmeta", vboot_verify_info->vbmeta_img_len);
-
-		debug("img_ram_addr:0x%x.   vbmeta_ram_addr:0x%x. \n", img_ram_addr, vbmeta_ram_addr);
-
+		debugf("img_ram_addr:0x%x.   vbmeta_ram_addr:0x%x. \n", img_ram_addr, vbmeta_ram_addr);
 
 		vboot_verify_info->vb_cmdline_addr = NULL;
 		vboot_verify_info->vb_cmdline_len = 0;
@@ -559,11 +559,11 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 		vboot_verify_info->vbmeta_img_len = (uint32_t)partition_size;
 		vboot_verify_info->vbmeta_img_addr = vbmeta_ram_addr;
 
-		debug("partintion:%s, partition_size:0x%x\n", partition_name, vboot_verify_info->img_len);
+		debugf("partintion:%s, partition_size:0x%x\n", partition_name, vboot_verify_info->img_len);
 
-		debug("partintion:%s, partition_size:0x%x.\n", "vbmeta", vboot_verify_info->vbmeta_img_len);
+		debugf("partintion:%s, partition_size:0x%x.\n", "vbmeta", vboot_verify_info->vbmeta_img_len);
 
-		debug("img_ram_addr:0x%x.   vbmeta_ram_addr:0x%x. \n", img_ram_addr, vbmeta_ram_addr);
+		debugf("img_ram_addr:0x%x.   vbmeta_ram_addr:0x%x. \n", img_ram_addr, vbmeta_ram_addr);
 
 
 		memset((char *)g_sprd_vboot_cmdline, 0, sizeof(g_sprd_vboot_cmdline));
@@ -574,8 +574,8 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 		vboot_verify_info->verify_return_data = (VBootResultInfo *)g_sprd_vboot_ret;
 		vboot_verify_info->verify_return_data_len = sizeof(VBootResultInfo);
 
-		debug("g_sprd_vboot_cmdline:0x%x.   g_sprd_vboot_cmdline_len:%d.   \n", (char *)g_sprd_vboot_cmdline, sizeof(g_sprd_vboot_cmdline));
-		debug("g_sprd_vboot_ret:0x%x.   g_sprd_vboot_ret_len:%d.   \n", g_sprd_vboot_ret, sizeof(g_sprd_vboot_ret));
+		debugf("g_sprd_vboot_cmdline:0x%x.   g_sprd_vboot_cmdline_len:%d.   \n", (char *)g_sprd_vboot_cmdline, sizeof(g_sprd_vboot_cmdline));
+		debugf("g_sprd_vboot_ret:0x%x.   g_sprd_vboot_ret_len:%d.   \n", g_sprd_vboot_ret, sizeof(g_sprd_vboot_ret));
 	}
 
 	/*public op2: when check vbmeta & other imgs(like boot.)*/
@@ -591,7 +591,7 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 		sprd_get_imgversion(tmp_type, &(vboot_ver_info.img_ver[tmp_type]));
 	}
 #ifdef CONFIG_VBOOT_DUMP
-	debug("dump vboot_ver_info.img_ver \n");
+	debugf("dump vboot_ver_info.img_ver \n");
 	do_hex_dump((void *)&vboot_ver_info, sizeof(VbootVerInfo));
 #endif
 	//pass the version msg to tos
@@ -798,3 +798,128 @@ void secboot_update_swVersion(void)
 
 }
 
+#ifdef CONFIG_SECBOOT
+extern char product_sn_token[PRODUCT_SN_TOKEN_MAX_SIZE];
+extern char product_sn_signature[PRODUCT_SN_SIGNATURE_SIZE];
+
+int set_lock_status(unsigned int flag)
+{
+	unsigned char lock_flag[PDT_INFO_LOCK_FLAG_MAX_SIZE] __attribute__((aligned(4096)));
+	unsigned char buffer[PDT_INFO_LOCK_FLAG_SECTION_SIZE];
+        int ret;
+
+	memset(lock_flag, 0, sizeof(lock_flag));
+	memset(buffer, 0, sizeof(buffer));
+
+	if (flag == VBOOT_STATUS_UNLOCK) {
+		strcat(lock_flag, "VerifiedBoot-UNLOCK");
+	} else if(flag == VBOOT_STATUS_LOCK) {
+		strcat(lock_flag, "VerifiedBoot-LOCK");
+	} else {
+		debugf("lockflag is invalid.\n");
+		return -2;
+	}
+
+	/*read from emmc*/
+	if (common_raw_read(PRODUCTINFO_FILE_PATITION, PDT_INFO_LOCK_FLAG_SECTION_SIZE,
+				PDT_INFO_LOCK_FLAG_OFFSET, (char *)buffer)) {
+		debugf("read miscdata error.\n");
+		return -1;
+	}
+
+	//dumpHex("data before encrypt.", lock_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+
+#if defined CONFIG_VBOOT_V2
+	ret = uboot_encrypt_data(lock_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+	if (ret) {
+		debugf("data encrypt error.\n");
+		return -3;
+	}
+#endif
+
+	//dumpHex("data after encrypt.", lock_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+
+	/*data ready*/
+	memcpy((char *)buffer , lock_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+
+	/*write to emmc*/
+	if (common_raw_write(PRODUCTINFO_FILE_PATITION, sizeof(buffer), sizeof(buffer),
+				PDT_INFO_LOCK_FLAG_OFFSET, (char *)buffer)) {
+		debugf("write miscdata error.\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+unsigned int get_lock_status(void)
+{
+	unsigned char lock_flag[PDT_INFO_LOCK_FLAG_SECTION_SIZE];
+	int ret;
+
+	memset(lock_flag, 0, sizeof(lock_flag));
+
+	if (common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(lock_flag), PDT_INFO_LOCK_FLAG_OFFSET, (char *)lock_flag)) {
+		debugf("read miscdata error.\n");
+	}
+
+	ret = sprd_sec_verify_lockstatus(lock_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
+
+	debugf("sprd_sec_verify_lockstatus ret %d.\n", ret);
+
+	if(ret != 0) {
+		g_DeviceStatus = VBOOT_STATUS_LOCK; /*default lock status.*/
+	}
+	else {
+		g_DeviceStatus = VBOOT_STATUS_UNLOCK; /*unlock status.*/
+	}
+
+	return g_DeviceStatus;
+}
+
+int verify_product_sn_signature()
+{
+	int ret = -1;
+	uint64_t partition_size = 0;
+	uint32_t unlock_bootloader_result = 0;
+
+#ifdef TOS_TRUSTY
+	memset(vboot_unlock_verify_info, 0,  sizeof(VbootUnlockVerifyInfo));
+	vboot_secure_process_prepare();
+	vboot_unlock_verify_info->vbmeta_pubkey_addr = g_sprd_vboot_key;
+	vboot_unlock_verify_info->vbmeta_pubkey_len = g_sprd_vboot_key_len;
+
+	secure_get_partition_size("vbmeta", &partition_size);
+
+	vboot_unlock_verify_info->vbmeta_img_len = partition_size;
+	vboot_unlock_verify_info->vbmeta_img_addr = gd->vbmeta_img_base;
+	secure_load_partition("vbmeta",vboot_unlock_verify_info->vbmeta_img_len,
+			(uint64_t)0, vboot_unlock_verify_info->vbmeta_img_addr);
+	vboot_unlock_verify_info->product_sn_addr = product_sn_token;
+	vboot_unlock_verify_info->product_sn_len = PRODUCT_SN_TOKEN_MAX_SIZE;
+	vboot_unlock_verify_info->product_sn_signature_addr = product_sn_signature;
+	vboot_unlock_verify_info->product_sn_signature_len = PRODUCT_SN_SIGNATURE_SIZE;
+	vboot_unlock_verify_info->verify_return_data = (VBootResultInfo *)g_sprd_vboot_ret;
+	vboot_unlock_verify_info->verify_return_data_len = sizeof(VBootResultInfo);
+
+	ret = uboot_verify_product_sn_signature((VbootUnlockVerifyInfo*)vboot_unlock_verify_info,
+			sizeof(VbootUnlockVerifyInfo));
+#else
+
+#endif
+
+	if (!ret) {
+		unlock_bootloader_result = vboot_unlock_verify_info->verify_return_data->vboot_verify_ret;
+		if (unlock_bootloader_result){
+			debugf("uboot_verify_product_sn_signature unlock successfully\n");
+			return ret;
+		} else {
+			debugf("uboot_verify_product_sn_signature unlock faily\n");
+			return -1;
+		}
+	}
+
+	return ret;
+}
+
+#endif

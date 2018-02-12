@@ -2,6 +2,7 @@
 #include "loader_common.h"
 #include <libfdt.h>
 #include "dev_tree.h"
+#include "secureboot/sec_common.h"
 
 extern unsigned int g_charger_mode;
 extern int do_fastboot(void);
@@ -184,6 +185,10 @@ extern int drv_lcd_init (void);
 #endif
 	//MMU_DisableIDCM();
 #ifdef CONFIG_SECBOOT
+	if (get_lock_status() == VBOOT_STATUS_UNLOCK){
+		debugf("INFO: LOCK FLAG IS : UNLOCK!!!\n");
+		lcd_printf("\n   INFO: LOCK FLAG IS : UNLOCK!!!\n");
+	}
 	get_secboot_base_from_dt();
 #endif
 
@@ -191,7 +196,6 @@ extern int drv_lcd_init (void);
 
 	return;
 }
-
 
 void autodloader_mode(void)
 {
