@@ -513,6 +513,7 @@ static int dpu_init(struct dispc_context *ctx)
 	dpu_clean(ctx);
 	reg->dpu_enhance_cfg = 0;
 
+	reg->mmu_en = 0;
 	reg->mmu_min_ppn1 = 0;
 	reg->mmu_ppn_range1 = 0xffff;
 	reg->mmu_min_ppn2 = 0;
