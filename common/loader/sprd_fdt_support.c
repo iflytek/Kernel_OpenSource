@@ -875,6 +875,12 @@ int fdt_fixup_sysdump_uboot(void *fdt)
 			uboot_size = (ddr_base + ddr_size) - uboot_base;
 			debugf("uboot size is 0x%x\n", uboot_size);
 
+			if (ddr_size > SZ_512M) {
+				debugf("DDR size is more than 512MB\n" );
+				uboot_size = CONFIG_SYS_SDRAM_END - uboot_base;
+				debugf("uboot size is 0x%x\n", uboot_size);
+			}
+
 			if (fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0) {
 				debugf("cannot find reg prop in sysdump-uboot node.\n" );
 				return -1;
