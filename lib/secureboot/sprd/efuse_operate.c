@@ -374,10 +374,13 @@ int secure_efuse_program_sprd(void)
 	memset(&sha256,    0x0, 32);
 	memset(sha256_string,   0x0, 65);
 	//unsigned char t_splImageBuf[SPL_IMAGE_SIZE];
-	printf("###### secure_efuse_program_sprd ######\n"); 
+	printf("###### secure_efuse_program_sprd ######\n");
 	/**read spl image**/
 	//Emmc_Read(PARTITION_BOOT1, 0, SPL_EMMC_SECTOR_NUM, (unsigned char *)gd->verify_base);
-	common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)gd->verify_base);
+	if (common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)gd->verify_base)) {
+		UBOOT_EFUSE_LOG("%s()->Line:%d; common_raw_read fail\n", __FUNCTION__, __LINE__);
+		return -1;
+	}
 	sprd_get_pubk(gd->verify_base,sprd_pubkey);
 	cal_sha256(sprd_pubkey,SPRD_PUBKEY_HASHLEN,sha256.sha256_char);
 	sprintf(sha256_string,"%08x%08x%08x%08x%08x%08x%08x%08x", sha256.sha256_int[0],
@@ -397,13 +400,12 @@ int secure_efuse_program_sprd(void)
 	g_imgToVerInfo.img_len = 64;
 	g_imgToVerInfo.pubkeyhash = sha256_string;
 	g_imgToVerInfo.hash_len = 64;
-	g_imgToVerInfo.flag = SPRD_FLAG; 
+	g_imgToVerInfo.flag = SPRD_FLAG;
 	printf("pubkeyhash = %x,flag = %x \n",g_imgToVerInfo.pubkeyhash,g_imgToVerInfo.flag);
 
 	uboot_program_efuse(&g_imgToVerInfo,sizeof(imgToVerifyInfo));
 
 	return PROG_OK;
-  
 }
 
 
