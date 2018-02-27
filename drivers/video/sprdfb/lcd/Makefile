@@ -81,3 +81,6 @@ obj-$(CONFIG_FB_LCD_JD9161_FWVGA)  += lcd_jd9161_mipi_fwvga.o
 obj-$(CONFIG_FB_LCD_JD9161_HLT_MIPI_WVGA)  +=lcd_jd9161_hlt_mipi_wvga.o
 obj-$(CONFIG_FB_LCD_L505) += l513_lcd_ili9881p_haifei_mipi.o
 obj-$(CONFIG_FB_LCD_L505) += l513_lcd_ft8006m_mipi.o
+
+obj-$(CONFIG_FB_LCD_GC9503_JL_MIPI_L701)  += l701_lcd_gc9503_jl_mipi.o
+obj-$(CONFIG_FB_LCD_ST7701_ZGD_MIPI_L701)  += l701_lcd_st7701_zgd_mipi.o
