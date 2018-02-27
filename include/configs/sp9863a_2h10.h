@@ -328,8 +328,8 @@
 //#define CONFIG_SMPL_EN
 #define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
 
-/*rf board id */
-#define CONFIG_BOARD_ID
+/* define 32k crystal type as 32k less */
+#define CONFIG_32K_TYPE 1
 
 /* Chip Driver Macro Definitions End*/
 /*active arm7 ram before access to it*/
