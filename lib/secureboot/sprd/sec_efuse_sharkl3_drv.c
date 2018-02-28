@@ -1,7 +1,4 @@
 #include <secureboot/sec_efuse_sharkl3_drv.h>
-#include <asm/arch/sys_timer_reg_v0.h>
-#include <asm/arch/chip_sharkl3/aon_sec_apb.h>
-#include <asm/arch/chip_sharkl3/aon_apb.h>
 
 static inline void set_reg_bit(uint64 addr, uint32 bit)
 {
@@ -38,10 +35,9 @@ static void efuse_unlock(void)
 
 }
 
-
 Efuse_Result_Ret efuse_write_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble)
 {
-	/*uint32  i, j;
+	uint32  i, j;
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	efuse_lock();
 
@@ -80,14 +76,13 @@ Efuse_Result_Ret efuse_write_drv(uint32 start_id, uint32 end_id, uint32 *pReadDa
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
 	efuse_disable();
 	efuse_unlock();
-	return ret;*/
-	return 0;
+	return ret;
 }
 
 
 Efuse_Result_Ret efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble)
 {
-	/*uint32  i, j;
+	uint32  i, j;
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	efuse_lock();
 	efuse_enable();
@@ -117,14 +112,13 @@ Efuse_Result_Ret efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadDat
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
   	efuse_disable();
 	efuse_unlock();
-	return ret;*/
-	return 0;
+	return ret;
 }
 
 
 Efuse_Result_Ret efuse_rewrite_double_bit(uint32 start_id, uint32 end_id, uint32 *pReadData)
 {
-	/*uint32  i, j;
+	uint32  i, j;
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	efuse_lock();
 	efuse_enable();
@@ -157,8 +151,7 @@ Efuse_Result_Ret efuse_rewrite_double_bit(uint32 start_id, uint32 end_id, uint32
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
 	efuse_disable();
 	efuse_unlock();
-	return ret;*/
-	return 0;
+	return ret;
 }
 
 Efuse_Result_Ret efuse_huk_program(void)
@@ -178,7 +171,7 @@ Efuse_Result_Ret efuse_huk_program(void)
 	set_reg_bit(EFUSE_SEC_EN, 1);					// SET auto check
 	set_reg_bit(EFUSE_SEC_EN, 2);					// SET doublt bit en
 
-	set_reg_bit(REG_AP_AHB_CE_SEC_EB,0);			// enable ce module
+	set_reg_bit(REG_AP_AHB_AHB_EB,6);			// enable ce module bit6
 
 	write32(CE_CLK_EB_REG, 0x20);					// enable trng clk
 	write32(CE_RNG_EB_REG, 0x02);					// enable trng ring
@@ -191,7 +184,7 @@ Efuse_Result_Ret efuse_huk_program(void)
 													// Poll for write huk finish
 	write32(CE_RNG_EB_REG, 0x0);					// disable trng ring
 	write32(CE_CLK_EB_REG, 0x0);					// disable trng clk
-	clr_reg_bit(REG_AP_AHB_CE_SEC_EB,0); 			// disable ce module
+	clr_reg_bit(REG_AP_AHB_AHB_EB,6); 			// disable ce module bit6
 
 	if (read32(EFUSE_SEC_ERR_FLAG) != 0)			// Read err register
 	{
@@ -213,10 +206,10 @@ Efuse_Result_Ret efuse_huk_program(void)
 
 void efuse_enable(void)
 {
-	//set_reg_bit(REG_AON_SEC_APB_EFUSE_SEC_ENABLE, 0);	//enable sec efuse
+	set_reg_bit(REG_AON_SEC_APB_EFUSE_SEC_ENABLE, 11);	//enable sec efuse
 }
 
 void efuse_disable(void)
 {
-	//clr_reg_bit(REG_AON_SEC_APB_EFUSE_SEC_ENABLE, 0);	//disable sec efuse
+	clr_reg_bit(REG_AON_SEC_APB_EFUSE_SEC_ENABLE, 11);	//disable sec efuse
 }

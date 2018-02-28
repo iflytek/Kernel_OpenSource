@@ -1,6 +1,10 @@
 #ifndef _SHARKL3_EFUSE_DRIVE_H
 #define _SHARKL3_EFUSE_DRIVE_H
-
+#include <asm/arch/sys_timer_reg_v0.h>
+#include <asm/arch/chip_sharkl3/aon_sec_apb.h>
+#include <asm/arch/chip_sharkl3/aon_apb.h>
+#include <asm/arch/chip_sharkl3/ap_ahb.h>
+#include <asm/arch/chip_sharkl3/hardware.h>
 
 typedef unsigned char       uint8;
 typedef unsigned short      uint16;
@@ -25,8 +29,8 @@ typedef enum {
 #define ERR_FLAG_MASK				0xFFFF
 #define BIT_MASK(bit)  				(~(1<<bit))
 
-/*********EFUSE CLK**************************************/
-//#define REG_AON_SEC_APB_EFUSE_SEC_ENABLE	REG_AON_SEC_APB_EFUSE_SEC_EB
+/*********EFUSE CLK****************  set/clear  bit11  ***********/
+#define REG_AON_SEC_APB_EFUSE_SEC_ENABLE	CTL_BASE_AON_SEC_APB
 
 /*******EFUSE CONTROL REGISTER***************************/
 #define REG_AON_EFUSE_BASE			0x40240000
@@ -44,7 +48,7 @@ typedef enum {
 
 
 /**********************CE macro define**********************/
-#define CTL_AP_BASE_CE             	0x21E00000
+#define CTL_AP_BASE_CE             	SPRD_SECURE_CE_PHYS
 #define CE_CLK_EB_REG  				(CTL_AP_BASE_CE + 0x0018)		// ce module enable register
 #define CE_RNG_EB_REG    			(CTL_AP_BASE_CE + 0x0200)		// ce module enable
 #define CE_SEC_KEY_USE_WAY_REG   	(CTL_AP_BASE_CE + 0x0340)		// ce secure key work mode register

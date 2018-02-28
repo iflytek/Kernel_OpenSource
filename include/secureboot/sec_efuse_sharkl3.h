@@ -1,7 +1,7 @@
 #ifndef _SEC_EFUSE_SHARKL3_H_
 #define _SEC_EFUSE_SHARKL3_H_
 
-#include "secureboot/sec_efuse_sharkl3_drv.h"
+#include "sec_efuse_sharkl3_drv.h"
 
 /*---------------------------
  *   MACRO DEFINITIONS
@@ -30,7 +30,6 @@ do	\
     }											\
 } while (0)
 
-
 /*********************EFUSE BLOCK INDEX MAPPING**************/
 #define NONE					(255)
 #define HUK_BLOCK_START			(0)
@@ -54,7 +53,6 @@ do	\
 /********************** Public Part **********************/
 #define PUBLIC_EFUSE_BLOCK2		(46)
 #define RMA_MODE_BIT			(0)
-
 
 /* Secure Public Efuse Fuction */
 extern Efuse_Result_Ret sprd_ce_efuse_huk_program(void);

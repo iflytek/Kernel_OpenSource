@@ -11,7 +11,6 @@ const int map0_block_index[34] = {
 
 const int *pmap = map0_block_index;
 
-
 static Efuse_Result_Ret efuse_read_lock_bits_map(uint32 *pReadData)
 {
     Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
@@ -97,13 +96,12 @@ static int is_zero_bitmap(void)
 
 Efuse_Result_Ret sprd_ce_efuse_huk_program(void)
 {
-	//return 	efuse_huk_program();
-	return 0;
+	return 	efuse_huk_program();
 }
 
 Efuse_Result_Ret sprd_get_lock_bits(unsigned int start_id, unsigned int end_id, unsigned int *bits_data, unsigned int *bits_data1)
 {
-	/*Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
+	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 
 	if (HUK_BLOCK_START == start_id)
 		*bits_data = *bits_data1 = 0XF;
@@ -112,14 +110,13 @@ Efuse_Result_Ret sprd_get_lock_bits(unsigned int start_id, unsigned int end_id, 
 	else if (ROTPK1_BLOCK_START == start_id)
 		*bits_data = *bits_data1 = 0XF0000;
 
-	return ret;*/
-	return 0;
+	return ret;
 }
 
 Efuse_Result_Ret sprd_ce_efuse_read(unsigned int block_id, unsigned int *read_ptr)
 {
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
-	/*uint32 real_block;
+	uint32 real_block;
 
 	if (KCE_BLOCK_START <= block_id && KCE_BLOCK_END >= block_id )
 	{
@@ -150,14 +147,14 @@ Efuse_Result_Ret sprd_ce_efuse_read(unsigned int block_id, unsigned int *read_pt
 	}
 
 	real_block = pmap[block_id];
-	ret = efuse_read_drv(real_block, real_block, read_ptr, 1);*/
-	*read_ptr = 0;
+	ret = efuse_read_drv(real_block, real_block, read_ptr, 1);
+
 	return ret;
 }
 
 Efuse_Result_Ret sprd_ce_efuse_program(unsigned int block_id, unsigned int WriteData)
 {
-	/*Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
+	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	uint32 real_block;
 	if (block_id == LOCK_BIT_BLOCK || block_id == (LOCK_BIT_BLOCK + 1))
 	{
@@ -184,8 +181,7 @@ Efuse_Result_Ret sprd_ce_efuse_program(unsigned int block_id, unsigned int Write
 	real_block = pmap[block_id];
 	ret = efuse_write_drv(real_block, real_block, &WriteData,1);
 
-	return ret;*/
-	return 0;
+	return ret;
 }
 
 unsigned int sprd_get_secure_boot_enable(void)
