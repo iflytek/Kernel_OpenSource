@@ -249,6 +249,7 @@ int init_log_partition_hdr()
 			break;
 		default :
 			printf("unkown uboot role ,nothing to do in preboot\n");
+		log_st.flag = FAILED;
 		return -1;
 	}
 
@@ -256,6 +257,7 @@ int init_log_partition_hdr()
 
 	if (0 != common_raw_read(UBOOT_LOG_PARTITION, (uint64_t)LOG_HEADER_SIZE, log_st.log_type_p_offset, hdr_buf)) {
 		errorf("read error\n");
+		log_st.flag = FAILED;
 		return -1;
 	}
 
@@ -276,6 +278,7 @@ int init_log_partition_hdr()
 
 		if (0 != common_raw_write(UBOOT_LOG_PARTITION, (uint64_t)LOG_HEADER_SIZE, (uint64_t)0, log_st.log_type_p_offset, hdr_buf)) {
 			errorf("write error\n");
+			log_st.flag = FAILED;
 			return -1;
 		}
 	}else {
@@ -300,6 +303,7 @@ int init_log_partition_hdr()
 	offset = (uint64_t)p_hdr->body[cur_body].p_offset;
 	if (0 != common_raw_erase(UBOOT_LOG_PARTITION, size, log_st.log_type_p_offset + offset)) {
 		errorf("erase error\n");
+		log_st.flag = FAILED;
 		return -1;
 	}
 
