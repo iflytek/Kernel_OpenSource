@@ -909,7 +909,11 @@ int verify_product_sn_signature()
 #endif
 
 	if (!ret) {
+#ifdef TOS_TRUSTY
 		unlock_bootloader_result = vboot_unlock_verify_info->verify_return_data->vboot_verify_ret;
+#else
+
+#endif
 		if (unlock_bootloader_result){
 			debugf("uboot_verify_product_sn_signature unlock successfully\n");
 			return ret;

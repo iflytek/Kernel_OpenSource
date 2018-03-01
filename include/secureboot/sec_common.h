@@ -98,7 +98,6 @@ extern imgToVerifyInfo *img_verify_info_tos;
 //#define  ARG_START_ADRESS 0x98100000//0x94000000+64M
 #endif
 extern VbootVerifyInfo *vboot_verify_info;
-extern VbootUnlockVerifyInfo *vboot_unlock_verify_info;
 extern unsigned int g_DeviceStatus;
 
 /*this two marco is diffent among products, pls check it!*/
