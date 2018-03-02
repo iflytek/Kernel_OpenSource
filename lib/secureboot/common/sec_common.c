@@ -884,6 +884,7 @@ int verify_product_sn_signature()
 	uint32_t unlock_bootloader_result = 0;
 
 #ifdef TOS_TRUSTY
+#if defined CONFIG_VBOOT_V2
 	memset(vboot_unlock_verify_info, 0,  sizeof(VbootUnlockVerifyInfo));
 	vboot_secure_process_prepare();
 	vboot_unlock_verify_info->vbmeta_pubkey_addr = g_sprd_vboot_key;
@@ -904,6 +905,7 @@ int verify_product_sn_signature()
 
 	ret = uboot_verify_product_sn_signature((VbootUnlockVerifyInfo*)vboot_unlock_verify_info,
 			sizeof(VbootUnlockVerifyInfo));
+#endif
 #else
 
 #endif
