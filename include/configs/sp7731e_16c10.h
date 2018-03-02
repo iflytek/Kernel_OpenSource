@@ -55,8 +55,6 @@
 
 /* sprd native board id */
 #define CONFIG_BOARDID_NATIVE
-/* board id switch */
-#define CONFIG_BOARD_ID
 
 //#define DFS_ON_ARM7
 #define DFS_PARAM_SRC_ADDR     0x0001c0c
