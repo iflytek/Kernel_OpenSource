@@ -648,7 +648,7 @@ char product_sn_signature[PRODUCT_SN_SIGNATURE_SIZE] __attribute__((aligned(4096
 void fb_cmd_oem(const char *arg, void *data, uint64_t sz)
 {
 	char subcmd[64];
-	char s[32];
+	char s[34];
 	int pwd_verify_ret = 0;
 	int i, j;
 
