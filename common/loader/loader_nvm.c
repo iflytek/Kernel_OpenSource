@@ -8,6 +8,9 @@
 #include "dl_operate.h"
 #include "sci_img.h"
 #include "sprd_common_rw.h"
+#ifdef  CONFIG_SPRD_HW_I2C
+#include <sprd_i2c_hwchn.h>
+#endif
 
 #include <secureboot/sprdsec_header.h>
 #include <secureboot/sec_common.h>
@@ -1430,5 +1433,10 @@ extern boot_image_required_t *get_cp_load_table(void);
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)
     tos_end_notify();
 #endif
+
+#ifdef  CONFIG_SPRD_HW_I2C
+	i2c_dvfs_hwchn_init(0);
+#endif
+
 	vlx_entry(dt_adr);
 }
