@@ -1028,10 +1028,6 @@ int do_fastboot(void)
 	if (ret < 0)
 		return ret;
 
-#if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)
-    tos_start_notify();
-#endif
-
 #ifdef CONFIG_DTS_MEM_LAYOUT
 	ret = set_fastboot_buf_base_size();
 	if (ret < 0)

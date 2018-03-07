@@ -184,6 +184,9 @@ extern int drv_lcd_init (void);
 	set_vibrator(0);
 #endif
 	//MMU_DisableIDCM();
+#if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)
+	tos_start_notify();
+#endif
 #ifdef CONFIG_SECBOOT
 	if (get_lock_status() == VBOOT_STATUS_UNLOCK){
 		debugf("INFO: LOCK FLAG IS : UNLOCK!!!\n");
