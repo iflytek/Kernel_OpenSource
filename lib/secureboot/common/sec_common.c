@@ -907,6 +907,26 @@ int verify_product_sn_signature()
 			sizeof(VbootUnlockVerifyInfo));
 #endif
 #else
+	memset(&vboot_unlock_verify_info, 0,  sizeof(VbootUnlockVerifyInfo));
+	vboot_secure_process_prepare();
+	vboot_unlock_verify_info.vbmeta_pubkey_addr = g_sprd_vboot_key;
+	vboot_unlock_verify_info.vbmeta_pubkey_len = g_sprd_vboot_key_len;
+
+	secure_get_partition_size("vbmeta", &partition_size);
+
+	vboot_unlock_verify_info.vbmeta_img_len = partition_size;
+	vboot_unlock_verify_info.vbmeta_img_addr = gd->vbmeta_img_base;
+	secure_load_partition("vbmeta",vboot_unlock_verify_info.vbmeta_img_len,
+			(uint64_t)0, vboot_unlock_verify_info.vbmeta_img_addr);
+	vboot_unlock_verify_info.product_sn_addr = product_sn_token;
+	vboot_unlock_verify_info.product_sn_len = PRODUCT_SN_TOKEN_MAX_SIZE;
+	vboot_unlock_verify_info.product_sn_signature_addr = product_sn_signature;
+	vboot_unlock_verify_info.product_sn_signature_len = PRODUCT_SN_SIGNATURE_SIZE;
+	vboot_unlock_verify_info.verify_return_data = (VBootResultInfo *)g_sprd_vboot_ret;
+	vboot_unlock_verify_info.verify_return_data_len = sizeof(VBootResultInfo);
+
+	ret = uboot_verify_product_sn_signature((VbootUnlockVerifyInfo*)&vboot_unlock_verify_info,
+			sizeof(VbootUnlockVerifyInfo));
 
 #endif
 
@@ -914,13 +934,13 @@ int verify_product_sn_signature()
 #ifdef TOS_TRUSTY
 		unlock_bootloader_result = vboot_unlock_verify_info->verify_return_data->vboot_verify_ret;
 #else
-
+		unlock_bootloader_result = vboot_unlock_verify_info.verify_return_data->vboot_verify_ret;
 #endif
 		if (unlock_bootloader_result){
-			debugf("uboot_verify_product_sn_signature unlock successfully\n");
+			debugf("uboot_verify_product_sn_signature unlock succeeded\n");
 			return ret;
 		} else {
-			debugf("uboot_verify_product_sn_signature unlock faily\n");
+			debugf("uboot_verify_product_sn_signature unlock failed\n");
 			return -1;
 		}
 	}
