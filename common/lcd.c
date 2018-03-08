@@ -44,6 +44,10 @@
 #error Unsupported LCD BPP.
 #endif
 
+#ifdef CONFIG_SC2703_LCD_POWERON
+extern void lcd_use_sc2703l_to_power_on();
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 static int lcd_init(void *lcdbase);
@@ -168,6 +172,10 @@ int drv_lcd_init(void)
 	/* if lcd is enabled, no need to init it again*/
 	if (lcd_is_enabled)
 		return 0;
+
+#ifdef CONFIG_SC2703_LCD_POWERON
+	lcd_use_sc2703l_to_power_on();
+#endif
 
 	lcd_base = map_sysmem(gd->fb_base, 0);
 
