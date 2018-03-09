@@ -216,6 +216,8 @@
 /*sprdimageversion Dynamic acquisition rpmb's size*/
 #define CONFIG_SPRD_RPMB
 
+#define CONFIG_DTS_MEM_LAYOUT
+
 /*eMMC boot*/
 #define CONFIG_EMMC_BOOT
 #define CONFIG_GENERIC_MMC
