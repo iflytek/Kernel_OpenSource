@@ -204,6 +204,10 @@ void autodloader_mode(void)
 {
 	debugf("Enter autodloader mode\n");
 
+#if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)
+	tos_start_notify();
+#endif
+
 #ifdef CONFIG_SECBOOT
 	get_secboot_base_from_dt();
 #endif
