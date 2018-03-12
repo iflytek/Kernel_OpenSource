@@ -168,6 +168,12 @@ typedef enum VERIFY_RESULT {
 	VERIFY_SPECIAL
 } VERIFY_RESULT;
 
+
+typedef enum VERIFY_PROCESS_FLAG {
+	VERIFY_PROCESS_DOWNLOAD = 1,
+	VERIFY_PROCESS_BOOT
+}VERIFY_PROCESS_FLAG;
+
 int get_secboot_base_from_dt(void);
 
 VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name, 
@@ -187,7 +193,7 @@ void secboot_terminal(void);
 void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr);
 
 #ifdef CONFIG_VBOOT_V2
-void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr);
+void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr, sys_img_header *header, VERIFY_PROCESS_FLAG flag);
 void vboot_secure_process_flow(char *partition_name);
 void vboot_secure_process_prepare(void);
 #endif

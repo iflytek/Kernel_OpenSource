@@ -132,14 +132,15 @@ static int _check_secure_part(uchar * partition_name)
 int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
 {
 	sys_img_header img_header;
-	uint32_t img_size = 0;
+	sys_img_header *header = NULL;
+	int img_size = 0;
 
 	if ((0 == strcmp(partition_name, "boot"))||(0 == strcmp(partition_name, "recovery"))){
 #if (!defined CONFIG_VBOOT_V2)
 		if (0 != common_raw_read(partition_name, SYS_HEADER_SIZE, 0, (char*)&img_header))
 			goto error;
 
-	img_size = img_header.mImgSize;
+		img_size = img_header.mImgSize;
 
 		if (0 != common_raw_read(partition_name, img_size+CERT_SIZE, 0, ram_addr))
 			goto error;
@@ -154,6 +155,9 @@ int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, 
 	else if (0 == strcmp(partition_name, "vbmeta"))	{
 		if (0 != common_raw_read("vbmeta",size, 0, (u8*)ram_addr))
 			goto error;
+
+		header = (sys_img_header*)ram_addr;
+		img_size = header->mImgSize;
 
 		if (check_sprdimgheader(ram_addr)==0){//dual backup check failed,vbmeta.img crashed
 			if (0 != common_raw_read("vbmeta",size-SYS_HEADER_SIZE, SYS_HEADER_SIZE, (u8*)ram_addr))
@@ -177,7 +181,7 @@ int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, 
 	else if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
 			goto error;
 
-	return 0;
+	return img_size;
 
 error:
 	errorf("read %s partition fail\n", partition_name);
@@ -449,6 +453,7 @@ void secboot_init(char *partition_name)
 {
 	int ret = 0;
 	uint32_t rpmb_version = 0;
+	VERIFY_PROCESS_FLAG process_flag = VERIFY_PROCESS_BOOT;
 
 	if (ret = get_secboot_base_from_dt()) {
 		debugf("Getting secure boot base failed\n");
@@ -462,7 +467,7 @@ void secboot_init(char *partition_name)
 	/*malloc one memory to vbmeta image buffer use. ok? 2KB*/
 	debugf("gd->verify_base:0x%x, KERNEL_ADR:0x%x. \n", gd->verify_base, KERNEL_ADR);
 	vboot_secure_process_prepare();
-	vboot_secure_process_init(partition_name, gd->verify_base, gd->vbmeta_img_base);
+	vboot_secure_process_init(partition_name, gd->verify_base, gd->vbmeta_img_base, NULL, process_flag);
 #endif
 #ifdef CONFIG_SPRD_SECBOOT
 #ifdef CONFIG_NONTRUSTY_ANTIROLLBACK
@@ -503,7 +508,10 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 		system_vendor_done=true;
     }
 #else
-	secure_load_partition(partition_name,size,offset,ram_addr);
+	if (-1 == secure_load_partition(partition_name,size,offset,ram_addr)){
+		while(ret);
+	}
+
 #if defined (TOS_TRUSTY)
 	secboot_param_set(gd->verify_base,img_verify_info_tos);
 	img_verify_info_tos->pubkeyhash = (uint8_t*)gd->arg_start_base+PAGE_ALIGN;
@@ -521,12 +529,14 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 }
 
 #ifdef CONFIG_VBOOT_V2
-void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr)
+void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr, sys_img_header *header, VERIFY_PROCESS_FLAG flag)
 {
 	antirb_image_type tmp_type;
 	uint64_t partition_size = 0;
 	uint8_t * avb_vboot_key = NULL;
 	uint32_t avb_vboot_key_len = 0;
+	int img_size;
+
 	if(!partition_name){
 		debugf("para is invalid\n");
 		return;
@@ -535,15 +545,42 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 	memset(vboot_verify_info, 0, sizeof(VbootVerifyInfo));
 
 	/*public op1: when check vbmeta & other imgs(like boot.)*/
-	secure_get_partition_size(partition_name, &partition_size);
+	if (-1 == secure_get_partition_size(partition_name, &partition_size)){
+		debugf("get %s partition size fail\n", partition_name);
+		return;
+	}
 	if(strcmp("vbmeta",partition_name) == 0){
 		/*Info: when check vbmeta, img para should be null.*/
 		vboot_verify_info->img_len = 0;
 		vboot_verify_info->img_addr = NULL;
 
-
-		vboot_verify_info->vbmeta_img_len = (uint32_t)partition_size;
 		vboot_verify_info->vbmeta_img_addr = vbmeta_ram_addr;
+
+		switch (flag){
+		case VERIFY_PROCESS_DOWNLOAD:
+			debugf("In download mode\n");
+			if (NULL == header){
+				debugf("sys_img_header empty\n");
+				return;
+			}
+			vboot_verify_info->vbmeta_img_len = header->mImgSize;
+			break;
+
+		case VERIFY_PROCESS_BOOT:
+			debugf("In boot mode\n");
+
+			img_size =  secure_load_partition("vbmeta",partition_size,
+					(uint64_t)0, vboot_verify_info->vbmeta_img_addr);
+			if (-1 == img_size){
+				debugf("load vbmeata partition error\n");
+				return;
+			}
+			vboot_verify_info->vbmeta_img_len = (uint32_t)(img_size);
+			break;
+		default:
+			debugf("flag error\n");
+			return;
+		}
 
 		debugf("partintion:%s, partition_size:0x%x.\n", "vbmeta", vboot_verify_info->vbmeta_img_len);
 
@@ -555,9 +592,20 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 		vboot_verify_info->img_len = (uint32_t)partition_size;
 		vboot_verify_info->img_addr = img_ram_addr;
 
-		secure_get_partition_size("vbmeta", &partition_size);
-		vboot_verify_info->vbmeta_img_len = (uint32_t)partition_size;
+		if (-1 == secure_get_partition_size("vbmeta", &partition_size)) {
+			debugf("get vbmeta partition size fail\n");
+			return;
+		}
 		vboot_verify_info->vbmeta_img_addr = vbmeta_ram_addr;
+
+		img_size =  secure_load_partition("vbmeta",partition_size,
+					(uint64_t)0, vboot_verify_info->vbmeta_img_addr);
+		if (-1 == img_size){
+			debugf("load vbmeta partition error\n");
+			return;
+		}
+
+		vboot_verify_info->vbmeta_img_len = (uint32_t)(img_size);
 
 		debugf("partintion:%s, partition_size:0x%x\n", partition_name, vboot_verify_info->img_len);
 
@@ -606,21 +654,25 @@ void vboot_verify_vbmeta(char *partition_name)
     uint64_t partition_size=0;
 	char *footer_buf;
 	AvbFooter footer;
+
 	if(!partition_name)
 	{
 		debugf("Error: partition_name is null. \n");
 		return;
 	}
-//step1:read avbfooter
+	//step1:read avbfooter
 	secure_get_partition_size(partition_name, &partition_size);
 	footer_buf=vboot_verify_info->img_addr;
 
-	secure_load_partition(partition_name,AVB_FOOTER_SIZE, partition_size-AVB_FOOTER_SIZE, footer_buf);
-//step2:read vbmeta according to the avbfooter
+	if (-1 == secure_load_partition(partition_name,AVB_FOOTER_SIZE, partition_size-AVB_FOOTER_SIZE, footer_buf)){
+		debugf("load %s partition error.\n", partition_name);
+		goto fail;
+	}
+	//step2:read vbmeta according to the avbfooter
 	if (!avb_footer_validate_and_byteswap((const AvbFooter*)footer_buf,
                                           &footer)) {
-      debugf("Error validating footer.\n");
-	  goto fail;
+		debugf("Error validating footer.\n");
+		goto fail;
     }
 	debugf("footer.vbmeta_offset=0x%x,footer.vbmeta_size=0x%x\n",footer.vbmeta_offset,footer.vbmeta_size);
 	vboot_verify_info->img_len=footer.vbmeta_size;
@@ -629,7 +681,10 @@ void vboot_verify_vbmeta(char *partition_name)
 	dumpHex(partition_name,  (uchar *)vboot_verify_info->img_addr, AVB_FOOTER_SIZE);
 #endif
 
-	secure_load_partition(partition_name,footer.vbmeta_size, footer.vbmeta_offset,vboot_verify_info->img_addr);
+	if(-1 == secure_load_partition(partition_name,footer.vbmeta_size, footer.vbmeta_offset,vboot_verify_info->img_addr)){
+		debugf("load %s partition error.\n", partition_name);
+		goto fail;
+	}
 
 #ifdef CONFIG_VBOOT_DUMP
 	dumpHex(partition_name, (uchar *)vboot_verify_info->img_addr, vboot_verify_info->img_len);
@@ -640,13 +695,12 @@ void vboot_verify_vbmeta(char *partition_name)
 	vboot_verify_info->img_name = vboot_para_partition_name;
 	vboot_verify_info->img_name_len = SEC_MAX_PARTITION_NAME_LEN;
 	debugf("vboot_verify_info->img_name :%s. \n", vboot_verify_info->img_name);
-//step4:send the vbmeta struct and partname to tos to check the rollback version
+	//step4:send the vbmeta struct and partname to tos to check the rollback version
 	uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
 	return;
 
 fail:
-		while (1);
-
+	while (1);
 }
 
 void vboot_secure_process_flow(char *partition_name)
@@ -661,21 +715,33 @@ void vboot_secure_process_flow(char *partition_name)
 		return;
 	}
 
-    ret = secure_get_partition_size(partition_name, &partition_size);
-    debugf("ret = %d\n", ret);
-    if (ret < 0) {
-        debugf("secure_get_partition_size error!\n");
-        return;
-    }
+	ret = secure_get_partition_size(partition_name, &partition_size);
+	debugf("ret = %d\n", ret);
+	if (ret < 0) {
+		debugf("secure_get_partition_size error!\n");
+		return;
+	}
 	vboot_verify_info->img_len=partition_size;
 
 	debugf("img_addr:0x%x.  len:0x%x. \n", vboot_verify_info->img_addr, vboot_verify_info->img_len);
 
 	/*partition load*/
-	secure_load_partition(partition_name,vboot_verify_info->img_len, (uint64_t)0, vboot_verify_info->img_addr);
+	if (-1 == secure_load_partition(partition_name,vboot_verify_info->img_len, (uint64_t)0, vboot_verify_info->img_addr)) {
+		debugf("load %s partition error\n", partition_name);
+		return;
+	}
 
-	secure_load_partition("vbmeta",vboot_verify_info->vbmeta_img_len, (uint64_t)0, vboot_verify_info->vbmeta_img_addr);
+	ret = secure_get_partition_size("vbmeta", &partition_size);
+	debugf("ret = %d\n", ret);
+	if (ret < 0) {
+		debugf("secure_get_partition_size error!\n");
+		return;
+	}
 
+	if (-1 == secure_load_partition("vbmeta",partition_size, (uint64_t)0, vboot_verify_info->vbmeta_img_addr)) {
+		debugf("load vbmeta partition error\n");
+		return;
+	}
 
 #ifdef CONFIG_VBOOT_DUMP
 	dumpHex("boot image",  (uchar *)vboot_verify_info->img_addr, 512);
@@ -728,9 +794,11 @@ void vboot_secure_process_prepare(void)
 }
 
 
-void sprd_fb_secure_vboot_prepare(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr)
+void sprd_fb_secure_vboot_prepare(char *partition_name, char *img_ram_addr, char * vbmeta_ram_addr, sys_img_header *header)
 {
 	unsigned char sprd_vboot_key[SPRD_RSA4096PUBK_HASHLEN];
+	uint64_t partition_size = 0;
+	VERIFY_PROCESS_FLAG process_flag = VERIFY_PROCESS_DOWNLOAD;
 
 	memset(vboot_verify_info, 0, sizeof(VbootVerifyInfo));
 
@@ -743,11 +811,18 @@ void sprd_fb_secure_vboot_prepare(char *partition_name, char *img_ram_addr, char
 	avb_ops_set_vboot_key(sprd_vboot_key, sizeof(sprd_vboot_key));
 
 	secf("partition_name: %s, img_ram_addr: 0x%x, vbmeta_ram_addr:0x%x \r\n", partition_name, img_ram_addr, vbmeta_ram_addr);
-	vboot_secure_process_init(partition_name, img_ram_addr, vbmeta_ram_addr); //VBMETA_IMG_ADDR
+	vboot_secure_process_init(partition_name, img_ram_addr, vbmeta_ram_addr, header, process_flag); //VBMETA_IMG_ADDR
 
 	/*if it's not vbmeta image*/
 	if(partition_name && (strcmp("vbmeta",partition_name) != 0)){
-		secure_load_partition("vbmeta",vboot_verify_info->vbmeta_img_len, (uint64_t)0, vboot_verify_info->vbmeta_img_addr);
+		if (secure_get_partition_size("vbmeta", &partition_size)) {
+			secf("secure_get_partition_size fail\n");
+			return;
+		}
+		if (-1 == secure_load_partition("vbmeta",partition_size, (uint64_t)0, vboot_verify_info->vbmeta_img_addr)){
+			debugf("load vbmeta partition error\n");
+			return;
+		}
 	}
 
 	memset(vboot_para_partition_name, 0, sizeof(vboot_para_partition_name));
@@ -882,6 +957,7 @@ int verify_product_sn_signature()
 	int ret = -1;
 	uint64_t partition_size = 0;
 	uint32_t unlock_bootloader_result = 0;
+	int img_size = -1;
 
 #ifdef TOS_TRUSTY
 #if defined CONFIG_VBOOT_V2
@@ -890,12 +966,21 @@ int verify_product_sn_signature()
 	vboot_unlock_verify_info->vbmeta_pubkey_addr = g_sprd_vboot_key;
 	vboot_unlock_verify_info->vbmeta_pubkey_len = g_sprd_vboot_key_len;
 
-	secure_get_partition_size("vbmeta", &partition_size);
+	if (-1 == secure_get_partition_size("vbmeta", &partition_size)){
+		debugf("get vbmeta partition size fail\n");
+		return -1;
+	}
 
-	vboot_unlock_verify_info->vbmeta_img_len = partition_size;
 	vboot_unlock_verify_info->vbmeta_img_addr = gd->vbmeta_img_base;
-	secure_load_partition("vbmeta",vboot_unlock_verify_info->vbmeta_img_len,
+
+	img_size =  secure_load_partition("vbmeta",partition_size,
 			(uint64_t)0, vboot_unlock_verify_info->vbmeta_img_addr);
+	if (-1 == img_size){
+		debugf("load vbmeta partition error\n");
+		return -1;
+	}
+
+	vboot_unlock_verify_info->vbmeta_img_len = (uint32_t)(img_size);
 	vboot_unlock_verify_info->product_sn_addr = product_sn_token;
 	vboot_unlock_verify_info->product_sn_len = PRODUCT_SN_TOKEN_MAX_SIZE;
 	vboot_unlock_verify_info->product_sn_signature_addr = product_sn_signature;
@@ -912,12 +997,21 @@ int verify_product_sn_signature()
 	vboot_unlock_verify_info.vbmeta_pubkey_addr = g_sprd_vboot_key;
 	vboot_unlock_verify_info.vbmeta_pubkey_len = g_sprd_vboot_key_len;
 
-	secure_get_partition_size("vbmeta", &partition_size);
+	if (-1 == secure_get_partition_size("vbmeta", &partition_size)){
+		debugf("get vbmeta partition size fail\n");
+		return -1;
+	}
 
-	vboot_unlock_verify_info.vbmeta_img_len = partition_size;
 	vboot_unlock_verify_info.vbmeta_img_addr = gd->vbmeta_img_base;
-	secure_load_partition("vbmeta",vboot_unlock_verify_info.vbmeta_img_len,
+
+	img_size =  secure_load_partition("vbmeta",partition_size,
 			(uint64_t)0, vboot_unlock_verify_info.vbmeta_img_addr);
+	if (-1 == img_size){
+		debugf("load vbmeta partition error\n");
+		return -1;
+	}
+
+	vboot_unlock_verify_info.vbmeta_img_len = (uint32_t)(img_size);
 	vboot_unlock_verify_info.product_sn_addr = product_sn_token;
 	vboot_unlock_verify_info.product_sn_len = PRODUCT_SN_TOKEN_MAX_SIZE;
 	vboot_unlock_verify_info.product_sn_signature_addr = product_sn_signature;

@@ -563,12 +563,12 @@ void sprd_fb_secure_vboot_verify(uint8_t *name,uint8_t *partition_name,uint8_t *
 			sys_img_header *img_header = (sys_img_header *)(header);
 			//header+sizeof(sys_img_header) will not be aigned to 4K for tos, so copy to gd->vbmeta_img_base
 			memcpy(gd->vbmeta_img_base,header+sizeof(sys_img_header),img_header->mImgSize);
-			sprd_fb_secure_vboot_prepare(partition_name, gd->vbmeta_img_base, gd->vbmeta_img_base);
+			sprd_fb_secure_vboot_prepare(partition_name, gd->vbmeta_img_base, gd->vbmeta_img_base,(sys_img_header*)header);
 		}
 		else
 		{
-		//prepare verify infomation
-			sprd_fb_secure_vboot_prepare(partition_name, header, gd->vbmeta_img_base);
+			//prepare verify infomation
+			sprd_fb_secure_vboot_prepare(partition_name, header, gd->vbmeta_img_base, (sys_img_header*)header);
 		}
 		uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
 	}
