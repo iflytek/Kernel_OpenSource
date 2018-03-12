@@ -33,7 +33,7 @@ enum {
 #define PWM_ENABLE 	(0x0018)
 #define PWM_VERSION	(0x001c)
 
-#define PWM2_SCALE		0x0
+#define PWM2_SCALE		0x2
 #define PWM_MOD_MAX 0xff
 #define PWM_REG_MSK 0xffff
 
@@ -101,7 +101,7 @@ void set_backlight(uint32_t brightness)
 		brightness = (brightness * SC2703_WLED_IDAC_MAX)/MAX_BRIGHTNESS;
 
 		i2c_set_bus_num(SC2703_LCD_I2C_BUS);
-		
+
 		value = (SC2703_IDAC_LINEAR_MASK)
 			| SC2703_WLED_IDAC_EN_MASK
 			| SC2703_WLED_MODE_MASK;
@@ -115,7 +115,6 @@ void set_backlight(uint32_t brightness)
 
 		value = (brightness >> 8) & 0x7;
 		i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG2, value);
-		i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_BOOST_CONTROL2, 0);
 
 		value |= SC2703_WLED_EN_MASK | SC2703_DISPLAY_EN_MASK;
 		i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, value);
@@ -129,13 +128,5 @@ void set_backlight(uint32_t brightness)
 		printf("read SC2703_SYSCTRL_DISPLAY_ACTIVE = 0x%x brightness:%d\n", \
 			i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_STATUS), brightness);
 	}
-
-	printf("----------> read SC2703_SYSCTRL_SEQ_MODE_CONTROL1 = 0x%x <---------- \n", \
-		i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_SEQ_MODE_CONTROL1));
-	printf("----------> read SC2703_SYSCTRL_DISPLAY_STATUS = 0x%x <---------- \n", \
-		i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_STATUS));
-	printf("----------> read SC2703_WLED_CONFIG1 = 0x%x <---------- \n", \
-		i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG1));
-
 
 }
