@@ -1,7 +1,7 @@
 /*This file is created by PINMAP tool
  *Device: SharkL3_SC9863
  *Version: SC9863_2_IRD_A_SCH_V1.0.0_PINMAP_V1.0
- *Create Time: 2018/3/9 14:26:24
+ *Creat Time: 2018/1/29 14:20:03
  *Author: weiwu.wang
  */
 
@@ -45,7 +45,7 @@ static pinmap_t pinmap[]={
 
 {REG_PIN_IIS1CLK,                       BITS_PIN_AF(3)},
 {REG_MISC_PIN_IIS1CLK,                  BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPD|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPD|BIT_PIN_SLP_OE},//VDDCAMCORE_EN
-{REG_PIN_IIS1DI,                        BITS_PIN_AF(2)},
+{REG_PIN_IIS1DI,                        BITS_PIN_AF(3)},
 {REG_MISC_PIN_IIS1DI,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPD|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPD|BIT_PIN_SLP_IE},//FTID_INT
 {REG_PIN_IIS1DO,                        BITS_PIN_AF(3)},
 {REG_MISC_PIN_IIS1DO,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//FTID_RSTN
