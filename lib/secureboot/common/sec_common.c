@@ -229,6 +229,7 @@ int secure_efuse_program(void)
 #if defined(CONFIG_SECURE_BOOT)
 			ret = secure_efuse_program_native();
 #endif
+	return ret;
 }
 
 VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
