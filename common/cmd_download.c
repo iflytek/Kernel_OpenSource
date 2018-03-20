@@ -32,7 +32,7 @@ extern void usb_init (uint32_t autodl_mode);
 typedef struct _DA_INFO_T_
 {
 	uint32_t   dwVersion;
-	bool    bDisableHDLC; //0: Enable hdl; 1:Disable hdl
+	uint32_t   bDisableHDLC; //0: Enable hdl; 1:Disable hdl
 }DA_INFO_T;
 
 void dl_cmd_register(enum dl_cmd_type type,
