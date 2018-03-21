@@ -24,6 +24,7 @@ extern struct panel_driver nt35596_boe_driver;
 extern struct panel_driver nt35597_boe_driver;
 extern struct panel_driver nt35597_fpga_driver;
 extern struct panel_driver jd9161_xxx_driver;
+extern struct panel_driver rm67191_edo_driver;
 
 static struct panel_cfg supported_panel[] = {
 #ifdef CONFIG_LCD_ILI9881C_XXX_MIPI_HD
@@ -84,6 +85,12 @@ static struct panel_cfg supported_panel[] = {
 	{
 		.lcd_id = 0x91612,
 		.drv = &jd9161_xxx_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_RM67191_EDO_MIPI_FHD
+	{
+		.lcd_id = 0x67191,
+		.drv = &rm67191_edo_driver,
 	},
 #endif
 /* warning: the dummy lcd must be the last item in this array */

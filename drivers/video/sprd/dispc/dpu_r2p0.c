@@ -500,7 +500,7 @@ static int dpu_init(struct dispc_context *ctx)
 	}
 
 	/* set bg color */
-	reg->bg_color = 0xff;
+	reg->bg_color = 0;
 
 	/* set dpu output size */
 	size = (panel->width & 0xffff) | ((panel->height) << 16);
