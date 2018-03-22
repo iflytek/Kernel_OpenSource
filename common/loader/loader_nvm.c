@@ -39,7 +39,9 @@ extern void aon_lpc_config();
 #include <libfdt.h>
 #include "dev_tree.h"
 #endif
-
+#ifdef CONFIG_SPRD_SOC_SP9853I
+#include <asm/arch/sprd_reg.h>
+#endif
 DECLARE_GLOBAL_DATA_PTR;
 
 extern int lcd_line_length;
@@ -1248,6 +1250,18 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 		lcd_splash(LOGO_PART);
 		lcd_enable();
 	}
+#ifdef CONFIG_SPRD_SOC_SP9853I
+	else {
+		/*if no lcd in cali mode, turn off the cam_eb bit*/
+		char  *boot_mode_type_str;
+
+		boot_mode_type_str = getenv("bootmode");
+		if(!strncmp(boot_mode_type_str, "cali", 4)) {
+			sci_glb_clr(REG_AON_APB_APB_EB1, BIT_AON_APB_AON_CAM_EB);
+		}
+
+	}
+#endif
 	set_backlight(backlight_set);
 	backlight_on_time = SCI_GetTickCount();
 	lcd_init_time= backlight_on_time - lcd_init_time;
