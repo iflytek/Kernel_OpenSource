@@ -1043,4 +1043,23 @@ int verify_product_sn_signature()
 	return ret;
 }
 
+int config_os_version(unsigned long *os_version, uint32_t os_version_len)
+{
+	int ret = -1;
+
+	if (0 == ((*os_version)& 0xffffffff) || os_version_len != 4) {
+		debugf("system version error\n");
+		return -1;
+	}
+
+	ret = uboot_config_os_version((unsigned long)os_version, os_version_len);
+
+	if (!ret) {
+		debugf("uboot_config_os_version succeeded\n");
+	} else {
+		debugf("uboot_config_os_version failed\n");
+	}
+
+	return ret;
+}
 #endif

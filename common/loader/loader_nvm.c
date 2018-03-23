@@ -19,7 +19,7 @@
 #include <lcd_console.h>
 #endif
 #ifdef CONFIG_ARM7_RAM_ACTIVE
-    extern void pmic_arm7_RAM_active(void);
+extern void pmic_arm7_RAM_active(void);
 #endif
 #ifdef CONFIG_SOC_IWHALE2
 extern void aon_lpc_config();
@@ -38,6 +38,10 @@ extern void aon_lpc_config();
 #ifdef CONFIG_OF_LIBFDT
 #include <libfdt.h>
 #include "dev_tree.h"
+#endif
+
+#if (defined CONFIG_SECBOOT) && (defined CONFIG_VBOOT_V2)
+unsigned os_version __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
 #endif
 #ifdef CONFIG_SPRD_SOC_SP9853I
 #include <asm/arch/sprd_reg.h>
@@ -627,6 +631,21 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 	boot_img_offset.dt_offset = boot_img_offset.ramdisk_offset + size;
 
 	debug("boot_img_offset.dt_offset is 0x%llx\n", boot_img_offset.dt_offset );
+
+#if (defined CONFIG_SECBOOT) && (defined CONFIG_VBOOT_V2)
+	if (0 == hdr->os_version) {
+		errorf("os version should not be zero!\n");
+		return 0;
+	}
+
+	os_version = hdr->os_version;
+
+	if(config_os_version((unsigned long)&os_version, sizeof(os_version))) {
+		errorf("config_os_version failed\n");
+		return 0;
+	}
+#endif
+
 	return 1;
 }
 
@@ -1346,8 +1365,8 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	i = 0;
 #ifdef CONFIG_ARM7_RAM_ACTIVE
 #ifdef CONFIG_SOC_IWHALE2
-        /*Just for iwhale2 bringup --from Sheng.Zhu advice*/
-        ag_tg_ldsp_hold();
+	/*Just for iwhale2 bringup --from Sheng.Zhu advice*/
+	ag_tg_ldsp_hold();
 #endif
 	pmic_arm7_RAM_active();
 #endif
@@ -1393,11 +1412,11 @@ extern boot_image_required_t *get_cp_load_table(void);
 
 #endif
 
-        // add for SOTER start
+	// add for SOTER start
 #if defined (CONFIG_CHIP_UID)
-        pass_chip_uid_to_tos();
+	pass_chip_uid_to_tos();
 #endif
-        // add for SOTER end
+	 // add for SOTER end
 
 //#if defined(TOS_TRUSTY) && defined(CONFIG_EMMC_BOOT) && defined(CONFIG_SPRD_RPMB)
 #if defined(CONFIG_EMMC_BOOT) && defined(CONFIG_SPRD_RPMB)

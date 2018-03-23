@@ -209,7 +209,6 @@ int uboot_verify_pwd(unsigned long start_addr, uint32_t lenth)
 int uboot_verify_lockstatus(unsigned long start_addr, uint32_t lenth)
 {
 	unsigned int result = 0;
-	VbootVerifyInfo *info = (VbootVerifyInfo *)start_addr;
 	volatile unsigned int *share_data;
 
 	tee_call_request(&share_data);/*check tos status and send cmd to tos, tos return share memory point*/
@@ -251,7 +250,6 @@ int uboot_verify_lockstatus(unsigned long start_addr, uint32_t lenth)
 int uboot_verify_product_sn_signature(unsigned long start_addr, uint32_t lenth)
 {
 	unsigned int result = 0;
-	VbootVerifyInfo *info = (VbootVerifyInfo *)start_addr;
 	volatile unsigned int *share_data;
 
 	tee_call_request(&share_data);/*check tos status and send cmd to tos, tos return share memory point*/
@@ -283,6 +281,47 @@ int uboot_verify_product_sn_signature(unsigned long start_addr, uint32_t lenth)
 		}
 	} else {
 		printf("## uboot_verify_product_sn_signature failed\n");
+	}
+	if(share_data[2] == 1)
+		return 0;
+	else
+		return share_data[2];
+}
+
+int uboot_config_os_version(unsigned long start_addr, uint32_t lenth)
+{
+	unsigned int result = 0;
+	volatile unsigned int *share_data;
+
+	tee_call_request(&share_data);/*check tos status and send cmd to tos, tos return share memory point*/
+
+	printf("##%s:%d---vm=%d,cpu=%d,result: %d\n", __func__, __LINE__,
+	       share_data[0], share_data[1], share_data[2]);
+
+
+	printf("## Start uboot_config_os_version ...\n");
+	share_data[2] = result;
+	share_data[3] = FUNCTYPE_CONFIG_OS_VERSION;   /*cmd, config os version */
+
+	share_data[4] = (uint32_t)start_addr&0xFFFFFFFF;
+	share_data[5] = lenth&0xFFFFFFFF;
+
+	printf("##cmd:0x%x,start_addr:0x%x,lenth:0x%x\n",share_data[3],share_data[4],share_data[5]);
+
+	/* secvm id: 3 */
+	if (mv_svc_ivmc_request(3) != 0) {
+		printf("## Waiting for response ...\n");
+		while (1) {
+			/* check the return value of ptr[2] */
+			if (share_data[2] != result) {
+				printf("%s:%d---vm=%u,cpu=%u,result: %u\n",__func__, __LINE__,
+						  share_data[0], share_data[1], share_data[2]);
+				break;
+			}
+			mdelay(200);
+		}
+	} else {
+		printf("## uboot_config_os_version failed\n");
 	}
 	if(share_data[2] == 1)
 		return 0;

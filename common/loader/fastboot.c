@@ -42,6 +42,7 @@
 
 extern SPECIAL_PARTITION_CFG const s_special_partition_cfg[];
 extern uchar *_get_backup_partition_name(uchar * partition_name);
+extern void lcd_printf(const char *fmt, ...);
 
 #ifdef CONFIG_SECURE_BOOT
 #include "secure_verify.h"
@@ -793,6 +794,12 @@ void fb_cmd_flashing(const char *arg, void *data, uint64_t sz)
 				return;
 			}
 		}
+		lcd_printf("   Begin to erase user data...\n");
+		if (0 != common_raw_erase("userdata", 0, 0)) {
+			debugf("erase userdata failed\n");
+			fastboot_fail("Erase userdata fail.");
+			return;
+		}
 
 		if (set_lock_status(VBOOT_STATUS_UNLOCK)) {
 			debugf("set_lock_status failed\n");
@@ -800,7 +807,7 @@ void fb_cmd_flashing(const char *arg, void *data, uint64_t sz)
 			return;
 		}
 
-		debugf("execute <fastboot flashing lock_bootloader> successfully.\n");
+		debugf("execute <fastboot flashing unlock_bootloader> successfully.\n");
 		lcd_printf("   Info:Unlock bootloader success!\n");
 		fastboot_okay("Info:Unlock bootloader success!   ");
 	} else {

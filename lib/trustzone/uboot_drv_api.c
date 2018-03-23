@@ -70,6 +70,15 @@ int uboot_verify_product_sn_signature(unsigned long start_addr, uint32_t lenth){
 	return param->a0;
 }
 
+int uboot_config_os_version(unsigned long start_addr, uint32_t lenth){
+	smc_param *param = tee_common_call(FUNCTYPE_CONFIG_OS_VERSION, (uint32_t)start_addr, lenth);
+	if (param->a0 != NO_ERROR) {
+		printf("uboot_config_os_version() return error:param->a0=%d\n",param->a0);
+		while (1);
+	}
+	return param->a0;
+}
+
 int uboot_encrypt_data(uint64_t start_addr, uint64_t lenth){
   smc_param *param = tee_common_call(FUNCTYPE_CRYPTO_DATA, (uint32_t)start_addr, (uint32_t)lenth);
   return param->a0;

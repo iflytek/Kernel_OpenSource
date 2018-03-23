@@ -201,6 +201,7 @@ void vboot_secure_process_prepare(void);
 #ifdef CONFIG_SECBOOT
 extern char * strtok(char * s,const char * ct);
 extern int verify_product_sn_signature(void);
+extern int config_os_version(unsigned long *os_version, uint32_t os_version_len);
 #endif
 void secboot_update_swVersion(void);
 
