@@ -909,6 +909,7 @@ int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
 #ifdef CONFIG_NAND_BOOT
 extern int ubifs_init(void);
 extern struct ubi_selected_dev cur_ubi;
+extern int _get_mtd_partition_info(char *name, struct mtd_partition *part);
 
 int uboot_ubi_read(struct ubi_volume_desc *desc, char *buf,
 			   int offset, int size)
@@ -1054,23 +1055,42 @@ int nand_ubi_dev_init(void)
 int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 {
 	int ubi_dev_num;
-	struct ubi_volume_desc *vol;
-	ubi_dev_num = nand_ubi_dev_init();
-	if(ubi_dev_num < 0){
-		//dev num can't be a negative
-		printf("read failed...\n");
-		return;
-	}
-	vol = ubi_open_volume_nm(ubi_dev_num, part_name, UBI_READONLY);
-	if (IS_ERR(vol)){
-		printf("cannot open \"%s\", error %d", part_name, (int)PTR_ERR(vol));
-		return -1;
-	}
-	uboot_ubi_read(vol, buf, offset, size);
+	int ret;
+	nand_info_t *nand;
+	struct mtd_partition mtd_part;
+        struct ubi_volume_desc *vol;
 
-	return 0;
+	nand = _get_cur_nand();
+        ubi_dev_num = nand_ubi_dev_init();
+
+        if(ubi_dev_num < 0){
+                //dev num can't be a negative
+                printf("read failed...\n");
+                return;
+        }
+
+	if(0 == strcmp(part_name,"splloader")) {
+		ret = sprd_nand_read_spl(buf, nand, size);
+		if (ret)
+			return -1;
+	} else if(0 == strcmp(part_name,"uboot")) {
+		ret = _get_mtd_partition_info(part_name, &mtd_part);
+		if (!ret)
+			return -1;
+		ret = nand_read_skip_bad(nand, 0, &size, NULL, mtd_part.size, buf);
+		if (ret)
+			return -1;
+	}  else {
+		vol = ubi_open_volume_nm(ubi_dev_num, part_name, UBI_READONLY);
+		if (IS_ERR(vol)){
+			printf("cannot open \"%s\", error %d", part_name, (int)PTR_ERR(vol));
+			return -1;
+		}
+		uboot_ubi_read(vol, buf, offset, size);
+        }
+
+        return 0;
 }
-
 
 int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t offset, char *buf)
 {

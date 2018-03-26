@@ -1505,15 +1505,18 @@ void NandReadSector(uint32_t pageID)
 void set_header_info(u8 *bl_data, struct mtd_info *nand, int ecc_pos)
 {
 	struct bootloader_header *header;
-    NFC_BASE_T *nand_control = (NFC_BASE_T *) nand->priv ;
-    NAND_CTL *chip = (NAND_CTL *)nand_control->priv;
+	NFC_BASE_T *nand_control = (NFC_BASE_T *) nand->priv ;
+	NAND_CTL *chip = (NAND_CTL *)nand_control->priv;
 	struct sprd_ecc_param param;
 	u8 *ecc;
-	ecc = memalign(ARCH_DMA_MINALIGN, 108);
+	uint32_t image_size_save;
 
+	ecc = memalign(ARCH_DMA_MINALIGN, 108);
 	header = (struct bootloader_header *)(bl_data);
+	image_size_save = header->image_size;
 	memset(header, 0, sizeof(struct bootloader_header));
 	memset(ecc, 0xff, 108);
+	header->image_size = image_size_save;
 	header->version = NAND_BOOT_HEADER_VER;
 	header->sct_size = (1<<chip->sectShift);
 	if (chip->param.nBusWidth == BW_16)	{

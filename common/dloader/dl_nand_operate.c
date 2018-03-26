@@ -140,7 +140,7 @@ static int _parse_mtd_partitions(void)
 /**
  * get mtd partition info from partition table parsed.
  */
-static int _get_mtd_partition_info(char *name, struct mtd_partition *part)
+int _get_mtd_partition_info(char *name, struct mtd_partition *part)
 {
 	int ret;
 
