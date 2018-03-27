@@ -17,6 +17,8 @@
 /*sharklj1 fpga/zebu debug*/
 #define BOOTIMG_ADR	0x8D000000
 
+#define CONFIG_DTS_MEM_LAYOUT
+
 #define CONFIG_SPRD_UID
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK

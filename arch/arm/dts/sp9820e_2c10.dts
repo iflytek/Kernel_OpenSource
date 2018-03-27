@@ -20,16 +20,24 @@
 		#size-cells = <1>;
 		ranges;
 
-		audio_reserved: audio-mem@87500000 {
-			reg = <0x87500000 0x300000>;
+		fastboot_reserved: fastbootbuffer@82000000{
+			reg = <0x82000000 0x6400000>;
 		};
 
-		smem_reserved: sipc-mem@87800000 {
-			reg = <0x87800000 0x500000>;
+		download_reserved: sparsebuffer@82000000{
+			reg = <0x82000000 0x6400000>;
 		};
 
-		cp_reserved: cp-modem@89600000 {
-			reg = <0x89600000 0x04100000>;
+		dl_alt1_reserved: alterbuffer1@88400000{
+			reg = <0x88400000 0x00200000>;
+		};
+
+		dl_alt2_reserved: alterbuffer2@88600000{
+			reg = <0x88600000 0x00200000>;
+		};
+
+		log_reserved: logbuffer@88800000{
+			reg = <0x88800000 0x00050000>;
 		};
 
 		/* must be 4K aligned */
@@ -44,22 +52,6 @@
 		fb_reserved: framebuffer@8fb89000{
 			reg = <0x8fb89000 0x000e1000>;
 		};
-
-		overlay_reserved: overlaybuffer@8fc6a000{
-			reg = <0x8fc6a000 0x00096000>;
-		};
-
-		/* For cma 4M align, enlarge its size from 0xd840000 to 0xd8d0000 */
-		mm_reserved: multimediabuffer@8fc6a000{
-			reg = <0x8fc6a000 0x00000000>;
-		};
-
-		iq_reserved: iq-mem{
-			compatible = "sprd,iq-mem";
-			alignment = <0x0 0x1000>;
-			alloc-ranges = <0x8e300000 0x00000000>;
-			size = <0x0 0x8000000>;
-		};
 	};
 
 
@@ -68,25 +60,45 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		heap@1 {
-			reg = <1>;
-			label = "carveout_mm";
-			type = <2>;
-			memory-region = <&mm_reserved>;
-		};
-
-		heap@2 {
-			reg = <2>;
-			label = "carveout_overlay";
-			type = <2>;
-			memory-region = <&overlay_reserved>;
-		};
-
 		heap@3 {
 			reg = <3>;
 			label = "carveout_fb";
 			type = <2>;
 			memory-region = <&fb_reserved>;
+		};
+		heap@4 {
+			reg = <4>;
+			label = "carveout_fastboot";
+			type = <2>;
+			memory-region = <&fastboot_reserved>;
+		};
+
+		heap@5 {
+			reg = <5>;
+			label = "carveout_download";
+			type = <2>;
+			memory-region = <&download_reserved>;
+		};
+
+		heap@6 {
+			reg = <6>;
+			label = "carveout_dl_alt1";
+			type = <2>;
+			memory-region = <&dl_alt1_reserved>;
+		};
+
+		heap@7 {
+			reg = <7>;
+			label = "carveout_dl_alt2";
+			type = <2>;
+			memory-region = <&dl_alt2_reserved>;
+		};
+
+		heap@8 {
+			reg = <8>;
+			label = "carveout_log";
+			type = <2>;
+			memory-region = <&log_reserved>;
 		};
 	};
 };

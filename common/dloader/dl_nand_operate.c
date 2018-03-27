@@ -21,7 +21,14 @@ extern uint64_t	spl_read_size;
 
 static dl_status_t dl_stat = { 0 };
 
+#ifndef CONFIG_DTS_MEM_LAYOUT
 static char * fdl_buf = (char *)0x82000000;
+uint64_t fdl_buf_size = FDL_BUF_LEN;
+#else
+static char * fdl_buf = NULL;
+uint64_t fdl_buf_size = 0;
+#endif
+
 extern struct ubi_selected_dev cur_ubi;
 static dl_nv_info_t s_nv_backup_cfg[] = {
 	{"fixnv1", "fixnv2"},
@@ -38,6 +45,36 @@ static dl_nv_info_t s_nv_backup_cfg[] = {
 	{"wcnruntimenv1", "wcnruntimenv2"},
 	{NULL, NULL}
 };
+
+#ifdef CONFIG_DTS_MEM_LAYOUT
+
+#define SET_DOWNLOAD_BUFFER_BASE_SIZE_SEC(basep, sizep)                get_buffer_base_size_from_dt("heap@5", basep, sizep)
+#define SET_DOWNLOAD_BUFFER_BASE_SIZE_NOSEC(basep, sizep)             get_buffer_base_size_from_dt("heap@6", basep, sizep)
+
+int set_buf_base_size()
+{
+	unsigned long buf_base;
+
+#ifdef CONFIG_SECURE_BOOT
+	if (SET_DOWNLOAD_BUFFER_BASE_SIZE_SEC(&buf_base, &fdl_buf_size) < 0) {
+		errorf("set download buffer error\n");
+		return -1;
+	}
+#else
+	if (SET_DOWNLOAD_BUFFER_BASE_SIZE_NOSEC(&buf_base, &fdl_buf_size) < 0) {
+		errorf("set download buffer error\n");
+		return -1;
+	}
+#endif
+
+	fdl_buf = (unsigned char *)ALIGN(buf_base , 8);
+
+	debugf("download buffer base %lx, size %llx\n",fdl_buf, fdl_buf_size);
+
+	return 0;
+}
+#endif
+
 
 #ifdef CONFIG_SECURE_BOOT
 static int secure_image_flag = 0;
@@ -633,7 +670,7 @@ OPERATE_STATUS dl_download_start(char *name, uint32_t size, uint32_t nv_checksum
 	dl_stat.recv_size = 0;
 	dl_stat.unsv_size = 0;
 	dl_stat.buf = fdl_buf;
-	dl_stat.bufsize = FDL_BUF_LEN;
+	dl_stat.bufsize = fdl_buf_size;
 	dl_stat.rp = 0;
 	dl_stat.wp = 0;
 
