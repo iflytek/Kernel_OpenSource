@@ -55,7 +55,7 @@ unsigned check_reboot_mode(void)
 	sysdump_flag = rst_mode & HWRST_STATUS_SYSDUMPEN;
 	printf("check_reboot_mode:get raw rst_mode is %x and sysdump_flag is %x\n",rst_mode,sysdump_flag);
 	rst_mode &= 0xFF;
-	ANA_REG_SET(ANA_REG_GLB_POR_RST_MONITOR, 0); //clear flag
+	ANA_REG_SET(ANA_REG_GLB_POR_RST_MONITOR, sysdump_flag | 0); //clear flag
 
 	/* clear the flag which used by modem side in any scenes , prevent some errors */
 	ANA_REG_SET(ANA_REG_GLB_WDG_RST_MONITOR, 0);
