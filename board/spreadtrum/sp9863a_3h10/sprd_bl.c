@@ -109,7 +109,7 @@ void set_backlight(uint32_t brightness)
 		/* direct mode */
 		i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG1, value);
 
-		value = brightness & 0xFF;
+		value = (0x4 << SC2703_PWM_OUT_FREQ_STEP_SHIFT) | (0 << SC2703_IDAC_RAMP_RATE_SHIFT) | SC2703_PWM_IN_FREQ_RANGE_MASK;
 		i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG3, value);
 		i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG5, pwm_out_duty);
 
