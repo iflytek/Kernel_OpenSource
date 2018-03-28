@@ -66,7 +66,7 @@ static int gpio_state(unsigned int GPIO_NUM)
 
 static int get_adc_value_board(int channel)
 {
-	int adc_value=0;
+	int adc_value = 0,level = 0;
 	int vol = 0;
 
 	adc_value = pmic_adc_get_value_by_isen(channel,0,15,2000);
@@ -79,28 +79,30 @@ static int get_adc_value_board(int channel)
 	}
 
 	if (vol >= 9 && vol <= 31)
-		vol = 0;
+		level = 0;
 	if (vol >= 180 && vol <= 220)
-		vol = 1;
+		level = 1;
 	if (vol >= 275 && vol <= 325)
-		vol = 2;
+		level = 2;
 	if (vol >= 370 && vol <= 430)
-		vol = 3;
+		level = 3;
 	if (vol >= 560 && vol <= 640)
-		vol = 4;
+		level = 4;
 	if (vol >= 731 && vol <= 829)
-		vol = 5;
+		level = 5;
 	if (vol >= 883 && vol <= 997)
-		vol = 6;
+		level = 6;
 	if (vol >= 1054 && vol <= 1186)
-		vol = 7;
+		level = 7;
 
-	if(vol < 0 || vol > 7) {
+	debugf("level = %d\n",level);
+
+	if(level < 0 || level > 7) {
 		errorf("Adc value of rf band if is wrong, the rfboard.id will be set to -1\n");
 		return -1;
 	}
 
-	return adc2deltanv_table[vol];
+	return adc2deltanv_table[level];
 }
 
 static int get_clockid(void)

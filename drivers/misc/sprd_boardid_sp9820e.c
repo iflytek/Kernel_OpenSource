@@ -63,11 +63,11 @@ static int gpio_state(unsigned int GPIO_NUM)
 
 static int get_adc_value_board(int channel)
 {
-	int adc_value=0,vol = 0;
+	int adc_value = 0,vol = 0,level = 0;
 
 	adc_value = pmic_adc_get_value_by_isen(channel,0,15,2000);
 	vol = sprd_chan_small_adc_to_vol(channel, 0 , 0 ,adc_value);
-	debugf("result = %d\n",vol);
+	debugf("The voltage is = %d\n",vol);
 
 	if (vol <= 0 || vol >= 1200) {
 		errorf("vol is out of ranger [0~1200]\n");
@@ -75,28 +75,30 @@ static int get_adc_value_board(int channel)
 	}
 
 	if (vol >= 9 && vol <= 31)
-		vol = 0;
+		level = 0;
 	if (vol >= 180 && vol <= 220)
-		vol = 1;
+		level = 1;
 	if (vol >= 275 && vol <= 325)
-		vol = 2;
+		level = 2;
 	if (vol >= 465 && vol <= 495)
-		vol = 3;
+		level = 3;
 	if (vol >= 584 && vol <= 616)
-		vol = 4;
+		level = 4;
 	if (vol >= 762 && vol <= 798)
-		vol = 5;
+		level = 5;
 	if (vol >= 920 && vol <= 960)
-		vol = 6;
+		level = 6;
 	if (vol >= 1054 && vol <= 1186)
-		vol = 7;
+		level = 7;
 
-	if(vol < 0 || vol > 7) {
+	debugf("level = %d\n",level);
+
+	if(level < 0 || level > 7) {
 		errorf("Adc value of rf band if is wrong, the rfboard.id will be set to -1\n");
 		return -1;
 	}
 
-	return adc2deltanv_table[vol];
+	return adc2deltanv_table[level];
 }
 
 static int get_clockid(void)
