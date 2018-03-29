@@ -121,91 +121,94 @@ static int32_t gc9305_init(struct panel_spec *self)
 
 	GC9305_SpiWriteCmd(0xe8);
 	GC9305_SpiWriteData(0x11);
-	GC9305_SpiWriteData(0x77);
+	GC9305_SpiWriteData(0x0b);
 
 	GC9305_SpiWriteCmd(0xe3);
 	GC9305_SpiWriteData(0x01);
-	GC9305_SpiWriteData(0x18);
-
-	GC9305_SpiWriteCmd(0xe1);
 	GC9305_SpiWriteData(0x10);
-	GC9305_SpiWriteData(0x0a);
+
+	GC9305_SpiWriteCmd(0xff);
+	GC9305_SpiWriteData(0x61);
 
 	GC9305_SpiWriteCmd(0xAC);
 	GC9305_SpiWriteData(0x00);
+
+	GC9305_SpiWriteCmd(0xAe);
+	GC9305_SpiWriteData(0x2B)
+
 
 	GC9305_SpiWriteCmd(0xAf);
 	GC9305_SpiWriteData(0x67);
 
 	GC9305_SpiWriteCmd(0xa6);
-	GC9305_SpiWriteData(0x29);
-	GC9305_SpiWriteData(0x29);
+	GC9305_SpiWriteData(0x2a);
+	GC9305_SpiWriteData(0x2a);
 
 	GC9305_SpiWriteCmd(0xa7);
-	GC9305_SpiWriteData(0x27);
-	GC9305_SpiWriteData(0x27);
+	GC9305_SpiWriteData(0x2b);
+	GC9305_SpiWriteData(0x2b);
 
 	GC9305_SpiWriteCmd(0xa8);
-	GC9305_SpiWriteData(0x17);
-	GC9305_SpiWriteData(0x17);
+	GC9305_SpiWriteData(0x18);
+	GC9305_SpiWriteData(0x18);
 
 	GC9305_SpiWriteCmd(0xa9);
-	GC9305_SpiWriteData(0x26);
-	GC9305_SpiWriteData(0x26);
+	GC9305_SpiWriteData(0x2a);
+	GC9305_SpiWriteData(0x2a);
 
 	//----gamma setting---------//
 	GC9305_SpiWriteCmd(0xf0);
 	GC9305_SpiWriteData(0x02);
 	GC9305_SpiWriteData(0x02);
 	GC9305_SpiWriteData(0x00);
-	GC9305_SpiWriteData(0x02);
-	GC9305_SpiWriteData(0x07);
-	GC9305_SpiWriteData(0x0c);
+	GC9305_SpiWriteData(0x00);
+	GC9305_SpiWriteData(0x01);
+	GC9305_SpiWriteData(0x06);
 
 	GC9305_SpiWriteCmd(0xf1);
 	GC9305_SpiWriteData(0x01);
-	GC9305_SpiWriteData(0x01);
 	GC9305_SpiWriteData(0x00);
-	GC9305_SpiWriteData(0x03);
-	GC9305_SpiWriteData(0x07);
-	GC9305_SpiWriteData(0x0f);
+	GC9305_SpiWriteData(0x00);
+	GC9305_SpiWriteData(0x00);
+	GC9305_SpiWriteData(0x04);
+	GC9305_SpiWriteData(0x0c);
 
 	GC9305_SpiWriteCmd(0xf2);
-	GC9305_SpiWriteData(0x0D);
-	GC9305_SpiWriteData(0x08);
-	GC9305_SpiWriteData(0x37);
-	GC9305_SpiWriteData(0x04);
-	GC9305_SpiWriteData(0x04);
-	GC9305_SpiWriteData(0x4b);
+	GC9305_SpiWriteData(0x07);
+	GC9305_SpiWriteData(0x06);
+	GC9305_SpiWriteData(0x2f);
+	GC9305_SpiWriteData(0x03);
+	GC9305_SpiWriteData(0x03);
+	GC9305_SpiWriteData(0x43);
 
 	GC9305_SpiWriteCmd(0xf3);
-	GC9305_SpiWriteData(0x11);
+	GC9305_SpiWriteData(0x0f);
 	GC9305_SpiWriteData(0x0c);
-	GC9305_SpiWriteData(0x37);
-	GC9305_SpiWriteData(0x04);
-	GC9305_SpiWriteData(0x04);
-	GC9305_SpiWriteData(0x47);
+	GC9305_SpiWriteData(0x3c);
+	GC9305_SpiWriteData(0x07);
+	GC9305_SpiWriteData(0x06);
+	GC9305_SpiWriteData(0x4e);
 
 	GC9305_SpiWriteCmd(0xf4);
-	GC9305_SpiWriteData(0x0a);
-	GC9305_SpiWriteData(0x15);
-	GC9305_SpiWriteData(0x15);
-	GC9305_SpiWriteData(0x24);
-	GC9305_SpiWriteData(0x3a);
+	GC9305_SpiWriteData(0x0b);
+	GC9305_SpiWriteData(0x16);
+	GC9305_SpiWriteData(0x16);
+	GC9305_SpiWriteData(0x19);
+	GC9305_SpiWriteData(0x1a);
 	GC9305_SpiWriteData(0x0F);
 
 	GC9305_SpiWriteCmd(0xf5);
-	GC9305_SpiWriteData(0x07);
-	GC9305_SpiWriteData(0x0f);
-	GC9305_SpiWriteData(0x0d);
+	GC9305_SpiWriteData(0x0a);
 	GC9305_SpiWriteData(0x17);
-	GC9305_SpiWriteData(0x3a);
+	GC9305_SpiWriteData(0x14);
+	GC9305_SpiWriteData(0x1b);
+	GC9305_SpiWriteData(0x1c);
 	GC9305_SpiWriteData(0x0F);
 	//---end gamma setting-----//
 
 	GC9305_SpiWriteCmd(0x11);
 	mdelay(120);
-//	GC9305_SpiWriteCmd(0x29);
+	GC9305_SpiWriteCmd(0x29);
 //	GC9305_SpiWriteCmd(0x2c);
 
 //	GC9305_SpiWriteCmd(0x29);
