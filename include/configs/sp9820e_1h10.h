@@ -19,6 +19,13 @@
 
 #define CONFIG_DTS_MEM_LAYOUT
 
+/*
+ * log config
+ */
+#define CONFIG_SPRD_LOG
+//#define CONFIG_LOG_2_SD
+#define CONFIG_LOG_2_EMMC
+
 #define CONFIG_SPRD_UID
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
