@@ -163,6 +163,7 @@
 #define EXT_CSD_CARD_TYPE		196	/* RO */
 #define EXT_CSD_SEC_CNT			212	/* RO, 4 bytes */
 #define EXT_CSD_HC_WP_GRP_SIZE		221	/* RO */
+#define EXT_CSD_REL_WR_SEC_C              222	/* RO */
 #define EXT_CSD_HC_ERASE_GRP_SIZE	224	/* RO */
 #define EXT_CSD_BOOT_MULT		226	/* RO */
 
@@ -286,6 +287,7 @@ struct mmc {
 	u64 capacity_user;
 	u64 capacity_boot;
 	u64 capacity_rpmb;
+	u8   rel_wr_sec_c;
 	u64 capacity_gp[4];
 	block_dev_desc_t block_dev;
 	int (*send_cmd)(struct mmc *mmc,

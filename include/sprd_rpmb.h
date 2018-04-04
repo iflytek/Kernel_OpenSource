@@ -15,5 +15,6 @@ uint8_t rpmb_blk_read(char *blk_data, uint16_t blk_index, uint8_t block_count);
 
  /**@retrun 0 rpmb key unwritten*/
 int is_wr_rpmb_key(void);
+uint8_t rpmb_get_wr_cnt(void);
 
 #endif // _SPRD_RPMB_H

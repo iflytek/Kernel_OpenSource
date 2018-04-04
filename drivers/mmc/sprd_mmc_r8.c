@@ -1489,6 +1489,7 @@ static int mmc_startup(struct mmc *mmc)
 	mmc->capacity_user *= mmc->read_bl_len;
 	mmc->capacity_boot = 0;
 	mmc->capacity_rpmb = 0;
+	mmc->rel_wr_sec_c = 1;
 	for (i = 0; i < 4; i++)
 		mmc->capacity_gp[i] = 0;
 
@@ -1567,6 +1568,7 @@ static int mmc_startup(struct mmc *mmc)
 		}
 		printf("\n");
 #endif
+		mmc->rel_wr_sec_c = ext_csd[EXT_CSD_REL_WR_SEC_C];
 
 		switch (ext_csd[EXT_CSD_REV]) {
 		case 1:

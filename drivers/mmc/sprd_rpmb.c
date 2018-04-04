@@ -410,3 +410,8 @@ uint8_t rpmb_write_key(uint8_t * key, uint8_t len)
 	return 1;		//should not run here;
 };
 
+uint8_t rpmb_get_wr_cnt(void){
+	struct mmc *mmc = find_mmc_device(0);	//0 is emmc
+	printf(" rpmb_get_wr_cnt:0x%x\n",mmc->rel_wr_sec_c);
+	return mmc->rel_wr_sec_c;
+}
