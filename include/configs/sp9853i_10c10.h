@@ -6,6 +6,8 @@
 
 #define CONFIG_SPRD_SOC_SP9853I
 
+#define CONFIG_DTS_MEM_LAYOUT
+
 /*******DDR CONFIG************************/
 #define CONFIG_E820_AUTO_DETECT
 #define CONFIG_NR_DRAM_BANKS	1
