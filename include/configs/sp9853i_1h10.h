@@ -8,6 +8,12 @@
 
 #define CONFIG_DTS_MEM_LAYOUT
 
+/*
+ * log config
+ */
+#define CONFIG_SPRD_LOG
+#define CONFIG_LOG_2_EMMC
+
 /*******DDR CONFIG************************/
 #define CONFIG_E820_AUTO_DETECT
 #define CONFIG_NR_DRAM_BANKS	1
