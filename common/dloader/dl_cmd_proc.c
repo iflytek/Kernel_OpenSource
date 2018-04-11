@@ -142,6 +142,9 @@ int dl_cmd_write_start (dl_packet_t *packet, void *arg)
 	uint32_t nv_checksum;
 	int32_t           op_res = 1;
 
+	_decode_packet_data(packet, partition_name, &size, &nv_checksum);
+	debugf("partition_name=%s,size=0x%llx,checksum=0x%x\n", partition_name, size, nv_checksum);
+
 	#ifdef CONFIG_PCTOOL_CHECK_WRITE_PROTECT
 	if(0 == enable_write_flash) {
 		debugf(" cannot write flash\n");
@@ -150,9 +153,6 @@ int dl_cmd_write_start (dl_packet_t *packet, void *arg)
 	}
 	#endif
 
-	_decode_packet_data(packet, partition_name, &size, &nv_checksum);
-
-	debugf("partition_name=%s,size=0x%llx,checksum=0x%x\n", partition_name, size, nv_checksum);
 	if((root_stat.root_flag == 1) && !strcmp(partition_name, "system")) {
 		debugf("start clear root flag.\n");
 		erase_rootflag(&root_stat);
@@ -271,6 +271,14 @@ int dl_cmd_repartition(dl_packet_t *pakcet, void *arg)
 	REPARTITION_TABLE_INFO rp_info;
 	uchar * p_part_list = NULL;
 	uint32_t part_cell_length = 0;
+
+	#ifdef CONFIG_PCTOOL_CHECK_WRITE_PROTECT
+	if(0 == enable_write_flash) {
+		debugf(" cannot repartition flash\n");
+		dl_send_ack(BSL_REP_NOT_ENABLE_WRITE_FLASH);
+		return 0;
+	}
+	#endif
 
 	_parse_repartition_header(raw_data, &rp_info, &p_part_list);
 
