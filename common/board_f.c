@@ -72,6 +72,14 @@ DECLARE_GLOBAL_DATA_PTR = (gd_t *) (CONFIG_SYS_INIT_GD_ADDR);
 DECLARE_GLOBAL_DATA_PTR;
 #endif
 
+#ifdef CONFIG_SPRD_LOG
+#ifndef CONFIG_DTS_MEM_LAYOUT
+LOG_BUFFER *p_log_buffer = (LOG_BUFFER *)LOG_BUFFER_ADDR;
+#else
+LOG_BUFFER *p_log_buffer = NULL;
+uint32_t log_buffer_enabled_flag = 0;
+#endif
+#endif
 /*
  * TODO(sjg@chromium.org): IMO this code should be
  * refactored to a single function, something like:
@@ -141,6 +149,41 @@ static int init_baud_rate(void)
 	gd->baudrate = getenv_ulong("baudrate", 10, CONFIG_BAUDRATE);
 	return 0;
 }
+
+#ifdef CONFIG_SPRD_LOG
+static int init_log_buffer(void)
+{
+#ifdef CONFIG_DTS_MEM_LAYOUT
+	unsigned long buf_base, buf_size;
+	get_buffer_base_size_from_dt("heap@8", &buf_base, &buf_size);
+
+	p_log_buffer = (LOG_BUFFER *)buf_base;
+	p_log_buffer->addr = (unsigned char *)ALIGN(buf_base + sizeof(LOG_BUFFER), 8);
+
+	//debug("dts log buffer size %lx\n", buf_size);
+	if (buf_size < LOG_BUFFER_SIZE + sizeof(LOG_BUFFER)) {
+		errorf("log buf size in uboot dts is too small\n");
+		return -1;
+	}
+#else
+	p_log_buffer->addr = LOG_BUFFER_START_ADDR;
+#endif
+
+	p_log_buffer->size = LOG_BUFFER_SIZE;
+	p_log_buffer->pointer = p_log_buffer->addr;
+	p_log_buffer->used = 0;
+	p_log_buffer->spare = p_log_buffer->size - p_log_buffer->used;
+
+	memset((void *)p_log_buffer->addr, 0, p_log_buffer->size);
+
+#ifdef CONFIG_DTS_MEM_LAYOUT
+	log_buffer_enabled_flag = 1;
+#endif
+
+	//debug("log base %lx, log buffer addr %x, log buffer size %x\n", p_log_buffer, p_log_buffer->addr, p_log_buffer->size);
+	return (0);
+}
+#endif
 
 static int display_text_info(void)
 {
@@ -812,6 +855,9 @@ static init_fnc_t init_sequence_f[] = {
 	init_baud_rate,		/* initialze baudrate settings */
 	serial_init,		/* serial communications setup */
 	console_init_f,		/* stage 1 init of console */
+#ifdef CONFIG_SPRD_LOG
+	init_log_buffer,	/* initialze sprd log buffer  */
+#endif
 #ifdef CONFIG_SANDBOX
 	sandbox_early_getopt_check,
 #endif

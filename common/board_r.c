@@ -693,11 +693,33 @@ static int run_main_loop(void)
 #ifdef CONFIG_SANDBOX
 	sandbox_main_loop_init();
 #endif
+	/* initialize uboot log */
+	init_write_log();
+
 	/* main_loop() can return to retry autoboot, if so just run it again */
 	for (;;)
 		main_loop();
 	return 0;
 }
+
+#ifdef CONFIG_SPRD_LOG
+extern LOG_BUFFER *p_log_buffer;
+
+#ifdef CONFIG_DTS_MEM_LAYOUT
+extern uint32_t log_buffer_enabled_flag;
+
+static int get_log_buffer()
+{
+	unsigned long buf_base, buf_size;
+	get_buffer_base_size_from_dt("heap@8", &buf_base, &buf_size);
+	p_log_buffer = (LOG_BUFFER *)buf_base;
+	log_buffer_enabled_flag = 1;
+	debug("log base %lx\n", p_log_buffer);
+
+	return 0;
+}
+#endif
+#endif
 
 /*
  * Over time we hope to remove these functions with code fragments and
@@ -918,6 +940,10 @@ init_fnc_t init_sequence_r[] = {
 extern uint32_t uboot_start_time;
 void board_init_r(gd_t *new_gd, ulong dest_addr)
 {
+#if defined(CONFIG_SPRD_LOG) && defined(CONFIG_DTS_MEM_LAYOUT)
+	get_log_buffer();
+#endif
+
 	uboot_start_time = SCI_GetTickCount();
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
 	int i;
