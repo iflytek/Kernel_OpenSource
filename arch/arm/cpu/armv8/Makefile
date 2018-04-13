@@ -21,4 +21,4 @@ obj-$(CONFIG_SC9860) += whale2/
 obj-$(CONFIG_SOC_SHARKLJ1) += sharklj1/
 obj-$(CONFIG_SOC_SHARKLE) += sharkle/
 obj-$(CONFIG_SOC_SHARKL3) += sharkl3/
-obj-$(CONFIG_SOC_WHALEK) += whalek/
+obj-$(CONFIG_SOC_ROC1) += roc1/

@@ -1,16 +1,16 @@
-if TARGET_SP9862_HAPS
+if TARGET_UD710_HAPS
 
 config SYS_BOARD
-	default "sp9862_haps"
+	default "ud710_haps"
 
 config SYS_VENDOR
 	default "spreadtrum"
 
 config SYS_SOC
-	default "whalek"
+	default "roc1"
 
 config SYS_CONFIG_NAME
-	default "sp9862_haps"
+	default "ud710_haps"
 
 config SYS_TEXT_BASE
 	default 0x9f000000

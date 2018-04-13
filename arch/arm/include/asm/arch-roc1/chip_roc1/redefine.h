@@ -57,13 +57,13 @@
 /* referenced by sprd_musb2_driver.c */
 #define BIT_USB_EB                              BIT_AON_APB_OTG_PHY_EB
 
-/* referenced by whalek_usb_phy.c */
+/* referenced by roc1_usb_phy.c */
 #define BIT_OTG_PHY_SOFT_RST			BIT_AON_APB_OTG_PHY_SOFT_RST
 #define BIT_OTG_UTMI_SOFT_RST			BIT_AON_APB_OTG_UTMI_SOFT_RST
 #define BIT_AP_AHB_UTMI_WIDTH_SEL		BIT_AON_APB_UTMI_WIDTH_SEL
 #define REG_AP_AHB_OTG_PHY_CTRL			REG_AON_APB_OTG_PHY_CTRL
 
-/* referenced by sp9862_haps.c */
+/* referenced by ud710_haps.c */
 #define REG_PMU_APB_PD_GPU_TOP_CFG		REG_PMU_APB_PD_GPU_TOP_CFG0
 
 /* register redefiniton for compatible */

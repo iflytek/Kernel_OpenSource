@@ -328,11 +328,11 @@ config TARGET_SP9850KA_2C30
 	select CPU_V7
 endchoice
 
-config TARGET_SP9862_HAPS
-        bool "Spreadtrum whalek"
+config TARGET_UD710_HAPS
+        bool "Spreadtrum roc1"
         select ARM64
         help
-          This is the Spreadtrum whalek Board
+          This is the Spreadtrum roc1 Board
 
 config TARGET_SP9863A_1H10
 	bool "Spreadtrum sharkl3"
@@ -434,7 +434,7 @@ source "board/spreadtrum/sp9820e_2h10/Kconfig"
 source "board/spreadtrum/sp9820e_17c10/Kconfig"
 source "board/spreadtrum/sp9855a_haps/Kconfig"
 source "board/spreadtrum/sp9850ka_2c30/Kconfig"
-source "board/spreadtrum/sp9862_haps/Kconfig"
+source "board/spreadtrum/ud710_haps/Kconfig"
 source "board/spreadtrum/sp9863a_1h10/Kconfig"
 source "board/spreadtrum/sp9863a_2h10/Kconfig"
 source "board/spreadtrum/sp9863a_3h10/Kconfig"

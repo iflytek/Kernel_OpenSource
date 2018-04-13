@@ -79,8 +79,8 @@
 #include "sprdfb_chip_9855.h"
 #endif
 
-#ifdef CONFIG_SOC_WHALEK
-#include "sprdfb_chip_9862.h"
+#ifdef CONFIG_SOC_ROC1
+#include "sprdfb_chip_710.h"
 #endif
 
 void __raw_bits_or(unsigned int v, unsigned int a);

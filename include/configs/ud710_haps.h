@@ -30,7 +30,7 @@
 //#define CONFIG_SYS_DCACHE_OFF
 //#define CONFIG_SYS_ICACHE_OFF
 
-#define CONFIG_IDENT_STRING		"whalek"
+#define CONFIG_IDENT_STRING		"roc1"
 
 #define CONFIG_SYS_INIT_SP_ADDR     \
 	(CONFIG_SYS_SDRAM_END - 0x10000 - GENERATED_GBL_DATA_SIZE)
@@ -67,9 +67,10 @@
 
  /* SPREADTRUM BIGPHONE board - SoC Configuration */
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
-#define CONFIG_SOC_WHALEK
+#define CONFIG_SOC_ROC1
 #define CONFIG_ADIE_SC2721
 
+#define CONFIG_DTS_MEM_LAYOUT
 
 /* SPRD Serial Configuration */
 #define CONFIG_SPRD_UART		1
@@ -231,7 +232,7 @@
 #define TMSC_16NM_FFPLL 0x5533166e /* USB3.0_PHY_TSMC_16NM */
 #define USB3_PHY_TUNE1 0x919e9dec
 #define USB3_PHY_TUNE2 0x0f0560fe
-#define CONFIG_USB_PHY_WHALEK
+#define CONFIG_USB_PHY_ROC1
 //#define CALIBRATION_FLAG_CP0           0x88AF0000
 #define CALIBRATION_FLAG_CP1	0x8d7d0000
 //#define CONFIG_DWC_OTG
@@ -259,7 +260,7 @@
 
 
 /*for device tree*/
-#define DT_PLATFROM_ID 9862
+#define DT_PLATFROM_ID 710
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 

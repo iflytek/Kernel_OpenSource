@@ -24,6 +24,6 @@
 #include "regs_adi.h"
 #include "sprd_eic.h"
 #include "rtc_reg_v3.h"
-#include "chip_whalek/hardware.h"
+#include "chip_roc1/hardware.h"
 
 #endif
