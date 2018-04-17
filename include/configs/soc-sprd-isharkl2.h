@@ -27,6 +27,8 @@
 #define CONFIG_EMMC_VERSION_R8P0
 #define CONFIG_EMMC_RST_N_FUNCTION
 /*#define CONFIG_MMC_TRACE*/
+/*sprdimageversion Dynamic acquisition rpmb's size*/
+#define CONFIG_SPRD_RPMB
 
 /* file system config */
 #define CONFIG_FAT_WRITE		1
