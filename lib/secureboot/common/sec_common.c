@@ -204,7 +204,7 @@ void  secboot_param_set(uint64_t load_buf,imgToVerifyInfo *imginfo)
 	imginfo->img_len = SIMG_BUF;
 	imginfo->hash_len = 32;
 	imginfo->pubkeyhash = pubkhash;
-#ifdef CONFIG_SPRD_SECBOOT
+#if defined(CONFIG_SPRD_SECBOOT) || defined(CONFIG_VBOOT_V2)
 	imginfo->flag = SPRD_FLAG;
 #endif
 #ifdef CONFIG_SANSA_SECBOOT
@@ -487,7 +487,7 @@ void secboot_init(char *partition_name)
 
 void secboot_terminal(void)
 {
-	#if defined (CONFIG_SPRD_SECBOOT)
+	#if defined (CONFIG_SPRD_SECBOOT) || defined (CONFIG_VBOOT_V2)
 	secboot_param_set(gd->verify_base,&img_verify_info);
 	sprd_calc_hbk();
 	#endif

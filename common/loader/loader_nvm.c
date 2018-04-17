@@ -1325,16 +1325,23 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 
 	/***secboot 2nd step***/
 	/*if bootmode is cali mode, do not verify image*/
-#if defined	(CONFIG_SOC_IWHALE2)
+#if defined	(CONFIG_SOC_IWHALE2)||defined (CONFIG_SPRD_SOC_SP9853I)
 	char  *boot_mode_type_str;
 	unsigned int lcs = 0;
-	sprd_get_lcs((unsigned int *)&lcs);
+	unsigned int cali_mode = 0;
+	get_lcs(&lcs);
 	boot_mode_type_str = getenv("bootmode");
 	printf("boot_mode_type=%s\n",boot_mode_type_str);
-	if((strncmp(boot_mode_type_str, "cali", 4)) || (SECURE_LCS == lcs))
+	if(boot_mode_type_str != NULL)
+		cali_mode = (!strncmp(boot_mode_type_str, "cali", 4));
+
+	printf("cali_mode = %d lcs = %d \n",cali_mode, lcs);
+	if((cali_mode == 0) || (SECURE_LCS == lcs))
 	{
 		printf("partition:%s\n",partition);
 		secboot_secure_process_flow(partition,0,0,(char *)gd->verify_base);
+	} else {
+		printf("calimode,we by pass verify\n");
 	}
 #else
 	/*set v-boot binding data eg:lock status*/
