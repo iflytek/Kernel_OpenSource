@@ -16,7 +16,7 @@ enum {
 };
 
 #define SC2703_LCD_I2C_ADDRESS	0x4b
-#define SC2703_LCD_I2C_BUS	4
+#define SC2703_LCD_I2C_BUS 	7
 #define SC2703_WLED_IDAC_MAX 2047
 #define MAX_BRIGHTNESS 255
 
@@ -81,7 +81,7 @@ void lcd_use_sc2703l_to_power_on(void)
 {
 	int loop = 100;
 
-	i2c_set_bus_num(4);
+	i2c_set_bus_num(SC2703_LCD_I2C_BUS);
 	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, SC2703_DISPLAY_EN_MASK);
 	printf("SC2703 status is %d\n", \
 			i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_STATUS));
