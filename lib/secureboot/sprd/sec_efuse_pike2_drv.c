@@ -117,9 +117,8 @@ Efuse_Result_Ret efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadDat
 }
 
 
-Efuse_Result_Ret efuse_rewrite_double_bit(uint32 start_id, uint32 end_id, uint32 *pReadData)
+Efuse_Result_Ret efuse_rewrite_double_bit(uint32 block_id, uint32 writeData)
 {
-	uint32  i, j;
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	efuse_lock();
 	efuse_enable();
@@ -133,15 +132,12 @@ Efuse_Result_Ret efuse_rewrite_double_bit(uint32 start_id, uint32 end_id, uint32
 	clr_reg_bit(EFUSE_SEC_EN, 1);					// clear auto check
 	set_reg_bit(EFUSE_SEC_EN, 2);					// SET doublt bit en
 
-	for (i = start_id, j = 0; i <= end_id; i++, j++)
-	{
-		write32(BLOCK_MAP + (i << 2), pReadData[j]);
-	}
+	write32(BLOCK_MAP + (block_id << 2), writeData);
 
 	if (read32(EFUSE_SEC_ERR_FLAG) != 0)			// Read err register
 	{
 		ret = EFUSE_WR_ERROR;
-		printf("efuse_rewrite_double_bit(): err = %x start_id = %d end_id = %d\n", read32(EFUSE_SEC_ERR_FLAG), start_id, end_id);
+		printf("efuse_rewrite_double_bit(): err = %x block_id = %d\n", read32(EFUSE_SEC_ERR_FLAG), block_id);
 	}
 
 	clr_reg_bit(EFUSE_PW_SWT, 0);					// CLR enk1
