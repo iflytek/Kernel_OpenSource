@@ -81,7 +81,6 @@ static void sprd_i2c_apb_enable(struct i2c_adapter *adap)
 
 	writel(tmp | (sprd_i2c[adap->hwadapnr].apb_eb),
 			sprd_i2c[adap->hwadapnr].apb_base);
-	printf("sprd_i2c_apb_enable");
 }
 
 static void sprd_i2c_apb_disable(struct i2c_adapter *adap)
@@ -90,7 +89,6 @@ static void sprd_i2c_apb_disable(struct i2c_adapter *adap)
 
 	writel(tmp & ~(sprd_i2c[adap->hwadapnr].apb_eb),
 			sprd_i2c[adap->hwadapnr].apb_base);
-	printf("sprd_i2c_apb_disable");
 }
 
 static void sprd_i2c_set_count(void *i2c_base, u32 count)
