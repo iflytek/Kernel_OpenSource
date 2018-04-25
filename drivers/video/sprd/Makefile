@@ -12,3 +12,4 @@ obj-$(CONFIG_SOC_SHARKLE) += sharkle/
 obj-$(CONFIG_SOC_SHARKL3) += sharkl3/
 obj-$(CONFIG_SOC_PIKE2) += pike2/
 obj-$(CONFIG_SOC_ROC1) += roc1/
+obj-$(CONFIG_SOC_SHARKL5) += sharkl5/
