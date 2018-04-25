@@ -53,7 +53,7 @@ extern void efuse_enable(void);
 extern void efuse_disable(void);
 extern Efuse_Result_Ret efuse_write_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble);
 extern Efuse_Result_Ret efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble);
-extern Efuse_Result_Ret efuse_rewrite_double_bit(uint32 start_id, uint32 end_id, uint32 *pReadData);
+extern Efuse_Result_Ret efuse_rewrite_double_bit(uint32 block_id, uint32 writeData);
 extern Efuse_Result_Ret efuse_huk_program(void);
 
 #endif

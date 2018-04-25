@@ -175,7 +175,7 @@ Efuse_Result_Ret sprd_ce_efuse_program(unsigned int block_id, unsigned int Write
 	if (block_id == CYCLE_STATE_BLOCK || block_id == SEC_VERSION_BLOCK)
 	{
 		real_block = pmap[block_id];
-		ret = efuse_rewrite_double_bit(real_block, real_block, &WriteData);
+		ret = efuse_rewrite_double_bit(real_block, WriteData);
 		return ret;
 	}
 
