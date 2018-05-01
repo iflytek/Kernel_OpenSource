@@ -19,8 +19,8 @@
 #include <asm/io.h>
 #include "adi_hal_internal.h"
 //#include "asm/arch/wdg_drvapi.h"
-#include "asm/arch-sharkle/sprd_reg.h"
-#include "asm/arch-sharkle/common.h"
+#include "asm/arch-roc1/sprd_reg.h"
+#include "asm/arch-roc1/common.h"
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/
