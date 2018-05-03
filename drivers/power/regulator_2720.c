@@ -395,6 +395,14 @@ static int reload_regulator_config()
 			       reload_val << shft,
 			       reinit_node[i].pmic_regs_mask);
 	}
+/*
+ * reset DCDC_CORE PFM/PWM for pmic issue workaround
+ * pmic efuse block15[0] 1'.
+ */
+	efuse_val = sprd_pmic_efuse_read(15);
+	if( efuse_val & BIT(0)) {
+		ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_REG0, 0x1443);
+	}
 	return 0;
 }
 
