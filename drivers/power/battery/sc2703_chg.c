@@ -86,18 +86,36 @@ static void sc2703_charger_ic_init(void)
 				 0);
 }
 
+/*
+ * There is an issue in factory production line. for entering factory mode,
+ * we can't limit the operation sequence, which means firstly power supply
+ * VBAT then plug in USB cable or firstly plug in USB cable then power supply VBAT,
+ * both should be ok.but now if firstly plug in USB cable,
+ * software will detect the battery absence and disable buck, VSYS drops then quickly
+ * goes back to higher than PMIC's UVLO, so we disable buck force mandatory.
+ * we expect VSYS falls to 0V and system in shutdown mode, until vbat supplied,
+ * system starts boot up to entering factory mode.
+ */
 static void sc2703_charger_start(void)
 {
-	sc2703_update_reg_bits(SC2703_DCDC_CTRL_A,
-				  SC2703_CHG_EN_MASK | SC2703_DCDC_EN_MASK,
-				  SC2703_CHG_EN_MASK | SC2703_DCDC_EN_MASK);
+	sc2703_update_reg_bits(SC2703_DCDC_CTRL_A, SC2703_CHG_EN_MASK, SC2703_CHG_EN_MASK);
+	sc2703_update_reg_bits(SC2703_VSYS_UV_SWITCH,
+		SC2703_CHG_REG_MASK_ALL, SC2703_CHG_REG_DISABLE_VAL);
+	sc2703_update_reg_bits(SC2703_CHG_BUCK_SWITCH,
+		SC2703_CHG_REG_MASK_ALL, SC2703_CHG_REG_DISABLE_VAL);
+	sc2703_update_reg_bits(SC2703_REG_UNLOCK,
+		SC2703_CHG_REG_MASK_ALL, SC2703_CHG_REG_DISABLE_VAL);
 }
 
 static void sc2703_charger_stop(unsigned int flag)
 {
-	sc2703_update_reg_bits(SC2703_DCDC_CTRL_A,
-				SC2703_CHG_EN_MASK | SC2703_DCDC_EN_MASK,
-				0);
+	sc2703_update_reg_bits(SC2703_DCDC_CTRL_A, SC2703_CHG_EN_MASK, 0);
+	sc2703_update_reg_bits(SC2703_REG_UNLOCK,
+		SC2703_CHG_REG_MASK_ALL, SC2703_REG_UNLOCK_VAL);
+	sc2703_update_reg_bits(SC2703_VSYS_UV_SWITCH,
+		SC2703_CHG_REG_MASK_ALL, SC2703_VSYS_UV_SWITCH_VAL);
+	sc2703_update_reg_bits(SC2703_CHG_BUCK_SWITCH,
+		SC2703_CHG_REG_MASK_ALL, SC2703_CHG_BUCK_SWITCH_VAL);
 }
 
 static void sc2703_charger_cc_current_set(int val)
