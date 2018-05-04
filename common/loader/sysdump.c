@@ -1170,6 +1170,10 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 }
 #endif
 
+#ifdef CONFIG_X86
+int enter_sysdump_flag = 0;
+#endif
+
 void write_sysdump_before_boot(int rst_mode)
 {
 	sha1_context ctx;
@@ -1210,7 +1214,9 @@ void write_sysdump_before_boot(int rst_mode)
 		|| (rst_mode == CMD_SPECIAL_MODE) || (rst_mode == CMD_VMM_PANIC_MODE) || (rst_mode == CMD_TOS_PANIC_MODE)) {
 
 		debugf("Now enter in sysdump!!!\n");
-
+#ifdef CONFIG_X86
+		enter_sysdump_flag = 1;
+#endif
 		dt_addr = get_dt_addr();
 		nodeoffset = check_dts_sysdump_node(dt_addr);
 		if (nodeoffset < 0) {
