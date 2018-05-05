@@ -162,6 +162,15 @@
 
 
 /* Initial environment variables */
+#ifdef DEBUG
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+
+#define CONFIG_AUTOBOOT_KEYED 1
+#define CONFIG_AUTOBOOT_PROMPT "Press q to abort autoboot in %d seconds"
+
+#define CONFIG_AUTOBOOT_STOP_STR "q"
+#endif
+
 #define CONFIG_BOOTCOMMAND			"cboot normal"
 #define CONFIG_BOOTDELAY		0
 #define	CONFIG_EXTRA_ENV_SETTINGS				"mtdparts=" MTDPARTS_DEFAULT "\0"
@@ -173,7 +182,7 @@
 
 /* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE		1024	/* Console I/O Buffer Size */
-#define CONFIG_SYS_PROMPT		"sharklE# "
+#define CONFIG_SYS_PROMPT		"sharkl3# "
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
 									sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
@@ -225,6 +234,7 @@
 #define CONFIG_EMMC_BOOT
 #define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
+#define EMMC_SECTOR_SIZE 512
 
 /*file system config*/
 #define CONFIG_FAT_WRITE
