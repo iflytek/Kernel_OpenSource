@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-05-08 16:01:53
  *
  */
 
@@ -64,22 +64,26 @@
 
 /* REG_GPU_APB_LPC_AB_W */
 
+#define BIT_GPU_APB_PU_NUM_AB_W(x)              (((x) & 0xFF) << 24)
 #define BIT_GPU_APB_AXI_LP_CTRL_DISABLE         BIT(20)
 #define BIT_GPU_APB_LP_EB_AB_W                  BIT(16)
 #define BIT_GPU_APB_LP_NUM_AB_W(x)              (((x) & 0xFFFF))
 
 /* REG_GPU_APB_LPC_M0 */
 
+#define BIT_GPU_APB_PU_NUM_M0(x)                (((x) & 0xFF) << 24)
 #define BIT_GPU_APB_LP_EB_M0                    BIT(16)
 #define BIT_GPU_APB_LP_NUM_M0(x)                (((x) & 0xFFFF))
 
 /* REG_GPU_APB_LPC_S0 */
 
+#define BIT_GPU_APB_PU_NUM_S0(x)                (((x) & 0xFF) << 24)
 #define BIT_GPU_APB_LP_EB_S0                    BIT(16)
 #define BIT_GPU_APB_LP_NUM_S0(x)                (((x) & 0xFFFF))
 
 /* REG_GPU_APB_LPC_S1 */
 
+#define BIT_GPU_APB_PU_NUM_S1(x)                (((x) & 0xFF) << 24)
 #define BIT_GPU_APB_LP_EB_S1                    BIT(16)
 #define BIT_GPU_APB_LP_NUM_S1(x)                (((x) & 0xFFFF))
 

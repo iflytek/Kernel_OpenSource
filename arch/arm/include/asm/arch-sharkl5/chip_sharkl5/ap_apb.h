@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-05-08 16:01:53
  *
  */
 
@@ -17,9 +17,9 @@
 #define CTL_BASE_AP_APB 0x71000000
 
 
-#define REG_AP_APB_APB_EB         ( CTL_BASE_AP_APB + 0x0000 )
-#define REG_AP_APB_APB_RST        ( CTL_BASE_AP_APB + 0x0004 )
-#define REG_AP_APB_APB_MISC_CTRL  ( CTL_BASE_AP_APB + 0x0008 )
+#define REG_AP_APB_APB_EB             ( CTL_BASE_AP_APB + 0x0000 )
+#define REG_AP_APB_APB_RST            ( CTL_BASE_AP_APB + 0x0004 )
+#define REG_AP_APB_APB_MISC_CTRL      ( CTL_BASE_AP_APB + 0x0008 )
 
 /* REG_AP_APB_APB_EB */
 
@@ -84,6 +84,15 @@
 
 /* REG_AP_APB_APB_MISC_CTRL */
 
+#define BIT_AP_APB_I2C4_SEC_EB              BIT(14)
+#define BIT_AP_APB_I2C3_SEC_EB              BIT(13)
+#define BIT_AP_APB_I2C2_SEC_EB              BIT(12)
+#define BIT_AP_APB_I2C1_SEC_EB              BIT(11)
+#define BIT_AP_APB_I2C0_SEC_EB              BIT(10)
+#define BIT_AP_APB_SPI3_SEC_EB              BIT(9)
+#define BIT_AP_APB_SPI2_SEC_EB              BIT(8)
+#define BIT_AP_APB_SPI1_SEC_EB              BIT(7)
+#define BIT_AP_APB_SPI0_SEC_EB              BIT(6)
 #define BIT_AP_APB_SPI3_FMARK_POLARITY_INV  BIT(5)
 #define BIT_AP_APB_SPI2_FMARK_POLARITY_INV  BIT(4)
 #define BIT_AP_APB_SPI1_FMARK_POLARITY_INV  BIT(3)

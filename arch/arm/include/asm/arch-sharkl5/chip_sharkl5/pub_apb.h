@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-05-08 16:01:53
  *
  */
 
@@ -26,7 +26,7 @@
 #define REG_PUB_APB_QOS_SELECT                    ( CTL_BASE_PUB_APB + 0x31B0 )
 #define REG_PUB_APB_DPLL_PRE_DIV_STATUS           ( CTL_BASE_PUB_APB + 0x31C0 )
 #define REG_PUB_APB_DFI_BWMON_TIMER               ( CTL_BASE_PUB_APB + 0x31C4 )
-#define REG_PUB_APB_QOS_SWITCH                    ( CTL_BASE_PUB_APB + 0x31CA )
+#define REG_PUB_APB_QOS_SWITCH                    ( CTL_BASE_PUB_APB + 0x31C8 )
 #define REG_PUB_APB_PUB_BUS_CK_EB                 ( CTL_BASE_PUB_APB + 0x31CC )
 #define REG_PUB_APB_AXI_LPC_CTRL_3                ( CTL_BASE_PUB_APB + 0x31D0 )
 #define REG_PUB_APB_PUB_INT_CG_EN                 ( CTL_BASE_PUB_APB + 0x31D4 )
@@ -81,6 +81,9 @@
 #define REG_PUB_APB_DFS_HW_RATIO_SET5             ( CTL_BASE_PUB_APB + 0x4134 )
 #define REG_PUB_APB_DFS_HW_RATIO_SET6             ( CTL_BASE_PUB_APB + 0x4138 )
 #define REG_PUB_APB_DFS_HW_RATIO_SET7             ( CTL_BASE_PUB_APB + 0x413C )
+#define REG_PUB_APB_DFS_HW_RATIO_SET8             ( CTL_BASE_PUB_APB + 0x4140 )
+#define REG_PUB_APB_HW_DESKEWPLL_PD_CTRL0         ( CTL_BASE_PUB_APB + 0x4144 )
+#define REG_PUB_APB_HW_DESKEWPLL_PD_CTRL1         ( CTL_BASE_PUB_APB + 0x4148 )
 #define REG_PUB_APB_VOTE_MASTER_EN                ( CTL_BASE_PUB_APB + 0x4310 )
 #define REG_PUB_APB_VOTE_FSM_CNT                  ( CTL_BASE_PUB_APB + 0x4314 )
 #define REG_PUB_APB_THRESHOLD_INC_FREQ_0          ( CTL_BASE_PUB_APB + 0x4318 )
@@ -165,6 +168,14 @@
 
 /* REG_PUB_APB_PUB_BUS_CK_EB */
 
+#define BIT_PUB_APB_CH6_DMC_STOP_CG_EN                           BIT(18)
+#define BIT_PUB_APB_CH5_DMC_STOP_CG_EN                           BIT(17)
+#define BIT_PUB_APB_CH4_DMC_STOP_CG_EN                           BIT(16)
+#define BIT_PUB_APB_CH3_DMC_STOP_CG_EN                           BIT(15)
+#define BIT_PUB_APB_CH2_DMC_STOP_CG_EN                           BIT(14)
+#define BIT_PUB_APB_CH1_DMC_STOP_CG_EN                           BIT(13)
+#define BIT_PUB_APB_CH0_DMC_STOP_CG_EN                           BIT(12)
+#define BIT_PUB_APB_LP_STAT_MTX_CG_EN                            BIT(11)
 #define BIT_PUB_APB_OT_DETECT_CLK_EB                             BIT(9)
 #define BIT_PUB_APB_PUB_CLK_CSSYS_PTM_EB                         BIT(8)
 #define BIT_PUB_APB_PUB_APB_PTM_REG_EB                           BIT(7)
@@ -249,6 +260,8 @@
 
 /* REG_PUB_APB_DFS_HW_CTRL3 */
 
+#define BIT_PUB_APB_DFS_LOCK_DELAY_EN                            BIT(31)
+#define BIT_PUB_APB_REG_DFS_LOCK_DELAY_CNT(x)                    (((x) & 0xF) << 27)
 #define BIT_PUB_APB_DFI_MASK_WAIT_LSLP_EN                        BIT(24)
 #define BIT_PUB_APB_DFI_MASK_WAIT_TIME_LSLP(x)                   (((x) & 0xFF) << 16)
 #define BIT_PUB_APB_DFI_MASK_WAIT_EN                             BIT(8)
@@ -345,6 +358,7 @@
 
 /* REG_PUB_APB_DFS_STATUS1 */
 
+#define BIT_PUB_APB_DFS_SW_FSM_STATE(x)                          (((x) & 0x7) << 4)
 #define BIT_PUB_APB_DFS_VOTE_DONE_INT_RAW                        BIT(1)
 #define BIT_PUB_APB_INT_DFS_VOTE_DONE                            BIT(0)
 
@@ -364,12 +378,14 @@
 
 /* REG_PUB_APB_AXI_LPC_CTRL_0 */
 
-#define BIT_PUB_APB_CSYSACK_SYNC_SEL_WTL_AG_S0                   BIT(15)
-#define BIT_PUB_APB_CACTIVE_SYNC_SEL_WTL_AG_S0                   BIT(14)
-#define BIT_PUB_APB_CSYSACK_SYNC_SEL_WTL_AG_M1                   BIT(13)
-#define BIT_PUB_APB_CACTIVE_SYNC_SEL_WTL_AG_M1                   BIT(12)
-#define BIT_PUB_APB_CSYSACK_SYNC_SEL_WTL_AG_M0                   BIT(11)
-#define BIT_PUB_APB_CACTIVE_SYNC_SEL_WTL_AG_M0                   BIT(10)
+#define BIT_PUB_APB_PU_NUM(x)                                    (((x) & 0xFF) << 24)
+#define BIT_PUB_APB_PU_NUM_PUB_CFG(x)                            (((x) & 0xFF) << 16)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_PUBCP_AG_S0                 BIT(15)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_PUBCP_AG_S0                 BIT(14)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_PUBCP_AG_M1                 BIT(13)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_PUBCP_AG_M1                 BIT(12)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_PUBCP_AG_M0                 BIT(11)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_PUBCP_AG_M0                 BIT(10)
 #define BIT_PUB_APB_LP_FORCE_ISP_VDSP_S0                         BIT(5)
 #define BIT_PUB_APB_LP_EB_ISP_VDSP_S0                            BIT(4)
 #define BIT_PUB_APB_LP_FORCE_ISP_VDSP_M1                         BIT(3)
@@ -389,12 +405,12 @@
 #define BIT_PUB_APB_LP_EB_PUB_CFG_S0                             BIT(20)
 #define BIT_PUB_APB_LP_FORCE_PUB_CFG_M0                          BIT(19)
 #define BIT_PUB_APB_LP_EB_PUB_CFG_M0                             BIT(18)
-#define BIT_PUB_APB_LP_FORCE_WTL_AG_S0                           BIT(17)
-#define BIT_PUB_APB_LP_EB_WTL_AG_S0                              BIT(16)
-#define BIT_PUB_APB_LP_FORCE_WTL_AG_M1                           BIT(15)
-#define BIT_PUB_APB_LP_EB_WTL_AG_M1                              BIT(14)
-#define BIT_PUB_APB_LP_FORCE_WTL_AG_M0                           BIT(13)
-#define BIT_PUB_APB_LP_EB_WTL_AG_M0                              BIT(12)
+#define BIT_PUB_APB_LP_FORCE_PUBCP_AG_S0                         BIT(17)
+#define BIT_PUB_APB_LP_EB_PUBCP_AG_S0                            BIT(16)
+#define BIT_PUB_APB_LP_FORCE_PUBCP_AG_M1                         BIT(15)
+#define BIT_PUB_APB_LP_EB_PUBCP_AG_M1                            BIT(14)
+#define BIT_PUB_APB_LP_FORCE_PUBCP_AG_M0                         BIT(13)
+#define BIT_PUB_APB_LP_EB_PUBCP_AG_M0                            BIT(12)
 #define BIT_PUB_APB_LP_FORCE_AP_AON_S0                           BIT(11)
 #define BIT_PUB_APB_LP_EB_AP_AON_S0                              BIT(10)
 #define BIT_PUB_APB_LP_FORCE_AP_AON_M1                           BIT(9)
@@ -415,6 +431,7 @@
 
 /* REG_PUB_APB_FENCING_CTRL */
 
+#define BIT_PUB_APB_PUB_CLK_DDR_EN_BY_FENCING_RELEASE            BIT(31)
 #define BIT_PUB_APB_DDR_FENCING_EN                               BIT(30)
 #define BIT_PUB_APB_FENCING_CHNL_IDLE_CNT(x)                     (((x) & 0x3FFFFFFF))
 
@@ -456,8 +473,8 @@
 
 /* REG_PUB_APB_QOS_THRESHOLD_0 */
 
-#define BIT_PUB_APB_AWQOS_THRESHOLD_WTL_AG(x)                    (((x) & 0xF) << 28)
-#define BIT_PUB_APB_ARQOS_THRESHOLD_WTL_AG(x)                    (((x) & 0xF) << 24)
+#define BIT_PUB_APB_AWQOS_THRESHOLD_PUBCP_AG(x)                  (((x) & 0xF) << 28)
+#define BIT_PUB_APB_ARQOS_THRESHOLD_PUBCP_AG(x)                  (((x) & 0xF) << 24)
 #define BIT_PUB_APB_AWQOS_THRESHOLD_DPU_ISP(x)                   (((x) & 0xF) << 20)
 #define BIT_PUB_APB_ARQOS_THRESHOLD_DPU_ISP(x)                   (((x) & 0xF) << 16)
 #define BIT_PUB_APB_AWQOS_THRESHOLD_AP_AON(x)                    (((x) & 0xF) << 12)
@@ -637,8 +654,8 @@
 #define BIT_PUB_APB_SW_FORCE_EXIT_HW_LP_WAIT_ACK                 BIT(30)
 #define BIT_PUB_APB_SW_FORCE_EXIT_LP_WAIT_REQ                    BIT(29)
 #define BIT_PUB_APB_PUB_DFS_HW_MIN_FREQ_UP_FORCE_TRIG            BIT(28)
-#define BIT_PUB_APB_PUB_DFS_HW_BWMON_MIN_EN                      BIT(27)
-#define BIT_PUB_APB_PUB_DFS_HW_BWMON_MIN_FREQ(x)                 (((x) & 0x7) << 24)
+#define BIT_PUB_APB_PUB_DFS_HW_BWMON_MAX_EN                      BIT(27)
+#define BIT_PUB_APB_PUB_DFS_HW_BWMON_MAX_FREQ(x)                 (((x) & 0x7) << 24)
 #define BIT_PUB_APB_PUB_DFS_HW_AVAIL_FREQ_EN(x)                  (((x) & 0xFF) << 16)
 #define BIT_PUB_APB_PUB_DFS_HW_CHECK_PLL_EN                      BIT(12)
 #define BIT_PUB_APB_PUB_DFS_HW_MIN_FREQ_UP(x)                    (((x) & 0x7) << 8)
@@ -716,6 +733,29 @@
 
 #define BIT_PUB_APB_PUB_DFS_HW_F7_DDL_ADJS(x)                    (((x) & 0x1FF) << 16)
 #define BIT_PUB_APB_PUB_DFS_HW_F6_DDL_ADJS(x)                    (((x) & 0x1FF))
+
+/* REG_PUB_APB_DFS_HW_RATIO_SET8 */
+
+#define BIT_PUB_APB_PUB_DFS_HW_F7_REQ_DURATION(x)                (((x) & 0xF) << 28)
+#define BIT_PUB_APB_PUB_DFS_HW_F6_REQ_DURATION(x)                (((x) & 0xF) << 24)
+#define BIT_PUB_APB_PUB_DFS_HW_F5_REQ_DURATION(x)                (((x) & 0xF) << 20)
+#define BIT_PUB_APB_PUB_DFS_HW_F4_REQ_DURATION(x)                (((x) & 0xF) << 16)
+#define BIT_PUB_APB_PUB_DFS_HW_F3_REQ_DURATION(x)                (((x) & 0xF) << 12)
+#define BIT_PUB_APB_PUB_DFS_HW_F2_REQ_DURATION(x)                (((x) & 0xF) << 8)
+#define BIT_PUB_APB_PUB_DFS_HW_F1_REQ_DURATION(x)                (((x) & 0xF) << 4)
+#define BIT_PUB_APB_PUB_DFS_HW_F0_REQ_DURATION(x)                (((x) & 0xF))
+
+/* REG_PUB_APB_HW_DESKEWPLL_PD_CTRL0 */
+
+#define BIT_PUB_APB_HW_DESKEW_PLL_PD_DEEP_SLEEP_MODE(x)          (((x) & 0xFF) << 24)
+#define BIT_PUB_APB_HW_DESKEW_PLL_PD_AUTO_LIGHT_SLEEP_MODE(x)    (((x) & 0xFF) << 16)
+#define BIT_PUB_APB_HW_DESKEW_PLL_PD_SMART_LIGHT_SLEEP_MODE(x)   (((x) & 0xFF) << 8)
+#define BIT_PUB_APB_HW_DESKEW_PLL_PD_DEFAULT_BYP_MODE(x)         (((x) & 0xFF))
+
+/* REG_PUB_APB_HW_DESKEWPLL_PD_CTRL1 */
+
+#define BIT_PUB_APB_DFS_FC_ACK_ASSERT_WAIT_CNT(x)                (((x) & 0xFF) << 8)
+#define BIT_PUB_APB_HW_DESKEW_PLL_PO_AHEAD_EN                    BIT(0)
 
 /* REG_PUB_APB_VOTE_MASTER_EN */
 
@@ -818,6 +858,7 @@
 
 /* REG_PUB_APB_PUB_DFS_CNT */
 
+#define BIT_PUB_APB_PUB_DFS_DBM_BW_VALID_BYPASS_PERIOD(x)        (((x) & 0xFF) << 10)
 #define BIT_PUB_APB_DFS_COUNT(x)                                 (((x) & 0x3FF))
 
 /* REG_PUB_APB_VOTE_CTRL_DPU */

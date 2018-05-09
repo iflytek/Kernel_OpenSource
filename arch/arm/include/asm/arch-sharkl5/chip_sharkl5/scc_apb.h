@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-05-08 16:01:53
  *
  */
 
@@ -33,13 +33,13 @@
 
 /* REG_SCC_APB_SCC_TUNE_LMT_CFG */
 
-#define BIT_SCC_APB_VOLT_TUNE_VAL_MAX(x)           (((x) & 0xFF) << 8)
-#define BIT_SCC_APB_VOLT_TUNE_VAL_MIN(x)           (((x) & 0xFF))
+#define BIT_SCC_APB_VOLT_TUNE_VAL_MAX(x)           (((x) & 0x1FF) << 9)
+#define BIT_SCC_APB_VOLT_TUNE_VAL_MIN(x)           (((x) & 0x1FF))
 
 /* REG_SCC_APB_SCC_TUNE_STATUS */
 
-#define BIT_SCC_APB_VOLT_TUNE_VAL(x)               (((x) & 0xFF) << 8)
-#define BIT_SCC_APB_VOLT_OBS_VAL(x)                (((x) & 0xFF))
+#define BIT_SCC_APB_VOLT_TUNE_VAL(x)               (((x) & 0x1FF) << 9)
+#define BIT_SCC_APB_VOLT_OBS_VAL(x)                (((x) & 0x1FF))
 
 /* REG_SCC_APB_SCC_CFG */
 
@@ -51,8 +51,8 @@
 
 /* REG_SCC_APB_SCC_TUNE_STEP_CFG */
 
-#define BIT_SCC_APB_VOLT_TUNE_DOWN_STEP(x)         (((x) & 0x1FF) << 16)
-#define BIT_SCC_APB_VOLT_TUNE_UP_STEP(x)           (((x) & 0x1FF))
+#define BIT_SCC_APB_VOLT_TUNE_DOWN_STEP(x)         (((x) & 0x3FF) << 16)
+#define BIT_SCC_APB_VOLT_TUNE_UP_STEP(x)           (((x) & 0x3FF))
 
 /* REG_SCC_APB_SCC_WAIT_CFG */
 
@@ -114,7 +114,7 @@
 
 /* REG_SCC_APB_SCC_ROSC_SW_RST */
 
-#define BIT_SCC_APB_SCC_ROSC_SW_RST(x)             (((x) & 0x1F))
+#define BIT_SCC_APB_SCC_ROSC_SW_RST(x)             (((x) & 0xF))
 
 
 #endif /* SCC_APB_H */
