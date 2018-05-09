@@ -816,8 +816,9 @@ static void dpu_dpi_init(struct dispc_context *ctx)
 	if (ctx->if_type == SPRD_DISPC_IF_DPI) {
 		/*use dpi as interface */
 		reg->dpu_cfg0 &= ~(BIT(0));
-		/* DPI Halt function enable for Synopsys DSI */
-		reg_val |= BIT(16);
+
+		/* disalbe halt enable for SPRD DSI */
+		/* reg_val |= BIT(16); */
 
 		reg->dpi_ctrl = reg_val;
 
