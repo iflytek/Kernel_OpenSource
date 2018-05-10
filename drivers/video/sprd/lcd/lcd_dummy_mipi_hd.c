@@ -12,9 +12,19 @@
  */
 
 #include "sprd_panel.h"
+#include "sprd_dsi.h"
+#include "dsi/mipi_dsi_api.h"
+#include "sprd_dphy.h"
 
 static int dummy_init(void)
 {
+        struct sprd_dsi *dsi = &dsi_device;
+        struct sprd_dphy *dphy = &dphy_device;
+
+        mipi_dsi_set_work_mode(dsi, SPRD_MIPI_MODE_VIDEO);
+        mipi_dsi_state_reset(dsi);
+        mipi_dphy_hs_clk_en(dphy, true);
+
 	pr_info("dummy lcd init\n");
 	return 0;
 }
