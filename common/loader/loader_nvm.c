@@ -1337,6 +1337,10 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	char  *boot_mode_type_str;
 	unsigned int lcs = 0;
 	unsigned int cali_mode = 0;
+	/*set v-boot binding data eg:lock status*/
+	loader_binding_data_set();
+	pass_pubkey_to_tos();
+
 	get_lcs(&lcs);
 	boot_mode_type_str = getenv("bootmode");
 	printf("boot_mode_type=%s\n",boot_mode_type_str);
@@ -1351,6 +1355,8 @@ void vlx_nand_boot(char *kernel_pname, int backlight_set, int lcd_enable)
 	} else {
 		printf("calimode,we by pass verify\n");
 	}
+	//things to do refer to verify ret
+	take_action_with_vbootret();
 #else
 	/*set v-boot binding data eg:lock status*/
 	loader_binding_data_set();

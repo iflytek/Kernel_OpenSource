@@ -144,6 +144,7 @@ int uboot_vboot_verify_img(unsigned long start_addr, uint32_t lenth)
 	share_data[11]= info->vbmeta_pubkey_len;
 	share_data[12]= info->vb_cmdline_addr;
 	share_data[13]= info->vb_cmdline_len;
+	share_data[14]= info->vboot_unlock_status;
 	/* secvm id: 3 */
 	if (mv_svc_ivmc_request(3) != 0) {
 		printf("## Waiting for response ...\n");
