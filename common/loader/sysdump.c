@@ -1020,8 +1020,22 @@ static int fill_dump_mem_auto_arm(unsigned char *fdt_blob, int nodeoffset, int o
 	ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-re", temp_mem);
 	if (ret == 0)
 		debugf("ERROR: ARM: memory-region-re dump failed !!!\n");
-	else
+	else {
 		i += ret;
+		temp_mem += ret;
+	}
+
+	/* security memory region from kernel dts */
+	if (dump_rst_mode == CMD_TOS_PANIC_MODE) {
+		debugf("read security memory region from sysdump node !!!\n");
+		ret = fill_mem_from_dts(fdt_blob, nodeoffset, "memory-region-se", temp_mem);
+		if (ret == 0)
+			debugf("ERROR: ARM: memory-region-se dump failed !!!\n");
+		else {
+			i += ret;
+			temp_mem += ret;
+		}
+	}
 
 	arm_dump_mem_num = i;
 	debugf("auto arm_dump_mem_num is %d\n", arm_dump_mem_num);
@@ -1170,9 +1184,7 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 }
 #endif
 
-#ifdef CONFIG_X86
 int enter_sysdump_flag = 0;
-#endif
 
 void write_sysdump_before_boot(int rst_mode)
 {
@@ -1214,9 +1226,9 @@ void write_sysdump_before_boot(int rst_mode)
 		|| (rst_mode == CMD_SPECIAL_MODE) || (rst_mode == CMD_VMM_PANIC_MODE) || (rst_mode == CMD_TOS_PANIC_MODE)) {
 
 		debugf("Now enter in sysdump!!!\n");
-#ifdef CONFIG_X86
+
 		enter_sysdump_flag = 1;
-#endif
+
 		dt_addr = get_dt_addr();
 		nodeoffset = check_dts_sysdump_node(dt_addr);
 		if (nodeoffset < 0) {
@@ -1456,10 +1468,10 @@ void write_sysdump_before_boot(int rst_mode)
 
 		mem = (struct sysdump_mem *)infop->dump_mem_paddr;
 		for (i = 0; i < sprd_dump_mem_num; i++) {
-			if (0xffffffff != mem[i].soff)
+			if (0xffffffff != mem[i].soff) {
 				waddr = (char *)infop + sizeof(*infop) +
 						infop->elfhdr_size + mem[i].soff;
-			else {
+			} else {
 				debugf("mem[%d].paddr is %llx\n", i, mem[i].paddr);
 				debugf("mem[%d].size  is %llx\n", i, mem[i].size);
 #ifdef CONFIG_X86

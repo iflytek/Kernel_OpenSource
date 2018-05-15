@@ -582,9 +582,9 @@ int _boot_load_required_image(boot_image_required_t img_info)
 
 	return 1;
 }
-#ifdef CONFIG_X86
+
 extern int enter_sysdump_flag;
-#endif
+
 uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 {
 	uint64_t size;
@@ -637,12 +637,11 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 
 	debug("boot_img_offset.dt_offset is 0x%llx\n", boot_img_offset.dt_offset );
 
-#ifdef CONFIG_X86
 	if(enter_sysdump_flag){
 		debug("Now doing sysdump ,go back here .\n");
 		return 1;
 	}
-#endif
+
 #if (defined CONFIG_SECBOOT) && (defined CONFIG_VBOOT_V2)
 	if (0 == hdr->os_version) {
 		errorf("os version should not be zero!\n");
