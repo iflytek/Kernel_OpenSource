@@ -445,12 +445,6 @@ void fb_cmd_flash(const char *arg, void *data, uint64_t sz)
 		break;
 	}
 #endif
-	//for spl uboot bakup
-	bakup_header = malloc(sizeof(sys_img_header));
-	if (NULL == bakup_header) {
-		errorf("No space to store bakup_header!\n");
-		return ;
-	}
 
 	bakup_header = (sys_img_header *)(ImageInfo.base_address);
 	debugf("bakup_header->mMagicNum=0x%x\n", bakup_header->mMagicNum);
