@@ -246,7 +246,7 @@ static int rtc_month_days(unsigned int month, unsigned int year)
  */
 struct rtc_time get_time_by_sec(void)
 {
-	struct rtc_time tm;
+	struct rtc_time tm = {0,0,0,0,0,0,0,0,0};
 	unsigned int month, year, year_base = 2012;
 	int days;
 
