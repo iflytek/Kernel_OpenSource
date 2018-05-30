@@ -158,13 +158,15 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 	u32 mask, flags, mode;
 	unsigned int time = 0;
 	unsigned long start_addr = 0;
-	unsigned int retry = 8000000;
 	int mmc_dev = mmc->block_dev.dev;
 
 	unsigned int ultemp = 0;
 
 	/* Timeout unit - ms */
 	static unsigned int cmd_timeout = CONFIG_SDHCI_CMD_DEFAULT_TIMEOUT;
+
+	unsigned start = get_timer(0);
+	unsigned int timeout = 0;
 
 	sdhci_writel(host, SDHCI_INT_ALL_MASK, SDHCI_INT_STATUS);
 	mask = SDHCI_CMD_INHIBIT | SDHCI_DATA_INHIBIT;
@@ -287,19 +289,25 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 #endif
 
 	sdhci_writel(host, ultemp, SDHCI_TRANSFER_MODE);
+	if(cmd->cmdidx == MMC_CMD_ERASE)
+		timeout = 10 * 1000; /* erase timeout 10s */
+	else
+		timeout = 3 * 1000; /* others timeout 3s */
+
+	start = get_timer(0);
 	do {
 		stat = sdhci_readl(host, SDHCI_INT_STATUS);
 		if (stat & SDHCI_INT_ERROR)
 			break;
-		if (--retry == 0)
-			break;
-	} while ((stat & mask) != mask);
+	} while (((stat & mask) != mask) &&
+		 (get_timer(start) < timeout));
 
-	if (retry == 0) {
-		if (host->quirks & SDHCI_QUIRK_BROKEN_R1B) {
+	if (get_timer(start) >= timeout) {
+		if (host->quirks & SDHCI_QUIRK_BROKEN_R1B)
 			return 0;
-		} else {
-			printf("%s: Timeout for status update!\n", __func__);
+		else {
+			printf("%s: Timeout %lu for status update!\n",
+				__func__, get_timer(start));
 			sdio_dump(host->ioaddr);
 			return TIMEOUT;
 		}
