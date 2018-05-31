@@ -2439,13 +2439,11 @@ int sprd_host_init(int sdio_type)
 		    sprd_host_info->ahb_reset_bit);
 	CHIP_REG_AND(sprd_host_info->ahb_reset_reg,
 		     ~(sprd_host_info->ahb_reset_bit));
-
 	if (sprd_host_info->aon_clk_reg != 0)
 		CHIP_REG_OR(sprd_host_info->aon_clk_reg,
 			    sprd_host_info->aon_clk_bit);
 	else
 		debugf("%s, no aon_clk_reg\n", __func__);
-
 	ret = sprd_sdhci_init(sprd_host_info->regbase,
 		sprd_host_info->maxclk, sprd_host_info->minclk, 0);
 
