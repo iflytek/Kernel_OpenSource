@@ -44,6 +44,8 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	/* REG_AP_AHB_AHB_RST, */
 	0XE2210004,
 	BIT_11,
+	0,
+	0,
 
 	"vddgen",
 	"vddemmccore",
