@@ -5,10 +5,10 @@
 #include "cp_boot.h"
 
 /*add macro for memset agdsp/tddsp/ldsp share memory*/
-#define DSP_BOOT_IRAM_START   0x11000//2k
-#define LDSP_SHARE_MEM_START  0x11800//10k
-#define TGDSP_SHARE_MEM_START 0x14000//4k
-#define MULTI_MODE_MEM_START  0x15000//4k
+#define DSP_BOOT_IRAM_START   0x5400//2k
+#define LDSP_SHARE_MEM_START  0x5c00//10k
+#define TGDSP_SHARE_MEM_START 0x8400//4k
+#define MULTI_MODE_MEM_START  0x9400//4k
 
 
 /*bug:533275  memset tg/l/agdsp share memory
@@ -27,7 +27,6 @@ void memset_dsp_share_memory()
 
 void modem_entry()
 {
-	return;
 
 	memset_dsp_share_memory();
 

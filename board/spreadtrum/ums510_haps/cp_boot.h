@@ -47,7 +47,7 @@
 //  Note:
 /*****************************************************************************/
 
-#define PUBCP_IRAM_ADDRESS 0x10000
+#define PUBCP_IRAM_ADDRESS 0x4400
 
 static u32 g_loader[] = {
 	0xee110f10, 0xe3c00005, 0xe3c00a01, 0xf57ff04f,
@@ -58,7 +58,7 @@ static u32 g_loader[] = {
 	0xe3a0103f, 0xee061f51, 0xe3a01f42, 0xee061f91,
 	0xee110f30, 0xe3c00802, 0xe3c00801, 0xe3c00902,
 	0xee010f30, 0xee110f10, 0xe3800001, 0xf57ff04f,
-	0xee010f10, 0xf57ff06f, 0xe51ff004, 0x8b800600
+	0xee010f10, 0xf57ff06f, 0xe51ff004, 0x8be00600
 };
 
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
@@ -100,9 +100,8 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) |= BIT_AON_APB_CM4_CORE_SOFT_RST | BIT_AON_APB_CM4_SYS_SOFT_RST;
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) |= BIT_AON_APB_CM4_CORE_SOFT_RST;
 	msleep(50);
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_SP_SYS_SOFT_RST;
 	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_PMU_APB_SP_SYS_FORCE_DEEP_SLEEP;   /*clear sp force sleep */
 	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_SYS_SOFT_RST;
 	msleep(50);
