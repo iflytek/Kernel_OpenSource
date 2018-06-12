@@ -102,7 +102,7 @@ int fixup_memory_addr(void *fdt, int offset,
 	return 0;
 }
 
-int move_prev_memory(void *fdt,  int i, mem_addr_t offset, char *name)
+int move_prev_memory(void *fdt, mem_addr_t offset, char *name)
 {
 	mem_addr_t addr;
 	mem_size_t size;
@@ -200,11 +200,11 @@ int fdt_fixup_memory_region(void *fdt, int *auto_mem_num_p)
 	ret = scan_memory_region(fdt, &auto_mem_num);
 	if (ret < 0)
 		goto end;
-	if(0 == auto_mem_num) {
+	if (0 == auto_mem_num) {
 		debugf("no auto memory region, no need fixup memory region\n");
 		goto end;
 	}
-	if(NULL != auto_mem_num_p)
+	if (NULL != auto_mem_num_p)
 		*auto_mem_num_p = auto_mem_num;
 	parentoffset =  fdt_path_offset(fdt, "/reserved-memory");
 	for (offset = fdt_first_subnode(fdt, parentoffset);
@@ -225,7 +225,7 @@ int fdt_fixup_memory_region(void *fdt, int *auto_mem_num_p)
 					ret = -1;
 					goto end;
 				}
-				ret = move_prev_memory(fdt,  num, (addr - rsvmem_p), tmp_auto_mem_region_list[num]);
+				ret = move_prev_memory(fdt, (addr - rsvmem_p), tmp_auto_mem_region_list[num]);
 				if(ret < 0)
 					goto end;
 				num--;
@@ -240,7 +240,13 @@ int fdt_fixup_memory_region(void *fdt, int *auto_mem_num_p)
 				rsvmem_p += size;
 				auto_mem_name = malloc(str_len+1);
 				strcpy(auto_mem_name, nodename);
-				tmp_auto_mem_region_list[++num]= auto_mem_name;
+				num++;
+				if (num > MAX_MEM_REGION_NUM) {
+					errorf("tmp_auto_mem_region_list out of bounds\n");
+					ret = -1;
+					goto end;
+				}
+				tmp_auto_mem_region_list[num]= auto_mem_name;
 			}
 		}
 next:
@@ -248,16 +254,18 @@ next:
 	}
 end:
 	num = 0;
-	while(auto_mem_region_list[num] && (num <=  (MAX_MEM_REGION_NUM -1)) )
+	while(num <= (MAX_MEM_REGION_NUM -1))
 	{
-		free(auto_mem_region_list[num]);
+		if(auto_mem_region_list[num] != NULL)
+			free(auto_mem_region_list[num]);
 		num++;
 	}
 
 	num = 0;
-	while(tmp_auto_mem_region_list[num] && (num <=  (MAX_MEM_REGION_NUM -1)) )
+	while(num <= (MAX_MEM_REGION_NUM -1))
 	{
-		free(tmp_auto_mem_region_list[num]);
+		if (tmp_auto_mem_region_list[num] != NULL)
+			free(tmp_auto_mem_region_list[num]);
 		num++;
 	}
 	return ret;
