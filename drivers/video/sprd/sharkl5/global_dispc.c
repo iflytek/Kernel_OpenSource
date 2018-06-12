@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -15,32 +15,84 @@
 #include <sprd_glb.h>
 #include "sprd_dispc.h"
 
-enum {
-	CLK_DPU_SEL_153_6M = 0,
-	CLK_DPU_SEL_192M,
-	CLK_DPU_SEL_256M,
-	CLK_DPU_SEL_384M,
+static uint32_t dpu_core_clk[] = {
+	153600000,
+	192000000,
+	256000000,
+	307200000,
+	384000000
 };
 
-enum {
-	CLK_DPI_SEL_128M = 0,
-	CLK_DPI_SEL_153_6M,
-	CLK_DPI_SEL_192M,
+static uint32_t dpi_clk_src[] = {
+	96000000,
+	128000000,
+	153600000
 };
 
-#ifndef CONFIG_DPI_CLK_SRC
-#define CONFIG_DPI_CLK_SRC 128000000
-#endif
+static uint32_t dpi_src_val;
+
+static uint8_t calc_dpu_core_clk(uint32_t pclk)
+{
+	int i;
+
+	pclk *= 2;
+
+	for (i = 0; i < ARRAY_SIZE(dpu_core_clk); i++) {
+		if (pclk <= dpu_core_clk[i])
+			return i;
+	}
+
+	pr_err("calc DPU_CORE_CLK failed, use default\n");
+	return 2;
+}
+
+static uint8_t calc_dpi_clk_src(uint32_t pclk)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(dpi_clk_src); i++) {
+		if ((dpi_clk_src[i] % pclk) == 0)
+			return i;
+	}
+
+	pr_err("calc DPI_CLK_SRC failed, use default\n");
+	return 0;
+}
 
 static int dispc_clk_init(struct dispc_context *ctx)
 {
+	uint8_t core_sel = calc_dpu_core_clk(ctx->panel->pixel_clk);
+	uint8_t dpi_sel = calc_dpi_clk_src(ctx->panel->pixel_clk);
+
+	pr_info("DPU_CORE_CLK = %u\n", dpu_core_clk[core_sel]);
+	pr_info("DPI_CLK_SRC = %u\n", dpi_clk_src[dpi_sel]);
+
+	sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_CFG,
+			core_sel, BIT(0) | BIT(1) | BIT(2));
+
+	sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG,
+			dpi_sel, BIT(0) | BIT(1));
+
+	dpi_src_val = dpi_clk_src[dpi_sel];
 
 	return 0;
 }
 
 static int dispc_clk_update(struct dispc_context *ctx, int clk_id, int val)
 {
+	uint32_t div;
 
+	div = dpi_src_val / val;
+	if (dpi_src_val - div * val > (val / 2))
+		div++;
+	if ((div == 0) || (div > 0x10)) {
+		pr_err("invalid dpi clk dividor (%d)\n", div);
+		return -1;
+	}
+
+	sci_glb_write(REG_AP_CLK_CORE_CGM_DISPC0_DPI_CFG, (div - 1) << 8, (0xF << 8));
+
+	pr_info("the actual dpi_clk = %d\n", dpi_src_val / div);
 	return 0;
 }
 
@@ -53,17 +105,19 @@ static int dispc_glb_parse_dt(struct dispc_context *ctx)
 
 static void dispc_glb_enable(struct dispc_context *ctx)
 {
-
+	sci_glb_set(REG_AP_AHB_AHB_EB, BIT_AP_AHB_DISPC_EB);
 }
 
 static void dispc_glb_disable(struct dispc_context *ctx)
 {
-
+	sci_glb_clr(REG_AP_AHB_AHB_EB, BIT_AP_AHB_DISPC_EB);
 }
 
 static void dispc_reset(struct dispc_context *ctx)
 {
-
+	sci_glb_set(REG_AP_AHB_AHB_RST, BIT_AP_AHB_DISPC_SOFT_RST);
+	udelay(10);
+	sci_glb_clr(REG_AP_AHB_AHB_RST, BIT_AP_AHB_DISPC_SOFT_RST);
 }
 
 static void dispc_power_domain(struct dispc_context *ctx, int enable)

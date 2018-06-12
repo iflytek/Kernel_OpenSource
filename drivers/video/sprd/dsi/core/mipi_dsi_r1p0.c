@@ -32,6 +32,8 @@ static bool dsi_check_version(struct dsi_context *ctx)
 		return true;
 	else if (read32(&reg->DSI_VERSION) == 0x300)
 		return true;
+	else if (read32(&reg->DSI_VERSION) == 0x301)
+		return true;
 	else
 		return false;
 }

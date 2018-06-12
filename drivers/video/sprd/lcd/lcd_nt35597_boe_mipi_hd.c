@@ -584,6 +584,7 @@ static int nt35597_readid(void)
 
 static int nt35597_power(int on)
 {
+#ifndef CONFIG_FPGA
 	if (on) {
 		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_AVDDEN);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVDDEN, 1);
@@ -606,6 +607,7 @@ static int nt35597_power(int on)
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 0);
 		mdelay(5);
 	}
+#endif
 
 	return 0;
 }
