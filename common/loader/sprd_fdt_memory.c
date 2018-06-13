@@ -78,8 +78,7 @@ int check_mem_region_auto(void *fdt, char *name)
 {
 	int i = 0;
 
-	while(auto_mem_region_list[i] && (i <=  (MAX_MEM_REGION_NUM - 1)))
-	{
+	while((i <= (MAX_MEM_REGION_NUM - 1)) && auto_mem_region_list[i]) {
 		if(0 == strcmp(name, auto_mem_region_list[i]))
 			return 0;
 		i++;
