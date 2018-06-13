@@ -219,7 +219,7 @@ static int start_linux_x86()
 {
 	struct boot_params *base_ptr;
 	struct boot_img_hdr *boot_hdr = (void *)raw_header;
-	uint64_t load_address;
+	uint64_t load_address = 0;
 	char *bzImage_addr = KERNEL_ADR;
 	ulong bzImage_size = 0;
 	ulong initrd_addr = RAMDISK_ADR;
