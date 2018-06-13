@@ -283,7 +283,7 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 #endif
 	const u32 khz = 1000;
 	const u32 mhz = 1000000;
-	int delta_freq;
+	int delta_freq = 0;
 	static u32 origin_freq = 0;
 	const unsigned long long factor = 100;
 	unsigned long long tmp;
