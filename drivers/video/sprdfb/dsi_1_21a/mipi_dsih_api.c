@@ -159,7 +159,6 @@ dsih_error_t mipi_dsih_open(dsih_ctrl_t * instance)
     /* dividing by 6 is aimed for max PHY frequency, 1GHz */
 //    mipi_dsih_hal_tx_escape_division(instance, 4); //6    //Jessica
     mipi_dsih_set_lp_clock(instance);
-    mipi_dsih_non_continuous_clock(instance, instance->non_continuous_clock);
     instance->status = INITIALIZED;
 
     /* initialize pll so escape clocks could be generated at 864MHz, 1 lane */
@@ -735,6 +734,9 @@ dsih_error_t mipi_dsih_dpi_video(dsih_ctrl_t * instance, dsih_dpi_video_t * vide
     mipi_dsih_dphy_enable_hs_clk(&(instance->phy_instance), 1);//jessica, panel not init yet, could not set to hs, or result in err to some panel
     mipi_dsih_reset_controller(instance);
 #endif
+
+    mipi_dsih_non_continuous_clock(instance, instance->non_continuous_clock);
+
     return err_code;
 }
 /**
@@ -1687,6 +1689,9 @@ dsih_error_t mipi_dsih_edpi_video(dsih_ctrl_t * instance, dsih_cmd_mode_video_t 
     {
         mipi_dsih_hal_edpi_max_allowed_size(instance, (((WORD_LENGTH * FIFO_DEPTH) * 100) / bytes_per_pixel_x100));
     }
+
+    mipi_dsih_non_continuous_clock(instance, instance->non_continuous_clock);
+
     return err_code;
 }
 
