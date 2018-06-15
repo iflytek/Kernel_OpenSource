@@ -352,6 +352,7 @@ int get_partition_info_by_name_efi(block_dev_desc_t * dev_desc, uchar *partition
 	info->size = (ulong)le64_to_cpu((pgpt_pte[i].ending_lba) + 1)
 		     - info->start;
 	info->blksz = dev_desc->blksz;
+	info->part_num = i;
 
 	sprintf((char *)info->name, "%s",print_efiname(&((pgpt_pte)[i])));
 	sprintf((char *)info->type, "U-Boot");

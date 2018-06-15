@@ -100,6 +100,7 @@ typedef struct disk_partition {
 #ifdef CONFIG_PARTITION_UUIDS
 	char	uuid[37];	/* filesystem UUID as string, if exists	*/
 #endif
+	unsigned int	part_num;
 } disk_partition_t;
 
 /* Misc _get_dev functions */
