@@ -157,7 +157,8 @@ struct pll_regs {
 		struct __0e {
 			u8 pll_pu_byp: 1;
 			u8 pll_pu: 1;
-			u8 reserved1: 3;
+			u8 hsbist_len: 2;
+			u8 stopstate_sel: 1;
 			u8 kstep_l: 3;
 		} bits;
 		u8 val;
@@ -437,6 +438,7 @@ static int mipi_dsih_dphy_set_pll_reg(dphy_t *phy, struct dphy_pll *pll)
 	regs._0d.bits.kstep_m = (pll->kstep >> 3) & 0xff;
 	regs._0e.bits.pll_pu_byp = 0;
 	regs._0e.bits.pll_pu = 0;
+	regs._0e.bits.stopstate_sel = 1;
 	regs._0e.bits.kstep_l = pll->kstep & 0x7;
 	regs._0f.bits.det_delay = pll->det_delay;
 #if defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_PIKE2)
