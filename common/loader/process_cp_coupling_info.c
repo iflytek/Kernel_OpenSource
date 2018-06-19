@@ -386,7 +386,7 @@ static int do_parse_decoup_info_v1(struct cp_mem_coupling_info *info,
 	int is_new_format;
 	uint64_t base;
 	uint32_t size;
-	uint32_t cp_base;
+	uint32_t cp_base = 0;
 	uint32_t na, ns;
 	char name[64];
 	char value[64];
@@ -471,6 +471,11 @@ static int do_parse_decoup_info_v1(struct cp_mem_coupling_info *info,
 
 		if (do_add_prop_to_fdt(fdt, 1, &prop) < 0)
 			goto err0;
+	}
+
+	if (!cp_base) {
+		errorf("cp base is 0\n");
+		goto err0;
 	}
 
 	prop_init("#address-cells", offs, &prop);
