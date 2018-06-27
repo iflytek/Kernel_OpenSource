@@ -213,6 +213,13 @@
 #define CONFIG_LOADADDR		(CONFIG_SYS_TEXT_BASE - CONFIG_SYS_MALLOC_LEN - 4*1024*1024)	/* loadaddr env var */
 #define CONFIG_SYS_LOAD_ADDR	CONFIG_LOADADDR
 
+#ifdef DEBUG
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+#define CONFIG_AUTOBOOT_KEYED 1
+#define CONFIG_AUTOBOOT_PROMPT "Press q to abort autoboot in %d seconds"
+#define CONFIG_AUTOBOOT_STOP_STR "q"
+#endif
+
 #define CONFIG_BOOTDELAY	0
 #define CONFIG_BOOTCOMMAND "cboot normal"
 #define CONFIG_EXTRA_ENV_SETTINGS				""

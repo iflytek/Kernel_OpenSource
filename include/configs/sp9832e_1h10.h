@@ -158,6 +158,14 @@
 
 
 /* Initial environment variables */
+
+#ifdef DEBUG
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+#define CONFIG_AUTOBOOT_KEYED 1
+#define CONFIG_AUTOBOOT_PROMPT "Press q to abort autoboot in %d seconds"
+#define CONFIG_AUTOBOOT_STOP_STR "q"
+#endif
+
 #define CONFIG_BOOTCOMMAND			"cboot normal"
 #define CONFIG_BOOTDELAY		0
 #define	CONFIG_EXTRA_ENV_SETTINGS				"mtdparts=" MTDPARTS_DEFAULT "\0"
