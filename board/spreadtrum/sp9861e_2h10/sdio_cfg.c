@@ -73,6 +73,8 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	/* REG_AP_AHB_AHB_RST, */
 	REG_AP_AHB_AHB_RST,
 	BIT_8,
+	0,
+	0,
 
 	"vddsdio",
 	"vddsdcore",
