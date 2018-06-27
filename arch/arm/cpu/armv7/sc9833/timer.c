@@ -157,3 +157,7 @@ uint32_t SCI_GetTickCount(void)
 	return SYSTEM_CURRENT_CLOCK;
 }
 
+unsigned long get_tbclk(void)
+{
+	return 0;
+}

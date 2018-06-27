@@ -196,3 +196,7 @@ u32 SCI_GetTickCount(void)
 	return tmp_tick1;
 }
 
+unsigned long get_tbclk(void)
+{
+	return 0;
+}
