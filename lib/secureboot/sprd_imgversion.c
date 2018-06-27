@@ -44,7 +44,7 @@ int sprd_get_rpmb_block_cnt(void)
 
     rpmb_size = emmc_get_capacity(PARTITION_RPMB);
 
-    return (rpmb_size / MMC_BLOCK_SIZE);
+    return (rpmb_size / RPMB_DATA_SIZE);
 }
 #endif
 
@@ -59,8 +59,8 @@ int get_sprdimgver_blk_ind(void)
 		printf("%s: get rpmb block count error! return code %d \n", __func__, ret);
 		return -1;
 	}
-
-	return (ret - 1) * 2;
+	//The last two blocks save struct sprd_img_ver_t and are compatible with previous versions
+	return ret - 2;
 
 #else
 	return SPRD_IMGVERSION_BLK;
@@ -78,7 +78,8 @@ int get_sprdmodemimgver_blk_ind(void)
 		return -1;
 	}
 
-	return (ret - 2) * 2;
+	//The last four blocks save struct sprd_modem_img_ver_t and are compatible with previous versions
+	return ret - 4;
 #else
 	return SPRD_MODEM_IMGVERSION_BLK;
 #endif
@@ -88,7 +89,7 @@ int sprd_get_imgversion(antirb_image_type imgType, unsigned int* swVersion)
 {
     struct sprd_img_ver_t imgver;
     struct sprd_modem_img_ver_t modem_imgver;
-    uint8_t data_rd[MMC_BLOCK_SIZE];
+    uint8_t data_rd[RPMB_DATA_SIZE]; //change data to 256-size,some emmc do not support size 512 at a time
     uint16_t block_ind, block_count;
     int ret;
 
