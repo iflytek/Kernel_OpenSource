@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-06-28 19:04:01
  *
  */
 
@@ -30,8 +30,6 @@
 #define REG_AP_AHB_MISC_CKG_EN                       ( CTL_BASE_AP_AHB + 0x0040 )
 #define REG_AP_AHB_VDSP_ASYNC_BRG                    ( CTL_BASE_AP_AHB + 0x004C )
 #define REG_AP_AHB_DISP_ASYNC_BRG                    ( CTL_BASE_AP_AHB + 0x0050 )
-#define REG_AP_AHB_S6_LPC                            ( CTL_BASE_AP_AHB + 0x0054 )
-#define REG_AP_AHB_S5_LPC                            ( CTL_BASE_AP_AHB + 0x0058 )
 #define REG_AP_AHB_AP_ASYNC_BRG                      ( CTL_BASE_AP_AHB + 0x005C )
 #define REG_AP_AHB_M0_LPC                            ( CTL_BASE_AP_AHB + 0x0060 )
 #define REG_AP_AHB_M1_LPC                            ( CTL_BASE_AP_AHB + 0x0064 )
@@ -41,23 +39,19 @@
 #define REG_AP_AHB_M5_LPC                            ( CTL_BASE_AP_AHB + 0x0074 )
 #define REG_AP_AHB_M6_LPC                            ( CTL_BASE_AP_AHB + 0x0078 )
 #define REG_AP_AHB_M7_LPC                            ( CTL_BASE_AP_AHB + 0x007C )
+#define REG_AP_AHB_M8_LPC                            ( CTL_BASE_AP_AHB + 0x0080 )
+#define REG_AP_AHB_M9_LPC                            ( CTL_BASE_AP_AHB + 0x0084 )
 #define REG_AP_AHB_MAIN_LPC                          ( CTL_BASE_AP_AHB + 0x0088 )
 #define REG_AP_AHB_S0_LPC                            ( CTL_BASE_AP_AHB + 0x008C )
 #define REG_AP_AHB_S1_LPC                            ( CTL_BASE_AP_AHB + 0x0090 )
 #define REG_AP_AHB_S2_LPC                            ( CTL_BASE_AP_AHB + 0x0094 )
 #define REG_AP_AHB_S3_LPC                            ( CTL_BASE_AP_AHB + 0x0098 )
 #define REG_AP_AHB_S4_LPC                            ( CTL_BASE_AP_AHB + 0x009C )
-#define REG_AP_AHB_MERGE_M0_LPC                      ( CTL_BASE_AP_AHB + 0x00A0 )
-#define REG_AP_AHB_MERGE_M1_LPC                      ( CTL_BASE_AP_AHB + 0x00A4 )
-#define REG_AP_AHB_MERGE_S0_LPC                      ( CTL_BASE_AP_AHB + 0x00AC )
-#define REG_AP_AHB_AP_QOS0                           ( CTL_BASE_AP_AHB + 0x00B0 )
-#define REG_AP_AHB_AP_QOS1                           ( CTL_BASE_AP_AHB + 0x00B8 )
-#define REG_AP_AHB_AP_QOS2                           ( CTL_BASE_AP_AHB + 0x00BC )
-#define REG_AP_AHB_ASYNC_BRIDGE_IDLE_OVERFLOW        ( CTL_BASE_AP_AHB + 0x00C0 )
-#define REG_AP_AHB_ASYNC_BRIDGE_DEBUG_SIGNAL_W_VDSP  ( CTL_BASE_AP_AHB + 0x00C4 )
-#define REG_AP_AHB_ASYNC_BRIDGE_DEBUG_SIGNAL_W_DISP  ( CTL_BASE_AP_AHB + 0x00C8 )
-#define REG_AP_AHB_ASYNC_BRIDGE_DEBUG_SIGNAL_W_AP    ( CTL_BASE_AP_AHB + 0x00CC )
-#define REG_AP_AHB_S7_LPC                            ( CTL_BASE_AP_AHB + 0x0100 )
+#define REG_AP_AHB_S5_LPC                            ( CTL_BASE_AP_AHB + 0x00A0 )
+#define REG_AP_AHB_S6_LPC                            ( CTL_BASE_AP_AHB + 0x00A4 )
+#define REG_AP_AHB_S7_LPC                            ( CTL_BASE_AP_AHB + 0x00A8 )
+#define REG_AP_AHB_S8_LPC                            ( CTL_BASE_AP_AHB + 0x00AC )
+#define REG_AP_AHB_S9_LPC                            ( CTL_BASE_AP_AHB + 0x00B0 )
 #define REG_AP_AHB_MERGE_VDSP_M0_LPC                 ( CTL_BASE_AP_AHB + 0x0104 )
 #define REG_AP_AHB_MERGE_VDSP_M1_LPC                 ( CTL_BASE_AP_AHB + 0x0108 )
 #define REG_AP_AHB_MERGE_VDSP_M2_LPC                 ( CTL_BASE_AP_AHB + 0x010C )
@@ -65,8 +59,19 @@
 #define REG_AP_AHB_MERGE_VDMA_M0_LPC                 ( CTL_BASE_AP_AHB + 0x0114 )
 #define REG_AP_AHB_MERGE_VDMA_M1_LPC                 ( CTL_BASE_AP_AHB + 0x0118 )
 #define REG_AP_AHB_MERGE_VDMA_S0_LPC                 ( CTL_BASE_AP_AHB + 0x011C )
+#define REG_AP_AHB_MERGE_M0_LPC                      ( CTL_BASE_AP_AHB + 0x0120 )
+#define REG_AP_AHB_MERGE_M1_LPC                      ( CTL_BASE_AP_AHB + 0x0124 )
+#define REG_AP_AHB_MERGE_S0_LPC                      ( CTL_BASE_AP_AHB + 0x012C )
+#define REG_AP_AHB_AP_QOS0                           ( CTL_BASE_AP_AHB + 0x0140 )
+#define REG_AP_AHB_AP_QOS1                           ( CTL_BASE_AP_AHB + 0x0144 )
+#define REG_AP_AHB_AP_QOS2                           ( CTL_BASE_AP_AHB + 0x0148 )
+#define REG_AP_AHB_ASYNC_BRIDGE_IDLE_OVERFLOW        ( CTL_BASE_AP_AHB + 0x0150 )
+#define REG_AP_AHB_ASYNC_BRIDGE_DEBUG_SIGNAL_W_VDSP  ( CTL_BASE_AP_AHB + 0x0154 )
+#define REG_AP_AHB_ASYNC_BRIDGE_DEBUG_SIGNAL_W_DISP  ( CTL_BASE_AP_AHB + 0x0158 )
+#define REG_AP_AHB_ASYNC_BRIDGE_DEBUG_SIGNAL_W_AP    ( CTL_BASE_AP_AHB + 0x015C )
 #define REG_AP_AHB_SYS_RST                           ( CTL_BASE_AP_AHB + 0x3010 )
-#define REG_AP_AHB_LVDS_PLL_CFG0                     ( CTL_BASE_AP_AHB + 0x3014 )
+#define REG_AP_AHB_CACHE_EMMC_SDIO                   ( CTL_BASE_AP_AHB + 0x3014 )
+#define REG_AP_AHB_CACHE_UFS                         ( CTL_BASE_AP_AHB + 0x3018 )
 #define REG_AP_AHB_AP_QOS_CFG                        ( CTL_BASE_AP_AHB + 0x301C )
 #define REG_AP_AHB_DSI_PHY                           ( CTL_BASE_AP_AHB + 0x3034 )
 #define REG_AP_AHB_VDSP_STATES                       ( CTL_BASE_AP_AHB + 0x3080 )
@@ -130,6 +135,7 @@
 
 /* REG_AP_AHB_CLOCK_FREQUENCY_DOWN */
 
+#define BIT_AP_AHB_AP_AXI_BUS_IDLE_BYPASS_UFS              BIT(10)
 #define BIT_AP_AHB_AP_AXI_BUS_IDLE_BYPASS_SDIO2            BIT(9)
 #define BIT_AP_AHB_AP_AXI_BUS_IDLE_BYPASS_SDIO1            BIT(8)
 #define BIT_AP_AHB_AP_AXI_BUS_IDLE_BYPASS_SDIO0            BIT(7)
@@ -147,10 +153,10 @@
 #define BIT_AP_AHB_VDSP_FRC_OFF                            BIT(29)
 #define BIT_AP_AHB_VSP_FRC_OFF                             BIT(28)
 #define BIT_AP_AHB_SIM0_32K_FRC_OFF                        BIT(27)
-#define BIT_AP_AHB_SDIO2_32K_FRC_OFF                       BIT(26)
-#define BIT_AP_AHB_SDIO1_32K_FRC_OFF                       BIT(25)
-#define BIT_AP_AHB_SDIO0_32K_FRC_OFF                       BIT(24)
-#define BIT_AP_AHB_EMMC_32K_FRC_OFF                        BIT(23)
+#define BIT_AP_AHB_UFS_TX_FRC_OFF                          BIT(26)
+#define BIT_AP_AHB_UFS_TX_DIV2_FRC_OFF                     BIT(25)
+#define BIT_AP_AHB_UFS_RX_FRC_OFF                          BIT(24)
+#define BIT_AP_AHB_UFS_CFG_FRC_OFF                         BIT(23)
 #define BIT_AP_AHB_CE_FRC_OFF                              BIT(22)
 #define BIT_AP_AHB_IIS2_FRC_OFF                            BIT(21)
 #define BIT_AP_AHB_IIS1_FRC_OFF                            BIT(20)
@@ -177,6 +183,7 @@
 
 /* REG_AP_AHB_AP_SYS_CLK_EN_FRC_OFF_1 */
 
+#define BIT_AP_AHB_UFS_ACLK_FRC_OFF                        BIT(6)
 #define BIT_AP_AHB_SIM_FRC_OFF                             BIT(5)
 #define BIT_AP_AHB_ICU_FRC_OFF                             BIT(4)
 #define BIT_AP_AHB_DPHY_CFG_FRC_OFF                        BIT(3)
@@ -191,10 +198,10 @@
 #define BIT_AP_AHB_VDSP_FRC_ON                             BIT(29)
 #define BIT_AP_AHB_VSP_FRC_ON                              BIT(28)
 #define BIT_AP_AHB_SIM0_32K_FRC_ON                         BIT(27)
-#define BIT_AP_AHB_SDIO2_32K_FRC_ON                        BIT(26)
-#define BIT_AP_AHB_SDIO1_32K_FRC_ON                        BIT(25)
-#define BIT_AP_AHB_SDIO0_32K_FRC_ON                        BIT(24)
-#define BIT_AP_AHB_EMMC_32K_FRC_ON                         BIT(23)
+#define BIT_AP_AHB_UFS_TX_FRC_ON                           BIT(26)
+#define BIT_AP_AHB_UFS_TX_DIV2_FRC_ON                      BIT(25)
+#define BIT_AP_AHB_UFS_RX_FRC_ON                           BIT(24)
+#define BIT_AP_AHB_UFS_CFG_FRC_ON                          BIT(23)
 #define BIT_AP_AHB_CE_FRC_ON                               BIT(22)
 #define BIT_AP_AHB_IIS2_FRC_ON                             BIT(21)
 #define BIT_AP_AHB_IIS1_FRC_ON                             BIT(20)
@@ -221,6 +228,7 @@
 
 /* REG_AP_AHB_AP_SYS_CLK_EN_FRC_ON_1 */
 
+#define BIT_AP_AHB_UFS_ACLK_FRC_ON                         BIT(6)
 #define BIT_AP_AHB_SIM_FRC_ON                              BIT(5)
 #define BIT_AP_AHB_ICU_FRC_ON                              BIT(4)
 #define BIT_AP_AHB_DPHY_CFG_FRC_ON                         BIT(3)
@@ -235,131 +243,234 @@
 
 /* REG_AP_AHB_VDSP_ASYNC_BRG */
 
+#define BIT_AP_AHB_VDSP_ASYNC_BRG_PU_NUM(x)                (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_VDSP_ASYNC_BRG_LP_NUM(x)                (((x) & 0xFFFF) << 1)
 #define BIT_AP_AHB_VDSP_ASYNC_BRG_LP_EB                    BIT(0)
 
 /* REG_AP_AHB_DISP_ASYNC_BRG */
 
+#define BIT_AP_AHB_DISP_ASYNC_BRG_PU_NUM(x)                (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_DISP_CSYSACK_SYNC_SEL                   BIT(18)
 #define BIT_AP_AHB_DISP_CACTIVE_SYNC_SEL                   BIT(17)
 #define BIT_AP_AHB_DISP_ASYNC_BRG_LP_NUM(x)                (((x) & 0xFFFF) << 1)
 #define BIT_AP_AHB_DISP_ASYNC_BRG_LP_EB                    BIT(0)
 
-/* REG_AP_AHB_S6_LPC */
-
-#define BIT_AP_AHB_CGM_MTX_S6_AUTO_GATE_EN                 BIT(17)
-#define BIT_AP_AHB_MAIN_S6_LP_EB                           BIT(16)
-#define BIT_AP_AHB_MAIN_S6_LP_NUM(x)                       (((x) & 0xFFFF))
-
-/* REG_AP_AHB_S5_LPC */
-
-#define BIT_AP_AHB_CGM_MTX_S5_AUTO_GATE_EN                 BIT(17)
-#define BIT_AP_AHB_MAIN_S5_LP_EB                           BIT(16)
-#define BIT_AP_AHB_MAIN_S5_LP_NUM(x)                       (((x) & 0xFFFF))
-
 /* REG_AP_AHB_AP_ASYNC_BRG */
 
+#define BIT_AP_AHB_AP_ASYNC_BRG_PU_NUM(x)                  (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_AP_ASYNC_BRG_LP_NUM(x)                  (((x) & 0xFFFF) << 1)
 #define BIT_AP_AHB_AP_ASYNC_BRG_LP_EB                      BIT(0)
 
 /* REG_AP_AHB_M0_LPC */
 
+#define BIT_AP_AHB_MAIN_M0_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MAIN_M0_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_M0_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_M1_LPC */
 
+#define BIT_AP_AHB_MAIN_M1_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MAIN_M1_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_M1_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_M2_LPC */
 
+#define BIT_AP_AHB_MAIN_M2_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MAIN_M2_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_M2_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_M3_LPC */
 
+#define BIT_AP_AHB_MAIN_M3_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MAIN_M3_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_M3_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_M4_LPC */
 
+#define BIT_AP_AHB_MAIN_M4_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MAIN_M4_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_M4_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_M5_LPC */
 
+#define BIT_AP_AHB_MAIN_M5_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MAIN_M5_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_M5_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_M6_LPC */
 
+#define BIT_AP_AHB_MAIN_M6_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MAIN_M6_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_M6_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_M7_LPC */
 
+#define BIT_AP_AHB_MAIN_M7_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MAIN_M7_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_M7_LP_NUM(x)                       (((x) & 0xFFFF))
 
+/* REG_AP_AHB_M8_LPC */
+
+#define BIT_AP_AHB_MAIN_M8_PU_NUM(x)                       (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_MAIN_M8_LP_EB                           BIT(16)
+#define BIT_AP_AHB_MAIN_M8_LP_NUM(x)                       (((x) & 0xFFFF))
+
+/* REG_AP_AHB_M9_LPC */
+
+#define BIT_AP_AHB_MAIN_M9_PU_NUM(x)                       (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_MAIN_M9_LP_EB                           BIT(16)
+#define BIT_AP_AHB_MAIN_M9_LP_NUM(x)                       (((x) & 0xFFFF))
+
 /* REG_AP_AHB_MAIN_LPC */
 
+#define BIT_AP_AHB_MAIN_PU_NUM(x)                          (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_CGM_MATRIX_AUTO_GATE_EN                 BIT(17)
 #define BIT_AP_AHB_MAIN_LP_EB                              BIT(16)
 #define BIT_AP_AHB_MAIN_LP_NUM(x)                          (((x) & 0xFFFF))
 
 /* REG_AP_AHB_S0_LPC */
 
+#define BIT_AP_AHB_MAIN_S0_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_CGM_MTX_S0_AUTO_GATE_EN                 BIT(17)
 #define BIT_AP_AHB_MAIN_S0_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_S0_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_S1_LPC */
 
+#define BIT_AP_AHB_MAIN_S1_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_CGM_MTX_S1_AUTO_GATE_EN                 BIT(17)
 #define BIT_AP_AHB_MAIN_S1_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_S1_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_S2_LPC */
 
+#define BIT_AP_AHB_MAIN_S2_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_CGM_MTX_S2_AUTO_GATE_EN                 BIT(17)
 #define BIT_AP_AHB_MAIN_S2_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_S2_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_S3_LPC */
 
+#define BIT_AP_AHB_MAIN_S3_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_CGM_MTX_S3_AUTO_GATE_EN                 BIT(17)
 #define BIT_AP_AHB_MAIN_S3_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_S3_LP_NUM(x)                       (((x) & 0xFFFF))
 
 /* REG_AP_AHB_S4_LPC */
 
+#define BIT_AP_AHB_MAIN_S4_PU_NUM(x)                       (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_CGM_MTX_S4_AUTO_GATE_EN                 BIT(17)
 #define BIT_AP_AHB_MAIN_S4_LP_EB                           BIT(16)
 #define BIT_AP_AHB_MAIN_S4_LP_NUM(x)                       (((x) & 0xFFFF))
 
+/* REG_AP_AHB_S5_LPC */
+
+#define BIT_AP_AHB_MAIN_S5_PU_NUM(x)                       (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_CGM_MTX_S5_AUTO_GATE_EN                 BIT(17)
+#define BIT_AP_AHB_MAIN_S5_LP_EB                           BIT(16)
+#define BIT_AP_AHB_MAIN_S5_LP_NUM(x)                       (((x) & 0xFFFF))
+
+/* REG_AP_AHB_S6_LPC */
+
+#define BIT_AP_AHB_MAIN_S6_PU_NUM(x)                       (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_CGM_MTX_S6_AUTO_GATE_EN                 BIT(17)
+#define BIT_AP_AHB_MAIN_S6_LP_EB                           BIT(16)
+#define BIT_AP_AHB_MAIN_S6_LP_NUM(x)                       (((x) & 0xFFFF))
+
+/* REG_AP_AHB_S7_LPC */
+
+#define BIT_AP_AHB_MAIN_S7_PU_NUM(x)                       (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_CGM_MTX_S7_AUTO_GATE_EN                 BIT(17)
+#define BIT_AP_AHB_MAIN_S7_LP_EB                           BIT(16)
+#define BIT_AP_AHB_MAIN_S7_LP_NUM(x)                       (((x) & 0xFFFF))
+
+/* REG_AP_AHB_S8_LPC */
+
+#define BIT_AP_AHB_MAIN_S8_PU_NUM(x)                       (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_CGM_MTX_S8_AUTO_GATE_EN                 BIT(17)
+#define BIT_AP_AHB_MAIN_S8_LP_EB                           BIT(16)
+#define BIT_AP_AHB_MAIN_S8_LP_NUM(x)                       (((x) & 0xFFFF))
+
+/* REG_AP_AHB_S9_LPC */
+
+#define BIT_AP_AHB_MAIN_S9_PU_NUM(x)                       (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_CGM_MTX_S9_AUTO_GATE_EN                 BIT(17)
+#define BIT_AP_AHB_MAIN_S9_LP_EB                           BIT(16)
+#define BIT_AP_AHB_MAIN_S9_LP_NUM(x)                       (((x) & 0xFFFF))
+
+/* REG_AP_AHB_MERGE_VDSP_M0_LPC */
+
+#define BIT_AP_AHB_MERGE_VDSP_M0_PU_NUM(x)                 (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_MERGE_VDSP_M0_LP_EB                     BIT(16)
+#define BIT_AP_AHB_MERGE_VDSP_M0_LP_NUM(x)                 (((x) & 0xFFFF))
+
+/* REG_AP_AHB_MERGE_VDSP_M1_LPC */
+
+#define BIT_AP_AHB_MERGE_VDSP_M1_PU_NUM(x)                 (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_MERGE_VDSP_M1_LP_EB                     BIT(16)
+#define BIT_AP_AHB_MERGE_VDSP_M1_LP_NUM(x)                 (((x) & 0xFFFF))
+
+/* REG_AP_AHB_MERGE_VDSP_M2_LPC */
+
+#define BIT_AP_AHB_MERGE_VDSP_M2_PU_NUM(x)                 (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_MERGE_VDSP_M2_LP_EB                     BIT(16)
+#define BIT_AP_AHB_MERGE_VDSP_M2_LP_NUM(x)                 (((x) & 0xFFFF))
+
+/* REG_AP_AHB_MERGE_VDSP_S0_LPC */
+
+#define BIT_AP_AHB_MERGE_VDSP_S0_PU_NUM(x)                 (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_CGM_MERGE_VDSP_S0_AUTO_GATE_EN          BIT(17)
+#define BIT_AP_AHB_MERGE_VDSP_S0_LP_EB                     BIT(16)
+#define BIT_AP_AHB_MERGE_VDSP_S0_LP_NUM(x)                 (((x) & 0xFFFF))
+
+/* REG_AP_AHB_MERGE_VDMA_M0_LPC */
+
+#define BIT_AP_AHB_MERGE_VDMA_M0_PU_NUM(x)                 (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_MERGE_VDMA_M0_LP_EB                     BIT(16)
+#define BIT_AP_AHB_MERGE_VDMA_M0_LP_NUM(x)                 (((x) & 0xFFFF))
+
+/* REG_AP_AHB_MERGE_VDMA_M1_LPC */
+
+#define BIT_AP_AHB_MERGE_VDMA_M1_PU_NUM(x)                 (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_MERGE_VDMA_M1_LP_EB                     BIT(16)
+#define BIT_AP_AHB_MERGE_VDMA_M1_LP_NUM(x)                 (((x) & 0xFFFF))
+
+/* REG_AP_AHB_MERGE_VDMA_S0_LPC */
+
+#define BIT_AP_AHB_MERGE_VDMA_S0_PU_NUM(x)                 (((x) & 0xFF) << 24)
+#define BIT_AP_AHB_CGM_MERGE_VDMA_S0_AUTO_GATE_EN          BIT(17)
+#define BIT_AP_AHB_MERGE_VDMA_S0_LP_EB                     BIT(16)
+#define BIT_AP_AHB_MERGE_VDMA_S0_LP_NUM(x)                 (((x) & 0xFFFF))
+
 /* REG_AP_AHB_MERGE_M0_LPC */
 
+#define BIT_AP_AHB_MERGE_M0_PU_NUM(x)                      (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MERGE_M0_LP_EB                          BIT(16)
 #define BIT_AP_AHB_MERGE_M0_LP_NUM(x)                      (((x) & 0xFFFF))
 
 /* REG_AP_AHB_MERGE_M1_LPC */
 
+#define BIT_AP_AHB_MERGE_M1_PU_NUM(x)                      (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_MERGE_M1_LP_EB                          BIT(16)
 #define BIT_AP_AHB_MERGE_M1_LP_NUM(x)                      (((x) & 0xFFFF))
 
 /* REG_AP_AHB_MERGE_S0_LPC */
 
+#define BIT_AP_AHB_MERGE_S0_PU_NUM(x)                      (((x) & 0xFF) << 24)
 #define BIT_AP_AHB_CGM_MERGE_S0_AUTO_GATE_EN               BIT(17)
 #define BIT_AP_AHB_MERGE_S0_LP_EB                          BIT(16)
 #define BIT_AP_AHB_MERGE_S0_LP_NUM(x)                      (((x) & 0xFFFF))
 
 /* REG_AP_AHB_AP_QOS0 */
 
+#define BIT_AP_AHB_ARQOS_VDSP(x)                           (((x) & 0xF) << 28)
+#define BIT_AP_AHB_AWQOS_VDSP(x)                           (((x) & 0xF) << 24)
 #define BIT_AP_AHB_ARQOS_CE(x)                             (((x) & 0xF) << 20)
 #define BIT_AP_AHB_AWQOS_CE(x)                             (((x) & 0xF) << 16)
 #define BIT_AP_AHB_ARQOS_DMA(x)                            (((x) & 0xF) << 12)
 #define BIT_AP_AHB_AWQOS_DMA(x)                            (((x) & 0xF) << 8)
+#define BIT_AP_AHB_ARQOS_UFS(x)                            (((x) & 0xF) << 4)
+#define BIT_AP_AHB_AWQOS_UFS(x)                            (((x) & 0xF))
 
 /* REG_AP_AHB_AP_QOS1 */
 
@@ -404,49 +515,6 @@
 
 #define BIT_AP_AHB_AP_BRIDGE_DEBUG_SIGNAL_W(x)             (((x) & 0xFFFFFFFF))
 
-/* REG_AP_AHB_S7_LPC */
-
-#define BIT_AP_AHB_CGM_MTX_S7_AUTO_GATE_EN                 BIT(17)
-#define BIT_AP_AHB_MAIN_S7_LP_EB                           BIT(16)
-#define BIT_AP_AHB_MAIN_S7_LP_NUM(x)                       (((x) & 0xFFFF))
-
-/* REG_AP_AHB_MERGE_VDSP_M0_LPC */
-
-#define BIT_AP_AHB_MERGE_VDSP_M0_LP_EB                     BIT(16)
-#define BIT_AP_AHB_MERGE_VDSP_M0_LP_NUM(x)                 (((x) & 0xFFFF))
-
-/* REG_AP_AHB_MERGE_VDSP_M1_LPC */
-
-#define BIT_AP_AHB_MERGE_VDSP_M1_LP_EB                     BIT(16)
-#define BIT_AP_AHB_MERGE_VDSP_M1_LP_NUM(x)                 (((x) & 0xFFFF))
-
-/* REG_AP_AHB_MERGE_VDSP_M2_LPC */
-
-#define BIT_AP_AHB_MERGE_VDSP_M2_LP_EB                     BIT(16)
-#define BIT_AP_AHB_MERGE_VDSP_M2_LP_NUM(x)                 (((x) & 0xFFFF))
-
-/* REG_AP_AHB_MERGE_VDSP_S0_LPC */
-
-#define BIT_AP_AHB_CGM_MERGE_VDSP_S0_AUTO_GATE_EN          BIT(17)
-#define BIT_AP_AHB_MERGE_VDSP_S0_LP_EB                     BIT(16)
-#define BIT_AP_AHB_MERGE_VDSP_S0_LP_NUM(x)                 (((x) & 0xFFFF))
-
-/* REG_AP_AHB_MERGE_VDMA_M0_LPC */
-
-#define BIT_AP_AHB_MERGE_VDMA_M0_LP_EB                     BIT(16)
-#define BIT_AP_AHB_MERGE_VDMA_M0_LP_NUM(x)                 (((x) & 0xFFFF))
-
-/* REG_AP_AHB_MERGE_VDMA_M1_LPC */
-
-#define BIT_AP_AHB_MERGE_VDMA_M1_LP_EB                     BIT(16)
-#define BIT_AP_AHB_MERGE_VDMA_M1_LP_NUM(x)                 (((x) & 0xFFFF))
-
-/* REG_AP_AHB_MERGE_VDMA_S0_LPC */
-
-#define BIT_AP_AHB_CGM_MERGE_VDMA_S0_AUTO_GATE_EN          BIT(17)
-#define BIT_AP_AHB_MERGE_VDMA_S0_LP_EB                     BIT(16)
-#define BIT_AP_AHB_MERGE_VDMA_S0_LP_NUM(x)                 (((x) & 0xFFFF))
-
 /* REG_AP_AHB_SYS_RST */
 
 #define BIT_AP_AHB_SYS_SOFT_RST_REQ_VDMA                   BIT(3)
@@ -454,8 +522,21 @@
 #define BIT_AP_AHB_SYS_SOFT_RST_REQ_DISP                   BIT(1)
 #define BIT_AP_AHB_SYS_SOFT_RST_REQ_VSP                    BIT(0)
 
-/* REG_AP_AHB_LVDS_PLL_CFG0 */
+/* REG_AP_AHB_CACHE_EMMC_SDIO */
 
+#define BIT_AP_AHB_ARCACHE_SDIO2(x)                        (((x) & 0xF) << 28)
+#define BIT_AP_AHB_AWCACHE_SDIO2(x)                        (((x) & 0xF) << 24)
+#define BIT_AP_AHB_ARCACHE_SDIO1(x)                        (((x) & 0xF) << 20)
+#define BIT_AP_AHB_AWCACHE_SDIO1(x)                        (((x) & 0xF) << 16)
+#define BIT_AP_AHB_ARCACHE_SDIO0(x)                        (((x) & 0xF) << 12)
+#define BIT_AP_AHB_AWCACHE_SDIO0(x)                        (((x) & 0xF) << 8)
+#define BIT_AP_AHB_ARCACHE_EMMC(x)                         (((x) & 0xF) << 4)
+#define BIT_AP_AHB_AWCACHE_EMMC(x)                         (((x) & 0xF))
+
+/* REG_AP_AHB_CACHE_UFS */
+
+#define BIT_AP_AHB_ARCACHE_UFS(x)                          (((x) & 0xF) << 4)
+#define BIT_AP_AHB_AWCACHE_UFS(x)                          (((x) & 0xF))
 
 /* REG_AP_AHB_AP_QOS_CFG */
 

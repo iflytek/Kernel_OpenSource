@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-06-28 19:04:01
  *
  */
 
@@ -33,9 +33,13 @@
 #define REG_MM_AHB_MM_0P5_APPEND               ( CTL_BASE_MM_AHB + 0x0034 )
 #define REG_MM_AHB_MM_IP_BUSY                  ( CTL_BASE_MM_AHB + 0x0038 )
 #define REG_MM_AHB_MM_AS_BDG_STATE             ( CTL_BASE_MM_AHB + 0x003C )
+#define REG_MM_AHB_MM_LPC_CTRL_FD              ( CTL_BASE_MM_AHB + 0x0040 )
+#define REG_MM_AHB_MM_LPC_PNUM_0               ( CTL_BASE_MM_AHB + 0x0044 )
+#define REG_MM_AHB_MM_LPC_PNUM_1               ( CTL_BASE_MM_AHB + 0x0048 )
 
 /* REG_MM_AHB_AHB_EB */
 
+#define BIT_MM_AHB_FD_EB                          BIT(10)
 #define BIT_MM_AHB_DVFS_EB                        BIT(9)
 #define BIT_MM_AHB_ISP_AHB_EB                     BIT(8)
 #define BIT_MM_AHB_CKG_EB                         BIT(7)
@@ -49,6 +53,7 @@
 
 /* REG_MM_AHB_AHB_RST */
 
+#define BIT_MM_AHB_FD_SOFT_RST                    BIT(26)
 #define BIT_MM_AHB_ZZHDR_SOFT_RST                 BIT(25)
 #define BIT_MM_AHB_DVFS_SOFT_RST                  BIT(24)
 #define BIT_MM_AHB_DCAM_ALL_SOFT_RST              BIT(23)
@@ -137,6 +142,7 @@
 
 /* REG_MM_AHB_MIPI_CSI_SEL_CTRL */
 
+#define BIT_MM_AHB_MIPI_CSI_DPHY_C2_SEL1(x)       (((x) & 0x3) << 28)
 #define BIT_MM_AHB_ISP_INT_1_MASK                 BIT(27)
 #define BIT_MM_AHB_ISP_INT_0_MASK                 BIT(26)
 #define BIT_MM_AHB_DCAM_INT_2_MASK                BIT(25)
@@ -158,6 +164,7 @@
 
 /* REG_MM_AHB_MM_IP_BUSY */
 
+#define BIT_MM_AHB_FD_BUSY                        BIT(4)
 #define BIT_MM_AHB_DCAM_BUSY                      BIT(3)
 #define BIT_MM_AHB_ISP_BUSY                       BIT(2)
 #define BIT_MM_AHB_JPG_BUSY                       BIT(1)
@@ -169,6 +176,25 @@
 #define BIT_MM_AHB_AXI_DETECTOR_OVERFLOW_DCAM_AS  BIT(2)
 #define BIT_MM_AHB_BRIDGE_TRANS_IDLE_MTX_AS       BIT(1)
 #define BIT_MM_AHB_BRIDGE_TRANS_IDLE_DCAM_AS      BIT(0)
+
+/* REG_MM_AHB_MM_LPC_CTRL_FD */
+
+#define BIT_MM_AHB_LP_EB_FD                       BIT(16)
+#define BIT_MM_AHB_LP_NUM_FD(x)                   (((x) & 0xFFFF))
+
+/* REG_MM_AHB_MM_LPC_PNUM_0 */
+
+#define BIT_MM_AHB_PU_NUM_ISP(x)                  (((x) & 0xFF) << 24)
+#define BIT_MM_AHB_PU_NUM_JPG(x)                  (((x) & 0xFF) << 16)
+#define BIT_MM_AHB_PU_NUM_CPP(x)                  (((x) & 0xFF) << 8)
+#define BIT_MM_AHB_PU_NUM_MTX_S0(x)               (((x) & 0xFF))
+
+/* REG_MM_AHB_MM_LPC_PNUM_1 */
+
+#define BIT_MM_AHB_PU_NUM_AXI2AHB_M0(x)           (((x) & 0xFF) << 24)
+#define BIT_MM_AHB_PU_NUM_DCAM_AS(x)              (((x) & 0xFF) << 16)
+#define BIT_MM_AHB_PU_NUM_MTX_AS(x)               (((x) & 0xFF) << 8)
+#define BIT_MM_AHB_PU_NUM_FD(x)                   (((x) & 0xFF))
 
 
 #endif /* MM_AHB_H */

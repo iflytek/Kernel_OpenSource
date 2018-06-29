@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-06-28 19:04:01
  *
  */
 
@@ -27,8 +27,8 @@
 #define REG_PMU_APB_PD_AP_SYS_CFG                                 ( CTL_BASE_PMU_APB + 0x001C )
 #define REG_PMU_APB_PD_AP_VDSP_CFG                                ( CTL_BASE_PMU_APB + 0x0020 )
 #define REG_PMU_APB_PD_MM_TOP_CFG                                 ( CTL_BASE_PMU_APB + 0x0024 )
-#define REG_PMU_APB_PD_GPU_RGX_DUST_CFG0                          ( CTL_BASE_PMU_APB + 0x0028 )
-#define REG_PMU_APB_PD_GPU_RGX_DUST_CFG1                          ( CTL_BASE_PMU_APB + 0x002C )
+#define REG_PMU_APB_PD_GPU_RGX_DUST_A_CFG0                        ( CTL_BASE_PMU_APB + 0x0028 )
+#define REG_PMU_APB_PD_GPU_RGX_DUST_A_CFG1                        ( CTL_BASE_PMU_APB + 0x002C )
 #define REG_PMU_APB_PD_GPU_TOP_CFG0                               ( CTL_BASE_PMU_APB + 0x0030 )
 #define REG_PMU_APB_PD_WTLCP_LTE_CE_CFG                           ( CTL_BASE_PMU_APB + 0x0034 )
 #define REG_PMU_APB_PD_WTLCP_LTE_DPFEC_CFG                        ( CTL_BASE_PMU_APB + 0x0038 )
@@ -43,6 +43,7 @@
 #define REG_PMU_APB_PD_AUDCP_AUDDSP_CFG                           ( CTL_BASE_PMU_APB + 0x005C )
 #define REG_PMU_APB_PD_AUDCP_SYS_CFG                              ( CTL_BASE_PMU_APB + 0x0060 )
 #define REG_PMU_APB_PUBCP_FRC_STOP_REQ_FOR_WTL                    ( CTL_BASE_PMU_APB + 0x0064 )
+#define REG_PMU_APB_PLL_WAIT_CNT3                                 ( CTL_BASE_PMU_APB + 0x0068 )
 #define REG_PMU_APB_PD_PUB_SYS_CFG                                ( CTL_BASE_PMU_APB + 0x006C )
 #define REG_PMU_APB_AP_WAKEUP_POR_CFG                             ( CTL_BASE_PMU_APB + 0x0070 )
 #define REG_PMU_APB_XTL_WAIT_CNT                                  ( CTL_BASE_PMU_APB + 0x0074 )
@@ -61,10 +62,9 @@
 #define REG_PMU_APB_GPLL_REL_CFG                                  ( CTL_BASE_PMU_APB + 0x00A8 )
 #define REG_PMU_APB_RPLL_REL_CFG                                  ( CTL_BASE_PMU_APB + 0x00AC )
 #define REG_PMU_APB_CP_SOFT_RST                                   ( CTL_BASE_PMU_APB + 0x00B0 )
-#define REG_PMU_APB_CP_SLP_STATUS_DBG0                            ( CTL_BASE_PMU_APB + 0x00B4 )
-#define REG_PMU_APB_PWR_STATUS0_DBG                               ( CTL_BASE_PMU_APB + 0x00BC )
-#define REG_PMU_APB_PWR_STATUS1_DBG                               ( CTL_BASE_PMU_APB + 0x00C0 )
-#define REG_PMU_APB_PWR_STATUS2_DBG                               ( CTL_BASE_PMU_APB + 0x00C4 )
+#define REG_PMU_APB_PCIEPLL_H_REL_CFG                             ( CTL_BASE_PMU_APB + 0x00B8 )
+#define REG_PMU_APB_PCIEPLL_V_REL_CFG                             ( CTL_BASE_PMU_APB + 0x00BC )
+#define REG_PMU_APB_CP_SLP_STATUS_DBG0                            ( CTL_BASE_PMU_APB + 0x00C0 )
 #define REG_PMU_APB_PUB_SYS_AUTO_LIGHT_SLEEP_ENABLE               ( CTL_BASE_PMU_APB + 0x00C8 )
 #define REG_PMU_APB_SLEEP_CTRL                                    ( CTL_BASE_PMU_APB + 0x00CC )
 #define REG_PMU_APB_DDR_SLEEP_CTRL                                ( CTL_BASE_PMU_APB + 0x00D0 )
@@ -72,9 +72,13 @@
 #define REG_PMU_APB_PUB_SYS_SLEEP_BYPASS_CFG                      ( CTL_BASE_PMU_APB + 0x00D8 )
 #define REG_PMU_APB_PUB_SYS_DEEP_SLEEP_POLL0                      ( CTL_BASE_PMU_APB + 0x00DC )
 #define REG_PMU_APB_PUB_SYS_DEEP_SLEEP_POLL1                      ( CTL_BASE_PMU_APB + 0x00E0 )
+#define REG_PMU_APB_XTL_WAIT_CNT1                                 ( CTL_BASE_PMU_APB + 0x00E8 )
+#define REG_PMU_APB_XTLBUF_PCIEH_REL_CFG                          ( CTL_BASE_PMU_APB + 0x00F0 )
+#define REG_PMU_APB_XTLBUF_PCIEV_REL_CFG                          ( CTL_BASE_PMU_APB + 0x00F4 )
 #define REG_PMU_APB_DDR_CHN_SLEEP_CTRL0                           ( CTL_BASE_PMU_APB + 0x00F8 )
 #define REG_PMU_APB_DDR_CHN_SLEEP_CTRL1                           ( CTL_BASE_PMU_APB + 0x00FC )
-#define REG_PMU_APB_PWR_STATUS3_DBG                               ( CTL_BASE_PMU_APB + 0x010C )
+#define REG_PMU_APB_NEST_DCDC_CTRL_CFG                            ( CTL_BASE_PMU_APB + 0x0100 )
+#define REG_PMU_APB_PD_SHARED_DCDC_STATE                          ( CTL_BASE_PMU_APB + 0x0104 )
 #define REG_PMU_APB_DDR_OP_MODE_CFG                               ( CTL_BASE_PMU_APB + 0x012C )
 #define REG_PMU_APB_DDR_PHY_RET_CFG                               ( CTL_BASE_PMU_APB + 0x0130 )
 #define REG_PMU_APB_CLK26M_SEL_CFG                                ( CTL_BASE_PMU_APB + 0x0134 )
@@ -82,14 +86,10 @@
 #define REG_PMU_APB_BISR_BUSY_STATUS                              ( CTL_BASE_PMU_APB + 0x013C )
 #define REG_PMU_APB_BISR_BYP_CFG                                  ( CTL_BASE_PMU_APB + 0x0140 )
 #define REG_PMU_APB_BISR_EN_CFG                                   ( CTL_BASE_PMU_APB + 0x0144 )
-#define REG_PMU_APB_CGM_AUTO_GATE_SEL_CFG0                        ( CTL_BASE_PMU_APB + 0x0148 )
-#define REG_PMU_APB_CGM_AUTO_GATE_SEL_CFG1                        ( CTL_BASE_PMU_APB + 0x014C )
-#define REG_PMU_APB_CGM_AUTO_GATE_SEL_CFG2                        ( CTL_BASE_PMU_APB + 0x0150 )
-#define REG_PMU_APB_CGM_AUTO_GATE_SEL_CFG3                        ( CTL_BASE_PMU_APB + 0x0154 )
-#define REG_PMU_APB_CGM_FORCE_EN_CFG0                             ( CTL_BASE_PMU_APB + 0x0158 )
-#define REG_PMU_APB_CGM_FORCE_EN_CFG1                             ( CTL_BASE_PMU_APB + 0x015C )
-#define REG_PMU_APB_CGM_FORCE_EN_CFG2                             ( CTL_BASE_PMU_APB + 0x0160 )
-#define REG_PMU_APB_CGM_FORCE_EN_CFG3                             ( CTL_BASE_PMU_APB + 0x0164 )
+#define REG_PMU_APB_BISR_DONE_STATUS_1                            ( CTL_BASE_PMU_APB + 0x0148 )
+#define REG_PMU_APB_BISR_BUSY_STATUS_1                            ( CTL_BASE_PMU_APB + 0x014C )
+#define REG_PMU_APB_BISR_BYP_CFG_1                                ( CTL_BASE_PMU_APB + 0x0150 )
+#define REG_PMU_APB_BISR_EN_CFG_1                                 ( CTL_BASE_PMU_APB + 0x0154 )
 #define REG_PMU_APB_SLEEP_XTLON_CTRL                              ( CTL_BASE_PMU_APB + 0x0168 )
 #define REG_PMU_APB_MEM_SLP_CFG                                   ( CTL_BASE_PMU_APB + 0x016C )
 #define REG_PMU_APB_MEM_SD_CFG                                    ( CTL_BASE_PMU_APB + 0x0170 )
@@ -122,7 +122,7 @@
 #define REG_PMU_APB_APCPU_C5_DSLP_ENA                             ( CTL_BASE_PMU_APB + 0x01E0 )
 #define REG_PMU_APB_APCPU_C6_DSLP_ENA                             ( CTL_BASE_PMU_APB + 0x01E4 )
 #define REG_PMU_APB_APCPU_C7_DSLP_ENA                             ( CTL_BASE_PMU_APB + 0x01E8 )
-#define REG_PMU_APB_MPLL3_REL_CFG                                 ( CTL_BASE_PMU_APB + 0x01EC )
+#define REG_PMU_APB_APLL_REL_CFG                                  ( CTL_BASE_PMU_APB + 0x01EC )
 #define REG_PMU_APB_WTLCP_TGDSP_DSLP_ENA                          ( CTL_BASE_PMU_APB + 0x0200 )
 #define REG_PMU_APB_WTLCP_LDSP_DSLP_ENA                           ( CTL_BASE_PMU_APB + 0x0204 )
 #define REG_PMU_APB_AP_DSLP_ENA                                   ( CTL_BASE_PMU_APB + 0x0208 )
@@ -134,6 +134,7 @@
 #define REG_PMU_APB_PUB_DEEP_SLEEP_WAKEUP_EN                      ( CTL_BASE_PMU_APB + 0x0220 )
 #define REG_PMU_APB_LIGHT_SLEEP_WAKEUP_EN                         ( CTL_BASE_PMU_APB + 0x0224 )
 #define REG_PMU_APB_ESE_DSLP_ENA                                  ( CTL_BASE_PMU_APB + 0x0228 )
+#define REG_PMU_APB_IPA_DSLP_ENA                                  ( CTL_BASE_PMU_APB + 0x022C )
 #define REG_PMU_APB_LIGHT_SLEEP_ENABLE                            ( CTL_BASE_PMU_APB + 0x0230 )
 #define REG_PMU_APB_LIGHT_SLEEP_MON                               ( CTL_BASE_PMU_APB + 0x0234 )
 #define REG_PMU_APB_AUDCP_SYS_DSLP_ENA                            ( CTL_BASE_PMU_APB + 0x0244 )
@@ -142,13 +143,20 @@
 #define REG_PMU_APB_PUB_ACC_RDY                                   ( CTL_BASE_PMU_APB + 0x0250 )
 #define REG_PMU_APB_PUB_CLK_RDY                                   ( CTL_BASE_PMU_APB + 0x0254 )
 #define REG_PMU_APB_EIC_SEL                                       ( CTL_BASE_PMU_APB + 0x0258 )
-#define REG_PMU_APB_AXI_LP_CTRL_DISABLE                           ( CTL_BASE_PMU_APB + 0x0260 )
+#define REG_PMU_APB_IPA_FORCE_WAKEUP_CFG                          ( CTL_BASE_PMU_APB + 0x025C )
 #define REG_PMU_APB_PMU_DEBUG                                     ( CTL_BASE_PMU_APB + 0x0270 )
 #define REG_PMU_APB_SLEEP_CNT_CLR                                 ( CTL_BASE_PMU_APB + 0x0274 )
+#define REG_PMU_APB_PAD_OUT_DCDC_AI_EN_CFG                        ( CTL_BASE_PMU_APB + 0x027C )
 #define REG_PMU_APB_LVDSRFPLL_REL_CFG                             ( CTL_BASE_PMU_APB + 0x0280 )
-#define REG_PMU_APB_PAD_OUT_ADIE_CTRL0                            ( CTL_BASE_PMU_APB + 0x0290 )
-#define REG_PMU_APB_PAD_OUT_ADIE_CTRL1                            ( CTL_BASE_PMU_APB + 0x0294 )
+#define REG_PMU_APB_EXT_XTL_EN_CTRL                               ( CTL_BASE_PMU_APB + 0x0284 )
+#define REG_PMU_APB_PAD_OUT_CHIP_SLEEP_CFG                        ( CTL_BASE_PMU_APB + 0x0288 )
+#define REG_PMU_APB_PAD_OUT_XTL_EN0_CFG                           ( CTL_BASE_PMU_APB + 0x028C )
+#define REG_PMU_APB_PAD_OUT_XTL_EN1_CFG                           ( CTL_BASE_PMU_APB + 0x0290 )
+#define REG_PMU_APB_PAD_OUT_DCDC_ARM0_EN_CFG                      ( CTL_BASE_PMU_APB + 0x0294 )
+#define REG_PMU_APB_PAD_OUT_DCDC_ARM1_EN_CFG                      ( CTL_BASE_PMU_APB + 0x0298 )
+#define REG_PMU_APB_DCXO_LP_DEEP_SLEEP_CFG                        ( CTL_BASE_PMU_APB + 0x029C )
 #define REG_PMU_APB_BISR_FORCE_SEL                                ( CTL_BASE_PMU_APB + 0x0300 )
+#define REG_PMU_APB_BISR_FORCE_SEL_1                              ( CTL_BASE_PMU_APB + 0x0304 )
 #define REG_PMU_APB_AON_MEM_CTRL                                  ( CTL_BASE_PMU_APB + 0x0330 )
 #define REG_PMU_APB_PWR_DOMAIN_INT_CLR                            ( CTL_BASE_PMU_APB + 0x0334 )
 #define REG_PMU_APB_DDR_SLP_WAIT_CNT                              ( CTL_BASE_PMU_APB + 0x0338 )
@@ -167,17 +175,10 @@
 #define REG_PMU_APB_PD_APCPU_C6_CFG                               ( CTL_BASE_PMU_APB + 0x036C )
 #define REG_PMU_APB_PD_APCPU_C7_CFG                               ( CTL_BASE_PMU_APB + 0x0370 )
 #define REG_PMU_APB_PD_APCPU_TOP_CFG3                             ( CTL_BASE_PMU_APB + 0x0374 )
-#define REG_PMU_APB_APCU_PWR_STATE0                               ( CTL_BASE_PMU_APB + 0x0378 )
-#define REG_PMU_APB_APCU_PWR_STATE1                               ( CTL_BASE_PMU_APB + 0x037C )
-#define REG_PMU_APB_APCPU_TOP_CFG                                 ( CTL_BASE_PMU_APB + 0x0380 )
-#define REG_PMU_APB_APCPU_C0_CFG                                  ( CTL_BASE_PMU_APB + 0x0384 )
-#define REG_PMU_APB_APCPU_C1_CFG                                  ( CTL_BASE_PMU_APB + 0x0388 )
-#define REG_PMU_APB_APCPU_C2_CFG                                  ( CTL_BASE_PMU_APB + 0x038C )
-#define REG_PMU_APB_APCPU_C3_CFG                                  ( CTL_BASE_PMU_APB + 0x0390 )
-#define REG_PMU_APB_APCPU_C4_CFG                                  ( CTL_BASE_PMU_APB + 0x0394 )
-#define REG_PMU_APB_APCPU_C5_CFG                                  ( CTL_BASE_PMU_APB + 0x0398 )
-#define REG_PMU_APB_APCPU_C6_CFG                                  ( CTL_BASE_PMU_APB + 0x039C )
-#define REG_PMU_APB_APCPU_C7_CFG                                  ( CTL_BASE_PMU_APB + 0x03A0 )
+#define REG_PMU_APB_PD_APCPU_TOP_CFG4                             ( CTL_BASE_PMU_APB + 0x0378 )
+#define REG_PMU_APB_PD_DCDC_AI_CFG0                               ( CTL_BASE_PMU_APB + 0x037C )
+#define REG_PMU_APB_PD_DCDC_AI_CFG1                               ( CTL_BASE_PMU_APB + 0x0380 )
+#define REG_PMU_APB_PD_DCDC_AI_CFG2                               ( CTL_BASE_PMU_APB + 0x0384 )
 #define REG_PMU_APB_GIC_CFG                                       ( CTL_BASE_PMU_APB + 0x03A8 )
 #define REG_PMU_APB_FIREWALL_WAKEUP_PUB                           ( CTL_BASE_PMU_APB + 0x03AC )
 #define REG_PMU_APB_PD_ESE_SYS_CFG                                ( CTL_BASE_PMU_APB + 0x03B0 )
@@ -186,18 +187,16 @@
 #define REG_PMU_APB_APCPU_C1_SIMD_RET_MODE                        ( CTL_BASE_PMU_APB + 0x03BC )
 #define REG_PMU_APB_APCPU_C2_SIMD_RET_MODE                        ( CTL_BASE_PMU_APB + 0x03C0 )
 #define REG_PMU_APB_APCPU_C3_SIMD_RET_MODE                        ( CTL_BASE_PMU_APB + 0x03C4 )
-#define REG_PMU_APB_APCPU_C4_SIMD_RET_MODE                        ( CTL_BASE_PMU_APB + 0x03C8 )
-#define REG_PMU_APB_APCPU_C5_SIMD_RET_MODE                        ( CTL_BASE_PMU_APB + 0x03CC )
-#define REG_PMU_APB_APCPU_C6_SIMD_RET_MODE                        ( CTL_BASE_PMU_APB + 0x03D0 )
+#define REG_PMU_APB_PCIE3_PHY_RAM_CFG                             ( CTL_BASE_PMU_APB + 0x03D0 )
 #define REG_PMU_APB_APCPU_CORE_FORCE_STOP                         ( CTL_BASE_PMU_APB + 0x03D4 )
-#define REG_PMU_APB_APCU_MODE_STATE0                              ( CTL_BASE_PMU_APB + 0x03D8 )
-#define REG_PMU_APB_APCU_MODE_STATE1                              ( CTL_BASE_PMU_APB + 0x03DC )
+#define REG_PMU_APB_PCIEPLL_H_RST_CTRL_CFG                        ( CTL_BASE_PMU_APB + 0x03D8 )
+#define REG_PMU_APB_PCIEPLL_V_RST_CTRL_CFG                        ( CTL_BASE_PMU_APB + 0x03DC )
 #define REG_PMU_APB_PD_GPU_TOP_CFG1                               ( CTL_BASE_PMU_APB + 0x03E0 )
-#define REG_PMU_APB_APCPU_PMU_CLK_DIV_CFG                         ( CTL_BASE_PMU_APB + 0x03E4 )
+#define REG_PMU_APB_MPLL_WAIT_CLK_DIV_CFG                         ( CTL_BASE_PMU_APB + 0x03E4 )
 #define REG_PMU_APB_MPLL0_RST_CTRL_CFG                            ( CTL_BASE_PMU_APB + 0x03E8 )
 #define REG_PMU_APB_MPLL1_RST_CTRL_CFG                            ( CTL_BASE_PMU_APB + 0x03EC )
 #define REG_PMU_APB_MPLL2_RST_CTRL_CFG                            ( CTL_BASE_PMU_APB + 0x03F0 )
-#define REG_PMU_APB_MPLL3_RST_CTRL_CFG                            ( CTL_BASE_PMU_APB + 0x03F4 )
+#define REG_PMU_APB_APLL_RST_CTRL_CFG                             ( CTL_BASE_PMU_APB + 0x03F4 )
 #define REG_PMU_APB_DPLL0_RST_CTRL_CFG                            ( CTL_BASE_PMU_APB + 0x03F8 )
 #define REG_PMU_APB_DPLL1_RST_CTRL_CFG                            ( CTL_BASE_PMU_APB + 0x03FC )
 #define REG_PMU_APB_TWPLL_RST_CTRL_CFG                            ( CTL_BASE_PMU_APB + 0x0400 )
@@ -265,66 +264,108 @@
 #define REG_PMU_APB_APCPU_CSYSPWRUP_WAKEUP_EN_CFG                 ( CTL_BASE_PMU_APB + 0x04F8 )
 #define REG_PMU_APB_DVFS_BLOCK_SHUTDOWN_CFG                       ( CTL_BASE_PMU_APB + 0x04FC )
 #define REG_PMU_APB_OFF_EMU_CLR_IN_DISABLE_CFG                    ( CTL_BASE_PMU_APB + 0x0500 )
-#define REG_PMU_APB_ANANKE_LITE_DUAL_RAIL_RAM_FORCE_ON_CFG        ( CTL_BASE_PMU_APB + 0x0504 )
+#define REG_PMU_APB_APCPU_DUAL_RAIL_RAM_FORCE_ON_CFG              ( CTL_BASE_PMU_APB + 0x0504 )
 #define REG_PMU_APB_OFF_EMU_TO_OFF_CFG                            ( CTL_BASE_PMU_APB + 0x0508 )
-#define REG_PMU_APB_PD_APCPU_C0_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x3000 )
-#define REG_PMU_APB_PD_APCPU_C1_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x3004 )
-#define REG_PMU_APB_PD_APCPU_C2_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x3008 )
-#define REG_PMU_APB_PD_APCPU_C3_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x300C )
-#define REG_PMU_APB_PD_APCPU_TOP_SHUTDOWN_MARK_STATUS             ( CTL_BASE_PMU_APB + 0x3010 )
-#define REG_PMU_APB_PD_AP_SYS_SHUTDOWN_MARK_STATUS                ( CTL_BASE_PMU_APB + 0x3014 )
-#define REG_PMU_APB_PD_GPU_TOP_SHUTDOWN_MARK_STATUS               ( CTL_BASE_PMU_APB + 0x3018 )
-#define REG_PMU_APB_PD_MM_TOP_SHUTDOWN_MARK_STATUS                ( CTL_BASE_PMU_APB + 0x301C )
-#define REG_PMU_APB_PD_AP_VDSP_SHUTDOWN_MARK_STATUS               ( CTL_BASE_PMU_APB + 0x3020 )
-#define REG_PMU_APB_PD_WTLCP_LTE_CE_SHUTDOWN_MARK_STATUS          ( CTL_BASE_PMU_APB + 0x3024 )
-#define REG_PMU_APB_PD_WTLCP_LTE_DPFEC_SHUTDOWN_MARK_STATUS       ( CTL_BASE_PMU_APB + 0x3028 )
-#define REG_PMU_APB_PD_AP_VSP_SHUTDOWN_MARK_STATUS                ( CTL_BASE_PMU_APB + 0x302C )
-#define REG_PMU_APB_PD_WTLCP_LDSP_SHUTDOWN_MARK_STATUS            ( CTL_BASE_PMU_APB + 0x3030 )
-#define REG_PMU_APB_PD_WTLCP_TGDSP_SHUTDOWN_MARK_STATUS           ( CTL_BASE_PMU_APB + 0x3034 )
-#define REG_PMU_APB_PD_WTLCP_HU3GE_A_SHUTDOWN_MARK_STATUS         ( CTL_BASE_PMU_APB + 0x3038 )
-#define REG_PMU_APB_PD_WTLCP_HU3GE_B_SHUTDOWN_MARK_STATUS         ( CTL_BASE_PMU_APB + 0x303C )
-#define REG_PMU_APB_PD_WTLCP_SYS_SHUTDOWN_MARK_STATUS             ( CTL_BASE_PMU_APB + 0x3040 )
-#define REG_PMU_APB_PD_PUBCP_SYS_SHUTDOWN_MARK_STATUS             ( CTL_BASE_PMU_APB + 0x3044 )
-#define REG_PMU_APB_PD_WTLCP_LTE_PROC_SHUTDOWN_MARK_STATUS        ( CTL_BASE_PMU_APB + 0x3048 )
-#define REG_PMU_APB_PD_WTLCP_TD_PROC_SHUTDOWN_MARK_STATUS         ( CTL_BASE_PMU_APB + 0x304C )
-#define REG_PMU_APB_PD_AUDCP_SYS_SHUTDOWN_MARK_STATUS             ( CTL_BASE_PMU_APB + 0x3050 )
-#define REG_PMU_APB_PD_PUB_SYS_SHUTDOWN_MARK_STATUS               ( CTL_BASE_PMU_APB + 0x3054 )
-#define REG_PMU_APB_PD_AUDCP_AUDDSP_SHUTDOWN_MARK_STATUS          ( CTL_BASE_PMU_APB + 0x3058 )
-#define REG_PMU_APB_PD_GPU_RGX_DUST_SHUTDOWN_MARK_STATUS          ( CTL_BASE_PMU_APB + 0x305C )
-#define REG_PMU_APB_APCPU_TOP_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x3064 )
-#define REG_PMU_APB_AP_SYS_SLEEP_CNT                              ( CTL_BASE_PMU_APB + 0x3068 )
-#define REG_PMU_APB_WTLCP_SYS_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x306C )
-#define REG_PMU_APB_PUBCP_SYS_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x3070 )
-#define REG_PMU_APB_AUDCP_SYS_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x3074 )
-#define REG_PMU_APB_PUB_SYS_LIGHT_SLEEP_CNT                       ( CTL_BASE_PMU_APB + 0x3078 )
-#define REG_PMU_APB_AP_DEEP_SLEEP_CNT                             ( CTL_BASE_PMU_APB + 0x307C )
-#define REG_PMU_APB_SP_SYS_DEEP_SLEEP_CNT                         ( CTL_BASE_PMU_APB + 0x3080 )
-#define REG_PMU_APB_WTLCP_DEEP_SLEEP_CNT                          ( CTL_BASE_PMU_APB + 0x3084 )
-#define REG_PMU_APB_PUBCP_DEEP_SLEEP_CNT                          ( CTL_BASE_PMU_APB + 0x3088 )
-#define REG_PMU_APB_AUDCP_SYS_DEEP_SLEEP_CNT                      ( CTL_BASE_PMU_APB + 0x308C )
-#define REG_PMU_APB_PUB_SYS_DEEP_SLEEP_CNT                        ( CTL_BASE_PMU_APB + 0x3090 )
-#define REG_PMU_APB_AP_LIGHT_SLEEP_CNT                            ( CTL_BASE_PMU_APB + 0x3094 )
-#define REG_PMU_APB_WTLCP_LIGHT_SLEEP_CNT                         ( CTL_BASE_PMU_APB + 0x3098 )
-#define REG_PMU_APB_PUBCP_LIGHT_SLEEP_CNT                         ( CTL_BASE_PMU_APB + 0x309C )
-#define REG_PMU_APB_AUDCP_SYS_LIGHT_SLEEP_CNT                     ( CTL_BASE_PMU_APB + 0x30A0 )
-#define REG_PMU_APB_AON_SYS_LIGHT_SLEEP_CNT                       ( CTL_BASE_PMU_APB + 0x30A4 )
-#define REG_PMU_APB_SYS_SOFT_RST_BUSY                             ( CTL_BASE_PMU_APB + 0x30A8 )
-#define REG_PMU_APB_REG_SYS_SRST_FRC_LP_ACK                       ( CTL_BASE_PMU_APB + 0x30AC )
-#define REG_PMU_APB_SOFT_RST_SEL                                  ( CTL_BASE_PMU_APB + 0x30B0 )
-#define REG_PMU_APB_REG_SYS_DDR_PWR_HS_ACK                        ( CTL_BASE_PMU_APB + 0x30B4 )
-#define REG_PMU_APB_CSI_DSI_PWR_CNT_DONE                          ( CTL_BASE_PMU_APB + 0x30B8 )
-#define REG_PMU_APB_PD_AP_SYS_DBG_SHUTDOWN__EN                    ( CTL_BASE_PMU_APB + 0x30BC )
-#define REG_PMU_APB_EIC_SYS_SEL                                   ( CTL_BASE_PMU_APB + 0x30C0 )
-#define REG_PMU_APB_DDR_SLP_CTRL_STATE                            ( CTL_BASE_PMU_APB + 0x30C4 )
-#define REG_PMU_APB_PD_APCPU_C4_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x30C8 )
-#define REG_PMU_APB_PD_APCPU_C5_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x30CC )
-#define REG_PMU_APB_PD_APCPU_C6_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x30D0 )
-#define REG_PMU_APB_PD_APCPU_C7_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x30D4 )
-#define REG_PMU_APB_APCPU_TOP_DEEP_SLEEP_CNT                      ( CTL_BASE_PMU_APB + 0x30D8 )
-#define REG_PMU_APB_APCPU_TOP_LIGHT_SLEEP_CNT                     ( CTL_BASE_PMU_APB + 0x30DC )
-#define REG_PMU_APB_PD_ESE_SYS_SHUTDOWN_MARK_STATUS               ( CTL_BASE_PMU_APB + 0x30E0 )
-#define REG_PMU_APB_ESE_DEEP_SLEEP_CNT                            ( CTL_BASE_PMU_APB + 0x30E4 )
-#define REG_PMU_APB_ESE_SYS_SLEEP_CNT                             ( CTL_BASE_PMU_APB + 0x30E8 )
+#define REG_PMU_APB_ALL_PLL_PD_RCO_BYP                            ( CTL_BASE_PMU_APB + 0x050C )
+#define REG_PMU_APB_SP_CLK_GATE_BYP_CFG                           ( CTL_BASE_PMU_APB + 0x0510 )
+#define REG_PMU_APB_DPLL1_CNT_DONE_BYP                            ( CTL_BASE_PMU_APB + 0x0514 )
+#define REG_PMU_APB_SRAM_DLY_CTRL_CFG                             ( CTL_BASE_PMU_APB + 0x0518 )
+#define REG_PMU_APB_WDG_TRIG_DBG_RECOV_CFG                        ( CTL_BASE_PMU_APB + 0x051C )
+#define REG_PMU_APB_APCPU_TOP_RAM_POWER_CTRL                      ( CTL_BASE_PMU_APB + 0x0520 )
+#define REG_PMU_APB_PD_GPU_RGX_DUST_B_CFG0                        ( CTL_BASE_PMU_APB + 0x0524 )
+#define REG_PMU_APB_PD_GPU_RGX_DUST_B_CFG1                        ( CTL_BASE_PMU_APB + 0x0528 )
+#define REG_PMU_APB_PD_AI_POWERVR_CFG                             ( CTL_BASE_PMU_APB + 0x052C )
+#define REG_PMU_APB_PD_AI_SYS_CFG                                 ( CTL_BASE_PMU_APB + 0x0530 )
+#define REG_PMU_APB_PD_AI_CAMBRICON_CFG                           ( CTL_BASE_PMU_APB + 0x0534 )
+#define REG_PMU_APB_PD_IPA_SYS_CFG                                ( CTL_BASE_PMU_APB + 0x0538 )
+#define REG_PMU_APB_APCPU_MODE_ST_SOFT_RST                        ( CTL_BASE_PMU_APB + 0x053C )
+#define REG_PMU_APB_FORCE_PUB_DEEP_SLEEP_CFG                      ( CTL_BASE_PMU_APB + 0x0540 )
+#define REG_PMU_APB_FORCE_DEEP_SLEEP_CFG                          ( CTL_BASE_PMU_APB + 0x0544 )
+#define REG_PMU_APB_FORCE_LIGHT_SLEEP_CFG                         ( CTL_BASE_PMU_APB + 0x0548 )
+#define REG_PMU_APB_FORCE_SYSTEM_SLEEP_CFG                        ( CTL_BASE_PMU_APB + 0x054C )
+#define REG_PMU_APB_ESE_ACCESS_DDR_CFG                            ( CTL_BASE_PMU_APB + 0x0550 )
+#define REG_PMU_APB_PWR_STATUS0_DBG                               ( CTL_BASE_PMU_APB + 0x0580 )
+#define REG_PMU_APB_PWR_STATUS1_DBG                               ( CTL_BASE_PMU_APB + 0x0584 )
+#define REG_PMU_APB_PWR_STATUS2_DBG                               ( CTL_BASE_PMU_APB + 0x0588 )
+#define REG_PMU_APB_PWR_STATUS3_DBG                               ( CTL_BASE_PMU_APB + 0x058C )
+#define REG_PMU_APB_PWR_STATUS4_DBG                               ( CTL_BASE_PMU_APB + 0x0590 )
+#define REG_PMU_APB_PWR_STATUS5_DBG                               ( CTL_BASE_PMU_APB + 0x0594 )
+#define REG_PMU_APB_PWR_STATUS6_DBG                               ( CTL_BASE_PMU_APB + 0x059C )
+#define REG_PMU_APB_PWR_STATUS7_DBG                               ( CTL_BASE_PMU_APB + 0x05A0 )
+#define REG_PMU_APB_PWR_STATUS8_DBG                               ( CTL_BASE_PMU_APB + 0x05A4 )
+#define REG_PMU_APB_APCU_MODE_STATE0                              ( CTL_BASE_PMU_APB + 0x05B0 )
+#define REG_PMU_APB_APCU_MODE_STATE1                              ( CTL_BASE_PMU_APB + 0x05B4 )
+#define REG_PMU_APB_APCU_MODE_STATE2                              ( CTL_BASE_PMU_APB + 0x05B8 )
+#define REG_PMU_APB_APCPU_WFI_MARK                                ( CTL_BASE_PMU_APB + 0x05C0 )
+#define REG_PMU_APB_UFS_PWR_GATE_BYP_CFG                          ( CTL_BASE_PMU_APB + 0x05D0 )
+#define REG_PMU_APB_AXI_LP_CTRL_DISABLE                           ( CTL_BASE_PMU_APB + 0x05D4 )
+#define REG_PMU_APB_PD_APCPU_C0_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x0600 )
+#define REG_PMU_APB_PD_APCPU_C1_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x0604 )
+#define REG_PMU_APB_PD_APCPU_C2_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x0608 )
+#define REG_PMU_APB_PD_APCPU_C3_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x060C )
+#define REG_PMU_APB_PD_APCPU_TOP_SHUTDOWN_MARK_STATUS             ( CTL_BASE_PMU_APB + 0x0610 )
+#define REG_PMU_APB_PD_AP_SYS_SHUTDOWN_MARK_STATUS                ( CTL_BASE_PMU_APB + 0x0614 )
+#define REG_PMU_APB_PD_GPU_TOP_SHUTDOWN_MARK_STATUS               ( CTL_BASE_PMU_APB + 0x0618 )
+#define REG_PMU_APB_PD_MM_TOP_SHUTDOWN_MARK_STATUS                ( CTL_BASE_PMU_APB + 0x061C )
+#define REG_PMU_APB_PD_AP_VDSP_SHUTDOWN_MARK_STATUS               ( CTL_BASE_PMU_APB + 0x0620 )
+#define REG_PMU_APB_PD_WTLCP_LTE_CE_SHUTDOWN_MARK_STATUS          ( CTL_BASE_PMU_APB + 0x0624 )
+#define REG_PMU_APB_PD_WTLCP_LTE_DPFEC_SHUTDOWN_MARK_STATUS       ( CTL_BASE_PMU_APB + 0x0628 )
+#define REG_PMU_APB_PD_AP_VSP_SHUTDOWN_MARK_STATUS                ( CTL_BASE_PMU_APB + 0x062C )
+#define REG_PMU_APB_PD_WTLCP_LDSP_SHUTDOWN_MARK_STATUS            ( CTL_BASE_PMU_APB + 0x0630 )
+#define REG_PMU_APB_PD_WTLCP_TGDSP_SHUTDOWN_MARK_STATUS           ( CTL_BASE_PMU_APB + 0x0634 )
+#define REG_PMU_APB_PD_WTLCP_HU3GE_A_SHUTDOWN_MARK_STATUS         ( CTL_BASE_PMU_APB + 0x0638 )
+#define REG_PMU_APB_PD_WTLCP_HU3GE_B_SHUTDOWN_MARK_STATUS         ( CTL_BASE_PMU_APB + 0x063C )
+#define REG_PMU_APB_PD_WTLCP_SYS_SHUTDOWN_MARK_STATUS             ( CTL_BASE_PMU_APB + 0x0640 )
+#define REG_PMU_APB_PD_PUBCP_SYS_SHUTDOWN_MARK_STATUS             ( CTL_BASE_PMU_APB + 0x0644 )
+#define REG_PMU_APB_PD_WTLCP_LTE_PROC_SHUTDOWN_MARK_STATUS        ( CTL_BASE_PMU_APB + 0x0648 )
+#define REG_PMU_APB_PD_WTLCP_TD_PROC_SHUTDOWN_MARK_STATUS         ( CTL_BASE_PMU_APB + 0x064C )
+#define REG_PMU_APB_PD_AUDCP_SYS_SHUTDOWN_MARK_STATUS             ( CTL_BASE_PMU_APB + 0x0650 )
+#define REG_PMU_APB_PD_PUB_SYS_SHUTDOWN_MARK_STATUS               ( CTL_BASE_PMU_APB + 0x0654 )
+#define REG_PMU_APB_PD_AUDCP_AUDDSP_SHUTDOWN_MARK_STATUS          ( CTL_BASE_PMU_APB + 0x0658 )
+#define REG_PMU_APB_PD_GPU_RGX_DUST_A_SHUTDOWN_MARK_STATUS        ( CTL_BASE_PMU_APB + 0x065C )
+#define REG_PMU_APB_PD_GPU_RGX_DUST_B_SHUTDOWN_MARK_STATUS        ( CTL_BASE_PMU_APB + 0x0660 )
+#define REG_PMU_APB_APCPU_TOP_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x0664 )
+#define REG_PMU_APB_AP_SYS_SLEEP_CNT                              ( CTL_BASE_PMU_APB + 0x0668 )
+#define REG_PMU_APB_WTLCP_SYS_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x066C )
+#define REG_PMU_APB_PUBCP_SYS_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x0670 )
+#define REG_PMU_APB_AUDCP_SYS_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x0674 )
+#define REG_PMU_APB_PUB_SYS_LIGHT_SLEEP_CNT                       ( CTL_BASE_PMU_APB + 0x0678 )
+#define REG_PMU_APB_AP_DEEP_SLEEP_CNT                             ( CTL_BASE_PMU_APB + 0x067C )
+#define REG_PMU_APB_SP_SYS_DEEP_SLEEP_CNT                         ( CTL_BASE_PMU_APB + 0x0680 )
+#define REG_PMU_APB_WTLCP_DEEP_SLEEP_CNT                          ( CTL_BASE_PMU_APB + 0x0684 )
+#define REG_PMU_APB_PUBCP_DEEP_SLEEP_CNT                          ( CTL_BASE_PMU_APB + 0x0688 )
+#define REG_PMU_APB_AUDCP_SYS_DEEP_SLEEP_CNT                      ( CTL_BASE_PMU_APB + 0x068C )
+#define REG_PMU_APB_PUB_SYS_DEEP_SLEEP_CNT                        ( CTL_BASE_PMU_APB + 0x0690 )
+#define REG_PMU_APB_AP_LIGHT_SLEEP_CNT                            ( CTL_BASE_PMU_APB + 0x0694 )
+#define REG_PMU_APB_WTLCP_LIGHT_SLEEP_CNT                         ( CTL_BASE_PMU_APB + 0x0698 )
+#define REG_PMU_APB_PUBCP_LIGHT_SLEEP_CNT                         ( CTL_BASE_PMU_APB + 0x069C )
+#define REG_PMU_APB_AUDCP_SYS_LIGHT_SLEEP_CNT                     ( CTL_BASE_PMU_APB + 0x06A0 )
+#define REG_PMU_APB_AON_SYS_LIGHT_SLEEP_CNT                       ( CTL_BASE_PMU_APB + 0x06A4 )
+#define REG_PMU_APB_SYS_SOFT_RST_BUSY                             ( CTL_BASE_PMU_APB + 0x06A8 )
+#define REG_PMU_APB_REG_SYS_SRST_FRC_LP_ACK                       ( CTL_BASE_PMU_APB + 0x06AC )
+#define REG_PMU_APB_SOFT_RST_SEL                                  ( CTL_BASE_PMU_APB + 0x06B0 )
+#define REG_PMU_APB_REG_SYS_DDR_PWR_HS_ACK                        ( CTL_BASE_PMU_APB + 0x06B4 )
+#define REG_PMU_APB_PHY_PWR_CNT_DONE                              ( CTL_BASE_PMU_APB + 0x06B8 )
+#define REG_PMU_APB_PD_AP_SYS_DBG_SHUTDOWN__EN                    ( CTL_BASE_PMU_APB + 0x06BC )
+#define REG_PMU_APB_EIC_SYS_SEL                                   ( CTL_BASE_PMU_APB + 0x06C0 )
+#define REG_PMU_APB_DDR_SLP_CTRL_STATE                            ( CTL_BASE_PMU_APB + 0x06C4 )
+#define REG_PMU_APB_PD_APCPU_C4_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x06C8 )
+#define REG_PMU_APB_PD_APCPU_C5_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x06CC )
+#define REG_PMU_APB_PD_APCPU_C6_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x06D0 )
+#define REG_PMU_APB_PD_APCPU_C7_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x06D4 )
+#define REG_PMU_APB_APCPU_TOP_DEEP_SLEEP_CNT                      ( CTL_BASE_PMU_APB + 0x06D8 )
+#define REG_PMU_APB_APCPU_TOP_LIGHT_SLEEP_CNT                     ( CTL_BASE_PMU_APB + 0x06DC )
+#define REG_PMU_APB_PD_ESE_SYS_SHUTDOWN_MARK_STATUS               ( CTL_BASE_PMU_APB + 0x06E0 )
+#define REG_PMU_APB_ESE_DEEP_SLEEP_CNT                            ( CTL_BASE_PMU_APB + 0x06E4 )
+#define REG_PMU_APB_ESE_SYS_SLEEP_CNT                             ( CTL_BASE_PMU_APB + 0x06E8 )
+#define REG_PMU_APB_PD_IPA_SHUTDOWN_MARK_STATUS                   ( CTL_BASE_PMU_APB + 0x06EC )
+#define REG_PMU_APB_PD_AI_SHUTDOWN_MARK_STATUS                    ( CTL_BASE_PMU_APB + 0x06F0 )
+#define REG_PMU_APB_PD_AI_POWERVR_SHUTDOWN_MARK_STATUS            ( CTL_BASE_PMU_APB + 0x06F4 )
+#define REG_PMU_APB_PD_AI_CAMBRICON_SHUTDOWN_MARK_STATUS          ( CTL_BASE_PMU_APB + 0x06F8 )
+#define REG_PMU_APB_ESE_LIGHT_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x0720 )
+#define REG_PMU_APB_IPA_DEEP_SLEEP_CNT                            ( CTL_BASE_PMU_APB + 0x0724 )
+#define REG_PMU_APB_IPA_SYS_SLEEP_CNT                             ( CTL_BASE_PMU_APB + 0x0728 )
+#define REG_PMU_APB_IPA_LIGHT_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x072C )
 
 /* REG_PMU_APB_PD_APCPU_TOP_CFG */
 
@@ -417,23 +458,23 @@
 #define BIT_PMU_APB_PD_MM_TOP_PWR_ON_SEQ_DLY(x)                    (((x) & 0xFF) << 8)
 #define BIT_PMU_APB_PD_MM_TOP_ISO_ON_DLY(x)                        (((x) & 0xFF))
 
-/* REG_PMU_APB_PD_GPU_RGX_DUST_CFG0 */
+/* REG_PMU_APB_PD_GPU_RGX_DUST_A_CFG0 */
 
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_PWRUP_ABORT                    BIT(28)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_PWRDWN_ABORT                   BIT(27)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_PD_SEL                         BIT(26)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_FORCE_SHUTDOWN                 BIT(25)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_AUTO_SHUTDOWN_EN               BIT(24)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_PWR_ON_DLY(x)                  (((x) & 0xFF) << 16)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_PWR_ON_SEQ_DLY(x)              (((x) & 0xFF) << 8)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_ISO_ON_DLY(x)                  (((x) & 0xFF))
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_PWRUP_ABORT                  BIT(28)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_PWRDWN_ABORT                 BIT(27)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_PD_SEL                       BIT(26)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_FORCE_SHUTDOWN               BIT(25)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_AUTO_SHUTDOWN_EN             BIT(24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_PWR_ON_DLY(x)                (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_PWR_ON_SEQ_DLY(x)            (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_ISO_ON_DLY(x)                (((x) & 0xFF))
 
-/* REG_PMU_APB_PD_GPU_RGX_DUST_CFG1 */
+/* REG_PMU_APB_PD_GPU_RGX_DUST_A_CFG1 */
 
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_SHUTDOWN_DLY(x)                (((x) & 0xFF) << 24)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_RST_DEASSERT_DLY(x)            (((x) & 0xFF) << 16)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_RST_ASSERT_DLY(x)              (((x) & 0xFF) << 8)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_ISO_OFF_DLY(x)                 (((x) & 0xFF))
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_SHUTDOWN_DLY(x)              (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_RST_DEASSERT_DLY(x)          (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_RST_ASSERT_DLY(x)            (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_ISO_OFF_DLY(x)               (((x) & 0xFF))
 
 /* REG_PMU_APB_PD_GPU_TOP_CFG0 */
 
@@ -547,6 +588,11 @@
 
 #define BIT_PMU_APB_PUBCP_FRC_STOP_REQ_FOR_WTL                     BIT(0)
 
+/* REG_PMU_APB_PLL_WAIT_CNT3 */
+
+#define BIT_PMU_APB_PCIEPLL_V_WAIT_CNT(x)                          (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PCIEPLL_H_WAIT_CNT(x)                          (((x) & 0xFF))
+
 /* REG_PMU_APB_PD_PUB_SYS_CFG */
 
 #define BIT_PMU_APB_PD_PUB_SYS_FORCE_SHUTDOWN                      BIT(25)
@@ -568,7 +614,6 @@
 
 /* REG_PMU_APB_PLL_WAIT_CNT0 */
 
-#define BIT_PMU_APB_MPLL3_WAIT_CNT(x)                              (((x) & 0xFF) << 24)
 #define BIT_PMU_APB_MPLL2_WAIT_CNT(x)                              (((x) & 0xFF) << 16)
 #define BIT_PMU_APB_MPLL1_WAIT_CNT(x)                              (((x) & 0xFF) << 8)
 #define BIT_PMU_APB_MPLL0_WAIT_CNT(x)                              (((x) & 0xFF))
@@ -585,9 +630,11 @@
 #define BIT_PMU_APB_ISPPLL_WAIT_CNT(x)                             (((x) & 0xFF) << 24)
 #define BIT_PMU_APB_RPLL_WAIT_CNT(x)                               (((x) & 0xFF) << 16)
 #define BIT_PMU_APB_GPLL_WAIT_CNT(x)                               (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_APLL_WAIT_CNT(x)                               (((x) & 0xFF))
 
 /* REG_PMU_APB_XTL0_REL_CFG */
 
+#define BIT_PMU_APB_XTL0_IPA_SEL                                   BIT(10)
 #define BIT_PMU_APB_XTL0_FRC_OFF                                   BIT(9)
 #define BIT_PMU_APB_XTL0_FRC_ON                                    BIT(8)
 #define BIT_PMU_APB_XTL0_TOP_DVFS_SEL                              BIT(7)
@@ -601,6 +648,7 @@
 
 /* REG_PMU_APB_XTL1_REL_CFG */
 
+#define BIT_PMU_APB_XTL1_IPA_SEL                                   BIT(10)
 #define BIT_PMU_APB_XTL1_FRC_OFF                                   BIT(9)
 #define BIT_PMU_APB_XTL1_FRC_ON                                    BIT(8)
 #define BIT_PMU_APB_XTL1_TOP_DVFS_SEL                              BIT(7)
@@ -614,6 +662,7 @@
 
 /* REG_PMU_APB_ISPPLL_REL_CFG */
 
+#define BIT_PMU_APB_ISPPLL_IPA_SEL                                 BIT(11)
 #define BIT_PMU_APB_ISPPLL_REF_SEL                                 BIT(10)
 #define BIT_PMU_APB_ISPPLL_FRC_OFF                                 BIT(9)
 #define BIT_PMU_APB_ISPPLL_FRC_ON                                  BIT(8)
@@ -628,6 +677,7 @@
 
 /* REG_PMU_APB_XTLBUF0_REL_CFG */
 
+#define BIT_PMU_APB_XTLBUF0_IPA_SEL                                BIT(10)
 #define BIT_PMU_APB_XTLBUF0_FRC_OFF                                BIT(9)
 #define BIT_PMU_APB_XTLBUF0_FRC_ON                                 BIT(8)
 #define BIT_PMU_APB_XTLBUF0_TOP_DVFS_SEL                           BIT(7)
@@ -641,6 +691,7 @@
 
 /* REG_PMU_APB_XTLBUF1_REL_CFG */
 
+#define BIT_PMU_APB_XTLBUF1_IPA_SEL                                BIT(10)
 #define BIT_PMU_APB_XTLBUF1_FRC_OFF                                BIT(9)
 #define BIT_PMU_APB_XTLBUF1_FRC_ON                                 BIT(8)
 #define BIT_PMU_APB_XTLBUF1_TOP_DVFS_SEL                           BIT(7)
@@ -654,6 +705,7 @@
 
 /* REG_PMU_APB_DPLL0_REL_CFG */
 
+#define BIT_PMU_APB_DPLL0_IPA_SEL                                  BIT(11)
 #define BIT_PMU_APB_DPLL0_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_DPLL0_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_DPLL0_FRC_OFF                                  BIT(8)
@@ -668,6 +720,7 @@
 
 /* REG_PMU_APB_DPLL1_REL_CFG */
 
+#define BIT_PMU_APB_DPLL1_IPA_SEL                                  BIT(11)
 #define BIT_PMU_APB_DPLL1_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_DPLL1_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_DPLL1_FRC_OFF                                  BIT(8)
@@ -682,6 +735,7 @@
 
 /* REG_PMU_APB_LTEPLL_REL_CFG */
 
+#define BIT_PMU_APB_LTEPLL_IPA_SEL                                 BIT(12)
 #define BIT_PMU_APB_LTEPLL_REF_SEL(x)                              (((x) & 0x3) << 10)
 #define BIT_PMU_APB_LTEPLL_FRC_OFF                                 BIT(9)
 #define BIT_PMU_APB_LTEPLL_FRC_ON                                  BIT(8)
@@ -696,6 +750,7 @@
 
 /* REG_PMU_APB_TWPLL_REL_CFG */
 
+#define BIT_PMU_APB_TWPLL_IPA_SEL                                  BIT(12)
 #define BIT_PMU_APB_TWPLL_REF_SEL(x)                               (((x) & 0x3) << 10)
 #define BIT_PMU_APB_TWPLL_FRC_OFF                                  BIT(9)
 #define BIT_PMU_APB_TWPLL_FRC_ON                                   BIT(8)
@@ -710,6 +765,7 @@
 
 /* REG_PMU_APB_GPLL_REL_CFG */
 
+#define BIT_PMU_APB_GPLL_IPA_SEL                                   BIT(11)
 #define BIT_PMU_APB_GPLL_TOP_DVFS_SEL                              BIT(10)
 #define BIT_PMU_APB_GPLL_REF_SEL                                   BIT(9)
 #define BIT_PMU_APB_GPLL_FRC_OFF                                   BIT(8)
@@ -724,6 +780,7 @@
 
 /* REG_PMU_APB_RPLL_REL_CFG */
 
+#define BIT_PMU_APB_RPLL_IPA_SEL                                   BIT(12)
 #define BIT_PMU_APB_RPLL_REF_SEL(x)                                (((x) & 0x3) << 10)
 #define BIT_PMU_APB_RPLL_FRC_OFF                                   BIT(9)
 #define BIT_PMU_APB_RPLL_FRC_ON                                    BIT(8)
@@ -738,15 +795,10 @@
 
 /* REG_PMU_APB_CP_SOFT_RST */
 
-#define BIT_PMU_APB_APCPU_CLUSTER_MODE_ST_SOFT_RST                 BIT(26)
-#define BIT_PMU_APB_APCPU_CORE7_MODE_ST_SOFT_RST                   BIT(25)
-#define BIT_PMU_APB_APCPU_CORE6_MODE_ST_SOFT_RST                   BIT(24)
-#define BIT_PMU_APB_APCPU_CORE5_MODE_ST_SOFT_RST                   BIT(23)
-#define BIT_PMU_APB_APCPU_CORE4_MODE_ST_SOFT_RST                   BIT(22)
-#define BIT_PMU_APB_APCPU_CORE3_MODE_ST_SOFT_RST                   BIT(21)
-#define BIT_PMU_APB_APCPU_CORE2_MODE_ST_SOFT_RST                   BIT(20)
-#define BIT_PMU_APB_APCPU_CORE1_MODE_ST_SOFT_RST                   BIT(19)
-#define BIT_PMU_APB_APCPU_CORE0_MODE_ST_SOFT_RST                   BIT(18)
+#define BIT_PMU_APB_IPA_SYS_SOFT_RST                               BIT(21)
+#define BIT_PMU_APB_AI_CAMBRICON_SOFT_RST                          BIT(20)
+#define BIT_PMU_APB_AI_PWOERVR_SOFT_RST                            BIT(19)
+#define BIT_PMU_APB_AI_SYS_SOFT_RST                                BIT(18)
 #define BIT_PMU_APB_ESE_SYS_SOFT_RST                               BIT(17)
 #define BIT_PMU_APB_AP_VSP_SOFT_RST                                BIT(16)
 #define BIT_PMU_APB_WTLCP_TGDSP_SOFT_RST                           BIT(15)
@@ -766,33 +818,40 @@
 #define BIT_PMU_APB_PUBCP_SOFT_RST                                 BIT(1)
 #define BIT_PMU_APB_WTLCP_SOFT_RST                                 BIT(0)
 
+/* REG_PMU_APB_PCIEPLL_H_REL_CFG */
+
+#define BIT_PMU_APB_PCIEPLL_H_IPA_SEL                              BIT(13)
+#define BIT_PMU_APB_PCIEPLL_H_REF_SEL(x)                           (((x) & 0x7) << 10)
+#define BIT_PMU_APB_PCIEPLL_H_FRC_OFF                              BIT(9)
+#define BIT_PMU_APB_PCIEPLL_H_FRC_ON                               BIT(8)
+#define BIT_PMU_APB_PCIEPLL_H_TOP_DVFS_SEL                         BIT(7)
+#define BIT_PMU_APB_PCIEPLL_H_ESE_SEL                              BIT(6)
+#define BIT_PMU_APB_PCIEPLL_H_SP_SYS_SEL                           BIT(5)
+#define BIT_PMU_APB_PCIEPLL_H_PUB_SYS_SEL                          BIT(4)
+#define BIT_PMU_APB_PCIEPLL_H_AUDCP_SYS_SEL                        BIT(3)
+#define BIT_PMU_APB_PCIEPLL_H_PUBCP_SEL                            BIT(2)
+#define BIT_PMU_APB_PCIEPLL_H_WTLCP_SEL                            BIT(1)
+#define BIT_PMU_APB_PCIEPLL_H_AP_SEL                               BIT(0)
+
+/* REG_PMU_APB_PCIEPLL_V_REL_CFG */
+
+#define BIT_PMU_APB_PCIEPLL_V_IPA_SEL                              BIT(13)
+#define BIT_PMU_APB_PCIEPLL_V_REF_SEL(x)                           (((x) & 0x7) << 10)
+#define BIT_PMU_APB_PCIEPLL_V_FRC_OFF                              BIT(9)
+#define BIT_PMU_APB_PCIEPLL_V_FRC_ON                               BIT(8)
+#define BIT_PMU_APB_PCIEPLL_V_TOP_DVFS_SEL                         BIT(7)
+#define BIT_PMU_APB_PCIEPLL_V_ESE_SEL                              BIT(6)
+#define BIT_PMU_APB_PCIEPLL_V_SP_SYS_SEL                           BIT(5)
+#define BIT_PMU_APB_PCIEPLL_V_PUB_SYS_SEL                          BIT(4)
+#define BIT_PMU_APB_PCIEPLL_V_AUDCP_SYS_SEL                        BIT(3)
+#define BIT_PMU_APB_PCIEPLL_V_PUBCP_SEL                            BIT(2)
+#define BIT_PMU_APB_PCIEPLL_V_WTLCP_SEL                            BIT(1)
+#define BIT_PMU_APB_PCIEPLL_V_AP_SEL                               BIT(0)
+
 /* REG_PMU_APB_CP_SLP_STATUS_DBG0 */
 
 #define BIT_PMU_APB_PUBCP_DEEP_SLP_DBG(x)                          (((x) & 0xFFFF) << 16)
 #define BIT_PMU_APB_WTLCP_DEEP_SLP_DBG(x)                          (((x) & 0xFFFF))
-
-/* REG_PMU_APB_PWR_STATUS0_DBG */
-
-#define BIT_PMU_APB_PD_ESE_SYS_STATE(x)                            (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_PD_AP_SYS_STATE(x)                             (((x) & 0x1F))
-
-/* REG_PMU_APB_PWR_STATUS1_DBG */
-
-#define BIT_PMU_APB_PD_WTLCP_LTE_CE_STATE(x)                       (((x) & 0x1F) << 25)
-#define BIT_PMU_APB_PD_WTLCP_LTE_DPFEC_STATE(x)                    (((x) & 0x1F) << 20)
-#define BIT_PMU_APB_PD_WTLCP_HU3GE_B_STATE(x)                      (((x) & 0x1F) << 15)
-#define BIT_PMU_APB_PD_WTLCP_LDSP_STATE(x)                         (((x) & 0x1F) << 10)
-#define BIT_PMU_APB_PD_WTLCP_TGDSP_STATE(x)                        (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_PD_WTLCP_HU3GE_A_STATE(x)                      (((x) & 0x1F))
-
-/* REG_PMU_APB_PWR_STATUS2_DBG */
-
-#define BIT_PMU_APB_PD_AUDCP_SYS_STATE(x)                          (((x) & 0x1F) << 25)
-#define BIT_PMU_APB_PD_PUB_SYS_STATE(x)                            (((x) & 0x1F) << 20)
-#define BIT_PMU_APB_PD_WTLCP_TD_PROC_STATE(x)                      (((x) & 0x1F) << 15)
-#define BIT_PMU_APB_PD_WTLCP_LTE_PROC_STATE(x)                     (((x) & 0x1F) << 10)
-#define BIT_PMU_APB_PD_PUBCP_SYS_STATE(x)                          (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_PD_WTLCP_SYS_STATE(x)                          (((x) & 0x1F))
 
 /* REG_PMU_APB_PUB_SYS_AUTO_LIGHT_SLEEP_ENABLE */
 
@@ -800,31 +859,7 @@
 
 /* REG_PMU_APB_SLEEP_CTRL */
 
-#define BIT_PMU_APB_PUB_SYS_FORCE_SYSTEM_SLEEP                     BIT(31)
-#define BIT_PMU_APB_PUB_SYS_FORCE_LIGHT_SLEEP                      BIT(30)
-#define BIT_PMU_APB_PUB_SYS_FORCE_DEEP_SLEEP                       BIT(29)
-#define BIT_PMU_APB_PUB_SYS_AUTO_DEEP_SLEEP_ENABLE                 BIT(28)
-#define BIT_PMU_APB_AON_DMA_FORCE_LIGHT_SLEEP                      BIT(27)
-#define BIT_PMU_APB_PUBCP_FORCE_LIGHT_SLEEP                        BIT(26)
-#define BIT_PMU_APB_WTLCP_FORCE_LIGHT_SLEEP                        BIT(25)
-#define BIT_PMU_APB_AUDCP_FORCE_LIGHT_SLEEP                        BIT(24)
-#define BIT_PMU_APB_AP_FORCE_LIGHT_SLEEP                           BIT(23)
-#define BIT_PMU_APB_AON_SYS_FORCE_LIGHT_SLEEP                      BIT(22)
-#define BIT_PMU_APB_AUDCP_FORCE_PUB_DEEP_SLEEP                     BIT(21)
-#define BIT_PMU_APB_SP_SYS_FORCE_DEEP_SLEEP                        BIT(20)
-#define BIT_PMU_APB_AUDCP_FORCE_DEEP_SLEEP                         BIT(19)
-#define BIT_PMU_APB_PUBCP_FORCE_DEEP_SLEEP                         BIT(18)
-#define BIT_PMU_APB_WTLCP_FORCE_DEEP_SLEEP                         BIT(17)
-#define BIT_PMU_APB_AP_FORCE_DEEP_SLEEP                            BIT(16)
-#define BIT_PMU_APB_ESE_FORCE_DEEP_SLEEP                           BIT(15)
-#define BIT_PMU_APB_AUDCP_FORCE_SYSTEM_SLEEP                       BIT(14)
-#define BIT_PMU_APB_GPU_TOP_FORCE_SYSTEM_SLEEP                     BIT(13)
-#define BIT_PMU_APB_ESE_FORCE_SYSTEM_SLEEP                         BIT(12)
-#define BIT_PMU_APB_PUBCP_FORCE_SYSTEM_SLEEP                       BIT(11)
-#define BIT_PMU_APB_WTLCP_FORCE_SYSTEM_SLEEP                       BIT(10)
-#define BIT_PMU_APB_AP_FORCE_SYSTEM_SLEEP                          BIT(9)
-#define BIT_PMU_APB_APCPU_FORCE_SYSTEM_SLEEP                       BIT(8)
-#define BIT_PMU_APB_AP_ALL_FORCE_SYSTEM_SLEEP                      BIT(7)
+#define BIT_PMU_APB_IPA_DEEP_SLEEP                                 BIT(7)
 #define BIT_PMU_APB_SP_SYS_DEEP_SLEEP                              BIT(6)
 #define BIT_PMU_APB_AUDCP_DEEP_SLEEP                               BIT(5)
 #define BIT_PMU_APB_PUB_SYS_DEEP_SLEEP                             BIT(4)
@@ -835,6 +870,7 @@
 
 /* REG_PMU_APB_DDR_SLEEP_CTRL */
 
+#define BIT_PMU_APB_PUB_SYS_AUTO_DEEP_SLEEP_ENABLE                 BIT(20)
 #define BIT_PMU_APB_DDR_SLEEP_DISABLE_ACK                          BIT(19)
 #define BIT_PMU_APB_DDR_SLEEP_DISABLE_ACK_BYP                      BIT(18)
 #define BIT_PMU_APB_DDR_SLEEP_DISABLE                              BIT(17)
@@ -852,6 +888,7 @@
 
 /* REG_PMU_APB_SLEEP_STATUS */
 
+#define BIT_PMU_APB_IPA_SLP_STATUS(x)                              (((x) & 0xF) << 24)
 #define BIT_PMU_APB_SP_SYS_SLP_STATUS(x)                           (((x) & 0xF) << 20)
 #define BIT_PMU_APB_ESE_SLP_STATUS(x)                              (((x) & 0xF) << 16)
 #define BIT_PMU_APB_AUDCP_SLP_STATUS(x)                            (((x) & 0xF) << 12)
@@ -867,6 +904,8 @@
 
 /* REG_PMU_APB_PUB_SYS_DEEP_SLEEP_POLL0 */
 
+#define BIT_PMU_APB_IPA_PUB_SYS_DEEP_SLEEP_POLL(x)                 (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_ESE_PUB_SYS_DEEP_SLEEP_POLL(x)                 (((x) & 0xFF) << 8)
 #define BIT_PMU_APB_AUDCP_PUB_SYS_DEEP_SLEEP_POLL(x)               (((x) & 0xFF))
 
 /* REG_PMU_APB_PUB_SYS_DEEP_SLEEP_POLL1 */
@@ -875,6 +914,37 @@
 #define BIT_PMU_APB_PUBCP_PUB_SYS_DEEP_SLEEP_POLL(x)               (((x) & 0xFF) << 16)
 #define BIT_PMU_APB_AP_PUB_SYS_DEEP_SLEEP_POLL(x)                  (((x) & 0xFF) << 8)
 #define BIT_PMU_APB_WTLCP_PUB_SYS_DEEP_SLEEP_POLL(x)               (((x) & 0xFF))
+
+/* REG_PMU_APB_XTL_WAIT_CNT1 */
+
+#define BIT_PMU_APB_XTLBUF_PCIEH_WAIT_CNT(x)                       (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_XTLBUF_PCIEV_WAIT_CNT(x)                       (((x) & 0xFF))
+
+/* REG_PMU_APB_XTLBUF_PCIEH_REL_CFG */
+
+#define BIT_PMU_APB_XTLBUF_PCIEH_IPA_SEL                           BIT(9)
+#define BIT_PMU_APB_XTLBUF_PCIEH_FRC_OFF                           BIT(8)
+#define BIT_PMU_APB_XTLBUF_PCIEH_FRC_ON                            BIT(7)
+#define BIT_PMU_APB_XTLBUF_PCIEH_ESE_SEL                           BIT(6)
+#define BIT_PMU_APB_XTLBUF_PCIEH_SP_SYS_SEL                        BIT(5)
+#define BIT_PMU_APB_XTLBUF_PCIEH_PUB_SYS_SEL                       BIT(4)
+#define BIT_PMU_APB_XTLBUF_PCIEH_AUDCP_SYS_SEL                     BIT(3)
+#define BIT_PMU_APB_XTLBUF_PCIEH_PUBCP_SEL                         BIT(2)
+#define BIT_PMU_APB_XTLBUF_PCIEH_WTLCP_SEL                         BIT(1)
+#define BIT_PMU_APB_XTLBUF_PCIEH_AP_SEL                            BIT(0)
+
+/* REG_PMU_APB_XTLBUF_PCIEV_REL_CFG */
+
+#define BIT_PMU_APB_XTLBUF_PCIEV_IPA_SEL                           BIT(9)
+#define BIT_PMU_APB_XTLBUF_PCIEV_FRC_OFF                           BIT(8)
+#define BIT_PMU_APB_XTLBUF_PCIEV_FRC_ON                            BIT(7)
+#define BIT_PMU_APB_XTLBUF_PCIEV_ESE_SEL                           BIT(6)
+#define BIT_PMU_APB_XTLBUF_PCIEV_SP_SYS_SEL                        BIT(5)
+#define BIT_PMU_APB_XTLBUF_PCIEV_PUB_SYS_SEL                       BIT(4)
+#define BIT_PMU_APB_XTLBUF_PCIEV_AUDCP_SYS_SEL                     BIT(3)
+#define BIT_PMU_APB_XTLBUF_PCIEV_PUBCP_SEL                         BIT(2)
+#define BIT_PMU_APB_XTLBUF_PCIEV_WTLCP_SEL                         BIT(1)
+#define BIT_PMU_APB_XTLBUF_PCIEV_AP_SEL                            BIT(0)
 
 /* REG_PMU_APB_DDR_CHN_SLEEP_CTRL0 */
 
@@ -914,14 +984,15 @@
 #define BIT_PMU_APB_DDR_CHN1_AXI_STOP_SEL                          BIT(1)
 #define BIT_PMU_APB_DDR_CHN0_AXI_STOP_SEL                          BIT(0)
 
-/* REG_PMU_APB_PWR_STATUS3_DBG */
+/* REG_PMU_APB_NEST_DCDC_CTRL_CFG */
 
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_STATE(x)                       (((x) & 0x1F) << 25)
-#define BIT_PMU_APB_PD_AP_VSP_STATE(x)                             (((x) & 0x1F) << 20)
-#define BIT_PMU_APB_PD_AP_VDSP_STATE(x)                            (((x) & 0x1F) << 15)
-#define BIT_PMU_APB_PD_MM_TOP_STATE(x)                             (((x) & 0x1F) << 10)
-#define BIT_PMU_APB_PD_GPU_TOP_STATE(x)                            (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_PD_AUDCP_AUDDSP_STATE(x)                       (((x) & 0x1F))
+#define BIT_PMU_APB_DCDC_CPU_PARALLEL_PWRDWN_EN                    BIT(1)
+#define BIT_PMU_APB_DCDC_CPU_PARALLEL_PWRON_EN                     BIT(0)
+
+/* REG_PMU_APB_PD_SHARED_DCDC_STATE */
+
+#define BIT_PMU_APB_PD_DCDC_AI_STATE(x)                            (((x) & 0xF) << 8)
+#define BIT_PMU_APB_PD_DCDC_CPU1_STATE(x)                          (((x) & 0xF))
 
 /* REG_PMU_APB_DDR_OP_MODE_CFG */
 
@@ -948,12 +1019,14 @@
 
 /* REG_PMU_APB_BISR_DONE_STATUS */
 
+#define BIT_PMU_APB_PD_IPA_SYS_BISR_DONE                           BIT(30)
 #define BIT_PMU_APB_PD_ESE_SYS_BISR_DONE                           BIT(29)
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_DONE                          BIT(28)
 #define BIT_PMU_APB_PD_APCPU_C6_BISR_DONE                          BIT(27)
 #define BIT_PMU_APB_PD_APCPU_C5_BISR_DONE                          BIT(26)
 #define BIT_PMU_APB_PD_APCPU_C4_BISR_DONE                          BIT(25)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_DONE                      BIT(23)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_BISR_DONE                    BIT(24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_BISR_DONE                    BIT(23)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_DONE                            BIT(22)
 #define BIT_PMU_APB_PD_AP_VDSP_BISR_DONE                           BIT(21)
 #define BIT_PMU_APB_PD_WTLCP_TD_PROC_BISR_DONE                     BIT(20)
@@ -980,12 +1053,14 @@
 
 /* REG_PMU_APB_BISR_BUSY_STATUS */
 
+#define BIT_PMU_APB_PD_IPA_SYS_BISR_BUSY                           BIT(30)
 #define BIT_PMU_APB_PD_ESE_SYS_BISR_BUSY                           BIT(29)
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_BUSY                          BIT(28)
 #define BIT_PMU_APB_PD_APCPU_C6_BISR_BUSY                          BIT(27)
 #define BIT_PMU_APB_PD_APCPU_C5_BISR_BUSY                          BIT(26)
 #define BIT_PMU_APB_PD_APCPU_C4_BISR_BUSY                          BIT(25)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_BUSY                      BIT(23)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_BISR_BUSY                    BIT(24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_BISR_BUSY                    BIT(23)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_BUSY                            BIT(22)
 #define BIT_PMU_APB_PD_AP_VDSP_BISR_BUSY                           BIT(21)
 #define BIT_PMU_APB_PD_WTLCP_TD_PROC_BISR_BUSY                     BIT(20)
@@ -1012,12 +1087,14 @@
 
 /* REG_PMU_APB_BISR_BYP_CFG */
 
+#define BIT_PMU_APB_PD_IPA_SYS_BISR_FORCE_BYP                      BIT(30)
 #define BIT_PMU_APB_PD_ESE_SYS_BISR_FORCE_BYP                      BIT(29)
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_FORCE_BYP                     BIT(28)
 #define BIT_PMU_APB_PD_APCPU_C6_BISR_FORCE_BYP                     BIT(27)
 #define BIT_PMU_APB_PD_APCPU_C5_BISR_FORCE_BYP                     BIT(26)
 #define BIT_PMU_APB_PD_APCPU_C4_BISR_FORCE_BYP                     BIT(25)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_FORCE_BYP                 BIT(23)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_BISR_FORCE_BYP               BIT(24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_BISR_FORCE_BYP               BIT(23)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_FORCE_BYP                       BIT(22)
 #define BIT_PMU_APB_PD_AP_VDSP_BISR_FORCE_BYP                      BIT(21)
 #define BIT_PMU_APB_PD_WTLCP_TD_PROC_BISR_FORCE_BYP                BIT(20)
@@ -1044,12 +1121,14 @@
 
 /* REG_PMU_APB_BISR_EN_CFG */
 
+#define BIT_PMU_APB_PD_IPA_SYS_BISR_FORCE_EN                       BIT(30)
 #define BIT_PMU_APB_PD_ESE_SYS_BISR_FORCE_EN                       BIT(29)
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_FORCE_EN                      BIT(28)
 #define BIT_PMU_APB_PD_APCPU_C6_BISR_FORCE_EN                      BIT(27)
 #define BIT_PMU_APB_PD_APCPU_C5_BISR_FORCE_EN                      BIT(26)
 #define BIT_PMU_APB_PD_APCPU_C4_BISR_FORCE_EN                      BIT(25)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_FORCE_EN                  BIT(23)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_BISR_FORCE_EN                BIT(24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_BISR_FORCE_EN                BIT(23)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_FORCE_EN                        BIT(22)
 #define BIT_PMU_APB_PD_AP_VDSP_BISR_FORCE_EN                       BIT(21)
 #define BIT_PMU_APB_PD_WTLCP_TD_PROC_BISR_FORCE_EN                 BIT(20)
@@ -1074,40 +1153,33 @@
 #define BIT_PMU_APB_PD_APCPU_C1_BISR_FORCE_EN                      BIT(1)
 #define BIT_PMU_APB_PD_APCPU_C0_BISR_FORCE_EN                      BIT(0)
 
-/* REG_PMU_APB_CGM_AUTO_GATE_SEL_CFG0 */
+/* REG_PMU_APB_BISR_DONE_STATUS_1 */
 
-#define BIT_PMU_APB_CGM_AUTO_GATE_SEL_CFG0(x)                      (((x) & 0xFFFFFFFF))
+#define BIT_PMU_APB_PD_AI_CAMBRICON_BISR_DONE                      BIT(2)
+#define BIT_PMU_APB_PD_AI_POWERVR_BISR_DONE                        BIT(1)
+#define BIT_PMU_APB_PD_AI_SYS_BISR_DONE                            BIT(0)
 
-/* REG_PMU_APB_CGM_AUTO_GATE_SEL_CFG1 */
+/* REG_PMU_APB_BISR_BUSY_STATUS_1 */
 
-#define BIT_PMU_APB_CGM_AUTO_GATE_SEL_CFG1(x)                      (((x) & 0xFFFFFFFF))
+#define BIT_PMU_APB_PD_AI_POWERVR_BISR_BUSY                        BIT(2)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_BISR_BUSY                      BIT(1)
+#define BIT_PMU_APB_PD_AI_SYS_BISR_BUSY                            BIT(0)
 
-/* REG_PMU_APB_CGM_AUTO_GATE_SEL_CFG2 */
+/* REG_PMU_APB_BISR_BYP_CFG_1 */
 
-#define BIT_PMU_APB_CGM_AUTO_GATE_SEL_CFG2(x)                      (((x) & 0xFFFFFFFF))
+#define BIT_PMU_APB_PD_AI_POWERVR_BISR_FORCE_BYP                   BIT(2)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_BISR_FORCE_BYP                 BIT(1)
+#define BIT_PMU_APB_PD_AI_SYS_BISR_FORCE_BYP                       BIT(0)
 
-/* REG_PMU_APB_CGM_AUTO_GATE_SEL_CFG3 */
+/* REG_PMU_APB_BISR_EN_CFG_1 */
 
-#define BIT_PMU_APB_CGM_AUTO_GATE_SEL_CFG3(x)                      (((x) & 0xFFFFFFFF))
-
-/* REG_PMU_APB_CGM_FORCE_EN_CFG0 */
-
-#define BIT_PMU_APB_CGM_FORCE_EN_CFG0(x)                           (((x) & 0xFFFFFFFF))
-
-/* REG_PMU_APB_CGM_FORCE_EN_CFG1 */
-
-#define BIT_PMU_APB_CGM_FORCE_EN_CFG1(x)                           (((x) & 0xFFFFFFFF))
-
-/* REG_PMU_APB_CGM_FORCE_EN_CFG2 */
-
-#define BIT_PMU_APB_CGM_FORCE_EN_CFG2(x)                           (((x) & 0xFFFFFFFF))
-
-/* REG_PMU_APB_CGM_FORCE_EN_CFG3 */
-
-#define BIT_PMU_APB_CGM_FORCE_EN_CFG3(x)                           (((x) & 0xFFFFFFFF))
+#define BIT_PMU_APB_PD_AI_POWERVR_BISR_FORCE_EN                    BIT(2)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_BISR_FORCE_EN                  BIT(1)
+#define BIT_PMU_APB_PD_AI_SYS_BISR_FORCE_EN                        BIT(0)
 
 /* REG_PMU_APB_SLEEP_XTLON_CTRL */
 
+#define BIT_PMU_APB_IPA_SLEEP_XTL_ON                               BIT(6)
 #define BIT_PMU_APB_SP_SYS_SLEEP_XTL_ON                            BIT(5)
 #define BIT_PMU_APB_ESE_SLEEP_XTL_ON                               BIT(4)
 #define BIT_PMU_APB_AUDCP_SYS_SLEEP_XTL_ON                         BIT(3)
@@ -1125,7 +1197,6 @@
 
 /* REG_PMU_APB_APCPU_CORE_WAKEUP_EN */
 
-#define BIT_PMU_APB_APCPU_C4_QUAD_CORE_WAKEUP_EN                   BIT(8)
 #define BIT_PMU_APB_APCPU_C7_WAKEUP_EN                             BIT(7)
 #define BIT_PMU_APB_APCPU_C6_WAKEUP_EN                             BIT(6)
 #define BIT_PMU_APB_APCPU_C5_WAKEUP_EN                             BIT(5)
@@ -1156,11 +1227,14 @@
 
 /* REG_PMU_APB_PWR_CNT_WAIT_CFG1 */
 
+#define BIT_PMU_APB_IPA_PWR_WAIT_CNT(x)                            (((x) & 0xFF) << 16)
 #define BIT_PMU_APB_SP_SYS_PWR_WAIT_CNT(x)                         (((x) & 0xFF) << 8)
 #define BIT_PMU_APB_ESE_PWR_WAIT_CNT(x)                            (((x) & 0xFF))
 
 /* REG_PMU_APB_RCO_REL_CFG */
 
+#define BIT_PMU_APB_RCO_IPA_SEL                                    BIT(11)
+#define BIT_PMU_APB_RCO_CSYSPWRUPREQ_SEL                           BIT(10)
 #define BIT_PMU_APB_RCO_FRC_OFF                                    BIT(9)
 #define BIT_PMU_APB_RCO_FRC_ON                                     BIT(8)
 #define BIT_PMU_APB_RCO_TOP_DVFS_SEL                               BIT(7)
@@ -1178,6 +1252,7 @@
 
 /* REG_PMU_APB_MPLL0_REL_CFG */
 
+#define BIT_PMU_APB_MPLL0_IPA_SEL                                  BIT(11)
 #define BIT_PMU_APB_MPLL0_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_MPLL0_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_MPLL0_FRC_OFF                                  BIT(8)
@@ -1192,6 +1267,7 @@
 
 /* REG_PMU_APB_MPLL1_REL_CFG */
 
+#define BIT_PMU_APB_MPLL1_IPA_SEL                                  BIT(11)
 #define BIT_PMU_APB_MPLL1_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_MPLL1_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_MPLL1_FRC_OFF                                  BIT(8)
@@ -1206,6 +1282,7 @@
 
 /* REG_PMU_APB_MPLL2_REL_CFG */
 
+#define BIT_PMU_APB_MPLL2_IPA_SEL                                  BIT(11)
 #define BIT_PMU_APB_MPLL2_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_MPLL2_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_MPLL2_FRC_OFF                                  BIT(8)
@@ -1232,7 +1309,8 @@
 #define BIT_PMU_APB_PD_APCPU_C6_WAKEUP_LOCK_EN                     BIT(30)
 #define BIT_PMU_APB_PD_APCPU_C5_WAKEUP_LOCK_EN                     BIT(29)
 #define BIT_PMU_APB_PD_APCPU_C4_WAKEUP_LOCK_EN                     BIT(28)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_WAKEUP_LOCK_EN                 BIT(26)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_WAKEUP_LOCK_EN               BIT(27)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_WAKEUP_LOCK_EN               BIT(26)
 #define BIT_PMU_APB_PD_AP_VDSP_WAKEUP_LOCK_EN                      BIT(25)
 #define BIT_PMU_APB_PUBCP_SYS_WAKEUP_LOCK_EN                       BIT(24)
 #define BIT_PMU_APB_WTLCP_SYS_WAKEUP_LOCK_EN                       BIT(23)
@@ -1328,19 +1406,20 @@
 
 #define BIT_PMU_APB_APCPU_C7_DSLP_ENA                              BIT(0)
 
-/* REG_PMU_APB_MPLL3_REL_CFG */
+/* REG_PMU_APB_APLL_REL_CFG */
 
-#define BIT_PMU_APB_MPLL3_TOP_DVFS_SEL                             BIT(10)
-#define BIT_PMU_APB_MPLL3_REF_SEL                                  BIT(9)
-#define BIT_PMU_APB_MPLL3_FRC_OFF                                  BIT(8)
-#define BIT_PMU_APB_MPLL3_FRC_ON                                   BIT(7)
-#define BIT_PMU_APB_MPLL3_ESE_SEL                                  BIT(6)
-#define BIT_PMU_APB_MPLL3_SP_SYS_SEL                               BIT(5)
-#define BIT_PMU_APB_MPLL3_PUB_SYS_SEL                              BIT(4)
-#define BIT_PMU_APB_MPLL3_AUDCP_SYS_SEL                            BIT(3)
-#define BIT_PMU_APB_MPLL3_PUBCP_SEL                                BIT(2)
-#define BIT_PMU_APB_MPLL3_WTLCP_SEL                                BIT(1)
-#define BIT_PMU_APB_MPLL3_AP_SEL                                   BIT(0)
+#define BIT_PMU_APB_APLL_IPA_SEL                                   BIT(11)
+#define BIT_PMU_APB_APLL_TOP_DVFS_SEL                              BIT(10)
+#define BIT_PMU_APB_APLL_REF_SEL                                   BIT(9)
+#define BIT_PMU_APB_APLL_FRC_OFF                                   BIT(8)
+#define BIT_PMU_APB_APLL_FRC_ON                                    BIT(7)
+#define BIT_PMU_APB_APLL_ESE_SEL                                   BIT(6)
+#define BIT_PMU_APB_APLL_SP_SYS_SEL                                BIT(5)
+#define BIT_PMU_APB_APLL_PUB_SYS_SEL                               BIT(4)
+#define BIT_PMU_APB_APLL_AUDCP_SYS_SEL                             BIT(3)
+#define BIT_PMU_APB_APLL_PUBCP_SEL                                 BIT(2)
+#define BIT_PMU_APB_APLL_WTLCP_SEL                                 BIT(1)
+#define BIT_PMU_APB_APLL_AP_SEL                                    BIT(0)
 
 /* REG_PMU_APB_WTLCP_TGDSP_DSLP_ENA */
 
@@ -1389,19 +1468,38 @@
 
 #define BIT_PMU_APB_ESE_DSLP_ENA                                   BIT(0)
 
+/* REG_PMU_APB_IPA_DSLP_ENA */
+
+#define BIT_PMU_APB_IPA_DSLP_ENA                                   BIT(0)
+
 /* REG_PMU_APB_LIGHT_SLEEP_ENABLE */
 
+#define BIT_PMU_APB_APCPU_TOP_SMART_LSLP_ENA                       BIT(21)
+#define BIT_PMU_APB_AI_SMART_LSLP_ENA                              BIT(20)
+#define BIT_PMU_APB_MM_SMART_LSLP_ENA                              BIT(19)
+#define BIT_PMU_APB_GPU_SMART_LSLP_ENA                             BIT(18)
+#define BIT_PMU_APB_IPA_SMART_LSLP_ENA                             BIT(17)
+#define BIT_PMU_APB_ESE_SMART_LSLP_ENA                             BIT(16)
+#define BIT_PMU_APB_AUDCP_SYS_SMART_LSLP_ENA                       BIT(15)
+#define BIT_PMU_APB_AON_SMART_LSLP_ENA                             BIT(14)
+#define BIT_PMU_APB_WTLCP_SMART_LSLP_ENA                           BIT(13)
+#define BIT_PMU_APB_PUBCP_SMART_LSLP_ENA                           BIT(12)
+#define BIT_PMU_APB_AP_SMART_LSLP_ENA                              BIT(11)
 #define BIT_PMU_APB_PUB_SYS_SMART_LSLP_ENA                         BIT(10)
 #define BIT_PMU_APB_MM_LSLP_ENA                                    BIT(9)
 #define BIT_PMU_APB_GPU_LSLP_ENA                                   BIT(8)
+#define BIT_PMU_APB_IPA_LSLP_ENA                                   BIT(6)
+#define BIT_PMU_APB_ESE_LSLP_ENA                                   BIT(5)
 #define BIT_PMU_APB_AUDCP_SYS_LSLP_ENA                             BIT(4)
-#define BIT_PMU_APB_AON_DMA_LSLP_ENA                               BIT(3)
+#define BIT_PMU_APB_AON_LSLP_ENA                                   BIT(3)
 #define BIT_PMU_APB_WTLCP_LSLP_ENA                                 BIT(2)
 #define BIT_PMU_APB_PUBCP_LSLP_ENA                                 BIT(1)
 #define BIT_PMU_APB_AP_LSLP_ENA                                    BIT(0)
 
 /* REG_PMU_APB_LIGHT_SLEEP_MON */
 
+#define BIT_PMU_APB_IPA_LIGHT_SLEEP                                BIT(7)
+#define BIT_PMU_APB_ESE_LIGHT_SLEEP                                BIT(6)
 #define BIT_PMU_APB_PUB_SYS_LIGHT_SLEEP                            BIT(5)
 #define BIT_PMU_APB_AP_LIGHT_SLEEP                                 BIT(4)
 #define BIT_PMU_APB_WTLCP_LIGHT_SLEEP                              BIT(3)
@@ -1434,9 +1532,9 @@
 #define BIT_PMU_APB_EIC_LIGHT_SLEEP_SEL                            BIT(1)
 #define BIT_PMU_APB_EIC_DEEP_SLEEP_SEL                             BIT(0)
 
-/* REG_PMU_APB_AXI_LP_CTRL_DISABLE */
+/* REG_PMU_APB_IPA_FORCE_WAKEUP_CFG */
 
-#define BIT_PMU_APB_AXI_LP_CTRL_DISABLE                            BIT(0)
+#define BIT_PMU_APB_IPA_FORCE_WAKEUP                               BIT(0)
 
 /* REG_PMU_APB_PMU_DEBUG */
 
@@ -1444,6 +1542,10 @@
 
 /* REG_PMU_APB_SLEEP_CNT_CLR */
 
+#define BIT_PMU_APB_IPA_SYS_SLEEP_CNT_CLR                          BIT(22)
+#define BIT_PMU_APB_IPA_LIGHT_SLEEP_CNT_CLR                        BIT(21)
+#define BIT_PMU_APB_IPA_DEEP_SLEEP_CNT_CLR                         BIT(20)
+#define BIT_PMU_APB_ESE_LIGHT_SLEEP_CNT_CLR                        BIT(19)
 #define BIT_PMU_APB_ESE_SYS_SLEEP_CNT_CLR                          BIT(18)
 #define BIT_PMU_APB_APCPU_TOP_SYS_SLEEP_CNT_CLR                    BIT(17)
 #define BIT_PMU_APB_PUBCP_SYS_SLEEP_CNT_CLR                        BIT(16)
@@ -1464,88 +1566,146 @@
 #define BIT_PMU_APB_PUB_DEEP_SLEEP_CNT_CLR                         BIT(1)
 #define BIT_PMU_APB_AUDCP_SYS_DEEP_SLEEP_CNT_CLR                   BIT(0)
 
+/* REG_PMU_APB_PAD_OUT_DCDC_AI_EN_CFG */
+
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_IPA_DEEP_SLEEP_MASK         BIT(13)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_POL_SEL                     BIT(12)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_TOP_DVFS_DEEP_SLEEP_MASK    BIT(11)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_PLL_PD_MASK                 BIT(10)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_EXT_XTL_PD_MASK             BIT(9)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_SP_SYS_DEEP_SLEEP_MASK      BIT(8)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_AP_DEEP_SLEEP_MASK          BIT(7)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_ESE_DEEP_SLEEP_MASK         BIT(6)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_PUB_SYS_DEEP_SLEEP_MASK     BIT(5)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_AI_SYS_PD_MASK              BIT(4)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_APCPU_TOP_PD_MASK           BIT(3)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_WTLCP_DEEP_SLEEP_MASK       BIT(2)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_PUBCP_DEEP_SLEEP_MASK       BIT(1)
+#define BIT_PMU_APB_PAD_OUT_DCDC_AI_EN_AUDCP_DEEP_SLEEP_MASK       BIT(0)
+
 /* REG_PMU_APB_LVDSRFPLL_REL_CFG */
 
 #define BIT_PMU_APB_LVDSRFPLL_REF_SEL(x)                           (((x) & 0x3) << 8)
 
-/* REG_PMU_APB_PAD_OUT_ADIE_CTRL0 */
+/* REG_PMU_APB_EXT_XTL_EN_CTRL */
 
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_APCPU_C7_PD_MASK            BIT(31)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_AUDCP_SYS_DEEP_SLEEP_MASK   BIT(30)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_AUDCP_SYS_DEEP_SLEEP_MASK       BIT(29)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_AUDCP_SYS_DEEP_SLEEP_MASK   BIT(28)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_PUB_SYS_DEEP_SLEEP_MASK     BIT(27)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_POL_SEL                     BIT(26)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_POL_SEL                         BIT(25)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_POL_SEL                     BIT(24)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_PUB_SYS_DEEP_SLEEP_MASK         BIT(23)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_PUB_SYS_DEEP_SLEEP_MASK     BIT(22)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_EXT_XTL_PD_MASK             BIT(21)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_SP_SYS_DEEP_SLEEP_MASK      BIT(20)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_APCPU_TOP_PD_MASK           BIT(19)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_WTLCP_DEEP_SLEEP_MASK       BIT(18)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_PUBCP_DEEP_SLEEP_MASK       BIT(17)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_AP_DEEP_SLEEP_MASK          BIT(16)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_EXT_XTL_PD_MASK                 BIT(15)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_SP_SYS_DEEP_SLEEP_MASK          BIT(14)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_APCPU_TOP_PD_MASK               BIT(13)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_WTLCP_DEEP_SLEEP_MASK           BIT(12)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_PUBCP_DEEP_SLEEP_MASK           BIT(11)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_AP_DEEP_SLEEP_MASK              BIT(10)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_EXT_XTL_PD_MASK             BIT(9)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_SP_SYS_DEEP_SLEEP_MASK      BIT(8)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_APCPU_TOP_PD_MASK           BIT(7)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_WTLCP_DEEP_SLEEP_MASK       BIT(6)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_PUBCP_DEEP_SLEEP_MASK       BIT(5)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_AP_DEEP_SLEEP_MASK          BIT(4)
 #define BIT_PMU_APB_EXT_XTL3_COMB_EN                               BIT(3)
 #define BIT_PMU_APB_EXT_XTL2_COMB_EN                               BIT(2)
 #define BIT_PMU_APB_EXT_XTL1_COMB_EN                               BIT(1)
 #define BIT_PMU_APB_EXT_XTL0_COMB_EN                               BIT(0)
 
-/* REG_PMU_APB_PAD_OUT_ADIE_CTRL1 */
+/* REG_PMU_APB_PAD_OUT_CHIP_SLEEP_CFG */
 
-#define BIT_PMU_APB_PAD_OUT_CHIP_DEEP_SLEEP_ESE_DEEP_SLEEP_MASK    BIT(31)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_ESE_DEEP_SLEEP_MASK             BIT(30)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_ESE_DEEP_SLEEP_MASK        BIT(29)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_ESE_DEEP_SLEEP_MASK        BIT(28)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_ESE_DEEP_SLEEP_MASK         BIT(27)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_PLL_PD_MASK                     BIT(26)
-#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_PLL_PD_MASK                 BIT(25)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_PLL_PD_MASK                 BIT(24)
-#define BIT_PMU_APB_PAD_OUT_XTL_EN_APCPU_C7_PD_MASK                BIT(23)
-#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_APCPU_C7_PD_MASK            BIT(22)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_POL_SEL                    BIT(21)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_POL_SEL                    BIT(20)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_PLL_PD_MASK                BIT(19)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_AUDCP_SYS_DEEP_SLEEP_MASK  BIT(18)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_APCPU_C7_DEEP_SLEEP_MASK   BIT(17)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_PUB_SYS_DEEP_SLEEP_MASK    BIT(16)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_EXT_XTL_PD_MASK            BIT(15)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_SP_SYS_DEEP_SLEEP_MASK     BIT(14)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_APCPU_TOP_PD_MASK          BIT(13)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_WTLCP_DEEP_SLEEP_MASK      BIT(12)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_PUBCP_DEEP_SLEEP_MASK      BIT(11)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN1_AP_DEEP_SLEEP_MASK         BIT(10)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_PLL_PD_MASK                BIT(9)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_AUDCP_SYS_DEEP_SLEEP_MASK  BIT(8)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_APCPU_C7_DEEP_SLEEP_MASK   BIT(7)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_PUB_SYS_DEEP_SLEEP_MASK    BIT(6)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_EXT_XTL_PD_MASK            BIT(5)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_SP_SYS_DEEP_SLEEP_MASK     BIT(4)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_APCPU_TOP_PD_MASK          BIT(3)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_WTLCP_DEEP_SLEEP_MASK      BIT(2)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_PUBCP_DEEP_SLEEP_MASK      BIT(1)
-#define BIT_PMU_APB_PAD_OUT_XTL_BUF_EN0_AP_DEEP_SLEEP_MASK         BIT(0)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_IPA_DEEP_SLEEP_MASK         BIT(13)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_POL_SEL                     BIT(12)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_TOP_DVFS_DEEP_SLEEP_MASK    BIT(11)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_PLL_PD_MASK                 BIT(10)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_EXT_XTL_PD_MASK             BIT(9)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_SP_SYS_DEEP_SLEEP_MASK      BIT(8)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_AP_DEEP_SLEEP_MASK          BIT(7)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_ESE_DEEP_SLEEP_MASK         BIT(6)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_PUB_SYS_DEEP_SLEEP_MASK     BIT(5)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_APCPU_C7_PD_MASK            BIT(4)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_APCPU_TOP_PD_MASK           BIT(3)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_WTLCP_DEEP_SLEEP_MASK       BIT(2)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_PUBCP_DEEP_SLEEP_MASK       BIT(1)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_AUDCP_DEEP_SLEEP_MASK       BIT(0)
+
+/* REG_PMU_APB_PAD_OUT_XTL_EN0_CFG */
+
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_IPA_DEEP_SLEEP_MASK            BIT(13)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_POL_SEL                        BIT(12)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_TOP_DVFS_DEEP_SLEEP_MASK       BIT(11)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_PLL_PD_MASK                    BIT(10)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_EXT_XTL_PD_MASK                BIT(9)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_SP_SYS_DEEP_SLEEP_MASK         BIT(8)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_AP_DEEP_SLEEP_MASK             BIT(7)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_ESE_DEEP_SLEEP_MASK            BIT(6)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_PUB_SYS_DEEP_SLEEP_MASK        BIT(5)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_APCPU_C7_PD_MASK               BIT(4)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_APCPU_TOP_PD_MASK              BIT(3)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_WTLCP_DEEP_SLEEP_MASK          BIT(2)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_PUBCP_DEEP_SLEEP_MASK          BIT(1)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_AUDCP_DEEP_SLEEP_MASK          BIT(0)
+
+/* REG_PMU_APB_PAD_OUT_XTL_EN1_CFG */
+
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_IPA_DEEP_SLEEP_MASK            BIT(13)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_POL_SEL                        BIT(12)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_TOP_DVFS_DEEP_SLEEP_MASK       BIT(11)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_PLL_PD_MASK                    BIT(10)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_EXT_XTL_PD_MASK                BIT(9)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_SP_SYS_DEEP_SLEEP_MASK         BIT(8)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_AP_DEEP_SLEEP_MASK             BIT(7)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_ESE_DEEP_SLEEP_MASK            BIT(6)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_PUB_SYS_DEEP_SLEEP_MASK        BIT(5)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_APCPU_C7_PD_MASK               BIT(4)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_APCPU_TOP_PD_MASK              BIT(3)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_WTLCP_DEEP_SLEEP_MASK          BIT(2)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_PUBCP_DEEP_SLEEP_MASK          BIT(1)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_AUDCP_DEEP_SLEEP_MASK          BIT(0)
+
+/* REG_PMU_APB_PAD_OUT_DCDC_ARM0_EN_CFG */
+
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_IPA_DEEP_SLEEP_MASK       BIT(13)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_POL_SEL                   BIT(12)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_TOP_DVFS_DEEP_SLEEP_MASK  BIT(11)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_PLL_PD_MASK               BIT(10)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_EXT_XTL_PD_MASK           BIT(9)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_SP_SYS_DEEP_SLEEP_MASK    BIT(8)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_AP_DEEP_SLEEP_MASK        BIT(7)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_ESE_DEEP_SLEEP_MASK       BIT(6)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_PUB_SYS_DEEP_SLEEP_MASK   BIT(5)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_APCPU_C7_PD_MASK          BIT(4)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_APCPU_TOP_PD_MASK         BIT(3)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_WTLCP_DEEP_SLEEP_MASK     BIT(2)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_PUBCP_DEEP_SLEEP_MASK     BIT(1)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_AUDCP_DEEP_SLEEP_MASK     BIT(0)
+
+/* REG_PMU_APB_PAD_OUT_DCDC_ARM1_EN_CFG */
+
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_IPA_DEEP_SLEEP_MASK       BIT(13)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_POL_SEL                   BIT(12)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_TOP_DVFS_DEEP_SLEEP_MASK  BIT(11)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_PLL_PD_MASK               BIT(10)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_EXT_XTL_PD_MASK           BIT(9)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_SP_SYS_DEEP_SLEEP_MASK    BIT(8)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_AP_DEEP_SLEEP_MASK        BIT(7)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_ESE_DEEP_SLEEP_MASK       BIT(6)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_PUB_SYS_DEEP_SLEEP_MASK   BIT(5)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_APCPU_C7_PD_MASK          BIT(4)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_APCPU_TOP_PD_MASK         BIT(3)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_WTLCP_DEEP_SLEEP_MASK     BIT(2)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_PUBCP_DEEP_SLEEP_MASK     BIT(1)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_AUDCP_DEEP_SLEEP_MASK     BIT(0)
+
+/* REG_PMU_APB_DCXO_LP_DEEP_SLEEP_CFG */
+
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_IPA_DEEP_SLEEP_MASK         BIT(13)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_POL_SEL                     BIT(12)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_TOP_DVFS_DEEP_SLEEP_MASK    BIT(11)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_PLL_PD_MASK                 BIT(10)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_EXT_XTL_PD_MASK             BIT(9)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_SP_SYS_DEEP_SLEEP_MASK      BIT(8)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_AP_DEEP_SLEEP_MASK          BIT(7)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_ESE_DEEP_SLEEP_MASK         BIT(6)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_PUB_SYS_DEEP_SLEEP_MASK     BIT(5)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_APCPU_C7_PD_MASK            BIT(4)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_APCPU_TOP_PD_MASK           BIT(3)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_WTLCP_DEEP_SLEEP_MASK       BIT(2)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_PUBCP_DEEP_SLEEP_MASK       BIT(1)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_AUDCP_DEEP_SLEEP_MASK       BIT(0)
 
 /* REG_PMU_APB_BISR_FORCE_SEL */
 
+#define BIT_PMU_APB_PD_IPA_SYS_BISR_FORCE_SEL                      BIT(31)
 #define BIT_PMU_APB_PD_ESE_SYS_BISR_FORCE_SEL                      BIT(30)
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_FORCE_SEL                     BIT(29)
 #define BIT_PMU_APB_PD_APCPU_C6_BISR_FORCE_SEL                     BIT(28)
 #define BIT_PMU_APB_PD_APCPU_C5_BISR_FORCE_SEL                     BIT(27)
 #define BIT_PMU_APB_PD_APCPU_C4_BISR_FORCE_SEL                     BIT(26)
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_FORCE_SEL                 BIT(24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_BISR_FORCE_SEL               BIT(25)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_BISR_FORCE_SEL               BIT(24)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_FORCE_SEL                       BIT(23)
 #define BIT_PMU_APB_PD_AUDCP_AUDDSP_BISR_FORCE_SEL                 BIT(22)
 #define BIT_PMU_APB_PD_AUDCP_SYS_BISR_FORCE_SEL                    BIT(21)
@@ -1571,6 +1731,12 @@
 #define BIT_PMU_APB_PD_APCPU_C1_BISR_FORCE_SEL                     BIT(1)
 #define BIT_PMU_APB_PD_APCPU_C0_BISR_FORCE_SEL                     BIT(0)
 
+/* REG_PMU_APB_BISR_FORCE_SEL_1 */
+
+#define BIT_PMU_APB_PD_AI_POWERVR_BISR_FORCE_SEL                   BIT(2)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_BISR_FORCE_SEL                 BIT(1)
+#define BIT_PMU_APB_PD_AI_SYS_BISR_FORCE_SEL                       BIT(0)
+
 /* REG_PMU_APB_AON_MEM_CTRL */
 
 #define BIT_PMU_APB_SP_SYS_MEM_ALL_SEL                             BIT(1)
@@ -1578,8 +1744,8 @@
 
 /* REG_PMU_APB_PWR_DOMAIN_INT_CLR */
 
-#define BIT_PMU_APB_INT_REQ_PWR_DOWN_CLR(x)                        (((x) & 0x3FF) << 16)
-#define BIT_PMU_APB_INT_REQ_PWR_UP_CLR(x)                          (((x) & 0x3FF))
+#define BIT_PMU_APB_INT_REQ_PWR_DOWN_CLR(x)                        (((x) & 0x7FF) << 16)
+#define BIT_PMU_APB_INT_REQ_PWR_UP_CLR(x)                          (((x) & 0x7FF))
 
 /* REG_PMU_APB_DDR_SLP_WAIT_CNT */
 
@@ -1632,12 +1798,15 @@
 
 /* REG_PMU_APB_ANALOG_PHY_PD_CFG */
 
+#define BIT_PMU_APB_USB3_PHY_PD_REG                                BIT(15)
+#define BIT_PMU_APB_USB2_PHY_PD_REG                                BIT(14)
+#define BIT_PMU_APB_MPHY_PD_REG                                    BIT(13)
 #define BIT_PMU_APB_CSI_2P2LANE_PD_REG                             BIT(12)
 #define BIT_PMU_APB_PHY_PWR_DLY(x)                                 (((x) & 0xFF) << 4)
 #define BIT_PMU_APB_DSI_PD_REG                                     BIT(3)
-#define BIT_PMU_APB_USB2PHY_PD_REG                                 BIT(2)
-#define BIT_PMU_APB_CSI_4LANE_PD_REG                               BIT(1)
-#define BIT_PMU_APB_CSI_2LANE_PD_REG                               BIT(0)
+#define BIT_PMU_APB_PCIE2_PD_REG                                   BIT(2)
+#define BIT_PMU_APB_CSI_4LANE1_PD_REG                              BIT(1)
+#define BIT_PMU_APB_CSI_4LANE0_PD_REG                              BIT(0)
 
 /* REG_PMU_APB_PUB_SYS_DEEP_SLEEP_SEL */
 
@@ -1691,59 +1860,31 @@
 
 /* REG_PMU_APB_PD_APCPU_TOP_CFG3 */
 
-#define BIT_PMU_APB_PD_APCPU_C7_DCDC_PWR_ON_DLY(x)                 (((x) & 0xFF) << 8)
-#define BIT_PMU_APB_PD_APCPU_C7_DCDC_PWR_OFF_DLY(x)                (((x) & 0xFF))
+#define BIT_PMU_APB_PD_DCDC_CPU1_ISO_ON_DLY(x)                     (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_DCDC_CPU1_SHUTDOWN_WINDOW(x)                (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_DCDC_CPU1_PWR_ON_DLY(x)                     (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_DCDC_CPU1_PWR_OFF_DLY(x)                    (((x) & 0xFF))
 
-/* REG_PMU_APB_APCU_PWR_STATE0 */
+/* REG_PMU_APB_PD_APCPU_TOP_CFG4 */
 
-#define BIT_PMU_APB_PD_APCPU_C4_STATE(x)                           (((x) & 0x1F) << 25)
-#define BIT_PMU_APB_PD_APCPU_C3_STATE(x)                           (((x) & 0x1F) << 20)
-#define BIT_PMU_APB_PD_APCPU_C2_STATE(x)                           (((x) & 0x1F) << 15)
-#define BIT_PMU_APB_PD_APCPU_C1_STATE(x)                           (((x) & 0x1F) << 10)
-#define BIT_PMU_APB_PD_APCPU_C0_STATE(x)                           (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_PD_APCPU_TOP_STATE(x)                          (((x) & 0x1F))
+#define BIT_PMU_APB_PD_DCDC_CPU1_PWR_SEQ_DLY(x)                    (((x) & 0xFF) << 4)
+#define BIT_PMU_APB_DCDC_CPU1_FRC_ON(x)                            (((x) & 0xF))
 
-/* REG_PMU_APB_APCU_PWR_STATE1 */
+/* REG_PMU_APB_PD_DCDC_AI_CFG0 */
 
-#define BIT_PMU_APB_PD_APCPU_C7_STATE(x)                           (((x) & 0x1F) << 10)
-#define BIT_PMU_APB_PD_APCPU_C6_STATE(x)                           (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_PD_APCPU_C5_STATE(x)                           (((x) & 0x1F))
+#define BIT_PMU_APB_PD_DCDC_AI_ISO_ON_DLY(x)                       (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_DCDC_AI_SHUTDOWN_WINDOW(x)                  (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_DCDC_AI_PWR_ON_DLY(x)                       (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_DCDC_AI_PWR_OFF_DLY(x)                      (((x) & 0xFF))
 
-/* REG_PMU_APB_APCPU_TOP_CFG */
+/* REG_PMU_APB_PD_DCDC_AI_CFG1 */
 
-#define BIT_PMU_APB_APCPU_L2RSTDISABLE                             BIT(0)
+#define BIT_PMU_APB_PD_DCDC_AI_PWR_SEQ_DLY(x)                      (((x) & 0xFF))
 
-/* REG_PMU_APB_APCPU_C0_CFG */
+/* REG_PMU_APB_PD_DCDC_AI_CFG2 */
 
-#define BIT_PMU_APB_APCPU_VINITHI_C0                               BIT(0)
-
-/* REG_PMU_APB_APCPU_C1_CFG */
-
-#define BIT_PMU_APB_APCPU_VINITHI_C1                               BIT(0)
-
-/* REG_PMU_APB_APCPU_C2_CFG */
-
-#define BIT_PMU_APB_APCPU_VINITHI_C2                               BIT(0)
-
-/* REG_PMU_APB_APCPU_C3_CFG */
-
-#define BIT_PMU_APB_APCPU_VINITHI_C3                               BIT(0)
-
-/* REG_PMU_APB_APCPU_C4_CFG */
-
-#define BIT_PMU_APB_APCPU_VINITHI_C4                               BIT(0)
-
-/* REG_PMU_APB_APCPU_C5_CFG */
-
-#define BIT_PMU_APB_APCPU_VINITHI_C5                               BIT(0)
-
-/* REG_PMU_APB_APCPU_C6_CFG */
-
-#define BIT_PMU_APB_APCPU_VINITHI_C6                               BIT(0)
-
-/* REG_PMU_APB_APCPU_C7_CFG */
-
-#define BIT_PMU_APB_APCPU_VINITHI_C7                               BIT(0)
+#define BIT_PMU_APB_PCIE_USE_DCDC_AI_DISABLE                       BIT(2)
+#define BIT_PMU_APB_DCDC_AI_FRC_ON(x)                              (((x) & 0x3))
 
 /* REG_PMU_APB_GIC_CFG */
 
@@ -1784,37 +1925,31 @@
 
 #define BIT_PMU_APB_APCPU_CORE3_SIMD_RET_MODE(x)                   (((x) & 0x7))
 
-/* REG_PMU_APB_APCPU_C4_SIMD_RET_MODE */
+/* REG_PMU_APB_PCIE3_PHY_RAM_CFG */
 
-#define BIT_PMU_APB_APCPU_CORE4_SIMD_RET_MODE(x)                   (((x) & 0x7))
-
-/* REG_PMU_APB_APCPU_C5_SIMD_RET_MODE */
-
-#define BIT_PMU_APB_APCPU_CORE5_SIMD_RET_MODE(x)                   (((x) & 0x7))
-
-/* REG_PMU_APB_APCPU_C6_SIMD_RET_MODE */
-
-#define BIT_PMU_APB_APCPU_CORE6_SIMD_RET_MODE(x)                   (((x) & 0x7))
+#define BIT_PMU_APB_PCIE3_PHY_AUTO_CTRL_EN                         BIT(3)
+#define BIT_PMU_APB_RAM_PD_PCIE3_PHY                               BIT(2)
+#define BIT_PMU_APB_RAM_RET_PCIE3_PHY                              BIT(1)
+#define BIT_PMU_APB_PCIE3_PHY_RAM_PD_EN                            BIT(0)
 
 /* REG_PMU_APB_APCPU_CORE_FORCE_STOP */
 
 #define BIT_PMU_APB_APCPU_TOP_FORCE_DEEP_STOP                      BIT(8)
 #define BIT_PMU_APB_APCPU_CORE_FORCE_STOP(x)                       (((x) & 0xFF))
 
-/* REG_PMU_APB_APCU_MODE_STATE0 */
+/* REG_PMU_APB_PCIEPLL_H_RST_CTRL_CFG */
 
-#define BIT_PMU_APB_APCPU_CORE5_LOW_POWER_STATE(x)                 (((x) & 0x1F) << 25)
-#define BIT_PMU_APB_APCPU_CORE4_LOW_POWER_STATE(x)                 (((x) & 0x1F) << 20)
-#define BIT_PMU_APB_APCPU_CORE3_LOW_POWER_STATE(x)                 (((x) & 0x1F) << 15)
-#define BIT_PMU_APB_APCPU_CORE2_LOW_POWER_STATE(x)                 (((x) & 0x1F) << 10)
-#define BIT_PMU_APB_APCPU_CORE1_LOW_POWER_STATE(x)                 (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_APCPU_CORE0_LOW_POWER_STATE(x)                 (((x) & 0x1F))
+#define BIT_PMU_APB_PCIEPLL_H_RST_CTRL_BYPASS                      BIT(24)
+#define BIT_PMU_APB_PCIEPLL_H_DELAY_PWR_ON(x)                      (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PCIEPLL_H_DELAY_EN_OFF(x)                      (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PCIEPLL_H_DELAY_RST_ASSERT(x)                  (((x) & 0xFF))
 
-/* REG_PMU_APB_APCU_MODE_STATE1 */
+/* REG_PMU_APB_PCIEPLL_V_RST_CTRL_CFG */
 
-#define BIT_PMU_APB_APCPU_CORINTH_LOW_POWER_STATE(x)               (((x) & 0x3F) << 10)
-#define BIT_PMU_APB_APCPU_CORE7_LOW_POWER_STATE(x)                 (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_APCPU_CORE6_LOW_POWER_STATE(x)                 (((x) & 0x1F))
+#define BIT_PMU_APB_PCIEPLL_V_RST_CTRL_BYPASS                      BIT(24)
+#define BIT_PMU_APB_PCIEPLL_V_DELAY_PWR_ON(x)                      (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PCIEPLL_V_DELAY_EN_OFF(x)                      (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PCIEPLL_V_DELAY_RST_ASSERT(x)                  (((x) & 0xFF))
 
 /* REG_PMU_APB_PD_GPU_TOP_CFG1 */
 
@@ -1823,9 +1958,9 @@
 #define BIT_PMU_APB_PD_GPU_TOP_RST_ASSERT_DLY(x)                   (((x) & 0xFF) << 8)
 #define BIT_PMU_APB_PD_GPU_TOP_ISO_OFF_DLY(x)                      (((x) & 0xFF))
 
-/* REG_PMU_APB_APCPU_PMU_CLK_DIV_CFG */
+/* REG_PMU_APB_MPLL_WAIT_CLK_DIV_CFG */
 
-#define BIT_PMU_APB_APCPU_MODE_ST_CLK_DIV_CFG(x)                   (((x) & 0xFFFF))
+#define BIT_PMU_APB_MPLL_WAIT_CLK_DIV_CFG(x)                       (((x) & 0xFFFF))
 
 /* REG_PMU_APB_MPLL0_RST_CTRL_CFG */
 
@@ -1848,12 +1983,12 @@
 #define BIT_PMU_APB_MPLL2_DELAY_EN_OFF(x)                          (((x) & 0xFF) << 8)
 #define BIT_PMU_APB_MPLL2_DELAY_RST_ASSERT(x)                      (((x) & 0xFF))
 
-/* REG_PMU_APB_MPLL3_RST_CTRL_CFG */
+/* REG_PMU_APB_APLL_RST_CTRL_CFG */
 
-#define BIT_PMU_APB_MPLL3_RST_CTRL_BYPASS                          BIT(24)
-#define BIT_PMU_APB_MPLL3_DELAY_PWR_ON(x)                          (((x) & 0xFF) << 16)
-#define BIT_PMU_APB_MPLL3_DELAY_EN_OFF(x)                          (((x) & 0xFF) << 8)
-#define BIT_PMU_APB_MPLL3_DELAY_RST_ASSERT(x)                      (((x) & 0xFF))
+#define BIT_PMU_APB_APLL_RST_CTRL_BYPASS                           BIT(24)
+#define BIT_PMU_APB_APLL_DELAY_PWR_ON(x)                           (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_APLL_DELAY_EN_OFF(x)                           (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_APLL_DELAY_RST_ASSERT(x)                       (((x) & 0xFF))
 
 /* REG_PMU_APB_DPLL0_RST_CTRL_CFG */
 
@@ -1912,25 +2047,28 @@
 #define BIT_PMU_APB_ST_TWPLL_STATE(x)                              (((x) & 0x7) << 18)
 #define BIT_PMU_APB_ST_DPLL1_STATE(x)                              (((x) & 0x7) << 15)
 #define BIT_PMU_APB_ST_DPLL0_STATE(x)                              (((x) & 0x7) << 12)
-#define BIT_PMU_APB_ST_MPLL3_STATE(x)                              (((x) & 0x7) << 9)
+#define BIT_PMU_APB_ST_APLL_STATE(x)                               (((x) & 0x7) << 9)
 #define BIT_PMU_APB_ST_MPLL2_STATE(x)                              (((x) & 0x7) << 6)
 #define BIT_PMU_APB_ST_MPLL1_STATE(x)                              (((x) & 0x7) << 3)
 #define BIT_PMU_APB_ST_MPLL0_STATE(x)                              (((x) & 0x7))
 
 /* REG_PMU_APB_PLL_RST_CTRL_STATE1 */
 
+#define BIT_PMU_APB_ST_PCIEPLL_V_STATE(x)                          (((x) & 0x7) << 6)
+#define BIT_PMU_APB_ST_PCIEPLL_H_STATE(x)                          (((x) & 0x7) << 3)
 #define BIT_PMU_APB_ST_ISPPLL_STATE(x)                             (((x) & 0x7))
 
 /* REG_PMU_APB_ESE_FAST_WAKEUP_CTRL */
 
+#define BIT_PMU_APB_PMU_AUTO_SEL_RCO_EN                            BIT(3)
 #define BIT_PMU_APB_ESE_SYS_FAST_WAKEUP_AFTER_RCO                  BIT(2)
 #define BIT_PMU_APB_ESE_SYS_DEEP_STOP_TYPE_SEL                     BIT(1)
 #define BIT_PMU_APB_ESE_SYS_FAST_WAKEUP_EN                         BIT(0)
 
 /* REG_PMU_APB_WTLCP_DSP_TCM_RAM_POWER_CTRL */
 
-#define BIT_PMU_APB_WTLCP_TGDSP_TCM_RAM_SHUTDOWN_EN                BIT(1)
-#define BIT_PMU_APB_WTLCP_LDSP_TCM_RAM_SHUTDOWN_EN                 BIT(0)
+#define BIT_PMU_APB_WTLCP_TGDSP_TCM_RAM_PD_EN                      BIT(1)
+#define BIT_PMU_APB_WTLCP_LDSP_TCM_RAM_PD_EN                       BIT(0)
 
 /* REG_PMU_APB_WTLCP_HU3GE_NEST_DOMAIN_CTRL */
 
@@ -1938,10 +2076,10 @@
 
 /* REG_PMU_APB_DEBUG_RECOV_TYPE_CFG */
 
+#define BIT_PMU_APB_DBG_RECOV_WAIT_BUS_IDLE_EN                     BIT(7)
 #define BIT_PMU_APB_DBGRSTREQ_TRIG_DBG_RECOV_EN                    BIT(6)
 #define BIT_PMU_APB_APCPU_TOP_SOFT_RST_TRIG_DBG_RECOV_EN           BIT(5)
 #define BIT_PMU_APB_APCPU_CLUSTER_SOFT_RST_TRIG_DBG_RECOV_EN       BIT(4)
-#define BIT_PMU_APB_WDG_RST_TRIG_DBG_RECOV_EN                      BIT(3)
 #define BIT_PMU_APB_DEBUG_RECOV_FORCE_TRIG                         BIT(2)
 #define BIT_PMU_APB_DEBUG_RECOV_AUTO_TRIG_EN                       BIT(1)
 #define BIT_PMU_APB_DBG_RECOV_RST_TYPE_SEL                         BIT(0)
@@ -1960,8 +2098,7 @@
 
 /* REG_PMU_APB_APCPU_MODE_ST_CFG3 */
 
-#define BIT_PMU_APB_APCPU_CORINTH_DEBUG_RECOV_WAIT(x)              (((x) & 0xFF) << 8)
-#define BIT_PMU_APB_APCPU_CORE_DEBUG_RECOV_WAIT(x)                 (((x) & 0xFF))
+#define BIT_PMU_APB_APCPU_CLUSTER_INITIAL_STATE                    BIT(0)
 
 /* REG_PMU_APB_DEBUG_STATE_MARK */
 
@@ -1977,6 +2114,12 @@
 
 /* REG_PMU_APB_ANANKELITE_MEM_POWER_CFG */
 
+#define BIT_PMU_APB_APCPU_SNOOP_FILTER_RAM_DSLP_EN                 BIT(8)
+#define BIT_PMU_APB_APCPU_L3CACHE_TAG_P3_RAM_DSLP_EN               BIT(7)
+#define BIT_PMU_APB_APCPU_L3CACHE_TAG_P2_RAM_DSLP_EN               BIT(6)
+#define BIT_PMU_APB_APCPU_L3CACHE_TAG_P1_RAM_DSLP_EN               BIT(5)
+#define BIT_PMU_APB_APCPU_L3CACHE_TAG_P0_RAM_DSLP_EN               BIT(4)
+#define BIT_PMU_APB_APCPU_CORE3_RAM_DSLP_EN                        BIT(3)
 #define BIT_PMU_APB_APCPU_CORE2_RAM_DSLP_EN                        BIT(2)
 #define BIT_PMU_APB_APCPU_CORE1_RAM_DSLP_EN                        BIT(1)
 #define BIT_PMU_APB_APCPU_CORE0_RAM_DSLP_EN                        BIT(0)
@@ -2007,18 +2150,18 @@
 
 /* REG_PMU_APB_APCPU_PCHANNEL_STATE0 */
 
-#define BIT_PMU_APB_APCPU_CORE5_PCHANNEL_STATE(x)                  (((x) & 0x1F) << 25)
-#define BIT_PMU_APB_APCPU_CORE4_PCHANNEL_STATE(x)                  (((x) & 0x1F) << 20)
-#define BIT_PMU_APB_APCPU_CORE3_PCHANNEL_STATE(x)                  (((x) & 0x1F) << 15)
-#define BIT_PMU_APB_APCPU_CORE2_PCHANNEL_STATE(x)                  (((x) & 0x1F) << 10)
-#define BIT_PMU_APB_APCPU_CORE1_PCHANNEL_STATE(x)                  (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_APCPU_CORE0_PCHANNEL_STATE(x)                  (((x) & 0x1F))
+#define BIT_PMU_APB_APCPU_CORE7_PCHANNEL_STATE(x)                  (((x) & 0xF) << 28)
+#define BIT_PMU_APB_APCPU_CORE6_PCHANNEL_STATE(x)                  (((x) & 0xF) << 24)
+#define BIT_PMU_APB_APCPU_CORE5_PCHANNEL_STATE(x)                  (((x) & 0xF) << 20)
+#define BIT_PMU_APB_APCPU_CORE4_PCHANNEL_STATE(x)                  (((x) & 0xF) << 16)
+#define BIT_PMU_APB_APCPU_CORE3_PCHANNEL_STATE(x)                  (((x) & 0xF) << 12)
+#define BIT_PMU_APB_APCPU_CORE2_PCHANNEL_STATE(x)                  (((x) & 0xF) << 8)
+#define BIT_PMU_APB_APCPU_CORE1_PCHANNEL_STATE(x)                  (((x) & 0xF) << 4)
+#define BIT_PMU_APB_APCPU_CORE0_PCHANNEL_STATE(x)                  (((x) & 0xF))
 
 /* REG_PMU_APB_APCPU_PCHANNEL_STATE1 */
 
-#define BIT_PMU_APB_APCPU_CORINTH_PCHANNEL_STATE(x)                (((x) & 0x1F) << 10)
-#define BIT_PMU_APB_APCPU_CORE7_PCHANNEL_STATE(x)                  (((x) & 0x1F) << 5)
-#define BIT_PMU_APB_APCPU_CORE6_PCHANNEL_STATE(x)                  (((x) & 0x1F))
+#define BIT_PMU_APB_APCPU_CORINTH_PCHANNEL_STATE(x)                (((x) & 0xF))
 
 /* REG_PMU_APB_APCPU_SOFT_INT_GEN */
 
@@ -2033,6 +2176,14 @@
 
 /* REG_PMU_APB_DUAL_RAIL_RAM_FORCE_PD_CFG */
 
+#define BIT_PMU_APB_RAM_PD_GPU_RGX_DUST_B_FRC                      BIT(30)
+#define BIT_PMU_APB_RAM_PD_APCPU_TOP_FRC                           BIT(29)
+#define BIT_PMU_APB_RAM_PD_APCPU_SNOOP_FILTER_FRC                  BIT(28)
+#define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P3_FRC                BIT(27)
+#define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P2_FRC                BIT(26)
+#define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P1_FRC                BIT(25)
+#define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P0_FRC                BIT(24)
+#define BIT_PMU_APB_RAM_PD_APCPU_CORE3_FRC                         BIT(23)
 #define BIT_PMU_APB_RAM_PD_APCPU_CORE2_FRC                         BIT(22)
 #define BIT_PMU_APB_RAM_PD_APCPU_CORE1_FRC                         BIT(21)
 #define BIT_PMU_APB_RAM_PD_APCPU_CORE0_FRC                         BIT(20)
@@ -2055,10 +2206,17 @@
 #define BIT_PMU_APB_RAM_PD_AP_VDSP_FRC                             BIT(3)
 #define BIT_PMU_APB_RAM_PD_MM_TOP_FRC                              BIT(2)
 #define BIT_PMU_APB_RAM_PD_GPU_TOP_FRC                             BIT(1)
-#define BIT_PMU_APB_RAM_PD_GPU_RGX_DUST_FRC                        BIT(0)
+#define BIT_PMU_APB_RAM_PD_GPU_RGX_DUST_A_FRC                      BIT(0)
 
 /* REG_PMU_APB_DUAL_RAIL_RAM_FORCE_SLP_CFG */
 
+#define BIT_PMU_APB_RAM_RET_APCPU_TOP_FRC                          BIT(11)
+#define BIT_PMU_APB_RAM_RET_APCPU_SNOOP_FILTER_FRC                 BIT(10)
+#define BIT_PMU_APB_RAM_RET_APCPU_L3CACHE_TAG_P3_FRC               BIT(9)
+#define BIT_PMU_APB_RAM_RET_APCPU_L3CACHE_TAG_P2_FRC               BIT(8)
+#define BIT_PMU_APB_RAM_RET_APCPU_L3CACHE_TAG_P1_FRC               BIT(7)
+#define BIT_PMU_APB_RAM_RET_APCPU_L3CACHE_TAG_P0_FRC               BIT(6)
+#define BIT_PMU_APB_RAM_RET_APCPU_CORE3_FRC                        BIT(5)
 #define BIT_PMU_APB_RAM_RET_APCPU_CORE2_FRC                        BIT(4)
 #define BIT_PMU_APB_RAM_RET_APCPU_CORE1_FRC                        BIT(3)
 #define BIT_PMU_APB_RAM_RET_APCPU_CORE0_FRC                        BIT(2)
@@ -2170,9 +2328,12 @@
 
 /* REG_PMU_APB_APCPU_CORE3_SW_PCHANNEL_HANDSHAKE */
 
-#define BIT_PMU_APB_APCPU_CORE3_PACTIVE(x)                         (((x) & 0xF) << 10)
-#define BIT_PMU_APB_APCPU_CORE3_PDENY                              BIT(9)
-#define BIT_PMU_APB_APCPU_CORE3_PACCEPT                            BIT(8)
+#define BIT_PMU_APB_APCPU_CORE3_PACTIVE(x)                         (((x) & 0xF) << 12)
+#define BIT_PMU_APB_APCPU_CORE3_PDENY                              BIT(11)
+#define BIT_PMU_APB_APCPU_CORE3_PACCEPT                            BIT(10)
+#define BIT_PMU_APB_MODE_ST_CORE3_CGM_EN_SW                        BIT(9)
+#define BIT_PMU_APB_RAM_RET_APCPU_CORE3_SW                         BIT(8)
+#define BIT_PMU_APB_RAM_PD_APCPU_CORE3_SW                          BIT(7)
 #define BIT_PMU_APB_RST_APCPU_CORE3_WARM_SW_N                      BIT(6)
 #define BIT_PMU_APB_RST_APCPU_CORE3_COLD_SW_N                      BIT(5)
 #define BIT_PMU_APB_APCPU_CORE3_PSTATE_SW(x)                       (((x) & 0xF) << 1)
@@ -2220,6 +2381,16 @@
 
 /* REG_PMU_APB_APCPU_CLUSTER_SW_PCHANNEL_HANDSHAKE */
 
+#define BIT_PMU_APB_RAM_RET_APCPU_SNOOP_FILTER_SW                  BIT(28)
+#define BIT_PMU_APB_RAM_PD_APCPU_SNOOP_FILTER_SW                   BIT(27)
+#define BIT_PMU_APB_RAM_RET_APCPU_L3CACHE_TAG_P3_SW                BIT(26)
+#define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P3_SW                 BIT(25)
+#define BIT_PMU_APB_RAM_RET_APCPU_L3CACHE_TAG_P2_SW                BIT(24)
+#define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P2_SW                 BIT(23)
+#define BIT_PMU_APB_RAM_RET_APCPU_L3CACHE_TAG_P1_SW                BIT(22)
+#define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P1_SW                 BIT(21)
+#define BIT_PMU_APB_RAM_RET_APCPU_L3CACHE_TAG_P0_SW                BIT(20)
+#define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P0_SW                 BIT(19)
 #define BIT_PMU_APB_APCPU_CLUSTER_PACTIVE(x)                       (((x) & 0x7F) << 12)
 #define BIT_PMU_APB_APCPU_CLUSTER_PDENY                            BIT(11)
 #define BIT_PMU_APB_APCPU_CLUSTER_PACCEPT                          BIT(10)
@@ -2235,21 +2406,24 @@
 /* REG_PMU_APB_GPIO_FORCE_GATING_PLL_CFG */
 
 #define BIT_PMU_APB_GPLL_GPIO_FORCE_GATING_DISABLE                 BIT(4)
-#define BIT_PMU_APB_MPLL3_GPIO_FORCE_GATING_DISABLE                BIT(3)
 #define BIT_PMU_APB_MPLL2_GPIO_FORCE_GATING_DISABLE                BIT(2)
 #define BIT_PMU_APB_MPLL1_GPIO_FORCE_GATING_DISABLE                BIT(1)
 #define BIT_PMU_APB_MPLL0_GPIO_FORCE_GATING_DISABLE                BIT(0)
 
 /* REG_PMU_APB_ANALOG_PHY_PWRON_CFG */
 
+#define BIT_PMU_APB_USB3_PHY_PWRON_REG                             BIT(7)
+#define BIT_PMU_APB_USB2_PHY_PWRON_REG                             BIT(6)
+#define BIT_PMU_APB_MPHY_PWRON_REG                                 BIT(5)
 #define BIT_PMU_APB_CSI_2P2LANE_PWRON_REG                          BIT(4)
 #define BIT_PMU_APB_DSI_PWRON_REG                                  BIT(3)
-#define BIT_PMU_APB_USB2PHY_PWRON_REG                              BIT(2)
-#define BIT_PMU_APB_CSI_4LANE_PWRON_REG                            BIT(1)
-#define BIT_PMU_APB_CSI_2LANE_PWRON_REG                            BIT(0)
+#define BIT_PMU_APB_PCIE2_PWRON_REG                                BIT(2)
+#define BIT_PMU_APB_CSI_4LANE1_PWRON_REG                           BIT(1)
+#define BIT_PMU_APB_CSI_4LANE0_PWRON_REG                           BIT(0)
 
 /* REG_PMU_APB_APCPU_MODE_ST_CGM_EN_CFG */
 
+#define BIT_PMU_APB_APCPU_CORE3_MODE_ST_CGM_EN_DISABLE             BIT(3)
 #define BIT_PMU_APB_APCPU_CORE2_MODE_ST_CGM_EN_DISABLE             BIT(2)
 #define BIT_PMU_APB_APCPU_CORE1_MODE_ST_CGM_EN_DISABLE             BIT(1)
 #define BIT_PMU_APB_APCPU_CORE0_MODE_ST_CGM_EN_DISABLE             BIT(0)
@@ -2346,6 +2520,7 @@
 
 /* REG_PMU_APB_DVFS_BLOCK_SHUTDOWN_CFG */
 
+#define BIT_PMU_APB_DCDC_AI_DVFS_BLOCK_SHUTDOWN_EN                 BIT(2)
 #define BIT_PMU_APB_DCDC_CPU1_DVFS_BLOCK_SHUTDOWN_EN               BIT(1)
 #define BIT_PMU_APB_DCDC_CPU0_DVFS_BLOCK_SHUTDOWN_EN               BIT(0)
 
@@ -2360,8 +2535,14 @@
 #define BIT_PMU_APB_APCPU_CORE1_OFF_EMU_CLR_INT_DISABLE_EN         BIT(1)
 #define BIT_PMU_APB_APCPU_CORE0_OFF_EMU_CLR_INT_DISABLE_EN         BIT(0)
 
-/* REG_PMU_APB_ANANKE_LITE_DUAL_RAIL_RAM_FORCE_ON_CFG */
+/* REG_PMU_APB_APCPU_DUAL_RAIL_RAM_FORCE_ON_CFG */
 
+#define BIT_PMU_APB_APCPU_SNOOP_FILTER_RAM_FRC_ON                  BIT(8)
+#define BIT_PMU_APB_APCPU_L3CACHE_TAG_P3_RAM_FRC_ON                BIT(7)
+#define BIT_PMU_APB_APCPU_L3CACHE_TAG_P2_RAM_FRC_ON                BIT(6)
+#define BIT_PMU_APB_APCPU_L3CACHE_TAG_P1_RAM_FRC_ON                BIT(5)
+#define BIT_PMU_APB_APCPU_L3CACHE_TAG_P0_RAM_FRC_ON                BIT(4)
+#define BIT_PMU_APB_APCPU_CORE3_RAM_FRC_ON                         BIT(3)
 #define BIT_PMU_APB_APCPU_CORE2_RAM_FRC_ON                         BIT(2)
 #define BIT_PMU_APB_APCPU_CORE1_RAM_FRC_ON                         BIT(1)
 #define BIT_PMU_APB_APCPU_CORE0_RAM_FRC_ON                         BIT(0)
@@ -2376,6 +2557,233 @@
 #define BIT_PMU_APB_APCPU_CORE2_OFF_EMU_TO_OFF                     BIT(2)
 #define BIT_PMU_APB_APCPU_CORE1_OFF_EMU_TO_OFF                     BIT(1)
 #define BIT_PMU_APB_APCPU_CORE0_OFF_EMU_TO_OFF                     BIT(0)
+
+/* REG_PMU_APB_ALL_PLL_PD_RCO_BYP */
+
+#define BIT_PMU_APB_ALL_PLL_PD_RCO_BYP                             BIT(0)
+
+/* REG_PMU_APB_SP_CLK_GATE_BYP_CFG */
+
+#define BIT_PMU_APB_SP_PWR_PD_AON_MEM_BYP                          BIT(1)
+#define BIT_PMU_APB_SP_PWR_PD_SP_MEM_BYP                           BIT(0)
+
+/* REG_PMU_APB_DPLL1_CNT_DONE_BYP */
+
+#define BIT_PMU_APB_LPDDR3_DPLL1_CNT_DONE_BYP                      BIT(0)
+
+/* REG_PMU_APB_SRAM_DLY_CTRL_CFG */
+
+#define BIT_PMU_APB_SP_SRAM_RCO_SYS_SEL                            BIT(3)
+#define BIT_PMU_APB_SP_SRAM_XTLBUF0_SYS_SEL                        BIT(2)
+#define BIT_PMU_APB_AON_SRAM_RCO_SYS_SEL                           BIT(1)
+#define BIT_PMU_APB_AON_SRAM_XTLBUF0_SYS_SEL                       BIT(0)
+
+/* REG_PMU_APB_WDG_TRIG_DBG_RECOV_CFG */
+
+#define BIT_PMU_APB_WDG_RST_TRIG_DBG_RECOV_EN                      BIT(0)
+
+/* REG_PMU_APB_APCPU_TOP_RAM_POWER_CTRL */
+
+#define BIT_PMU_APB_APCPU_TOP_RAM_SHUTDOWN_EN                      BIT(0)
+
+/* REG_PMU_APB_PD_GPU_RGX_DUST_B_CFG0 */
+
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_PWRUP_ABORT                  BIT(28)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_PWRDWN_ABORT                 BIT(27)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_PD_SEL                       BIT(26)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_FORCE_SHUTDOWN               BIT(25)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_AUTO_SHUTDOWN_EN             BIT(24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_PWR_ON_DLY(x)                (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_PWR_ON_SEQ_DLY(x)            (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_ISO_ON_DLY(x)                (((x) & 0xFF))
+
+/* REG_PMU_APB_PD_GPU_RGX_DUST_B_CFG1 */
+
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_SHUTDOWN_DLY(x)              (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_RST_DEASSERT_DLY(x)          (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_RST_ASSERT_DLY(x)            (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_ISO_OFF_DLY(x)               (((x) & 0xFF))
+
+/* REG_PMU_APB_PD_AI_POWERVR_CFG */
+
+#define BIT_PMU_APB_PD_AI_POWERVR_PD_SEL                           BIT(26)
+#define BIT_PMU_APB_PD_AI_POWERVR_FORCE_SHUTDOWN                   BIT(25)
+#define BIT_PMU_APB_PD_AI_POWERVR_AUTO_SHUTDOWN_EN                 BIT(24)
+#define BIT_PMU_APB_PD_AI_POWERVR_PWR_ON_DLY(x)                    (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_AI_POWERVR_PWR_ON_SEQ_DLY(x)                (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_AI_POWERVR_ISO_ON_DLY(x)                    (((x) & 0xFF))
+
+/* REG_PMU_APB_PD_AI_SYS_CFG */
+
+#define BIT_PMU_APB_PD_AI_SYS_FORCE_SHUTDOWN                       BIT(25)
+#define BIT_PMU_APB_PD_AI_SYS_AUTO_SHUTDOWN_EN                     BIT(24)
+#define BIT_PMU_APB_PD_AI_SYS_PWR_ON_DLY(x)                        (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_AI_SYS_PWR_ON_SEQ_DLY(x)                    (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_AI_SYS_ISO_ON_DLY(x)                        (((x) & 0xFF))
+
+/* REG_PMU_APB_PD_AI_CAMBRICON_CFG */
+
+#define BIT_PMU_APB_PD_AI_CAMBRICON_PD_SEL                         BIT(26)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_FORCE_SHUTDOWN                 BIT(25)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_AUTO_SHUTDOWN_EN               BIT(24)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_PWR_ON_DLY(x)                  (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_PWR_ON_SEQ_DLY(x)              (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_ISO_ON_DLY(x)                  (((x) & 0xFF))
+
+/* REG_PMU_APB_PD_IPA_SYS_CFG */
+
+#define BIT_PMU_APB_PD_IPA_SYS_FORCE_SHUTDOWN                      BIT(25)
+#define BIT_PMU_APB_PD_IPA_SYS_AUTO_SHUTDOWN_EN                    BIT(24)
+#define BIT_PMU_APB_PD_IPA_SYS_PWR_ON_DLY(x)                       (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_IPA_SYS_PWR_ON_SEQ_DLY(x)                   (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_IPA_SYS_ISO_ON_DLY(x)                       (((x) & 0xFF))
+
+/* REG_PMU_APB_APCPU_MODE_ST_SOFT_RST */
+
+#define BIT_PMU_APB_APCPU_CLUSTER_MODE_ST_SOFT_RST                 BIT(8)
+#define BIT_PMU_APB_APCPU_CORE7_MODE_ST_SOFT_RST                   BIT(7)
+#define BIT_PMU_APB_APCPU_CORE6_MODE_ST_SOFT_RST                   BIT(6)
+#define BIT_PMU_APB_APCPU_CORE5_MODE_ST_SOFT_RST                   BIT(5)
+#define BIT_PMU_APB_APCPU_CORE4_MODE_ST_SOFT_RST                   BIT(4)
+#define BIT_PMU_APB_APCPU_CORE3_MODE_ST_SOFT_RST                   BIT(3)
+#define BIT_PMU_APB_APCPU_CORE2_MODE_ST_SOFT_RST                   BIT(2)
+#define BIT_PMU_APB_APCPU_CORE1_MODE_ST_SOFT_RST                   BIT(1)
+#define BIT_PMU_APB_APCPU_CORE0_MODE_ST_SOFT_RST                   BIT(0)
+
+/* REG_PMU_APB_FORCE_PUB_DEEP_SLEEP_CFG */
+
+#define BIT_PMU_APB_AUDCP_FORCE_PUB_DEEP_SLEEP                     BIT(0)
+
+/* REG_PMU_APB_FORCE_DEEP_SLEEP_CFG */
+
+#define BIT_PMU_APB_PUB_SYS_FORCE_DEEP_SLEEP                       BIT(7)
+#define BIT_PMU_APB_IPA_FORCE_DEEP_SLEEP                           BIT(6)
+#define BIT_PMU_APB_SP_SYS_FORCE_DEEP_SLEEP                        BIT(5)
+#define BIT_PMU_APB_AUDCP_FORCE_DEEP_SLEEP                         BIT(4)
+#define BIT_PMU_APB_PUBCP_FORCE_DEEP_SLEEP                         BIT(3)
+#define BIT_PMU_APB_WTLCP_FORCE_DEEP_SLEEP                         BIT(2)
+#define BIT_PMU_APB_AP_FORCE_DEEP_SLEEP                            BIT(1)
+#define BIT_PMU_APB_ESE_FORCE_DEEP_SLEEP                           BIT(0)
+
+/* REG_PMU_APB_FORCE_LIGHT_SLEEP_CFG */
+
+#define BIT_PMU_APB_PUB_SYS_FORCE_LIGHT_SLEEP                      BIT(7)
+#define BIT_PMU_APB_IPA_FORCE_LIGHT_SLEEP                          BIT(6)
+#define BIT_PMU_APB_ESE_FORCE_LIGHT_SLEEP                          BIT(5)
+#define BIT_PMU_APB_AON_FORCE_LIGHT_SLEEP                          BIT(4)
+#define BIT_PMU_APB_PUBCP_FORCE_LIGHT_SLEEP                        BIT(3)
+#define BIT_PMU_APB_WTLCP_FORCE_LIGHT_SLEEP                        BIT(2)
+#define BIT_PMU_APB_AUDCP_FORCE_LIGHT_SLEEP                        BIT(1)
+#define BIT_PMU_APB_AP_FORCE_LIGHT_SLEEP                           BIT(0)
+
+/* REG_PMU_APB_FORCE_SYSTEM_SLEEP_CFG */
+
+#define BIT_PMU_APB_PUB_SYS_FORCE_SYSTEM_SLEEP                     BIT(9)
+#define BIT_PMU_APB_IPA_FORCE_SYSTEM_SLEEP                         BIT(8)
+#define BIT_PMU_APB_AUDCP_FORCE_SYSTEM_SLEEP                       BIT(7)
+#define BIT_PMU_APB_GPU_TOP_FORCE_SYSTEM_SLEEP                     BIT(6)
+#define BIT_PMU_APB_ESE_FORCE_SYSTEM_SLEEP                         BIT(5)
+#define BIT_PMU_APB_PUBCP_FORCE_SYSTEM_SLEEP                       BIT(4)
+#define BIT_PMU_APB_WTLCP_FORCE_SYSTEM_SLEEP                       BIT(3)
+#define BIT_PMU_APB_AP_FORCE_SYSTEM_SLEEP                          BIT(2)
+#define BIT_PMU_APB_APCPU_FORCE_SYSTEM_SLEEP                       BIT(1)
+#define BIT_PMU_APB_AP_ALL_FORCE_SYSTEM_SLEEP                      BIT(0)
+
+/* REG_PMU_APB_ESE_ACCESS_DDR_CFG */
+
+#define BIT_PMU_APB_ESE_ACCESS_DDR_EN                              BIT(0)
+
+/* REG_PMU_APB_PWR_STATUS0_DBG */
+
+#define BIT_PMU_APB_PD_IPA_SYS_STATE(x)                            (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_AI_POWERVR_STATE(x)                         (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_AI_CAMBRICON_STATE(x)                       (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_AI_SYS_STATE(x)                             (((x) & 0xFF))
+
+/* REG_PMU_APB_PWR_STATUS1_DBG */
+
+#define BIT_PMU_APB_PD_ESE_SYS_STATE(x)                            (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_AP_VSP_STATE(x)                             (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_AP_VDSP_STATE(x)                            (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_AP_SYS_STATE(x)                             (((x) & 0xFF))
+
+/* REG_PMU_APB_PWR_STATUS2_DBG */
+
+#define BIT_PMU_APB_PD_MM_TOP_STATE(x)                             (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_STATE(x)                     (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_STATE(x)                     (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_GPU_TOP_STATE(x)                            (((x) & 0xFF))
+
+/* REG_PMU_APB_PWR_STATUS3_DBG */
+
+#define BIT_PMU_APB_PD_PUB_SYS_STATE(x)                            (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_PUBCP_SYS_STATE(x)                          (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_AUDCP_AUDDSP_STATE(x)                       (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_AUDCP_SYS_STATE(x)                          (((x) & 0xFF))
+
+/* REG_PMU_APB_PWR_STATUS4_DBG */
+
+#define BIT_PMU_APB_PD_WTLCP_LTE_DPFEC_STATE(x)                    (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_WTLCP_LTE_CE_STATE(x)                       (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_WTLCP_LTE_PROC_STATE(x)                     (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_WTLCP_SYS_STATE(x)                          (((x) & 0xFF))
+
+/* REG_PMU_APB_PWR_STATUS5_DBG */
+
+#define BIT_PMU_APB_PD_WTLCP_TGDSP_STATE(x)                        (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_WTLCP_LDSP_STATE(x)                         (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_WTLCP_HU3GE_B_STATE(x)                      (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_WTLCP_HU3GE_A_STATE(x)                      (((x) & 0xFF))
+
+/* REG_PMU_APB_PWR_STATUS6_DBG */
+
+#define BIT_PMU_APB_PD_APCPU_C3_STATE(x)                           (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_APCPU_C2_STATE(x)                           (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_APCPU_C1_STATE(x)                           (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_APCPU_C0_STATE(x)                           (((x) & 0xFF))
+
+/* REG_PMU_APB_PWR_STATUS7_DBG */
+
+#define BIT_PMU_APB_PD_APCPU_C7_STATE(x)                           (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_PD_APCPU_C6_STATE(x)                           (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_APCPU_C5_STATE(x)                           (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_APCPU_C4_STATE(x)                           (((x) & 0xFF))
+
+/* REG_PMU_APB_PWR_STATUS8_DBG */
+
+#define BIT_PMU_APB_PD_WTLCP_TD_PROC_STATE(x)                      (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_APCPU_TOP_STATE(x)                          (((x) & 0xFF))
+
+/* REG_PMU_APB_APCU_MODE_STATE0 */
+
+#define BIT_PMU_APB_APCPU_CORE3_POWER_MODE_STATE(x)                (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_APCPU_CORE2_POWER_MODE_STATE(x)                (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_APCPU_CORE1_POWER_MODE_STATE(x)                (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_APCPU_CORE0_POWER_MODE_STATE(x)                (((x) & 0xFF))
+
+/* REG_PMU_APB_APCU_MODE_STATE1 */
+
+#define BIT_PMU_APB_APCPU_CORE7_POWER_MODE_STATE(x)                (((x) & 0xFF) << 24)
+#define BIT_PMU_APB_APCPU_CORE6_POWER_MODE_STATE(x)                (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_APCPU_CORE5_POWER_MODE_STATE(x)                (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_APCPU_CORE4_POWER_MODE_STATE(x)                (((x) & 0xFF))
+
+/* REG_PMU_APB_APCU_MODE_STATE2 */
+
+#define BIT_PMU_APB_APCPU_CORINTH_POWER_MODE_STATE(x)              (((x) & 0xFF))
+
+/* REG_PMU_APB_APCPU_WFI_MARK */
+
+#define BIT_PMU_APB_CORE_WFI_MARK_CLR(x)                           (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_CORE_WFI_MARK(x)                               (((x) & 0xFF))
+
+/* REG_PMU_APB_UFS_PWR_GATE_BYP_CFG */
+
+#define BIT_PMU_APB_UFS_PWR_GATE_BYP                               BIT(0)
+
+/* REG_PMU_APB_AXI_LP_CTRL_DISABLE */
+
+#define BIT_PMU_APB_AXI_LP_CTRL_DISABLE                            BIT(0)
 
 /* REG_PMU_APB_PD_APCPU_C0_SHUTDOWN_MARK_STATUS */
 
@@ -2469,9 +2877,13 @@
 
 #define BIT_PMU_APB_PD_AUDCP_AUDDSP_SHUTDOWN_MARK(x)               (((x) & 0xF))
 
-/* REG_PMU_APB_PD_GPU_RGX_DUST_SHUTDOWN_MARK_STATUS */
+/* REG_PMU_APB_PD_GPU_RGX_DUST_A_SHUTDOWN_MARK_STATUS */
 
-#define BIT_PMU_APB_PD_GPU_RGX_DUST_SHUTDOWN_MARK(x)               (((x) & 0xF))
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_A_SHUTDOWN_MARK(x)             (((x) & 0xF))
+
+/* REG_PMU_APB_PD_GPU_RGX_DUST_B_SHUTDOWN_MARK_STATUS */
+
+#define BIT_PMU_APB_PD_GPU_RGX_DUST_B_SHUTDOWN_MARK(x)             (((x) & 0xF))
 
 /* REG_PMU_APB_APCPU_TOP_SLEEP_CNT */
 
@@ -2543,6 +2955,8 @@
 
 /* REG_PMU_APB_SYS_SOFT_RST_BUSY */
 
+#define BIT_PMU_APB_IPA_SYS_SRST_BUSY                              BIT(9)
+#define BIT_PMU_APB_AI_SYS_SRST_BUSY                               BIT(8)
 #define BIT_PMU_APB_ESE_SYS_SRST_BUSY                              BIT(7)
 #define BIT_PMU_APB_AUDCP_SYS_SRST_BUSY                            BIT(6)
 #define BIT_PMU_APB_AP_SYS_SRST_BUSY                               BIT(5)
@@ -2554,6 +2968,8 @@
 
 /* REG_PMU_APB_REG_SYS_SRST_FRC_LP_ACK */
 
+#define BIT_PMU_APB_REG_IPA_SRST_FRC_LP_ACK                        BIT(9)
+#define BIT_PMU_APB_REG_AI_SRST_FRC_LP_ACK                         BIT(8)
 #define BIT_PMU_APB_REG_ESE_SRST_FRC_LP_ACK                        BIT(7)
 #define BIT_PMU_APB_REG_AUDCP_SRST_FRC_LP_ACK                      BIT(6)
 #define BIT_PMU_APB_REG_AP_SRST_FRC_LP_ACK                         BIT(5)
@@ -2565,10 +2981,13 @@
 
 /* REG_PMU_APB_SOFT_RST_SEL */
 
-#define BIT_PMU_APB_SOFT_RST_SEL(x)                                (((x) & 0xFF))
+#define BIT_PMU_APB_SOFT_RST_SEL(x)                                (((x) & 0x3FF))
 
 /* REG_PMU_APB_REG_SYS_DDR_PWR_HS_ACK */
 
+#define BIT_PMU_APB_REG_IPA_SYS_DDR_PWR_HS_ACK                     BIT(10)
+#define BIT_PMU_APB_REG_AI_SYS_DDR_PWR_HS_ACK                      BIT(9)
+#define BIT_PMU_APB_REG_ESE_SYS_DDR_PWR_HS_ACK                     BIT(8)
 #define BIT_PMU_APB_REG_AUDCP_SYS_DDR_PWR_HS_ACK                   BIT(7)
 #define BIT_PMU_APB_REG_PUBCP_SYS_DDR_PWR_HS_ACK                   BIT(6)
 #define BIT_PMU_APB_REG_WTLCP_SYS_DDR_PWR_HS_ACK                   BIT(5)
@@ -2578,11 +2997,15 @@
 #define BIT_PMU_APB_REG_GPU_SYS_DDR_PWR_HS_ACK                     BIT(1)
 #define BIT_PMU_APB_REG_AON_SYS_DDR_PWR_HS_ACK                     BIT(0)
 
-/* REG_PMU_APB_CSI_DSI_PWR_CNT_DONE */
+/* REG_PMU_APB_PHY_PWR_CNT_DONE */
 
+#define BIT_PMU_APB_USB3_PHY_PWR_CNT_DONE                          BIT(7)
+#define BIT_PMU_APB_USB2_PHY_PWR_CNT_DONE                          BIT(6)
+#define BIT_PMU_APB_MPHY_PWR_CNT_DONE                              BIT(5)
+#define BIT_PMU_APB_PCIE2_PWR_CNT_DONE                             BIT(4)
 #define BIT_PMU_APB_CSI_2P2LANE_PWR_CNT_DONE                       BIT(3)
-#define BIT_PMU_APB_CSI_4LANE_PWR_CNT_DONE                         BIT(2)
-#define BIT_PMU_APB_CSI_2LANE_PWR_CNT_DONE                         BIT(1)
+#define BIT_PMU_APB_CSI_4LANE1_PWR_CNT_DONE                        BIT(2)
+#define BIT_PMU_APB_CSI_4LANE0_PWR_CNT_DONE                        BIT(1)
 #define BIT_PMU_APB_DSI_PWR_CNT_DONE                               BIT(0)
 
 /* REG_PMU_APB_PD_AP_SYS_DBG_SHUTDOWN__EN */
@@ -2632,6 +3055,38 @@
 /* REG_PMU_APB_ESE_SYS_SLEEP_CNT */
 
 #define BIT_PMU_APB_ESE_SYS_SLEEP_CNT(x)                           (((x) & 0xFF))
+
+/* REG_PMU_APB_PD_IPA_SHUTDOWN_MARK_STATUS */
+
+#define BIT_PMU_APB_PD_IPA_SYS_SHUTDOWN_MARK(x)                    (((x) & 0xF))
+
+/* REG_PMU_APB_PD_AI_SHUTDOWN_MARK_STATUS */
+
+#define BIT_PMU_APB_PD_AI_SYS_SHUTDOWN_MARK(x)                     (((x) & 0xF))
+
+/* REG_PMU_APB_PD_AI_POWERVR_SHUTDOWN_MARK_STATUS */
+
+#define BIT_PMU_APB_PD_AI_POWERVR_SHUTDOWN_MARK(x)                 (((x) & 0xF))
+
+/* REG_PMU_APB_PD_AI_CAMBRICON_SHUTDOWN_MARK_STATUS */
+
+#define BIT_PMU_APB_PD_AI_CAMBRICON_SHUTDOWN_MARK(x)               (((x) & 0xF))
+
+/* REG_PMU_APB_ESE_LIGHT_SLEEP_CNT */
+
+#define BIT_PMU_APB_ESE_LIGHT_SLEEP_CNT(x)                         (((x) & 0xFF))
+
+/* REG_PMU_APB_IPA_DEEP_SLEEP_CNT */
+
+#define BIT_PMU_APB_IPA_DEEP_SLEEP_CNT(x)                          (((x) & 0xFF))
+
+/* REG_PMU_APB_IPA_SYS_SLEEP_CNT */
+
+#define BIT_PMU_APB_IPA_SYS_SLEEP_CNT(x)                           (((x) & 0xFF))
+
+/* REG_PMU_APB_IPA_LIGHT_SLEEP_CNT */
+
+#define BIT_PMU_APB_IPA_LIGHT_SLEEP_CNT(x)                         (((x) & 0xFF))
 
 
 #endif /* PMU_APB_H */

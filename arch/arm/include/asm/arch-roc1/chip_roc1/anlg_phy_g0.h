@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:52
+ * updated at 2018-06-28 19:04:00
  *
  */
 
@@ -169,14 +169,15 @@
 
 /* REG_ANLG_PHY_G0_ANALOG_DPLL_TOP_REG_SEL_CFG_0 */
 
-#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_PD          BIT(8)
-#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_RST         BIT(7)
-#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_CLKOUT_EN   BIT(6)
-#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_DIV_SEL     BIT(5)
-#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_DIV32_EN    BIT(4)
-#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL1_PD          BIT(3)
-#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL1_RST         BIT(2)
-#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL1_CLKOUT_EN   BIT(1)
+#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_PD          BIT(9)
+#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_RST         BIT(8)
+#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_CLKOUT_EN   BIT(7)
+#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_DIV_SEL     BIT(6)
+#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL0_DIV32_EN    BIT(5)
+#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL1_PD          BIT(4)
+#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL1_RST         BIT(3)
+#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL1_CLKOUT_EN   BIT(2)
+#define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL1_DIV_SEL     BIT(1)
 #define BIT_ANLG_PHY_G0_DBG_SEL_ANALOG_DPLL_TOP_DPLL1_DIV32_EN    BIT(0)
 
 

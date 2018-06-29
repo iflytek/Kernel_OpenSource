@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-06-28 19:04:01
  *
  */
 
@@ -114,7 +114,7 @@
 
 /* REG_SCC_APB_SCC_ROSC_SW_RST */
 
-#define BIT_SCC_APB_SCC_ROSC_SW_RST(x)             (((x) & 0x1F))
+#define BIT_SCC_APB_SCC_ROSC_SW_RST(x)             (((x) & 0x3FF))
 
 
 #endif /* SCC_APB_H */

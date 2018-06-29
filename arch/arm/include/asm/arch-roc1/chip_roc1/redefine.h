@@ -72,5 +72,4 @@
 #define AON_SDIO0_CLK_2X_CFG                    0x80
 #define AON_EMMC_CLK_2X_CFG                     0x90
 
-
 #endif

@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-06-28 19:04:01
  *
  */
 
@@ -24,13 +24,12 @@
 #define REG_AON_SEC_APB_SEC_EB                        ( CTL_BASE_AON_SEC_APB + 0x0010 )
 #define REG_AON_SEC_APB_SEC_SOFT_RST                  ( CTL_BASE_AON_SEC_APB + 0x0014 )
 #define REG_AON_SEC_APB_FUNC_DMA_EN                   ( CTL_BASE_AON_SEC_APB + 0x0018 )
-#define REG_AON_SEC_APB_EFUSE_SEC_EB                  ( CTL_BASE_AON_SEC_APB + 0x001C )
+#define REG_AON_SEC_APB_AON_SEC_EB                    ( CTL_BASE_AON_SEC_APB + 0x001C )
 #define REG_AON_SEC_APB_SECURE_EFUSE_BOUNDRY          ( CTL_BASE_AON_SEC_APB + 0x0020 )
 #define REG_AON_SEC_APB_APCPU_APB_EB                  ( CTL_BASE_AON_SEC_APB + 0x0024 )
 #define REG_AON_SEC_APB_APCPU_SOFT_RST                ( CTL_BASE_AON_SEC_APB + 0x0028 )
-#define REG_AON_SEC_APB_APCPU_LIT_ANANKE_CLK_CFG      ( CTL_BASE_AON_SEC_APB + 0x002C )
-#define REG_AON_SEC_APB_APCPU_BIG_ANANKE_CLK_CFG      ( CTL_BASE_AON_SEC_APB + 0x0030 )
-#define REG_AON_SEC_APB_APCPU_PROMETHEUS_CLK_CFG      ( CTL_BASE_AON_SEC_APB + 0x0034 )
+#define REG_AON_SEC_APB_APCPU_ANANKE_CLK_CFG          ( CTL_BASE_AON_SEC_APB + 0x002C )
+#define REG_AON_SEC_APB_APCPU_PROMETHEUS_CLK_CFG      ( CTL_BASE_AON_SEC_APB + 0x0030 )
 #define REG_AON_SEC_APB_APCPU_BUS_CLK_CFG             ( CTL_BASE_AON_SEC_APB + 0x0038 )
 #define REG_AON_SEC_APB_APCPU_TOP_MISC_CLK_CFG        ( CTL_BASE_AON_SEC_APB + 0x003C )
 #define REG_AON_SEC_APB_RVBARADDR0                    ( CTL_BASE_AON_SEC_APB + 0x0040 )
@@ -42,6 +41,8 @@
 #define REG_AON_SEC_APB_RVBARADDR6                    ( CTL_BASE_AON_SEC_APB + 0x0058 )
 #define REG_AON_SEC_APB_RVBARADDR7                    ( CTL_BASE_AON_SEC_APB + 0x005C )
 #define REG_AON_SEC_APB_APCPU_CFG_CTRL                ( CTL_BASE_AON_SEC_APB + 0x0060 )
+#define REG_AON_SEC_APB_AON_SEC_APB_RSV_0             ( CTL_BASE_AON_SEC_APB + 0x0070 )
+#define REG_AON_SEC_APB_AON_SEC_APB_RSV_1             ( CTL_BASE_AON_SEC_APB + 0x0074 )
 
 /* REG_AON_SEC_APB_CHIP_KPRTL_0 */
 
@@ -61,6 +62,7 @@
 
 /* REG_AON_SEC_APB_SEC_EB */
 
+#define BIT_AON_SEC_APB_SEC_TZPC_IPA_EB            BIT(12)
 #define BIT_AON_SEC_APB_SEC_32K_DET_EB             BIT(11)
 #define BIT_AON_SEC_APB_SEC_EIC_RTCDV5_EB          BIT(10)
 #define BIT_AON_SEC_APB_SEC_EIC_RTC_EB             BIT(9)
@@ -88,8 +90,10 @@
 
 #define BIT_AON_SEC_APB_FUNC_DMA_EN                BIT(0)
 
-/* REG_AON_SEC_APB_EFUSE_SEC_EB */
+/* REG_AON_SEC_APB_AON_SEC_EB */
 
+#define BIT_AON_SEC_APB_I2C1_SEC_EB                BIT(2)
+#define BIT_AON_SEC_APB_I2C0_SEC_EB                BIT(1)
 #define BIT_AON_SEC_APB_EFUSE_SEC_EB               BIT(0)
 
 /* REG_AON_SEC_APB_SECURE_EFUSE_BOUNDRY */
@@ -111,8 +115,10 @@
 #define BIT_AON_SEC_APB_APCPU_ATB_SOFT_RST         BIT(8)
 #define BIT_AON_SEC_APB_APCPU_CORE_SOFT_RST(x)     (((x) & 0xFF))
 
-/* REG_AON_SEC_APB_APCPU_LIT_ANANKE_CLK_CFG */
+/* REG_AON_SEC_APB_APCPU_ANANKE_CLK_CFG */
 
+#define BIT_AON_SEC_APB_CGM_CORE3_DIV(x)           (((x) & 0x7) << 28)
+#define BIT_AON_SEC_APB_CGM_CORE3_SEL(x)           (((x) & 0x7) << 24)
 #define BIT_AON_SEC_APB_CGM_CORE2_DIV(x)           (((x) & 0x7) << 20)
 #define BIT_AON_SEC_APB_CGM_CORE2_SEL(x)           (((x) & 0x7) << 16)
 #define BIT_AON_SEC_APB_CGM_CORE1_DIV(x)           (((x) & 0x7) << 12)
@@ -120,26 +126,19 @@
 #define BIT_AON_SEC_APB_CGM_CORE0_DIV(x)           (((x) & 0x7) << 4)
 #define BIT_AON_SEC_APB_CGM_CORE0_SEL(x)           (((x) & 0x7))
 
-/* REG_AON_SEC_APB_APCPU_BIG_ANANKE_CLK_CFG */
-
-#define BIT_AON_SEC_APB_CGM_CORE6_DIV(x)           (((x) & 0x7) << 28)
-#define BIT_AON_SEC_APB_CGM_CORE6_SEL(x)           (((x) & 0x7) << 24)
-#define BIT_AON_SEC_APB_CGM_CORE5_DIV(x)           (((x) & 0x7) << 20)
-#define BIT_AON_SEC_APB_CGM_CORE5_SEL(x)           (((x) & 0x7) << 16)
-#define BIT_AON_SEC_APB_CGM_CORE4_DIV(x)           (((x) & 0x7) << 12)
-#define BIT_AON_SEC_APB_CGM_CORE4_SEL(x)           (((x) & 0x7) << 8)
-#define BIT_AON_SEC_APB_CGM_CORE3_DIV(x)           (((x) & 0x7) << 4)
-#define BIT_AON_SEC_APB_CGM_CORE3_SEL(x)           (((x) & 0x7))
-
 /* REG_AON_SEC_APB_APCPU_PROMETHEUS_CLK_CFG */
 
-#define BIT_AON_SEC_APB_CGM_CORE7_DIV(x)           (((x) & 0x7) << 4)
-#define BIT_AON_SEC_APB_CGM_CORE7_SEL(x)           (((x) & 0x7))
+#define BIT_AON_SEC_APB_CGM_CORE7_DIV(x)           (((x) & 0x7) << 28)
+#define BIT_AON_SEC_APB_CGM_CORE7_SEL(x)           (((x) & 0x7) << 24)
+#define BIT_AON_SEC_APB_CGM_CORE6_DIV(x)           (((x) & 0x7) << 20)
+#define BIT_AON_SEC_APB_CGM_CORE6_SEL(x)           (((x) & 0x7) << 16)
+#define BIT_AON_SEC_APB_CGM_CORE5_DIV(x)           (((x) & 0x7) << 12)
+#define BIT_AON_SEC_APB_CGM_CORE5_SEL(x)           (((x) & 0x7) << 8)
+#define BIT_AON_SEC_APB_CGM_CORE4_DIV(x)           (((x) & 0x7) << 4)
+#define BIT_AON_SEC_APB_CGM_CORE4_SEL(x)           (((x) & 0x7))
 
 /* REG_AON_SEC_APB_APCPU_BUS_CLK_CFG */
 
-#define BIT_AON_SEC_APB_CGM_AXI_ACP_DIV(x)         (((x) & 0x7) << 28)
-#define BIT_AON_SEC_APB_CGM_AXI_PERIPH_DIV(x)      (((x) & 0x7) << 20)
 #define BIT_AON_SEC_APB_CGM_ACE_DIV(x)             (((x) & 0x7) << 12)
 #define BIT_AON_SEC_APB_CGM_SCU_DIV(x)             (((x) & 0x7) << 4)
 #define BIT_AON_SEC_APB_CGM_SCU_SEL(x)             (((x) & 0x7))
@@ -193,6 +192,14 @@
 #define BIT_AON_SEC_APB_APCPU_GICT_ALLOW_NS        BIT(2)
 #define BIT_AON_SEC_APB_APCPU_GICCDISABLE          BIT(1)
 #define BIT_AON_SEC_APB_APCPU_CRYPTODISABLE        BIT(0)
+
+/* REG_AON_SEC_APB_AON_SEC_APB_RSV_0 */
+
+#define BIT_AON_SEC_APB_AON_SEC_APB_RSV_0(x)       (((x) & 0xFFFFFFFF))
+
+/* REG_AON_SEC_APB_AON_SEC_APB_RSV_1 */
+
+#define BIT_AON_SEC_APB_AON_SEC_APB_RSV_1(x)       (((x) & 0xFFFFFFFF))
 
 
 #endif /* AON_SEC_APB_H */

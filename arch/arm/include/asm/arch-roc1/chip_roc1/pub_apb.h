@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-06-28 19:04:01
  *
  */
 
@@ -17,113 +17,202 @@
 #define CTL_BASE_PUB_APB 0x31050000
 
 
-#define REG_PUB_APB_DDR_EB                        ( CTL_BASE_PUB_APB + 0x0000 )
-#define REG_PUB_APB_DDR_SOFT_RST                  ( CTL_BASE_PUB_APB + 0x0004 )
-#define REG_PUB_APB_DMC_EXT_LPCTRL_CFG            ( CTL_BASE_PUB_APB + 0x31A0 )
-#define REG_PUB_APB_DMC_EXT_LPCTRL_SEQL           ( CTL_BASE_PUB_APB + 0x31A4 )
-#define REG_PUB_APB_DMC_EXT_LPCTRL_SEQH           ( CTL_BASE_PUB_APB + 0x31A8 )
-#define REG_PUB_APB_DMC_EXT_LPCTRL_STEP           ( CTL_BASE_PUB_APB + 0x31AC )
-#define REG_PUB_APB_QOS_SELECT                    ( CTL_BASE_PUB_APB + 0x31B0 )
-#define REG_PUB_APB_DPLL_PRE_DIV_STATUS           ( CTL_BASE_PUB_APB + 0x31C0 )
-#define REG_PUB_APB_DFI_BWMON_TIMER               ( CTL_BASE_PUB_APB + 0x31C4 )
-#define REG_PUB_APB_QOS_SWITCH                    ( CTL_BASE_PUB_APB + 0x31CA )
-#define REG_PUB_APB_PUB_BUS_CK_EB                 ( CTL_BASE_PUB_APB + 0x31CC )
-#define REG_PUB_APB_AXI_LPC_CTRL_3                ( CTL_BASE_PUB_APB + 0x31D0 )
-#define REG_PUB_APB_PUB_INT_CG_EN                 ( CTL_BASE_PUB_APB + 0x31D4 )
-#define REG_PUB_APB_TIMER_ENABLE                  ( CTL_BASE_PUB_APB + 0x31D8 )
-#define REG_PUB_APB_VOTE_CTRL                     ( CTL_BASE_PUB_APB + 0x31E0 )
-#define REG_PUB_APB_VOTE_STATUS                   ( CTL_BASE_PUB_APB + 0x31E4 )
-#define REG_PUB_APB_DFS_HW_CTRL3                  ( CTL_BASE_PUB_APB + 0x31F0 )
-#define REG_PUB_APB_QOS_FIXED_CTRL0               ( CTL_BASE_PUB_APB + 0x31F4 )
-#define REG_PUB_APB_QOS_FIXED_CTRL1               ( CTL_BASE_PUB_APB + 0x31F8 )
-#define REG_PUB_APB_QOS_FIXED_CTRL2               ( CTL_BASE_PUB_APB + 0x31FC )
-#define REG_PUB_APB_PUB_AXI_QOS_URGENT_REG_0      ( CTL_BASE_PUB_APB + 0x3200 )
-#define REG_PUB_APB_PUB_AXI_QOS_URGENT_REG_1      ( CTL_BASE_PUB_APB + 0x3204 )
-#define REG_PUB_APB_PUB_INT_CTRL                  ( CTL_BASE_PUB_APB + 0x32F0 )
-#define REG_PUB_APB_DFS_STATUS                    ( CTL_BASE_PUB_APB + 0x32F4 )
-#define REG_PUB_APB_DFS_STATUS1                   ( CTL_BASE_PUB_APB + 0x32F8 )
-#define REG_PUB_APB_DFS_FC_REQ_DELAY              ( CTL_BASE_PUB_APB + 0x32FC )
-#define REG_PUB_APB_PUB_LP_GEN_CTRL               ( CTL_BASE_PUB_APB + 0x333C )
-#define REG_PUB_APB_AXI_LPC_CTRL_0                ( CTL_BASE_PUB_APB + 0x334C )
-#define REG_PUB_APB_AXI_LPC_CTRL_1                ( CTL_BASE_PUB_APB + 0x3350 )
-#define REG_PUB_APB_AXI_LPC_CTRL_2                ( CTL_BASE_PUB_APB + 0x3354 )
-#define REG_PUB_APB_FENCING_CTRL                  ( CTL_BASE_PUB_APB + 0x3358 )
-#define REG_PUB_APB_CP_BASE_ADDR                  ( CTL_BASE_PUB_APB + 0x3360 )
-#define REG_PUB_APB_CLK_PUB_DFS_CTRL              ( CTL_BASE_PUB_APB + 0x3364 )
-#define REG_PUB_APB_BIST_CTRL                     ( CTL_BASE_PUB_APB + 0x3400 )
-#define REG_PUB_APB_DMC_SOFT_RST_CTRL             ( CTL_BASE_PUB_APB + 0x3404 )
-#define REG_PUB_APB_MC_IDLE_WAIT_CTRL             ( CTL_BASE_PUB_APB + 0x3414 )
-#define REG_PUB_APB_QOS_THRESHOLD_0               ( CTL_BASE_PUB_APB + 0x3418 )
-#define REG_PUB_APB_QOS_THRESHOLD_1               ( CTL_BASE_PUB_APB + 0x341C )
-#define REG_PUB_APB_DMC_DDR_CLK_CTRL              ( CTL_BASE_PUB_APB + 0x4000 )
-#define REG_PUB_APB_DMC_CLK_INIT_SW_START         ( CTL_BASE_PUB_APB + 0x4004 )
-#define REG_PUB_APB_DMC_CLK_STATE                 ( CTL_BASE_PUB_APB + 0x4008 )
-#define REG_PUB_APB_DMC_CLK_INIT_CFG              ( CTL_BASE_PUB_APB + 0x400C )
-#define REG_PUB_APB_DMC_DESKEW_WAIT_CFG           ( CTL_BASE_PUB_APB + 0x4010 )
-#define REG_PUB_APB_DMC_DESKEW_WAIT_CNT0          ( CTL_BASE_PUB_APB + 0x4014 )
-#define REG_PUB_APB_DMC_DESKEW_WAIT_CNT1          ( CTL_BASE_PUB_APB + 0x4018 )
-#define REG_PUB_APB_DMC_DESKEW_WAIT_CNT2          ( CTL_BASE_PUB_APB + 0x401C )
-#define REG_PUB_APB_DMC_DESKEW_WAIT_CNT3          ( CTL_BASE_PUB_APB + 0x4020 )
-#define REG_PUB_APB_DMC_DDL_CTRL                  ( CTL_BASE_PUB_APB + 0x402C )
-#define REG_PUB_APB_DFS_PURE_SW_CTRL              ( CTL_BASE_PUB_APB + 0x4100 )
-#define REG_PUB_APB_DFS_SW_CTRL                   ( CTL_BASE_PUB_APB + 0x4104 )
-#define REG_PUB_APB_DFS_SW_CTRL1                  ( CTL_BASE_PUB_APB + 0x4108 )
-#define REG_PUB_APB_DFS_SW_CTRL2                  ( CTL_BASE_PUB_APB + 0x410C )
-#define REG_PUB_APB_DFS_SW_CTRL3                  ( CTL_BASE_PUB_APB + 0x4110 )
-#define REG_PUB_APB_DFS_HW_CTRL                   ( CTL_BASE_PUB_APB + 0x4114 )
-#define REG_PUB_APB_DFS_HW_CTRL1                  ( CTL_BASE_PUB_APB + 0x4118 )
-#define REG_PUB_APB_DFS_HW_CTRL2                  ( CTL_BASE_PUB_APB + 0x411C )
-#define REG_PUB_APB_DFS_HW_RATIO_SET0             ( CTL_BASE_PUB_APB + 0x4120 )
-#define REG_PUB_APB_DFS_HW_RATIO_SET1             ( CTL_BASE_PUB_APB + 0x4124 )
-#define REG_PUB_APB_DFS_HW_RATIO_SET2             ( CTL_BASE_PUB_APB + 0x4128 )
-#define REG_PUB_APB_DFS_HW_RATIO_SET3             ( CTL_BASE_PUB_APB + 0x412C )
-#define REG_PUB_APB_DFS_HW_RATIO_SET4             ( CTL_BASE_PUB_APB + 0x4130 )
-#define REG_PUB_APB_DFS_HW_RATIO_SET5             ( CTL_BASE_PUB_APB + 0x4134 )
-#define REG_PUB_APB_DFS_HW_RATIO_SET6             ( CTL_BASE_PUB_APB + 0x4138 )
-#define REG_PUB_APB_DFS_HW_RATIO_SET7             ( CTL_BASE_PUB_APB + 0x413C )
-#define REG_PUB_APB_VOTE_MASTER_EN                ( CTL_BASE_PUB_APB + 0x4310 )
-#define REG_PUB_APB_VOTE_FSM_CNT                  ( CTL_BASE_PUB_APB + 0x4314 )
-#define REG_PUB_APB_THRESHOLD_INC_FREQ_0          ( CTL_BASE_PUB_APB + 0x4318 )
-#define REG_PUB_APB_THRESHOLD_INC_FREQ_1          ( CTL_BASE_PUB_APB + 0x431C )
-#define REG_PUB_APB_THRESHOLD_INC_FREQ_2          ( CTL_BASE_PUB_APB + 0x4320 )
-#define REG_PUB_APB_THRESHOLD_INC_FREQ_3          ( CTL_BASE_PUB_APB + 0x4324 )
-#define REG_PUB_APB_TEST_DSKPLL_BIST_CNT          ( CTL_BASE_PUB_APB + 0x4328 )
-#define REG_PUB_APB_PUB_STATUS_MON_CTRL           ( CTL_BASE_PUB_APB + 0x6200 )
-#define REG_PUB_APB_PUB_ST_IDLE_CYC_CNT           ( CTL_BASE_PUB_APB + 0x6204 )
-#define REG_PUB_APB_PUB_ST_WR_CYC_CNT             ( CTL_BASE_PUB_APB + 0x6208 )
-#define REG_PUB_APB_PUB_ST_RD_CYC_CNT             ( CTL_BASE_PUB_APB + 0x620C )
-#define REG_PUB_APB_PUB_ST_SR_CYC_CNT             ( CTL_BASE_PUB_APB + 0x6210 )
-#define REG_PUB_APB_PUB_ST_LS_CYC_CNT             ( CTL_BASE_PUB_APB + 0x6214 )
-#define REG_PUB_APB_PUB_ST_LS_TIME_CNT            ( CTL_BASE_PUB_APB + 0x6218 )
-#define REG_PUB_APB_PUB_DFS_F0_CYC_CNT            ( CTL_BASE_PUB_APB + 0x621C )
-#define REG_PUB_APB_PUB_DFS_F1_CYC_CNT            ( CTL_BASE_PUB_APB + 0x6220 )
-#define REG_PUB_APB_PUB_DFS_F2_CYC_CNT            ( CTL_BASE_PUB_APB + 0x6224 )
-#define REG_PUB_APB_PUB_DFS_F3_CYC_CNT            ( CTL_BASE_PUB_APB + 0x6228 )
-#define REG_PUB_APB_PUB_DFS_F4_CYC_CNT            ( CTL_BASE_PUB_APB + 0x622C )
-#define REG_PUB_APB_PUB_DFS_F5_CYC_CNT            ( CTL_BASE_PUB_APB + 0x6230 )
-#define REG_PUB_APB_PUB_DFS_F6_CYC_CNT            ( CTL_BASE_PUB_APB + 0x6234 )
-#define REG_PUB_APB_PUB_DFS_F7_CYC_CNT            ( CTL_BASE_PUB_APB + 0x6238 )
-#define REG_PUB_APB_PUB_DFS_CNT                   ( CTL_BASE_PUB_APB + 0x623C )
-#define REG_PUB_APB_VOTE_CTRL_DPU                 ( CTL_BASE_PUB_APB + 0x6400 )
-#define REG_PUB_APB_VOTE_CTRL_DCAM                ( CTL_BASE_PUB_APB + 0x6404 )
-#define REG_PUB_APB_VOTE_CTRL_PUBCP               ( CTL_BASE_PUB_APB + 0x6408 )
-#define REG_PUB_APB_VOTE_CTRL_WTLCP               ( CTL_BASE_PUB_APB + 0x640C )
-#define REG_PUB_APB_VOTE_CTRL_WTLCP1              ( CTL_BASE_PUB_APB + 0x6410 )
-#define REG_PUB_APB_VOTE_CTRL_AGCP                ( CTL_BASE_PUB_APB + 0x6414 )
-#define REG_PUB_APB_VOTE_CTRL_SW                  ( CTL_BASE_PUB_APB + 0x6418 )
-#define REG_PUB_APB_DFS_GFREE_CTRL                ( CTL_BASE_PUB_APB + 0x6500 )
-#define REG_PUB_APB_DFS_SW_CTRL_APPEND            ( CTL_BASE_PUB_APB + 0x6600 )
-#define REG_PUB_APB_AWURGENT_DBG_CTRL             ( CTL_BASE_PUB_APB + 0x6800 )
-#define REG_PUB_APB_ARURGENT_DBG_CTRL             ( CTL_BASE_PUB_APB + 0x6804 )
-#define REG_PUB_APB_LSLP_SRE_SIM                  ( CTL_BASE_PUB_APB + 0x6808 )
-#define REG_PUB_APB_PUB0_DUMMY_REG0               ( CTL_BASE_PUB_APB + 0x8000 )
-#define REG_PUB_APB_PUB0_DUMMY_REG1               ( CTL_BASE_PUB_APB + 0x8004 )
+#define REG_PUB_APB_DDR_EB                          ( CTL_BASE_PUB_APB + 0x0000 )
+#define REG_PUB_APB_DDR_SOFT_RST                    ( CTL_BASE_PUB_APB + 0x0004 )
+#define REG_PUB_APB_DDL_MASK_CTRL                   ( CTL_BASE_PUB_APB + 0x1000 )
+#define REG_PUB_APB_LP_COMPITABLE_WITH_L3           ( CTL_BASE_PUB_APB + 0x3100 )
+#define REG_PUB_APB_PUB_DDR_CHN_LP_CTRL             ( CTL_BASE_PUB_APB + 0x3104 )
+#define REG_PUB_APB_AXI_LPC_CTRL_PUNUM_CFG_0        ( CTL_BASE_PUB_APB + 0x3108 )
+#define REG_PUB_APB_AXI_LPC_CTRL_PUNUM_CFG_1        ( CTL_BASE_PUB_APB + 0x310C )
+#define REG_PUB_APB_AXI_LPC_CTRL_PUNUM_DPU_ISP      ( CTL_BASE_PUB_APB + 0x3110 )
+#define REG_PUB_APB_AXI_LPC_CTRL_PUNUM_ISP_VDSP     ( CTL_BASE_PUB_APB + 0x3114 )
+#define REG_PUB_APB_AXI_LPC_CTRL_PUNUM_AP_0         ( CTL_BASE_PUB_APB + 0x3118 )
+#define REG_PUB_APB_AXI_LPC_CTRL_PUNUM_AP_1         ( CTL_BASE_PUB_APB + 0x311C )
+#define REG_PUB_APB_AXI_LPC_CTRL_PUNUM_PUB_AG_IPA2  ( CTL_BASE_PUB_APB + 0x3120 )
+#define REG_PUB_APB_DMC_EXT_LPCTRL_CFG              ( CTL_BASE_PUB_APB + 0x31A0 )
+#define REG_PUB_APB_DMC_EXT_LPCTRL_SEQL             ( CTL_BASE_PUB_APB + 0x31A4 )
+#define REG_PUB_APB_DMC_EXT_LPCTRL_SEQH             ( CTL_BASE_PUB_APB + 0x31A8 )
+#define REG_PUB_APB_DMC_EXT_LPCTRL_STEP             ( CTL_BASE_PUB_APB + 0x31AC )
+#define REG_PUB_APB_QOS_SELECT                      ( CTL_BASE_PUB_APB + 0x31B0 )
+#define REG_PUB_APB_DPLL_PRE_DIV_STATUS             ( CTL_BASE_PUB_APB + 0x31C0 )
+#define REG_PUB_APB_DFI_BWMON_TIMER                 ( CTL_BASE_PUB_APB + 0x31C4 )
+#define REG_PUB_APB_QOS_SWITCH                      ( CTL_BASE_PUB_APB + 0x31C8 )
+#define REG_PUB_APB_PUB_BUS_CK_EB                   ( CTL_BASE_PUB_APB + 0x31CC )
+#define REG_PUB_APB_AXI_LPC_CTRL_3                  ( CTL_BASE_PUB_APB + 0x31D0 )
+#define REG_PUB_APB_PUB_INT_CG_EN                   ( CTL_BASE_PUB_APB + 0x31D4 )
+#define REG_PUB_APB_TIMER_ENABLE                    ( CTL_BASE_PUB_APB + 0x31D8 )
+#define REG_PUB_APB_VOTE_CTRL                       ( CTL_BASE_PUB_APB + 0x31E0 )
+#define REG_PUB_APB_VOTE_STATUS                     ( CTL_BASE_PUB_APB + 0x31E4 )
+#define REG_PUB_APB_DFS_HW_CTRL3                    ( CTL_BASE_PUB_APB + 0x31F0 )
+#define REG_PUB_APB_QOS_FIXED_CTRL0                 ( CTL_BASE_PUB_APB + 0x31F4 )
+#define REG_PUB_APB_QOS_FIXED_CTRL1                 ( CTL_BASE_PUB_APB + 0x31F8 )
+#define REG_PUB_APB_QOS_FIXED_CTRL2                 ( CTL_BASE_PUB_APB + 0x31FC )
+#define REG_PUB_APB_PUB_AXI_QOS_URGENT_REG_0        ( CTL_BASE_PUB_APB + 0x3200 )
+#define REG_PUB_APB_PUB_AXI_QOS_URGENT_REG_1        ( CTL_BASE_PUB_APB + 0x3204 )
+#define REG_PUB_APB_PUB_INT_CTRL                    ( CTL_BASE_PUB_APB + 0x32F0 )
+#define REG_PUB_APB_DFS_STATUS                      ( CTL_BASE_PUB_APB + 0x32F4 )
+#define REG_PUB_APB_DFS_STATUS1                     ( CTL_BASE_PUB_APB + 0x32F8 )
+#define REG_PUB_APB_DFS_FC_REQ_DELAY                ( CTL_BASE_PUB_APB + 0x32FC )
+#define REG_PUB_APB_PUB_LP_GEN_CTRL                 ( CTL_BASE_PUB_APB + 0x333C )
+#define REG_PUB_APB_AXI_LPC_CTRL_0                  ( CTL_BASE_PUB_APB + 0x334C )
+#define REG_PUB_APB_AXI_LPC_CTRL_1                  ( CTL_BASE_PUB_APB + 0x3350 )
+#define REG_PUB_APB_AXI_LPC_CTRL_2                  ( CTL_BASE_PUB_APB + 0x3354 )
+#define REG_PUB_APB_FENCING_CTRL                    ( CTL_BASE_PUB_APB + 0x3358 )
+#define REG_PUB_APB_CP_ESE_BASE_ADDR                ( CTL_BASE_PUB_APB + 0x3360 )
+#define REG_PUB_APB_CLK_PUB_DFS_CTRL                ( CTL_BASE_PUB_APB + 0x3364 )
+#define REG_PUB_APB_BIST_CTRL                       ( CTL_BASE_PUB_APB + 0x3400 )
+#define REG_PUB_APB_DMC_SOFT_RST_CTRL               ( CTL_BASE_PUB_APB + 0x3404 )
+#define REG_PUB_APB_MC_IDLE_WAIT_CTRL               ( CTL_BASE_PUB_APB + 0x3414 )
+#define REG_PUB_APB_QOS_THRESHOLD_0                 ( CTL_BASE_PUB_APB + 0x3418 )
+#define REG_PUB_APB_QOS_THRESHOLD_1                 ( CTL_BASE_PUB_APB + 0x341C )
+#define REG_PUB_APB_DMC_DDR_CLK_CTRL                ( CTL_BASE_PUB_APB + 0x4000 )
+#define REG_PUB_APB_DMC_CLK_INIT_SW_START           ( CTL_BASE_PUB_APB + 0x4004 )
+#define REG_PUB_APB_DMC_CLK_STATE                   ( CTL_BASE_PUB_APB + 0x4008 )
+#define REG_PUB_APB_DMC_CLK_INIT_CFG                ( CTL_BASE_PUB_APB + 0x400C )
+#define REG_PUB_APB_DMC_DESKEW_WAIT_CFG             ( CTL_BASE_PUB_APB + 0x4010 )
+#define REG_PUB_APB_DMC_DESKEW_WAIT_CNT0            ( CTL_BASE_PUB_APB + 0x4014 )
+#define REG_PUB_APB_DMC_DESKEW_WAIT_CNT1            ( CTL_BASE_PUB_APB + 0x4018 )
+#define REG_PUB_APB_DMC_DESKEW_WAIT_CNT2            ( CTL_BASE_PUB_APB + 0x401C )
+#define REG_PUB_APB_DMC_DESKEW_WAIT_CNT3            ( CTL_BASE_PUB_APB + 0x4020 )
+#define REG_PUB_APB_DMC_DDL_CTRL                    ( CTL_BASE_PUB_APB + 0x402C )
+#define REG_PUB_APB_DFS_PURE_SW_CTRL                ( CTL_BASE_PUB_APB + 0x4100 )
+#define REG_PUB_APB_DFS_SW_CTRL                     ( CTL_BASE_PUB_APB + 0x4104 )
+#define REG_PUB_APB_DFS_SW_CTRL1                    ( CTL_BASE_PUB_APB + 0x4108 )
+#define REG_PUB_APB_DFS_SW_CTRL2                    ( CTL_BASE_PUB_APB + 0x410C )
+#define REG_PUB_APB_DFS_SW_CTRL3                    ( CTL_BASE_PUB_APB + 0x4110 )
+#define REG_PUB_APB_DFS_HW_CTRL                     ( CTL_BASE_PUB_APB + 0x4114 )
+#define REG_PUB_APB_DFS_HW_CTRL1                    ( CTL_BASE_PUB_APB + 0x4118 )
+#define REG_PUB_APB_DFS_HW_CTRL2                    ( CTL_BASE_PUB_APB + 0x411C )
+#define REG_PUB_APB_DFS_HW_RATIO_SET0               ( CTL_BASE_PUB_APB + 0x4120 )
+#define REG_PUB_APB_DFS_HW_RATIO_SET1               ( CTL_BASE_PUB_APB + 0x4124 )
+#define REG_PUB_APB_DFS_HW_RATIO_SET2               ( CTL_BASE_PUB_APB + 0x4128 )
+#define REG_PUB_APB_DFS_HW_RATIO_SET3               ( CTL_BASE_PUB_APB + 0x412C )
+#define REG_PUB_APB_DFS_HW_RATIO_SET4               ( CTL_BASE_PUB_APB + 0x4130 )
+#define REG_PUB_APB_DFS_HW_RATIO_SET5               ( CTL_BASE_PUB_APB + 0x4134 )
+#define REG_PUB_APB_DFS_HW_RATIO_SET6               ( CTL_BASE_PUB_APB + 0x4138 )
+#define REG_PUB_APB_DFS_HW_RATIO_SET7               ( CTL_BASE_PUB_APB + 0x413C )
+#define REG_PUB_APB_VOTE_MASTER_EN                  ( CTL_BASE_PUB_APB + 0x4310 )
+#define REG_PUB_APB_VOTE_FSM_CNT                    ( CTL_BASE_PUB_APB + 0x4314 )
+#define REG_PUB_APB_THRESHOLD_INC_FREQ_0            ( CTL_BASE_PUB_APB + 0x4318 )
+#define REG_PUB_APB_THRESHOLD_INC_FREQ_1            ( CTL_BASE_PUB_APB + 0x431C )
+#define REG_PUB_APB_THRESHOLD_INC_FREQ_2            ( CTL_BASE_PUB_APB + 0x4320 )
+#define REG_PUB_APB_THRESHOLD_INC_FREQ_3            ( CTL_BASE_PUB_APB + 0x4324 )
+#define REG_PUB_APB_THRESHOLD_INC_FREQ_4            ( CTL_BASE_PUB_APB + 0x4328 )
+#define REG_PUB_APB_THRESHOLD_INC_FREQ_5            ( CTL_BASE_PUB_APB + 0x432C )
+#define REG_PUB_APB_THRESHOLD_INC_FREQ_6            ( CTL_BASE_PUB_APB + 0x4330 )
+#define REG_PUB_APB_THRESHOLD_INC_FREQ_7            ( CTL_BASE_PUB_APB + 0x4334 )
+#define REG_PUB_APB_TEST_DSKPLL_BIST_CNT            ( CTL_BASE_PUB_APB + 0x4340 )
+#define REG_PUB_APB_PUB_STATUS_MON_CTRL             ( CTL_BASE_PUB_APB + 0x6200 )
+#define REG_PUB_APB_PUB_ST_IDLE_CYC_CNT             ( CTL_BASE_PUB_APB + 0x6204 )
+#define REG_PUB_APB_PUB_ST_WR_CYC_CNT               ( CTL_BASE_PUB_APB + 0x6208 )
+#define REG_PUB_APB_PUB_ST_RD_CYC_CNT               ( CTL_BASE_PUB_APB + 0x620C )
+#define REG_PUB_APB_PUB_ST_SR_CYC_CNT               ( CTL_BASE_PUB_APB + 0x6210 )
+#define REG_PUB_APB_PUB_ST_LS_CYC_CNT               ( CTL_BASE_PUB_APB + 0x6214 )
+#define REG_PUB_APB_PUB_ST_LS_TIME_CNT              ( CTL_BASE_PUB_APB + 0x6218 )
+#define REG_PUB_APB_PUB_DFS_F0_CYC_CNT              ( CTL_BASE_PUB_APB + 0x621C )
+#define REG_PUB_APB_PUB_DFS_F1_CYC_CNT              ( CTL_BASE_PUB_APB + 0x6220 )
+#define REG_PUB_APB_PUB_DFS_F2_CYC_CNT              ( CTL_BASE_PUB_APB + 0x6224 )
+#define REG_PUB_APB_PUB_DFS_F3_CYC_CNT              ( CTL_BASE_PUB_APB + 0x6228 )
+#define REG_PUB_APB_PUB_DFS_F4_CYC_CNT              ( CTL_BASE_PUB_APB + 0x622C )
+#define REG_PUB_APB_PUB_DFS_F5_CYC_CNT              ( CTL_BASE_PUB_APB + 0x6230 )
+#define REG_PUB_APB_PUB_DFS_F6_CYC_CNT              ( CTL_BASE_PUB_APB + 0x6234 )
+#define REG_PUB_APB_PUB_DFS_F7_CYC_CNT              ( CTL_BASE_PUB_APB + 0x6238 )
+#define REG_PUB_APB_PUB_DFS_CNT                     ( CTL_BASE_PUB_APB + 0x623C )
+#define REG_PUB_APB_VOTE_CTRL_DPU_0                 ( CTL_BASE_PUB_APB + 0x6400 )
+#define REG_PUB_APB_VOTE_CTRL_DCAM_0                ( CTL_BASE_PUB_APB + 0x6404 )
+#define REG_PUB_APB_VOTE_CTRL_PUBCP_0               ( CTL_BASE_PUB_APB + 0x6408 )
+#define REG_PUB_APB_VOTE_CTRL_WTLCP_0               ( CTL_BASE_PUB_APB + 0x640C )
+#define REG_PUB_APB_VOTE_CTRL_WTLCP1_0              ( CTL_BASE_PUB_APB + 0x6410 )
+#define REG_PUB_APB_VOTE_CTRL_AGCP_0                ( CTL_BASE_PUB_APB + 0x6414 )
+#define REG_PUB_APB_VOTE_CTRL_SW_0                  ( CTL_BASE_PUB_APB + 0x6418 )
+#define REG_PUB_APB_VOTE_CTRL_DPU_1                 ( CTL_BASE_PUB_APB + 0x6420 )
+#define REG_PUB_APB_VOTE_CTRL_DCAM_1                ( CTL_BASE_PUB_APB + 0x6424 )
+#define REG_PUB_APB_VOTE_CTRL_PUBCP_1               ( CTL_BASE_PUB_APB + 0x6428 )
+#define REG_PUB_APB_VOTE_CTRL_WTLCP_1               ( CTL_BASE_PUB_APB + 0x642C )
+#define REG_PUB_APB_VOTE_CTRL_WTLCP1_1              ( CTL_BASE_PUB_APB + 0x6430 )
+#define REG_PUB_APB_VOTE_CTRL_AGCP_1                ( CTL_BASE_PUB_APB + 0x6434 )
+#define REG_PUB_APB_VOTE_CTRL_SW_1                  ( CTL_BASE_PUB_APB + 0x6438 )
+#define REG_PUB_APB_DFS_GFREE_CTRL                  ( CTL_BASE_PUB_APB + 0x6500 )
+#define REG_PUB_APB_DFS_SW_CTRL_APPEND              ( CTL_BASE_PUB_APB + 0x6600 )
+#define REG_PUB_APB_AWURGENT_DBG_CTRL               ( CTL_BASE_PUB_APB + 0x6800 )
+#define REG_PUB_APB_ARURGENT_DBG_CTRL               ( CTL_BASE_PUB_APB + 0x6804 )
+#define REG_PUB_APB_LSLP_SRE_SIM                    ( CTL_BASE_PUB_APB + 0x6808 )
+#define REG_PUB_APB_PUB0_DUMMY_REG0                 ( CTL_BASE_PUB_APB + 0x8000 )
+#define REG_PUB_APB_PUB0_DUMMY_REG1                 ( CTL_BASE_PUB_APB + 0x8004 )
 
 /* REG_PUB_APB_DDR_EB */
 
 
 /* REG_PUB_APB_DDR_SOFT_RST */
 
+
+/* REG_PUB_APB_DDL_MASK_CTRL */
+
+#define BIT_PUB_APB_DDL_MASK_CTRL(x)                             (((x) & 0x7))
+
+/* REG_PUB_APB_LP_COMPITABLE_WITH_L3 */
+
+#define BIT_PUB_APB_LP_CTRL_DMC_SLEEP_EN                         BIT(0)
+
+/* REG_PUB_APB_PUB_DDR_CHN_LP_CTRL */
+
+#define BIT_PUB_APB_DDR_CHN7_AXI_LP_EN                           BIT(15)
+#define BIT_PUB_APB_DDR_CHN6_AXI_LP_EN                           BIT(14)
+#define BIT_PUB_APB_DDR_CHN5_AXI_LP_EN                           BIT(13)
+#define BIT_PUB_APB_DDR_CHN4_AXI_LP_EN                           BIT(12)
+#define BIT_PUB_APB_DDR_CHN3_AXI_LP_EN                           BIT(11)
+#define BIT_PUB_APB_DDR_CHN2_AXI_LP_EN                           BIT(10)
+#define BIT_PUB_APB_DDR_CHN1_AXI_LP_EN                           BIT(9)
+#define BIT_PUB_APB_DDR_CHN0_AXI_LP_EN                           BIT(8)
+#define BIT_PUB_APB_DDR_CH7_AXI_STOP_SEL                         BIT(7)
+#define BIT_PUB_APB_DDR_CH6_AXI_STOP_SEL                         BIT(6)
+#define BIT_PUB_APB_DDR_CH5_AXI_STOP_SEL                         BIT(5)
+#define BIT_PUB_APB_DDR_CH4_AXI_STOP_SEL                         BIT(4)
+#define BIT_PUB_APB_DDR_CH3_AXI_STOP_SEL                         BIT(3)
+#define BIT_PUB_APB_DDR_CH2_AXI_STOP_SEL                         BIT(2)
+#define BIT_PUB_APB_DDR_CH1_AXI_STOP_SEL                         BIT(1)
+#define BIT_PUB_APB_DDR_CH0_AXI_STOP_SEL                         BIT(0)
+
+/* REG_PUB_APB_AXI_LPC_CTRL_PUNUM_CFG_0 */
+
+#define BIT_PUB_APB_PU_NUM_PUB_CFG_S2(x)                         (((x) & 0xFF) << 24)
+#define BIT_PUB_APB_PU_NUM_PUB_CFG_S1(x)                         (((x) & 0xFF) << 16)
+#define BIT_PUB_APB_PU_NUM_PUB_CFG_S0(x)                         (((x) & 0xFF) << 8)
+#define BIT_PUB_APB_PU_NUM_PUB_CFG_M0(x)                         (((x) & 0xFF))
+
+/* REG_PUB_APB_AXI_LPC_CTRL_PUNUM_CFG_1 */
+
+#define BIT_PUB_APB_PU_NUM_PUB_CFG_S3(x)                         (((x) & 0xFF))
+
+/* REG_PUB_APB_AXI_LPC_CTRL_PUNUM_DPU_ISP */
+
+#define BIT_PUB_APB_PU_NUM_DPU_ISP_S0(x)                         (((x) & 0xFF) << 16)
+#define BIT_PUB_APB_PU_NUM_DPU_ISP_M1(x)                         (((x) & 0xFF) << 8)
+#define BIT_PUB_APB_PU_NUM_DPU_ISP_M0(x)                         (((x) & 0xFF))
+
+/* REG_PUB_APB_AXI_LPC_CTRL_PUNUM_ISP_VDSP */
+
+#define BIT_PUB_APB_PU_NUM_ISP_VDSP_S0(x)                        (((x) & 0xFF) << 16)
+#define BIT_PUB_APB_PU_NUM_ISP_VDSP_M1(x)                        (((x) & 0xFF) << 8)
+#define BIT_PUB_APB_PU_NUM_ISP_VDSP_M0(x)                        (((x) & 0xFF))
+
+/* REG_PUB_APB_AXI_LPC_CTRL_PUNUM_AP_0 */
+
+#define BIT_PUB_APB_PU_NUM_AP_AON_ESE_IPA1_M3(x)                 (((x) & 0xFF) << 24)
+#define BIT_PUB_APB_PU_NUM_AP_AON_ESE_IPA1_M2(x)                 (((x) & 0xFF) << 16)
+#define BIT_PUB_APB_PU_NUM_AP_AON_ESE_IPA1_M1(x)                 (((x) & 0xFF) << 8)
+#define BIT_PUB_APB_PU_NUM_AP_AON_ESE_IPA1_M0(x)                 (((x) & 0xFF))
+
+/* REG_PUB_APB_AXI_LPC_CTRL_PUNUM_AP_1 */
+
+#define BIT_PUB_APB_PU_NUM_AP_AON_ESE_IPA1_S0(x)                 (((x) & 0xFF))
+
+/* REG_PUB_APB_AXI_LPC_CTRL_PUNUM_PUB_AG_IPA2 */
+
+#define BIT_PUB_APB_PU_NUM_PUB_AG_IPA2_S0(x)                     (((x) & 0xFF) << 24)
+#define BIT_PUB_APB_PU_NUM_PUB_AG_IPA2_M2(x)                     (((x) & 0xFF) << 16)
+#define BIT_PUB_APB_PU_NUM_PUB_AG_IPA2_M1(x)                     (((x) & 0xFF) << 8)
+#define BIT_PUB_APB_PU_NUM_PUB_AG_IPA2_M0(x)                     (((x) & 0xFF))
 
 /* REG_PUB_APB_DMC_EXT_LPCTRL_CFG */
 
@@ -165,6 +254,8 @@
 
 /* REG_PUB_APB_PUB_BUS_CK_EB */
 
+#define BIT_PUB_APB_LP_STAT_MTX_CG_EN                            BIT(11)
+#define BIT_PUB_APB_CHN_DMC_STOP_CG_EN                           BIT(10)
 #define BIT_PUB_APB_OT_DETECT_CLK_EB                             BIT(9)
 #define BIT_PUB_APB_PUB_CLK_CSSYS_PTM_EB                         BIT(8)
 #define BIT_PUB_APB_PUB_APB_PTM_REG_EB                           BIT(7)
@@ -178,12 +269,16 @@
 
 /* REG_PUB_APB_AXI_LPC_CTRL_3 */
 
-#define BIT_PUB_APB_CSYSACK_SYNC_SEL_AP_AON_S0                   BIT(27)
-#define BIT_PUB_APB_CACTIVE_SYNC_SEL_AP_AON_S0                   BIT(26)
-#define BIT_PUB_APB_CSYSACK_SYNC_SEL_AP_AON_M1                   BIT(25)
-#define BIT_PUB_APB_CACTIVE_SYNC_SEL_AP_AON_M1                   BIT(24)
-#define BIT_PUB_APB_CSYSACK_SYNC_SEL_AP_AON_M0                   BIT(23)
-#define BIT_PUB_APB_CACTIVE_SYNC_SEL_AP_AON_M0                   BIT(22)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_AP_AON_ESE_IPA1_S0          BIT(31)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_AP_AON_ESE_IPA1_S0          BIT(30)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_AP_AON_ESE_IPA1_M3          BIT(29)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_AP_AON_ESE_IPA1_M3          BIT(28)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_AP_AON_ESE_IPA1_M2          BIT(27)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_AP_AON_ESE_IPA1_M2          BIT(26)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_AP_AON_ESE_IPA1_M1          BIT(25)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_AP_AON_ESE_IPA1_M1          BIT(24)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_AP_AON_ESE_IPA1_M0          BIT(23)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_AP_AON_ESE_IPA1_M0          BIT(22)
 #define BIT_PUB_APB_CSYSACK_SYNC_SEL_ISP_VDSP_S0                 BIT(21)
 #define BIT_PUB_APB_CACTIVE_SYNC_SEL_ISP_VDSP_S0                 BIT(20)
 #define BIT_PUB_APB_CSYSACK_SYNC_SEL_ISP_VDSP_M1                 BIT(19)
@@ -230,6 +325,7 @@
 
 /* REG_PUB_APB_VOTE_CTRL */
 
+#define BIT_PUB_APB_BWVOTE_SUB_BWMON_EN                          BIT(30)
 #define BIT_PUB_APB_BV_FV_EQUAL_INC_EN                           BIT(29)
 #define BIT_PUB_APB_DBM_PERCENT_SEL(x)                           (((x) & 0x7) << 26)
 #define BIT_PUB_APB_DFS_VOTE_DMC_REF_AG_EN                       BIT(25)
@@ -249,6 +345,8 @@
 
 /* REG_PUB_APB_DFS_HW_CTRL3 */
 
+#define BIT_PUB_APB_DFS_LOCK_DELAY_EN                            BIT(31)
+#define BIT_PUB_APB_REG_DFS_LOCK_DELAY_CNT(x)                    (((x) & 0xF) << 27)
 #define BIT_PUB_APB_DFI_MASK_WAIT_LSLP_EN                        BIT(24)
 #define BIT_PUB_APB_DFI_MASK_WAIT_TIME_LSLP(x)                   (((x) & 0xFF) << 16)
 #define BIT_PUB_APB_DFI_MASK_WAIT_EN                             BIT(8)
@@ -256,7 +354,7 @@
 
 /* REG_PUB_APB_QOS_FIXED_CTRL0 */
 
-#define BIT_PUB_APB_DMC_FIXED_QOS_EN(x)                          (((x) & 0x7F))
+#define BIT_PUB_APB_DMC_FIXED_QOS_EN(x)                          (((x) & 0xFF))
 
 /* REG_PUB_APB_QOS_FIXED_CTRL1 */
 
@@ -271,6 +369,8 @@
 
 /* REG_PUB_APB_QOS_FIXED_CTRL2 */
 
+#define BIT_PUB_APB_DMC_FIXED_ARQOS_CH7(x)                       (((x) & 0xF) << 28)
+#define BIT_PUB_APB_DMC_FIXED_AWQOS_CH7(x)                       (((x) & 0xF) << 24)
 #define BIT_PUB_APB_DMC_FIXED_ARQOS_CH6(x)                       (((x) & 0xF) << 20)
 #define BIT_PUB_APB_DMC_FIXED_AWQOS_CH6(x)                       (((x) & 0xF) << 16)
 #define BIT_PUB_APB_DMC_FIXED_ARQOS_CH5(x)                       (((x) & 0xF) << 12)
@@ -345,6 +445,7 @@
 
 /* REG_PUB_APB_DFS_STATUS1 */
 
+#define BIT_PUB_APB_DFS_SW_FSM_STATE(x)                          (((x) & 0x7) << 4)
 #define BIT_PUB_APB_DFS_VOTE_DONE_INT_RAW                        BIT(1)
 #define BIT_PUB_APB_INT_DFS_VOTE_DONE                            BIT(0)
 
@@ -364,12 +465,24 @@
 
 /* REG_PUB_APB_AXI_LPC_CTRL_0 */
 
-#define BIT_PUB_APB_CSYSACK_SYNC_SEL_WTL_AG_S0                   BIT(15)
-#define BIT_PUB_APB_CACTIVE_SYNC_SEL_WTL_AG_S0                   BIT(14)
-#define BIT_PUB_APB_CSYSACK_SYNC_SEL_WTL_AG_M1                   BIT(13)
-#define BIT_PUB_APB_CACTIVE_SYNC_SEL_WTL_AG_M1                   BIT(12)
-#define BIT_PUB_APB_CSYSACK_SYNC_SEL_WTL_AG_M0                   BIT(11)
-#define BIT_PUB_APB_CACTIVE_SYNC_SEL_WTL_AG_M0                   BIT(10)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_PUB_AG_IPA2_S0              BIT(23)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_PUB_AG_IPA2_S0              BIT(22)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_PUB_AG_IPA2_M2              BIT(21)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_PUB_AG_IPA2_M2              BIT(20)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_PUB_AG_IPA2_M1              BIT(19)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_PUB_AG_IPA2_M1              BIT(18)
+#define BIT_PUB_APB_CSYSACK_SYNC_SEL_PUB_AG_IPA2_M0              BIT(17)
+#define BIT_PUB_APB_CACTIVE_SYNC_SEL_PUB_AG_IPA2_M0              BIT(16)
+#define BIT_PUB_APB_LP_FORCE_PUB_CFG_S3                          BIT(15)
+#define BIT_PUB_APB_LP_EB_PUB_CFG_S3                             BIT(14)
+#define BIT_PUB_APB_LP_FORCE_PUB_CFG_S2                          BIT(13)
+#define BIT_PUB_APB_LP_EB_PUB_CFG_S2                             BIT(12)
+#define BIT_PUB_APB_LP_FORCE_PUB_CFG_S1                          BIT(11)
+#define BIT_PUB_APB_LP_EB_PUB_CFG_S1                             BIT(10)
+#define BIT_PUB_APB_LP_FORCE_PUB_CFG_S0                          BIT(9)
+#define BIT_PUB_APB_LP_EB_PUB_CFG_S0                             BIT(8)
+#define BIT_PUB_APB_LP_FORCE_PUB_CFG_M0                          BIT(7)
+#define BIT_PUB_APB_LP_EB_PUB_CFG_M0                             BIT(6)
 #define BIT_PUB_APB_LP_FORCE_ISP_VDSP_S0                         BIT(5)
 #define BIT_PUB_APB_LP_EB_ISP_VDSP_S0                            BIT(4)
 #define BIT_PUB_APB_LP_FORCE_ISP_VDSP_M1                         BIT(3)
@@ -379,28 +492,24 @@
 
 /* REG_PUB_APB_AXI_LPC_CTRL_1 */
 
-#define BIT_PUB_APB_LP_FORCE_PUB_CFG_S3                          BIT(27)
-#define BIT_PUB_APB_LP_EB_PUB_CFG_S3                             BIT(26)
-#define BIT_PUB_APB_LP_FORCE_PUB_CFG_S2                          BIT(25)
-#define BIT_PUB_APB_LP_EB_PUB_CFG_S2                             BIT(24)
-#define BIT_PUB_APB_LP_FORCE_PUB_CFG_S1                          BIT(23)
-#define BIT_PUB_APB_LP_EB_PUB_CFG_S1                             BIT(22)
-#define BIT_PUB_APB_LP_FORCE_PUB_CFG_S0                          BIT(21)
-#define BIT_PUB_APB_LP_EB_PUB_CFG_S0                             BIT(20)
-#define BIT_PUB_APB_LP_FORCE_PUB_CFG_M0                          BIT(19)
-#define BIT_PUB_APB_LP_EB_PUB_CFG_M0                             BIT(18)
-#define BIT_PUB_APB_LP_FORCE_WTL_AG_S0                           BIT(17)
-#define BIT_PUB_APB_LP_EB_WTL_AG_S0                              BIT(16)
-#define BIT_PUB_APB_LP_FORCE_WTL_AG_M1                           BIT(15)
-#define BIT_PUB_APB_LP_EB_WTL_AG_M1                              BIT(14)
-#define BIT_PUB_APB_LP_FORCE_WTL_AG_M0                           BIT(13)
-#define BIT_PUB_APB_LP_EB_WTL_AG_M0                              BIT(12)
-#define BIT_PUB_APB_LP_FORCE_AP_AON_S0                           BIT(11)
-#define BIT_PUB_APB_LP_EB_AP_AON_S0                              BIT(10)
-#define BIT_PUB_APB_LP_FORCE_AP_AON_M1                           BIT(9)
-#define BIT_PUB_APB_LP_EB_AP_AON_M1                              BIT(8)
-#define BIT_PUB_APB_LP_FORCE_AP_AON_M0                           BIT(7)
-#define BIT_PUB_APB_LP_EB_AP_AON_M0                              BIT(6)
+#define BIT_PUB_APB_LP_FORCE_PUB_AG_IPA2_S0                      BIT(23)
+#define BIT_PUB_APB_LP_EB_PUB_AG_IPA2_S0                         BIT(22)
+#define BIT_PUB_APB_LP_FORCE_PUB_AG_IPA2_M2                      BIT(21)
+#define BIT_PUB_APB_LP_EB_PUB_AG_IPA2_M2                         BIT(20)
+#define BIT_PUB_APB_LP_FORCE_PUB_AG_IPA2_M1                      BIT(19)
+#define BIT_PUB_APB_LP_EB_PUB_AG_IPA2_M1                         BIT(18)
+#define BIT_PUB_APB_LP_FORCE_PUB_AG_IPA2_M0                      BIT(17)
+#define BIT_PUB_APB_LP_EB_PUB_AG_IPA2_M0                         BIT(16)
+#define BIT_PUB_APB_LP_FORCE_AP_AON_ESE_IPA1_S0                  BIT(15)
+#define BIT_PUB_APB_LP_EB_AP_AON_ESE_IPA1_S0                     BIT(14)
+#define BIT_PUB_APB_LP_FORCE_AP_AON_ESE_IPA1_M3                  BIT(13)
+#define BIT_PUB_APB_LP_EB_AP_AON_ESE_IPA1_M3                     BIT(12)
+#define BIT_PUB_APB_LP_FORCE_AP_AON_ESE_IPA1_M2                  BIT(11)
+#define BIT_PUB_APB_LP_EB_AP_AON_ESE_IPA1_M2                     BIT(10)
+#define BIT_PUB_APB_LP_FORCE_AP_AON_ESE_IPA1_M1                  BIT(9)
+#define BIT_PUB_APB_LP_EB_AP_AON_ESE_IPA1_M1                     BIT(8)
+#define BIT_PUB_APB_LP_FORCE_AP_AON_ESE_IPA1_M0                  BIT(7)
+#define BIT_PUB_APB_LP_EB_AP_AON_ESE_IPA1_M0                     BIT(6)
 #define BIT_PUB_APB_LP_FORCE_DPU_ISP_S0                          BIT(5)
 #define BIT_PUB_APB_LP_EB_DPU_ISP_S0                             BIT(4)
 #define BIT_PUB_APB_LP_FORCE_DPU_ISP_M1                          BIT(3)
@@ -418,9 +527,9 @@
 #define BIT_PUB_APB_DDR_FENCING_EN                               BIT(30)
 #define BIT_PUB_APB_FENCING_CHNL_IDLE_CNT(x)                     (((x) & 0x3FFFFFFF))
 
-/* REG_PUB_APB_CP_BASE_ADDR */
+/* REG_PUB_APB_CP_ESE_BASE_ADDR */
 
-#define BIT_PUB_APB_AON_BASE_ADDR(x)                             (((x) & 0x1F) << 15)
+#define BIT_PUB_APB_ESE_BASE_ADDR(x)                             (((x) & 0x1F) << 15)
 #define BIT_PUB_APB_PUB_CP_BASE_ADDR(x)                          (((x) & 0x1F) << 10)
 #define BIT_PUB_APB_WTL_CP_BASE_ADDR(x)                          (((x) & 0x1F) << 5)
 #define BIT_PUB_APB_AG_CP_BASE_ADDR(x)                           (((x) & 0x1F))
@@ -433,9 +542,18 @@
 
 /* REG_PUB_APB_BIST_CTRL */
 
+#define BIT_PUB_APB_BIST_PORT7_ADDR_MUX                          BIT(23)
+#define BIT_PUB_APB_BIST_PORT6_ADDR_MUX                          BIT(22)
+#define BIT_PUB_APB_BIST_PORT5_ADDR_MUX                          BIT(21)
+#define BIT_PUB_APB_BIST_PORT4_ADDR_MUX                          BIT(20)
+#define BIT_PUB_APB_BIST_PORT3_ADDR_MUX                          BIT(19)
+#define BIT_PUB_APB_BIST_PORT2_ADDR_MUX                          BIT(18)
+#define BIT_PUB_APB_BIST_PORT1_ADDR_MUX                          BIT(17)
+#define BIT_PUB_APB_BIST_PORT0_ADDR_MUX                          BIT(16)
 #define BIT_PUB_APB_BIST_FAIL_FLAG_CH2                           BIT(10)
 #define BIT_PUB_APB_BIST_FAIL_FLAG_CH1                           BIT(9)
 #define BIT_PUB_APB_BIST_FAIL_FLAG_CH0                           BIT(8)
+#define BIT_PUB_APB_BIST_PORT7_EN                                BIT(7)
 #define BIT_PUB_APB_BIST_PORT6_EN                                BIT(6)
 #define BIT_PUB_APB_BIST_PORT5_EN                                BIT(5)
 #define BIT_PUB_APB_BIST_PORT4_EN                                BIT(4)
@@ -517,6 +635,8 @@
 
 /* REG_PUB_APB_DMC_CLK_INIT_CFG */
 
+#define BIT_PUB_APB_PTM_LSLP_CLK_KEEP_ON_EN                      BIT(25)
+#define BIT_PUB_APB_DMC_DFI_MON_LSLP_AG_EN                       BIT(24)
 #define BIT_PUB_APB_DMC_STOP_WAIT_CNT(x)                         (((x) & 0xFF) << 16)
 #define BIT_PUB_APB_DMC_SLEEP_FORCE_FINISH_MODE                  BIT(8)
 #define BIT_PUB_APB_DESKEW_PLL_PD_DEFAULT_SW                     BIT(5)
@@ -570,6 +690,7 @@
 
 /* REG_PUB_APB_DFS_PURE_SW_CTRL */
 
+#define BIT_PUB_APB_EMC_CKG_MDLL_SEL_PURE_SW(x)                  (((x) & 0x3) << 30)
 #define BIT_PUB_APB_PUB_DFS_SW_LOCK_REQ                          BIT(27)
 #define BIT_PUB_APB_PUB_DFS_SW_LOCK_MODE                         BIT(26)
 #define BIT_PUB_APB_EMC_CKG_MODE_PURE_SW(x)                      (((x) & 0x3) << 24)
@@ -605,7 +726,9 @@
 #define BIT_PUB_APB_PUB_DFS_SW_UG_CHK_EN                         BIT(20)
 #define BIT_PUB_APB_PUB_DFS_SW_CLK_MODE_DEFAULT(x)               (((x) & 0x3) << 18)
 #define BIT_PUB_APB_PUB_DFS_SW_CLK_MODE(x)                       (((x) & 0x3) << 16)
+#define BIT_PUB_APB_PUB_DFS_SW_RATIO_MDLL_DEFAULT(x)             (((x) & 0x3) << 12)
 #define BIT_PUB_APB_PUB_DFS_SW_RATIO_D2_DEFAULT(x)               (((x) & 0xF) << 8)
+#define BIT_PUB_APB_PUB_DFS_SW_RATIO_MDLL(x)                     (((x) & 0x3) << 4)
 #define BIT_PUB_APB_PUB_DFS_SW_RATIO_D2(x)                       (((x) & 0xF))
 
 /* REG_PUB_APB_DFS_SW_CTRL2 */
@@ -640,6 +763,7 @@
 #define BIT_PUB_APB_PUB_DFS_HW_BWMON_MIN_EN                      BIT(27)
 #define BIT_PUB_APB_PUB_DFS_HW_BWMON_MIN_FREQ(x)                 (((x) & 0x7) << 24)
 #define BIT_PUB_APB_PUB_DFS_HW_AVAIL_FREQ_EN(x)                  (((x) & 0xFF) << 16)
+#define BIT_PUB_APB_PUB_DFS_HW_RATIO_MDLL_DEFAULT(x)             (((x) & 0x3) << 13)
 #define BIT_PUB_APB_PUB_DFS_HW_CHECK_PLL_EN                      BIT(12)
 #define BIT_PUB_APB_PUB_DFS_HW_MIN_FREQ_UP(x)                    (((x) & 0x7) << 8)
 #define BIT_PUB_APB_PUB_DFS_HW_MIN_FREQ_DN(x)                    (((x) & 0x7) << 4)
@@ -688,6 +812,14 @@
 
 /* REG_PUB_APB_DFS_HW_RATIO_SET3 */
 
+#define BIT_PUB_APB_PUB_DFS_HW_F7_RATIO_MDLL(x)                  (((x) & 0x3) << 30)
+#define BIT_PUB_APB_PUB_DFS_HW_F6_RATIO_MDLL(x)                  (((x) & 0x3) << 28)
+#define BIT_PUB_APB_PUB_DFS_HW_F5_RATIO_MDLL(x)                  (((x) & 0x3) << 26)
+#define BIT_PUB_APB_PUB_DFS_HW_F4_RATIO_MDLL(x)                  (((x) & 0x3) << 24)
+#define BIT_PUB_APB_PUB_DFS_HW_F3_RATIO_MDLL(x)                  (((x) & 0x3) << 22)
+#define BIT_PUB_APB_PUB_DFS_HW_F2_RATIO_MDLL(x)                  (((x) & 0x3) << 20)
+#define BIT_PUB_APB_PUB_DFS_HW_F1_RATIO_MDLL(x)                  (((x) & 0x3) << 18)
+#define BIT_PUB_APB_PUB_DFS_HW_F0_RATIO_MDLL(x)                  (((x) & 0x3) << 16)
 #define BIT_PUB_APB_PUB_DFS_HW_F7_CLK_MODE(x)                    (((x) & 0x3) << 14)
 #define BIT_PUB_APB_PUB_DFS_HW_F6_CLK_MODE(x)                    (((x) & 0x3) << 12)
 #define BIT_PUB_APB_PUB_DFS_HW_F5_CLK_MODE(x)                    (((x) & 0x3) << 10)
@@ -730,23 +862,35 @@
 
 /* REG_PUB_APB_THRESHOLD_INC_FREQ_0 */
 
-#define BIT_PUB_APB_THRD_INC_F1(x)                               (((x) & 0x3FFF) << 16)
-#define BIT_PUB_APB_THRD_INC_F0(x)                               (((x) & 0x3FFF))
+#define BIT_PUB_APB_THRD_INC_F0(x)                               (((x) & 0xFFFFFFFF))
 
 /* REG_PUB_APB_THRESHOLD_INC_FREQ_1 */
 
-#define BIT_PUB_APB_THRD_INC_F3(x)                               (((x) & 0x3FFF) << 16)
-#define BIT_PUB_APB_THRD_INC_F2(x)                               (((x) & 0x3FFF))
+#define BIT_PUB_APB_THRD_INC_F1(x)                               (((x) & 0xFFFFFFFF))
 
 /* REG_PUB_APB_THRESHOLD_INC_FREQ_2 */
 
-#define BIT_PUB_APB_THRD_INC_F5(x)                               (((x) & 0x3FFF) << 16)
-#define BIT_PUB_APB_THRD_INC_F4(x)                               (((x) & 0x3FFF))
+#define BIT_PUB_APB_THRD_INC_F2(x)                               (((x) & 0xFFFFFFFF))
 
 /* REG_PUB_APB_THRESHOLD_INC_FREQ_3 */
 
-#define BIT_PUB_APB_THRD_INC_F7(x)                               (((x) & 0x3FFF) << 16)
-#define BIT_PUB_APB_THRD_INC_F6(x)                               (((x) & 0x3FFF))
+#define BIT_PUB_APB_THRD_INC_F3(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_THRESHOLD_INC_FREQ_4 */
+
+#define BIT_PUB_APB_THRD_INC_F4(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_THRESHOLD_INC_FREQ_5 */
+
+#define BIT_PUB_APB_THRD_INC_F5(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_THRESHOLD_INC_FREQ_6 */
+
+#define BIT_PUB_APB_THRD_INC_F6(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_THRESHOLD_INC_FREQ_7 */
+
+#define BIT_PUB_APB_THRD_INC_F7(x)                               (((x) & 0xFFFFFFFF))
 
 /* REG_PUB_APB_TEST_DSKPLL_BIST_CNT */
 
@@ -820,7 +964,7 @@
 
 #define BIT_PUB_APB_DFS_COUNT(x)                                 (((x) & 0x3FF))
 
-/* REG_PUB_APB_VOTE_CTRL_DPU */
+/* REG_PUB_APB_VOTE_CTRL_DPU_0 */
 
 #define BIT_PUB_APB_DPU_BV_EN                                    BIT(31)
 #define BIT_PUB_APB_DPU_FV_EN                                    BIT(30)
@@ -829,9 +973,8 @@
 #define BIT_PUB_APB_VOTE_DPU_ACK                                 BIT(23)
 #define BIT_PUB_APB_VOTE_DPU_HW_ACK                              BIT(22)
 #define BIT_PUB_APB_FREQ_VOTE_DPU(x)                             (((x) & 0x7) << 16)
-#define BIT_PUB_APB_BW_VOTE_DPU(x)                               (((x) & 0x3FFF))
 
-/* REG_PUB_APB_VOTE_CTRL_DCAM */
+/* REG_PUB_APB_VOTE_CTRL_DCAM_0 */
 
 #define BIT_PUB_APB_DCAM_BV_EN                                   BIT(31)
 #define BIT_PUB_APB_DCAM_FV_EN                                   BIT(30)
@@ -840,9 +983,8 @@
 #define BIT_PUB_APB_VOTE_DCAM_ACK                                BIT(23)
 #define BIT_PUB_APB_VOTE_DCAM_HW_ACK                             BIT(22)
 #define BIT_PUB_APB_FREQ_VOTE_DCAM(x)                            (((x) & 0x7) << 16)
-#define BIT_PUB_APB_BW_VOTE_DCAM(x)                              (((x) & 0x3FFF))
 
-/* REG_PUB_APB_VOTE_CTRL_PUBCP */
+/* REG_PUB_APB_VOTE_CTRL_PUBCP_0 */
 
 #define BIT_PUB_APB_PUBCP_BV_EN                                  BIT(31)
 #define BIT_PUB_APB_PUBCP_FV_EN                                  BIT(30)
@@ -850,9 +992,8 @@
 #define BIT_PUB_APB_FREQ_VOTE_PUBCP_FLAG                         BIT(24)
 #define BIT_PUB_APB_VOTE_PUBCP_ACK                               BIT(23)
 #define BIT_PUB_APB_FREQ_VOTE_PUBCP(x)                           (((x) & 0x7) << 16)
-#define BIT_PUB_APB_BW_VOTE_PUBCP(x)                             (((x) & 0x3FFF))
 
-/* REG_PUB_APB_VOTE_CTRL_WTLCP */
+/* REG_PUB_APB_VOTE_CTRL_WTLCP_0 */
 
 #define BIT_PUB_APB_WTLCP_BV_EN                                  BIT(31)
 #define BIT_PUB_APB_WTLCP_FV_EN                                  BIT(30)
@@ -860,9 +1001,8 @@
 #define BIT_PUB_APB_FREQ_VOTE_WTLCP_FLAG                         BIT(24)
 #define BIT_PUB_APB_VOTE_WTLCP_ACK                               BIT(23)
 #define BIT_PUB_APB_FREQ_VOTE_WTLCP(x)                           (((x) & 0x7) << 16)
-#define BIT_PUB_APB_BW_VOTE_WTLCP(x)                             (((x) & 0x3FFF))
 
-/* REG_PUB_APB_VOTE_CTRL_WTLCP1 */
+/* REG_PUB_APB_VOTE_CTRL_WTLCP1_0 */
 
 #define BIT_PUB_APB_WTLCP1_BV_EN                                 BIT(31)
 #define BIT_PUB_APB_WTLCP1_FV_EN                                 BIT(30)
@@ -870,9 +1010,8 @@
 #define BIT_PUB_APB_FREQ_VOTE_WTLCP1_FLAG                        BIT(24)
 #define BIT_PUB_APB_VOTE_WTLCP1_ACK                              BIT(23)
 #define BIT_PUB_APB_FREQ_VOTE_WTLCP1(x)                          (((x) & 0x7) << 16)
-#define BIT_PUB_APB_BW_VOTE_WTLCP1(x)                            (((x) & 0x3FFF))
 
-/* REG_PUB_APB_VOTE_CTRL_AGCP */
+/* REG_PUB_APB_VOTE_CTRL_AGCP_0 */
 
 #define BIT_PUB_APB_AGCP_BV_EN                                   BIT(31)
 #define BIT_PUB_APB_AGCP_FV_EN                                   BIT(30)
@@ -880,9 +1019,8 @@
 #define BIT_PUB_APB_FREQ_VOTE_AGCP_FLAG                          BIT(24)
 #define BIT_PUB_APB_VOTE_AGCP_ACK                                BIT(23)
 #define BIT_PUB_APB_FREQ_VOTE_AGCP(x)                            (((x) & 0x7) << 16)
-#define BIT_PUB_APB_BW_VOTE_AGCP(x)                              (((x) & 0x3FFF))
 
-/* REG_PUB_APB_VOTE_CTRL_SW */
+/* REG_PUB_APB_VOTE_CTRL_SW_0 */
 
 #define BIT_PUB_APB_SW_BV_EN                                     BIT(31)
 #define BIT_PUB_APB_SW_FV_EN                                     BIT(30)
@@ -890,7 +1028,34 @@
 #define BIT_PUB_APB_FREQ_VOTE_SW_FLAG                            BIT(24)
 #define BIT_PUB_APB_VOTE_SW_ACK                                  BIT(23)
 #define BIT_PUB_APB_FREQ_VOTE_SW(x)                              (((x) & 0x7) << 16)
-#define BIT_PUB_APB_BW_VOTE_SW(x)                                (((x) & 0x3FFF))
+
+/* REG_PUB_APB_VOTE_CTRL_DPU_1 */
+
+#define BIT_PUB_APB_BW_VOTE_DPU(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_VOTE_CTRL_DCAM_1 */
+
+#define BIT_PUB_APB_BW_VOTE_DCAM(x)                              (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_VOTE_CTRL_PUBCP_1 */
+
+#define BIT_PUB_APB_BW_VOTE_PUBCP(x)                             (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_VOTE_CTRL_WTLCP_1 */
+
+#define BIT_PUB_APB_BW_VOTE_WTLCP(x)                             (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_VOTE_CTRL_WTLCP1_1 */
+
+#define BIT_PUB_APB_BW_VOTE_WTLCP1(x)                            (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_VOTE_CTRL_AGCP_1 */
+
+#define BIT_PUB_APB_BW_VOTE_AGCP(x)                              (((x) & 0xFFFFFFFF))
+
+/* REG_PUB_APB_VOTE_CTRL_SW_1 */
+
+#define BIT_PUB_APB_BW_VOTE_SW(x)                                (((x) & 0xFFFFFFFF))
 
 /* REG_PUB_APB_DFS_GFREE_CTRL */
 
@@ -905,9 +1070,13 @@
 
 /* REG_PUB_APB_AWURGENT_DBG_CTRL */
 
-#define BIT_PUB_APB_AWURGENT_DBG_AGCP(x)                         (((x) & 0x3) << 20)
-#define BIT_PUB_APB_AWURGENT_DBG_WTLCP(x)                        (((x) & 0x3) << 18)
-#define BIT_PUB_APB_AWURGENT_DBG_PUBCP(x)                        (((x) & 0x3) << 16)
+#define BIT_PUB_APB_AWURGENT_DBG_AI(x)                           (((x) & 0x3) << 28)
+#define BIT_PUB_APB_AWURGENT_DBG_IPA2(x)                         (((x) & 0x3) << 26)
+#define BIT_PUB_APB_AWURGENT_DBG_AGCP(x)                         (((x) & 0x3) << 24)
+#define BIT_PUB_APB_AWURGENT_DBG_PUBCP(x)                        (((x) & 0x3) << 22)
+#define BIT_PUB_APB_AWURGENT_DBG_WTLCP(x)                        (((x) & 0x3) << 20)
+#define BIT_PUB_APB_AWURGENT_DBG_IPA1(x)                         (((x) & 0x3) << 18)
+#define BIT_PUB_APB_AWURGENT_DBG_ESE(x)                          (((x) & 0x3) << 16)
 #define BIT_PUB_APB_AWURGENT_DBG_AON(x)                          (((x) & 0x3) << 14)
 #define BIT_PUB_APB_AWURGENT_DBG_AP(x)                           (((x) & 0x3) << 12)
 #define BIT_PUB_APB_AWURGENT_DBG_VDSP(x)                         (((x) & 0x3) << 10)
@@ -919,9 +1088,13 @@
 
 /* REG_PUB_APB_ARURGENT_DBG_CTRL */
 
-#define BIT_PUB_APB_ARURGENT_DBG_AGCP(x)                         (((x) & 0x3) << 20)
-#define BIT_PUB_APB_ARURGENT_DBG_WTLCP(x)                        (((x) & 0x3) << 18)
-#define BIT_PUB_APB_ARURGENT_DBG_PUBCP(x)                        (((x) & 0x3) << 16)
+#define BIT_PUB_APB_ARURGENT_DBG_AI(x)                           (((x) & 0x3) << 28)
+#define BIT_PUB_APB_ARURGENT_DBG_IPA2(x)                         (((x) & 0x3) << 26)
+#define BIT_PUB_APB_ARURGENT_DBG_AGCP(x)                         (((x) & 0x3) << 24)
+#define BIT_PUB_APB_ARURGENT_DBG_PUBCP(x)                        (((x) & 0x3) << 22)
+#define BIT_PUB_APB_ARURGENT_DBG_WTLCP(x)                        (((x) & 0x3) << 20)
+#define BIT_PUB_APB_ARURGENT_DBG_IPA1(x)                         (((x) & 0x3) << 18)
+#define BIT_PUB_APB_ARURGENT_DBG_ESE(x)                          (((x) & 0x3) << 16)
 #define BIT_PUB_APB_ARURGENT_DBG_AON(x)                          (((x) & 0x3) << 14)
 #define BIT_PUB_APB_ARURGENT_DBG_AP(x)                           (((x) & 0x3) << 12)
 #define BIT_PUB_APB_ARURGENT_DBG_VDSP(x)                         (((x) & 0x3) << 10)

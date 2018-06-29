@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-12-14 16:29:53
+ * updated at 2018-06-28 19:04:01
  *
  */
 
@@ -125,11 +125,11 @@
 
 /* REG_MEM_FW_AON_PORT0_DEFAULT_R_ADDR_0 */
 
-#define BIT_MEM_FW_AON_PORT0_DEFAULT_R_ADDR_0_PORT0_DEFAULT_R_ADDR_0(x)  (((x) & 0x3F))
+#define BIT_MEM_FW_AON_PORT0_DEFAULT_R_ADDR_0_PORT0_DEFAULT_R_ADDR_0(x)  (((x) & 0x7FF))
 
 /* REG_MEM_FW_AON_PORT0_DEFAULT_W_ADDR_0 */
 
-#define BIT_MEM_FW_AON_PORT0_DEFAULT_W_ADDR_0_PORT0_DEFAULT_W_ADDR_0(x)  (((x) & 0x3F))
+#define BIT_MEM_FW_AON_PORT0_DEFAULT_W_ADDR_0_PORT0_DEFAULT_W_ADDR_0(x)  (((x) & 0x7FF))
 
 /* REG_MEM_FW_AON_CLK_GATE_BYPASS */
 
@@ -169,7 +169,7 @@
 
 /* REG_MEM_FW_AON_PORT_0_W_DEBUG_ADDR */
 
-#define BIT_MEM_FW_AON_PORT_0_W_DEBUG_ADDR_W_ADDR_0(x)                   (((x) & 0x3F))
+#define BIT_MEM_FW_AON_PORT_0_W_DEBUG_ADDR_W_ADDR_0(x)                   (((x) & 0x7FF))
 
 /* REG_MEM_FW_AON_PORT_0_W_DEBUG_ID */
 
@@ -177,7 +177,7 @@
 
 /* REG_MEM_FW_AON_PORT_0_R_DEBUG_ADDR */
 
-#define BIT_MEM_FW_AON_PORT_0_R_DEBUG_ADDR_R_ADDR_0(x)                   (((x) & 0x3F))
+#define BIT_MEM_FW_AON_PORT_0_R_DEBUG_ADDR_R_ADDR_0(x)                   (((x) & 0x7FF))
 
 /* REG_MEM_FW_AON_PORT_0_R_DEBUG_ID */
 
