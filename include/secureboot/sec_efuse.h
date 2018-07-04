@@ -20,5 +20,7 @@
 #ifdef CONFIG_SOC_SHARKL3
 #include "sec_efuse_sharkl3.h"
 #endif
-
+#ifdef CONFIG_SOC_SHARKL5
+#include "sec_efuse_sharkl5.h"
+#endif
 #endif

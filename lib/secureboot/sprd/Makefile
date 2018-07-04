@@ -24,3 +24,7 @@ ifneq ($(CONFIG_SOC_SHARKL3),)
 obj-y += sec_efuse_sharkl3.o
 obj-y += sec_efuse_sharkl3_drv.o
 endif
+ifneq ($(CONFIG_SOC_SHARKL5),)
+obj-y += sec_efuse_sharkl5.o
+obj-y += sec_efuse_sharkl5_drv.o
+endif
