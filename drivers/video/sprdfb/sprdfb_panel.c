@@ -848,7 +848,13 @@ uint16_t sprdfb_panel_probe(struct sprdfb_device *dev)
          * in common/lcd.c after reading panel id*/
         	panel_info.vl_row = panel->height;
         	panel_info.vl_col = panel->width;
-
+#ifdef CONFIG_DSIH_INTER_PHY
+	int dln_timer = 0x39;
+	if (panel->info.mipi->dln_timer)
+		dln_timer = panel->info.mipi->dln_timer;
+	__raw_writel((dln_timer << 16)|(0x87 << 0), REG_DISP_AHB_DSI_CTRL);
+	printf("panel->dln_timer=0x%x\n",panel->info.mipi->dln_timer);
+#endif
 		save_lcd_size_to_kernel(panel_info.vl_row, panel_info.vl_col);
 		FB_PRINT("sprdfb: [%s] got panel\n", __FUNCTION__);
 		return 0;

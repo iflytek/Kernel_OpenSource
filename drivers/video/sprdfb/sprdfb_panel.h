@@ -241,6 +241,9 @@ struct info_mipi {
 	uint16_t shut_down_pol;
 	struct timing_rgb *timing;
 	struct ops_mipi *ops;
+#ifdef CONFIG_DSIH_INTER_PHY
+	uint16_t dln_timer;
+#endif
 };
 
 struct info_rgb {

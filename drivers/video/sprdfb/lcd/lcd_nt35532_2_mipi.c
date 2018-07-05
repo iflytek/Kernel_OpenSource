@@ -753,6 +753,9 @@ static struct info_mipi lcd_nt35532_mipi_info = {
 	.shut_down_pol = SPRDFB_POLARITY_NEG,
 	.timing = &lcd_nt35532_mipi_timing,
 	.ops = NULL,
+#ifdef CONFIG_DSIH_INTER_PHY
+	.dln_timer = 0x39,
+#endif
 };
 
 struct panel_spec lcd_nt35532_2_mipi_spec = {
