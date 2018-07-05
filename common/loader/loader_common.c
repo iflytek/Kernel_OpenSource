@@ -157,6 +157,7 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 
 	/* if enabled, set loglevel = 7*/
 	fdt_fixup_loglevel(fdt_blob);
+	fdt_fixup_system_mount_part_num(fdt_blob);
 	return;
 }
 
@@ -212,6 +213,7 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 
 	/* if enabled, set loglevel = 7*/
 	fdt_fixup_loglevel(fdt_blob);
+	fdt_fixup_system_mount_part_num(fdt_blob);
 }
 
 #ifdef CONFIG_X86

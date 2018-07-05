@@ -29,6 +29,9 @@ extern void tee_call_request(unsigned int **mem_ptr);
 extern int fdtdec_decode_region_private(const void *blob, int node, const char *prop_name,
 			 fdt_addr_t *basep, fdt_size_t *sizep);
 extern int poweron_by_calibration(void);
+#ifdef CONFIG_EMMC_BOOT
+extern int get_img_partition_id(char *part_name, unsigned int *id);
+#endif
 /*for verified boot*/
 enVerifiedState g_verifiedbootstate = v_state_green;
 extern unsigned int g_DeviceStatus;
@@ -1398,5 +1401,70 @@ int fdt_fixup_loglevel(void *fdt)
 	}
 
 	free(path_copy);
+	return ret;
+}
+
+int fdt_fixup_system_mount_part_num(void *fdt)
+{
+	int ret = 0;
+#ifdef CONFIG_EMMC_BOOT
+	unsigned int num;
+	int nodeoffset;
+	const char *path;
+	char buf[128];
+	int str_len;
+
+	char *path_copy, *s, *v, *v_copy, *k;
+
+	get_img_partition_id("system", &num);
+	memset(buf, 0, sizeof(buf));
+
+	/* Find the "chosen" node */
+	nodeoffset = fdt_path_offset(fdt, "/chosen");
+	/* If there is no "chosen" node in the blob, leave */
+	if (nodeoffset < 0) {
+		errorf("fdt_chosen_bootargs_replace: cann't find chosen");
+		return -1;
+	}
+
+	/* If the property exists, get the value */
+	path = fdt_getprop(fdt, nodeoffset, "bootargs", NULL);
+	if (path == NULL) {
+		errorf("bootargs is null\n");
+		return -1;
+	}
+	path_copy = strdup(path);
+	if (path_copy == NULL) {
+		errorf("path_copy string copy failed!\n");
+		return -1;
+	}
+	s = path_copy;
+	while ((v = strsep(&s, " ")) != NULL) {
+		v_copy = strdup(v);
+		if (v_copy == NULL) {
+			errorf("v_copy string copy failed!\n");
+			free(path_copy);
+			return -1;
+		}
+
+		k = strsep(&v, "=");
+		if (!k) {
+			free(v_copy);
+			continue;
+		}
+
+		if (strncmp("/dev/mmcblk0p", v, 13) == 0) {
+			memset(buf, 0, 128);
+			sprintf(buf, "/dev/mmcblk0p%d", num);
+			str_len = strlen(buf);
+			buf[str_len] = '\0';
+			ret = fdt_chosen_bootargs_replace(fdt, v, buf);
+			free(v_copy);
+			break;
+		}
+		free(v_copy);
+	}
+	free(path_copy);
+#endif
 	return ret;
 }
