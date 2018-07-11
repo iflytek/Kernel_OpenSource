@@ -94,7 +94,7 @@ static int get_adc_value_board(int channel)
 
 	debugf("level = %d\n",level);
 
-	if(vol < 0 || vol > 7) {
+	if(level < 0 || level > 7) {
 		errorf("Adc value of rf band if is wrong, the rfboard.id will be set to -1\n");
 		return -1;
 	}
