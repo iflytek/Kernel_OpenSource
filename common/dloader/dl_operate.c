@@ -4,8 +4,11 @@
 #include "dl_common.h"
 #include "dl_operate.h"
 #include <ext_common.h>
+#include <part.h>
 #include <sparse_format.h>
 #include <sprd_common_rw.h>
+#include <sprd_rpmb.h>
+#include <sprd_mmc.h>
 
 #include <secure_boot.h>
 #include <secureboot/sec_common.h>
@@ -71,6 +74,11 @@ SPECIAL_PARTITION_CFG const s_special_partition_cfg[] = {
 	{NULL, NULL, IMG_TYPE_MAX, PARTITION_PURPOSE_MAX}
 };
 
+enum {
+	PARTITION_CONFIG_EXIST = 0x1,
+	GPT_HEADER_EXIST = 0x2,
+	RPMB_KEY_EXIST = 0x4,
+};
 
 ALTER_BUFFER_ATTR alter_buffer1;
 ALTER_BUFFER_ATTR alter_buffer2;
@@ -141,6 +149,54 @@ uint16_t eMMCCheckSum(const uint32_t * src, int32_t len)
 
 	return (uint16_t) (~sum);
 }
+
+#ifdef CONFIG_EMMC_BOOT
+uint8_t emmc_2ndhand_detect()
+{
+	char part_config;
+	block_dev_desc_t *dev_desc;
+	gpt_entry *pgpt_pte = NULL;
+	int rpmb_key_result;
+	uint8_t result = 0x0;
+	struct mmc *mmc = find_mmc_device(0);
+	dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
+	ALLOC_CACHE_ALIGN_BUFFER_PAD(gpt_header, gpt_head, 1, dev_desc->blksz);
+
+	/* judge the partition config */
+	part_config = mmc->part_config;
+	/* spreadtrum do not use BOOT_ACK,if the BOOT_ACK is 1,the emmc is used by other vendor */
+	if ((part_config >> 6) != 0x0) {
+		printf("The Emmc partition config was used\n");
+		result |= PARTITION_CONFIG_EXIST;
+	}
+
+#ifdef CONFIG_EFI_PARTITION
+	if (test_part_efi(dev_desc) == 0) {
+		printf("Find gpt header from user partition,emmc was used\n");
+		result |= GPT_HEADER_EXIST;
+	}
+#endif
+
+	rpmb_key_result = is_wr_rpmb_key();
+	if (rpmb_key_result != 0) {
+		printf("The Emmc rpmb partition was used\n");
+		result |= RPMB_KEY_EXIST;
+	}
+
+	return result;
+}
+
+uint8_t emmc_2ndhand_fix(uint8_t detect_result)
+{
+	struct mmc *mmc = find_mmc_device(0);
+
+	/* clear the partition_boot_ack bit */
+	if (detect_result & PARTITION_CONFIG_EXIST)
+		mmc->part_config &= 0x3F;
+
+	return 0;
+}
+#endif
 
 uint32_t get_pad_data(const uint32_t * src, int32_t len, int32_t offset, uint16_t sum)
 {
