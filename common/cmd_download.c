@@ -33,6 +33,8 @@ typedef struct _DA_INFO_T_
 {
 	uint32_t   dwVersion;
 	uint32_t   bDisableHDLC; //0: Enable hdl; 1:Disable hdl
+	uint8_t    bIsOldMemory;
+	uint8_t    bReserve[3];
 }DA_INFO_T;
 
 void dl_cmd_register(enum dl_cmd_type type,
@@ -158,8 +160,13 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (FDL_get_DisableHDLC() == NULL)
 		dl_send_ack (BSL_INCOMPATIBLE_PARTITION);
 	else {
-		Da_Info.dwVersion = 1;
+		Da_Info.dwVersion = 2;
 		Da_Info.bDisableHDLC = 1;
+#ifdef CONFIG_EMMC_BOOT
+		Da_Info.bIsOldMemory = emmc_2ndhand_detect();
+#else
+		Da_Info.bIsOldMemory = 0;
+#endif
 		ack_packet.body.type = BSL_INCOMPATIBLE_PARTITION;
 		memcpy((unchar *)ack_packet.body.content, (unchar *)&Da_Info,sizeof(Da_Info));
 		ack_packet.body.size = sizeof(Da_Info);
