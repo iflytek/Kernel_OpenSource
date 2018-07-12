@@ -76,6 +76,25 @@ extern void ag_tg_ldsp_hold();
 /*secure lcs*/
 #define SECURE_LCS               0x5
 
+#define DT_TABLE_MAGIC 0xd7b7ab1e
+
+struct dt_table_header {
+	uint32_t magic;
+	uint32_t total_size;
+	uint32_t header_size;
+	uint32_t dt_entry_size;
+	uint32_t dt_entry_count;
+	uint32_t dt_entries_offset;
+	uint32_t page_size;
+	uint32_t reserved[1];
+};
+struct dt_table_entry {
+	uint32_t dt_size;
+	uint32_t dt_offset;
+	uint32_t id;
+	uint32_t rev;
+	uint32_t custom[4];
+};
 
 typedef struct {
 	uint32_t type_flags;
@@ -90,6 +109,7 @@ typedef struct _BOOT_IMG_OFFSET {
 }BOOT_IMG_OFFSET;
 static BOOT_IMG_OFFSET boot_img_offset;
 unsigned int g_DeviceStatus = VBOOT_STATUS_LOCK;
+
 
 #ifdef CONFIG_SUPPORT_TDLTE
 static boot_image_required_t const s_boot_image_tl_table[] = {
@@ -622,26 +642,27 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 
 	debug("boot_img_offset.kernel_offset is 0x%llx\n", boot_img_offset.kernel_offset );
 
-	/* ramdisk image */
-	boot_img_offset.ramdisk_offset = boot_img_offset.kernel_offset + size;
-	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
-	if (0 == size) {
-		errorf("ramdisk image size should not be zero\n");
-		return 0;
+	if( hdr->ramdisk_size) {
+		/* ramdisk image */
+		boot_img_offset.ramdisk_offset = boot_img_offset.kernel_offset + size;
+		size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+		if (0 == size) {
+			errorf("ramdisk image size should not be zero\n");
+			return 0;
+		}
+
+		debug("boot_img_offset.ramdisk_offset is 0x%llx\n", boot_img_offset.ramdisk_offset );
+
+		/* dt image */
+		boot_img_offset.dt_offset = boot_img_offset.ramdisk_offset + size;
+
+		debug("boot_img_offset.dt_offset is 0x%llx\n", boot_img_offset.dt_offset );
 	}
-
-	debug("boot_img_offset.ramdisk_offset is 0x%llx\n", boot_img_offset.ramdisk_offset );
-
-	/* dt image */
-	boot_img_offset.dt_offset = boot_img_offset.ramdisk_offset + size;
-
-	debug("boot_img_offset.dt_offset is 0x%llx\n", boot_img_offset.dt_offset );
 
 	if(enter_sysdump_flag){
 		debug("Now doing sysdump ,go back here .\n");
 		return 1;
 	}
-
 #if (defined CONFIG_SECBOOT) && (defined CONFIG_VBOOT_V2)
 	if (0 == hdr->os_version) {
 		errorf("os version should not be zero!\n");
@@ -662,6 +683,87 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 /**
 	Function for do memory defragment and load dtb
 */
+static void merge_dtbo(uchar *dt_start_addr)
+{
+#ifdef CONFIG_OF_LIBFDT_OVERLAY
+	struct dt_table_header *table_header;
+	struct dt_table_entry *entry=NULL;
+	struct dt_table_entry *cur_entry=NULL;
+	struct fdt_header dtbo_header;
+	uint8_t data[64];
+	u8 *dtbo_addr = NULL;
+	int offset = 0;
+	int ret = 0;
+	int count,size,i;
+
+	if (0 != common_raw_read("dtbo", sizeof(*table_header), 0, &data[0])) {
+		errorf("read dtbo fail\n");
+		goto error;
+	}
+	table_header = (struct dt_table_header *)data;
+	if (be32_to_cpu(table_header->magic) != DT_TABLE_MAGIC) {
+		errorf("invalid dtbo partition\n");
+		goto error;
+	}
+	if (be32_to_cpu(table_header->dt_entry_count)==0)
+		goto error;
+	size =be32_to_cpu(table_header->dt_entry_size) *
+		 be32_to_cpu(table_header->dt_entry_count);
+	entry = malloc(size);
+	if (NULL == entry) {
+		errorf("malloc size=%dfor dt entrys fail\n",size);
+		goto error;
+	}
+	offset = be32_to_cpu(table_header->dt_entries_offset);
+	count = be32_to_cpu(table_header->dt_entry_count);
+
+	if (0 != common_raw_read("dtbo", size, offset, entry)) {
+		errorf("read dt entries fail\n");
+		goto error;
+	}
+
+	cur_entry = entry;
+	for (i=0; i < count; i++) {
+		printf("%s : offset = 0x%x size=0x%x\n"
+			,__func__, offset, be32_to_cpu(cur_entry->dt_size));
+
+		offset = be32_to_cpu(cur_entry->dt_offset);
+		size = sizeof(struct fdt_header);
+		if (0 != common_raw_read("dtbo", size, offset, &dtbo_header)) {
+			errorf("read dtbo fail\n");
+			goto error;
+		}
+
+		if (fdt_check_header(&dtbo_header) != 0) {
+			errorf("image is not a fdt\n");
+			goto error;
+		}
+		size = fdt_totalsize(&dtbo_header);
+		dtbo_addr = malloc(size);
+		if (NULL == dtbo_addr) {
+			errorf("malloc size %d for dtbo fail\n", size);
+			goto error;
+		}
+		if (0 != common_raw_read("dtbo", size, offset, dtbo_addr)) {
+			errorf("read dtbo fail\n");
+			goto error;
+		}
+		ret = fdt_overlay_apply(dt_start_addr, dtbo_addr);
+		if (ret) {
+			errorf("fdt_overlay_apply(): %s\n", fdt_strerror(ret));
+			goto error;
+		}
+		free(dtbo_addr);
+		dtbo_addr = NULL;
+		cur_entry++;
+	}
+error:
+	if (NULL != entry)
+		free(entry);
+	if (NULL != dtbo_addr)
+		free(dtbo_addr);
+#endif
+}
 int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	u8 *fdt_blob = NULL;
 	struct dt_table table;
@@ -741,49 +843,19 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 end:
 	memcpy(*dt_start_addr, fdt_blob, size);
 	ret = 0;
-#ifdef CONFIG_OF_LIBFDT_OVERLAY
-	u8 *dtbo_addr = NULL;
-	struct fdt_header dtbo_header;
-	size = sizeof(struct fdt_header);
-	if (0 != common_raw_read("dtbo", size, 0, &dtbo_header)) {
-		errorf("read dtbo fail\n");
-		goto error;
-	}
-	if (fdt_check_header(&dtbo_header) != 0) {
-		errorf("image is not a fdt\n");
-		goto error;
-	}
-	size = fdt_totalsize(&dtbo_header);
-	dtbo_addr = malloc(size);
-	if (NULL == dtbo_addr) {
-		errorf("malloc size %d for dtbo fail\n", size);
-		goto error;
-	}
-	if (0 != common_raw_read("dtbo", size, 0, dtbo_addr)) {
-		errorf("read dtbo fail\n");
-		goto error;
-	}
-	ret = fdt_overlay_apply(*dt_start_addr, dtbo_addr);
-	if (ret) {
-		errorf("fdt_overlay_apply(): %s\n", fdt_strerror(ret));
-		goto error;
-	}
-#endif
+	merge_dtbo(*dt_start_addr);
 error:
 	if (NULL != header)
 		free(header);
 	if (NULL != fdt_blob)
 		free(fdt_blob);
-#ifdef CONFIG_OF_LIBFDT_OVERLAY
-	if (NULL != dtbo_addr)
-		free(dtbo_addr);
-#endif
 	return ret;
 }
 
 int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **dt_addr )
 {
 	uchar *partition = NULL;
+	uchar *dtb_partname = NULL;
 	uint64_t size;
 	uchar *dt_img_adr;
 	char  *boot_mode_type_str;
@@ -801,6 +873,9 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 
 	if(0 == _get_kernel_ramdisk_dt_offset(hdr, partition))
 		return 0;
+	debugf("!!! load kernel partition %s: \n!!! kernel (0x%x:0x%x)\n!!! ramdisk(0x%x:0x%x) dt=%d\n",
+		partition,hdr->kernel_addr,hdr->kernel_size,hdr->ramdisk_addr,
+		hdr->ramdisk_size, hdr->dt_size);
 	/* get kernel image size */
 	size = PAD_SIZE(hdr->kernel_size, KERNL_PAGE_SIZE);
 	if (0 == size) {
@@ -815,14 +890,16 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 	}
 	debugf("%s kernel read OK,size=0x%llx, locate to 0x%lx \n", partition, size, (ulong)KERNEL_ADR);
 
-	ramdisk_addr = RAMDISK_ADR;
-	/* get ramdisk image size */
-	size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
-	if (0 == size) {
-		errorf("ramdisk image size should not be zero\n");
-		return 0;
-	}
+	if (hdr->ramdisk_size) {	//androidp recovery mode need load ramdisk
+		ramdisk_addr = RAMDISK_ADR;
+		/* get ramdisk image size */
+		size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+		if (0 == size) {
+			errorf("ramdisk image size should not be zero\n");
+			return 0;
+		}
 
+	}
 /*read dt image*/
 #if defined(CONFIG_SEPARATE_DT)
 	if (!_boot_load_separate_dt())
@@ -833,8 +910,15 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
 	fdt_fixup_all((uchar *)DT_ADR);
 #else
+
+	if (0 == common_raw_read("dtb", 10, 0, (char *)DT_ADR)) {
+		dtb_partname = "dtb";
+		boot_img_offset.dt_offset = 0;
+	} else {
+		dtb_partname = partition;
+	}
 	/* for memory defragment, dr_addr and ramdisk_adr is allocated dynamically*/
-	if (0 == load_fixup_dt_img(partition, dt_addr)) {
+	if (0 == load_fixup_dt_img(dtb_partname, dt_addr)) {
 		if (DT_ADR != *dt_addr) {
 			debugf("allocate dt_addr:%lx \n", *dt_addr);
 			/*allocate  ramdisk addr */
@@ -847,60 +931,62 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		return 0;
 	}
 #endif
-	fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr + hdr->ramdisk_size, 1);
-	if (0 == size) {
-		errorf("ramdisk image size should not be zero\n");
-		return 0;
-	}
-	/*read ramdisk image */
-	if (0 != common_raw_read(partition, size, (uint64_t)(boot_img_offset.ramdisk_offset), ramdisk_addr)) {
-		errorf("%s ramdisk read error!\n", partition);
-		return 0;
-	}
-	debugf("%s ramdisk read OK,size=0x%llx, locate to 0x%lx \n", partition, size, ramdisk_addr);
 
-	boot_mode_type_str = getenv("bootmode");
-	if (NULL != boot_mode_type_str)
-	{
-		if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
-			int ramdisk_size;
-			ramdisk_size = boot_sprdisk(0, ramdisk_addr);
-			if (ramdisk_size > 0) {
-				hdr->ramdisk_size = ramdisk_size;
-				if (RAMDISK_ADR != ramdisk_addr) {
-					/* get ramdisk size , calculate addr, so we can have enough room for sprdisk ramdisk */
-					size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
-					ramdisk_addr = *dt_addr - size;
-					hdr->ramdisk_addr = ramdisk_addr;
-				}
-				fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+hdr->ramdisk_size , 1);
-				boot_sprdisk(ramdisk_size, ramdisk_addr);
-			} else {
-				errorf("%s, sprdisk mode failure!\n", __FUNCTION__);
-			}
-			return 1;
+	if( hdr->ramdisk_size ) {
+		fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr + hdr->ramdisk_size, 1);
+		if (0 == size) {
+			errorf("ramdisk image size should not be zero\n");
+			return 0;
 		}
-	}
+		/*read ramdisk image */
+		if (0 != common_raw_read(partition, size, (uint64_t)(boot_img_offset.ramdisk_offset), ramdisk_addr)) {
+			errorf("%s ramdisk read error!\n", partition);
+			return 0;
+		}
+		debugf("%s ramdisk read OK,size=0x%llx, locate to 0x%lx \n", partition, size, ramdisk_addr);
+
+		boot_mode_type_str = getenv("bootmode");
+		if (NULL != boot_mode_type_str)
+		{
+			if(!strncmp(boot_mode_type_str, "sprdisk", 7)) {
+				int ramdisk_size;
+				ramdisk_size = boot_sprdisk(0, ramdisk_addr);
+				if (ramdisk_size > 0) {
+					hdr->ramdisk_size = ramdisk_size;
+					if (RAMDISK_ADR != ramdisk_addr) {
+						/* get ramdisk size , calculate addr, so we can have enough room for sprdisk ramdisk */
+						size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+						ramdisk_addr = *dt_addr - size;
+						hdr->ramdisk_addr = ramdisk_addr;
+					}
+					fdt_initrd_norsvmem(*dt_addr, ramdisk_addr, ramdisk_addr+hdr->ramdisk_size , 1);
+					boot_sprdisk(ramdisk_size, ramdisk_addr);
+				} else {
+					errorf("%s, sprdisk mode failure!\n", __FUNCTION__);
+				}
+				return 1;
+			}
+		}
 
 
 #ifdef CONFIG_SDRAMDISK
-	{
-		int sd_ramdisk_size = 0;
+		{
+			int sd_ramdisk_size = 0;
 #ifdef WDSP_ADR
-		size = WDSP_ADR - RAMDISK_ADR;
+			size = WDSP_ADR - RAMDISK_ADR;
 #else
-		size = TDDSP_ADR - RAMDISK_ADR;
+			size = TDDSP_ADR - RAMDISK_ADR;
 #endif
-		if (size > 0)
-			_sd_fat_mount();
-			sd_ramdisk_size = load_sd_ramdisk((void *) RAMDISK_ADR, size);
-		if (sd_ramdisk_size > 0)
-			hdr->ramdisk_size = sd_ramdisk_size;
+			if (size > 0)
+				_sd_fat_mount();
+				sd_ramdisk_size = load_sd_ramdisk((void *) RAMDISK_ADR, size);
+			if (sd_ramdisk_size > 0)
+				hdr->ramdisk_size = sd_ramdisk_size;
+		}
+#endif
 	}
-#endif
 	return 1;
 }
-
 
 #ifdef CONFIG_SEPARATE_DT
 int _boot_load_separate_dt(void)

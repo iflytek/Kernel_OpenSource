@@ -503,8 +503,12 @@ unsigned char *get_dt_addr(void)
 {
 	unsigned char *dt_addr = DT_ADR;
 	boot_img_hdr *hdr = (void *)raw_header;
-	if (1 == _get_kernel_ramdisk_dt_offset(hdr, "boot"))
-		load_fixup_dt_img("boot", &dt_addr);
+	if (1 == _get_kernel_ramdisk_dt_offset(hdr, "boot")) {
+		if( !hdr->ramdisk_size )
+			load_fixup_dt_img("dtb", &dt_addr);
+		else
+			load_fixup_dt_img("boot", &dt_addr);
+	}
 	return dt_addr;
 }
 
