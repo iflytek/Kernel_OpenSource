@@ -155,7 +155,12 @@
 #define CONFIG_SYS_SDRAM_END2 (CONFIG_SYS_SDRAM_BASE2 + CONFIG_SYS_SDRAM_SIZE2)
 #endif
 
-
+#ifdef DEBUG
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+#define CONFIG_AUTOBOOT_KEYED 1
+#define CONFIG_AUTOBOOT_PROMPT "Press q to abort autoboot in %d seconds"
+#define CONFIG_AUTOBOOT_STOP_STR "q"
+#endif
 
 /* Initial environment variables */
 
