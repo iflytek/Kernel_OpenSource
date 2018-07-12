@@ -103,6 +103,7 @@ typedef struct {
 } data_block_header_t;
 
 typedef struct _BOOT_IMG_OFFSET {
+	uint64_t hdr_offset;
 	uint64_t kernel_offset;
 	uint64_t ramdisk_offset;
 	uint64_t dt_offset;
@@ -622,6 +623,7 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 #if (defined CONFIG_SECBOOT) && (!(defined CONFIG_VBOOT_V2))
 	offset = 512;/**header of image size is 512B**/
 #endif
+	boot_img_offset.hdr_offset = offset;
 	if (0 != common_raw_read(partition, KERNL_PAGE_SIZE, (uint64_t)offset, (char *)hdr)) {
 		errorf("read %s header error!\n", partition);
 		return 0;
@@ -678,6 +680,100 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 #endif
 
 	return 1;
+}
+
+/**
+	Function for load dtbo and merge into dtb
+*/
+static void load_and_merge_dtbo(uchar *partition, uchar *dt_start_addr)
+{
+	int ret = 0;
+	int offset = 0;
+	int count,i;
+	struct dt_table_header table_header;
+	struct dt_table_entry *entry=NULL;
+	struct fdt_header *dtbo_header = NULL;
+	u8 *dtbo_start_addr = NULL;
+	u8 *dtbo_addr = NULL;
+	struct boot_img_hdr_v1 hdr;
+	uint64_t hdr_offset = boot_img_offset.hdr_offset + sizeof(boot_img_hdr);
+
+	debugf("load dtbo from %s\n", partition);
+	if (0 != common_raw_read(partition, sizeof(struct boot_img_hdr_v1), hdr_offset, (char *)&hdr)) {
+		errorf("read %s header error!\n", partition);
+		return 0;
+	}
+
+	debug("recovery_dtbo_size: 0x%x\n", hdr.recovery_dtbo_size);
+	debug("recovery_dtbo_offset: 0x%x\n", hdr.recovery_dtbo_offset);
+	debug("header_size: 0x%x\n", hdr.header_size);
+
+	/* read dtbo table header */
+	if (0 != common_raw_read(partition, (uint64_t)sizeof(struct dt_table_header), hdr.recovery_dtbo_offset, &table_header)) {
+		errorf("read dtbo fail\n");
+		goto error;
+	}
+
+	/* dtbo image header check */
+	if (be32_to_cpu(table_header.magic) != DT_TABLE_MAGIC) {
+		errorf("invalid dtbo partition\n");
+		goto error;
+	}
+
+	if (be32_to_cpu(table_header.total_size) == 0)
+		goto error;
+
+	/* dtbo alloc memory*/
+	dtbo_start_addr = malloc(be32_to_cpu(table_header.total_size));
+	if (NULL == dtbo_start_addr) {
+		errorf("malloc size=%dfor dt entrys fail\n", be32_to_cpu(table_header.total_size));
+		goto error;
+	}
+
+	/* load dtbo image */
+	if (0 != common_raw_read(partition, (uint64_t)be32_to_cpu(table_header.total_size), hdr.recovery_dtbo_offset, dtbo_start_addr)) {
+		errorf("read dtbo fail\n");
+		goto error;
+	}
+
+	if (be32_to_cpu(table_header.dt_entry_count) == 0) {
+		errorf("not found dtbo !\n");
+		goto error;
+	}
+
+	count = be32_to_cpu(table_header.dt_entry_count);
+	entry = (struct dt_table_entry *)(dtbo_start_addr +
+				be32_to_cpu(table_header.dt_entries_offset));
+	if (NULL == entry) {
+		goto error;
+	}
+
+	for (i = 0; i < count; i++) {
+		offset = be32_to_cpu(entry->dt_offset);
+		debugf("%s : offset = 0x%x size=0x%x\n"
+			,__func__, offset, be32_to_cpu(entry->dt_size));
+
+		dtbo_addr = dtbo_start_addr + offset;
+		dtbo_header = (struct fdt_header *)dtbo_addr;
+		if (fdt_check_header(dtbo_header) != 0) {
+			errorf("image is not a fdt\n");
+			goto error;
+		}
+
+		ret = fdt_overlay_apply(dt_start_addr, dtbo_addr);
+		if (ret) {
+			errorf("fdt_overlay_apply(): %s\n", fdt_strerror(ret));
+			goto error;
+		}
+		dtbo_addr = NULL;
+		entry++;
+	}
+
+error:
+	if (NULL != dtbo_start_addr) {
+		free(dtbo_start_addr);
+		dtbo_start_addr = NULL;
+	}
 }
 
 /**
@@ -843,7 +939,6 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 end:
 	memcpy(*dt_start_addr, fdt_blob, size);
 	ret = 0;
-	merge_dtbo(*dt_start_addr);
 error:
 	if (NULL != header)
 		free(header);
@@ -930,6 +1025,14 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		errorf("load dt error!\n");
 		return 0;
 	}
+#ifdef CONFIG_OF_LIBFDT_OVERLAY
+	if ((BOOT_HEADER_VERSION_ONE == hdr->dt_size) &&
+		(0 == memcmp(bootmode, RECOVERY_PART, strlen(RECOVERY_PART)))) {
+		load_and_merge_dtbo(partition, *dt_addr);
+	} else {
+		merge_dtbo(*dt_addr);
+	}
+#endif
 #endif
 
 	if( hdr->ramdisk_size ) {

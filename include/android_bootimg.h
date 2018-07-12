@@ -26,6 +26,7 @@ typedef struct boot_img_hdr boot_img_hdr;
 #define BOOT_ARGS_SIZE 512
 
 #define KERNL_PAGE_SIZE 2048
+#define BOOT_EXTRA_ARGS_SIZE  1024
 
 struct boot_img_hdr
 {
@@ -54,6 +55,9 @@ struct boot_img_hdr
     unsigned char cmdline[BOOT_ARGS_SIZE];
 
     unsigned id[8]; /* timestamp / checksum / sha1 / etc */
+	/* Supplemental command line data; kept here to maintain
+     * binary compatibility with older versions of mkbootimg */
+    uint8_t extra_cmdline[BOOT_EXTRA_ARGS_SIZE];
 };
 
 /*
@@ -85,6 +89,12 @@ struct boot_img_hdr
 ** 6. if second_size != 0: jump to second_addr
 **    else: jump to kernel_addr
 */
+#define BOOT_HEADER_VERSION_ONE 1
 
+struct boot_img_hdr_v1 {
+    uint32_t recovery_dtbo_size;   /* size in bytes for recovery DTBO image */
+    uint64_t recovery_dtbo_offset; /* offset to recovery dtbo in boot image */
+    uint32_t header_size;
+} __attribute__((packed));
 
 #endif
