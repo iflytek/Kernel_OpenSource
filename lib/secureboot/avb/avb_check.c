@@ -65,33 +65,29 @@ out:
 
 int avb_check_image(unsigned char *name)
 {
-     AvbSlotVerifyResult verify_result;
-     const char* slot_suffixes[2] = {"", ""};
+    AvbSlotVerifyResult verify_result;
+    const char         *slot_suffixes[2] = {"", ""};
+    const char         *requested_partitions[] = {"boot", NULL};
+    bool                allow_verification_error = false;
+    AvbSlotVerifyData  *out_slot_data = NULL;
 
-    const char* requested_partitions[] = {"boot", NULL};
-    bool allow_verification_error = false;
-    AvbSlotVerifyData * out_slot_data = NULL;
-
-    if(name) {
-    	debug("avb check image name:%s.\n", name);
-	requested_partitions[0] = name;
-    }else{
-    	debug("avb check image name is null.\n");
-	requested_partitions[0] = "";
+    if (name) {
+        debug("avb check image name:%s.\n", name);
+        requested_partitions[0] = name;
+    } else {
+        debug("avb check image name is null.\n");
+        requested_partitions[0] = "";
     }
-
     //load data and check
       verify_result = avb_slot_verify(&g_avb_ops,
                                       requested_partitions,
                                       slot_suffixes[0],
                                       allow_verification_error,
                                       &avb_slot_data[0]);
-	debug(">>>>>>>>>>>>>>>>  avb_slot_verify result is %d.\n", verify_result);
-	debug(">>>>>>>>>>>>>>>>  avb_slot_verify result is %s.\n", avb_slot_verify_result_to_string(verify_result));
-
-	debug("slot_data[0] is 0x%x.\n", avb_slot_data[0]);
-	debug("slot_data[1] is 0x%x.\n", avb_slot_data[1]);
-
-	out_slot_data = avb_slot_data[0];
-	return verify_result;
+    debug(">>>>>>>>>>>>>>>>  avb_slot_verify result is %d.\n", verify_result);
+    debug(">>>>>>>>>>>>>>>>  avb_slot_verify result is %s.\n", avb_slot_verify_result_to_string(verify_result));
+    debug("slot_data[0] is 0x%x.\n", avb_slot_data[0]);
+    debug("slot_data[1] is 0x%x.\n", avb_slot_data[1]);
+    out_slot_data = avb_slot_data[0];
+    return verify_result;
 }

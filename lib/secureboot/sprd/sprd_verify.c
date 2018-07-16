@@ -489,89 +489,89 @@ void sprd_dl_check(uint8_t * hash,uint8_t * data_header)
 }
 
 #ifdef CONFIG_VBOOT_V2
-//to check hash in image header of vbmeta.img porting from emmc_boot.c int8_t sprd_hash_check(uint8_t *header)
-int8_t check_sprdimgheader(uint8_t *header)
+// to check hash in image header of vbmeta.img porting from
+// emmc_boot.c int8_t sprd_hash_check(uint8_t *header)
+int8_t check_sprdimgheader(uint8_t *header, uint8_t *payload)
 {
-	uint8_t* hash_temp=NULL;//[32]={0};
-	sys_img_header *img_header = (sys_img_header *)(header);
-	AvbSHA256Ctx sha256_ctx;
+    uint8_t         *hash_temp = NULL;
+    sys_img_header  *img_header = (sys_img_header *)(header);
+    AvbSHA256Ctx     sha256_ctx;
 
-	if (IMG_BAK_HEADER == img_header->mMagicNum)
-	{
-		//sha256_csum_wd((uint8_t *)(header+sizeof(sys_img_header)),img_header->mImgSize,hash_temp,NULL);
-		avb_sha256_init(&sha256_ctx);
-		avb_sha256_update(
-			&sha256_ctx, (uint8_t *)(header+sizeof(sys_img_header)), img_header->mImgSize);
-		hash_temp = avb_sha256_final(&sha256_ctx);
-
-		if(0 == memcmp(img_header->mPayloadHash,hash_temp,32))
-			return 0;
-		else
-			return -1;
-	}
-    else
-		return -1;
+    //dumpHex("vbmeta footer", header, 512);
+    //dumpHex("vbmeta payload", payload, 512);
+    if (IMG_BAK_HEADER == img_header->mMagicNum) {
+        avb_sha256_init(&sha256_ctx);
+        avb_sha256_update(&sha256_ctx, payload, img_header->mImgSize);
+        hash_temp = avb_sha256_final(&sha256_ctx);
+        if (0 == memcmp(img_header->mPayloadHash, hash_temp, 32))
+            return 0;
+        else
+            return -1;
+    } else {
+        return -1;
+    }
 }
 
 void sprd_dl_vboot_verify(uint8_t *name,uint8_t *tocheck_name,uint8_t * header,uint8_t *code)
 {
-	uint8_t pubk[SPRD_RSAPUBKLEN] = {0};
-	uint8_t hash[HASH_BYTE_LEN] = {0};
-	int8_t vb_ret = 0;
+    uint8_t    pubk[SPRD_RSAPUBKLEN] = {0};
+    uint8_t    hash[HASH_BYTE_LEN] = {0};
+    int8_t     vb_ret = 0;
+    uint32_t   offset = VBMETA_PARTITION_MAX_SIZE - sizeof(sys_img_header);
+    uint8_t   *payload = header;
 
-	secf("enter use partition name: %s . to check partition_name: %s. \n", name, tocheck_name);
-
-	if(name){
-		if(strcmp("fdl2",name) == 0){
-			avb_ops_new_for_download();
-			sprd_dl_secure_vboot_prepare();
-			if(strcmp("vbmeta",tocheck_name) == 0){
-				secf("check vbmeta image.\n");
-				if (check_sprdimgheader(header)==0)//check dual backup hash for vbmeta.img
-					vb_ret = avb_check_vbmeta(header+sizeof(sys_img_header), VBMETA_PARTITION_MAX_SIZE);
-				else
-				{
-					secf("error:check dual backup hash failed for vbmeta.img.\n");
-					vb_ret=-1;
-				}
-			}else{
-
-				vb_ret = avb_check_image(tocheck_name);
-			}
-			if (vb_ret!=0)
-				while (1);
-		}
-	}
+    secf("enter use partition name: %s . to check partition_name: %s. \n", name, tocheck_name);
+    if (name) {
+        if (strcmp("fdl2",name) == 0) {
+            avb_ops_new_for_download();
+            sprd_dl_secure_vboot_prepare();
+            if (strcmp("vbmeta",tocheck_name) == 0) {
+                secf("check vbmeta image.\n");
+                // check dual backup hash for vbmeta.img
+                if (check_sprdimgheader(header + offset, payload) == 0) {
+                    vb_ret = avb_check_vbmeta(header, VBMETA_PARTITION_MAX_SIZE);
+                } else {
+                    secf("error:check dual backup hash failed for vbmeta.img.\n");
+                    vb_ret = -1;
+                }
+            } else {
+                vb_ret = avb_check_image(tocheck_name);
+            }
+            if (vb_ret != 0) {
+                secf("check image failed. vb_ret = %d\n", vb_ret);
+                while(1);
+            }
+        }
+    }
 }
 
 void sprd_fb_secure_vboot_verify(uint8_t *name,uint8_t *partition_name,uint8_t * header,uint8_t *code)
 {
-	uint8_t pubk[SPRD_RSAPUBKLEN] = {0};
-	uint8_t hash[HASH_BYTE_LEN] = {0};
-	sys_img_header *img_header;
+    uint8_t           pubk[SPRD_RSAPUBKLEN] = {0};
+    uint8_t           hash[HASH_BYTE_LEN] = {0};
+    uint32_t          offset = VBMETA_PARTITION_MAX_SIZE - sizeof(sys_img_header);
+    uint8_t          *payload = header;
+    sys_img_header   *img_header = (sys_img_header *)(header + offset);
 
-	secf("enter use partition name: %s . to check partition_name: %s. \n",name, partition_name);
-	if(name && (strcmp("uboot",name) == 0)){
-		if(partition_name && (strcmp("vbmeta",partition_name) == 0)){
-			secf("check vbmeta image.\n");
-			if (check_sprdimgheader(header)!=0)//check dual backup hash for vbmeta.img
-			{
-				secf("error:check dual backup hash failed for vbmeta.img.\n");
-				while (1);
-			}
-
-			sys_img_header *img_header = (sys_img_header *)(header);
-			//header+sizeof(sys_img_header) will not be aigned to 4K for tos, so copy to gd->vbmeta_img_base
-			memcpy(gd->vbmeta_img_base,header+sizeof(sys_img_header),img_header->mImgSize);
-			sprd_fb_secure_vboot_prepare(partition_name, gd->vbmeta_img_base, gd->vbmeta_img_base,(sys_img_header*)header);
-		}
-		else
-		{
-			//prepare verify infomation
-			sprd_fb_secure_vboot_prepare(partition_name, header, gd->vbmeta_img_base, (sys_img_header*)header);
-		}
-		uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
-	}
+    secf("enter use partition name: %s . to check partition_name: %s. \n",name, partition_name);
+    if (name && (strcmp("uboot", name) == 0)) {
+        if (partition_name && (strcmp("vbmeta", partition_name) == 0)) {
+            secf("check vbmeta image.\n");
+            // check dual backup hash for vbmeta.img
+            if (check_sprdimgheader(header + offset, payload) != 0) {
+                secf("error:check dual backup hash failed for vbmeta.img.\n");
+                while (1);
+            }
+            // header+sizeof(sys_img_header) will not be aigned to 4K for tos, so copy to gd->vbmeta_img_base
+            memcpy(gd->vbmeta_img_base, header, img_header->mImgSize);
+            sprd_fb_secure_vboot_prepare(partition_name, gd->vbmeta_img_base,
+                                         gd->vbmeta_img_base, img_header);
+        } else {
+            // prepare verify infomation
+            sprd_fb_secure_vboot_prepare(partition_name, header, gd->vbmeta_img_base, (sys_img_header*)header);
+        }
+        uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info, sizeof(VbootVerifyInfo));
+    }
 }
 #endif
 

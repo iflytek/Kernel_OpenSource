@@ -131,61 +131,57 @@ static int _check_secure_part(uchar * partition_name)
 
 int secure_load_partition(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
 {
-	sys_img_header img_header;
-	sys_img_header *header = NULL;
-	int img_size = 0;
+    sys_img_header    img_header;
+    int               img_size = 0;
+    uint64_t          head_off = 0;
+    uint64_t          head_len = sizeof(sys_img_header);
 
-	if ((0 == strcmp(partition_name, "boot"))||(0 == strcmp(partition_name, "recovery"))){
+    if ((0 == strcmp(partition_name, "boot"))||(0 == strcmp(partition_name, "recovery"))){
 #if (!defined CONFIG_VBOOT_V2)
-		if (0 != common_raw_read(partition_name, SYS_HEADER_SIZE, 0, (char*)&img_header))
-			goto error;
-
-		img_size = img_header.mImgSize;
-
-		if (0 != common_raw_read(partition_name, img_size+CERT_SIZE, 0, ram_addr))
-			goto error;
-
+        if (0 != common_raw_read(partition_name, SYS_HEADER_SIZE, 0, (char*)&img_header))
+            goto error;
+        img_size = img_header.mImgSize;
+        if (0 != common_raw_read(partition_name, img_size+CERT_SIZE, 0, ram_addr))
+            goto error;
 #else
-		if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
-			goto error;
-
+        if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
+            goto error;
 #endif
-	}
+    }
 #if (defined CONFIG_VBOOT_V2)
-	else if (0 == strcmp(partition_name, "vbmeta"))	{
-		if (0 != common_raw_read("vbmeta",size, 0, (u8*)ram_addr))
-			goto error;
-
-		header = (sys_img_header*)ram_addr;
-		img_size = header->mImgSize;
-
-		if (check_sprdimgheader(ram_addr)==0){//dual backup check failed,vbmeta.img crashed
-			if (0 != common_raw_read("vbmeta",size-SYS_HEADER_SIZE, SYS_HEADER_SIZE, (u8*)ram_addr))
-				goto error;
-
-		}else {//try to read vbmeta image from vbmeta_bak
-			if (0 != common_raw_read("vbmeta_bak",size, 0, (u8*)ram_addr))
-				goto error;
-
-			if (check_sprdimgheader(ram_addr)==0){
-				if (0 != common_raw_read("vbmeta_bak",size-SYS_HEADER_SIZE, SYS_HEADER_SIZE, (u8*)ram_addr))
-					goto error;
-
-			} else {
-				secf("error:check dual backup hash failed for vbmeta.img.\n");
-				while (1);
-			}
-		}
-	}
+    else if (0 == strcmp(partition_name, "vbmeta")) {
+        // read vbmeta header in footer
+        head_off = VBMETA_PARTITION_MAX_SIZE - SYS_HEADER_SIZE;
+        if (0 != common_raw_read("vbmeta", head_len, head_off, (u8*)&img_header)) {
+            goto error;
+        }
+        img_size = img_header.mImgSize;
+        // read vbmeta payload
+        if (0 != common_raw_read("vbmeta", size, 0, (u8*)ram_addr)) goto error;
+        // integrity check for vbmeta
+        if (check_sprdimgheader((uint8_t *)&img_header, ram_addr) != 0) {
+            // check failed, try to read vbmeta from vbmeta_bak
+            // read vbmeta header in footer
+            if (0 != common_raw_read("vbmeta_bak", head_len, head_off, (u8*)&img_header)) {
+                goto error;
+            }
+            img_size = img_header.mImgSize;
+            // read vbmeta payload
+            if (0 != common_raw_read("vbmeta_bak", size, 0, (u8*)ram_addr)) goto error;
+            // integrity check for vbmeta_bak
+            if (check_sprdimgheader((uint8_t *)&img_header, ram_addr) != 0) {
+                secf("error:check dual backup hash failed for vbmeta.img.\n");
+                while (1);
+            }
+        }
+    }
 #endif
-	else if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
-			goto error;
-
-	return img_size;
-
+    else if (0 != common_raw_read(partition_name,size, offset, (u8*)ram_addr))
+            goto error;
+    return img_size;
 error:
-	errorf("read %s partition fail\n", partition_name);
-	return -1;
+    errorf("read %s partition fail\n", partition_name);
+    return -1;
 }
 
 static void secboot_get_pubkhash(uint64_t img_buf,uint64_t imginfo)
@@ -569,7 +565,6 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 
 		case VERIFY_PROCESS_BOOT:
 			debugf("In boot mode\n");
-
 			img_size =  secure_load_partition("vbmeta",partition_size,
 					(uint64_t)0, vboot_verify_info->vbmeta_img_addr);
 			if (-1 == img_size){
@@ -597,6 +592,7 @@ void vboot_secure_process_init(char *partition_name, char *img_ram_addr, char * 
 			debugf("get vbmeta partition size fail\n");
 			return;
 		}
+
 		vboot_verify_info->vbmeta_img_addr = vbmeta_ram_addr;
 
 		img_size =  secure_load_partition("vbmeta",partition_size,

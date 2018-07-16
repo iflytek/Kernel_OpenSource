@@ -91,57 +91,56 @@ void do_hex_dump(void * vaddr, int buflen)
 	printf("\n");
 }
 
-AvbIOResult read_from_partition(AvbOps* ops,
-                                       const char* partition_name,
-                                       int64_t offset_from_partition,
-                                       size_t num_bytes,
-                                       void* buf,
-                                       size_t* out_num_read) {
-	int ret = 0;
+AvbIOResult read_from_partition(AvbOps     *ops,
+                                const char *partition_name,
+                                int64_t     offset_from_partition,
+                                size_t      num_bytes,
+                                void       *buf,
+                                size_t     *out_num_read) {
+    int      ret = 0;
     uint64_t partition_size;
 
     extern int secure_get_partition_size(uchar * partition_name, uint64_t * size);
     secure_get_partition_size(partition_name, &partition_size);
 
-  if (offset_from_partition < 0) {
-    if ((-offset_from_partition) > partition_size) {
-      debug("Offset outside range.\n");
-      return AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
+    if (offset_from_partition < 0) {
+        if ((-offset_from_partition) > partition_size) {
+            debug("Offset outside range.\n");
+            return AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
+        }
+        offset_from_partition = partition_size - (-offset_from_partition);
     }
-    offset_from_partition = partition_size - (-offset_from_partition);
-  }
-
-  /* Check if num_bytes goes beyond partition end. If so, don't read beyond
-   * this boundary -- do a partial I/O instead.
-   */
-  if (num_bytes > partition_size - offset_from_partition)
-    *out_num_read = partition_size - offset_from_partition;
-  else
-    *out_num_read = num_bytes;
-
-	if((strcmp(partition_name, "vbmeta")) && (g_ulAvbCheckType == AVB_CHECK_DOWNLOAD))	{
-		debug("buf:0x%x, g_eMMCBuf:0x%x, offset_from_partition:%d num_bytes:%d\n", buf, g_eMMCBuf, offset_from_partition, num_bytes);
-
-		memcpy((char *)buf, g_eMMCBuf+offset_from_partition, num_bytes);
-
+    /* Check if num_bytes goes beyond partition end. If so, don't read beyond
+     * this boundary -- do a partial I/O instead.
+     */
+    if (num_bytes > partition_size - offset_from_partition)
+        *out_num_read = partition_size - offset_from_partition;
+    else
+        *out_num_read = num_bytes;
+    if((strcmp(partition_name, "vbmeta")) &&
+       (g_ulAvbCheckType == AVB_CHECK_DOWNLOAD)) {
+        debug("buf:0x%x, g_eMMCBuf:0x%x, offset_from_partition:%d num_bytes:%d\n",
+              buf, g_eMMCBuf, offset_from_partition, num_bytes);
+        memcpy((char *)buf, g_eMMCBuf+offset_from_partition, num_bytes);
 #ifdef CONFIG_VBOOT_DUMP
-	    do_hex_dump(g_eMMCBuf, 512);
+        do_hex_dump(g_eMMCBuf, 512);
 #endif
-		*out_num_read = num_bytes;
-	} else {
-		if (strcmp(partition_name, "vbmeta")==0)
-			secure_load_partition(partition_name, (uint64_t)num_bytes, (uint64_t)offset_from_partition, (char *)buf);
-		else
-			ret = common_raw_read(partition_name, (uint64_t)num_bytes, (uint64_t)offset_from_partition, (char *)buf);
-		if (0 != ret) {
-			debug("PARTITION %s read error, ret:%d \n", partition_name, ret);
-			return ret;
-		}
-
-		*out_num_read = num_bytes;
-	}
-
-	return ret;
+        *out_num_read = num_bytes;
+    } else {
+        if (strcmp(partition_name, "vbmeta") == 0) {
+            secure_load_partition(partition_name, (uint64_t)num_bytes,
+                                  (uint64_t)offset_from_partition, (char *)buf);
+        } else {
+            ret = common_raw_read(partition_name, (uint64_t)num_bytes,
+                                  (uint64_t)offset_from_partition, (char *)buf);
+        }
+        if (0 != ret) {
+            debug("PARTITION %s read error, ret:%d \n", partition_name, ret);
+            return ret;
+        }
+        *out_num_read = num_bytes;
+    }
+    return ret;
 }
 
 AvbIOResult validate_vbmeta_public_key(
