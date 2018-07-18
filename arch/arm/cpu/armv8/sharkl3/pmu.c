@@ -480,6 +480,9 @@ static int set_clk_mpll(uint32_t clk, uint32_t index)
 	struct sprd_ibias_table *itable = mpll_ibias_table;
 	uint32_t refin = REFIN;
 
+	///pd mpll0
+	CHIP_REG_AND(REG_PMU_APB_MPLL0_REL_CFG, ~BIT_PMU_APB_MPLL0_AP_SEL);
+
 	switch (index) {
 	case 0:
 		reg1 = REG_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_CTRL0;
@@ -513,8 +516,10 @@ static int set_clk_mpll(uint32_t clk, uint32_t index)
 
 	clk = clk/1000000;
 
-	clk_cfg1 = CHIP_REG_GET(reg1);
+	//clk_cfg1 = CHIP_REG_GET(reg1);
+	clk_cfg1 = (BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_LPF(4) | BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_N(0x2E));
 	clk_cfg1 |= BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_DIV_S | BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_SDM_EN;
+	clk_cfg1 &= ~BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_MOD_EN;
 
 	/* calc kint/nint */
 	nint = BIT_ANLG_PHY_G4_ANALOG_MPLL_THM_TOP_MPLL0_NINT(NINT(clk, refin));
@@ -542,6 +547,7 @@ static int set_clk_mpll(uint32_t clk, uint32_t index)
 	CHIP_REG_SET(reg1, clk_cfg1);
 	CHIP_REG_SET(reg2, clk_cfg2);
 
+  	CHIP_REG_OR(REG_PMU_APB_MPLL0_REL_CFG, BIT_PMU_APB_MPLL0_AP_SEL);
 	tmr_udelay(200);
 
 	return 0;
