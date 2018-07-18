@@ -123,10 +123,10 @@ void set_backlight(uint32_t brightness)
 
 	} else {
 
-		value &= (~SC2703_WLED_EN_MASK)|(~SC2703_DISPLAY_EN_MASK);
+		value = i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE);
+		value &= ~SC2703_WLED_EN_MASK;
 		i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, value);
 		printf("read SC2703_SYSCTRL_DISPLAY_ACTIVE = 0x%x brightness:%d\n", \
 			i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_STATUS), brightness);
 	}
-
 }
