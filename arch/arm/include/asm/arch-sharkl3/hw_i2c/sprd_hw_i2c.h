@@ -9,10 +9,12 @@ struct sprd_hw_i2c {
 	void *base;
 };
 
+#define DVFS_ADDR(DA, RA)		(((DA) << 8 | (RA)) << 2)
+
 #define SPRD_I2C_NUM		1
 
-#define	DVFS_RX_ADDR		0x18000
-#define DVFS_TX_ADDR		0x18000
+#define	DVFS_TX_ADDR		DVFS_ADDR(CONFIG_DVFS_ADDR, CONFIG_DVFS_TX_REG_ADDR)
+#define	DVFS_RX_ADDR		DVFS_ADDR(CONFIG_DVFS_ADDR, CONFIG_DVFS_RX_REG_ADDR)
 #define	DVFS_RX_CHNL		5
 #define	DVFS_TX_CHNL		6
 

@@ -363,6 +363,10 @@
 #define CONFIG_SPRDCHG_I2C_BUS 4
 #define CONFIG_FAN54015_CHARGE_IC
 
+#define CONFIG_DVFS_ADDR		0x60
+#define CONFIG_DVFS_TX_REG_ADDR		0
+#define CONFIG_DVFS_RX_REG_ADDR		0
+
 /*-----------------------------------------------------------------------
  * Cache Configuration
  */

@@ -364,6 +364,10 @@
 #define CONFIG_SPRDCHG_I2C_BUS 7
 #define CONFIG_SPRD2703_CHARGE_IC
 
+#define CONFIG_DVFS_ADDR		0x49
+#define CONFIG_DVFS_TX_REG_ADDR		0x03
+#define CONFIG_DVFS_RX_REG_ADDR		0x03
+
 /*-----------------------------------------------------------------------
  * Cache Configuration
  */
