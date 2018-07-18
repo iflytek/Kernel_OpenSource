@@ -93,10 +93,10 @@ static inline int32_t  dispc_set_disp_size(struct sprdfb_device *dev)
 
 	FB_PRINT("sprdfb:[%s]\n",__FUNCTION__);
 	if (SPRDFB_MIPI_MODE_VIDEO == dev->panel->info.mipi->work_mode) {
-#if (defined(CONFIG_SOC_IWHALE2) || defined(CONFIG_SPRD_SOC_SP9853I) || defined(CONFIG_SOC_PIKE2))
-		width_strike = WIDTH_ALIGN(dev->panel->width, 1);
-#else
+#if defined(CONFIG_SC9860)
 		width_strike = WIDTH_ALIGN(dev->panel->width, 16);
+#else
+		width_strike = WIDTH_ALIGN(dev->panel->width, 1);
 #endif
 		FB_PRINT("width_strike = %d\n", width_strike);
 		reg_val = (width_strike & 0xfff)
