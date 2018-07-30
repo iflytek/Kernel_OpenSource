@@ -4,6 +4,7 @@ ccflags-y := -I$(srctree)/lib/avb/libavb \
 #libavb
 obj-y += \
     libavb/avb_chain_partition_descriptor.o \
+    libavb/avb_cmdline.o \
     libavb/avb_crc32.o \
     libavb/avb_crypto.o \
     libavb/avb_descriptor.o \

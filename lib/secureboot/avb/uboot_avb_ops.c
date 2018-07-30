@@ -40,7 +40,6 @@
 /*end of add for avb ops*/
 
 #include "sprd_imgversion.h"
-
 #include <avb/uboot_avb_ops.h>
 #include "avb_ops.h"
 #include <avb/uboot_avb_util.h>
@@ -199,6 +198,57 @@ AvbIOResult validate_vbmeta_public_key(
   return ret;
 }
 
+#ifdef CONFIG_VBOOT_SYSTEMASROOT
+AvbIOResult read_from_partition_system(AvbOps     *ops,
+                                       const char *partition_name,
+                                       int64_t     offset_from_partition,
+                                       size_t      num_bytes,
+                                       void       *buf,
+                                       size_t     *out_num_read) {
+    int      ret = 0;
+    uint64_t partition_size;
+
+    debug("read partition name: %s, offset = 0x%llx, num_bytes = 0x%x\n",
+           partition_name, offset_from_partition, num_bytes);
+    if (offset_from_partition < 0) {
+        if ((-offset_from_partition) > partition_size) {
+            debug("Offset outside range.\n");
+            return AVB_IO_RESULT_ERROR_RANGE_OUTSIDE_PARTITION;
+        }
+        offset_from_partition = partition_size - (-offset_from_partition);
+    }
+    if (num_bytes > partition_size - offset_from_partition) {
+        *out_num_read = partition_size - offset_from_partition;
+    } else {
+        *out_num_read = num_bytes;
+    }
+    if (strcmp(partition_name, "vbmeta") == 0) {
+        secure_load_partition(partition_name, (uint64_t)num_bytes,
+                              (uint64_t)offset_from_partition, (char *)buf);
+    } else {
+        memcpy((char *)buf, vboot_verify_info->img_addr, num_bytes);
+    }
+    if (0 != ret) {
+        debug("PARTITION %s read error, ret:%d \n", partition_name, ret);
+        return ret;
+    }
+    *out_num_read = num_bytes;
+    return ret;
+}
+
+AvbIOResult validate_vbmeta_public_key_system(AvbOps        *ops,
+                                              const uint8_t *public_key_data,
+                                              size_t         public_key_length,
+                                              const uint8_t *public_key_metadata,
+                                              size_t         public_key_metadata_length,
+                                              bool          *out_key_is_trusted) {
+    avb_debug("Enter: implement validate_vbmeta_public_key_system().\n");
+    /* key already validated in tos, so just ret ok */
+    *out_key_is_trusted = true;
+    return AVB_IO_RESULT_OK;
+}
+#endif
+
 static AvbIOResult read_rollback_index(AvbOps* ops,
                                        size_t rollback_index_slot,
                                        uint64_t* out_rollback_index) {
@@ -243,12 +293,19 @@ AvbIOResult read_is_device_unlocked(AvbOps* ops, bool* out_is_unlocked) {
   return AVB_IO_RESULT_OK;
 }
 
+#ifdef CONFIG_VBOOT_SYSTEMASROOT
 AvbIOResult get_unique_guid_for_partition(AvbOps* ops,
-                                                 const char* partition,
-                                                 char* guid_buf,
-                                                 size_t guid_buf_size) {
+                                          const char* partition,
+                                          char* guid_buf,
+                                          size_t guid_buf_size) {
+  debug("enter get_unique_guid_for_partition().\n");
+  debug("partition: %s  guid_buf_size = %d \n", partition, guid_buf_size);
+  memset(guid_buf, 0, guid_buf_size);
+  get_img_partition_uuid(partition, guid_buf);
+  debug("guid_buf: %s \n", guid_buf);
   return AVB_IO_RESULT_OK;
 }
+#endif
 
 int avb_ops_new_for_download(void)
 {
@@ -281,6 +338,24 @@ int avb_ops_new(void)
   g_ulAvbCheckType = AVB_CHECK_BOOTING;
    return 0;
 }
+
+#ifdef CONFIG_VBOOT_SYSTEMASROOT
+int avb_ops_new_for_system(void)
+{
+  g_avb_ops.ab_ops = NULL;
+  g_avb_ops.read_from_partition = read_from_partition_system;
+  g_avb_ops.write_to_partition = NULL;
+  g_avb_ops.validate_vbmeta_public_key = validate_vbmeta_public_key_system;
+  g_avb_ops.read_rollback_index = read_rollback_index;
+  g_avb_ops.write_rollback_index = write_rollback_index;
+  g_avb_ops.read_is_device_unlocked = read_is_device_unlocked;
+  g_avb_ops.get_unique_guid_for_partition = get_unique_guid_for_partition;
+  g_avb_ops.user_data = 0x00;
+
+  g_ulAvbCheckType = AVB_CHECK_BOOTING;
+   return 0;
+}
+#endif
 
 static int is_packed_modem_image(uint8_t *data)
 {

@@ -83,6 +83,7 @@ int avb_check_image(unsigned char *name)
                                       requested_partitions,
                                       slot_suffixes[0],
                                       allow_verification_error,
+                                      AVB_HASHTREE_ERROR_MODE_RESTART_AND_INVALIDATE,
                                       &avb_slot_data[0]);
     debug(">>>>>>>>>>>>>>>>  avb_slot_verify result is %d.\n", verify_result);
     debug(">>>>>>>>>>>>>>>>  avb_slot_verify result is %s.\n", avb_slot_verify_result_to_string(verify_result));

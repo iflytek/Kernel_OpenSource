@@ -135,11 +135,6 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 	fdt_fixup_verified_boot(fdt_blob);
 	fdt_fixup_flash_lock_state(fdt_blob);
 
-#ifdef CONFIG_VBOOT_V2
-	/*for Android O VBooot*/
-	fdt_fixup_ando_vboot(fdt_blob);
-#endif
-
 	fdt_fixup_serialno(fdt_blob);
 	fdt_fixup_chosen_bootargs_board_private(fdt_blob);
 
@@ -158,6 +153,10 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 	/* if enabled, set loglevel = 7*/
 	fdt_fixup_loglevel(fdt_blob);
 	fdt_fixup_system_mount_part_num(fdt_blob);
+
+#ifdef CONFIG_VBOOT_V2
+    fdt_fixup_vboot(fdt_blob);
+#endif
 	return;
 }
 
@@ -196,11 +195,6 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 	fdt_fixup_verified_boot(fdt_blob);
 	fdt_fixup_flash_lock_state(fdt_blob);
 
-#ifdef CONFIG_VBOOT_V2
-	/*for Android O VBooot*/
-	fdt_fixup_ando_vboot(fdt_blob);
-#endif
-
 	/* for non iq mode, remove reserved iq memory from dtb */
 	fdt_fixup_iq_reserved_mem(fdt_blob);
 
@@ -214,6 +208,10 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 	/* if enabled, set loglevel = 7*/
 	fdt_fixup_loglevel(fdt_blob);
 	fdt_fixup_system_mount_part_num(fdt_blob);
+
+#ifdef CONFIG_VBOOT_V2
+    fdt_fixup_vboot(fdt_blob);
+#endif
 }
 
 #ifdef CONFIG_X86

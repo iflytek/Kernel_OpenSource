@@ -34,6 +34,11 @@ uint8_t pubkhash[32];
 VbootVerInfo vboot_ver_info __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
 unsigned char vboot_para_partition_name[SEC_MAX_PARTITION_NAME_LEN] __attribute__((aligned(4096))); /*must be PAGE ALIGNED*/
 
+#ifdef CONFIG_VBOOT_SYSTEMASROOT
+unsigned char g_vboot_sys_cmdline[SPRD_VBOOT_SYSTEM_CMDLINE_MAXSIZE];
+extern AvbSlotVerifyData* avb_slot_data[2];
+#endif
+
 static uchar *const s_force_secure_check[] = {
     "splloader",
 	"sml",
@@ -648,56 +653,64 @@ verify the vbmeta struct only, maily for hashtree image like system/vendor to do
 */
 void vboot_verify_vbmeta(char *partition_name)
 {
-    uint64_t partition_size=0;
-	char *footer_buf;
-	AvbFooter footer;
+    uint64_t     partition_size=0;
+    char        *footer_buf;
+    AvbFooter    footer;
+    int8_t       vb_ret = 0;
 
-	if(!partition_name)
-	{
-		debugf("Error: partition_name is null. \n");
-		return;
-	}
-	//step1:read avbfooter
-	secure_get_partition_size(partition_name, &partition_size);
-	footer_buf=vboot_verify_info->img_addr;
-
-	if (-1 == secure_load_partition(partition_name,AVB_FOOTER_SIZE, partition_size-AVB_FOOTER_SIZE, footer_buf)){
-		debugf("load %s partition error.\n", partition_name);
-		goto fail;
-	}
-	//step2:read vbmeta according to the avbfooter
-	if (!avb_footer_validate_and_byteswap((const AvbFooter*)footer_buf,
-                                          &footer)) {
-		debugf("Error validating footer.\n");
-		goto fail;
+    if (!partition_name) {
+        debugf("Error: partition_name is null. \n");
+        return;
     }
-	debugf("footer.vbmeta_offset=0x%x,footer.vbmeta_size=0x%x\n",footer.vbmeta_offset,footer.vbmeta_size);
-	vboot_verify_info->img_len=footer.vbmeta_size;
-
+    debugf("partition_name: %s \n", partition_name);
+    // step1:read avbfooter
+    secure_get_partition_size(partition_name, &partition_size);
+    footer_buf = vboot_verify_info->img_addr;
+    if (-1 == secure_load_partition(partition_name, AVB_FOOTER_SIZE, partition_size-AVB_FOOTER_SIZE, footer_buf)){
+        debugf("load %s partition error.\n", partition_name);
+        goto fail;
+    }
+    // step2:read vbmeta according to the avbfooter
+    if (!avb_footer_validate_and_byteswap((const AvbFooter*)footer_buf, &footer)) {
+        debugf("Error validating footer.\n");
+        goto fail;
+    }
+    debugf("footer.vbmeta_offset=0x%x,footer.vbmeta_size=0x%x\n",footer.vbmeta_offset,footer.vbmeta_size);
+    vboot_verify_info->img_len=footer.vbmeta_size;
 #ifdef CONFIG_VBOOT_DUMP
-	dumpHex(partition_name,  (uchar *)vboot_verify_info->img_addr, AVB_FOOTER_SIZE);
+    dumpHex(partition_name,  (uchar *)vboot_verify_info->img_addr, AVB_FOOTER_SIZE);
 #endif
-
-	if(-1 == secure_load_partition(partition_name,footer.vbmeta_size, footer.vbmeta_offset,vboot_verify_info->img_addr)){
-		debugf("load %s partition error.\n", partition_name);
-		goto fail;
-	}
-
+    if(-1 == secure_load_partition(partition_name,footer.vbmeta_size, footer.vbmeta_offset,vboot_verify_info->img_addr)) {
+        debugf("load %s partition error.\n", partition_name);
+        goto fail;
+    }
 #ifdef CONFIG_VBOOT_DUMP
-	dumpHex(partition_name, (uchar *)vboot_verify_info->img_addr, vboot_verify_info->img_len);
+    dumpHex(partition_name, (uchar *)vboot_verify_info->img_addr, vboot_verify_info->img_len);
 #endif
-
-	memset(vboot_para_partition_name, 0, sizeof(vboot_para_partition_name));
-	strcpy(vboot_para_partition_name, partition_name);
-	vboot_verify_info->img_name = vboot_para_partition_name;
-	vboot_verify_info->img_name_len = SEC_MAX_PARTITION_NAME_LEN;
-	debugf("vboot_verify_info->img_name :%s. \n", vboot_verify_info->img_name);
-	//step4:send the vbmeta struct and partname to tos to check the rollback version
-	uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
-	return;
+    memset(vboot_para_partition_name, 0, sizeof(vboot_para_partition_name));
+    strcpy(vboot_para_partition_name, partition_name);
+    vboot_verify_info->img_name = vboot_para_partition_name;
+    vboot_verify_info->img_name_len = SEC_MAX_PARTITION_NAME_LEN;
+    debugf("vboot_verify_info->img_name :%s. \n", vboot_verify_info->img_name);
+    // step3:send the vbmeta struct and partname to tos to check the rollback version
+    uboot_vboot_verify_img((VbootVerifyInfo*)vboot_verify_info,sizeof(VbootVerifyInfo));
+#ifdef CONFIG_VBOOT_SYSTEMASROOT
+    // step4: parse kernel cmdline from system image
+    if(strcmp("system", partition_name) == 0) {
+        debugf("parse kernel cmdline start\n");
+        avb_ops_new_for_system();
+        vb_ret = avb_check_image(partition_name);
+        debugf("check image ret = %d\n", vb_ret);
+        if (vb_ret != 0) goto fail;
+        memset(g_vboot_sys_cmdline, 0, sizeof(g_vboot_sys_cmdline));
+        strcpy(g_vboot_sys_cmdline, avb_slot_data[0]->cmdline);
+        debugf("g_vboot_sys_cmdline: %s\n", g_vboot_sys_cmdline);
+    }
+#endif
+    return;
 
 fail:
-	while (1);
+    while (1);
 }
 
 void vboot_secure_process_flow(char *partition_name)

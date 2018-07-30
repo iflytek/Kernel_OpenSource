@@ -143,6 +143,15 @@ int fdt_fixup_flash_lock_state(void *fdt)
 
 
 #ifdef CONFIG_VBOOT_V2
+int fdt_fixup_vboot(void *fdt)
+{
+#ifdef CONFIG_VBOOT_SYSTEMASROOT
+    fdt_fixup_vboot_system(fdt);
+#else
+    fdt_fixup_ando_vboot(fdt);
+#endif
+}
+
 int fdt_fixup_ando_vboot(void *fdt)
 {
 	int ret = 0;
@@ -159,6 +168,24 @@ int fdt_fixup_ando_vboot(void *fdt)
 
 	return ret;
 }
+#ifdef CONFIG_VBOOT_SYSTEMASROOT
+int fdt_fixup_vboot_system(void *fdt)
+{
+    int ret = 0;
+    int str_len = 0;
+
+    debug("fdt_fixup_vboot_system enter \n");
+    str_len = strlen((char *)g_vboot_sys_cmdline);
+    if(str_len == 0) {
+        debug("g_vboot_sys_cmdline is null. \n");
+        return ret;
+    }
+    g_vboot_sys_cmdline[str_len] = '\0';
+    ret = fdt_chosen_bootargs_append(fdt, (char *)g_vboot_sys_cmdline, 1);
+    debug("fdt vboot system str_len is %d, ret is %d\n", str_len, ret);
+    return ret;
+}
+#endif
 #endif
 
 int fdt_initrd_norsvmem(void *fdt, ulong initrd_start, ulong initrd_end, int force)

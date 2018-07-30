@@ -1204,7 +1204,7 @@ int secure_get_partition_size(uchar * partition_name, uint64_t * size)
 		*size = info.size * EMMC_SECTOR_SIZE;
 	}
 
-	debugf("partition:%s, info.name:%s, info.size:%d, EMMC_SECTOR_SIZE:%d, size:0x%llx\n", partition_name, info.name,  info.size , EMMC_SECTOR_SIZE, *size);
+	debugf("partition:%s, info.name:%s, info.size:%d, size:0x%llx\n", partition_name, info.name,  info.size , *size);
 	return ret;
 }
 #endif
