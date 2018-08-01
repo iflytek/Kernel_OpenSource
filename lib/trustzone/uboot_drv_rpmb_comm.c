@@ -17,3 +17,9 @@ int __weak uboot_is_wr_rpmb_key()
 {
     return -1;
 }
+
+int __weak uboot_check_rpmb_key()
+{
+    return -1;
+}
+

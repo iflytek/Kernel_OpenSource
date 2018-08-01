@@ -9,6 +9,8 @@
 
 static u64 rpmb_size __attribute__((aligned(4096)));
 static int is_rpmb_key __attribute__((aligned(4096)));
+static u8 check_rpmb_key_pac[RPMB_DATA_FRAME_SIZE] __attribute__((aligned(4096)));
+
 
 int uboot_set_rpmb_size()
 {
@@ -32,3 +34,19 @@ int uboot_is_wr_rpmb_key()
         return -1;
     }
 }
+
+int uboot_check_rpmb_key()
+{
+    int ret = 0;
+
+    ret = check_rpmb_key(check_rpmb_key_pac, RPMB_DATA_FRAME_SIZE);
+    if (0 == ret) {
+        printf("%s get rpmb package, call tos to check rpmb key \n", __func__);
+        smc_param *param = tee_common_call(FUNCTYPE_CHECK_RPMB_KEY, (uint32_t)check_rpmb_key_pac, RPMB_DATA_FRAME_SIZE);
+        return param->a0;
+    } else {
+        printf("%s get rpmb package fail\n", __func__);
+        return -1;
+    }
+}
+

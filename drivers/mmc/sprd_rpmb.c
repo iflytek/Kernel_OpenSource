@@ -35,7 +35,6 @@
 #define RPMB_KEY_MAC_SIZE                           32
 #define RPMB_DATA_SIZE                              256
 #define RPMB_NONCE_SIZE                             16
-#define RPMB_DATA_FRAME_SIZE                        512
 #define RPMB_RESULT_OK                              0x00
 #define RPMB_RES_NO_AUTH_KEY                        0x0007
 
@@ -137,6 +136,46 @@ int mmc_set_blockcount(struct mmc *mmc, unsigned int blockcount,
 	return mmc_send_cmd(mmc, &cmd, NULL);
 }
 
+/**@retrun 0 get rpmb package successful*/
+int check_rpmb_key(uint8_t *package, int package_size)
+{
+	//Must match in tos
+	uint8_t nonce[RPMB_NONCE_SIZE] = {0xA5,0x5A,0xFF,0x00,0xBE,0xEF,0xBE,0xEF,0xBE,0xEF,0xBE,0xEF,0x00,0xFF,0x5A,0xA5};
+	struct rpmb_data_frame *data_frame;
+	uint16_t msg_type;
+	uint16_t op_result;
+	uint32_t writecount;
+	struct mmc *mmc = find_mmc_device(0);	//0 is emmc
+
+	if (NULL == mmc) {
+		printf("%s mmc is null\n", __func__);
+		return -1;
+	}
+
+	if (NULL == package && package_size < sizeof(struct rpmb_data_frame)) {
+		printf("%s parameter package is invalid\n", __func__);
+		return -1;
+	}
+
+	data_frame = package;
+	memset(data_frame, 0, RPMB_DATA_FRAME_SIZE);
+	msg_type = RPMB_MSG_TYPE_REQ_WRITE_COUNTER_VAL_READ;
+	u16_to_bytes(msg_type, data_frame->msg_type);
+	//Must match in tos
+	memcpy(data_frame->nonce, nonce, RPMB_NONCE_SIZE);
+	mmc_switch_part(EMMC, RPMB_PARTITION);
+	mmc_set_blockcount(mmc, RPMB_BLOCK_COUNT, 0);
+	rpmb_write_cmd(mmc, RPMB_BLOCK_COUNT, BLOCK_SIZE, data_frame);
+	memset(data_frame, 0, RPMB_DATA_FRAME_SIZE);
+	mmc_set_blockcount(mmc, RPMB_BLOCK_COUNT, 0);
+	rpmb_read_cmd(mmc, data_frame, RPMB_BLOCK_COUNT);
+
+
+	mmc_switch_part(EMMC, USER_PARTITION);
+	return 0;
+}
+
+
 /**@retrun 0 rpmb key unwritten*/
 int is_wr_rpmb_key(void)
 {
@@ -147,8 +186,10 @@ int is_wr_rpmb_key(void)
 	int result = -1;
 	struct mmc *mmc = find_mmc_device(0);	//0 is emmc
 
-	if (NULL == mmc)
+	if (NULL == mmc) {
+		printf("%s mmc is null\n", __func__);
 		return -1;
+	}
 
 	msg_type = RPMB_MSG_TYPE_REQ_WRITE_COUNTER_VAL_READ;
 	data_frame = (uint8_t *) malloc(RPMB_DATA_FRAME_SIZE);
@@ -180,7 +221,7 @@ int is_wr_rpmb_key(void)
 
 	free(data_frame);
 	mmc_switch_part(EMMC, USER_PARTITION);
-	return result;		//should not run here;
+	return result;
 }
 
 

@@ -6,13 +6,18 @@
 #include "uboot_sec_drv.h"
 
 
-int uboot_set_rpmb_size(unsigned long start_addr, uint32_t lenth)
+int uboot_set_rpmb_size()
 {
   return 0;
 }
 
 
-int uboot_is_wr_rpmb_key(unsigned long start_addr, uint32_t lenth)
+int uboot_is_wr_rpmb_key()
+{
+  return 0;
+}
+
+int uboot_check_rpmb_key()
 {
   return 0;
 }

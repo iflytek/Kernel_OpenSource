@@ -1634,6 +1634,7 @@ extern boot_image_required_t *get_cp_load_table(void);
 #if defined(CONFIG_EMMC_BOOT) && defined(CONFIG_SPRD_RPMB)
 	uboot_set_rpmb_size();
 	uboot_is_wr_rpmb_key();
+	uboot_check_rpmb_key();
 #endif
 
 #ifdef CONFIG_TEE_FIREWALL

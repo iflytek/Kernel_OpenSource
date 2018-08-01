@@ -107,6 +107,8 @@ TEESMC_FUNCID_SIPCALL_WITH_ARG)
 #define FUNCTYPE_VBOOT_SET_VERSION 0x21
 #define FUNCTYPE_SET_RPMB_SIZE     0x22
 #define FUNCTYPE_IS_WR_RPMB_KEY    0x23
+#define FUNCTYPE_CHECK_RPMB_KEY    0x24
+
 
 
 
@@ -140,6 +142,7 @@ typedef struct smc_param {
         uint32_t a7;
 }smc_param;
 
+int uboot_check_rpmb_key();
 int uboot_is_wr_rpmb_key();
 int uboot_set_rpmb_size();
 int uboot_verify_img(unsigned long start_addr, uint32_t lenth);
