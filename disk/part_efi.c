@@ -357,6 +357,11 @@ int get_partition_info_by_name_efi(block_dev_desc_t * dev_desc, uchar *partition
 	sprintf((char *)info->name, "%s",print_efiname(&((pgpt_pte)[i])));
 	sprintf((char *)info->type, "U-Boot");
 
+#ifdef CONFIG_PARTITION_UUIDS
+	uuid_bin_to_str(pgpt_pte[i].unique_partition_guid.b, info->uuid,
+				UUID_STR_FORMAT_GUID);
+#endif
+
 	/*
 	debug("%s: start 0x" LBAF ", size 0x" LBAF ", name %s\n", __func__,
 	      info->start, info->size, info->name);
@@ -560,7 +565,7 @@ int gpt_fill_pte(gpt_header *gpt_h, gpt_entry *gpt_e,
 		str_uuid = partitions[i].uuid;
 		bin_uuid = gpt_e[i].unique_partition_guid.b;
 
-		if (uuid_str_to_bin(str_uuid, bin_uuid, UUID_STR_FORMAT_STD)) {
+		if (uuid_str_to_bin(str_uuid, bin_uuid, UUID_STR_FORMAT_GUID)) {
 			printf("Partition no. %d: invalid guid: %s\n",
 				i, str_uuid);
 			return -1;

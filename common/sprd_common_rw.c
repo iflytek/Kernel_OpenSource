@@ -617,6 +617,40 @@ int get_img_partition_id(char *part_name, unsigned int *id)
 	return ret;
 }
 
+#ifdef CONFIG_PARTITION_UUIDS
+int get_img_partition_uuid(char *part_name, char* uuid)
+{
+	int ret = 0;
+	disk_partition_t part_info;
+	block_dev_desc_t *dev_desc;
+
+	if (uuid == NULL) {
+		return -1;
+	}
+
+	if (0 == strcmp(part_name, "splloader")) {
+		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
+	} else if (0 == strcmp(part_name, "splloader_bak")) {
+		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
+	} else if (0 == strcmp(part_name, "uboot")) {
+		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
+		if (-1 == ret) {
+			ret = 0;
+			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
+		}
+	} else {
+		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
+	}
+
+	ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+
+	strncpy(uuid, part_info.uuid, 37);
+	debugf("part_name: %s, uuid: %s\n", part_name, uuid);
+
+	return ret;
+}
+#endif
+
 int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 {
 	uint64_t part_start = 0;

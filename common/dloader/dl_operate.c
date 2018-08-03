@@ -290,6 +290,9 @@ int _parser_repartition_cfg_v0(disk_partition_t * partition_info, const uchar * 
 		partition_info[i].start = partition_start_lba;
 
 		partition_start_lba += partition_info[i].size;
+#ifdef CONFIG_PARTITION_UUIDS
+		uuid_bin_to_str(partition_info[i].name, partition_info[i].uuid, UUID_STR_FORMAT_GUID);
+#endif
 
 		debugf("partition name:%s,partition_size:0x%lx,partiton_start:0x%lx,\n", partition_info[i].name, partition_info[i].size,
 		       partition_info[i].start);
