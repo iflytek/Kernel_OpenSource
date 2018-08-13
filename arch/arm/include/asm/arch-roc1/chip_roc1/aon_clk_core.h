@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:54
  *
  */
-
 
 #ifndef AON_CLK_CORE_H
 #define AON_CLK_CORE_H
 
 #define CTL_BASE_AON_CLK_CORE 0x32080200
-
 
 #define REG_AON_CLK_CORE_CGM_AON_APB_CFG          ( CTL_BASE_AON_CLK_CORE + 0x0020 )
 #define REG_AON_CLK_CORE_CGM_ADI_CFG              ( CTL_BASE_AON_CLK_CORE + 0x0024 )
@@ -410,7 +408,4 @@
 
 #define BIT_AON_CLK_CORE_PCIE_CGM_SCAN_48M_CFG_PCIE_CGM_SCAN_48M_SEL        BIT(0)
 
-
-#endif /* AON_CLK_CORE_H */
-
-
+#endif

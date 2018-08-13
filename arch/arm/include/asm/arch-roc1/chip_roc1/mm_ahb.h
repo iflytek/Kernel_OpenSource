@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:55
  *
  */
-
 
 #ifndef MM_AHB_H
 #define MM_AHB_H
 
 #define CTL_BASE_MM_AHB 0x62200000
-
 
 #define REG_MM_AHB_AHB_EB                      ( CTL_BASE_MM_AHB + 0x0000 )
 #define REG_MM_AHB_AHB_RST                     ( CTL_BASE_MM_AHB + 0x0004 )
@@ -196,7 +194,4 @@
 #define BIT_MM_AHB_PU_NUM_MTX_AS(x)               (((x) & 0xFF) << 8)
 #define BIT_MM_AHB_PU_NUM_FD(x)                   (((x) & 0xFF))
 
-
-#endif /* MM_AHB_H */
-
-
+#endif

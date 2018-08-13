@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:56
  *
  */
-
 
 #ifndef SP_AHB_H
 #define SP_AHB_H
 
 #define CTL_BASE_SP_AHB 0x51000000
-
 
 #define REG_SP_AHB_CFG_CLK_EB                ( CTL_BASE_SP_AHB + 0x0000 )
 #define REG_SP_AHB_SOFT_RST                  ( CTL_BASE_SP_AHB + 0x0004 )
@@ -243,7 +241,4 @@
 #define BIT_SP_AHB_RES_REG_H(x)              (((x) & 0xFF) << 24)
 #define BIT_SP_AHB_RES_REG_L(x)              (((x) & 0xFFFFFF))
 
-
-#endif /* SP_AHB_H */
-
-
+#endif

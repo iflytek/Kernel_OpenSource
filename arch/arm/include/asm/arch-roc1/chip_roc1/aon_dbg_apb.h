@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:54
  *
  */
-
 
 #ifndef AON_DBG_APB_H
 #define AON_DBG_APB_H
 
 #define CTL_BASE_AON_DBG_APB 0x32890000
-
 
 #define REG_AON_DBG_APB_APCPU_COMM_CTRL          ( CTL_BASE_AON_DBG_APB + 0x0000 )
 #define REG_AON_DBG_APB_APCPU_PROT_CTRL          ( CTL_BASE_AON_DBG_APB + 0x0004 )
@@ -45,6 +43,8 @@
 #define BIT_AON_DBG_APB_DAP_DEVICEEN           BIT(31)
 #define BIT_AON_DBG_APB_DAP_DBGEN              BIT(30)
 #define BIT_AON_DBG_APB_DAP_SPIDBGEN           BIT(29)
+#define BIT_AON_DBG_APB_IPA_DBGEN              BIT(14)
+#define BIT_AON_DBG_APB_PCIEPHY_DBGEN          BIT(13)
 #define BIT_AON_DBG_APB_ESE_DBGEN              BIT(12)
 #define BIT_AON_DBG_APB_VDSP_DBGEN             BIT(11)
 #define BIT_AON_DBG_APB_GPU_DBGEN              BIT(10)
@@ -76,6 +76,8 @@
 #define BIT_AON_DBG_APB_DAP_DEVICEEN_NON_SEC   BIT(31)
 #define BIT_AON_DBG_APB_DAP_DBGEN_NON_SEC      BIT(30)
 #define BIT_AON_DBG_APB_DAP_SPIDBGEN_NON_SEC   BIT(29)
+#define BIT_AON_DBG_APB_IPA_DBGEN_NON_SEC      BIT(14)
+#define BIT_AON_DBG_APB_PCIEPHY_DBGEN_NON_SEC  BIT(13)
 #define BIT_AON_DBG_APB_ESE_DBGEN_NON_SEC      BIT(12)
 #define BIT_AON_DBG_APB_VDSP_DBGEN_NON_SEC     BIT(11)
 #define BIT_AON_DBG_APB_GPU_DBGEN_NON_SEC      BIT(10)
@@ -100,7 +102,4 @@
 #define BIT_AON_DBG_APB_EFUSE_DEBUG_BOND_OFF   BIT(31)
 #define BIT_AON_DBG_APB_EFUSE_SECURE_DEBUG     BIT(30)
 
-
-#endif /* AON_DBG_APB_H */
-
-
+#endif

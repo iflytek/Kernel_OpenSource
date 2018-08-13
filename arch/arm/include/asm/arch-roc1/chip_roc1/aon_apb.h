@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:54
  *
  */
-
 
 #ifndef AON_APB_H
 #define AON_APB_H
 
 #define CTL_BASE_AON_APB 0x32090000
-
 
 #define REG_AON_APB_APB_EB0                            ( CTL_BASE_AON_APB + 0x0000 )
 #define REG_AON_APB_APB_EB1                            ( CTL_BASE_AON_APB + 0x0004 )
@@ -220,6 +218,7 @@
 #define REG_AON_APB_DBG_BUS_DATA_WTLCP                 ( CTL_BASE_AON_APB + 0x0B90 )
 #define REG_AON_APB_DBG_BUS_DATA_PUBCP                 ( CTL_BASE_AON_APB + 0x0B94 )
 #define REG_AON_APB_DBG_BUS_DATA_AUDCP                 ( CTL_BASE_AON_APB + 0x0B98 )
+#define REG_AON_APB_SDIO_EMMC_POWER_STATUS             ( CTL_BASE_AON_APB + 0x0B9C )
 #define REG_AON_APB_SCC_DBG_BUS                        ( CTL_BASE_AON_APB + 0x0C00 )
 #define REG_AON_APB_AON_FUNC_CTRL_0                    ( CTL_BASE_AON_APB + 0x0C04 )
 #define REG_AON_APB_AON_FUNC_CTRL_1                    ( CTL_BASE_AON_APB + 0x0C08 )
@@ -865,6 +864,7 @@
 
 /* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG4 */
 
+#define BIT_AON_APB_REG_DBG_BUS_SEL_AON_EXT(x)                  (((x) & 0xFF) << 16)
 #define BIT_AON_APB_REG_DBG_BUS_SEL_AI(x)                       (((x) & 0xFF) << 8)
 #define BIT_AON_APB_REG_DBG_BUS_SEL_IPA(x)                      (((x) & 0xFF))
 
@@ -896,6 +896,7 @@
 
 /* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG3 */
 
+#define BIT_AON_APB_REG_DBG_MOD_SEL_AON_EXT(x)                  (((x) & 0xFF) << 24)
 #define BIT_AON_APB_REG_DBG_MOD_SEL_APCPU(x)                    (((x) & 0xFF) << 16)
 #define BIT_AON_APB_REG_DBG_SYS_SEL_B(x)                        (((x) & 0xFF) << 8)
 #define BIT_AON_APB_REG_DBG_SYS_SEL(x)                          (((x) & 0xFF))
@@ -986,6 +987,7 @@
 /* REG_AON_APB_OTG_PHY_TEST */
 
 #define BIT_AON_APB_OTG_ATERESET                                BIT(31)
+#define BIT_AON_APB_USB30_POWER_PRESENT                         BIT(25)
 #define BIT_AON_APB_OTG_VBUS_VALID_PHYREG                       BIT(24)
 #define BIT_AON_APB_OTG_VBUS_VALID_PHYREG_SEL                   BIT(23)
 #define BIT_AON_APB_OTG_VBUS_VALID_EXT                          BIT(22)
@@ -1965,6 +1967,19 @@
 
 #define BIT_AON_APB_DBG_BUS_DATA_AUDCP(x)                       (((x) & 0xFFFFFFFF))
 
+/* REG_AON_APB_SDIO_EMMC_POWER_STATUS */
+
+#define BIT_AON_APB_AP_EMMC_POWER_OFF_DLY                       BIT(20)
+#define BIT_AON_APB_PUCP_SDIO0_POWER_OFF_DLY                    BIT(19)
+#define BIT_AON_APB_AP_SDIO2_POWER_OFF_DLY                      BIT(18)
+#define BIT_AON_APB_AP_SDIO1_POWER_OFF_DLY                      BIT(17)
+#define BIT_AON_APB_AP_SDIO0_POWER_OFF_DLY                      BIT(16)
+#define BIT_AON_APB_AP_EMMC_POWER_OFF                           BIT(4)
+#define BIT_AON_APB_PUCP_SDIO0_POWER_OFF                        BIT(3)
+#define BIT_AON_APB_AP_SDIO2_POWER_OFF                          BIT(2)
+#define BIT_AON_APB_AP_SDIO1_POWER_OFF                          BIT(1)
+#define BIT_AON_APB_AP_SDIO0_POWER_OFF                          BIT(0)
+
 /* REG_AON_APB_SCC_DBG_BUS */
 
 #define BIT_AON_APB_SCC_DBG_BUS(x)                              (((x) & 0xFFFFFFFF))
@@ -1977,7 +1992,4 @@
 
 #define BIT_AON_APB_AON_FUNC_CTRL_1(x)                          (((x) & 0xFFFFFFFF))
 
-
-#endif /* AON_APB_H */
-
-
+#endif

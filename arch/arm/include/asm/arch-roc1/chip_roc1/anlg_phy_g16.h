@@ -6,18 +6,16 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:53
  *
  */
-
 
 #ifndef ANLG_PHY_G16_H
 #define ANLG_PHY_G16_H
 
 #define CTL_BASE_ANLG_PHY_G16 0x323E4000
 
-
-#define REG_ANLG_PHY_G16_ANALOG_EFUSE0_1_EFUSE_PIN_PW_CTL      ( CTL_BASE_ANLG_PHY_G16 + 0x0000 )
+#define REG_ANLG_PHY_G16_ANALOG_EFUSE0_1_EFUSE_PIN_PW_CTL  ( CTL_BASE_ANLG_PHY_G16 + 0x0000 )
 
 /* REG_ANLG_PHY_G16_ANALOG_EFUSE0_1_EFUSE_PIN_PW_CTL */
 
@@ -25,7 +23,4 @@
 #define BIT_ANLG_PHY_G16_ANALOG_EFUSE0_1_EFS_AT1   BIT(1)
 #define BIT_ANLG_PHY_G16_ANALOG_EFUSE0_1_EFS_AT0   BIT(0)
 
-
-#endif /* ANLG_PHY_G16_H */
-
-
+#endif

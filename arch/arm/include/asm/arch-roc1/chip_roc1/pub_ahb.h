@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:55
  *
  */
-
 
 #ifndef PUB_AHB_H
 #define PUB_AHB_H
 
 #define CTL_BASE_PUB_AHB 0x31030000
-
 
 #define REG_PUB_AHB_DMC_EXT_LPCTRL_CFG        ( CTL_BASE_PUB_AHB + 0x3000 )
 #define REG_PUB_AHB_DMC_EXT_LPCTRL_SEQL       ( CTL_BASE_PUB_AHB + 0x3004 )

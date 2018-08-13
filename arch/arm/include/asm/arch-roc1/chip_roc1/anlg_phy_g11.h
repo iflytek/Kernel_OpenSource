@@ -6,19 +6,17 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:00
+ * updated at 2018-08-09 17:05:53
  *
  */
-
 
 #ifndef ANLG_PHY_G11_H
 #define ANLG_PHY_G11_H
 
 #define CTL_BASE_ANLG_PHY_G11 0x323E0000
 
-
-#define REG_ANLG_PHY_G11_ANALOG_EFUSE0_0_EFUSE_PIN_PW_CTL      ( CTL_BASE_ANLG_PHY_G11 + 0x0000 )
-#define REG_ANLG_PHY_G11_ANALOG_EFUSE0_0_REG_SEL_CFG_0         ( CTL_BASE_ANLG_PHY_G11 + 0x0004 )
+#define REG_ANLG_PHY_G11_ANALOG_EFUSE0_0_EFUSE_PIN_PW_CTL  ( CTL_BASE_ANLG_PHY_G11 + 0x0000 )
+#define REG_ANLG_PHY_G11_ANALOG_EFUSE0_0_REG_SEL_CFG_0     ( CTL_BASE_ANLG_PHY_G11 + 0x0004 )
 
 /* REG_ANLG_PHY_G11_ANALOG_EFUSE0_0_EFUSE_PIN_PW_CTL */
 
@@ -33,7 +31,4 @@
 #define BIT_ANLG_PHY_G11_DBG_SEL_ANALOG_EFUSE0_0_EFS_ENK1  BIT(1)
 #define BIT_ANLG_PHY_G11_DBG_SEL_ANALOG_EFUSE0_0_EFS_ENK2  BIT(0)
 
-
-#endif /* ANLG_PHY_G11_H */
-
-
+#endif

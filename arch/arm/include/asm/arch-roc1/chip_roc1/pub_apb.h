@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:55
  *
  */
-
 
 #ifndef PUB_APB_H
 #define PUB_APB_H
 
 #define CTL_BASE_PUB_APB 0x31050000
-
 
 #define REG_PUB_APB_DDR_EB                          ( CTL_BASE_PUB_APB + 0x0000 )
 #define REG_PUB_APB_DDR_SOFT_RST                    ( CTL_BASE_PUB_APB + 0x0004 )
@@ -254,6 +252,8 @@
 
 /* REG_PUB_APB_PUB_BUS_CK_EB */
 
+#define BIT_PUB_APB_PUB_DFIMON_REG_EB                            BIT(13)
+#define BIT_PUB_APB_PUB_DMC_REG_EB                               BIT(12)
 #define BIT_PUB_APB_LP_STAT_MTX_CG_EN                            BIT(11)
 #define BIT_PUB_APB_CHN_DMC_STOP_CG_EN                           BIT(10)
 #define BIT_PUB_APB_OT_DETECT_CLK_EB                             BIT(9)
@@ -1117,7 +1117,4 @@
 
 #define BIT_PUB_APB_PUB0_DUMMY_REG1(x)                           (((x) & 0xFFFFFFFF))
 
-
-#endif /* PUB_APB_H */
-
-
+#endif

@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:54
  *
  */
-
 
 #ifndef AP_APB_H
 #define AP_APB_H
 
 #define CTL_BASE_AP_APB 0x71000000
-
 
 #define REG_AP_APB_APB_EB         ( CTL_BASE_AP_APB + 0x0000 )
 #define REG_AP_APB_APB_RST        ( CTL_BASE_AP_APB + 0x0004 )
@@ -112,7 +110,4 @@
 #define BIT_AP_APB_UFS_UNIPRO_EB            BIT(1)
 #define BIT_AP_APB_UFS_EB                   BIT(0)
 
-
-#endif /* AP_APB_H */
-
-
+#endif

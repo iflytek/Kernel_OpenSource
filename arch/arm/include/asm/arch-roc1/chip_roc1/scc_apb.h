@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:56
  *
  */
-
 
 #ifndef SCC_APB_H
 #define SCC_APB_H
 
 #define CTL_BASE_SCC_APB 0x324D0000
-
 
 #define REG_SCC_APB_SCC_TUNE_LMT_CFG   ( CTL_BASE_SCC_APB + 0x0000 )
 #define REG_SCC_APB_SCC_TUNE_STATUS    ( CTL_BASE_SCC_APB + 0x0004 )
@@ -116,7 +114,4 @@
 
 #define BIT_SCC_APB_SCC_ROSC_SW_RST(x)             (((x) & 0x3FF))
 
-
-#endif /* SCC_APB_H */
-
-
+#endif

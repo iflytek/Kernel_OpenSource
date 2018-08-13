@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:54
  *
  */
-
 
 #ifndef AON_SEC_APB_H
 #define AON_SEC_APB_H
 
 #define CTL_BASE_AON_SEC_APB 0x32880000
-
 
 #define REG_AON_SEC_APB_CHIP_KPRTL_0                  ( CTL_BASE_AON_SEC_APB + 0x0000 )
 #define REG_AON_SEC_APB_CHIP_KPRTL_1                  ( CTL_BASE_AON_SEC_APB + 0x0004 )
@@ -201,7 +199,4 @@
 
 #define BIT_AON_SEC_APB_AON_SEC_APB_RSV_1(x)       (((x) & 0xFFFFFFFF))
 
-
-#endif /* AON_SEC_APB_H */
-
-
+#endif

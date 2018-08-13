@@ -58,16 +58,18 @@
 #define SPRD_AON_EIC_EXT3_PHYS            0x32030000
 #define SPRD_AON_SYSTIMER_PHYS            0x32040000
 #define SPRD_AON_TIMER_PHYS               0x32050000
-#define SPRD_I2C_PHYS                     0x32060000
+#define SPRD_AON_I2C0_PHYS                0x32060000
 #define SPRD_GPIO_PHYS                    0x32070000
 #define SPRD_AONCKG_PHYS                  0x32080000
 #define SPRD_AONAPB_PHYS                  0x32090000
 #define SPRD_MBOX_PHYS                    0x320a0000
+#if 0
 #define SPRD_WTL_CP_INTC_PHYS             0x320b0000
 #define SPRD_LDSP_INTC_PHYS               0x320c0000
 #define SPRD_TGDSP_INTC_PHYS              0x320d0000
 #define SPRD_PUB_CP_INTC_PHYS             0x320e0000
 #define SPRD_AUD_CP_INTC_PHYS             0x320f0000
+#endif
 #define SPRD_ADI_PHYS                     0x32100000
 #define SPRD_ADISLAVE_PHYS                0x32108000
 #define SPRD_THM0_PHYS                    0x32200000
@@ -96,7 +98,7 @@
 #define SPRD_AON_I2C1_PHYS                0x32370000
 #define SPRD_ESE_PHYS                     0x32380000
 #define SPRD_ANALOG_PHYS                  0x32390000
-#define SPRD_PIN_PHYS                     0x32450000
+#define SPRD_PIN_PHYS                     0x3243C000
 #define SPRD_RFTI_PHYS                    0x32460000
 #define SPRD_CPALL_EIC_PHYS               0x32470000
 #define SPRD_CP_WDG_PHYS                  0x32480000
@@ -114,6 +116,7 @@
 #define SPRD_AON_APB_BUSMON_PHYS          0x32540000
 #define SPRD_USB_ADUIO_IIS_PHYS           0x32600000
 #define SPRD_APCPUTS0_PHYS                0x32610000
+#if 0
 #define SPRD_SEC_TZPC_PHYS                0x32800000
 #define SPRD_SEC_EIC_PHYS                 0x32810000
 #define SPRD_CLK_32K_DET_PHYS             0x32820000
@@ -123,7 +126,9 @@
 #define SPRD_SEC_GPIO_PHYS                0x32870000
 #define SPRD_SEC_REG_PHYS                 0x32880000
 #define SPRD_SEC_DEBUG_REG_PHYS           0x32890000
+#endif
 #define SPRD_CORESIGHT_STM_PHYS           0x34000000
+#if 0
 #define SPRD_SP_AHB_REG_PHYS              0x51000000
 #define SPRD_SP_SYSTIMER_PHYS             0x51020000
 #define SPRD_SP_TIMER_PHYS                0x51030000
@@ -137,10 +142,11 @@
 #define SPRD_SP_I3C1_PHYS                 0x510D0000
 #define SPRD_SP_SPI_PHYS                  0x510F0000
 #define SPRD_SP_DMA_PHYS                  0x52000000
+#endif
 #define SPRD_USB_REG_PHYS                 0x5FFF0000
 #define SPRD_GPU_PHYS                     0x60000000
 #define SPRD_GPUAPB_PHYS                  0x60100000
-#define SPRD_DVFS_APB_PHYS                0x60110000
+#define SPRD_GPU_DVFS_APB_PHYS            0x60110000
 #define SPRD_ISP_PHYS                     0x62000000
 #define SPRD_MMCKG_PHYS                   0x62100000
 #define SPRD_MMAHB_PHYS                   0x62200000

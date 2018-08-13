@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:54
  *
  */
-
 
 #ifndef GPU_APB_H
 #define GPU_APB_H
 
 #define CTL_BASE_GPU_APB 0x60100000
-
 
 #define REG_GPU_APB_APB_RST              ( CTL_BASE_GPU_APB + 0x0000 )
 #define REG_GPU_APB_CLK_GPU_CORE         ( CTL_BASE_GPU_APB + 0x0004 )
@@ -119,7 +117,4 @@
 #define BIT_GPU_APB_CGM_GPU_DVFS_SEL            BIT(4)
 #define BIT_GPU_APB_CGM_GPU_DVFS_EN             BIT(0)
 
-
-#endif /* GPU_APB_H */
-
-
+#endif

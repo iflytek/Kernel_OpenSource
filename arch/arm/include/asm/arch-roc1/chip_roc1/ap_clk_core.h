@@ -6,16 +6,14 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-15 19:53:52
  *
  */
-
 
 #ifndef AP_CLK_CORE_H
 #define AP_CLK_CORE_H
 
 #define CTL_BASE_AP_CLK_CORE 0x20200000
-
 
 #define REG_AP_CLK_CORE_CGM_AP_APB_CFG             ( CTL_BASE_AP_CLK_CORE + 0x0020 )
 #define REG_AP_CLK_CORE_CGM_ICU_CFG                ( CTL_BASE_AP_CLK_CORE + 0x0024 )
@@ -248,7 +246,4 @@
 
 #define BIT_AP_CLK_CORE_CGM_DSI_PHY_SCAN_ONLY_CFG_CGM_DSI_PHY_SCAN_ONLY_SEL  BIT(0)
 
-
-#endif /* AP_CLK_CORE_H */
-
-
+#endif

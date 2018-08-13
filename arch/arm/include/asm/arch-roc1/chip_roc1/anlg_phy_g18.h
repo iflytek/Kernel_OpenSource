@@ -6,21 +6,19 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-06-28 19:04:01
+ * updated at 2018-08-09 17:05:53
  *
  */
-
 
 #ifndef ANLG_PHY_G18_H
 #define ANLG_PHY_G18_H
 
 #define CTL_BASE_ANLG_PHY_G18 0x3241C000
 
-
-#define REG_ANLG_PHY_G18_ANALOG_THM1_1_THM1_CTL            ( CTL_BASE_ANLG_PHY_G18 + 0x0000 )
-#define REG_ANLG_PHY_G18_ANALOG_THM1_1_THM1_RESERVED_CTL   ( CTL_BASE_ANLG_PHY_G18 + 0x0004 )
-#define REG_ANLG_PHY_G18_ANALOG_THM1_1_WRAP_GLUE_CTRL      ( CTL_BASE_ANLG_PHY_G18 + 0x0008 )
-#define REG_ANLG_PHY_G18_ANALOG_THM1_1_REG_SEL_CFG_0       ( CTL_BASE_ANLG_PHY_G18 + 0x000C )
+#define REG_ANLG_PHY_G18_ANALOG_THM1_1_THM1_CTL           ( CTL_BASE_ANLG_PHY_G18 + 0x0000 )
+#define REG_ANLG_PHY_G18_ANALOG_THM1_1_THM1_RESERVED_CTL  ( CTL_BASE_ANLG_PHY_G18 + 0x0004 )
+#define REG_ANLG_PHY_G18_ANALOG_THM1_1_WRAP_GLUE_CTRL     ( CTL_BASE_ANLG_PHY_G18 + 0x0008 )
+#define REG_ANLG_PHY_G18_ANALOG_THM1_1_REG_SEL_CFG_0      ( CTL_BASE_ANLG_PHY_G18 + 0x000C )
 
 /* REG_ANLG_PHY_G18_ANALOG_THM1_1_THM1_CTL */
 
@@ -45,11 +43,9 @@
 
 /* REG_ANLG_PHY_G18_ANALOG_THM1_1_REG_SEL_CFG_0 */
 
-#define BIT_ANLG_PHY_G18_DBG_SEL_ANALOG_THM1_1_THM_RSTN                         BIT(2)
-#define BIT_ANLG_PHY_G18_DBG_SEL_ANALOG_THM1_1_THM_RUN                          BIT(1)
-#define BIT_ANLG_PHY_G18_DBG_SEL_ANALOG_THM1_1_THM_PD                           BIT(0)
+#define BIT_ANLG_PHY_G18_DBG_SEL_ANALOG_THM1_1_THM_RSTN                         BIT(3)
+#define BIT_ANLG_PHY_G18_DBG_SEL_ANALOG_THM1_1_THM_RUN                          BIT(2)
+#define BIT_ANLG_PHY_G18_DBG_SEL_ANALOG_THM1_1_THM_PD                           BIT(1)
+#define BIT_ANLG_PHY_G18_DBG_SEL_ANALOG_THM1_1_THM_RESERVED                     BIT(0)
 
-
-#endif /* ANLG_PHY_G18_H */
-
-
+#endif
