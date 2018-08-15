@@ -28,7 +28,7 @@
 #ifdef CONFIG_USB_DWC3_SPRD_INTEL
 #include "sprd_intel_usb3_hw.c"
 #else
-static void dwc3_device dwc3_dev = {
+static struct dwc3_device dwc3_dev = {
 	.base = 0x0,
 	.maximum_speed = USB_SPEED_UNKNOWN,
 };
