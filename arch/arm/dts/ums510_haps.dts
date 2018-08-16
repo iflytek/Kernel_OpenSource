@@ -66,8 +66,8 @@
 		};
 
 		/* (720x1280x4Bytes + 7200Bytes) x 4Buffers */
-		fb_reserved: framebuffer@fefc0000{
-			reg = <0x0 0xfefc0000 0x0 0x1000000>;
+		fb_reserved: framebuffer@befc0000{
+			reg = <0x0 0xbefc0000 0x0 0x1000000>;
 		};
 	};
 
