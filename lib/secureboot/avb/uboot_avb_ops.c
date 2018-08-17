@@ -293,19 +293,21 @@ AvbIOResult read_is_device_unlocked(AvbOps* ops, bool* out_is_unlocked) {
   return AVB_IO_RESULT_OK;
 }
 
-#ifdef CONFIG_VBOOT_SYSTEMASROOT
 AvbIOResult get_unique_guid_for_partition(AvbOps* ops,
                                           const char* partition,
                                           char* guid_buf,
                                           size_t guid_buf_size) {
+#ifdef CONFIG_VBOOT_SYSTEMASROOT
   debug("enter get_unique_guid_for_partition().\n");
   debug("partition: %s  guid_buf_size = %d \n", partition, guid_buf_size);
   memset(guid_buf, 0, guid_buf_size);
   get_img_partition_uuid(partition, guid_buf);
   debug("guid_buf: %s \n", guid_buf);
   return AVB_IO_RESULT_OK;
-}
+#else
+  return AVB_IO_RESULT_OK;
 #endif
+}
 
 int avb_ops_new_for_download(void)
 {
