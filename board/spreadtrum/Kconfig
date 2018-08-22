@@ -364,6 +364,12 @@ config TARGET_UMS510_HAPS
         help
           This is the Spreadtrum sharkl5 Board
 
+config TARGET_SP9650_HAPS
+        bool "Spreadtrum orca"
+        select ARM64
+        help
+          This is the Spreadtrum orca Board
+
 config ZEBU
 	bool "zebu board"
 	default n
@@ -452,4 +458,5 @@ source "board/spreadtrum/sp9863a_1h10/Kconfig"
 source "board/spreadtrum/sp9863a_2h10/Kconfig"
 source "board/spreadtrum/sp9863a_3h10/Kconfig"
 source "board/spreadtrum/ums510_haps/Kconfig"
+source "board/spreadtrum/sp9650_haps/Kconfig"
 endif
