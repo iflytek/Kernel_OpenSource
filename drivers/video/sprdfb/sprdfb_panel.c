@@ -95,6 +95,7 @@ extern struct panel_spec lcd_ili9881p_mipi_spec;
 extern struct panel_spec lcd_ft8006m_mipi_spec;
 extern struct panel_spec lcd_gc9503_jl_mipi_spec;
 extern struct panel_spec lcd_st7701_zgd_mipi_spec;
+extern struct panel_spec lcd_st7703_mipi_spec;
 
 void sprdfb_panel_remove(struct sprdfb_device *dev);
 
@@ -572,6 +573,13 @@ static struct panel_cfg panel_cfg[] = {
 {
 	.lcd_id = 0x91613,
 	.panel = &lcd_jd9161_mipi_spec,
+},
+#endif
+
+#ifdef CONFIG_FB_LCD_ST7703_BOE_MIPI_HD
+{
+	.lcd_id = 0x7703,
+	.panel = &lcd_st7703_mipi_spec,
 },
 #endif
 
