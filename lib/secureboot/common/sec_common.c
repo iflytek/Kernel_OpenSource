@@ -497,7 +497,7 @@ void secboot_terminal(void)
 void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
 {
 	uint32_t ret = 1;
-	static bool system_vendor_done=false;
+	static bool system_vendor_product_done=false;
 #ifdef CONFIG_VBOOT_V2
 	vboot_secure_process_flow(partition_name);
 
@@ -505,12 +505,13 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
     debug("skip to check system & vendor version.\n");
 #else
 //secboot_secure_process_flow may be called several times, but system/vendor,only need to be checked on time
-    debug("begin to check system & vendor version.\n");
-    if (!system_vendor_done && g_DeviceStatus != VBOOT_STATUS_UNLOCK)
+    debug("begin to check system & vendor & product version.\n");
+    if (!system_vendor_product_done && g_DeviceStatus != VBOOT_STATUS_UNLOCK)
     {
 		vboot_verify_vbmeta("system");
 		vboot_verify_vbmeta("vendor");
-		system_vendor_done=true;
+		vboot_verify_vbmeta("product");
+		system_vendor_product_done=true;
     }
 #endif
 #else
