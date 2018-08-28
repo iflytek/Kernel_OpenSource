@@ -41,6 +41,9 @@
 /*
  * Reset the cpu by setting up the watchdog timer and let it time out
  */
+
+int (*arch_poweroff)(void) = NULL;
+
 void reset_cpu (ulong ignored)
 {
 	start_watchdog(5);
@@ -53,6 +56,10 @@ void power_down_cpu(ulong ignored)
 	int v = 0;
 	v = ANA_REG_GET(ANA_REG_GLB_POR_SRC_FLAG);
 	printf("power on src = 0x%.8x\n", v);
+	if(arch_poweroff)
+	{
+		arch_poweroff();
+	}
 	v = 0x1000000;
 	while (v--); // log delay
 

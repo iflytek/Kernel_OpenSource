@@ -5,12 +5,40 @@
 #include <asm/arch/common.h>
 #include <otp_helper.h>
 #include <sprd_pmic_misc.h>
+#include <asm/arch-sharkl3/pinmap.h>
 
 #define KLT8	0x6B4C5438
 #define KL	0x6B4C0000
 #define SHAR	0x53686172
 #define E2	0x65320000
 #define WHAL	0x5768616C
+
+void rf_sen_gpio_init()
+{
+	sprd_gpio_request(NULL, 1);
+	sprd_gpio_direction_output(NULL,1,0);
+	sprd_gpio_request(NULL, 2);
+	sprd_gpio_direction_output(NULL,2,0);
+	sprd_gpio_request(NULL,3);
+	sprd_gpio_direction_output(NULL,3,0);
+	sprd_gpio_request(NULL,12);
+	sprd_gpio_direction_output(NULL,12,0);
+	sprd_gpio_request(NULL,13);
+	sprd_gpio_direction_output(NULL,13,0);
+	sprd_gpio_request(NULL,14);
+	sprd_gpio_direction_output(NULL,14,0);
+}
+extern int (*arch_poweroff)(void);
+int sharkl3_poweroff()
+{
+	__raw_writel(0x30, CTL_PIN_BASE + REG_PIN_RFSDA1);
+	__raw_writel(0x30, CTL_PIN_BASE + REG_PIN_RFSCK1);
+	__raw_writel(0x30, CTL_PIN_BASE + REG_PIN_RFSEN1);
+	__raw_writel(0x30, CTL_PIN_BASE + REG_PIN_RFSDA0);
+	__raw_writel(0x30, CTL_PIN_BASE + REG_PIN_RFSCK0);
+	__raw_writel(0x30, CTL_PIN_BASE + REG_PIN_RFSEN0);
+	return 0;
+}
 
 int sprd_get_chipid(int *chip_id, int *version_id)
 {
@@ -71,6 +99,9 @@ void misc_init()
 	pmic_misc_init();
 
 	sprd_get_chipid(NULL, NULL);
+
+	rf_sen_gpio_init();
+	arch_poweroff = sharkl3_poweroff;
 }
 
 typedef struct mem_cs_info
