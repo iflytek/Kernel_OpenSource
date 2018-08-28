@@ -994,7 +994,7 @@ STATIC_FUNC int _eccAnalyze(NAND_CTL * this, uint32_t num, struct mtd_ecc_stats 
 	uint32_t i;
 	uint32_t n;
 	struct nand_ecc_stats *nand_ecc_sts = this->stsBuf_v;
-	uint32_t sector_num = 16;
+	uint32_t sector_num = this->param.nSectPerPage;
 	uint32_t ecc_bank_num = num / sector_num;
 	uint32_t sector = 0;
 	int ret = 0;
