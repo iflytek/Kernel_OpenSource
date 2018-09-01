@@ -210,7 +210,11 @@ void sprdfgu_init(void)
 
 void sprdfgu_late_init(void)
 {
-	if (charger_connected() && sprdbat_is_battery_connected()) {
+#if defined(CONFIG_SPRD2703_CHARGE_IC)
+		if (charger_connected()) {
+#else
+		if (charger_connected() && sprdbat_is_battery_connected()) {
+#endif
 		if ((FIRST_POWERTON == sprdfgu_poweron_type_read())
 			|| (sprdfgu_rtc_reg_read() == 0xFFF)) {
 			sprdfgu_rtc_reg_write(0xFF);
