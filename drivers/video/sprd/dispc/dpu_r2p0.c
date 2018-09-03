@@ -507,8 +507,9 @@ static int dpu_init(struct dispc_context *ctx)
 	reg->panel_size = size;
 	reg->blend_size = size;
 
-	reg->dpu_cfg0 = 0;
-	reg->dpu_cfg1 = 0x00447171;
+	/* set Y2R conversion coef */
+	reg->dpu_cfg0 = BIT(4) | BIT(5);
+	reg->dpu_cfg1 = 0x004466da;
 	reg->dpu_cfg2 = 0;
 	dpu_clean(ctx);
 	reg->dpu_enhance_cfg = 0;
