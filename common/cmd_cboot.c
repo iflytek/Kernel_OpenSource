@@ -233,7 +233,7 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
 	volatile int i;
 	boot_mode_enum_type bootmode = CMD_UNDEFINED_MODE;
-	CBOOT_MODE_ENTRY boot_mode_array[21] ={0};
+	CBOOT_MODE_ENTRY boot_mode_array[CMD_MAX_MODE] ={0};
 
 	if(argc > 2)
 		return CMD_RET_USAGE;
