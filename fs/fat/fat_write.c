@@ -5,7 +5,7 @@
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
-
+#include <rtc.h>
 #include <common.h>
 #include <command.h>
 #include <config.h>
@@ -16,6 +16,8 @@
 #include <div64.h>
 #include <linux/math64.h>
 #include "fat.c"
+
+extern struct rtc_time get_time_by_sec(void);
 
 static void uppercase(char *str, int len)
 {
@@ -50,6 +52,8 @@ static void set_name(dir_entry *dirent, const char *filename)
 	char s_name[VFAT_MAXLEN_BYTES];
 	char *period;
 	int period_location, len, i, ext_num;
+	struct rtc_time tm;
+	__u16  mod_time;
 
 	if (filename == NULL)
 		return;
@@ -57,6 +61,15 @@ static void set_name(dir_entry *dirent, const char *filename)
 	len = strlen(filename);
 	if (len == 0)
 		return;
+
+	tm = get_time_by_sec();
+	mod_time = ((tm.tm_year - 1980) << 9) | (tm.tm_mon << 5) | tm.tm_mday;
+	dirent->cdate  = cpu_to_le16(mod_time);
+	dirent->adate = cpu_to_le16(mod_time);
+	mod_time = (tm.tm_hour << 11) | (tm.tm_min << 5) |  (tm.tm_sec / 2);
+	dirent->ctime = cpu_to_le16(mod_time);
+	dirent->date = dirent->cdate;
+	dirent->time = dirent->ctime;
 
 	strcpy(s_name, filename);
 	uppercase(s_name, len);
