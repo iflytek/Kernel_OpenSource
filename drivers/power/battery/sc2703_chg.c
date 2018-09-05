@@ -84,6 +84,12 @@ static void sc2703_charger_ic_init(void)
 	sc2703_update_reg_bits(SC2703_CONF_A,
 				 SC2703_WD_EN_MASK,
 				 0);
+	sc2703_update_reg_bits(SC2703_REG_UNLOCK,
+		SC2703_CHG_REG_MASK_ALL, SC2703_REG_UNLOCK_VAL);
+	sc2703_update_reg_bits(SC2703_VSYS_UV_SWITCH,
+		SC2703_CHG_REG_MASK_ALL, SC2703_VSYS_UV_SWITCH_VAL);
+	sc2703_update_reg_bits(SC2703_REG_UNLOCK,
+		SC2703_CHG_REG_MASK_ALL, SC2703_CHG_REG_DISABLE_VAL);
 }
 
 /*
@@ -99,8 +105,10 @@ static void sc2703_charger_ic_init(void)
 static void sc2703_charger_start(void)
 {
 	sc2703_update_reg_bits(SC2703_DCDC_CTRL_A, SC2703_CHG_EN_MASK, SC2703_CHG_EN_MASK);
+	sc2703_update_reg_bits(SC2703_REG_UNLOCK,
+		SC2703_CHG_REG_MASK_ALL, SC2703_REG_UNLOCK_VAL);
 	sc2703_update_reg_bits(SC2703_VSYS_UV_SWITCH,
-		SC2703_CHG_REG_MASK_ALL, SC2703_CHG_REG_DISABLE_VAL);
+		SC2703_CHG_REG_MASK_ALL, SC2703_VSYS_UV_SWITCH_VAL);
 	sc2703_update_reg_bits(SC2703_CHG_BUCK_SWITCH,
 		SC2703_CHG_REG_MASK_ALL, SC2703_CHG_REG_DISABLE_VAL);
 	sc2703_update_reg_bits(SC2703_REG_UNLOCK,
@@ -109,13 +117,20 @@ static void sc2703_charger_start(void)
 
 static void sc2703_charger_stop(unsigned int flag)
 {
-	sc2703_update_reg_bits(SC2703_DCDC_CTRL_A, SC2703_CHG_EN_MASK, 0);
-	sc2703_update_reg_bits(SC2703_REG_UNLOCK,
-		SC2703_CHG_REG_MASK_ALL, SC2703_REG_UNLOCK_VAL);
-	sc2703_update_reg_bits(SC2703_VSYS_UV_SWITCH,
-		SC2703_CHG_REG_MASK_ALL, SC2703_VSYS_UV_SWITCH_VAL);
-	sc2703_update_reg_bits(SC2703_CHG_BUCK_SWITCH,
-		SC2703_CHG_REG_MASK_ALL, SC2703_CHG_BUCK_SWITCH_VAL);
+	if (!sprdbat_is_battery_connected()) {
+		sc2703_update_reg_bits(SC2703_DCDC_CTRL_A, SC2703_CHG_EN_MASK, 0);
+		sc2703_update_reg_bits(SC2703_REG_UNLOCK,
+			SC2703_CHG_REG_MASK_ALL, SC2703_REG_UNLOCK_VAL);
+		sc2703_update_reg_bits(SC2703_VSYS_UV_SWITCH,
+			SC2703_CHG_REG_MASK_ALL, SC2703_VSYS_UV_SWITCH_VAL);
+		sc2703_update_reg_bits(SC2703_CHG_BUCK_SWITCH,
+			SC2703_CHG_REG_MASK_ALL, SC2703_CHG_BUCK_SWITCH_VAL);
+		sc2703_update_reg_bits(SC2703_REG_UNLOCK,
+			SC2703_CHG_REG_MASK_ALL, SC2703_CHG_REG_DISABLE_VAL);
+	} else {
+		sc2703_update_reg_bits(SC2703_DCDC_CTRL_A, SC2703_CHG_EN_MASK, 0);
+		sc2703_update_reg_bits(SC2703_DCDC_CTRL_A, SC2703_DCDC_EN_MASK, 0);
+	}
 }
 
 static void sc2703_charger_cc_current_set(int val)
