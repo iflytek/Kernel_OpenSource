@@ -510,7 +510,9 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
     {
 		vboot_verify_vbmeta("system");
 		vboot_verify_vbmeta("vendor");
+#if defined (BOARD_PRODUCTIMAGE_PARTITION_SIZE)
 		vboot_verify_vbmeta("product");
+#endif
 		system_vendor_product_done=true;
     }
 #endif
