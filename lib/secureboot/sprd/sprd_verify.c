@@ -10,7 +10,10 @@
 #include <avb/uboot_avb_ops.h>
 #include <avb/avb_sha.h>
 #endif
-
+#ifdef PKCS1_PSS
+#include <sprd_hash.h>
+#include <sprd_rsa.h>
+#endif
 DECLARE_GLOBAL_DATA_PTR;
 
 #define SEC_DEBUG
@@ -122,6 +125,7 @@ void update_sec_version(void)
 
 bool sprd_anti_rollback(uint32_t certtype, uint32_t certversion)
 {
+#ifndef PKCS1_PSS
     int ret = 0;
     secf("image type = %d\n", certtype);
     if (certtype == TRUSTED_FIRMWARE) {
@@ -167,9 +171,10 @@ bool sprd_anti_rollback(uint32_t certtype, uint32_t certversion)
         secf("image type mismatch!! \n");
         return false;
     }
+#endif
     return true;
 }
-
+#ifndef PKCS1_PSS
 bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t * certptr)
 {
 	bool ret = false;
@@ -239,7 +244,110 @@ bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t *
 
 	return ret;
 }
+#else
+bool sprd_verify_cert(uint8_t * hash_key_precert, uint8_t * hash_data, uint8_t * certptr)
+{
+	bool ret = false;
+	uint8_t certtype = *certptr;
+	uint8_t temphash_data[HASH_BYTE_LEN];
+	sprd_crypto_err_t err = SPRD_CRYPTO_SUCCESS;
+	sprd_rsa_pubkey_t pubkey;
+	sprd_rsa_padding_t padding;
+	int32_t result;
+	uint8_t certhash[HASH_BYTE_LEN] = {0};
 
+	padding.type = SPRD_RSASSA_PKCS1_PSS_MGF1;
+	padding.pad.rsassa_pss.type = SPRD_CRYPTO_HASH_SHA256;
+	padding.pad.rsassa_pss.mgf1_hash_type = SPRD_CRYPTO_HASH_SHA256;
+	padding.pad.rsassa_pss.salt_len = 32;
+
+	secf("cert type: %d\n",certtype);
+	if ((certtype == CERTTYPE_CONTENT) || (certtype == CERTTYPE_KEY)) {
+	   if (certtype == CERTTYPE_KEY) {
+
+	            sprd_keycert *curcertptr = (sprd_keycert *) certptr;
+
+	            cal_sha256((uint8_t *) & (curcertptr->pubkey), SPRD_RSAPUBKLEN, temphash_data);
+
+	            if (sec_memcmp(hash_data, curcertptr->hash_data, HASH_BYTE_LEN)
+	                || sec_memcmp(hash_key_precert, temphash_data, HASH_BYTE_LEN)
+	                ) {
+	                     secf("cmp hash of pubk diffent\r\n");
+	                     return false;
+	            }
+
+	            pubkey.n = curcertptr->pubkey.mod;
+	            pubkey.n_len = (curcertptr->pubkey.keybit_len) >> 3;
+	            pubkey.e = (uint8_t *) & (curcertptr->pubkey.e);
+	            pubkey.e_len = 4;
+
+		    cal_sha256(curcertptr->hash_data, KEYCERT_HASH_LEN, certhash);
+	            err = sprd_rsa_verify((const sprd_rsa_pubkey_t*)(&pubkey),
+	                               certhash, HASH_BYTE_LEN,
+	                               (const uint8_t*)(curcertptr->signature), pubkey.n_len,
+	                               padding, &result);
+
+	            if (err != SPRD_CRYPTO_SUCCESS) {
+	                     secf("\nRSA verify err fail(%08x)\n", err);
+	                     return false;
+	            }
+
+	            if (result != SPRD_VERIFY_SUCCESS) {
+	                     secf("\nRSA verify err result(%08x)\n", result);
+	                     return false;
+	            }
+
+	            secf("\nRSA verify Success\n");
+	            ret = sprd_anti_rollback(curcertptr->type,curcertptr->version);
+	   }
+
+	   else if(certtype ==  CERTTYPE_CONTENT) {             //certtype is content
+
+	            sprd_contentcert *curcertptr = (sprd_contentcert *) certptr;
+
+	            cal_sha256((uint8_t *) & (curcertptr->pubkey), SPRD_RSAPUBKLEN, temphash_data);
+
+	            if (sec_memcmp(hash_data, curcertptr->hash_data, HASH_BYTE_LEN)
+	                || sec_memcmp(hash_key_precert, temphash_data, HASH_BYTE_LEN)
+	                ) {
+	                     secf("cmp hash key diffent\r\n");
+	                     return false;
+	            }
+				//dumpHex("signature",curcertptr->signature,256);
+				//dumpHex("pubkey",& (curcertptr->pubkey),260);
+	            pubkey.n = curcertptr->pubkey.mod;
+	            pubkey.n_len = (curcertptr->pubkey.keybit_len) >> 3;
+	            pubkey.e = (uint8_t *) & (curcertptr->pubkey.e);
+	            pubkey.e_len = 4;
+
+		    cal_sha256(curcertptr->hash_data, CNTCERT_HASH_LEN, certhash);
+	            err = sprd_rsa_verify((const sprd_rsa_pubkey_t*)(&pubkey),
+	                               certhash, HASH_BYTE_LEN,
+	                               (const uint8_t*)(curcertptr->signature), pubkey.n_len,
+	                               padding, &result);
+
+	            if (err != SPRD_CRYPTO_SUCCESS) {
+	                     secf("\nRSA verify err fail(%08x)\n", err);
+	                     return false;
+	            }
+
+	            if (result != SPRD_VERIFY_SUCCESS) {
+	                     secf("\nRSA verify err result(%08x)\n", result);
+	                     return false;
+	            }
+
+	            secf("\nRSA verify Success\n");
+	            ret = sprd_anti_rollback(curcertptr->type,curcertptr->version);
+	   }
+
+	} else {
+	   secf("invalid cert type %d!!", certtype);
+	   ret = false;
+	}
+
+	return ret;
+}
+#endif
 
 /*
  *  this function compare the first four bytes in image and return 1 if equals to
