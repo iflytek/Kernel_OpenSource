@@ -78,19 +78,7 @@ static inline void pubcp_boot(void)
 	if(load_cp_boot_code((void*)PUBCP_IRAM_ADDRESS))
 		memcpy((void*)PUBCP_IRAM_ADDRESS, g_loader, count);
 
-	/*boot cr5 */
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST)|= BIT_PMU_APB_PUBCP_SOFT_RST;   /* reset R5 */
-	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) |= BIT_AON_APB_PUBCP_CR5_CORE_SOFT_RST; /*cr5 core soft reset*/
-	/*power on*/
-	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~BIT_PMU_APB_PD_PUBCP_SYS_FORCE_SHUTDOWN;/* clear R5 force shutdown */
-	*((volatile u32*)REG_PMU_APB_PD_PUBCP_SYS_CFG) &= ~BIT_PMU_APB_PD_PUBCP_SYS_AUTO_SHUTDOWN_EN;/* clear R5 auto shutdown */
-	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_PMU_APB_PUBCP_FORCE_DEEP_SLEEP;   /*clear R5 force sleep */
-
-	msleep(50);
-	/*reset*/
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_PUBCP_SOFT_RST; /* pubcp soft reset */
-	*((volatile u32*)REG_AON_APB_PCP_SOFT_RST) &= ~BIT_AON_APB_PUBCP_CR5_CORE_SOFT_RST; /*cr5 core soft reset*/
-
+	//TODO
 }
 
 /*****************************************************************************/
@@ -100,9 +88,7 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-	*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_SP_SYS_SOFT_RST;
-	*((volatile u32*)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_PMU_APB_SP_SYS_FORCE_DEEP_SLEEP;   /*clear sp force sleep */
-	msleep(50);
+	//TODO
 }
 
 

@@ -1,1856 +1,2408 @@
 /*
- * Copyright (C) 2015 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2017-06-09 10:08:26
+ * updated at 2018-09-04 11:00:16
  *
  */
 
+#ifndef AON_APB
+#define AON_APB
 
-#ifndef AON_APB_H
-#define AON_APB_H
+#define CTL_BASE_AON_APB 0x64020000
 
-#define CTL_BASE_AON_APB 0x402E0000
-
-
-#define REG_AON_APB_APB_EB0                     ( CTL_BASE_AON_APB + 0x0000 )
-#define REG_AON_APB_APB_EB1                     ( CTL_BASE_AON_APB + 0x0004 )
-#define REG_AON_APB_APB_RST0                    ( CTL_BASE_AON_APB + 0x0008 )
-#define REG_AON_APB_APB_RST1                    ( CTL_BASE_AON_APB + 0x000C )
-#define REG_AON_APB_APB_RTC_EB                  ( CTL_BASE_AON_APB + 0x0010 )
-#define REG_AON_APB_REC_26MHZ_BUF_CFG           ( CTL_BASE_AON_APB + 0x0014 )
-#define REG_AON_APB_SINDRV_CTRL                 ( CTL_BASE_AON_APB + 0x0018 )
-#define REG_AON_APB_ADA_SEL_CTRL                ( CTL_BASE_AON_APB + 0x001C )
-#define REG_AON_APB_VBC_CTRL                    ( CTL_BASE_AON_APB + 0x0020 )
-#define REG_AON_APB_PWR_CTRL                    ( CTL_BASE_AON_APB + 0x0024 )
-#define REG_AON_APB_TS_CFG                      ( CTL_BASE_AON_APB + 0x0028 )
-#define REG_AON_APB_BOOT_MODE                   ( CTL_BASE_AON_APB + 0x002C )
-#define REG_AON_APB_BB_BG_CTRL                  ( CTL_BASE_AON_APB + 0x0030 )
-#define REG_AON_APB_CP_ARM_JTAG_CTRL            ( CTL_BASE_AON_APB + 0x0034 )
-#define REG_AON_APB_PLL_SOFT_CNT_DONE           ( CTL_BASE_AON_APB + 0x0038 )
-#define REG_AON_APB_DCXO_LC_REG0                ( CTL_BASE_AON_APB + 0x003C )
-#define REG_AON_APB_DCXO_LC_REG1                ( CTL_BASE_AON_APB + 0x0040 )
-#define REG_AON_APB_MPLL_CFG1                   ( CTL_BASE_AON_APB + 0x0044 )
-#define REG_AON_APB_MPLL_CFG2                   ( CTL_BASE_AON_APB + 0x0048 )
-#define REG_AON_APB_DPLL_CFG1                   ( CTL_BASE_AON_APB + 0x004C )
-#define REG_AON_APB_DPLL_CFG2                   ( CTL_BASE_AON_APB + 0x0050 )
-#define REG_AON_APB_TWPLL_CFG1                  ( CTL_BASE_AON_APB + 0x0054 )
-#define REG_AON_APB_TWPLL_CFG2                  ( CTL_BASE_AON_APB + 0x0058 )
-#define REG_AON_APB_LTEPLL_CFG1                 ( CTL_BASE_AON_APB + 0x005C )
-#define REG_AON_APB_LTEPLL_CFG2                 ( CTL_BASE_AON_APB + 0x0060 )
-#define REG_AON_APB_LVDSRFPLL_CFG1              ( CTL_BASE_AON_APB + 0x0064 )
-#define REG_AON_APB_LVDSRFPLL_CFG2              ( CTL_BASE_AON_APB + 0x0068 )
-#define REG_AON_APB_AON_REG_PROT                ( CTL_BASE_AON_APB + 0x006C )
-#define REG_AON_APB_DSI_PHY_CTRL                ( CTL_BASE_AON_APB + 0x0070 )
-#define REG_AON_APB_CSI_2L_PHY_CTRL             ( CTL_BASE_AON_APB + 0x0074 )
-#define REG_AON_APB_CSI_2P2L_S_PHY_CTRL         ( CTL_BASE_AON_APB + 0x0078 )
-#define REG_AON_APB_CSI_2P2L_M_PHY_CTRL         ( CTL_BASE_AON_APB + 0x007C )
-#define REG_AON_APB_CSI_2P2L_DBG_PHY_CTRL       ( CTL_BASE_AON_APB + 0x0080 )
-#define REG_AON_APB_CSI_2P2L_PHY_CTRL           ( CTL_BASE_AON_APB + 0x0084 )
-#define REG_AON_APB_AON_CGM_CFG                 ( CTL_BASE_AON_APB + 0x0088 )
-#define REG_AON_APB_DFS_CLK_GATE_CFG            ( CTL_BASE_AON_APB + 0x008C )
-#define REG_AON_APB_HARD_DFS_CTRL               ( CTL_BASE_AON_APB + 0x00AC )
-#define REG_AON_APB_APB_EB2                     ( CTL_BASE_AON_APB + 0x00B0 )
-#define REG_AON_APB_ROSC_CFG                    ( CTL_BASE_AON_APB + 0x00C0 )
-#define REG_AON_APB_ROSC_STATUS                 ( CTL_BASE_AON_APB + 0x00C4 )
-#define REG_AON_APB_AON_ANALOG_RSV              ( CTL_BASE_AON_APB + 0x00C8 )
-#define REG_AON_APB_AON_CHIP_ID0                ( CTL_BASE_AON_APB + 0x00E0 )
-#define REG_AON_APB_AON_CHIP_ID1                ( CTL_BASE_AON_APB + 0x00E4 )
-#define REG_AON_APB_AON_PLAT_ID0                ( CTL_BASE_AON_APB + 0x00E8 )
-#define REG_AON_APB_AON_PLAT_ID1                ( CTL_BASE_AON_APB + 0x00EC )
-#define REG_AON_APB_AON_IMPL_ID                 ( CTL_BASE_AON_APB + 0x00F0 )
-#define REG_AON_APB_AON_MFT_ID                  ( CTL_BASE_AON_APB + 0x00F4 )
-#define REG_AON_APB_AON_VER_ID                  ( CTL_BASE_AON_APB + 0x00F8 )
-#define REG_AON_APB_AON_CHIP_ID                 ( CTL_BASE_AON_APB + 0x00FC )
-#define REG_AON_APB_CCIR_RCVR_CFG               ( CTL_BASE_AON_APB + 0x0100 )
-#define REG_AON_APB_PLL_BG_CFG                  ( CTL_BASE_AON_APB + 0x0108 )
-#define REG_AON_APB_LVDSDIS_SEL                 ( CTL_BASE_AON_APB + 0x010C )
-#define REG_AON_APB_DJTAG_MUX_SEL               ( CTL_BASE_AON_APB + 0x0110 )
-#define REG_AON_APB_CM4_SYS_SOFT_RST            ( CTL_BASE_AON_APB + 0x0114 )
-#define REG_AON_APB_PUBCP_WTLCP_ADDR_MSB        ( CTL_BASE_AON_APB + 0x0118 )
-#define REG_AON_APB_AON_DMA_INT_EN              ( CTL_BASE_AON_APB + 0x011C )
-#define REG_AON_APB_EMC_AUTO_GATE_EN            ( CTL_BASE_AON_APB + 0x0120 )
-#define REG_AON_APB_CM4_CFG_BUS                 ( CTL_BASE_AON_APB + 0x0124 )
-#define REG_AON_APB_APB_RST2                    ( CTL_BASE_AON_APB + 0x0130 )
-#define REG_AON_APB_CLK_EB0                     ( CTL_BASE_AON_APB + 0x0134 )
-#define REG_AON_APB_AON_SDIO                    ( CTL_BASE_AON_APB + 0x0138 )
-#define REG_AON_APB_MPLL_CTRL                   ( CTL_BASE_AON_APB + 0x013C )
-#define REG_AON_APB_AUTO_GATE_CTRL0             ( CTL_BASE_AON_APB + 0x0140 )
-#define REG_AON_APB_AUTO_GATE_CTRL1             ( CTL_BASE_AON_APB + 0x0144 )
-#define REG_AON_APB_GPLL_CFG1                   ( CTL_BASE_AON_APB + 0x0150 )
-#define REG_AON_APB_GPLL_CFG2                   ( CTL_BASE_AON_APB + 0x0154 )
-#define REG_AON_APB_RPLL_CFG1                   ( CTL_BASE_AON_APB + 0x0158 )
-#define REG_AON_APB_RPLL_CFG2                   ( CTL_BASE_AON_APB + 0x015C )
-#define REG_AON_APB_RPLL_CFG3                   ( CTL_BASE_AON_APB + 0x0160 )
-#define REG_AON_APB_THM0_CTRL                   ( CTL_BASE_AON_APB + 0x0164 )
-#define REG_AON_APB_THM1_CTRL                   ( CTL_BASE_AON_APB + 0x0168 )
-#define REG_AON_APB_BUSMON_DMA_CFG              ( CTL_BASE_AON_APB + 0x0170 )
-#define REG_AON_APB_ANALOG_CFG0                 ( CTL_BASE_AON_APB + 0x0174 )
-#define REG_AON_APB_ANALOG_CFG1                 ( CTL_BASE_AON_APB + 0x0178 )
-#define REG_AON_APB_RPLL_BIST_CTRL              ( CTL_BASE_AON_APB + 0x017C )
-#define REG_AON_APB_MPLL_BIST_CTRL              ( CTL_BASE_AON_APB + 0x0180 )
-#define REG_AON_APB_DPLL_BIST_CTRL              ( CTL_BASE_AON_APB + 0x0184 )
-#define REG_AON_APB_GPLL_BIST_CTRL              ( CTL_BASE_AON_APB + 0x0188 )
-#define REG_AON_APB_TWPLL_BIST_CTRL             ( CTL_BASE_AON_APB + 0x018C )
-#define REG_AON_APB_LPLL_BIST_CTRL              ( CTL_BASE_AON_APB + 0x0190 )
-#define REG_AON_APB_DPLL_CTRL                   ( CTL_BASE_AON_APB + 0x0194 )
-#define REG_AON_APB_CPPLL_CFG1                  ( CTL_BASE_AON_APB + 0x0198 )
-#define REG_AON_APB_CPPLL_CFG2                  ( CTL_BASE_AON_APB + 0x019C )
-#define REG_AON_APB_CPPLL_BIST_CTRL             ( CTL_BASE_AON_APB + 0x01A0 )
-#define REG_AON_APB_MPLL_CFG3                   ( CTL_BASE_AON_APB + 0x01B0 )
-#define REG_AON_APB_DPLL_CFG3                   ( CTL_BASE_AON_APB + 0x01B4 )
-#define REG_AON_APB_GPLL_CFG3                   ( CTL_BASE_AON_APB + 0x01B8 )
-#define REG_AON_APB_CP_DAP_PAD_CTRL             ( CTL_BASE_AON_APB + 0x0200 )
-#define REG_AON_APB_CA53_PROT_CTRL              ( CTL_BASE_AON_APB + 0x0204 )
-#define REG_AON_APB_CSSYS_CFG                   ( CTL_BASE_AON_APB + 0x0208 )
-#define REG_AON_APB_SEC_MUX_DBG_EN              ( CTL_BASE_AON_APB + 0x020C )
-#define REG_AON_APB_CR5_PROT_CTRL               ( CTL_BASE_AON_APB + 0x0210 )
-#define REG_AON_APB_DBG_DJTAG_CTRL              ( CTL_BASE_AON_APB + 0x0214 )
-#define REG_AON_APB_WTLCP_CTRL                  ( CTL_BASE_AON_APB + 0x0240 )
-#define REG_AON_APB_WTL_WCDMA_EB                ( CTL_BASE_AON_APB + 0x0244 )
-#define REG_AON_APB_WTLCP_LDSP_CTRL0            ( CTL_BASE_AON_APB + 0x0248 )
-#define REG_AON_APB_WTLCP_LDSP_CTRL1            ( CTL_BASE_AON_APB + 0x024C )
-#define REG_AON_APB_WTLCP_TDSP_CTRL0            ( CTL_BASE_AON_APB + 0x0250 )
-#define REG_AON_APB_WTLCP_TDSP_CTRL1            ( CTL_BASE_AON_APB + 0x0254 )
-#define REG_AON_APB_PCP_AON_EB                  ( CTL_BASE_AON_APB + 0x0280 )
-#define REG_AON_APB_PCP_SOFT_RST                ( CTL_BASE_AON_APB + 0x0284 )
-#define REG_AON_APB_PUBCP_CTRL                  ( CTL_BASE_AON_APB + 0x0288 )
-#define REG_AON_APB_SYS_DBG_SEL                 ( CTL_BASE_AON_APB + 0x02B0 )
-#define REG_AON_APB_MDAR_HSDL_CFG               ( CTL_BASE_AON_APB + 0x02B4 )
-#define REG_AON_APB_SYS_DBG_SEL2                ( CTL_BASE_AON_APB + 0x02B8 )
-#define REG_AON_APB_SUBSYS_DBG_CFG              ( CTL_BASE_AON_APB + 0x02BC )
-#define REG_AON_APB_AP_LPC_CTRL                 ( CTL_BASE_AON_APB + 0x02C0 )
-#define REG_AON_APB_WTLCP_LPC_CTRL              ( CTL_BASE_AON_APB + 0x02C4 )
-#define REG_AON_APB_PUBCP_LPC_CTRL              ( CTL_BASE_AON_APB + 0x02C8 )
-#define REG_AON_APB_RFTI_SOFT_RST               ( CTL_BASE_AON_APB + 0x02D0 )
-#define REG_AON_APB_GLB_WCDMA_CTRL              ( CTL_BASE_AON_APB + 0x0300 )
-#define REG_AON_APB_PLL_CLKOUT_GATE             ( CTL_BASE_AON_APB + 0x0400 )
-#define REG_AON_APB_HM_CFG_SEL                  ( CTL_BASE_AON_APB + 0x0404 )
-#define REG_AON_APB_HM_PWR_CTRL                 ( CTL_BASE_AON_APB + 0x0408 )
-#define REG_AON_APB_HM_RST_CTRL                 ( CTL_BASE_AON_APB + 0x040C )
-#define REG_AON_APB_M_AAPC_CFG                  ( CTL_BASE_AON_APB + 0x0420 )
-#define REG_AON_APB_DAP_DJTAG_CTRL              ( CTL_BASE_AON_APB + 0x0430 )
-#define REG_AON_APB_CGM_REG1                    ( CTL_BASE_AON_APB + 0x0440 )
-#define REG_AON_APB_CM4_INT_REQ_SRC_EN          ( CTL_BASE_AON_APB + 0x0448 )
-#define REG_AON_APB_CM4_INT_REQ_SRC_EN1         ( CTL_BASE_AON_APB + 0x044C )
-#define REG_AON_APB_AON_MTX_MAIN_LPC_CTRL       ( CTL_BASE_AON_APB + 0x0450 )
-#define REG_AON_APB_AON_MTX_M0_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0454 )
-#define REG_AON_APB_AON_MTX_M1_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0458 )
-#define REG_AON_APB_AON_MTX_M2_LPC_CTRL         ( CTL_BASE_AON_APB + 0x045C )
-#define REG_AON_APB_AON_MTX_M3_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0460 )
-#define REG_AON_APB_AON_MTX_M4_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0464 )
-#define REG_AON_APB_AON_MTX_M5_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0468 )
-#define REG_AON_APB_AON_MTX_S0_LPC_CTRL         ( CTL_BASE_AON_APB + 0x046C )
-#define REG_AON_APB_AON_MTX_S1_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0470 )
-#define REG_AON_APB_AON_MTX_S2_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0474 )
-#define REG_AON_APB_AON_MTX_S3_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0478 )
-#define REG_AON_APB_AON_MTX_S4_LPC_CTRL         ( CTL_BASE_AON_APB + 0x047C )
-#define REG_AON_APB_AON_MTX_S5_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0480 )
-#define REG_AON_APB_AON_MTX_S6_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0484 )
-#define REG_AON_APB_AON_MTX_S7_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0488 )
-#define REG_AON_APB_GPU2DDR_LPC_CTRL            ( CTL_BASE_AON_APB + 0x048C )
-#define REG_AON_APB_WTLCP2DDR_LPC_CTRL          ( CTL_BASE_AON_APB + 0x0490 )
-#define REG_AON_APB_WCN2DDR_LPC_CTRL            ( CTL_BASE_AON_APB + 0x0494 )
-#define REG_AON_APB_MM2DDR_LPC_CTRL             ( CTL_BASE_AON_APB + 0x0498 )
-#define REG_AON_APB_AON2DDR_LPC_CTRL            ( CTL_BASE_AON_APB + 0x049C )
-#define REG_AON_APB_CM42AON_LPC_CTRL            ( CTL_BASE_AON_APB + 0x04A0 )
-#define REG_AON_APB_OVERHEAT_CTRL               ( CTL_BASE_AON_APB + 0x0510 )
-#define REG_AON_APB_SKLE_TMP0                   ( CTL_BASE_AON_APB + 0x0514 )
-#define REG_AON_APB_SKLE_TMP1                   ( CTL_BASE_AON_APB + 0x0518 )
-#define REG_AON_APB_SKLE_TMP2                   ( CTL_BASE_AON_APB + 0x051C )
-#define REG_AON_APB_SKLE_TMP3                   ( CTL_BASE_AON_APB + 0x0520 )
-#define REG_AON_APB_DBG_PWRUP_SEL               ( CTL_BASE_AON_APB + 0x0524 )
-#define REG_AON_APB_RVBAADDR0                   ( CTL_BASE_AON_APB + 0x0528 )
-#define REG_AON_APB_RVBAADDR1                   ( CTL_BASE_AON_APB + 0x052C )
-#define REG_AON_APB_RVBAADDR2                   ( CTL_BASE_AON_APB + 0x0530 )
-#define REG_AON_APB_RVBAADDR3                   ( CTL_BASE_AON_APB + 0x0534 )
-#define REG_AON_APB_AA64N32                     ( CTL_BASE_AON_APB + 0x0538 )
-#define REG_AON_APB_CA53_EDBGRQ                 ( CTL_BASE_AON_APB + 0x053C )
-#define REG_AON_APB_PUBCP_SIM1_TOP_CTRL         ( CTL_BASE_AON_APB + 0x0540 )
-#define REG_AON_APB_PUBCP_SIM2_TOP_CTRL         ( CTL_BASE_AON_APB + 0x0544 )
-#define REG_AON_APB_PUBCP_SIM3_TOP_CTRL         ( CTL_BASE_AON_APB + 0x0548 )
-#define REG_AON_APB_AP_SIM_TOP_CTRL             ( CTL_BASE_AON_APB + 0x054C )
-#define REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG       ( CTL_BASE_AON_APB + 0x0550 )
-#define REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG1      ( CTL_BASE_AON_APB + 0x0554 )
-#define REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG2      ( CTL_BASE_AON_APB + 0x0558 )
-#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG1        ( CTL_BASE_AON_APB + 0x055C )
-#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG2        ( CTL_BASE_AON_APB + 0x0560 )
-#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG3        ( CTL_BASE_AON_APB + 0x0564 )
-#define REG_AON_APB_BONDING_OPTION              ( CTL_BASE_AON_APB + 0x0568 )
-#define REG_AON_APB_CE_LIFE_CYCLE               ( CTL_BASE_AON_APB + 0x056C )
-#define REG_AON_APB_WCN_ADC_CLK_SEL             ( CTL_BASE_AON_APB + 0x0570 )
-#define REG_AON_APB_CHIP_TOP_PLL_CNT_DONE       ( CTL_BASE_AON_APB + 0x0574 )
-#define REG_AON_APB_WCN_SYS_CFG1                ( CTL_BASE_AON_APB + 0x0578 )
-#define REG_AON_APB_WCN_SYS_CFG2                ( CTL_BASE_AON_APB + 0x057C )
-#define REG_AON_APB_AP_CORE_CFG                 ( CTL_BASE_AON_APB + 0x0580 )
-#define REG_AON_APB_CM4_MPU_DISABLE             ( CTL_BASE_AON_APB + 0x0584 )
-#define REG_AON_APB_CM4_STATUS                  ( CTL_BASE_AON_APB + 0x0588 )
-#define REG_AON_APB_MBIST_EFUSE_CTRL            ( CTL_BASE_AON_APB + 0x058C )
-#define REG_AON_APB_AON_APB_FREQ_CTRL           ( CTL_BASE_AON_APB + 0x0590 )
-#define REG_AON_APB_CA53_PROT_CTRL_NON_SEC      ( CTL_BASE_AON_APB + 0x0594 )
-#define REG_AON_APB_CSSYS_CFG_NON_SEC           ( CTL_BASE_AON_APB + 0x0598 )
-#define REG_AON_APB_CR5_PROT_CTRL_NON_SEC       ( CTL_BASE_AON_APB + 0x059C )
-#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG4        ( CTL_BASE_AON_APB + 0x05A0 )
-#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG5        ( CTL_BASE_AON_APB + 0x05A4 )
-#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG6        ( CTL_BASE_AON_APB + 0x05A8 )
-#define REG_AON_APB_INT_REQ_PWR_UP_FLAG         ( CTL_BASE_AON_APB + 0x05AC )
-#define REG_AON_APB_INT_REQ_PWR_DOWN_FLAG       ( CTL_BASE_AON_APB + 0x05B0 )
-#define REG_AON_APB_IO_DLY_CTRL                 ( CTL_BASE_AON_APB + 0x3014 )
-#define REG_AON_APB_PMU_RST_MONITOR             ( CTL_BASE_AON_APB + 0x302C )
-#define REG_AON_APB_THM_RST_MONITOR             ( CTL_BASE_AON_APB + 0x3030 )
-#define REG_AON_APB_AP_RST_MONITOR              ( CTL_BASE_AON_APB + 0x3034 )
-#define REG_AON_APB_CA53_RST_MONITOR            ( CTL_BASE_AON_APB + 0x3038 )
-#define REG_AON_APB_BOND_OPT0                   ( CTL_BASE_AON_APB + 0x303C )
-#define REG_AON_APB_RES_REG0                    ( CTL_BASE_AON_APB + 0x3044 )
-#define REG_AON_APB_RES_REG1                    ( CTL_BASE_AON_APB + 0x3048 )
-#define REG_AON_APB_AON_QOS_CFG                 ( CTL_BASE_AON_APB + 0x304C )
-#define REG_AON_APB_BB_LDO_CAL_START            ( CTL_BASE_AON_APB + 0x3050 )
-#define REG_AON_APB_AON_MTX_PROT_CFG            ( CTL_BASE_AON_APB + 0x3058 )
-#define REG_AON_APB_LVDS_CFG                    ( CTL_BASE_AON_APB + 0x3060 )
-#define REG_AON_APB_PLL_LOCK_OUT_SEL            ( CTL_BASE_AON_APB + 0x3064 )
-#define REG_AON_APB_FUNCTST_CTRL_0              ( CTL_BASE_AON_APB + 0x3070 )
-#define REG_AON_APB_FUNCTST_CTRL_1              ( CTL_BASE_AON_APB + 0x3074 )
-#define REG_AON_APB_FUNCTST_CTRL_2              ( CTL_BASE_AON_APB + 0x3078 )
-#define REG_AON_APB_WDG_RST_FLAG                ( CTL_BASE_AON_APB + 0x3080 )
-#define REG_AON_APB_CA53_CFG                    ( CTL_BASE_AON_APB + 0x3084 )
-#define REG_AON_APB_RES_REG2                    ( CTL_BASE_AON_APB + 0x3090 )
-#define REG_AON_APB_RES_REG3                    ( CTL_BASE_AON_APB + 0x3094 )
-#define REG_AON_APB_RES_REG4                    ( CTL_BASE_AON_APB + 0x3098 )
-#define REG_AON_APB_RES_REG5                    ( CTL_BASE_AON_APB + 0x309C )
-#define REG_AON_APB_RES_REG6                    ( CTL_BASE_AON_APB + 0x30A0 )
-#define REG_AON_APB_RES_REG7                    ( CTL_BASE_AON_APB + 0x30A4 )
-#define REG_AON_APB_AON_APB_RSV                 ( CTL_BASE_AON_APB + 0x30F0 )
-#define REG_AON_APB_FUNCTION_DMA_BOOT_ADDR      ( CTL_BASE_AON_APB + 0x3110 )
+#define REG_AON_APB_APB_EB0                          ( CTL_BASE_AON_APB + 0x0000 )
+#define REG_AON_APB_APB_EB1                          ( CTL_BASE_AON_APB + 0x0004 )
+#define REG_AON_APB_APB_EB2                          ( CTL_BASE_AON_APB + 0x0008 )
+#define REG_AON_APB_APB_RTC_EB0                      ( CTL_BASE_AON_APB + 0x000C )
+#define REG_AON_APB_PSCP_AON_EB                      ( CTL_BASE_AON_APB + 0x0010 )
+#define REG_AON_APB_CGM_REG1                         ( CTL_BASE_AON_APB + 0x0020 )
+#define REG_AON_APB_CGM_CLK_TOP_REG1                 ( CTL_BASE_AON_APB + 0x0024 )
+#define REG_AON_APB_APCPU_INT_ENABLE_CTRL0           ( CTL_BASE_AON_APB + 0x0030 )
+#define REG_AON_APB_APCPU_INT_ENABLE_CTRL1           ( CTL_BASE_AON_APB + 0x0034 )
+#define REG_AON_APB_APCPU_INT_ENABLE_CTRL2           ( CTL_BASE_AON_APB + 0x0038 )
+#define REG_AON_APB_APCPU_INT_ENABLE_CTRL3           ( CTL_BASE_AON_APB + 0x003C )
+#define REG_AON_APB_APCPU_INT_ENABLE_CTRL4           ( CTL_BASE_AON_APB + 0x0040 )
+#define REG_AON_APB_APCPU_INT_ENABLE_CTRL5           ( CTL_BASE_AON_APB + 0x0044 )
+#define REG_AON_APB_SP_WAKEUP_MASK_EN0               ( CTL_BASE_AON_APB + 0x0050 )
+#define REG_AON_APB_SP_WAKEUP_MASK_EN1               ( CTL_BASE_AON_APB + 0x0054 )
+#define REG_AON_APB_SP_WAKEUP_MASK_EN2               ( CTL_BASE_AON_APB + 0x0058 )
+#define REG_AON_APB_APB_RST0                         ( CTL_BASE_AON_APB + 0x0200 )
+#define REG_AON_APB_APB_RST1                         ( CTL_BASE_AON_APB + 0x0204 )
+#define REG_AON_APB_APB_RST2                         ( CTL_BASE_AON_APB + 0x0208 )
+#define REG_AON_APB_APB_RST3                         ( CTL_BASE_AON_APB + 0x020C )
+#define REG_AON_APB_CM4_SYS_SOFT_RST                 ( CTL_BASE_AON_APB + 0x0210 )
+#define REG_AON_APB_PSCP_SOFT_RST                    ( CTL_BASE_AON_APB + 0x0214 )
+#define REG_AON_APB_NRCP_SOFT_RST                    ( CTL_BASE_AON_APB + 0x0218 )
+#define REG_AON_APB_V3PS_SOFT_RST                    ( CTL_BASE_AON_APB + 0x021C )
+#define REG_AON_APB_V3PHY_SOFT_RST                   ( CTL_BASE_AON_APB + 0x0220 )
+#define REG_AON_APB_WDG_RST_FLAG                     ( CTL_BASE_AON_APB + 0x0224 )
+#define REG_AON_APB_APCPU_SOFT_RST                   ( CTL_BASE_AON_APB + 0x0228 )
+#define REG_AON_APB_BOOT_MODE                        ( CTL_BASE_AON_APB + 0x0400 )
+#define REG_AON_APB_CP_ARM_JTAG_CTRL                 ( CTL_BASE_AON_APB + 0x0404 )
+#define REG_AON_APB_RC100M_CFG                       ( CTL_BASE_AON_APB + 0x0500 )
+#define REG_AON_APB_CCIR_RCVR_CFG                    ( CTL_BASE_AON_APB + 0x0504 )
+#define REG_AON_APB_PLL_BG_CFG                       ( CTL_BASE_AON_APB + 0x0508 )
+#define REG_AON_APB_MBIST_EFUSE_CTRL                 ( CTL_BASE_AON_APB + 0x050C )
+#define REG_AON_APB_OTG_PHY_TEST                     ( CTL_BASE_AON_APB + 0x0510 )
+#define REG_AON_APB_OTG_PHY_CTRL                     ( CTL_BASE_AON_APB + 0x0514 )
+#define REG_AON_APB_OTG_CTRL0                        ( CTL_BASE_AON_APB + 0x0518 )
+#define REG_AON_APB_OTG_CTRL1                        ( CTL_BASE_AON_APB + 0x051C )
+#define REG_AON_APB_USB_CLK_REF_SEL                  ( CTL_BASE_AON_APB + 0x0520 )
+#define REG_AON_APB_V3_LVDSRF_CTRL                   ( CTL_BASE_AON_APB + 0x0524 )
+#define REG_AON_APB_NR_LVDSRF_CTRL                   ( CTL_BASE_AON_APB + 0x0528 )
+#define REG_AON_APB_WCN_ADDA_MEM_PD_CTRL             ( CTL_BASE_AON_APB + 0x052C )
+#define REG_AON_APB_THM0_CTRL                        ( CTL_BASE_AON_APB + 0x0530 )
+#define REG_AON_APB_THM1_CTRL                        ( CTL_BASE_AON_APB + 0x0534 )
+#define REG_AON_APB_OVERHEAT_CTRL                    ( CTL_BASE_AON_APB + 0x0538 )
+#define REG_AON_APB_MPLL0_CTRL                       ( CTL_BASE_AON_APB + 0x0540 )
+#define REG_AON_APB_MPLL1_CTRL                       ( CTL_BASE_AON_APB + 0x0544 )
+#define REG_AON_APB_NR_RPLL_CTRL_REG2                ( CTL_BASE_AON_APB + 0x0548 )
+#define REG_AON_APB_DPLL_CTRL                        ( CTL_BASE_AON_APB + 0x0550 )
+#define REG_AON_APB_PLL_LOCK_OUT_SEL                 ( CTL_BASE_AON_APB + 0x0554 )
+#define REG_AON_APB_SINDRV_POWER_CTRL                ( CTL_BASE_AON_APB + 0x0560 )
+#define REG_AON_APB_PHY_REF_CLK_EN                   ( CTL_BASE_AON_APB + 0x0564 )
+#define REG_AON_APB_RPLL_CTL_SEL                     ( CTL_BASE_AON_APB + 0x0568 )
+#define REG_AON_APB_V3_RPLL_CTRL_REG0                ( CTL_BASE_AON_APB + 0x0570 )
+#define REG_AON_APB_V3_RPLL_CTRL_REG1                ( CTL_BASE_AON_APB + 0x0574 )
+#define REG_AON_APB_V3_RPLL_CTRL_REG2                ( CTL_BASE_AON_APB + 0x0578 )
+#define REG_AON_APB_V3_RPLL_CTRL_REG3                ( CTL_BASE_AON_APB + 0x057C )
+#define REG_AON_APB_V3_RPLL_CTRL_SEL                 ( CTL_BASE_AON_APB + 0x0580 )
+#define REG_AON_APB_NR_RPLL_CTRL_REG0                ( CTL_BASE_AON_APB + 0x0590 )
+#define REG_AON_APB_NR_RPLL_CTRL_REG1                ( CTL_BASE_AON_APB + 0x0594 )
+#define REG_AON_APB_NR_RPLL_CTRL_REG3                ( CTL_BASE_AON_APB + 0x059C )
+#define REG_AON_APB_NR_RPLL_CTRL_SEL                 ( CTL_BASE_AON_APB + 0x05A0 )
+#define REG_AON_APB_RFSPI_SEL                        ( CTL_BASE_AON_APB + 0x05B0 )
+#define REG_AON_APB_BB_SW_RFSPI_FIFO_STATS           ( CTL_BASE_AON_APB + 0x05C0 )
+#define REG_AON_APB_RPLL_PD_RST_SEL                  ( CTL_BASE_AON_APB + 0x05C4 )
+#define REG_AON_APB_CLK_AUD26M_EN                    ( CTL_BASE_AON_APB + 0x05C8 )
+#define REG_AON_APB_TS_CFG                           ( CTL_BASE_AON_APB + 0x0600 )
+#define REG_AON_APB_DCXO_LC_REG0                     ( CTL_BASE_AON_APB + 0x0604 )
+#define REG_AON_APB_DCXO_LC_REG1                     ( CTL_BASE_AON_APB + 0x0608 )
+#define REG_AON_APB_AUDCP_BOOT_PROT                  ( CTL_BASE_AON_APB + 0x060C )
+#define REG_AON_APB_NR_DSP0_REG_PROT                 ( CTL_BASE_AON_APB + 0x0610 )
+#define REG_AON_APB_NR_DSP1_REG_PROT                 ( CTL_BASE_AON_APB + 0x0614 )
+#define REG_AON_APB_DAP_DJTAG_SEL                    ( CTL_BASE_AON_APB + 0x0618 )
+#define REG_AON_APB_SP_CFG_BUS                       ( CTL_BASE_AON_APB + 0x061C )
+#define REG_AON_APB_AON_FUNC_CTRL_0                  ( CTL_BASE_AON_APB + 0x0620 )
+#define REG_AON_APB_AON_FUNC_CTRL_1                  ( CTL_BASE_AON_APB + 0x0624 )
+#define REG_AON_APB_FUNC_TEST_BOOT_ADDR              ( CTL_BASE_AON_APB + 0x0628 )
+#define REG_AON_APB_LEAKAGE_MAGIC_WORD               ( CTL_BASE_AON_APB + 0x0630 )
+#define REG_AON_APB_LEAKAGE_SWITCH                   ( CTL_BASE_AON_APB + 0x0634 )
+#define REG_AON_APB_AUDCP_DSP_CTRL0                  ( CTL_BASE_AON_APB + 0x0640 )
+#define REG_AON_APB_AUDCP_DSP_CTRL1                  ( CTL_BASE_AON_APB + 0x0644 )
+#define REG_AON_APB_AUDCP_CTRL                       ( CTL_BASE_AON_APB + 0x0648 )
+#define REG_AON_APB_V3_CTRL                          ( CTL_BASE_AON_APB + 0x0650 )
+#define REG_AON_APB_V3_CR5_CTRL                      ( CTL_BASE_AON_APB + 0x0654 )
+#define REG_AON_APB_V3PS_CR5_CTRL_1                  ( CTL_BASE_AON_APB + 0x0658 )
+#define REG_AON_APB_V3PHY_CR5_CTRL_1                 ( CTL_BASE_AON_APB + 0x065C )
+#define REG_AON_APB_PSCP_CR8_CTRL                    ( CTL_BASE_AON_APB + 0x0660 )
+#define REG_AON_APB_NRCP_CTRL                        ( CTL_BASE_AON_APB + 0x0670 )
+#define REG_AON_APB_NRCP_CR8_CTRL                    ( CTL_BASE_AON_APB + 0x0674 )
+#define REG_AON_APB_NRCP_DSP0_CTRL                   ( CTL_BASE_AON_APB + 0x0678 )
+#define REG_AON_APB_NRCP_DSP1_CTRL                   ( CTL_BASE_AON_APB + 0x067C )
+#define REG_AON_APB_NRCP_DSP0_BOOT_VECTOR            ( CTL_BASE_AON_APB + 0x0680 )
+#define REG_AON_APB_NRCP_DSP1_BOOT_VECTOR            ( CTL_BASE_AON_APB + 0x0684 )
+#define REG_AON_APB_DBG_DJTAG_CTRL                   ( CTL_BASE_AON_APB + 0x0690 )
+#define REG_AON_APB_PSCP_SIM1_TOP_CTRL               ( CTL_BASE_AON_APB + 0x06A0 )
+#define REG_AON_APB_PSCP_SIM2_TOP_CTRL               ( CTL_BASE_AON_APB + 0x06A4 )
+#define REG_AON_APB_PSCP_SIM3_TOP_CTRL               ( CTL_BASE_AON_APB + 0x06A8 )
+#define REG_AON_APB_AP_SIM_TOP_CTRL                  ( CTL_BASE_AON_APB + 0x06AC )
+#define REG_AON_APB_V3_PS_SIM1_TOP_CTRL              ( CTL_BASE_AON_APB + 0x06B0 )
+#define REG_AON_APB_V3_PS_SIM2_TOP_CTRL              ( CTL_BASE_AON_APB + 0x06B4 )
+#define REG_AON_APB_V3_PS_SIM3_TOP_CTRL              ( CTL_BASE_AON_APB + 0x06B8 )
+#define REG_AON_APB_AON_SDIO                         ( CTL_BASE_AON_APB + 0x06C0 )
+#define REG_AON_APB_MTX_URGENCY_CTRL                 ( CTL_BASE_AON_APB + 0x06C4 )
+#define REG_AON_APB_MTX_URGENCY_STATS                ( CTL_BASE_AON_APB + 0x06C8 )
+#define REG_AON_APB_NR_DSP0_CTRL0                    ( CTL_BASE_AON_APB + 0x06D0 )
+#define REG_AON_APB_NR_DSP0_CTRL1                    ( CTL_BASE_AON_APB + 0x06D4 )
+#define REG_AON_APB_NR_DSP1_CTRL0                    ( CTL_BASE_AON_APB + 0x06D8 )
+#define REG_AON_APB_NR_DSP1_CTRL1                    ( CTL_BASE_AON_APB + 0x06DC )
+#define REG_AON_APB_SDIO_SLV_ADDR_OFFSET             ( CTL_BASE_AON_APB + 0x06E0 )
+#define REG_AON_APB_APCPU_CFG_CTRL                   ( CTL_BASE_AON_APB + 0x06E4 )
+#define REG_AON_APB_SP_AON_DDR_EXTEND                ( CTL_BASE_AON_APB + 0x06E8 )
+#define REG_AON_APB_AON_APB_CLK_SEL                  ( CTL_BASE_AON_APB + 0x0700 )
+#define REG_AON_APB_AUTO_GATE_CTRL0                  ( CTL_BASE_AON_APB + 0x0704 )
+#define REG_AON_APB_AUTO_GATE_CTRL1                  ( CTL_BASE_AON_APB + 0x0708 )
+#define REG_AON_APB_AUTO_GATE_CTRL3                  ( CTL_BASE_AON_APB + 0x070C )
+#define REG_AON_APB_V3_LPC_CTRL                      ( CTL_BASE_AON_APB + 0x0710 )
+#define REG_AON_APB_PSCP_LPC_CTRL                    ( CTL_BASE_AON_APB + 0x0714 )
+#define REG_AON_APB_AP_LPC_CTRL                      ( CTL_BASE_AON_APB + 0x0718 )
+#define REG_AON_APB_AUDCP_LPC_CTRL                   ( CTL_BASE_AON_APB + 0x071C )
+#define REG_AON_APB_NRCP_LPC_CTRL                    ( CTL_BASE_AON_APB + 0x0720 )
+#define REG_AON_APB_APCPU_AXI_CTRL                   ( CTL_BASE_AON_APB + 0x0730 )
+#define REG_AON_APB_APCPU_CLK_CTRL0                  ( CTL_BASE_AON_APB + 0x0734 )
+#define REG_AON_APB_PUB_CLK_GATING_CTRL              ( CTL_BASE_AON_APB + 0x0740 )
+#define REG_AON_APB_DDRPHY_VREP                      ( CTL_BASE_AON_APB + 0x0744 )
+#define REG_AON_APB_CGM_RESCUE                       ( CTL_BASE_AON_APB + 0x0748 )
+#define REG_AON_APB_AON_APB_FREQ_CTRL                ( CTL_BASE_AON_APB + 0x0750 )
+#define REG_AON_APB_APCPU_MONITOR_STATUS             ( CTL_BASE_AON_APB + 0x0754 )
+#define REG_AON_APB_APCPU_DEBUG_PWR_LP_CTRL          ( CTL_BASE_AON_APB + 0x0758 )
+#define REG_AON_APB_APCPU_GIC_COL_LP_CTRL            ( CTL_BASE_AON_APB + 0x075C )
+#define REG_AON_APB_APCPU_CLUSTER_ATB_LPC_CTRL       ( CTL_BASE_AON_APB + 0x0760 )
+#define REG_AON_APB_APCPU_CLUSTER_APB_LPC_CTRL       ( CTL_BASE_AON_APB + 0x0764 )
+#define REG_AON_APB_APCPU_CLUSTER_GIC_LPC_CTRL       ( CTL_BASE_AON_APB + 0x0768 )
+#define REG_AON_APB_APCPU_GIC600_GIC_LPC_CTRL        ( CTL_BASE_AON_APB + 0x076C )
+#define REG_AON_APB_APCPU_DBG_BLK_LPC_CTRL           ( CTL_BASE_AON_APB + 0x0770 )
+#define REG_AON_APB_APCPU_TOP_MTX_M0_LPC_CTRL        ( CTL_BASE_AON_APB + 0x0774 )
+#define REG_AON_APB_APCPU_CLUSTER_SCU_LPC_CTRL       ( CTL_BASE_AON_APB + 0x0778 )
+#define REG_AON_APB_APCPU_DDR_AB_LPC_CTRL            ( CTL_BASE_AON_APB + 0x077C )
+#define REG_AON_APB_APCPU_QOS_CTRL                   ( CTL_BASE_AON_APB + 0x0780 )
+#define REG_AON_APB_APCPU_URGENCY_CTRL               ( CTL_BASE_AON_APB + 0x0784 )
+#define REG_AON_APB_AON_MTX_PROT_CFG                 ( CTL_BASE_AON_APB + 0x0788 )
+#define REG_AON_APB_APCU_LPC_CTRL                    ( CTL_BASE_AON_APB + 0x078C )
+#define REG_AON_APB_CM42AON_LPC_CTRL                 ( CTL_BASE_AON_APB + 0x0790 )
+#define REG_AON_APB_AON_MTX_MAIN_LPC_CTRL            ( CTL_BASE_AON_APB + 0x0794 )
+#define REG_AON_APB_AON_MTX_M0_LPC_CTRL              ( CTL_BASE_AON_APB + 0x0798 )
+#define REG_AON_APB_AON_MTX_M1_LPC_CTRL              ( CTL_BASE_AON_APB + 0x079C )
+#define REG_AON_APB_AON_MTX_M2_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07A0 )
+#define REG_AON_APB_AON_MTX_M3_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07A4 )
+#define REG_AON_APB_AON_MTX_M4_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07A8 )
+#define REG_AON_APB_AON_MTX_M5_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07AC )
+#define REG_AON_APB_AON_MTX_M6_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07B0 )
+#define REG_AON_APB_AON_MTX_S0_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07B4 )
+#define REG_AON_APB_AON_MTX_S1_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07B8 )
+#define REG_AON_APB_AON_MTX_S2_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07BC )
+#define REG_AON_APB_AON_MTX_S3_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07C0 )
+#define REG_AON_APB_AON_MTX_S4_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07C4 )
+#define REG_AON_APB_AON_MTX_S5_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07C8 )
+#define REG_AON_APB_AON_MTX_S6_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07CC )
+#define REG_AON_APB_AON_MTX_S7_LPC_CTRL              ( CTL_BASE_AON_APB + 0x07D0 )
+#define REG_AON_APB_EAXI_MTX_M0_LPC_CTRL             ( CTL_BASE_AON_APB + 0x07E0 )
+#define REG_AON_APB_EAXI_MTX_M1_LPC_CTRL             ( CTL_BASE_AON_APB + 0x07E4 )
+#define REG_AON_APB_EAXI_MTX_M2_LPC_CTRL             ( CTL_BASE_AON_APB + 0x07E8 )
+#define REG_AON_APB_EAXI_MTX_S0_LPC_CTRL             ( CTL_BASE_AON_APB + 0x07EC )
+#define REG_AON_APB_EAXI_MTX_S1_LPC_CTRL             ( CTL_BASE_AON_APB + 0x07F0 )
+#define REG_AON_APB_EAXI_MTX_MAIN_LPC_CTRL           ( CTL_BASE_AON_APB + 0x07F4 )
+#define REG_AON_APB_AON_SOC_USB_CTRL                 ( CTL_BASE_AON_APB + 0x07FC )
+#define REG_AON_APB_PCIE_SLV_ADDR_OFFSET             ( CTL_BASE_AON_APB + 0x0800 )
+#define REG_AON_APB_AP_EMMC_PHY_CTRL                 ( CTL_BASE_AON_APB + 0x0804 )
+#define REG_AON_APB_AP_SDIO1_PHY_CTRL                ( CTL_BASE_AON_APB + 0x0808 )
+#define REG_AON_APB_PS_SDIO2_PHY_CTRL                ( CTL_BASE_AON_APB + 0x080C )
+#define REG_AON_APB_V3PS_SDIO2_PHY_CTRL              ( CTL_BASE_AON_APB + 0x0810 )
+#define REG_AON_APB_RVBARADDR0                       ( CTL_BASE_AON_APB + 0x0820 )
+#define REG_AON_APB_RVBARADDR1                       ( CTL_BASE_AON_APB + 0x0824 )
+#define REG_AON_APB_APCPU_PU_NUM                     ( CTL_BASE_AON_APB + 0x0828 )
+#define REG_AON_APB_APCPU_L3CACHE_RAM_PD_BYPASS      ( CTL_BASE_AON_APB + 0x082C )
+#define REG_AON_APB_AON_TO_AUDCP_RS_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0830 )
+#define REG_AON_APB_AP_TO_NR_RS_LPC_CTRL             ( CTL_BASE_AON_APB + 0x0834 )
+#define REG_AON_APB_AP_TO_PSCP_RS_LPC_CTRL           ( CTL_BASE_AON_APB + 0x0838 )
+#define REG_AON_APB_APCPU_TO_AP_RS_LPC_CTRL          ( CTL_BASE_AON_APB + 0x083C )
+#define REG_AON_APB_NR_TO_AP_RS_LPC_CTRL             ( CTL_BASE_AON_APB + 0x0840 )
+#define REG_AON_APB_NR_TO_PSCP_RS_LPC_CTRL           ( CTL_BASE_AON_APB + 0x0844 )
+#define REG_AON_APB_PSCP_TO_AP_RS_LPC_CTRL           ( CTL_BASE_AON_APB + 0x0848 )
+#define REG_AON_APB_PSCP_TO_NR_RS_LPC_CTRL           ( CTL_BASE_AON_APB + 0x084C )
+#define REG_AON_APB_PSCP_TO_V3_RS_LPC_CTRL           ( CTL_BASE_AON_APB + 0x0850 )
+#define REG_AON_APB_AUDCP_TO_PUB_RS_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0854 )
+#define REG_AON_APB_AON_TO_PUB_RS_LPC_CTRL           ( CTL_BASE_AON_APB + 0x0858 )
+#define REG_AON_APB_CSSYS_TO_PUB_RS_LPC_CTRL         ( CTL_BASE_AON_APB + 0x085C )
+#define REG_AON_APB_APCPU_TO_PUB_RS_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0860 )
+#define REG_AON_APB_AP_TO_PUB_RS_LPC_CTRL            ( CTL_BASE_AON_APB + 0x0864 )
+#define REG_AON_APB_NRACC_TO_PUB_RS_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0868 )
+#define REG_AON_APB_NRCPU_TO_PUB_RS_LPC_CTRL         ( CTL_BASE_AON_APB + 0x086C )
+#define REG_AON_APB_V3CPU_TO_PUB_RS_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0870 )
+#define REG_AON_APB_V3ACC_TO_PUB_RS_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0874 )
+#define REG_AON_APB_PSCP_TO_PUB_RS_LPC_CTRL          ( CTL_BASE_AON_APB + 0x0878 )
+#define REG_AON_APB_AB_W_AGCP2EMC_LPC_CTRL           ( CTL_BASE_AON_APB + 0x087C )
+#define REG_AON_APB_AB_W_AONSYS2EMC_LPC_CTRL         ( CTL_BASE_AON_APB + 0x0880 )
+#define REG_AON_APB_AB_W_APCPU2EMC_LPC_CTRL          ( CTL_BASE_AON_APB + 0x0884 )
+#define REG_AON_APB_AB_W_CSSYS2EMC_LPC_CTRL          ( CTL_BASE_AON_APB + 0x0888 )
+#define REG_AON_APB_AB_W_MINIAP2EMC_LPC_CTRL         ( CTL_BASE_AON_APB + 0x088C )
+#define REG_AON_APB_AB_W_NRACC2EMC_LPC_CTRL          ( CTL_BASE_AON_APB + 0x0890 )
+#define REG_AON_APB_AB_W_NRCPU2EMC_LPC_CTRL          ( CTL_BASE_AON_APB + 0x0894 )
+#define REG_AON_APB_AB_W_V3ACC2EMC_LPC_CTRL          ( CTL_BASE_AON_APB + 0x0898 )
+#define REG_AON_APB_AB_W_V3CPU2EMC_LPC_CTRL          ( CTL_BASE_AON_APB + 0x089C )
+#define REG_AON_APB_AB_W_PSCP2EMC_LPC_CTRL           ( CTL_BASE_AON_APB + 0x08A0 )
+#define REG_AON_APB_AHB2AHB_ASYNC_CTRL               ( CTL_BASE_AON_APB + 0x08A4 )
+#define REG_AON_APB_APCPU_ATB_CLK_DFS_CTRL           ( CTL_BASE_AON_APB + 0x08A8 )
+#define REG_AON_APB_AON_APB_DFS_CTRL                 ( CTL_BASE_AON_APB + 0x08AC )
+#define REG_AON_APB_AON_TO_PUB_LPC_CTRL           ( CTL_BASE_AON_APB + 0x08B0 )
+#define REG_AON_APB_EAXI_TO_APCPU_LPC_CTRL           ( CTL_BASE_AON_APB + 0x08B4 )
+#define REG_AON_APB_EWARLY_WAKEUP_EN                 ( CTL_BASE_AON_APB + 0x08B8 )
+#define REG_AON_APB_PWR_CTRL                         ( CTL_BASE_AON_APB + 0x0A00 )
+#define REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG4           ( CTL_BASE_AON_APB + 0x0A0C )
+#define REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG0           ( CTL_BASE_AON_APB + 0x0A10 )
+#define REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG1           ( CTL_BASE_AON_APB + 0x0A14 )
+#define REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG2           ( CTL_BASE_AON_APB + 0x0A18 )
+#define REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG3           ( CTL_BASE_AON_APB + 0x0A1C )
+#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG1             ( CTL_BASE_AON_APB + 0x0A20 )
+#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG2             ( CTL_BASE_AON_APB + 0x0A24 )
+#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG3             ( CTL_BASE_AON_APB + 0x0A28 )
+#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG4             ( CTL_BASE_AON_APB + 0x0A2C )
+#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG5             ( CTL_BASE_AON_APB + 0x0A30 )
+#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG6             ( CTL_BASE_AON_APB + 0x0A34 )
+#define REG_AON_APB_PAD_DBG_BUS_SEL_CFG7             ( CTL_BASE_AON_APB + 0x0A38 )
+#define REG_AON_APB_PAD_DBG_BUS_DATA_A               ( CTL_BASE_AON_APB + 0x0A40 )
+#define REG_AON_APB_PAD_DBG_BUS_DATA_B               ( CTL_BASE_AON_APB + 0x0A44 )
+#define REG_AON_APB_PAD_DBG_BUS_DATA_OUT             ( CTL_BASE_AON_APB + 0x0A48 )
+#define REG_AON_APB_DBG_BUS_DATA_V3                  ( CTL_BASE_AON_APB + 0x0A4C )
+#define REG_AON_APB_DBG_BUS_DATA_PSCP                ( CTL_BASE_AON_APB + 0x0A50 )
+#define REG_AON_APB_DBG_BUS_DATA_AUDCP               ( CTL_BASE_AON_APB + 0x0A54 )
+#define REG_AON_APB_SCC_DBG_BUS                      ( CTL_BASE_AON_APB + 0x0A58 )
+#define REG_AON_APB_DEBUG_FILTER_0                   ( CTL_BASE_AON_APB + 0x0A60 )
+#define REG_AON_APB_DEBUG_FILTER_1                   ( CTL_BASE_AON_APB + 0x0A64 )
+#define REG_AON_APB_DEBUG_FILTER_2                   ( CTL_BASE_AON_APB + 0x0A68 )
+#define REG_AON_APB_DEBUG_FILTER_3                   ( CTL_BASE_AON_APB + 0x0A6C )
+#define REG_AON_APB_DEBUG_FILTER_4                   ( CTL_BASE_AON_APB + 0x0A70 )
+#define REG_AON_APB_DEBUG_FILTER_5                   ( CTL_BASE_AON_APB + 0x0A74 )
+#define REG_AON_APB_TPIU_DATA_TO_SERDES_SEL          ( CTL_BASE_AON_APB + 0x0A80 )
+#define REG_AON_APB_MTX_BUSMON_EB                    ( CTL_BASE_AON_APB + 0x0A84 )
+#define REG_AON_APB_AON_CHIP_ID0                     ( CTL_BASE_AON_APB + 0x0C00 )
+#define REG_AON_APB_AON_CHIP_ID1                     ( CTL_BASE_AON_APB + 0x0C04 )
+#define REG_AON_APB_AON_PLAT_ID0                     ( CTL_BASE_AON_APB + 0x0C08 )
+#define REG_AON_APB_AON_PLAT_ID1                     ( CTL_BASE_AON_APB + 0x0C0C )
+#define REG_AON_APB_AON_IMPL_ID                      ( CTL_BASE_AON_APB + 0x0C10 )
+#define REG_AON_APB_AON_MFT_ID                       ( CTL_BASE_AON_APB + 0x0C14 )
+#define REG_AON_APB_AON_VER_ID                       ( CTL_BASE_AON_APB + 0x0C18 )
+#define REG_AON_APB_AON_CHIP_ID                      ( CTL_BASE_AON_APB + 0x0C1C )
+#define REG_AON_APB_USER_RSV_FLAG1                   ( CTL_BASE_AON_APB + 0x0C20 )
+#define REG_AON_APB_BOND_OPT0                        ( CTL_BASE_AON_APB + 0x0C30 )
+#define REG_AON_APB_DEVICE_LIFE_CYCLE                ( CTL_BASE_AON_APB + 0x0C34 )
+#define REG_AON_APB_RES_REG0                         ( CTL_BASE_AON_APB + 0x0C40 )
+#define REG_AON_APB_RES_REG1                         ( CTL_BASE_AON_APB + 0x0C44 )
+#define REG_AON_APB_CP_RFFE_RES_REG0                 ( CTL_BASE_AON_APB + 0x0D00 )
+#define REG_AON_APB_CP_RFFE_RES_REG1                 ( CTL_BASE_AON_APB + 0x0D04 )
+#define REG_AON_APB_CP_RFFE_RES_REG2                 ( CTL_BASE_AON_APB + 0x0D08 )
+#define REG_AON_APB_CP_RFFE_RES_REG3                 ( CTL_BASE_AON_APB + 0x0D0C )
+#define REG_AON_APB_CP_RFFE_RES_REG4                 ( CTL_BASE_AON_APB + 0x0D10 )
+#define REG_AON_APB_CP_RFFE_RES_REG5                 ( CTL_BASE_AON_APB + 0x0D14 )
 
 /* REG_AON_APB_APB_EB0 */
 
-#define BIT_AON_APB_CA53_DAP_EB                                  BIT(31)
-#define BIT_AON_APB_PUBCP_INTC_EB                                BIT(30)
-#define BIT_AON_APB_WTLCP_INTC_EB                                BIT(29)
-#define BIT_AON_APB_CA53_TS0_EB                                  BIT(28)
-#define BIT_AON_APB_GPU_EB                                       BIT(27)
-#define BIT_AON_APB_CKG_EB                                       BIT(26)
-#define BIT_AON_APB_MM_EB                                        BIT(25)
-#define BIT_AON_APB_AP_WDG_EB                                    BIT(24)
-#define BIT_AON_APB_SPLK_EB                                      BIT(22)
-#define BIT_AON_APB_IPI_EB                                       BIT(21)
-#define BIT_AON_APB_PIN_EB                                       BIT(20)
-#define BIT_AON_APB_VBC_EB                                       BIT(19)
-#define BIT_AON_APB_AUD_EB                                       BIT(18)
-#define BIT_AON_APB_AUDIF_EB                                     BIT(17)
-#define BIT_AON_APB_ADI_EB                                       BIT(16)
-#define BIT_AON_APB_AON_INTC_EB                                  BIT(15)
-#define BIT_AON_APB_EIC_EB                                       BIT(14)
-#define BIT_AON_APB_EFUSE_NORMAL_EB                              BIT(13)
-#define BIT_AON_APB_AP_TMR0_EB                                   BIT(12)
-#define BIT_AON_APB_AON_TMR_EB                                   BIT(11)
-#define BIT_AON_APB_AP_SYST_EB                                   BIT(10)
-#define BIT_AON_APB_AON_SYST_EB                                  BIT(9)
-#define BIT_AON_APB_KPD_EB                                       BIT(8)
-#define BIT_AON_APB_PWM3_EB                                      BIT(7)
-#define BIT_AON_APB_PWM2_EB                                      BIT(6)
-#define BIT_AON_APB_PWM1_EB                                      BIT(5)
-#define BIT_AON_APB_PWM0_EB                                      BIT(4)
-#define BIT_AON_APB_GPIO_EB                                      BIT(3)
-#define BIT_AON_APB_TPC_EB                                       BIT(2)
-#define BIT_AON_APB_FM_EB                                        BIT(1)
-#define BIT_AON_APB_ADC_EB                                       BIT(0)
+#define BIT_AON_APB_APB_BUSMON_S5_EB                            BIT(31)
+#define BIT_AON_APB_AON_NR_SPI_WRAP_EB                          BIT(30)
+#define BIT_AON_APB_RTM_ATB_EB                                  BIT(29)
+#define BIT_AON_APB_RTM_EB                                      BIT(28)
+#define BIT_AON_APB_SERDES2_EB                                  BIT(27)
+#define BIT_AON_APB_SERDES1_EB                                  BIT(26)
+#define BIT_AON_APB_SERDES0_EB                                  BIT(25)
+#define BIT_AON_APB_SERDES_DPHY2_REF_EB                         BIT(24)
+#define BIT_AON_APB_SERDES_DPHY2_CFG_EB                         BIT(23)
+#define BIT_AON_APB_SERDES_DPHY1_REF_EB                         BIT(22)
+#define BIT_AON_APB_SERDES_DPHY1_CFG_EB                         BIT(21)
+#define BIT_AON_APB_SERDES_DPHY0_REF_EB                         BIT(20)
+#define BIT_AON_APB_SERDES_DPHY0_CFG_EB                         BIT(19)
+#define BIT_AON_APB_WCN_ADDA_TEST_EB                            BIT(18)
+#define BIT_AON_APB_CSSYS_PUB_EB                                BIT(17)
+#define BIT_AON_APB_CSSYS_APB_EB                                BIT(16)
+#define BIT_AON_APB_CSSYS_EB                                    BIT(15)
+#define BIT_AON_APB_APCPU_DAP_EB                                BIT(14)
+#define BIT_AON_APB_DEBUG_FILTER_EB                             BIT(13)
+#define BIT_AON_APB_APCPU_CSSYS_EB                              BIT(12)
+#define BIT_AON_APB_PMU_APB_BUSMON_EB                           BIT(11)
+#define BIT_AON_APB_SP_AHB_CLK_SOFT_EB                          BIT(10)
+#define BIT_AON_APB_AON_APB_BUSMON_EB                           BIT(9)
+#define BIT_AON_APB_BSM_TMR_EB                                  BIT(8)
+#define BIT_AON_APB_PROBE_EB                                    BIT(7)
+#define BIT_AON_APB_AUX2_EB                                     BIT(6)
+#define BIT_AON_APB_AUX1_EB                                     BIT(5)
+#define BIT_AON_APB_AUX0_EB                                     BIT(4)
+#define BIT_AON_APB_DJTAG_EB                                    BIT(3)
+#define BIT_AON_APB_DJTAG_TCK_EB                                BIT(2)
+#define BIT_AON_APB_AON_SPI_WRAP_EB                             BIT(1)
+#define BIT_AON_APB_RC100M_CAL_EB                               BIT(0)
 
 /* REG_AON_APB_APB_EB1 */
 
-#define BIT_AON_APB_SERDES_DPHY_EB                               BIT(31)
-#define BIT_AON_APB_CROSS_TRIG_EB                                BIT(30)
-#define BIT_AON_APB_DBG_EMC_EB                                   BIT(29)
-#define BIT_AON_APB_DBG_EB                                       BIT(28)
-#define BIT_AON_APB_ORP_JTAG_EB                                  BIT(27)
-#define BIT_AON_APB_TGDSP_INTC_EB                                BIT(26)
-#define BIT_AON_APB_LDSP_INTC_EB                                 BIT(25)
-#define BIT_AON_APB_LVDS_PLL_DIV_EN                              BIT(24)
-#define BIT_AON_APB_CM4_JTAG_EB                                  BIT(23)
-#define BIT_AON_APB_AON_DMA_NORMAL_EB                            BIT(22)
-#define BIT_AON_APB_MBOX_EB                                      BIT(21)
-#define BIT_AON_APB_DJTAG_EB                                     BIT(20)
-#define BIT_AON_APB_THM1_EB                                      BIT(19)
-#define BIT_AON_APB_AON_FOR_AP_INTC_EB                           BIT(18)
-#define BIT_AON_APB_MDAR_EB                                      BIT(17)
-#define BIT_AON_APB_LVDS_TCXO_EB                                 BIT(16)
-#define BIT_AON_APB_LVDS_TRX_EB                                  BIT(15)
-#define BIT_AON_APB_MM_VSP_EB                                    BIT(14)
-#define BIT_AON_APB_GSP_EMC_EB                                   BIT(13)
-#define BIT_AON_APB_ZIP_EMC_EB                                   BIT(12)
-#define BIT_AON_APB_DISP_EMC_EB                                  BIT(11)
-#define BIT_AON_APB_AP_TMR2_EB                                   BIT(10)
-#define BIT_AON_APB_AP_TMR1_EB                                   BIT(9)
-#define BIT_AON_APB_CA53_WDG_EB                                  BIT(8)
-#define BIT_AON_APB_CLK_EMC_REF_EB                               BIT(7)
-#define BIT_AON_APB_CM4_APB_SOFT_EB                              BIT(6)
-#define BIT_AON_APB_PROBE_EB                                     BIT(5)
-#define BIT_AON_APB_AUX2_EB                                      BIT(4)
-#define BIT_AON_APB_AUX1_EB                                      BIT(3)
-#define BIT_AON_APB_AUX0_EB                                      BIT(2)
-#define BIT_AON_APB_THM0_EB                                      BIT(1)
-#define BIT_AON_APB_PMU_EB                                       BIT(0)
-
-/* REG_AON_APB_APB_RST0 */
-
-#define BIT_AON_APB_AON_FOR_AP_INTC_SOFT_RST                     BIT(31)
-#define BIT_AON_APB_TGDSP_INTC_SOFT_RST                          BIT(30)
-#define BIT_AON_APB_LDSP_INTC_SOFT_RST                           BIT(29)
-#define BIT_AON_APB_CA53_TS0_SOFT_RST                            BIT(28)
-#define BIT_AON_APB_DAP_MTX_SOFT_RST                             BIT(27)
-#define BIT_AON_APB_PUBCP_INTC_SOFT_RST                          BIT(26)
-#define BIT_AON_APB_WTLCP_INTC_SOFT_RST                          BIT(25)
-#define BIT_AON_APB_SPLK_SOFT_RST                                BIT(24)
-#define BIT_AON_APB_IPI_SOFT_RST                                 BIT(23)
-#define BIT_AON_APB_CKG_SOFT_RST                                 BIT(22)
-#define BIT_AON_APB_PIN_SOFT_RST                                 BIT(21)
-#define BIT_AON_APB_VBC_SOFT_RST                                 BIT(20)
-#define BIT_AON_APB_AUD_SOFT_RST                                 BIT(19)
-#define BIT_AON_APB_AUDIF_SOFT_RST                               BIT(18)
-#define BIT_AON_APB_ADI_SOFT_RST                                 BIT(17)
-#define BIT_AON_APB_AON_INTC_SOFT_RST                            BIT(16)
-#define BIT_AON_APB_EIC_SOFT_RST                                 BIT(15)
-#define BIT_AON_APB_EFUSE_SOFT_RST                               BIT(14)
-#define BIT_AON_APB_AP_WDG_SOFT_RST                              BIT(13)
-#define BIT_AON_APB_AP_TMR0_SOFT_RST                             BIT(12)
-#define BIT_AON_APB_AON_TMR_SOFT_RST                             BIT(11)
-#define BIT_AON_APB_AP_SYST_SOFT_RST                             BIT(10)
-#define BIT_AON_APB_AON_SYST_SOFT_RST                            BIT(9)
-#define BIT_AON_APB_KPD_SOFT_RST                                 BIT(8)
-#define BIT_AON_APB_PWM3_SOFT_RST                                BIT(7)
-#define BIT_AON_APB_PWM2_SOFT_RST                                BIT(6)
-#define BIT_AON_APB_PWM1_SOFT_RST                                BIT(5)
-#define BIT_AON_APB_PWM0_SOFT_RST                                BIT(4)
-#define BIT_AON_APB_GPIO_SOFT_RST                                BIT(3)
-#define BIT_AON_APB_TPC_SOFT_RST                                 BIT(2)
-#define BIT_AON_APB_FM_SOFT_RST                                  BIT(1)
-#define BIT_AON_APB_ADC_SOFT_RST                                 BIT(0)
-
-/* REG_AON_APB_APB_RST1 */
-
-#define BIT_AON_APB_ADC3_SOFT_RST                                BIT(28)
-#define BIT_AON_APB_ADC2_SOFT_RST                                BIT(27)
-#define BIT_AON_APB_ADC1_SOFT_RST                                BIT(26)
-#define BIT_AON_APB_MBOX_SOFT_RST                                BIT(25)
-#define BIT_AON_APB_ROSC_SOFT_RST                                BIT(24)
-#define BIT_AON_APB_PUBCP_SIM2_AON_TOP_SOFT_RST                  BIT(23)
-#define BIT_AON_APB_PUBCP_SIM1_AON_TOP_SOFT_RST                  BIT(22)
-#define BIT_AON_APB_PUBCP_SIM0_AON_TOP_SOFT_RST                  BIT(21)
-#define BIT_AON_APB_THM1_SOFT_RST                                BIT(20)
-#define BIT_AON_APB_DAC3_SOFT_RST                                BIT(19)
-#define BIT_AON_APB_DAC2_SOFT_RST                                BIT(18)
-#define BIT_AON_APB_DAC1_SOFT_RST                                BIT(17)
-#define BIT_AON_APB_ADC3_CAL_SOFT_RST                            BIT(16)
-#define BIT_AON_APB_ADC2_CAL_SOFT_RST                            BIT(15)
-#define BIT_AON_APB_ADC1_CAL_SOFT_RST                            BIT(14)
-#define BIT_AON_APB_MDAR_SOFT_RST                                BIT(13)
-#define BIT_AON_APB_LVDSDIS_SOFT_RST                             BIT(12)
-#define BIT_AON_APB_BB_CAL_SOFT_RST                              BIT(11)
-#define BIT_AON_APB_DCXO_LC_SOFT_RST                             BIT(10)
-#define BIT_AON_APB_AP_TMR2_SOFT_RST                             BIT(9)
-#define BIT_AON_APB_AP_TMR1_SOFT_RST                             BIT(8)
-#define BIT_AON_APB_CA53_WDG_SOFT_RST                            BIT(7)
-#define BIT_AON_APB_AON_DMA_SOFT_RST                             BIT(6)
-#define BIT_AON_APB_AP_SIM_AON_TOP_SOFT_RST                      BIT(5)
-#define BIT_AON_APB_DMC_PHY_SOFT_RST                             BIT(4)
-#define BIT_AON_APB_GPU_THMA_SOFT_RST                            BIT(3)
-#define BIT_AON_APB_ARM_THMA_SOFT_RST                            BIT(2)
-#define BIT_AON_APB_THM0_SOFT_RST                                BIT(1)
-#define BIT_AON_APB_PMU_SOFT_RST                                 BIT(0)
-
-/* REG_AON_APB_APB_RTC_EB */
-
-#define BIT_AON_APB_BB_CAL_RTC_EB                                BIT(18)
-#define BIT_AON_APB_DCXO_LC_RTC_EB                               BIT(17)
-#define BIT_AON_APB_AP_TMR2_RTC_EB                               BIT(16)
-#define BIT_AON_APB_AP_TMR1_RTC_EB                               BIT(15)
-#define BIT_AON_APB_GPU_THMA_RTC_AUTO_EN                         BIT(14)
-#define BIT_AON_APB_ARM_THMA_RTC_AUTO_EN                         BIT(13)
-#define BIT_AON_APB_GPU_THMA_RTC_EB                              BIT(12)
-#define BIT_AON_APB_ARM_THMA_RTC_EB                              BIT(11)
-#define BIT_AON_APB_THM_RTC_EB                                   BIT(10)
-#define BIT_AON_APB_CA53_WDG_RTC_EB                              BIT(9)
-#define BIT_AON_APB_AP_WDG_RTC_EB                                BIT(8)
-#define BIT_AON_APB_EIC_RTCDV5_EB                                BIT(7)
-#define BIT_AON_APB_EIC_RTC_EB                                   BIT(6)
-#define BIT_AON_APB_AP_TMR0_RTC_EB                               BIT(5)
-#define BIT_AON_APB_AON_TMR_RTC_EB                               BIT(4)
-#define BIT_AON_APB_AP_SYST_RTC_EB                               BIT(3)
-#define BIT_AON_APB_AON_SYST_RTC_EB                              BIT(2)
-#define BIT_AON_APB_KPD_RTC_EB                                   BIT(1)
-#define BIT_AON_APB_ARCH_RTC_EB                                  BIT(0)
-
-/* REG_AON_APB_REC_26MHZ_BUF_CFG */
-
-#define BIT_AON_APB_PLL_PROBE_SEL(x)                             (((x) & 0x3F) << 8)
-#define BIT_AON_APB_REC_26MHZ_1_CUR_SEL                          BIT(4)
-#define BIT_AON_APB_REC_26MHZ_0_CUR_SEL                          BIT(0)
-
-/* REG_AON_APB_SINDRV_CTRL */
-
-#define BIT_AON_APB_CLK26M_TUNED_SEL                             BIT(20)
-#define BIT_AON_APB_CLK26M_RESERVED(x)                           (((x) & 0x7FF) << 9)
-#define BIT_AON_APB_REC_26MHZ_SR_TRIM(x)                         (((x) & 0xF) << 5)
-#define BIT_AON_APB_SINDRV_LVL(x)                                (((x) & 0x3) << 3)
-#define BIT_AON_APB_SINDRV_CLIP_MODE                             BIT(2)
-#define BIT_AON_APB_SINDRV_ENA_SQUARE                            BIT(1)
-#define BIT_AON_APB_SINDRV_ENA                                   BIT(0)
-
-/* REG_AON_APB_ADA_SEL_CTRL */
-
-#define BIT_AON_APB_TW_MODE_SEL                                  BIT(3)
-#define BIT_AON_APB_WGADC_DIV_EN                                 BIT(2)
-#define BIT_AON_APB_AFCDAC_SYS_SEL                               BIT(1)
-#define BIT_AON_APB_APCDAC_SYS_SEL                               BIT(0)
-
-/* REG_AON_APB_VBC_CTRL */
-
-#define BIT_AON_APB_AUDIF_CKG_AUTO_EN                            BIT(20)
-#define BIT_AON_APB_AUD_INT_SYS_SEL(x)                           (((x) & 0x3) << 18)
-#define BIT_AON_APB_VBC_DA23_INT_SYS_SEL(x)                      (((x) & 0x3) << 16)
-#define BIT_AON_APB_VBC_AD01_INT_SYS_SEL(x)                      (((x) & 0x3) << 12)
-#define BIT_AON_APB_VBC_DA01_INT_SYS_SEL(x)                      (((x) & 0x3) << 10)
-#define BIT_AON_APB_VBC_AD01_DMA_SYS_SEL(x)                      (((x) & 0x3) << 6)
-#define BIT_AON_APB_VBC_DA01_DMA_SYS_SEL(x)                      (((x) & 0x3) << 4)
-#define BIT_AON_APB_VBC_DA23_DMA_SYS_SEL(x)                      (((x) & 0x3) << 2)
-#define BIT_AON_APB_VBC_DMA_WTLCP_ARM_SEL                        BIT(1)
-#define BIT_AON_APB_VBC_DMA_PUBCP_ARM_SEL                        BIT(0)
-
-/* REG_AON_APB_PWR_CTRL */
-
-#define BIT_AON_APB_FORCE_DSI_DBG_PHY_SHUTDOWNZ                  BIT(21)
-#define BIT_AON_APB_FORCE_CSI_S_PHY_SHUTDOWNZ                    BIT(20)
-#define BIT_AON_APB_HSIC_PLL_EN                                  BIT(19)
-#define BIT_AON_APB_HSIC_PHY_PD                                  BIT(18)
-#define BIT_AON_APB_USB_PHY_PD_S                                 BIT(17)
-#define BIT_AON_APB_USB_PHY_PD_L                                 BIT(16)
-#define BIT_AON_APB_MIPI_DSI_PS_PD_S                             BIT(15)
-#define BIT_AON_APB_MIPI_DSI_PS_PD_L                             BIT(14)
-#define BIT_AON_APB_MIPI_CSI_2P2LANE_PS_PD_S                     BIT(13)
-#define BIT_AON_APB_MIPI_CSI_2P2LANE_PS_PD_L                     BIT(12)
-#define BIT_AON_APB_MIPI_CSI_4LANE_PS_PD_S                       BIT(11)
-#define BIT_AON_APB_MIPI_CSI_4LANE_PS_PD_L                       BIT(10)
-#define BIT_AON_APB_CA53_TS0_STOP                                BIT(8)
-#define BIT_AON_APB_USB20_ISO_SW_EN                              BIT(7)
-#define BIT_AON_APB_CSI_ISO_SW_EN_4LANE                          BIT(5)
-#define BIT_AON_APB_CSI_ISO_SW_EN_2P2LANE                        BIT(4)
-#define BIT_AON_APB_EFUSE_BIST_PWR_ON                            BIT(3)
-#define BIT_AON_APB_FORCE_DSI_PHY_SHUTDOWNZ                      BIT(2)
-#define BIT_AON_APB_FORCE_CSI_PHY_SHUTDOWNZ                      BIT(1)
-
-/* REG_AON_APB_TS_CFG */
-
-#define BIT_AON_APB_DBG_TRACE_CTRL_EN                            BIT(14)
-#define BIT_AON_APB_CSYSACK_TS_LP_2                              BIT(13)
-#define BIT_AON_APB_CSYSREQ_TS_LP_2                              BIT(12)
-#define BIT_AON_APB_CSYSACK_TS_LP_1                              BIT(11)
-#define BIT_AON_APB_CSYSREQ_TS_LP_1                              BIT(10)
-#define BIT_AON_APB_CSYSACK_TS_LP_0                              BIT(9)
-#define BIT_AON_APB_CSYSREQ_TS_LP_0                              BIT(8)
-#define BIT_AON_APB_EVENTACK_RESTARTREQ_TS01                     BIT(4)
-#define BIT_AON_APB_EVENT_RESTARTREQ_TS01                        BIT(1)
-#define BIT_AON_APB_EVENT_HALTREQ_TS01                           BIT(0)
-
-/* REG_AON_APB_BOOT_MODE */
-
-#define BIT_AON_APB_ARM_JTAG_EN                                  BIT(13)
-#define BIT_AON_APB_WPLL_OVR_FREQ_SEL                            BIT(12)
-#define BIT_AON_APB_PTEST_FUNC_ATSPEED_SEL                       BIT(8)
-#define BIT_AON_APB_PTEST_FUNC_MODE                              BIT(7)
-#define BIT_AON_APB_FUNCTST_DMA_EB                               BIT(5)
-#define BIT_AON_APB_USB_DLOAD_EN                                 BIT(4)
-#define BIT_AON_APB_ARM_BOOT_MD3                                 BIT(3)
-#define BIT_AON_APB_ARM_BOOT_MD2                                 BIT(2)
-#define BIT_AON_APB_ARM_BOOT_MD1                                 BIT(1)
-#define BIT_AON_APB_ARM_BOOT_MD0                                 BIT(0)
-
-/* REG_AON_APB_BB_BG_CTRL */
-
-#define BIT_AON_APB_BB_CON_BG                                    BIT(22)
-#define BIT_AON_APB_BB_BG_RSV(x)                                 (((x) & 0x3) << 20)
-#define BIT_AON_APB_BB_LDO_V(x)                                  (((x) & 0xF) << 16)
-#define BIT_AON_APB_BB_BG_RBIAS_EN                               BIT(15)
-#define BIT_AON_APB_BB_BG_IEXT_IB_EN                             BIT(14)
-#define BIT_AON_APB_BB_LDO_REFCTRL(x)                            (((x) & 0x3) << 12)
-#define BIT_AON_APB_BB_LDO_AUTO_PD_EN                            BIT(11)
-#define BIT_AON_APB_BB_LDO_SLP_PD_EN                             BIT(10)
-#define BIT_AON_APB_BB_LDO_FORCE_ON                              BIT(9)
-#define BIT_AON_APB_BB_LDO_FORCE_PD                              BIT(8)
-#define BIT_AON_APB_BB_BG_AUTO_PD_EN                             BIT(3)
-#define BIT_AON_APB_BB_BG_SLP_PD_EN                              BIT(2)
-#define BIT_AON_APB_BB_BG_FORCE_ON                               BIT(1)
-#define BIT_AON_APB_BB_BG_FORCE_PD                               BIT(0)
-
-/* REG_AON_APB_CP_ARM_JTAG_CTRL */
-
-#define BIT_AON_APB_CP_ARM_JTAG_PIN_SEL(x)                       (((x) & 0x7))
-
-/* REG_AON_APB_PLL_SOFT_CNT_DONE */
-
-#define BIT_AON_APB_XTLBUF1_SOFT_CNT_DONE                        BIT(9)
-#define BIT_AON_APB_XTLBUF0_SOFT_CNT_DONE                        BIT(8)
-#define BIT_AON_APB_LVDSPLL_SOFT_CNT_DONE                        BIT(4)
-#define BIT_AON_APB_LPLL_SOFT_CNT_DONE                           BIT(3)
-#define BIT_AON_APB_TWPLL_SOFT_CNT_DONE                          BIT(2)
-#define BIT_AON_APB_DPLL_SOFT_CNT_DONE                           BIT(1)
-#define BIT_AON_APB_MPLL_SOFT_CNT_DONE                           BIT(0)
-
-/* REG_AON_APB_DCXO_LC_REG0 */
-
-#define BIT_AON_APB_DCXO_LC_FLAG                                 BIT(8)
-#define BIT_AON_APB_DCXO_LC_FLAG_CLR                             BIT(1)
-#define BIT_AON_APB_DCXO_LC_CNT_CLR                              BIT(0)
-
-/* REG_AON_APB_DCXO_LC_REG1 */
-
-#define BIT_AON_APB_DCXO_LC_CNT(x)                               (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_MPLL_CFG1 */
-
-#define BIT_AON_APB_MPLL_RES(x)                                  (((x) & 0xFF) << 22)
-#define BIT_AON_APB_MPLL_LOCK_DONE                               BIT(21)
-#define BIT_AON_APB_MPLL_DIV_S                                   BIT(20)
-#define BIT_AON_APB_MPLL_MOD_EN                                  BIT(19)
-#define BIT_AON_APB_MPLL_SDM_EN                                  BIT(18)
-#define BIT_AON_APB_MPLL_LPF(x)                                  (((x) & 0x7) << 15)
-#define BIT_AON_APB_MPLL_IBIAS(x)                                (((x) & 0x3) << 11)
-#define BIT_AON_APB_MPLL_N(x)                                    (((x) & 0x7FF))
-
-/* REG_AON_APB_MPLL_CFG2 */
-
-#define BIT_AON_APB_MPLL_POSTDIV                                 BIT(30)
-#define BIT_AON_APB_MPLL_NINT(x)                                 (((x) & 0x7F) << 23)
-#define BIT_AON_APB_MPLL_KINT(x)                                 (((x) & 0x7FFFFF))
-
-/* REG_AON_APB_DPLL_CFG1 */
-
-#define BIT_AON_APB_DPLL_RES(x)                                  (((x) & 0xFF) << 22)
-#define BIT_AON_APB_DPLL_LOCK_DONE                               BIT(21)
-#define BIT_AON_APB_DPLL_DIV_S                                   BIT(20)
-#define BIT_AON_APB_DPLL_MOD_EN                                  BIT(19)
-#define BIT_AON_APB_DPLL_SDM_EN                                  BIT(18)
-#define BIT_AON_APB_DPLL_LPF(x)                                  (((x) & 0x7) << 15)
-#define BIT_AON_APB_DPLL_IBIAS(x)                                (((x) & 0x3) << 11)
-#define BIT_AON_APB_DPLL_N(x)                                    (((x) & 0x7FF))
-
-/* REG_AON_APB_DPLL_CFG2 */
-
-#define BIT_AON_APB_DPLL_NINT(x)                                 (((x) & 0x7F) << 23)
-#define BIT_AON_APB_DPLL_KINT(x)                                 (((x) & 0x7FFFFF))
-
-/* REG_AON_APB_TWPLL_CFG1 */
-
-#define BIT_AON_APB_TWPLL_RES(x)                                 (((x) & 0xFF) << 22)
-#define BIT_AON_APB_TWPLL_LOCK_DONE                              BIT(21)
-#define BIT_AON_APB_TWPLL_DIV_S                                  BIT(20)
-#define BIT_AON_APB_TWPLL_MOD_EN                                 BIT(19)
-#define BIT_AON_APB_TWPLL_SDM_EN                                 BIT(18)
-#define BIT_AON_APB_TWPLL_LPF(x)                                 (((x) & 0x7) << 15)
-#define BIT_AON_APB_TWPLL_IBIAS(x)                               (((x) & 0x3) << 11)
-#define BIT_AON_APB_TWPLL_N(x)                                   (((x) & 0x7FF))
-
-/* REG_AON_APB_TWPLL_CFG2 */
-
-#define BIT_AON_APB_TWPLL_NINT(x)                                (((x) & 0x7F) << 23)
-#define BIT_AON_APB_TWPLL_KINT(x)                                (((x) & 0x7FFFFF))
-
-/* REG_AON_APB_LTEPLL_CFG1 */
-
-#define BIT_AON_APB_LTEPLL_RES(x)                                (((x) & 0xFF) << 22)
-#define BIT_AON_APB_LTEPLL_LOCK_DONE                             BIT(21)
-#define BIT_AON_APB_LTEPLL_DIV_S                                 BIT(20)
-#define BIT_AON_APB_LTEPLL_MOD_EN                                BIT(19)
-#define BIT_AON_APB_LTEPLL_SDM_EN                                BIT(18)
-#define BIT_AON_APB_LTEPLL_LPF(x)                                (((x) & 0x7) << 15)
-#define BIT_AON_APB_LTEPLL_IBIAS(x)                              (((x) & 0x3) << 11)
-#define BIT_AON_APB_LTEPLL_N(x)                                  (((x) & 0x7FF))
-
-/* REG_AON_APB_LTEPLL_CFG2 */
-
-#define BIT_AON_APB_LTEPLL_NINT(x)                               (((x) & 0x7F) << 23)
-#define BIT_AON_APB_LTEPLL_KINT(x)                               (((x) & 0x7FFFFF))
-
-/* REG_AON_APB_LVDSRFPLL_CFG1 */
-
-#define BIT_AON_APB_LVDSRFPLL_RES(x)                             (((x) & 0xFF) << 22)
-#define BIT_AON_APB_LVDSRFPLL_LOCK_DONE                          BIT(21)
-#define BIT_AON_APB_LVDSRFPLL_DIV_S                              BIT(20)
-#define BIT_AON_APB_LVDSRFPLL_MOD_EN                             BIT(19)
-#define BIT_AON_APB_LVDSRFPLL_SDM_EN                             BIT(18)
-#define BIT_AON_APB_LVDSRFPLL_LPF(x)                             (((x) & 0x7) << 15)
-#define BIT_AON_APB_LVDSRFPLL_IBIAS(x)                           (((x) & 0x3) << 11)
-#define BIT_AON_APB_LVDSRFPLL_N(x)                               (((x) & 0x7FF))
-
-/* REG_AON_APB_LVDSRFPLL_CFG2 */
-
-#define BIT_AON_APB_LVDSRF_PLL_CLKOUT_EN                         BIT(30)
-#define BIT_AON_APB_LVDSRFPLL_NINT(x)                            (((x) & 0x3F) << 24)
-#define BIT_AON_APB_LVDSRFPLL_KINT(x)                            (((x) & 0xFFFFFF))
-
-/* REG_AON_APB_AON_REG_PROT */
-
-#define BIT_AON_APB_LDSP_CTRL_PROT                               BIT(31)
-#define BIT_AON_APB_REG_PROT_VAL(x)                              (((x) & 0xFFFF))
-
-/* REG_AON_APB_DSI_PHY_CTRL */
-
-#define BIT_AON_APB_DSI_IF_SEL                                   BIT(24)
-#define BIT_AON_APB_DSI_TRIMBG(x)                                (((x) & 0xF) << 20)
-#define BIT_AON_APB_DSI_RCTL(x)                                  (((x) & 0xF) << 16)
-#define BIT_AON_APB_DSI_RES(x)                                   (((x) & 0xFFFF))
-
-/* REG_AON_APB_CSI_2L_PHY_CTRL */
-
-#define BIT_AON_APB_CSI_2L_IF_SEL                                BIT(20)
-#define BIT_AON_APB_CSI_2L_RCTL(x)                               (((x) & 0xF) << 16)
-#define BIT_AON_APB_CSI_2L_RES(x)                                (((x) & 0xFFFF))
-
-/* REG_AON_APB_CSI_2P2L_S_PHY_CTRL */
-
-#define BIT_AON_APB_CSI_2P2L_TESTCLR_S                           BIT(23)
-#define BIT_AON_APB_CSI_2P2L_TESTCLR_S_SEL                       BIT(22)
-#define BIT_AON_APB_CSI_2P2L_TESTCLK_S_EN                        BIT(21)
-#define BIT_AON_APB_CSI_2P2L_S_IF_SEL                            BIT(20)
-
-/* REG_AON_APB_CSI_2P2L_M_PHY_CTRL */
-
-#define BIT_AON_APB_CSI_2P2L_TESTCLR_M                           BIT(23)
-#define BIT_AON_APB_CSI_2P2L_TESTCLR_M_SEL                       BIT(22)
-#define BIT_AON_APB_CSI_2P2L_TESTCLK_M_EN                        BIT(21)
-#define BIT_AON_APB_CSI_2P2L_M_IF_SEL                            BIT(20)
-#define BIT_AON_APB_CSI_2P2L_RCTL(x)                             (((x) & 0xF) << 16)
-#define BIT_AON_APB_CSI_2P2L_RES(x)                              (((x) & 0xFFFF))
-
-/* REG_AON_APB_CSI_2P2L_DBG_PHY_CTRL */
-
-#define BIT_AON_APB_CSI_2P2L_DBG_EN                              BIT(25)
-#define BIT_AON_APB_CSI_2P2L_DBG_IF_SEL                          BIT(24)
-#define BIT_AON_APB_CSI_2P2L_DBG_TRIMBG(x)                       (((x) & 0xF) << 20)
-
-/* REG_AON_APB_CSI_2P2L_PHY_CTRL */
-
-#define BIT_AON_APB_CSI_2P2L_MODE_SEL                            BIT(0)
-
-/* REG_AON_APB_AON_CGM_CFG */
-
-#define BIT_AON_APB_PROBE_CKG_DIV(x)                             (((x) & 0xF) << 28)
-#define BIT_AON_APB_AUX2_CKG_DIV(x)                              (((x) & 0xF) << 24)
-#define BIT_AON_APB_AUX1_CKG_DIV(x)                              (((x) & 0xF) << 20)
-#define BIT_AON_APB_AUX0_CKG_DIV(x)                              (((x) & 0xF) << 16)
-#define BIT_AON_APB_PROBE_CKG_SEL(x)                             (((x) & 0xF) << 12)
-#define BIT_AON_APB_AUX2_CKG_SEL(x)                              (((x) & 0xF) << 8)
-#define BIT_AON_APB_AUX1_CKG_SEL(x)                              (((x) & 0xF) << 4)
-#define BIT_AON_APB_AUX0_CKG_SEL(x)                              (((x) & 0xF))
-
-/* REG_AON_APB_DFS_CLK_GATE_CFG */
-
-#define BIT_AON_APB_DMC_CKG_SEL_CURRENT(x)                       (((x) & 0xFF) << 19)
-#define BIT_AON_APB_DMC_CKG_SEL_DEFAULT(x)                       (((x) & 0xFF) << 11)
-#define BIT_AON_APB_PUB_DMC_2X_CGM_SEL                           BIT(10)
-#define BIT_AON_APB_PUB_DMC_1X_CGM_SEL                           BIT(9)
-#define BIT_AON_APB_PUB_DFS_SWITCH_WAIT_TIME(x)                  (((x) & 0xFF) << 1)
-#define BIT_AON_APB_DMC_CKG_SEL_LOAD                             BIT(0)
-
-/* REG_AON_APB_HARD_DFS_CTRL */
-
-#define BIT_AON_APB_CGM_DMC_SEL(x)                               (((x) & 0x7) << 6)
-#define BIT_AON_APB_CGM_DMC_2X_DIV(x)                            (((x) & 0xF) << 2)
-#define BIT_AON_APB_CGM_DMC_1X_DIV                               BIT(1)
-#define BIT_AON_APB_CGM_DMC_SEL_HW_EN                            BIT(0)
+#define BIT_AON_APB_SC_CC_EB                                    BIT(31)
+#define BIT_AON_APB_APB_BUSMON_S3_EB                            BIT(30)
+#define BIT_AON_APB_SIM_AON_TOP_V3PS2                           BIT(29)
+#define BIT_AON_APB_SIM_AON_TOP_V3PS1                           BIT(28)
+#define BIT_AON_APB_SIM_AON_TOP_V3PS0                           BIT(27)
+#define BIT_AON_APB_APCPU_AB_EB                                 BIT(26)
+#define BIT_AON_APB_AP_SPI2_EB                                  BIT(25)
+#define BIT_AON_APB_AP_SPI1_EB                                  BIT(24)
+#define BIT_AON_APB_AP_SPI0_EB                                  BIT(23)
+#define BIT_AON_APB_APB_DIRECT_ACC_PROT_AON_APB_EB              BIT(22)
+#define BIT_AON_APB_APB_DIRECT_ACC_PROT_PMU_APB_EB              BIT(21)
+#define BIT_AON_APB_SCC_EB                                      BIT(20)
+#define BIT_AON_APB_NIC400_AON_CFG_EB                           BIT(19)
+#define BIT_AON_APB_APCPU_TS0_EB                                BIT(17)
+#define BIT_AON_APB_DJTAG_CTRL_EB                               BIT(16)
+#define BIT_AON_APB_AON_RFSPI_SLV_NR_EB                         BIT(15)
+#define BIT_AON_APB_AON_RFSPI_SLV_V3_EB                         BIT(14)
+#define BIT_AON_APB_CKG_EB                                      BIT(13)
+#define BIT_AON_APB_ANA_EB                                      BIT(12)
+#define BIT_AON_APB_PIN_EB                                      BIT(11)
+#define BIT_AON_APB_SPLK_EB                                     BIT(10)
+#define BIT_AON_APB_APCPU_CLK_EB                                BIT(8)
+#define BIT_AON_APB_DVFS_TOP_EB                                 BIT(7)
+#define BIT_AON_APB_AON_TMR_EB                                  BIT(6)
+#define BIT_AON_APB_AP_SYST_EB                                  BIT(5)
+#define BIT_AON_APB_AON_SYST_EB                                 BIT(4)
+#define BIT_AON_APB_KPD_EB                                      BIT(3)
+#define BIT_AON_APB_MBOX_EB                                     BIT(2)
+#define BIT_AON_APB_GPIO_EB                                     BIT(1)
+#define BIT_AON_APB_EFUSE_EB                                    BIT(0)
 
 /* REG_AON_APB_APB_EB2 */
 
-#define BIT_AON_APB_PUBCP_SIM2_AON_TOP_EB                        BIT(19)
-#define BIT_AON_APB_PUBCP_SIM1_AON_TOP_EB                        BIT(18)
-#define BIT_AON_APB_PUBCP_SIM0_AON_TOP_EB                        BIT(17)
-#define BIT_AON_APB_AP_SIM_AON_TOP_EB                            BIT(16)
-#define BIT_AON_APB_AP_DAP_EB                                    BIT(15)
-#define BIT_AON_APB_BSMTMR_EB                                    BIT(14)
-#define BIT_AON_APB_ANLG_APB_EB                                  BIT(13)
-#define BIT_AON_APB_PIN_APB_EB                                   BIT(12)
-#define BIT_AON_APB_ANLG_EB                                      BIT(11)
-#define BIT_AON_APB_BUSMON_DMA_EB                                BIT(10)
-#define BIT_AON_APB_SERDES_DPHY_REF_EB                           BIT(9)
-#define BIT_AON_APB_SERDES_DPHY_CFG_EB                           BIT(8)
-#define BIT_AON_APB_ROSC_EB                                      BIT(7)
-#define BIT_AON_APB_PUB_REG_EB                                   BIT(6)
-#define BIT_AON_APB_DMC_EB                                       BIT(5)
-#define BIT_AON_APB_CSSYS_EB                                     BIT(4)
-#define BIT_AON_APB_RFTI_RX_EB                                   BIT(3)
-#define BIT_AON_APB_RFTI_TX_EB                                   BIT(2)
-#define BIT_AON_APB_WCDMA_ICI_EB                                 BIT(1)
-#define BIT_AON_APB_WCDMA_EB                                     BIT(0)
-
-/* REG_AON_APB_ROSC_CFG */
-
-#define BIT_AON_APB_ROSC_NUM(x)                                  (((x) & 0xFFFF) << 12)
-#define BIT_AON_APB_ROSC_EN                                      BIT(0)
-
-/* REG_AON_APB_ROSC_STATUS */
-
-#define BIT_AON_APB_ROSC_CNT(x)                                  (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_ROSC_VALID                                   BIT(0)
-
-/* REG_AON_APB_AON_ANALOG_RSV */
-
-#define BIT_AON_APB_ANALOG_MPLL_DPLL_TOP_RSV(x)                  (((x) & 0x7FF))
-
-/* REG_AON_APB_AON_CHIP_ID0 */
-
-#define BIT_AON_APB_AON_CHIP_ID0(x)                              (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_AON_CHIP_ID1 */
-
-#define BIT_AON_APB_AON_CHIP_ID1(x)                              (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_AON_PLAT_ID0 */
-
-#define BIT_AON_APB_AON_PLAT_ID0(x)                              (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_AON_PLAT_ID1 */
-
-#define BIT_AON_APB_AON_PLAT_ID1(x)                              (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_AON_IMPL_ID */
-
-#define BIT_AON_APB_AON_IMPL_ID(x)                               (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_AON_MFT_ID */
-
-#define BIT_AON_APB_AON_MFT_ID(x)                                (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_AON_VER_ID */
-
-#define BIT_AON_APB_AON_VER_ID(x)                                (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_AON_CHIP_ID */
-
-#define BIT_AON_APB_AON_CHIP_ID(x)                               (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_CCIR_RCVR_CFG */
-
-#define BIT_AON_APB_CCIR_SE                                      BIT(1)
-#define BIT_AON_APB_CCIR_IE                                      BIT(0)
-
-/* REG_AON_APB_PLL_BG_CFG */
-
-#define BIT_AON_APB_PLL_BG_RSV(x)                                (((x) & 0x3) << 4)
-#define BIT_AON_APB_PLL_BG_RBIAS_EN                              BIT(3)
-#define BIT_AON_APB_PLL_BG_PD                                    BIT(2)
-#define BIT_AON_APB_PLL_BG_IEXT_IBEN                             BIT(1)
-#define BIT_AON_APB_PLL_CON_BG                                   BIT(0)
-
-/* REG_AON_APB_LVDSDIS_SEL */
-
-#define BIT_AON_APB_LVDSDIS_LOG_SEL(x)                           (((x) & 0x3) << 1)
-#define BIT_AON_APB_LVDSDIS_DBG_SEL                              BIT(0)
-
-/* REG_AON_APB_DJTAG_MUX_SEL */
-
-#define BIT_AON_APB_DJTAG_AON_SEL                                BIT(6)
-#define BIT_AON_APB_DJTAG_PUB_SEL                                BIT(5)
-#define BIT_AON_APB_DJTAG_PUBCP_SEL                              BIT(4)
-#define BIT_AON_APB_DJTAG_WTLCP_SEL                              BIT(3)
-#define BIT_AON_APB_DJTAG_GPU_SEL                                BIT(2)
-#define BIT_AON_APB_DJTAG_MM_SEL                                 BIT(1)
-#define BIT_AON_APB_DJTAG_AP_SEL                                 BIT(0)
-
-/* REG_AON_APB_CM4_SYS_SOFT_RST */
-
-#define BIT_AON_APB_CM4_SYS_SOFT_RST                             BIT(4)
-#define BIT_AON_APB_CM4_CORE_SOFT_RST                            BIT(0)
-
-/* REG_AON_APB_PUBCP_WTLCP_ADDR_MSB */
-
-#define BIT_AON_APB_PUBCP_WTLCP_ADDR_MSB(x)                      (((x) & 0xF))
-
-/* REG_AON_APB_AON_DMA_INT_EN */
-
-#define BIT_AON_APB_AON_DMA_INT_CM4_EN                           BIT(6)
-#define BIT_AON_APB_AON_DMA_INT_AP_EN                            BIT(0)
-
-/* REG_AON_APB_EMC_AUTO_GATE_EN */
-
-#define BIT_AON_APB_PUBCP_PUB_AUTO_GATE_EN                       BIT(19)
-#define BIT_AON_APB_WTLCP_PUB_AUTO_GATE_EN                       BIT(18)
-#define BIT_AON_APB_AP_PUB_AUTO_GATE_EN                          BIT(17)
-#define BIT_AON_APB_AON_APB_PUB_AUTO_GATE_EN                     BIT(16)
-#define BIT_AON_APB_PUBCP_EMC_AUTO_GATE_EN                       BIT(3)
-#define BIT_AON_APB_WTLCP_EMC_AUTO_GATE_EN                       BIT(2)
-#define BIT_AON_APB_AP_EMC_AUTO_GATE_EN                          BIT(1)
-#define BIT_AON_APB_CA53_EMC_AUTO_GATE_EN                        BIT(0)
-
-/* REG_AON_APB_CM4_CFG_BUS */
-
-#define BIT_AON_APB_CM4_CFG_BUS_SLEEP                            BIT(0)
-
-/* REG_AON_APB_APB_RST2 */
-
-#define BIT_AON_APB_BSMTMR_SOFT_RST                              BIT(18)
-#define BIT_AON_APB_WTLCP_TDSP_CORE_SRST                         BIT(17)
-#define BIT_AON_APB_WTLCP_LDSP_CORE_SRST                         BIT(16)
-#define BIT_AON_APB_WCN_DJTAG_SOFT_RST                           BIT(15)
-#define BIT_AON_APB_ANLG_SOFT_RST                                BIT(14)
-#define BIT_AON_APB_SERDES_DPHY_APB_SOFT_RST                     BIT(13)
-#define BIT_AON_APB_BUSMON_DMA_SOFT_RST                          BIT(12)
-#define BIT_AON_APB_SERDES_DPHY_SOFT_RST                         BIT(11)
-#define BIT_AON_APB_CROSS_TRIG_SOFT_RST                          BIT(10)
-#define BIT_AON_APB_SERDES_SOFT_RST                              BIT(9)
-#define BIT_AON_APB_DBG_SOFT_RST                                 BIT(8)
-#define BIT_AON_APB_DJTAG_SOFT_RST                               BIT(7)
-#define BIT_AON_APB_AON_DJTAG_SOFT_RST                           BIT(6)
-#define BIT_AON_APB_PUB_DJTAG_SOFT_RST                           BIT(5)
-#define BIT_AON_APB_GPU_DJTAG_SOFT_RST                           BIT(4)
-#define BIT_AON_APB_MM_DJTAG_SOFT_RST                            BIT(3)
-#define BIT_AON_APB_PUBCP_DJTAG_SOFT_RST                         BIT(2)
-#define BIT_AON_APB_WTLCP_DJTAG_SOFT_RST                         BIT(1)
-#define BIT_AON_APB_AP_DJTAG_SOFT_RST                            BIT(0)
-
-/* REG_AON_APB_CLK_EB0 */
-
-#define BIT_AON_APB_ALL_PLL_TEST_EB                              BIT(18)
-#define BIT_AON_APB_LVDSRF_CALI_EB                               BIT(17)
-#define BIT_AON_APB_RFTI2_LTH_EB                                 BIT(16)
-#define BIT_AON_APB_RFTI2_XO_EB                                  BIT(15)
-#define BIT_AON_APB_RFTI1_LTH_EB                                 BIT(14)
-#define BIT_AON_APB_RFTI1_XO_EB                                  BIT(13)
-#define BIT_AON_APB_RFTI_SBI_EB                                  BIT(12)
-#define BIT_AON_APB_TMR_EB                                       BIT(11)
-#define BIT_AON_APB_DET_32K_EB                                   BIT(10)
-#define BIT_AON_APB_AP_HS_SPI_EB                                 BIT(9)
-#define BIT_AON_APB_CSSYS_CA53_EB                                BIT(8)
-#define BIT_AON_APB_CGM_TSEN_EN                                  BIT(0)
-
-/* REG_AON_APB_AON_SDIO */
-
-#define BIT_AON_APB_CP_SDIO_ENABLE                               BIT(2)
-#define BIT_AON_APB_AP_SDIO_ENABLE                               BIT(1)
-#define BIT_AON_APB_SDIO_MODULE_SEL                              BIT(0)
-
-/* REG_AON_APB_MPLL_CTRL */
-
-#define BIT_AON_APB_CGM_MPLL_CA53_FORCE_EN                       BIT(9)
-#define BIT_AON_APB_CGM_MPLL_CA53_AUTO_GATE_SEL                  BIT(8)
-#define BIT_AON_APB_MPLL_WAIT_FORCE_EN                           BIT(2)
-#define BIT_AON_APB_MPLL_WAIT_AUTO_GATE_SEL                      BIT(1)
-
-/* REG_AON_APB_AUTO_GATE_CTRL0 */
-
-#define BIT_AON_APB_MBOX_AUTO_GATE_SEL                           BIT(30)
-#define BIT_AON_APB_CGM_MM_ISP_FORCE_EN                          BIT(29)
-#define BIT_AON_APB_CGM_MM_ISP_AUTO_GATE_SEL                     BIT(28)
-#define BIT_AON_APB_CGM_AON_APB_PUB_FORCE_EN                     BIT(27)
-#define BIT_AON_APB_CGM_AON_APB_PUB_AUTO_GATE_SEL                BIT(26)
-#define BIT_AON_APB_CGM_AON_APB_WCN_FORCE_EN                     BIT(25)
-#define BIT_AON_APB_CGM_AON_APB_WCN_AUTO_GATE_SEL                BIT(24)
-#define BIT_AON_APB_CGM_AON_APB_PUBCP_FORCE_EN                   BIT(23)
-#define BIT_AON_APB_CGM_AON_APB_PUBCP_AUTO_GATE_SEL              BIT(22)
-#define BIT_AON_APB_CGM_AON_APB_WTLCP_FORCE_EN                   BIT(21)
-#define BIT_AON_APB_CGM_AON_APB_WTLCP_AUTO_GATE_SEL              BIT(20)
-#define BIT_AON_APB_CGM_AON_APB_AP_FORCE_EN                      BIT(19)
-#define BIT_AON_APB_CGM_AON_APB_AP_AUTO_GATE_SEL                 BIT(18)
-#define BIT_AON_APB_CGM_AP_AXI_FORCE_EN                          BIT(17)
-#define BIT_AON_APB_CGM_AP_AXI_AUTO_GATE_SEL                     BIT(16)
-#define BIT_AON_APB_CGM_AP_MM_ROOT_FORCE_EN                      BIT(15)
-#define BIT_AON_APB_CGM_AP_MM_ROOT_AUTO_GATE_SEL                 BIT(14)
-#define BIT_AON_APB_CGM_AP_MM_AP_FORCE_EN                        BIT(13)
-#define BIT_AON_APB_CGM_AP_MM_AP_AUTO_GATE_SEL                   BIT(12)
-#define BIT_AON_APB_CGM_AP_MM_MM_FORCE_EN                        BIT(11)
-#define BIT_AON_APB_CGM_AP_MM_MM_AUTO_GATE_SEL                   BIT(10)
-#define BIT_AON_APB_CGM_AP_MM_GPU_FORCE_EN                       BIT(9)
-#define BIT_AON_APB_CGM_AP_MM_GPU_AUTO_GATE_SEL                  BIT(8)
-#define BIT_AON_APB_CGM_WTL_BRIDGE_FORCE_EN                      BIT(7)
-#define BIT_AON_APB_CGM_WTL_BRIDGE_AUTO_GATE_SEL                 BIT(6)
-#define BIT_AON_APB_CGM_NIC_GPU_FORCE_EN                         BIT(5)
-#define BIT_AON_APB_CGM_NIC_GPU_AUTO_GATE_SEL                    BIT(4)
-#define BIT_AON_APB_CGM_WCN_ROOT_FORCE_EN                        BIT(3)
-#define BIT_AON_APB_CGM_WCN_ROOT_AUTO_GATE_SEL                   BIT(2)
-#define BIT_AON_APB_CGM_WCN_SYS_312M_AON_FORCE_EN                BIT(1)
-#define BIT_AON_APB_CGM_WCN_SYS_312M_AON_AUTO_GATE_SEL           BIT(0)
-
-/* REG_AON_APB_AUTO_GATE_CTRL1 */
-
-#define BIT_AON_APB_CGM_WCDMA_ROOT_FORCE_EN                      BIT(5)
-#define BIT_AON_APB_CGM_WCDMA_ROOT_AUTO_GATE_SEL                 BIT(4)
-#define BIT_AON_APB_CGM_WCDMA_PUBCP_FORCE_EN                     BIT(3)
-#define BIT_AON_APB_CGM_WCDMA_PUBCP_AUTO_GATE_SEL                BIT(2)
-#define BIT_AON_APB_CGM_WCDMA_WTLCP_FORCE_EN                     BIT(1)
-#define BIT_AON_APB_CGM_WCDMA_WTLCP_AUTO_GATE_SEL                BIT(0)
-
-/* REG_AON_APB_GPLL_CFG1 */
-
-#define BIT_AON_APB_GPLL_RES(x)                                  (((x) & 0xFF) << 22)
-#define BIT_AON_APB_GPLL_LOCK_DONE                               BIT(21)
-#define BIT_AON_APB_GPLL_DIV_S                                   BIT(20)
-#define BIT_AON_APB_GPLL_MOD_EN                                  BIT(19)
-#define BIT_AON_APB_GPLL_SDM_EN                                  BIT(18)
-#define BIT_AON_APB_GPLL_LPF(x)                                  (((x) & 0x7) << 15)
-#define BIT_AON_APB_GPLL_IBIAS(x)                                (((x) & 0x3) << 11)
-#define BIT_AON_APB_GPLL_N(x)                                    (((x) & 0x7FF))
-
-/* REG_AON_APB_GPLL_CFG2 */
-
-#define BIT_AON_APB_GPLL_POSTDIV                                 BIT(30)
-#define BIT_AON_APB_GPLL_NINT(x)                                 (((x) & 0x7F) << 23)
-#define BIT_AON_APB_GPLL_KINT(x)                                 (((x) & 0x7FFFFF))
-
-/* REG_AON_APB_RPLL_CFG1 */
-
-#define BIT_AON_APB_RPLL_LOCK_DONE                               BIT(21)
-#define BIT_AON_APB_RPLL_DIV_S                                   BIT(20)
-#define BIT_AON_APB_RPLL_MOD_EN                                  BIT(19)
-#define BIT_AON_APB_RPLL_SDM_EN                                  BIT(18)
-#define BIT_AON_APB_RPLL_LPF(x)                                  (((x) & 0x7) << 15)
-#define BIT_AON_APB_RPLL_REFIN(x)                                (((x) & 0x3) << 13)
-#define BIT_AON_APB_RPLL_IBIAS(x)                                (((x) & 0x3) << 11)
-#define BIT_AON_APB_RPLL_N(x)                                    (((x) & 0x7FF))
-
-/* REG_AON_APB_RPLL_CFG2 */
-
-#define BIT_AON_APB_RPLL_NINT(x)                                 (((x) & 0x7F) << 23)
-#define BIT_AON_APB_RPLL_KINT(x)                                 (((x) & 0x7FFFFF))
-
-/* REG_AON_APB_RPLL_CFG3 */
-
-#define BIT_AON_APB_RPLL_RES(x)                                  (((x) & 0x7FFF) << 16)
-#define BIT_AON_APB_RPLL_26M_SEL                                 BIT(7)
-#define BIT_AON_APB_RPLL_DIV1_EN                                 BIT(6)
-#define BIT_AON_APB_RPLL_26M_DIV(x)                              (((x) & 0x3F))
-
-/* REG_AON_APB_THM0_CTRL */
-
-#define BIT_AON_APB_THM0_CALI_RSVD(x)                            (((x) & 0xFF))
-
-/* REG_AON_APB_THM1_CTRL */
-
-#define BIT_AON_APB_THM1_CALI_RSVD(x)                            (((x) & 0xFF))
-
-/* REG_AON_APB_BUSMON_DMA_CFG */
-
-#define BIT_AON_APB_BUSMON_DMA_CNT_START                         BIT(0)
-
-/* REG_AON_APB_ANALOG_CFG0 */
-
-#define BIT_AON_APB_ANALOG_PLL_RSV(x)                            (((x) & 0xFFFF) << 16)
-#define BIT_AON_APB_ANALOG_TESTMUX(x)                            (((x) & 0xFFFF))
-
-/* REG_AON_APB_ANALOG_CFG1 */
-
-#define BIT_AON_APB_ANALOG_BB_RSV(x)                             (((x) & 0xFFFF))
-
-/* REG_AON_APB_RPLL_BIST_CTRL */
-
-#define BIT_AON_APB_RPLL_BIST_CNT(x)                             (((x) & 0xFFFF) << 16)
-#define BIT_AON_APB_RPLL_BIST_CTRL(x)                            (((x) & 0x1FF) << 1)
-#define BIT_AON_APB_RPLL_BIST_EN                                 BIT(0)
-
-/* REG_AON_APB_MPLL_BIST_CTRL */
-
-#define BIT_AON_APB_MPLL_BIST_CNT(x)                             (((x) & 0xFFFF) << 16)
-#define BIT_AON_APB_MPLL_BIST_CTRL(x)                            (((x) & 0x1FF) << 1)
-#define BIT_AON_APB_MPLL_BIST_EN                                 BIT(0)
-
-/* REG_AON_APB_DPLL_BIST_CTRL */
-
-#define BIT_AON_APB_DPLL_BIST_CNT(x)                             (((x) & 0xFFFF) << 16)
-#define BIT_AON_APB_DPLL_BIST_CTRL(x)                            (((x) & 0x1FF) << 1)
-#define BIT_AON_APB_DPLL_BIST_EN                                 BIT(0)
-
-/* REG_AON_APB_GPLL_BIST_CTRL */
-
-#define BIT_AON_APB_GPLL_BIST_CNT(x)                             (((x) & 0xFFFF) << 16)
-#define BIT_AON_APB_GPLL_BIST_CTRL(x)                            (((x) & 0x1FF) << 1)
-#define BIT_AON_APB_GPLL_BIST_EN                                 BIT(0)
-
-/* REG_AON_APB_TWPLL_BIST_CTRL */
-
-#define BIT_AON_APB_TWPLL_BIST_CNT(x)                            (((x) & 0xFFFF) << 16)
-#define BIT_AON_APB_TWPLL_BIST_CTRL(x)                           (((x) & 0x1FF) << 1)
-#define BIT_AON_APB_TWPLL_BIST_EN                                BIT(0)
-
-/* REG_AON_APB_LPLL_BIST_CTRL */
-
-#define BIT_AON_APB_LPLL_BIST_CNT(x)                             (((x) & 0xFFFF) << 16)
-#define BIT_AON_APB_LPLL_BIST_CTRL(x)                            (((x) & 0x1FF) << 1)
-#define BIT_AON_APB_LPLL_BIST_EN                                 BIT(0)
-
-/* REG_AON_APB_DPLL_CTRL */
-
-#define BIT_AON_APB_DPLL_PRE_DIV_MONITOR_GATE_AUTO_EN_STATUS(x)  (((x) & 0x3) << 13)
-#define BIT_AON_APB_DPLL_PRE_DIV_MONITOR_DIV_AUTO_EN_STATUS      BIT(12)
-#define BIT_AON_APB_DPLL_PRE_DIV_MONITOR_WAIT_EN_STATUS          BIT(11)
-#define BIT_AON_APB_CGM_DPLL_40M_AON_FORCE_EN                    BIT(10)
-#define BIT_AON_APB_CGM_DPLL_40M_AON_AUTO_GATE_SEL               BIT(9)
-#define BIT_AON_APB_CGM_DPLL_AON_FORCE_EN                        BIT(8)
-#define BIT_AON_APB_CGM_DPLL_AON_AUTO_GATE_SEL                   BIT(7)
-#define BIT_AON_APB_DPLL_DIV_40M_FORCE_EN                        BIT(4)
-#define BIT_AON_APB_DPLL_DIV_40M_AUTO_GATE_SEL                   BIT(3)
-#define BIT_AON_APB_DPLL_WAIT_FORCE_EN                           BIT(2)
-#define BIT_AON_APB_DPLL_WAIT_AUTO_GATE_SEL                      BIT(1)
-
-/* REG_AON_APB_CPPLL_CFG1 */
-
-#define BIT_AON_APB_CPPLL_RES(x)                                 (((x) & 0xFF) << 22)
-#define BIT_AON_APB_CPPLL_LOCK_DONE                              BIT(21)
-#define BIT_AON_APB_CPPLL_DIV_S                                  BIT(20)
-#define BIT_AON_APB_CPPLL_MOD_EN                                 BIT(19)
-#define BIT_AON_APB_CPPLL_SDM_EN                                 BIT(18)
-#define BIT_AON_APB_CPPLL_LPF(x)                                 (((x) & 0x7) << 15)
-#define BIT_AON_APB_CPPLL_IBIAS(x)                               (((x) & 0x3) << 11)
-#define BIT_AON_APB_CPPLL_N(x)                                   (((x) & 0x7FF))
-
-/* REG_AON_APB_CPPLL_CFG2 */
-
-#define BIT_AON_APB_CPPLL_POSTDIV                                BIT(30)
-#define BIT_AON_APB_CPPLL_NINT(x)                                (((x) & 0x7F) << 23)
-#define BIT_AON_APB_CPPLL_KINT(x)                                (((x) & 0x7FFFFF))
-
-/* REG_AON_APB_CPPLL_BIST_CTRL */
-
-#define BIT_AON_APB_CPPLL_BIST_CNT(x)                            (((x) & 0xFFFF) << 16)
-#define BIT_AON_APB_CPPLL_BIST_CTRL(x)                           (((x) & 0x1FF) << 1)
-#define BIT_AON_APB_CPPLL_BIST_EN                                BIT(0)
-
-/* REG_AON_APB_MPLL_CFG3 */
-
-#define BIT_AON_APB_MPLL_CCS_CTRL(x)                             (((x) & 0xFF))
-
-/* REG_AON_APB_DPLL_CFG3 */
-
-#define BIT_AON_APB_DPLL_CCS_CTRL(x)                             (((x) & 0xFF))
-
-/* REG_AON_APB_GPLL_CFG3 */
-
-#define BIT_AON_APB_GPLL_CCS_CTRL(x)                             (((x) & 0xFF))
-
-/* REG_AON_APB_CP_DAP_PAD_CTRL */
-
-#define BIT_AON_APB_CP_DAP_PAD_SEL(x)                            (((x) & 0x3))
-
-/* REG_AON_APB_CA53_PROT_CTRL */
-
-#define BIT_AON_APB_CA53_SPNIDEN(x)                              (((x) & 0xF) << 12)
-#define BIT_AON_APB_CA53_SPIDEN(x)                               (((x) & 0xF) << 8)
-#define BIT_AON_APB_CA53_NIDEN(x)                                (((x) & 0xF) << 4)
-#define BIT_AON_APB_CA53_DBGEN(x)                                (((x) & 0xF))
-
-/* REG_AON_APB_CSSYS_CFG */
-
-#define BIT_AON_APB_DAP_DEVICEEN                                 BIT(31)
-#define BIT_AON_APB_DAP_DBGEN                                    BIT(30)
-#define BIT_AON_APB_DAP_SPIDBGEN                                 BIT(29)
-#define BIT_AON_APB_GNSS_CM4_DBGEN                               BIT(11)
-#define BIT_AON_APB_BTWF_CM4_DBGEN                               BIT(10)
-#define BIT_AON_APB_TG_JTAG_EN                                   BIT(9)
-#define BIT_AON_APB_LTE_JTAG_EN                                  BIT(8)
-#define BIT_AON_APB_AON_CM4_DBGEN                                BIT(7)
-#define BIT_AON_APB_DJTAG_EN                                     BIT(6)
-#define BIT_AON_APB_AG_JTAG_EN                                   BIT(5)
-#define BIT_AON_APB_MJTAG_EN                                     BIT(4)
-#define BIT_AON_APB_CSSYS_NIDEN                                  BIT(3)
-#define BIT_AON_APB_CSSYS_SPNIDEN                                BIT(2)
-#define BIT_AON_APB_CSSYS_SPIDEN                                 BIT(1)
-#define BIT_AON_APB_CSSYS_DBGEN                                  BIT(0)
-
-/* REG_AON_APB_SEC_MUX_DBG_EN */
-
-#define BIT_AON_APB_DAP_DEVICEEN_S                               BIT(25)
-#define BIT_AON_APB_DAP_DBGEN_S                                  BIT(24)
-#define BIT_AON_APB_DAP_SPIDBGEN_S                               BIT(23)
-#define BIT_AON_APB_GNSS_CM4_DBGEN_S                             BIT(19)
-#define BIT_AON_APB_BTWF_CM4_DBGEN_S                             BIT(18)
-#define BIT_AON_APB_AON_CM4_DBGEN_S                              BIT(17)
-#define BIT_AON_APB_CR5_DBGEN_S                                  BIT(16)
-#define BIT_AON_APB_CR5_NIDEN_S                                  BIT(15)
-#define BIT_AON_APB_CSSYS_DBGEN_S                                BIT(14)
-#define BIT_AON_APB_CSSYS_NIDEN_S                                BIT(13)
-#define BIT_AON_APB_CSSYS_SPIDEN_S                               BIT(12)
-#define BIT_AON_APB_CSSYS_SPNIDEN_S                              BIT(11)
-#define BIT_AON_APB_CA53_DBGEN_S                                 BIT(10)
-#define BIT_AON_APB_CA53_NIDEN_S                                 BIT(9)
-#define BIT_AON_APB_CA53_SPIDEN_S                                BIT(8)
-#define BIT_AON_APB_CA53_SPNIDEN_S                               BIT(7)
-#define BIT_AON_APB_DJTAG_EN_S                                   BIT(2)
-#define BIT_AON_APB_AG_JTAG_EN_S                                 BIT(1)
-#define BIT_AON_APB_MJTAG_EN_S                                   BIT(0)
-
-/* REG_AON_APB_CR5_PROT_CTRL */
-
-#define BIT_AON_APB_CR5_NIDEN                                    BIT(1)
-#define BIT_AON_APB_CR5_DBGEN                                    BIT(0)
-
-/* REG_AON_APB_DBG_DJTAG_CTRL */
-
-#define BIT_AON_APB_DBGSYS_CSSYS_STM_NSGUAREN                    BIT(0)
-
-/* REG_AON_APB_WTLCP_CTRL */
-
-#define BIT_AON_APB_WTLCP_AON_FRC_WSYS_LT_STOP                   BIT(4)
-#define BIT_AON_APB_WTLCP_AON_FRC_WSYS_STOP                      BIT(3)
-
-/* REG_AON_APB_WTL_WCDMA_EB */
-
-#define BIT_AON_APB_WTLCP_WCMDA_EB                               BIT(16)
-#define BIT_AON_APB_WCDMA_AUTO_GATE_EN                           BIT(8)
-
-/* REG_AON_APB_WTLCP_LDSP_CTRL0 */
-
-#define BIT_AON_APB_WTLCP_LDSP_BOOT_VECTOR(x)                    (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_WTLCP_LDSP_CTRL1 */
-
-#define BIT_AON_APB_WTLCP_STCK_LDSP                              BIT(13)
-#define BIT_AON_APB_WTLCP_STMS_LDSP                              BIT(12)
-#define BIT_AON_APB_WTLCP_STDO_LDSP                              BIT(11)
-#define BIT_AON_APB_WTLCP_STDI_LDSP                              BIT(10)
-#define BIT_AON_APB_WTLCP_STRTCK_LDSP                            BIT(9)
-#define BIT_AON_APB_WTLCP_SW_JTAG_ENA_LDSP                       BIT(8)
-#define BIT_AON_APB_WTLCP_LDSP_EXTERNAL_WAIT                     BIT(1)
-#define BIT_AON_APB_WTLCP_LDSP_BOOT                              BIT(0)
-
-/* REG_AON_APB_WTLCP_TDSP_CTRL0 */
-
-#define BIT_AON_APB_WTLCP_TDSP_BOOT_VECTOR(x)                    (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_WTLCP_TDSP_CTRL1 */
-
-#define BIT_AON_APB_WTLCP_STCK_TDSP                              BIT(13)
-#define BIT_AON_APB_WTLCP_STMS_TDSP                              BIT(12)
-#define BIT_AON_APB_WTLCP_STDO_TDSP                              BIT(11)
-#define BIT_AON_APB_WTLCP_STDI_TDSP                              BIT(10)
-#define BIT_AON_APB_WTLCP_STRTCK_TDSP                            BIT(9)
-#define BIT_AON_APB_WTLCP_SW_JTAG_ENA_TDSP                       BIT(8)
-#define BIT_AON_APB_WTLCP_TDSP_EXTERNAL_WAIT                     BIT(1)
-#define BIT_AON_APB_WTLCP_TDSP_BOOT                              BIT(0)
-
-/* REG_AON_APB_PCP_AON_EB */
-
-#define BIT_AON_APB_PUBCP_SYST_RTC_EB                            BIT(11)
-#define BIT_AON_APB_PUBCP_TMR_EB                                 BIT(10)
-#define BIT_AON_APB_PUBCP_TMR_RTC_EB                             BIT(9)
-#define BIT_AON_APB_PUBCP_SYST_EB                                BIT(8)
-#define BIT_AON_APB_PUBCP_WDG_EB                                 BIT(7)
-#define BIT_AON_APB_PUBCP_WDG_RTC_EB                             BIT(6)
-#define BIT_AON_APB_PUBCP_ARCH_RTC_EB                            BIT(5)
-#define BIT_AON_APB_PUBCP_EIC_EB                                 BIT(4)
-#define BIT_AON_APB_PUBCP_EIC_RTCDV5_EB                          BIT(3)
-#define BIT_AON_APB_PUBCP_EIC_RTC_EB                             BIT(2)
-
-/* REG_AON_APB_PCP_SOFT_RST */
-
-#define BIT_AON_APB_PUBCP_CR5_CORE_SOFT_RST                      BIT(10)
-#define BIT_AON_APB_PUBCP_CR5_DBG_SOFT_RST                       BIT(9)
-#define BIT_AON_APB_PUBCP_CR5_ETM_SOFT_RST                       BIT(8)
-#define BIT_AON_APB_PUBCP_CR5_MP_SOFT_RST                        BIT(7)
-#define BIT_AON_APB_PUBCP_CR5_CS_DBG_SOFT_RST                    BIT(6)
-#define BIT_AON_APB_PUBCP_TMR_SOFT_RST                           BIT(5)
-#define BIT_AON_APB_PUBCP_SYST_SOFT_RST                          BIT(4)
-#define BIT_AON_APB_PUBCP_WDG_SOFT_RST                           BIT(3)
-#define BIT_AON_APB_PUBCP_EIC_SOFT_RST                           BIT(2)
-
-/* REG_AON_APB_PUBCP_CTRL */
-
-#define BIT_AON_APB_AON_ACCESS_PUBCP                             BIT(13)
-#define BIT_AON_APB_PUBCP_CR5_STANDBYWFI_N                       BIT(12)
-#define BIT_AON_APB_PUBCP_CR5_STANDBYWFE_N                       BIT(11)
-#define BIT_AON_APB_PUBCP_CR5_CLKSTOPPED0_N                      BIT(10)
-#define BIT_AON_APB_PUBCP_CR5_L2IDLE                             BIT(9)
-#define BIT_AON_APB_PUBCP_CR5_VALIRQ0_N                          BIT(8)
-#define BIT_AON_APB_PUBCP_CR5_VALFIQ0_N                          BIT(7)
-#define BIT_AON_APB_PUBCP_CR5_STOP                               BIT(6)
-#define BIT_AON_APB_PUBCP_CR5_CSYSACK_ATB                        BIT(5)
-#define BIT_AON_APB_PUBCP_CR5_CACTIVE_ATB                        BIT(4)
-#define BIT_AON_APB_PUBCP_CR5_CSSYNC_REQ                         BIT(3)
-#define BIT_AON_APB_PUBCP_CR5_CSYSREQ_ATB                        BIT(2)
-#define BIT_AON_APB_PUBCP_CR5_NODBGCLK                           BIT(1)
-#define BIT_AON_APB_PUBCP_CR5_CFGEE                              BIT(0)
-
-/* REG_AON_APB_SYS_DBG_SEL */
-
-#define BIT_AON_APB_MDAR_DBG_MOD_SEL(x)                          (((x) & 0xFF) << 24)
-#define BIT_AON_APB_MDAR_DBG_SIG_SEL(x)                          (((x) & 0xFF) << 16)
-
-/* REG_AON_APB_MDAR_HSDL_CFG */
-
-#define BIT_AON_APB_MDAR_HSDL_CFG(x)                             (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_SYS_DBG_SEL2 */
-
-#define BIT_AON_APB_AON_DBG_MOD_SEL                              BIT(8)
-#define BIT_AON_APB_AON_DBG_SIG_SEL(x)                           (((x) & 0xFF))
-
-/* REG_AON_APB_SUBSYS_DBG_CFG */
-
-#define BIT_AON_APB_SUBSYS_DBG_SEL(x)                            (((x) & 0x7))
-
-/* REG_AON_APB_AP_LPC_CTRL */
-
-#define BIT_AON_APB_AP_FRC_STOP_ACK                              BIT(8)
-#define BIT_AON_APB_AP_FRC_STOP_REQ                              BIT(0)
-
-/* REG_AON_APB_WTLCP_LPC_CTRL */
-
-#define BIT_AON_APB_WTLCP_FRC_STOP_ACK                           BIT(8)
-#define BIT_AON_APB_WTLCP_FRC_STOP_REQ                           BIT(0)
-
-/* REG_AON_APB_PUBCP_LPC_CTRL */
-
-#define BIT_AON_APB_PUBCP_FRC_STOP_ACK                           BIT(8)
-#define BIT_AON_APB_PUBCP_FRC_STOP_REQ                           BIT(0)
-
-/* REG_AON_APB_RFTI_SOFT_RST */
-
-#define BIT_AON_APB_RFTI_SOFT_RST                                BIT(4)
-#define BIT_AON_APB_LVDSRF_CALI_SOFT_RST                         BIT(3)
-#define BIT_AON_APB_RFTI2_LTH_SOFT_RST                           BIT(2)
-#define BIT_AON_APB_RFTI1_LTH_SOFT_RST                           BIT(1)
-#define BIT_AON_APB_RFTI_SBI_SOFT_RST                            BIT(0)
-
-/* REG_AON_APB_GLB_WCDMA_CTRL */
-
-#define BIT_AON_APB_WTLCP_WCDMA_AUTO_GATE_EN                     BIT(3)
-#define BIT_AON_APB_WTLCP_WCDMA_SOFT_GATE_DIS                    BIT(2)
-#define BIT_AON_APB_PUBCP_WCDMA_AUTO_GATE_EN                     BIT(1)
-#define BIT_AON_APB_PUBCP_WCDMA_SOFT_GATE_DIS                    BIT(0)
-
-/* REG_AON_APB_PLL_CLKOUT_GATE */
-
-#define BIT_AON_APB_LPLL_CLKOUT_EN                               BIT(29)
-#define BIT_AON_APB_LPLL_DIV1_EN                                 BIT(28)
-#define BIT_AON_APB_LPLL_DIV2_EN                                 BIT(27)
-#define BIT_AON_APB_LPLL_DIV3_EN                                 BIT(26)
-#define BIT_AON_APB_LPLL_DIV5_EN                                 BIT(25)
-#define BIT_AON_APB_TWPLL_CLKOUT_EN                              BIT(24)
-#define BIT_AON_APB_TWPLL_DIV1_EN                                BIT(23)
-#define BIT_AON_APB_TWPLL_DIV2_EN                                BIT(22)
-#define BIT_AON_APB_TWPLL_DIV3_EN                                BIT(21)
-#define BIT_AON_APB_TWPLL_DIV5_EN                                BIT(20)
-#define BIT_AON_APB_TWPLL_DIV7_EN                                BIT(19)
-#define BIT_AON_APB_GPLL_CLKOUT_EN                               BIT(18)
-#define BIT_AON_APB_DPLL_CLKOUT_EN                               BIT(17)
-#define BIT_AON_APB_MPLL_CLKOUT_EN                               BIT(16)
-#define BIT_AON_APB_LPLL_CLKOUT_AUTO_GATE_DIS                    BIT(13)
-#define BIT_AON_APB_LPLL_DIV1_AUTO_GATE_DIS                      BIT(12)
-#define BIT_AON_APB_LPLL_DIV2_AUTO_GATE_DIS                      BIT(11)
-#define BIT_AON_APB_LPLL_DIV3_AUTO_GATE_DIS                      BIT(10)
-#define BIT_AON_APB_LPLL_DIV5_AUTO_GATE_DIS                      BIT(9)
-#define BIT_AON_APB_TWPLL_CLKOUT_AUTO_GATE_DIS                   BIT(8)
-#define BIT_AON_APB_TWPLL_DIV1_AUTO_GATE_DIS                     BIT(7)
-#define BIT_AON_APB_TWPLL_DIV2_AUTO_GATE_DIS                     BIT(6)
-#define BIT_AON_APB_TWPLL_DIV3_AUTO_GATE_DIS                     BIT(5)
-#define BIT_AON_APB_TWPLL_DIV5_AUTO_GATE_DIS                     BIT(4)
-#define BIT_AON_APB_TWPLL_DIV7_AUTO_GATE_DIS                     BIT(3)
-#define BIT_AON_APB_GPLL_CLKOUT_AUTO_GATE_DIS                    BIT(2)
-#define BIT_AON_APB_DPLL_CLKOUT_AUTO_GATE_DIS                    BIT(1)
-#define BIT_AON_APB_MPLL_CLKOUT_AUTO_GATE_DIS                    BIT(0)
-
-/* REG_AON_APB_HM_CFG_SEL */
-
-#define BIT_AON_APB_MDAR_PMU_RPLL_CFG_SEL                        BIT(12)
-#define BIT_AON_APB_LVDSRF_CFG_SEL                               BIT(11)
-#define BIT_AON_APB_LVDSRF_PLL_CFG_SEL                           BIT(10)
-#define BIT_AON_APB_RPLL_CFG_SEL                                 BIT(9)
-#define BIT_AON_APB_LPLL_CFG_SEL                                 BIT(8)
-#define BIT_AON_APB_TWPLL_CFG_SEL                                BIT(7)
-#define BIT_AON_APB_GPLL_CFG_SEL                                 BIT(6)
-#define BIT_AON_APB_DPLL_CFG_SEL                                 BIT(5)
-#define BIT_AON_APB_MPLL_CFG_SEL                                 BIT(4)
-#define BIT_AON_APB_AAPC_CFG_SEL                                 BIT(2)
-#define BIT_AON_APB_BB_BG_CFG_SEL                                BIT(1)
-#define BIT_AON_APB_XTAL_SIN_CFG_SEL                             BIT(0)
-
-/* REG_AON_APB_HM_PWR_CTRL */
-
-#define BIT_AON_APB_CPPLL_PD                                     BIT(12)
-#define BIT_AON_APB_LVDSRF_PD                                    BIT(11)
-#define BIT_AON_APB_LVDSRF_PLL_PD                                BIT(10)
-#define BIT_AON_APB_RPLL_PD                                      BIT(9)
-#define BIT_AON_APB_LPLL_PD                                      BIT(8)
-#define BIT_AON_APB_TWPLL_PD                                     BIT(7)
-#define BIT_AON_APB_GPLL_PD                                      BIT(6)
-#define BIT_AON_APB_DPLL_PD                                      BIT(5)
-#define BIT_AON_APB_MPLL_PD                                      BIT(4)
-#define BIT_AON_APB_AAPC_PD                                      BIT(3)
-#define BIT_AON_APB_BB_BG_PD                                     BIT(2)
-#define BIT_AON_APB_XTAL_32M_BUF_PD                              BIT(1)
-#define BIT_AON_APB_XTAL_26M_BUF_PD                              BIT(0)
-
-/* REG_AON_APB_HM_RST_CTRL */
-
-#define BIT_AON_APB_CPPLL_RST                                    BIT(12)
-#define BIT_AON_APB_LVDSRF_RST                                   BIT(11)
-#define BIT_AON_APB_LVDSRF_PLL_RST                               BIT(10)
-#define BIT_AON_APB_RPLL_RST                                     BIT(9)
-#define BIT_AON_APB_LPLL_RST                                     BIT(8)
-#define BIT_AON_APB_TWPLL_RST                                    BIT(7)
-#define BIT_AON_APB_GPLL_RST                                     BIT(6)
-#define BIT_AON_APB_DPLL_RST                                     BIT(5)
-#define BIT_AON_APB_MPLL_RST                                     BIT(4)
-#define BIT_AON_APB_BB_BG_RST                                    BIT(1)
-
-/* REG_AON_APB_M_AAPC_CFG */
-
-#define BIT_AON_APB_AAPC_G1(x)                                   (((x) & 0x3) << 24)
-#define BIT_AON_APB_AAPC_G0(x)                                   (((x) & 0x3) << 22)
-#define BIT_AON_APB_AAPC_SEL                                     BIT(21)
-#define BIT_AON_APB_AAPC_BPRES                                   BIT(20)
-#define BIT_AON_APB_APCOUT_SEL                                   BIT(15)
-#define BIT_AON_APB_AAPC_LOW_V_CON                               BIT(14)
-#define BIT_AON_APB_AAPC_D(x)                                    (((x) & 0x3FFF))
-
-/* REG_AON_APB_DAP_DJTAG_CTRL */
-
-#define BIT_AON_APB_DAP_DJTAG_EN                                 BIT(0)
+#define BIT_AON_APB_THM2_EB                                     BIT(30)
+#define BIT_AON_APB_APCPU_WDG_EB                                BIT(29)
+#define BIT_AON_APB_AP_WDG_EB                                   BIT(28)
+#define BIT_AON_APB_AP_TMR2_EB                                  BIT(27)
+#define BIT_AON_APB_AP_TMR1_EB                                  BIT(26)
+#define BIT_AON_APB_AP_TMR0_EB                                  BIT(25)
+#define BIT_AON_APB_NR_CP_INTC_EB                               BIT(24)
+#define BIT_AON_APB_NR_DSP1_INTC_EB                             BIT(23)
+#define BIT_AON_APB_NR_DSP0_INTC_EB                             BIT(22)
+#define BIT_AON_APB_NR_CR8_INTC_EB                              BIT(21)
+#define BIT_AON_APB_V3PHY_INTC_EB                               BIT(20)
+#define BIT_AON_APB_V3PS_INTC_EB                                BIT(19)
+#define BIT_AON_APB_V3MODEM_INTC_EB                             BIT(18)
+#define BIT_AON_APB_PSCP_INTC_EB                                BIT(17)
+#define BIT_AON_APB_AUDCP_INTC_EB                               BIT(16)
+#define BIT_AON_APB_AP_INTC5_EB                                 BIT(15)
+#define BIT_AON_APB_AP_INTC4_EB                                 BIT(14)
+#define BIT_AON_APB_AP_INTC3_EB                                 BIT(13)
+#define BIT_AON_APB_AP_INTC2_EB                                 BIT(12)
+#define BIT_AON_APB_AP_INTC1_EB                                 BIT(11)
+#define BIT_AON_APB_AP_INTC0_EB                                 BIT(10)
+#define BIT_AON_APB_EIC_EB                                      BIT(9)
+#define BIT_AON_APB_ADI_EB                                      BIT(8)
+#define BIT_AON_APB_PMU_EB                                      BIT(7)
+#define BIT_AON_APB_I2C_EB                                      BIT(6)
+#define BIT_AON_APB_PSCP_SIM2_AON_TOP_EB                        BIT(5)
+#define BIT_AON_APB_PSCP_SIM1_AON_TOP_EB                        BIT(4)
+#define BIT_AON_APB_PSCP_SIM0_AON_TOP_EB                        BIT(3)
+#define BIT_AON_APB_AP_SIM_AON_TOP_EB                           BIT(2)
+#define BIT_AON_APB_THM1_EB                                     BIT(1)
+#define BIT_AON_APB_THM0_EB                                     BIT(0)
+
+/* REG_AON_APB_APB_RTC_EB0 */
+
+#define BIT_AON_APB_BB_CAL_RTC_EB                               BIT(13)
+#define BIT_AON_APB_DCXO_LC_RTC_EB                              BIT(12)
+#define BIT_AON_APB_AP_TMR2_RTC_EB                              BIT(11)
+#define BIT_AON_APB_AP_TMR1_RTC_EB                              BIT(10)
+#define BIT_AON_APB_AP_TMR0_RTC_EB                              BIT(9)
+#define BIT_AON_APB_APCPU_WDG_RTC_EB                            BIT(8)
+#define BIT_AON_APB_AP_WDG_RTC_EB                               BIT(7)
+#define BIT_AON_APB_EIC_RTCDV5_EB                               BIT(6)
+#define BIT_AON_APB_EIC_RTC_EB                                  BIT(5)
+#define BIT_AON_APB_AON_TMR_RTC_EB                              BIT(4)
+#define BIT_AON_APB_AP_SYST_RTC_EB                              BIT(3)
+#define BIT_AON_APB_AON_SYST_RTC_EB                             BIT(2)
+#define BIT_AON_APB_KPD_RTC_EB                                  BIT(1)
+#define BIT_AON_APB_ARCH_RTC_EB                                 BIT(0)
+
+/* REG_AON_APB_PSCP_AON_EB */
+
+#define BIT_AON_APB_PSCP_SYST_RTC_EB                            BIT(11)
+#define BIT_AON_APB_PSCP_TMR_EB                                 BIT(10)
+#define BIT_AON_APB_PSCP_TMR_RTC_EB                             BIT(9)
+#define BIT_AON_APB_PSCP_SYST_EB                                BIT(8)
+#define BIT_AON_APB_PSCP_WDG_EB                                 BIT(7)
+#define BIT_AON_APB_PSCP_WDG_RTC_EB                             BIT(6)
+#define BIT_AON_APB_PSCP_ARCH_RTC_EB                            BIT(5)
+#define BIT_AON_APB_CPALL_EIC_EB                                BIT(4)
+#define BIT_AON_APB_CPALL_EIC_RTCDV5_EB                         BIT(3)
+#define BIT_AON_APB_CPALL_EIC_RTC_EB                            BIT(2)
 
 /* REG_AON_APB_CGM_REG1 */
 
-#define BIT_AON_APB_LTE_PCCSCC_RFTI_CLK_SW_CFG(x)                (((x) & 0xFF) << 24)
-#define BIT_AON_APB_LPLL1_CLKOUT_SW                              BIT(23)
-#define BIT_AON_APB_LPLL0_CLKOUT_SW                              BIT(22)
-
-/* REG_AON_APB_CM4_INT_REQ_SRC_EN */
-
-#define BIT_AON_APB_INT_PUB_HARDWARE_DFS_EXIT_EN                 BIT(31)
-#define BIT_AON_APB_INT_PUB_DFS_COMPLET_EN                       BIT(30)
-#define BIT_AON_APB_INT_PUB_DFS_ERROR_EN                         BIT(29)
-#define BIT_AON_APB_INT_SLV_FW_AP_EN                             BIT(28)
-#define BIT_AON_APB_INT_MEM_FW_PUB_EN                            BIT(27)
-#define BIT_AON_APB_INT_SLV_FW_AON_EN                            BIT(26)
-#define BIT_AON_APB_INT_MEM_FW_AON_EN                            BIT(25)
-#define BIT_AON_APB_INT_BUSMON_PUB_EN                            BIT(24)
-#define BIT_AON_APB_INT_BUSMON_AP_EN                             BIT(23)
-#define BIT_AON_APB_INT_BUSMON_WTLCP_EN                          BIT(22)
-#define BIT_AON_APB_INT_BUSMON_PUBCP_EN                          BIT(21)
-#define BIT_AON_APB_INT_BUSMON_WCN_EN                            BIT(20)
-#define BIT_AON_APB_INT_WTLCP_LTE_WDG_RST_EN                     BIT(19)
-#define BIT_AON_APB_INT_WTLCP_TG_WDG_RST_EN                      BIT(18)
-#define BIT_AON_APB_INT_PCP_WDG_EN                               BIT(17)
-#define BIT_AON_APB_INT_WCN_BTWF_WDG_EN                          BIT(16)
-#define BIT_AON_APB_INT_WCN_GNSS_WDG_EN                          BIT(15)
-#define BIT_AON_APB_INT_PWR_DOWN_ALL_EN                          BIT(14)
-#define BIT_AON_APB_INT_PWR_UP_ALL_EN                            BIT(13)
-#define BIT_AON_APB_INT_AP_WDG_EN                                BIT(12)
-#define BIT_AON_APB_INT_CA53_WDG_EN                              BIT(11)
-#define BIT_AON_APB_INT_SEC_TMR_EN                               BIT(10)
-#define BIT_AON_APB_INT_SEC_WDG_EN                               BIT(9)
-#define BIT_AON_APB_INT_SEC_RTC_EN                               BIT(8)
-#define BIT_AON_APB_INT_SEC_REQ_DMA_EN                           BIT(7)
-#define BIT_AON_APB_INT_CHN_START_CHN3_EN                        BIT(6)
-#define BIT_AON_APB_INT_CHN_START_CHN2_EN                        BIT(5)
-#define BIT_AON_APB_INT_CHN_START_CHN1_EN                        BIT(4)
-#define BIT_AON_APB_INT_CHN_START_CHN0_EN                        BIT(3)
-#define BIT_AON_APB_INT_EIC_NON_LAT_EN                           BIT(2)
-#define BIT_AON_APB_INT_SEC_GPIO_EN                              BIT(1)
-#define BIT_AON_APB_INT_ADI_EN                                   BIT(0)
-
-/* REG_AON_APB_CM4_INT_REQ_SRC_EN1 */
-
-#define BIT_AON_APB_INT_REQ_SEC_EIC_EN                           BIT(15)
-#define BIT_AON_APB_INT_REQ_MDAR_AP_EN                           BIT(14)
-#define BIT_AON_APB_INT_REQ_DISPC_EN                             BIT(13)
-#define BIT_AON_APB_INT_REQ_GSP_EN                               BIT(12)
-#define BIT_AON_APB_INT_ANA_EN                                   BIT(11)
-#define BIT_AON_APB_INT_DFI_BUS_MONITOR_EN                       BIT(10)
-#define BIT_AON_APB_INT_CM4_GPIO_EN                              BIT(9)
-#define BIT_AON_APB_INT_AON_DMA_CM4_EN                           BIT(8)
-#define BIT_AON_APB_INT_MBOX_SRC_CM4_EN                          BIT(7)
-#define BIT_AON_APB_INT_MBOX_TAR_CM4_EN                          BIT(6)
-#define BIT_AON_APB_INT_CM4_WDG_EN                               BIT(5)
-#define BIT_AON_APB_INT_CM4_UART_EN                              BIT(4)
-#define BIT_AON_APB_INT_CM4_SYST_EN                              BIT(3)
-#define BIT_AON_APB_INT_CM4_TMR_EN                               BIT(2)
-#define BIT_AON_APB_INT_PWR_UP_PUB_EN                            BIT(1)
-#define BIT_AON_APB_INT_PWR_UP_AP_EN                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_MAIN_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_MAIN_LP_NUM(x)                       (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_MAIN_LP_EB                           BIT(0)
-
-/* REG_AON_APB_AON_MTX_M0_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_M0_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_M0_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_M1_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_M1_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_M1_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_M2_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_M2_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_M2_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_M3_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_M3_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_M3_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_M4_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_M4_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_M4_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_M5_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_M5_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_M5_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_S0_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_S0_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_S0_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_S1_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_S1_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_S1_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_S2_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_S2_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_S2_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_S3_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_S3_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_S3_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_S4_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_S4_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_S4_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_S5_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_S5_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_S5_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_S6_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_S6_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_S6_LP_EB                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_S7_LPC_CTRL */
-
-#define BIT_AON_APB_AON_MTX_S7_LP_NUM(x)                         (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON_MTX_S7_LP_EB                             BIT(0)
-
-/* REG_AON_APB_GPU2DDR_LPC_CTRL */
-
-#define BIT_AON_APB_GPU2DDR_ASYNC_BRIDGE_LP_NUM(x)               (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_GPU2DDR_ASYNC_BRIDGE_LP_EB                   BIT(0)
-
-/* REG_AON_APB_WTLCP2DDR_LPC_CTRL */
-
-#define BIT_AON_APB_WTLCP2DDR_ASYNC_BRIDGE_LP_NUM(x)             (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_WTLCP2DDR_ASYNC_BRIDGE_LP_EB                 BIT(0)
-
-/* REG_AON_APB_WCN2DDR_LPC_CTRL */
-
-#define BIT_AON_APB_WCN2DDR_ASYNC_BRIDGE_LP_NUM(x)               (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_WCN2DDR_ASYNC_BRIDGE_LP_EB                   BIT(0)
-
-/* REG_AON_APB_MM2DDR_LPC_CTRL */
-
-#define BIT_AON_APB_MM2DDR_ASYNC_BRIDGE_LP_NUM(x)                (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_MM2DDR_ASYNC_BRIDGE_LP_EB                    BIT(0)
-
-/* REG_AON_APB_AON2DDR_LPC_CTRL */
-
-#define BIT_AON_APB_AON2DDR_ASYNC_BRIDGE_LP_NUM(x)               (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_AON2DDR_ASYNC_BRIDGE_LP_EB                   BIT(0)
-
-/* REG_AON_APB_CM42AON_LPC_CTRL */
-
-#define BIT_AON_APB_CM4_TO_AON_AXI_LP_NUM(x)                     (((x) & 0xFFFF) << 1)
-#define BIT_AON_APB_CM4_TO_AON_AXI_LP_EB                         BIT(0)
-
-/* REG_AON_APB_OVERHEAT_CTRL */
-
-#define BIT_AON_APB_THM1_INT_ADIE_EN                             BIT(5)
-#define BIT_AON_APB_THM0_INT_ADIE_EN                             BIT(4)
-#define BIT_AON_APB_THM1_OVERHEAT_ALARM_ADIE_EN                  BIT(3)
-#define BIT_AON_APB_THM0_OVERHEAT_ALARM_ADIE_EN                  BIT(2)
-#define BIT_AON_APB_THM1_OVERHEAT_RST_DDIE_EN                    BIT(1)
-#define BIT_AON_APB_THM0_OVERHEAT_RST_DDIE_EN                    BIT(0)
-
-/* REG_AON_APB_SKLE_TMP0 */
-
-#define BIT_AON_APB_SKLE_TMP0(x)                                 (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_SKLE_TMP1 */
-
-#define BIT_AON_APB_SKLE_TMP1(x)                                 (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_SKLE_TMP2 */
-
-#define BIT_AON_APB_SKLE_TMP2(x)                                 (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_SKLE_TMP3 */
-
-#define BIT_AON_APB_SKLE_TMP3(x)                                 (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_DBG_PWRUP_SEL */
-
-#define BIT_AON_APB_DBG_PWRUP_SEL(x)                             (((x) & 0x3))
-
-/* REG_AON_APB_RVBAADDR0 */
-
-#define BIT_AON_APB_RVBAADDR0(x)                                 (((x) & 0x7FFFFFFF))
-
-/* REG_AON_APB_RVBAADDR1 */
-
-#define BIT_AON_APB_RVBAADDR1(x)                                 (((x) & 0x7FFFFFFF))
-
-/* REG_AON_APB_RVBAADDR2 */
-
-#define BIT_AON_APB_RVBAADDR2(x)                                 (((x) & 0x7FFFFFFF))
-
-/* REG_AON_APB_RVBAADDR3 */
-
-#define BIT_AON_APB_RVBAADDR3(x)                                 (((x) & 0x7FFFFFFF))
-
-/* REG_AON_APB_AA64N32 */
-
-#define BIT_AON_APB_AA64NAA32(x)                                 (((x) & 0xF))
-
-/* REG_AON_APB_CA53_EDBGRQ */
-
-#define BIT_AON_APB_CA53_EDBGRQ(x)                               (((x) & 0xF))
-
-/* REG_AON_APB_PUBCP_SIM1_TOP_CTRL */
-
-#define BIT_AON_APB_CP_SIM1_CLK_PL                               BIT(5)
-#define BIT_AON_APB_CP_SIM1_DETECT_EN                            BIT(4)
-#define BIT_AON_APB_CP_BAT1_DETECT_EN                            BIT(3)
-#define BIT_AON_APB_CP_SIM1_DETECT_POL                           BIT(2)
-#define BIT_AON_APB_CP_BAT1_DETECT_POL                           BIT(1)
-#define BIT_AON_APB_CP_SIM1_OFF_PD_EN                            BIT(0)
-
-/* REG_AON_APB_PUBCP_SIM2_TOP_CTRL */
-
-#define BIT_AON_APB_CP_SIM2_CLK_PL                               BIT(5)
-#define BIT_AON_APB_CP_SIM2_DETECT_EN                            BIT(4)
-#define BIT_AON_APB_CP_BAT2_DETECT_EN                            BIT(3)
-#define BIT_AON_APB_CP_SIM2_DETECT_POL                           BIT(2)
-#define BIT_AON_APB_CP_BAT2_DETECT_POL                           BIT(1)
-#define BIT_AON_APB_CP_SIM2_OFF_PD_EN                            BIT(0)
-
-/* REG_AON_APB_PUBCP_SIM3_TOP_CTRL */
-
-#define BIT_AON_APB_CP_SIM3_CLK_PL                               BIT(5)
-#define BIT_AON_APB_CP_SIM3_DETECT_EN                            BIT(4)
-#define BIT_AON_APB_CP_BAT3_DETECT_EN                            BIT(3)
-#define BIT_AON_APB_CP_SIM3_DETECT_POL                           BIT(2)
-#define BIT_AON_APB_CP_BAT3_DETECT_POL                           BIT(1)
-#define BIT_AON_APB_CP_SIM3_OFF_PD_EN                            BIT(0)
-
-/* REG_AON_APB_AP_SIM_TOP_CTRL */
-
-#define BIT_AON_APB_AP_SIM_CLK_PL                                BIT(5)
-#define BIT_AON_APB_AP_SIM_DETECT_EN                             BIT(4)
-#define BIT_AON_APB_AP_BAT_DETECT_EN                             BIT(3)
-#define BIT_AON_APB_AP_SIM_DETECT_POL                            BIT(2)
-#define BIT_AON_APB_AP_BAT_DETECT_POL                            BIT(1)
-#define BIT_AON_APB_AP_SIM_OFF_PD_EN                             BIT(0)
-
-/* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG */
-
-#define BIT_AON_APB_REG_DBG_BUS_SEL_AP(x)                        (((x) & 0xFF) << 24)
-#define BIT_AON_APB_REG_DBG_BUS_SEL_PUBCP(x)                     (((x) & 0xFF) << 16)
-#define BIT_AON_APB_REG_DBG_BUS_SEL_WTLCP(x)                     (((x) & 0xFF) << 8)
-#define BIT_AON_APB_REG_DBG_BUS_SEL_WCN(x)                       (((x) & 0xFF))
-
-/* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG1 */
-
-#define BIT_AON_APB_REG_DBG_BUS_SEL_PUB(x)                       (((x) & 0xFF) << 24)
-#define BIT_AON_APB_REG_DBG_BUS_SEL_MM(x)                        (((x) & 0xFF) << 16)
-#define BIT_AON_APB_REG_DBG_BUS_SEL_AON(x)                       (((x) & 0xFF) << 8)
-#define BIT_AON_APB_REG_DBG_BUS_SEL_MDAR(x)                      (((x) & 0xFF))
-
-/* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG2 */
-
-#define BIT_AON_APB_REG_DBG_MOD_SEL_WTLCP(x)                     (((x) & 0xFF) << 16)
-#define BIT_AON_APB_REG_DBG_MOD_SEL_PUBCP(x)                     (((x) & 0xFF) << 8)
-#define BIT_AON_APB_REG_DBG_SYS_SEL(x)                           (((x) & 0xFF))
-
-/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG1 */
-
-#define BIT_AON_APB_DBG_BUS5_SEL(x)                              (((x) & 0x1F) << 25)
-#define BIT_AON_APB_DBG_BUS4_SEL(x)                              (((x) & 0x1F) << 20)
-#define BIT_AON_APB_DBG_BUS3_SEL(x)                              (((x) & 0x1F) << 15)
-#define BIT_AON_APB_DBG_BUS2_SEL(x)                              (((x) & 0x1F) << 10)
-#define BIT_AON_APB_DBG_BUS1_SEL(x)                              (((x) & 0x1F) << 5)
-#define BIT_AON_APB_DBG_BUS0_SEL(x)                              (((x) & 0x1F))
-
-/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG2 */
-
-#define BIT_AON_APB_DBG_BUS11_SEL(x)                             (((x) & 0x1F) << 25)
-#define BIT_AON_APB_DBG_BUS10_SEL(x)                             (((x) & 0x1F) << 20)
-#define BIT_AON_APB_DBG_BUS9_SEL(x)                              (((x) & 0x1F) << 15)
-#define BIT_AON_APB_DBG_BUS8_SEL(x)                              (((x) & 0x1F) << 10)
-#define BIT_AON_APB_DBG_BUS7_SEL(x)                              (((x) & 0x1F) << 5)
-#define BIT_AON_APB_DBG_BUS6_SEL(x)                              (((x) & 0x1F))
-
-/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG3 */
-
-#define BIT_AON_APB_DBG_BUS15_SEL(x)                             (((x) & 0x1F) << 15)
-#define BIT_AON_APB_DBG_BUS14_SEL(x)                             (((x) & 0x1F) << 10)
-#define BIT_AON_APB_DBG_BUS13_SEL(x)                             (((x) & 0x1F) << 5)
-#define BIT_AON_APB_DBG_BUS12_SEL(x)                             (((x) & 0x1F))
-
-/* REG_AON_APB_BONDING_OPTION */
-
-#define BIT_AON_APB_BONDING_OPTION(x)                            (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_CE_LIFE_CYCLE */
-
-#define BIT_AON_APB_CE_LIFE_CYCLE(x)                             (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_WCN_ADC_CLK_SEL */
-
-#define BIT_AON_APB_WCN_OSCADC_CLK_SEL                           BIT(1)
-#define BIT_AON_APB_WCN_TSEADC_CLK_SEL                           BIT(0)
-
-/* REG_AON_APB_CHIP_TOP_PLL_CNT_DONE */
-
-#define BIT_AON_APB_CHIP_TOP_PLL_CNT_DONE                        BIT(0)
-
-/* REG_AON_APB_WCN_SYS_CFG1 */
-
-#define BIT_AON_APB_WCN_CM4_ADDR_REMAP(x)                        (((x) & 0x3) << 24)
-#define BIT_AON_APB_WCN_GNSS_CM4_ADDR_OFFSET(x)                  (((x) & 0xFFFFFF))
-
-/* REG_AON_APB_WCN_SYS_CFG2 */
-
-#define BIT_AON_APB_WCN_RD_XTAL_REQ_SEL(x)                       (((x) & 0x3) << 8)
-#define BIT_AON_APB_WCN_BTWF_SYS_EN                              BIT(7)
-#define BIT_AON_APB_WCN_GNSS_SYS_EN                              BIT(6)
-#define BIT_AON_APB_WCN_BTWF_CM4_DBGRESTART                      BIT(5)
-#define BIT_AON_APB_WCN_BTWF_CM4_EDBGREQ                         BIT(4)
-#define BIT_AON_APB_WCN_OFFCHIP_XTRL_EN                          BIT(3)
-#define BIT_AON_APB_WCN_XTAL_DIF_SEL_H                           BIT(2)
-#define BIT_AON_APB_WCN_GNSS_CM4_DBGRESTART                      BIT(1)
-#define BIT_AON_APB_WCN_GNSS_CM4_EDBGREQ                         BIT(0)
-
-/* REG_AON_APB_AP_CORE_CFG */
-
-#define BIT_AON_APB_DBGL1RSTDISABLE                              BIT(1)
-#define BIT_AON_APB_CA53_L2RSTDISABLE                            BIT(0)
-
-/* REG_AON_APB_CM4_MPU_DISABLE */
-
-#define BIT_AON_APB_MPUDISABLE                                   BIT(0)
-
-/* REG_AON_APB_CM4_STATUS */
-
-#define BIT_AON_APB_CM4_SLEEPING_STAT                            BIT(1)
-#define BIT_AON_APB_CM4_LOCKUP_STAT                              BIT(0)
-
-/* REG_AON_APB_MBIST_EFUSE_CTRL */
-
-#define BIT_AON_APB_FUSEBOX_SELECT_BUFFER_SW                     BIT(3)
-#define BIT_AON_APB_EFUSE_MUX_SEL_SW_DEFUALT0                    BIT(2)
-#define BIT_AON_APB_EFUSE_MUX_SEL_SW_DEFUALT1                    BIT(1)
-#define BIT_AON_APB_EFUSE_MUX_SEL_SW                             BIT(0)
-
-/* REG_AON_APB_AON_APB_FREQ_CTRL */
-
-#define BIT_AON_APB_AON_APB_MASTER_BUSY(x)                       (((x) & 0x3F) << 2)
-#define BIT_AON_APB_AON_APB_FREQ_CTRL_EN                         BIT(1)
-#define BIT_AON_APB_AON_APB_IDLE_EN                              BIT(0)
-
-/* REG_AON_APB_CA53_PROT_CTRL_NON_SEC */
-
-#define BIT_AON_APB_CA53_SPNIDEN_NON_SEC(x)                      (((x) & 0xF) << 12)
-#define BIT_AON_APB_CA53_SPIDEN_NON_SEC(x)                       (((x) & 0xF) << 8)
-#define BIT_AON_APB_CA53_NIDEN_NON_SEC(x)                        (((x) & 0xF) << 4)
-#define BIT_AON_APB_CA53_DBGEN_NON_SEC(x)                        (((x) & 0xF))
-
-/* REG_AON_APB_CSSYS_CFG_NON_SEC */
-
-#define BIT_AON_APB_DAP_DEVICEEN_NON_SEC                         BIT(31)
-#define BIT_AON_APB_DAP_DBGEN_NON_SEC                            BIT(30)
-#define BIT_AON_APB_DAP_SPIDBGEN_NON_SEC                         BIT(29)
-#define BIT_AON_APB_GNSS_CM4_DBGEN_NON_SEC                       BIT(11)
-#define BIT_AON_APB_BTWF_CM4_DBGEN_NON_SEC                       BIT(10)
-#define BIT_AON_APB_TG_JTAG_EN_NON_SEC                           BIT(9)
-#define BIT_AON_APB_LTE_JTAG_EN_NON_SEC                          BIT(8)
-#define BIT_AON_APB_AON_CM4_DBGEN_NON_SEC                        BIT(7)
-#define BIT_AON_APB_DJTAG_EN_NON_SEC                             BIT(6)
-#define BIT_AON_APB_AG_JTAG_EN_NON_SEC                           BIT(5)
-#define BIT_AON_APB_MJTAG_EN_NON_SEC                             BIT(4)
-#define BIT_AON_APB_CSSYS_NIDEN_NON_SEC                          BIT(3)
-#define BIT_AON_APB_CSSYS_SPNIDEN_NON_SEC                        BIT(2)
-#define BIT_AON_APB_CSSYS_SPIDEN_NON_SEC                         BIT(1)
-#define BIT_AON_APB_CSSYS_DBGEN_NON_SEC                          BIT(0)
-
-/* REG_AON_APB_CR5_PROT_CTRL_NON_SEC */
-
-#define BIT_AON_APB_CR5_NIDEN_NON_SEC                            BIT(1)
-#define BIT_AON_APB_CR5_DBGEN_NON_SEC                            BIT(0)
-
-/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG4 */
-
-#define BIT_AON_APB_DBG_BUS21_SEL(x)                             (((x) & 0x1F) << 25)
-#define BIT_AON_APB_DBG_BUS20_SEL(x)                             (((x) & 0x1F) << 20)
-#define BIT_AON_APB_DBG_BUS19_SEL(x)                             (((x) & 0x1F) << 15)
-#define BIT_AON_APB_DBG_BUS18_SEL(x)                             (((x) & 0x1F) << 10)
-#define BIT_AON_APB_DBG_BUS17_SEL(x)                             (((x) & 0x1F) << 5)
-#define BIT_AON_APB_DBG_BUS16_SEL(x)                             (((x) & 0x1F))
-
-/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG5 */
-
-#define BIT_AON_APB_DBG_BUS27_SEL(x)                             (((x) & 0x1F) << 25)
-#define BIT_AON_APB_DBG_BUS26_SEL(x)                             (((x) & 0x1F) << 20)
-#define BIT_AON_APB_DBG_BUS25_SEL(x)                             (((x) & 0x1F) << 15)
-#define BIT_AON_APB_DBG_BUS24_SEL(x)                             (((x) & 0x1F) << 10)
-#define BIT_AON_APB_DBG_BUS23_SEL(x)                             (((x) & 0x1F) << 5)
-#define BIT_AON_APB_DBG_BUS22_SEL(x)                             (((x) & 0x1F))
-
-/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG6 */
-
-#define BIT_AON_APB_DBG_BUS31_SEL(x)                             (((x) & 0x1F) << 15)
-#define BIT_AON_APB_DBG_BUS30_SEL(x)                             (((x) & 0x1F) << 10)
-#define BIT_AON_APB_DBG_BUS29_SEL(x)                             (((x) & 0x1F) << 5)
-#define BIT_AON_APB_DBG_BUS28_SEL(x)                             (((x) & 0x1F))
-
-/* REG_AON_APB_INT_REQ_PWR_UP_FLAG */
-
-#define BIT_AON_APB_INT_REQ_PWR_UP(x)                            (((x) & 0x3FF))
-
-/* REG_AON_APB_INT_REQ_PWR_DOWN_FLAG */
-
-#define BIT_AON_APB_INT_REQ_PWR_DOWN(x)                          (((x) & 0x3FF))
-
-/* REG_AON_APB_IO_DLY_CTRL */
-
-#define BIT_AON_APB_CLK_CCIR_DLY_SEL(x)                          (((x) & 0xF) << 8)
-#define BIT_AON_APB_CLK_PUBCPDSP_DLY_SEL(x)                      (((x) & 0xF) << 4)
-#define BIT_AON_APB_CLK_WTLCPDSP_DLY_SEL(x)                      (((x) & 0xF))
-
-/* REG_AON_APB_PMU_RST_MONITOR */
-
-#define BIT_AON_APB_PMU_RST_MONITOR(x)                           (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_THM_RST_MONITOR */
-
-#define BIT_AON_APB_THM_RST_MONITOR(x)                           (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_AP_RST_MONITOR */
-
-#define BIT_AON_APB_AP_RST_MONITOR(x)                            (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_CA53_RST_MONITOR */
-
-#define BIT_AON_APB_CA53_RST_MONITOR(x)                          (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_BOND_OPT0 */
-
-#define BIT_AON_APB_BOND_OPTION0(x)                              (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_RES_REG0 */
-
-#define BIT_AON_APB_DJTAG_TCK_EB                                 BIT(10)
-
-/* REG_AON_APB_RES_REG1 */
-
-#define BIT_AON_APB_RES_REG1(x)                                  (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_AON_QOS_CFG */
-
-#define BIT_AON_APB_QOS_R_GPU(x)                                 (((x) & 0xF) << 12)
-#define BIT_AON_APB_QOS_W_GPU(x)                                 (((x) & 0xF) << 8)
-#define BIT_AON_APB_QOS_R_GSP(x)                                 (((x) & 0xF) << 4)
-#define BIT_AON_APB_QOS_W_GSP(x)                                 (((x) & 0xF))
-
-/* REG_AON_APB_BB_LDO_CAL_START */
-
-#define BIT_AON_APB_BB_LDO_CAL_START                             BIT(0)
-
-/* REG_AON_APB_AON_MTX_PROT_CFG */
-
-#define BIT_AON_APB_HPROT_DMAW(x)                                (((x) & 0xF) << 4)
-#define BIT_AON_APB_HPROT_DMAR(x)                                (((x) & 0xF))
-
-/* REG_AON_APB_LVDS_CFG */
-
-#define BIT_AON_APB_LVDSDIS_TXCLKDATA(x)                         (((x) & 0x7F) << 16)
-#define BIT_AON_APB_LVDSDIS_TXCOM(x)                             (((x) & 0x3) << 12)
-#define BIT_AON_APB_LVDSDIS_TXSLEW(x)                            (((x) & 0x3) << 10)
-#define BIT_AON_APB_LVDSDIS_TXSW(x)                              (((x) & 0x3) << 8)
-#define BIT_AON_APB_LVDSDIS_TXRERSER(x)                          (((x) & 0x1F) << 3)
-#define BIT_AON_APB_LVDSDIS_PRE_EMP(x)                           (((x) & 0x3) << 1)
-#define BIT_AON_APB_LVDSDIS_TXPD                                 BIT(0)
-
-/* REG_AON_APB_PLL_LOCK_OUT_SEL */
-
-#define BIT_AON_APB_SLEEP_PLLLOCK_SEL                            BIT(7)
-#define BIT_AON_APB_PLL_LOCK_SEL(x)                              (((x) & 0x7) << 4)
-#define BIT_AON_APB_SLEEP_DBG_SEL(x)                             (((x) & 0xF))
-
-/* REG_AON_APB_FUNCTST_CTRL_0 */
-
-#define BIT_AON_APB_FUNCTST_CTRL_0(x)                            (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_FUNCTST_CTRL_1 */
-
-#define BIT_AON_APB_FUNCTST_CTRL_1(x)                            (((x) & 0xFFFFFFFF))
-
-/* REG_AON_APB_FUNCTST_CTRL_2 */
-
-#define BIT_AON_APB_FUNCTST_CTRL_2(x)                            (((x) & 0xFFFFFFFF))
+#define BIT_AON_APB_CGM_CM4_TMR2_EN                             BIT(19)
+#define BIT_AON_APB_DET_32K_EB                                  BIT(18)
+#define BIT_AON_APB_CGM_DEBOUNCE_EN                             BIT(17)
+#define BIT_AON_APB_CGM_RC100M_FDK_EN                           BIT(16)
+#define BIT_AON_APB_CGM_RC100M_REF_EN                           BIT(15)
+#define BIT_AON_APB_CGM_TMR_EN                                  BIT(14)
+#define BIT_AON_APB_CGM_TSEN_EN                                 BIT(13)
+#define BIT_AON_APB_CGM_OTG_REF_EN                              BIT(12)
+#define BIT_AON_APB_CGM_DMC_REF_EN                              BIT(11)
+#define BIT_AON_APB_CGM_DPHY_REF_EN                             BIT(10)
+#define BIT_AON_APB_CGM_DJTAG_TCK_EN                            BIT(9)
+#define BIT_AON_APB_CGM_DSI2_TEST_EB                            BIT(8)
+#define BIT_AON_APB_CGM_DSI1_TEST_EB                            BIT(7)
+#define BIT_AON_APB_CGM_DSI0_TEST_EB                            BIT(6)
+
+/* REG_AON_APB_CGM_CLK_TOP_REG1 */
+
+#define BIT_AON_APB_SOFT_DDR0_CKG_1X_EN                         BIT(26)
+#define BIT_AON_APB_SOFT_DDR0_DATA_RET                          BIT(23)
+#define BIT_AON_APB_LIGHT_SLEEP_DDR0_DATA_RET_EN                BIT(21)
+#define BIT_AON_APB_EMC0_CKG_SEL_LOAD                           BIT(19)
+#define BIT_AON_APB_CLK_DEBUG_TS_EB                             BIT(18)
+#define BIT_AON_APB_AAPC_CLK_TEST_EB                            BIT(16)
+#define BIT_AON_APB_CGM_CPHY_CFG_EN                             BIT(15)
+#define BIT_AON_APB_ALL_PLL_TEST_EB                             BIT(14)
+#define BIT_AON_APB_CGM_NANDC_2X_EN                             BIT(11)
+#define BIT_AON_APB_CGM_NANDC_1X_EN                             BIT(10)
+#define BIT_AON_APB_CGM_EMMC_2X_EN                              BIT(9)
+#define BIT_AON_APB_CGM_EMMC_1X_EN                              BIT(8)
+#define BIT_AON_APB_CGM_SDIO2_1X_EN                             BIT(7)
+#define BIT_AON_APB_CGM_SDIO2_2X_EN                             BIT(6)
+#define BIT_AON_APB_CGM_SDIO1_1X_EN                             BIT(5)
+#define BIT_AON_APB_CGM_SDIO1_2X_EN                             BIT(4)
+#define BIT_AON_APB_CGM_SDIO0_1X_EN                             BIT(3)
+#define BIT_AON_APB_CGM_SDIO0_2X_EN                             BIT(2)
+#define BIT_AON_APB_CGM_APCPU_AXI_EN                            BIT(1)
+#define BIT_AON_APB_CGM_CSSYS_EN                                BIT(0)
+
+/* REG_AON_APB_APCPU_INT_ENABLE_CTRL0 */
+
+#define BIT_AON_APB_APCPU_INT_EN_31                             BIT(31)
+#define BIT_AON_APB_APCPU_INT_EN_30                             BIT(30)
+#define BIT_AON_APB_APCPU_INT_EN_29                             BIT(29)
+#define BIT_AON_APB_APCPU_INT_EN_28                             BIT(28)
+#define BIT_AON_APB_APCPU_INT_EN_27                             BIT(27)
+#define BIT_AON_APB_APCPU_INT_EN_26                             BIT(26)
+#define BIT_AON_APB_APCPU_INT_EN_25                             BIT(25)
+#define BIT_AON_APB_APCPU_INT_EN_24                             BIT(24)
+#define BIT_AON_APB_APCPU_INT_EN_23                             BIT(23)
+#define BIT_AON_APB_APCPU_INT_EN_22                             BIT(22)
+#define BIT_AON_APB_APCPU_INT_EN_21                             BIT(21)
+#define BIT_AON_APB_APCPU_INT_EN_20                             BIT(20)
+#define BIT_AON_APB_APCPU_INT_EN_19                             BIT(19)
+#define BIT_AON_APB_APCPU_INT_EN_18                             BIT(18)
+#define BIT_AON_APB_APCPU_INT_EN_17                             BIT(17)
+#define BIT_AON_APB_APCPU_INT_EN_16                             BIT(16)
+#define BIT_AON_APB_APCPU_INT_EN_15                             BIT(15)
+#define BIT_AON_APB_APCPU_INT_EN_14                             BIT(14)
+#define BIT_AON_APB_APCPU_INT_EN_13                             BIT(13)
+#define BIT_AON_APB_APCPU_INT_EN_12                             BIT(12)
+#define BIT_AON_APB_APCPU_INT_EN_11                             BIT(11)
+#define BIT_AON_APB_APCPU_INT_EN_10                             BIT(10)
+#define BIT_AON_APB_APCPU_INT_EN_9                              BIT(9)
+#define BIT_AON_APB_APCPU_INT_EN_8                              BIT(8)
+#define BIT_AON_APB_APCPU_INT_EN_7                              BIT(7)
+#define BIT_AON_APB_APCPU_INT_EN_6                              BIT(6)
+#define BIT_AON_APB_APCPU_INT_EN_5                              BIT(5)
+#define BIT_AON_APB_APCPU_INT_EN_4                              BIT(4)
+#define BIT_AON_APB_APCPU_INT_EN_3                              BIT(3)
+#define BIT_AON_APB_APCPU_INT_EN_2                              BIT(2)
+#define BIT_AON_APB_APCPU_INT_EN_1                              BIT(1)
+#define BIT_AON_APB_APCPU_INT_EN_0                              BIT(0)
+
+/* REG_AON_APB_APCPU_INT_ENABLE_CTRL1 */
+
+#define BIT_AON_APB_APCPU_INT_EN_63                             BIT(31)
+#define BIT_AON_APB_APCPU_INT_EN_62                             BIT(30)
+#define BIT_AON_APB_APCPU_INT_EN_61                             BIT(29)
+#define BIT_AON_APB_APCPU_INT_EN_60                             BIT(28)
+#define BIT_AON_APB_APCPU_INT_EN_59                             BIT(27)
+#define BIT_AON_APB_APCPU_INT_EN_58                             BIT(26)
+#define BIT_AON_APB_APCPU_INT_EN_57                             BIT(25)
+#define BIT_AON_APB_APCPU_INT_EN_56                             BIT(24)
+#define BIT_AON_APB_APCPU_INT_EN_55                             BIT(23)
+#define BIT_AON_APB_APCPU_INT_EN_54                             BIT(22)
+#define BIT_AON_APB_APCPU_INT_EN_53                             BIT(21)
+#define BIT_AON_APB_APCPU_INT_EN_52                             BIT(20)
+#define BIT_AON_APB_APCPU_INT_EN_51                             BIT(19)
+#define BIT_AON_APB_APCPU_INT_EN_50                             BIT(18)
+#define BIT_AON_APB_APCPU_INT_EN_49                             BIT(17)
+#define BIT_AON_APB_APCPU_INT_EN_48                             BIT(16)
+#define BIT_AON_APB_APCPU_INT_EN_47                             BIT(15)
+#define BIT_AON_APB_APCPU_INT_EN_46                             BIT(14)
+#define BIT_AON_APB_APCPU_INT_EN_45                             BIT(13)
+#define BIT_AON_APB_APCPU_INT_EN_44                             BIT(12)
+#define BIT_AON_APB_APCPU_INT_EN_43                             BIT(11)
+#define BIT_AON_APB_APCPU_INT_EN_42                             BIT(10)
+#define BIT_AON_APB_APCPU_INT_EN_41                             BIT(9)
+#define BIT_AON_APB_APCPU_INT_EN_40                             BIT(8)
+#define BIT_AON_APB_APCPU_INT_EN_39                             BIT(7)
+#define BIT_AON_APB_APCPU_INT_EN_38                             BIT(6)
+#define BIT_AON_APB_APCPU_INT_EN_37                             BIT(5)
+#define BIT_AON_APB_APCPU_INT_EN_36                             BIT(4)
+#define BIT_AON_APB_APCPU_INT_EN_35                             BIT(3)
+#define BIT_AON_APB_APCPU_INT_EN_34                             BIT(2)
+#define BIT_AON_APB_APCPU_INT_EN_33                             BIT(1)
+#define BIT_AON_APB_APCPU_INT_EN_32                             BIT(0)
+
+/* REG_AON_APB_APCPU_INT_ENABLE_CTRL2 */
+
+#define BIT_AON_APB_APCPU_INT_EN_95                             BIT(31)
+#define BIT_AON_APB_APCPU_INT_EN_94                             BIT(30)
+#define BIT_AON_APB_APCPU_INT_EN_93                             BIT(29)
+#define BIT_AON_APB_APCPU_INT_EN_92                             BIT(28)
+#define BIT_AON_APB_APCPU_INT_EN_91                             BIT(27)
+#define BIT_AON_APB_APCPU_INT_EN_90                             BIT(26)
+#define BIT_AON_APB_APCPU_INT_EN_89                             BIT(25)
+#define BIT_AON_APB_APCPU_INT_EN_88                             BIT(24)
+#define BIT_AON_APB_APCPU_INT_EN_87                             BIT(23)
+#define BIT_AON_APB_APCPU_INT_EN_86                             BIT(22)
+#define BIT_AON_APB_APCPU_INT_EN_85                             BIT(21)
+#define BIT_AON_APB_APCPU_INT_EN_84                             BIT(20)
+#define BIT_AON_APB_APCPU_INT_EN_83                             BIT(19)
+#define BIT_AON_APB_APCPU_INT_EN_82                             BIT(18)
+#define BIT_AON_APB_APCPU_INT_EN_81                             BIT(17)
+#define BIT_AON_APB_APCPU_INT_EN_80                             BIT(16)
+#define BIT_AON_APB_APCPU_INT_EN_79                             BIT(15)
+#define BIT_AON_APB_APCPU_INT_EN_78                             BIT(14)
+#define BIT_AON_APB_APCPU_INT_EN_77                             BIT(13)
+#define BIT_AON_APB_APCPU_INT_EN_76                             BIT(12)
+#define BIT_AON_APB_APCPU_INT_EN_75                             BIT(11)
+#define BIT_AON_APB_APCPU_INT_EN_74                             BIT(10)
+#define BIT_AON_APB_APCPU_INT_EN_73                             BIT(9)
+#define BIT_AON_APB_APCPU_INT_EN_72                             BIT(8)
+#define BIT_AON_APB_APCPU_INT_EN_71                             BIT(7)
+#define BIT_AON_APB_APCPU_INT_EN_70                             BIT(6)
+#define BIT_AON_APB_APCPU_INT_EN_69                             BIT(5)
+#define BIT_AON_APB_APCPU_INT_EN_68                             BIT(4)
+#define BIT_AON_APB_APCPU_INT_EN_67                             BIT(3)
+#define BIT_AON_APB_APCPU_INT_EN_66                             BIT(2)
+#define BIT_AON_APB_APCPU_INT_EN_65                             BIT(1)
+#define BIT_AON_APB_APCPU_INT_EN_64                             BIT(0)
+
+/* REG_AON_APB_APCPU_INT_ENABLE_CTRL3 */
+
+#define BIT_AON_APB_APCPU_INT_EN_127                            BIT(31)
+#define BIT_AON_APB_APCPU_INT_EN_126                            BIT(30)
+#define BIT_AON_APB_APCPU_INT_EN_125                            BIT(29)
+#define BIT_AON_APB_APCPU_INT_EN_124                            BIT(28)
+#define BIT_AON_APB_APCPU_INT_EN_123                            BIT(27)
+#define BIT_AON_APB_APCPU_INT_EN_122                            BIT(26)
+#define BIT_AON_APB_APCPU_INT_EN_121                            BIT(25)
+#define BIT_AON_APB_APCPU_INT_EN_120                            BIT(24)
+#define BIT_AON_APB_APCPU_INT_EN_119                            BIT(23)
+#define BIT_AON_APB_APCPU_INT_EN_118                            BIT(22)
+#define BIT_AON_APB_APCPU_INT_EN_117                            BIT(21)
+#define BIT_AON_APB_APCPU_INT_EN_116                            BIT(20)
+#define BIT_AON_APB_APCPU_INT_EN_115                            BIT(19)
+#define BIT_AON_APB_APCPU_INT_EN_114                            BIT(18)
+#define BIT_AON_APB_APCPU_INT_EN_113                            BIT(17)
+#define BIT_AON_APB_APCPU_INT_EN_112                            BIT(16)
+#define BIT_AON_APB_APCPU_INT_EN_111                            BIT(15)
+#define BIT_AON_APB_APCPU_INT_EN_110                            BIT(14)
+#define BIT_AON_APB_APCPU_INT_EN_109                            BIT(13)
+#define BIT_AON_APB_APCPU_INT_EN_108                            BIT(12)
+#define BIT_AON_APB_APCPU_INT_EN_107                            BIT(11)
+#define BIT_AON_APB_APCPU_INT_EN_106                            BIT(10)
+#define BIT_AON_APB_APCPU_INT_EN_105                            BIT(9)
+#define BIT_AON_APB_APCPU_INT_EN_104                            BIT(8)
+#define BIT_AON_APB_APCPU_INT_EN_103                            BIT(7)
+#define BIT_AON_APB_APCPU_INT_EN_102                            BIT(6)
+#define BIT_AON_APB_APCPU_INT_EN_101                            BIT(5)
+#define BIT_AON_APB_APCPU_INT_EN_100                            BIT(4)
+#define BIT_AON_APB_APCPU_INT_EN_99                             BIT(3)
+#define BIT_AON_APB_APCPU_INT_EN_98                             BIT(2)
+#define BIT_AON_APB_APCPU_INT_EN_97                             BIT(1)
+#define BIT_AON_APB_APCPU_INT_EN_96                             BIT(0)
+
+/* REG_AON_APB_APCPU_INT_ENABLE_CTRL4 */
+
+#define BIT_AON_APB_APCPU_INT_EN_159                            BIT(31)
+#define BIT_AON_APB_APCPU_INT_EN_158                            BIT(30)
+#define BIT_AON_APB_APCPU_INT_EN_157                            BIT(29)
+#define BIT_AON_APB_APCPU_INT_EN_156                            BIT(28)
+#define BIT_AON_APB_APCPU_INT_EN_155                            BIT(27)
+#define BIT_AON_APB_APCPU_INT_EN_154                            BIT(26)
+#define BIT_AON_APB_APCPU_INT_EN_153                            BIT(25)
+#define BIT_AON_APB_APCPU_INT_EN_152                            BIT(24)
+#define BIT_AON_APB_APCPU_INT_EN_151                            BIT(23)
+#define BIT_AON_APB_APCPU_INT_EN_150                            BIT(22)
+#define BIT_AON_APB_APCPU_INT_EN_149                            BIT(21)
+#define BIT_AON_APB_APCPU_INT_EN_148                            BIT(20)
+#define BIT_AON_APB_APCPU_INT_EN_147                            BIT(19)
+#define BIT_AON_APB_APCPU_INT_EN_146                            BIT(18)
+#define BIT_AON_APB_APCPU_INT_EN_145                            BIT(17)
+#define BIT_AON_APB_APCPU_INT_EN_144                            BIT(16)
+#define BIT_AON_APB_APCPU_INT_EN_143                            BIT(15)
+#define BIT_AON_APB_APCPU_INT_EN_142                            BIT(14)
+#define BIT_AON_APB_APCPU_INT_EN_141                            BIT(13)
+#define BIT_AON_APB_APCPU_INT_EN_140                            BIT(12)
+#define BIT_AON_APB_APCPU_INT_EN_139                            BIT(11)
+#define BIT_AON_APB_APCPU_INT_EN_138                            BIT(10)
+#define BIT_AON_APB_APCPU_INT_EN_137                            BIT(9)
+#define BIT_AON_APB_APCPU_INT_EN_136                            BIT(8)
+#define BIT_AON_APB_APCPU_INT_EN_135                            BIT(7)
+#define BIT_AON_APB_APCPU_INT_EN_134                            BIT(6)
+#define BIT_AON_APB_APCPU_INT_EN_133                            BIT(5)
+#define BIT_AON_APB_APCPU_INT_EN_132                            BIT(4)
+#define BIT_AON_APB_APCPU_INT_EN_131                            BIT(3)
+#define BIT_AON_APB_APCPU_INT_EN_130                            BIT(2)
+#define BIT_AON_APB_APCPU_INT_EN_129                            BIT(1)
+#define BIT_AON_APB_APCPU_INT_EN_128                            BIT(0)
+
+/* REG_AON_APB_APCPU_INT_ENABLE_CTRL5 */
+
+#define BIT_AON_APB_APCPU_INT_EN_191                            BIT(31)
+#define BIT_AON_APB_APCPU_INT_EN_190                            BIT(30)
+#define BIT_AON_APB_APCPU_INT_EN_189                            BIT(29)
+#define BIT_AON_APB_APCPU_INT_EN_188                            BIT(28)
+#define BIT_AON_APB_APCPU_INT_EN_187                            BIT(27)
+#define BIT_AON_APB_APCPU_INT_EN_186                            BIT(26)
+#define BIT_AON_APB_APCPU_INT_EN_185                            BIT(25)
+#define BIT_AON_APB_APCPU_INT_EN_184                            BIT(24)
+#define BIT_AON_APB_APCPU_INT_EN_183                            BIT(23)
+#define BIT_AON_APB_APCPU_INT_EN_182                            BIT(22)
+#define BIT_AON_APB_APCPU_INT_EN_181                            BIT(21)
+#define BIT_AON_APB_APCPU_INT_EN_180                            BIT(20)
+#define BIT_AON_APB_APCPU_INT_EN_179                            BIT(19)
+#define BIT_AON_APB_APCPU_INT_EN_178                            BIT(18)
+#define BIT_AON_APB_APCPU_INT_EN_177                            BIT(17)
+#define BIT_AON_APB_APCPU_INT_EN_176                            BIT(16)
+#define BIT_AON_APB_APCPU_INT_EN_175                            BIT(15)
+#define BIT_AON_APB_APCPU_INT_EN_174                            BIT(14)
+#define BIT_AON_APB_APCPU_INT_EN_173                            BIT(13)
+#define BIT_AON_APB_APCPU_INT_EN_172                            BIT(12)
+#define BIT_AON_APB_APCPU_INT_EN_171                            BIT(11)
+#define BIT_AON_APB_APCPU_INT_EN_170                            BIT(10)
+#define BIT_AON_APB_APCPU_INT_EN_169                            BIT(9)
+#define BIT_AON_APB_APCPU_INT_EN_168                            BIT(8)
+#define BIT_AON_APB_APCPU_INT_EN_167                            BIT(7)
+#define BIT_AON_APB_APCPU_INT_EN_166                            BIT(6)
+#define BIT_AON_APB_APCPU_INT_EN_165                            BIT(5)
+#define BIT_AON_APB_APCPU_INT_EN_164                            BIT(4)
+#define BIT_AON_APB_APCPU_INT_EN_163                            BIT(3)
+#define BIT_AON_APB_APCPU_INT_EN_162                            BIT(2)
+#define BIT_AON_APB_APCPU_INT_EN_161                            BIT(1)
+#define BIT_AON_APB_APCPU_INT_EN_160                            BIT(0)
+
+/* REG_AON_APB_SP_WAKEUP_MASK_EN0 */
+
+#define BIT_AON_APB_SP_INT_REQ_BUSMON_PSCP_WAKEUP_EN            BIT(31)
+#define BIT_AON_APB_SP_INT_REQ_BUSMON_AUDCP_WAKEUP_EN           BIT(30)
+#define BIT_AON_APB_SP_INT_REQ_ADI_WAKEUP_EN                    BIT(29)
+#define BIT_AON_APB_SP_INT_REQ_PCP_WDG_WAKEUP_EN                BIT(28)
+#define BIT_AON_APB_SP_INT_REQ_PWR_DOWN_ALL_WAKEUP_EN           BIT(27)
+#define BIT_AON_APB_SP_INT_REQ_PWR_UP_ALL_WAKEUP_EN             BIT(26)
+#define BIT_AON_APB_SP_INT_REQ_AP_WDG_RST_WAKEUP_EN             BIT(25)
+#define BIT_AON_APB_SP_INT_REQ_APCPU_WDG_RST_WAKEUP_EN          BIT(24)
+#define BIT_AON_APB_SP_INT_REQ_MBOX_SRC_SIPC_SP_CM4_WAKEUP_EN   BIT(18)
+#define BIT_AON_APB_SP_INT_REQ_MBOX_SRC_CM4_WAKEUP_EN           BIT(17)
+#define BIT_AON_APB_SP_INT_REQ_MBOX_TAR_CM4_WAKEUP_EN           BIT(16)
+#define BIT_AON_APB_SP_INT_REQ_CM4_SOFT_WAKEUP_EN               BIT(15)
+#define BIT_AON_APB_SP_INT_FPU_EXCEPTION_WAKEUP_EN              BIT(14)
+#define BIT_AON_APB_SP_INT_REQ_EIC_GPIO_NON_LAT_WAKEUP_EN       BIT(13)
+#define BIT_AON_APB_SP_INT_REQ_EIC_GPIO_LAT_WAKEUP_EN           BIT(12)
+#define BIT_AON_APB_SP_INT_REQ_EIC_NON_LAT_WAKEUP_EN            BIT(11)
+#define BIT_AON_APB_SP_INT_REQ_EIC_LAT_WAKEUP_EN                BIT(10)
+#define BIT_AON_APB_SP_INT_REQ_CM4_DMA_WAKEUP_EN                BIT(9)
+#define BIT_AON_APB_SP_INT_REQ_CM4_SYST_WAKEUP_EN               BIT(7)
+#define BIT_AON_APB_SP_INT_REQ_CM4_I2C0_SLV_WAKEUP_EN           BIT(6)
+#define BIT_AON_APB_SP_INT_REQ_CM4_WDG_WAKEUP_EN                BIT(5)
+#define BIT_AON_APB_SP_INT_REQ_CM4_UART0_WAKEUP_EN              BIT(2)
+
+/* REG_AON_APB_SP_WAKEUP_MASK_EN1 */
+
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_VBC_AUDRCD_WAKEUP_EN       BIT(31)
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_MCDT_WAKEUP_EN             BIT(30)
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_DMA_WAKEUP_EN              BIT(29)
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_CHN_START_CHN3_WAKEUP_EN   BIT(28)
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_CHN_START_CHN2_WAKEUP_EN   BIT(27)
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_CHN_START_CHN1_WAKEUP_EN   BIT(26)
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_CHN_START_CHN0_WAKEUP_EN   BIT(25)
+#define BIT_AON_APB_SP_INT_REQ_ANA_WAKEUP_EN                    BIT(24)
+#define BIT_AON_APB_SP_INT_REQ_WTLCP_LTE_WDG_RST_WAKEUP_EN      BIT(23)
+#define BIT_AON_APB_SP_INT_REQ_WTLCP_TG_WDG_RST_WAKEUP_EN       BIT(22)
+#define BIT_AON_APB_SP_INT_REQ_PUB_DFS_DENY_EN                  BIT(18)
+#define BIT_AON_APB_SP_INT_REQ_PUB_DMC_MPU_VIO_WAKEUP_EN        BIT(17)
+#define BIT_AON_APB_SP_INT_REQ_PUB_DFI_BUSMON_WAKEUP_EN         BIT(15)
+#define BIT_AON_APB_SP_INT_REQ_PUB_PTM_WAKEUP_EN                BIT(14)
+#define BIT_AON_APB_SP_INT_REQ_PUB_HARDWARE_DFS_EXIT_WAKEUP_EN  BIT(13)
+#define BIT_AON_APB_SP_INT_REQ_PUB_DFS_COMPLETE_WAKEUP_EN       BIT(12)
+#define BIT_AON_APB_SP_INT_REQ_PUB_DFS_ERROR_WAKEUP_EN          BIT(11)
+#define BIT_AON_APB_SP_INT_REQ_PUB_DFS_GIVEUP_EN                BIT(10)
+#define BIT_AON_APB_SP_INT_REQ_CLK_32K_DET_WAKEUP_EN            BIT(9)
+#define BIT_AON_APB_SP_INT_REQ_AON_I2C_WAKEUP_EN                BIT(8)
+#define BIT_AON_APB_SP_INT_REQ_THM0_WAKEUP_EN                   BIT(7)
+#define BIT_AON_APB_SP_INT_REQ_PWR_UP_PUB_WAKEUP_EN             BIT(6)
+#define BIT_AON_APB_SP_INT_REQ_PWR_UP_AP_WAKEUP_EN              BIT(5)
+#define BIT_AON_APB_SP_INT_REQ_BUSMON_DAP_MTX_WAKEUP_EN         BIT(3)
+#define BIT_AON_APB_SP_INT_REQ_BUSMON_NR_WAKEUP_EN              BIT(2)
+#define BIT_AON_APB_SP_INT_REQ_BUSMON_AP_WAKEUP_EN              BIT(1)
+#define BIT_AON_APB_SP_INT_REQ_BUSMON_V3_WAKEUP_EN              BIT(0)
+
+/* REG_AON_APB_SP_WAKEUP_MASK_EN2 */
+
+#define BIT_AON_APB_SP_INT_REQ_DFS_VOTE_DONE_WAKEUP_EN          BIT(9)
+#define BIT_AON_APB_SP_INT_REQ_THM2_WAKEUP_EN                   BIT(8)
+#define BIT_AON_APB_SP_INT_REQ_THM1_WAKEUP_EN                   BIT(7)
+#define BIT_AON_APB_SP_INT_REQ_CM4_TMR2_WAKEUP_EN               BIT(6)
+#define BIT_AON_APB_SP_INT_REQ_CM4_TMR1_WAKEUP_EN               BIT(5)
+#define BIT_AON_APB_SP_INT_REQ_CM4_TMR0_WAKEUP_EN               BIT(4)
+#define BIT_AON_APB_SP_INT_REQ_EXT_RSTB_SPCPU_WAKEUP_EN         BIT(3)
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_WDG_RST_WAKEUP_EN          BIT(1)
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_VBC_AUDPLY_WAKEUP_EN       BIT(0)
+
+/* REG_AON_APB_APB_RST0 */
+
+#define BIT_AON_APB_V3PS_SIM2_AON_TOP_SOFT_RST                  BIT(21)
+#define BIT_AON_APB_V3PS_SIM1_AON_TOP_SOFT_RST                  BIT(20)
+#define BIT_AON_APB_V3PS_SIM0_AON_TOP_SOFT_RST                  BIT(19)
+#define BIT_AON_APB_WCN_ADDA_TEST_SOFT_RST                      BIT(18)
+#define BIT_AON_APB_RTM_SOFT_RST                                BIT(17)
+#define BIT_AON_APB_SERDES2_SOFT_RST                            BIT(16)
+#define BIT_AON_APB_SERDES1_SOFT_RST                            BIT(15)
+#define BIT_AON_APB_SERDES0_SOFT_RST                            BIT(14)
+#define BIT_AON_APB_SERDES_DPHY2_APB_SOFT_RST                   BIT(13)
+#define BIT_AON_APB_SERDES_DPHY2_SOFT_RST                       BIT(12)
+#define BIT_AON_APB_SERDES_DPHY1_APB_SOFT_RST                   BIT(11)
+#define BIT_AON_APB_SERDES_DPHY1_SOFT_RST                       BIT(10)
+#define BIT_AON_APB_SERDES_DPHY0_APB_SOFT_RST                   BIT(9)
+#define BIT_AON_APB_SERDES_DPHY0_SOFT_RST                       BIT(8)
+#define BIT_AON_APB_DAP_MTX_SOFT_RST                            BIT(6)
+#define BIT_AON_APB_AON_NR_SPI_SOFT_RST                         BIT(4)
+#define BIT_AON_APB_BB_CAL_SOFT_RST                             BIT(3)
+#define BIT_AON_APB_DCXO_LC_SOFT_RST                            BIT(2)
+#define BIT_AON_APB_AON_SPI_SOFT_RST                            BIT(1)
+#define BIT_AON_APB_RC100M_CAL_SOFT_RST                         BIT(0)
+
+/* REG_AON_APB_APB_RST1 */
+
+#define BIT_AON_APB_AON_RFSPI_SLV_NR_SOFT_RST                   BIT(28)
+#define BIT_AON_APB_AON_RFSPI_SLV_V3_SOFT_RST                   BIT(27)
+#define BIT_AON_APB_PMU_APB_BUSMON_SOFT_RST                     BIT(26)
+#define BIT_AON_APB_AON_APB_BUSMON_SOFT_RST                     BIT(25)
+#define BIT_AON_APB_CSSYS_SOFT_RST                              BIT(24)
+#define BIT_AON_APB_BSMTMR_SOFT_RST                             BIT(23)
+#define BIT_AON_APB_APB_DIRECT_ACC_PROT_AON_APB_SOFT_RST        BIT(22)
+#define BIT_AON_APB_APB_DIRECT_ACC_PROT_PMU_APB_SOFT_RST        BIT(21)
+#define BIT_AON_APB_SCC_SOFT_RST                                BIT(20)
+#define BIT_AON_APB_DEBUG_FILTER_SOFT_RST                       BIT(19)
+#define BIT_AON_APB_APB_DIRECT_ACC_PROT_SOFT_RST                BIT(18)
+#define BIT_AON_APB_APCPU_TS0_SOFT_RST                          BIT(17)
+#define BIT_AON_APB_DJTAG_CTRL_SOFT_RST                         BIT(16)
+#define BIT_AON_APB_SEC_32K_DET_SOFT_RST                        BIT(14)
+#define BIT_AON_APB_CKG_SOFT_RST                                BIT(13)
+#define BIT_AON_APB_ANA_SOFT_RST                                BIT(12)
+#define BIT_AON_APB_PIN_SOFT_RST                                BIT(11)
+#define BIT_AON_APB_SPLK_SOFT_RST                               BIT(10)
+#define BIT_AON_APB_APCPU_CLK_SOFT_RST                          BIT(8)
+#define BIT_AON_APB_DVFS_TOP_SOFT_RST                           BIT(7)
+#define BIT_AON_APB_AON_TMR_SOFT_RST                            BIT(6)
+#define BIT_AON_APB_AP_SYST_SOFT_RST                            BIT(5)
+#define BIT_AON_APB_AON_SYST_SOFT_RST                           BIT(4)
+#define BIT_AON_APB_KPD_SOFT_RST                                BIT(3)
+#define BIT_AON_APB_MBOX_SOFT_RST                               BIT(2)
+#define BIT_AON_APB_GPIO_SOFT_RST                               BIT(1)
+#define BIT_AON_APB_EFUSE_SOFT_RST                              BIT(0)
+
+/* REG_AON_APB_APB_RST2 */
+
+#define BIT_AON_APB_APCPU_WDG_SOFT_RST                          BIT(31)
+#define BIT_AON_APB_AP_WDG_SOFT_RST                             BIT(30)
+#define BIT_AON_APB_AP_TMR2_SOFT_RST                            BIT(29)
+#define BIT_AON_APB_AP_TMR1_SOFT_RST                            BIT(28)
+#define BIT_AON_APB_AP_TMR0_SOFT_RST                            BIT(27)
+#define BIT_AON_APB_THM2_SOFT_RST                               BIT(25)
+#define BIT_AON_APB_NR_INTC_SOFT_RST                            BIT(24)
+#define BIT_AON_APB_NR_DSP1_INTC_SOFT_RST                       BIT(23)
+#define BIT_AON_APB_NR_DSP0_INTC_SOFT_RST                       BIT(22)
+#define BIT_AON_APB_NR_CR8_INTC_SOFT_RST                        BIT(21)
+#define BIT_AON_APB_V3PHY_INTC_SOFT_RST                         BIT(20)
+#define BIT_AON_APB_V3PS_INTC_SOFT_RST                          BIT(19)
+#define BIT_AON_APB_V3MODEM_INTC_SOFT_RST                       BIT(18)
+#define BIT_AON_APB_PSCP_INTC_SOFT_RST                          BIT(17)
+#define BIT_AON_APB_AUDCP_INTC_SOFT_RST                         BIT(16)
+#define BIT_AON_APB_AP_INTC5_SOFT_RST                           BIT(15)
+#define BIT_AON_APB_AP_INTC4_SOFT_RST                           BIT(14)
+#define BIT_AON_APB_AP_INTC3_SOFT_RST                           BIT(13)
+#define BIT_AON_APB_AP_INTC2_SOFT_RST                           BIT(12)
+#define BIT_AON_APB_AP_INTC1_SOFT_RST                           BIT(11)
+#define BIT_AON_APB_AP_INTC0_SOFT_RST                           BIT(10)
+#define BIT_AON_APB_EIC_SOFT_RST                                BIT(9)
+#define BIT_AON_APB_ADI_SOFT_RST                                BIT(8)
+#define BIT_AON_APB_PMU_SOFT_RST                                BIT(7)
+#define BIT_AON_APB_I2C_SOFT_RST                                BIT(6)
+#define BIT_AON_APB_PSCP_SIM2_AON_TOP_SOFT_RST                  BIT(5)
+#define BIT_AON_APB_PSCP_SIM1_AON_TOP_SOFT_RST                  BIT(4)
+#define BIT_AON_APB_PSCP_SIM0_AON_TOP_SOFT_RST                  BIT(3)
+#define BIT_AON_APB_AP_SIM_AON_TOP_SOFT_RST                     BIT(2)
+#define BIT_AON_APB_THM1_SOFT_RST                               BIT(1)
+#define BIT_AON_APB_THM0_SOFT_RST                               BIT(0)
+
+/* REG_AON_APB_APB_RST3 */
+
+#define BIT_AON_APB_DJTAG_SOFT_RST                              BIT(10)
+#define BIT_AON_APB_DJTAG_PUB0_SOFT_RST                         BIT(9)
+#define BIT_AON_APB_DJTAG_AON_SOFT_RST                          BIT(8)
+#define BIT_AON_APB_DJTAG_AUDCP_SOFT_RST                        BIT(7)
+#define BIT_AON_APB_DJTAG_V3_SOFT_RST                           BIT(6)
+#define BIT_AON_APB_DJTAG_PSCP_SOFT_RST                         BIT(5)
+#define BIT_AON_APB_DJTAG_NRCP_SOFT_RST                         BIT(4)
+#define BIT_AON_APB_DJTAG_APCPU_SOFT_RST                        BIT(1)
+#define BIT_AON_APB_DJTAG_AP_SOFT_RST                           BIT(0)
+
+/* REG_AON_APB_CM4_SYS_SOFT_RST */
+
+#define BIT_AON_APB_CM4_SYS_SOFT_RST                            BIT(4)
+#define BIT_AON_APB_CM4_CORE_SOFT_RST                           BIT(0)
+
+/* REG_AON_APB_PSCP_SOFT_RST */
+
+#define BIT_AON_APB_PSCP_CR8_BLK_CORE_SOFT_RST                  BIT(14)
+#define BIT_AON_APB_PSCP_CR8_CORE_SOFT_RST(x)                   (((x) & 0x3) << 12)
+#define BIT_AON_APB_PSCP_CR8_BLK_DBG_SOFT_RST                   BIT(11)
+#define BIT_AON_APB_PSCP_CR8_DBG_SOFT_RST(x)                    (((x) & 0x3) << 9)
+#define BIT_AON_APB_PSCP_CR8_ETM_SOFT_RST                       BIT(8)
+#define BIT_AON_APB_PSCP_CR8_MP_SOFT_RST                        BIT(7)
+#define BIT_AON_APB_PSCP_CR8_CS_DBG_SOFT_RST                    BIT(6)
+#define BIT_AON_APB_PSCP_TMR_SOFT_RST                           BIT(5)
+#define BIT_AON_APB_PSCP_SYST_SOFT_RST                          BIT(4)
+#define BIT_AON_APB_PSCP_WDG_SOFT_RST                           BIT(3)
+#define BIT_AON_APB_CPALL_EIC_SOFT_RST                          BIT(2)
+
+/* REG_AON_APB_NRCP_SOFT_RST */
+
+#define BIT_AON_APB_NRCP_CR8_BLK_CORE_SOFT_RST                  BIT(14)
+#define BIT_AON_APB_NRCP_CR8_CORE_SOFT_RST(x)                   (((x) & 0x3) << 12)
+#define BIT_AON_APB_NRCP_CR8_BLK_DBG_SOFT_RST                   BIT(11)
+#define BIT_AON_APB_NRCP_CR8_DBG_SOFT_RST(x)                    (((x) & 0x3) << 9)
+
+/* REG_AON_APB_V3PS_SOFT_RST */
+
+#define BIT_AON_APB_V3_PS_CR5_DBG_SW_RST                        BIT(2)
+#define BIT_AON_APB_V3_PS_CR5_BLK_SW_RST                        BIT(1)
+#define BIT_AON_APB_V3_PS_CR5_CORE_SW_RST                       BIT(0)
+
+/* REG_AON_APB_V3PHY_SOFT_RST */
+
+#define BIT_AON_APB_V3_PHY_CR5_DBG_SW_RST                       BIT(2)
+#define BIT_AON_APB_V3_PHY_CR5_BLK_SW_RST                       BIT(1)
+#define BIT_AON_APB_V3_PHY_CR5_CORE_SW_RST                      BIT(0)
 
 /* REG_AON_APB_WDG_RST_FLAG */
 
-#define BIT_AON_APB_PCP_WDG_RST_FLAG                             BIT(5)
-#define BIT_AON_APB_WTLCP_LTE_WDG_RST_FLAG                       BIT(4)
-#define BIT_AON_APB_WTLCP_TG_WDG_RST_FLAG                        BIT(3)
-#define BIT_AON_APB_CA53_WDG_RST_FLAG                            BIT(1)
-#define BIT_AON_APB_SEC_WDG_RST_FLAG                             BIT(0)
+#define BIT_AON_APB_AP_WDG_RST_FLAG                             BIT(9)
+#define BIT_AON_APB_PCP_WDG_RST_FLAG                            BIT(8)
+#define BIT_AON_APB_NR_DSP1_WDG_RST_FLAG                        BIT(7)
+#define BIT_AON_APB_NR_DSP0_WDG_RST_FLAG                        BIT(6)
+#define BIT_AON_APB_NR_CR8_WDG_RST_FLAG                         BIT(5)
+#define BIT_AON_APB_V3_PS_CR5_WDG_RST_FLAG                      BIT(4)
+#define BIT_AON_APB_V3_PHY_CR5_WDG_RST_FLAG                     BIT(3)
+#define BIT_AON_APB_AUDCP_WDG_RST_FLAG                          BIT(2)
+#define BIT_AON_APB_APCPU_WDG_RST_FLAG                          BIT(1)
+#define BIT_AON_APB_SEC_WDG_RST_FLAG                            BIT(0)
 
-/* REG_AON_APB_CA53_CFG */
+/* REG_AON_APB_APCPU_SOFT_RST */
 
-#define BIT_AON_APB_READ_ALLOC_MODE_SPRD(x)                      (((x) & 0xF))
+#define BIT_AON_APB_APCPU_CSSYS_APB_SOFT_RST                    BIT(10)
+#define BIT_AON_APB_APCPU_CSSYS_SOFT_RST                        BIT(9)
+#define BIT_AON_APB_APCPU_SCU_SOFT_RST                          BIT(8)
+#define BIT_AON_APB_APCPU_DEBUG_APB_SOFT_RST                    BIT(7)
+#define BIT_AON_APB_APCPU_PERIPH_SOFT_RST                       BIT(6)
+#define BIT_AON_APB_APCPU_GIC_SOFT_RST                          BIT(5)
+#define BIT_AON_APB_APCPU_ATB_SOFT_RST                          BIT(4)
+#define BIT_AON_APB_APCPU_CORE_SOFT_RST(x)                      (((x) & 0x3))
 
-/* REG_AON_APB_RES_REG2 */
+/* REG_AON_APB_BOOT_MODE */
 
-#define BIT_AON_APB_RES_REG2(x)                                  (((x) & 0xFFFFFFFF))
+#define BIT_AON_APB_PTEST_FUNC_ATSPEED_SEL                      BIT(8)
+#define BIT_AON_APB_PTEST_FUNC_MODE                             BIT(7)
+#define BIT_AON_APB_FUNCTST_DMA_EB                              BIT(6)
+#define BIT_AON_APB_PTEST_BIST_MODE                             BIT(5)
+#define BIT_AON_APB_USB_DLOAD_EN                                BIT(4)
+#define BIT_AON_APB_ARM_BOOT_MD3                                BIT(3)
+#define BIT_AON_APB_ARM_BOOT_MD2                                BIT(2)
+#define BIT_AON_APB_ARM_BOOT_MD1                                BIT(1)
+#define BIT_AON_APB_ARM_BOOT_MD0                                BIT(0)
 
-/* REG_AON_APB_RES_REG3 */
+/* REG_AON_APB_CP_ARM_JTAG_CTRL */
 
-#define BIT_AON_APB_RES_REG3(x)                                  (((x) & 0xFFFFFFFF))
+#define BIT_AON_APB_AGCP_DSP_JTAG_MODE                          BIT(3)
+#define BIT_AON_APB_CP_ARM_JTAG_PIN_SEL(x)                      (((x) & 0x7))
 
-/* REG_AON_APB_RES_REG4 */
+/* REG_AON_APB_RC100M_CFG */
 
-#define BIT_AON_APB_RES_REG4(x)                                  (((x) & 0xFFFFFFFF))
+#define BIT_AON_APB_RTC_CAL_CTL(x)                              (((x) & 0x7F) << 22)
+#define BIT_AON_APB_RTC_CAL_SEL                                 BIT(21)
+#define BIT_AON_APB_RTC_CAL_PRECISION(x)                        (((x) & 0xFF) << 13)
+#define BIT_AON_APB_RC100M_DIV(x)                               (((x) & 0x3F) << 7)
+#define BIT_AON_APB_RC100M_CAL_DONE                             BIT(6)
+#define BIT_AON_APB_RC100M_CAL_START                            BIT(5)
+#define BIT_AON_APB_RC100M_ANA_SOFT_RST                         BIT(4)
+#define BIT_AON_APB_RC100M_FORCE_EN                             BIT(1)
+#define BIT_AON_APB_RC100M_AUTO_GATE_EN                         BIT(0)
 
-/* REG_AON_APB_RES_REG5 */
+/* REG_AON_APB_CCIR_RCVR_CFG */
 
-#define BIT_AON_APB_RES_REG5(x)                                  (((x) & 0xFFFFFFFF))
+#define BIT_AON_APB_ANALOG_PLL_RSV(x)                           (((x) & 0xFFFF) << 16)
+#define BIT_AON_APB_ANALOG_TESTMUX(x)                           (((x) & 0xFFFF))
 
-/* REG_AON_APB_RES_REG6 */
+/* REG_AON_APB_PLL_BG_CFG */
 
-#define BIT_AON_APB_RES_REG6(x)                                  (((x) & 0xFFFFFFFF))
+#define BIT_AON_APB_PLL_BG_RSV(x)                               (((x) & 0x3F))
 
-/* REG_AON_APB_RES_REG7 */
+/* REG_AON_APB_MBIST_EFUSE_CTRL */
 
-#define BIT_AON_APB_RES_REG7(x)                                  (((x) & 0xFFFFFFFF))
+#define BIT_AON_APB_FUSEBOX_SEL_CTRL                            BIT(1)
+#define BIT_AON_APB_FUSEBOX_SEL_BUF_SW                          BIT(0)
 
-/* REG_AON_APB_AON_APB_RSV */
+/* REG_AON_APB_OTG_PHY_TEST */
 
-#define BIT_AON_APB_AON_APB_RSV(x)                               (((x) & 0xFFFFFFFF))
+#define BIT_AON_APB_OTG_ATERESET                                BIT(31)
+#define BIT_AON_APB_OTG_VBUS_VALID_PHYREG                       BIT(24)
+#define BIT_AON_APB_OTG_VBUS_VALID_PHYREG_SEL                   BIT(23)
+#define BIT_AON_APB_OTG_VBUS_VALID_EXT                          BIT(22)
+#define BIT_AON_APB_OTG_TESTBURNIN                              BIT(21)
+#define BIT_AON_APB_OTG_LOOPBACKENB                             BIT(20)
+#define BIT_AON_APB_OTG_TESTDATAOUT(x)                          (((x) & 0xF) << 16)
+#define BIT_AON_APB_OTG_VATESTENB(x)                            (((x) & 0x3) << 14)
+#define BIT_AON_APB_OTG_TESTCLK                                 BIT(13)
+#define BIT_AON_APB_OTG_TESTDATAOUTSEL                          BIT(12)
+#define BIT_AON_APB_OTG_TESTADDR(x)                             (((x) & 0xF) << 8)
+#define BIT_AON_APB_OTG_TESTDATAIN(x)                           (((x) & 0xFF))
 
-/* REG_AON_APB_FUNCTION_DMA_BOOT_ADDR */
+/* REG_AON_APB_OTG_PHY_CTRL */
 
-#define BIT_AON_APB_FUNCTION_DMA_BOOT_ADDR(x)                    (((x) & 0xFFFFFFFF))
+#define BIT_AON_APB_USB2_CON_TESTMODE                           BIT(31)
+#define BIT_AON_APB_UTMI_WIDTH_SEL                              BIT(30)
+#define BIT_AON_APB_USB2_DATABUS16_8                            BIT(29)
+#define BIT_AON_APB_OTG_SS_SCALEDOWNMODE(x)                     (((x) & 0x3) << 25)
+#define BIT_AON_APB_OTG_TXBITSTUFFENH                           BIT(23)
+#define BIT_AON_APB_OTG_TXBITSTUFFEN                            BIT(22)
+#define BIT_AON_APB_OTG_DMPULLDOWN                              BIT(21)
+#define BIT_AON_APB_OTG_DPPULLDOWN                              BIT(20)
+#define BIT_AON_APB_OTG_DMPULLUP                                BIT(9)
+#define BIT_AON_APB_OTG_COMMONONN                               BIT(8)
+#define BIT_AON_APB_USB2_PHY_IDDIG                              BIT(3)
+#define BIT_AON_APB_OTG_FSEL(x)                                 (((x) & 0x7))
+
+/* REG_AON_APB_OTG_CTRL0 */
+
+#define BIT_AON_APB_USB20_TUNEHSAMP(x)                          (((x) & 0x3) << 30)
+#define BIT_AON_APB_USB20_TUNEPLLS(x)                           (((x) & 0x3) << 28)
+#define BIT_AON_APB_USB20_TUNERISE(x)                           (((x) & 0x3) << 26)
+#define BIT_AON_APB_USB20_TUNEDSC(x)                            (((x) & 0x3) << 24)
+#define BIT_AON_APB_USB20_TUNEOTG(x)                            (((x) & 0x7) << 21)
+#define BIT_AON_APB_USB20_TUNESQ(x)                             (((x) & 0xF) << 17)
+#define BIT_AON_APB_USB20_RESERVED(x)                           (((x) & 0xFFFF))
+
+/* REG_AON_APB_OTG_CTRL1 */
+
+#define BIT_AON_APB_USB20_BIST_MODE(x)                          (((x) & 0x1F) << 23)
+#define BIT_AON_APB_USB20_BYPASS_DRV_DM                         BIT(22)
+#define BIT_AON_APB_USB20_BYPASS_DRV_DP                         BIT(21)
+#define BIT_AON_APB_USB20_SAMPLER_SEL                           BIT(20)
+#define BIT_AON_APB_HSIC_PLLON                                  BIT(16)
+#define BIT_AON_APB_USB20_REXTENABLE                            BIT(15)
+#define BIT_AON_APB_USB20_S_ID                                  BIT(14)
+#define BIT_AON_APB_USB20_TFREGRES(x)                           (((x) & 0x3F) << 8)
+#define BIT_AON_APB_USB20_TFHSRES(x)                            (((x) & 0x1F) << 3)
+#define BIT_AON_APB_USB20_TUNEEQ(x)                             (((x) & 0x7))
+
+/* REG_AON_APB_USB_CLK_REF_SEL */
+
+#define BIT_AON_APB_USB_REF_CLK_MUX_SEL                         BIT(0)
+
+/* REG_AON_APB_V3_LVDSRF_CTRL */
+
+#define BIT_AON_APB_V3_LVDSRF_ISO_EN                            BIT(2)
+#define BIT_AON_APB_V3_LVDSRF_PD_PD_L                           BIT(1)
+#define BIT_AON_APB_V3_LVDSRF_PS_PD_S                           BIT(0)
+
+/* REG_AON_APB_NR_LVDSRF_CTRL */
+
+#define BIT_AON_APB_NR_LVDSRF_ISO_EN                            BIT(2)
+#define BIT_AON_APB_NR_LVDSRF_PD_PD_L                           BIT(1)
+#define BIT_AON_APB_NR_LVDSRF_PS_PD_S                           BIT(0)
+
+/* REG_AON_APB_WCN_ADDA_MEM_PD_CTRL */
+
+#define BIT_AON_APB_RAM_LS_WCN_ADDA_TEST_0                      BIT(2)
+#define BIT_AON_APB_RAM_RET_WCN_ADDA_TEST_0                     BIT(1)
+#define BIT_AON_APB_RAM_PD_WCN_ADDA_TEST_0                      BIT(0)
+
+/* REG_AON_APB_THM0_CTRL */
+
+#define BIT_AON_APB_THM0_CALI_RSVD(x)                           (((x) & 0xFF))
+
+/* REG_AON_APB_THM1_CTRL */
+
+#define BIT_AON_APB_THM1_CALI_RSVD(x)                           (((x) & 0xFF))
+
+/* REG_AON_APB_OVERHEAT_CTRL */
+
+#define BIT_AON_APB_THM2_INT_ADIE_EN                            BIT(10)
+#define BIT_AON_APB_THM1_INT_ADIE_EN                            BIT(9)
+#define BIT_AON_APB_THM0_INT_ADIE_EN                            BIT(8)
+#define BIT_AON_APB_THM2_OVERHEAT_ALARM_ADIE_EN                 BIT(6)
+#define BIT_AON_APB_THM1_OVERHEAT_ALARM_ADIE_EN                 BIT(5)
+#define BIT_AON_APB_THM0_OVERHEAT_ALARM_ADIE_EN                 BIT(4)
+#define BIT_AON_APB_THM2_OVERHEAT_RST_DDIE_EN                   BIT(2)
+#define BIT_AON_APB_THM1_OVERHEAT_RST_DDIE_EN                   BIT(1)
+#define BIT_AON_APB_THM0_OVERHEAT_RST_DDIE_EN                   BIT(0)
+
+/* REG_AON_APB_MPLL0_CTRL */
+
+#define BIT_AON_APB_CGM_MPLL0_APCPU_FORCE_EN                    BIT(9)
+#define BIT_AON_APB_CGM_MPLL0_APCPU_AUTO_GATE_SEL               BIT(8)
+#define BIT_AON_APB_MPLL0_WAIT_FORCE_EN                         BIT(2)
+#define BIT_AON_APB_MPLL0_WAIT_AUTO_GATE_SEL                    BIT(1)
+#define BIT_AON_APB_MPLL0_SOFT_CNT_DONE                         BIT(0)
+
+/* REG_AON_APB_MPLL1_CTRL */
+
+#define BIT_AON_APB_CGM_MPLL1_APCPU_FORCE_EN                    BIT(9)
+#define BIT_AON_APB_CGM_MPLL1_APCPU_AUTO_GATE_SEL               BIT(8)
+#define BIT_AON_APB_MPLL1_WAIT_FORCE_EN                         BIT(2)
+#define BIT_AON_APB_MPLL1_WAIT_AUTO_GATE_SEL                    BIT(1)
+#define BIT_AON_APB_MPLL1_SOFT_CNT_DONE                         BIT(0)
+
+/* REG_AON_APB_NR_RPLL_CTRL_REG2 */
+
+#define BIT_AON_APB_NR_RPLL_POSTDIV_REG                         BIT(20)
+#define BIT_AON_APB_NR_RPLL_26M_DIV_REG(x)                      (((x) & 0x3F) << 14)
+#define BIT_AON_APB_NR_RPLL_N_REG(x)                            (((x) & 0x7FF) << 3)
+#define BIT_AON_APB_NR_RPLL_DIV_S_REG                           BIT(2)
+#define BIT_AON_APB_NR_RPLL_MOD_EN_REG                          BIT(1)
+#define BIT_AON_APB_NR_RPLL_SDM_EN_REG                          BIT(0)
+
+/* REG_AON_APB_DPLL_CTRL */
+
+#define BIT_AON_APB_CGM_DPLL1_1600M_PUB_FORCE_EN                BIT(9)
+#define BIT_AON_APB_CGM_DPLL0_2666M_PUB_FORCE_EN                BIT(8)
+#define BIT_AON_APB_CGM_DPLL1_1600M_PUB_AUTO_GATE_SEL           BIT(7)
+#define BIT_AON_APB_CGM_DPLL0_2666M_PUB_AUTO_GATE_SEL           BIT(6)
+#define BIT_AON_APB_DPLL1_WAIT_FORCE_EN                         BIT(5)
+#define BIT_AON_APB_DPLL0_WAIT_FORCE_EN                         BIT(4)
+#define BIT_AON_APB_DPLL1_WAIT_AUTO_GATE_SEL                    BIT(3)
+#define BIT_AON_APB_DPLL0_WAIT_AUTO_GATE_SEL                    BIT(2)
+#define BIT_AON_APB_DPLL1_SOFT_CNT_DONE                         BIT(1)
+#define BIT_AON_APB_DPLL0_SOFT_CNT_DONE                         BIT(0)
+
+/* REG_AON_APB_PLL_LOCK_OUT_SEL */
+
+#define BIT_AON_APB_REC_26MHZ_0_BUF_PD                          BIT(8)
+#define BIT_AON_APB_SLEEP_PLLLOCK_SEL                           BIT(7)
+#define BIT_AON_APB_PLL_LOCK_SEL(x)                             (((x) & 0x7) << 4)
+#define BIT_AON_APB_SLEEP_DBG_SEL(x)                            (((x) & 0xF))
+
+/* REG_AON_APB_SINDRV_POWER_CTRL */
+
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_2_ENA_ADC          BIT(19)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_2_ENA_DVFS         BIT(18)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_2_ENA_CAL          BIT(17)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_1_ENA_ADC          BIT(16)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_1_ENA_DVFS         BIT(15)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_1_ENA_CAL          BIT(14)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_0_ENA_ADC          BIT(13)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_0_ENA_DVFS         BIT(12)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_0_ENA_CAL          BIT(11)
+#define BIT_AON_APB_ANALOG_BB_TOP_SINDRV_2_ENA_AUTO_EN          BIT(10)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_2_ENA              BIT(9)
+#define BIT_AON_APB_ANALOG_BB_TOP_SINDRV_1_ENA_AUTO_EN          BIT(8)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_1_ENA              BIT(7)
+#define BIT_AON_APB_ANALOG_BB_TOP_SINDRV_0_ENA_AUTO_EN          BIT(6)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_0_ENA              BIT(5)
+#define BIT_AON_APB_M2G_ANALOG_BB_TOP_SINDRV_ENA                BIT(4)
+#define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_ENA_SQUARE         BIT(3)
+#define BIT_AON_APB_C2G_ANALOG_BB_TOP_CLK26MHZ_AUD_EN           BIT(2)
+#define BIT_AON_APB_C2G_ANALOG_USB20_USB20_PS_PD_S              BIT(1)
+#define BIT_AON_APB_C2G_ANALOG_USB20_USB20_PS_PD_L              BIT(0)
+
+/* REG_AON_APB_PHY_REF_CLK_EN */
+
+#define BIT_AON_APB_PCIE_PHY_REF_CLK_EN                         BIT(9)
+#define BIT_AON_APB_DSI_2_PHY_REF_CLK_EN                        BIT(8)
+#define BIT_AON_APB_DSI_1_PHY_REF_CLK_EN                        BIT(7)
+#define BIT_AON_APB_DSI_0_PHY_REF_CLK_EN                        BIT(6)
+#define BIT_AON_APB_U3_1_PHY_SUSPEND_CLK_EN                     BIT(5)
+#define BIT_AON_APB_U3_1_PHY_REF_CLK_EN                         BIT(4)
+#define BIT_AON_APB_U3_0_PHY_SUSPEND_CLK_EN                     BIT(3)
+#define BIT_AON_APB_U3_0_PHY_REF_CLK_EN                         BIT(2)
+#define BIT_AON_APB_U2_1_PHY_REF_CLK_EN                         BIT(1)
+#define BIT_AON_APB_U2_0_PHY_REF_CLK_EN                         BIT(0)
+
+/* REG_AON_APB_RPLL_CTL_SEL */
+
+#define BIT_AON_APB_R2G_NR_RPLL_RST_SEL_SPI_AFC_OR_PMU          BIT(3)
+#define BIT_AON_APB_R2G_NR_RPLL_PD_SEL_SPI_AFC_OR_PMU           BIT(2)
+#define BIT_AON_APB_R2G_V3_RPLL_RST_SEL_SPI_AFC_OR_PMU          BIT(1)
+#define BIT_AON_APB_R2G_V3_RPLL_PD_SEL_SPI_AFC_OR_PMU           BIT(0)
+
+/* REG_AON_APB_V3_RPLL_CTRL_REG0 */
+
+#define BIT_AON_APB_V3_RPLL_FREQ_DOUBEL_EN_REG                  BIT(30)
+#define BIT_AON_APB_V3_RPLL_CP_OFFSET_REG(x)                    (((x) & 0x3) << 28)
+#define BIT_AON_APB_V3_RPLL_VSET_REG(x)                         (((x) & 0x7) << 25)
+#define BIT_AON_APB_V3_RPLL_FBDIV_EN_REG                        BIT(24)
+#define BIT_AON_APB_V3_RPLL_VCO_TEST_EN_REG                     BIT(23)
+#define BIT_AON_APB_V3_RPLL_LDO_TRIM_REG(x)                     (((x) & 0xF) << 19)
+#define BIT_AON_APB_V3_RPLL_CP_EN_REG                           BIT(18)
+#define BIT_AON_APB_V3_RPLL_ICP_REG(x)                          (((x) & 0x7) << 15)
+#define BIT_AON_APB_V3_RPLL_SCC_CTRL_REG(x)                     (((x) & 0xFF) << 7)
+#define BIT_AON_APB_V3_RPLL_REF_SEL_REG(x)                      (((x) & 0x3) << 5)
+#define BIT_AON_APB_V3_RPLL_LPF_REG(x)                          (((x) & 0x7) << 2)
+#define BIT_AON_APB_V3_RPLL_IBIAS_REG(x)                        (((x) & 0x3))
+
+/* REG_AON_APB_V3_RPLL_CTRL_REG1 */
+
+#define BIT_AON_APB_V3_RPLL_RESERVED_REG(x)                     (((x) & 0x1FFFFF))
+
+/* REG_AON_APB_V3_RPLL_CTRL_REG2 */
+
+#define BIT_AON_APB_V3_RPLL_POSTDIV_REG                         BIT(20)
+#define BIT_AON_APB_V3_RPLL_26M_DIV_REG(x)                      (((x) & 0x3F) << 14)
+#define BIT_AON_APB_V3_RPLL_N_REG(x)                            (((x) & 0x7FF) << 3)
+#define BIT_AON_APB_V3_RPLL_DIV_S_REG                           BIT(2)
+#define BIT_AON_APB_V3_RPLL_MOD_EN_REG                          BIT(1)
+#define BIT_AON_APB_V3_RPLL_SDM_EN_REG                          BIT(0)
+
+/* REG_AON_APB_V3_RPLL_CTRL_REG3 */
+
+#define BIT_AON_APB_V3_RPLL_KINT_REG(x)                         (((x) & 0x7FFFFF) << 7)
+#define BIT_AON_APB_V3_RPLL_NINT_REG(x)                         (((x) & 0x7F))
+
+/* REG_AON_APB_V3_RPLL_CTRL_SEL */
+
+#define BIT_AON_APB_V3_RPLL_CTRL_SEL_AON_BB_SW_RFSPI            BIT(8)
+#define BIT_AON_APB_V3_RPLL_CTRL_SEL_AON_APB                    BIT(0)
+
+/* REG_AON_APB_NR_RPLL_CTRL_REG0 */
+
+#define BIT_AON_APB_NR_RPLL_FREQ_DOUBEL_EN_REG                  BIT(30)
+#define BIT_AON_APB_NR_RPLL_CP_OFFSET_REG(x)                    (((x) & 0x3) << 28)
+#define BIT_AON_APB_NR_RPLL_VSET_REG(x)                         (((x) & 0x7) << 25)
+#define BIT_AON_APB_NR_RPLL_FBDIV_EN_REG                        BIT(24)
+#define BIT_AON_APB_NR_RPLL_VCO_TEST_EN_REG                     BIT(23)
+#define BIT_AON_APB_NR_RPLL_LDO_TRIM_REG(x)                     (((x) & 0xF) << 19)
+#define BIT_AON_APB_NR_RPLL_CP_EN_REG                           BIT(18)
+#define BIT_AON_APB_NR_RPLL_ICP_REG(x)                          (((x) & 0x7) << 15)
+#define BIT_AON_APB_NR_RPLL_SCC_CTRL_REG(x)                     (((x) & 0xFF) << 7)
+#define BIT_AON_APB_NR_RPLL_REF_SEL_REG(x)                      (((x) & 0x3) << 5)
+#define BIT_AON_APB_NR_RPLL_LPF_REG(x)                          (((x) & 0x7) << 2)
+#define BIT_AON_APB_NR_RPLL_IBIAS_REG(x)                        (((x) & 0x3))
+
+/* REG_AON_APB_NR_RPLL_CTRL_REG1 */
+
+#define BIT_AON_APB_NR_RPLL_RESERVED_REG(x)                     (((x) & 0x1FFFFF))
+
+/* REG_AON_APB_NR_RPLL_CTRL_REG3 */
+
+#define BIT_AON_APB_NR_RPLL_KINT_REG(x)                         (((x) & 0x7FFFFF) << 7)
+#define BIT_AON_APB_NR_RPLL_NINT_REG(x)                         (((x) & 0x7F))
+
+/* REG_AON_APB_NR_RPLL_CTRL_SEL */
+
+#define BIT_AON_APB_NR_RPLL_CTRL_SEL_BB_SW_SPI                  BIT(8)
+#define BIT_AON_APB_NR_RPLL_CTRL_SEL_AON_APB                    BIT(0)
+
+/* REG_AON_APB_RFSPI_SEL */
+
+#define BIT_AON_APB_RFSPI_SEL_AON_NR_RFSPI                      BIT(1)
+#define BIT_AON_APB_RFSPI_SEL_AON_RFSPI                         BIT(0)
+
+/* REG_AON_APB_BB_SW_RFSPI_FIFO_STATS */
+
+#define BIT_AON_APB_NR_BB_SW_RFSPI_FIFO1_FULL                   BIT(11)
+#define BIT_AON_APB_NR_BB_SW_RFSPI_FIFO1_EMPTY                  BIT(10)
+#define BIT_AON_APB_NR_BB_SW_RFSPI_FIFO0_FULL                   BIT(9)
+#define BIT_AON_APB_NR_BB_SW_RFSPI_FIFO0_EMPTY                  BIT(8)
+#define BIT_AON_APB_V3_BB_SW_RFSPI_FIFO1_FULL                   BIT(3)
+#define BIT_AON_APB_V3_BB_SW_RFSPI_FIFO1_EMPTY                  BIT(2)
+#define BIT_AON_APB_V3_BB_SW_RFSPI_FIFO0_FULL                   BIT(1)
+#define BIT_AON_APB_V3_BB_SW_RFSPI_FIFO0_EMPTY                  BIT(0)
+
+/* REG_AON_APB_RPLL_PD_RST_SEL */
+
+#define BIT_AON_APB_NR_RPLL_RST_SEL_SPI_AFC                     BIT(3)
+#define BIT_AON_APB_NR_RPLL_PD_SEL_SPI_AFC                      BIT(2)
+#define BIT_AON_APB_V3_RPLL_RST_SEL_SPI_AFC                     BIT(1)
+#define BIT_AON_APB_V3_RPLL_PD_SEL_SPI_AFC                      BIT(0)
+
+/* REG_AON_APB_CLK_AUD26M_EN */
+
+#define BIT_AON_APB_CLK_AUD26M_EN_DVFS_AUDIO                    BIT(4)
+#define BIT_AON_APB_CLK_AUD26M_EN_DVFS_CP_ADC                   BIT(3)
+#define BIT_AON_APB_CLK_AUD26M_EN_AP_ADC                        BIT(2)
+#define BIT_AON_APB_CLK_AUD26M_EN_CALIBRATION                   BIT(1)
+#define BIT_AON_APB_CLK_AUD26M_EN_DVFS                          BIT(0)
+
+/* REG_AON_APB_TS_CFG */
+
+#define BIT_AON_APB_DBG_TRACE_CTRL_EN                           BIT(16)
+#define BIT_AON_APB_EVENTACK_RESTARTREQ_TS01                    BIT(4)
+#define BIT_AON_APB_EVENT_RESTARTREQ_TS01                       BIT(1)
+#define BIT_AON_APB_EVENT_HALTREQ_TS01                          BIT(0)
+
+/* REG_AON_APB_DCXO_LC_REG0 */
+
+#define BIT_AON_APB_DCXO_LC_FLAG                                BIT(8)
+#define BIT_AON_APB_DCXO_LC_FLAG_CLR                            BIT(1)
+#define BIT_AON_APB_DCXO_LC_CNT_CLR                             BIT(0)
+
+/* REG_AON_APB_DCXO_LC_REG1 */
+
+#define BIT_AON_APB_DCXO_LC_CNT(x)                              (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AUDCP_BOOT_PROT */
+
+#define BIT_AON_APB_AUDCP_BOOTCTRL_PROT                         BIT(31)
+#define BIT_AON_APB_AUDCP_REG_PROT_VAL(x)                       (((x) & 0xFFFF))
+
+/* REG_AON_APB_NR_DSP0_REG_PROT */
+
+#define BIT_AON_APB_NR_DSP0_CTRL_PROT                           BIT(31)
+#define BIT_AON_APB_NR_DSP0_REG_PROT_VAL(x)                     (((x) & 0xFFFF))
+
+/* REG_AON_APB_NR_DSP1_REG_PROT */
+
+#define BIT_AON_APB_NR_DSP1_CTRL_PROT                           BIT(31)
+#define BIT_AON_APB_NR_DSP1_REG_PROT_VAL(x)                     (((x) & 0xFFFF))
+
+/* REG_AON_APB_DAP_DJTAG_SEL */
+
+#define BIT_AON_APB_DAP_DBGPWRUP_SOFT_EN                        BIT(2)
+#define BIT_AON_APB_DAP_SYSPWRUP_SOFT_EN                        BIT(1)
+#define BIT_AON_APB_DAP_DJTAG_EN                                BIT(0)
+
+/* REG_AON_APB_SP_CFG_BUS */
+
+#define BIT_AON_APB_SP_AHB_CLK_SOFT_EN                          BIT(7)
+#define BIT_AON_APB_CM4_SLEEPING_STAT                           BIT(6)
+#define BIT_AON_APB_CM4_LOCKUP_STAT                             BIT(5)
+#define BIT_AON_APB_CM4_SOFT_MPUDIS                             BIT(4)
+#define BIT_AON_APB_MMTX_SLEEP_CM4_PUB_WR                       BIT(3)
+#define BIT_AON_APB_MMTX_SLEEP_CM4_PUB_RD                       BIT(2)
+#define BIT_AON_APB_INT_REQ_CM4_SOFT                            BIT(1)
+#define BIT_AON_APB_SP_CFG_BUS_SLEEP                            BIT(0)
+
+/* REG_AON_APB_AON_FUNC_CTRL_0 */
+
+#define BIT_AON_APB_AON_FUNC_CTRL_0(x)                          (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AON_FUNC_CTRL_1 */
+
+#define BIT_AON_APB_AON_FUNC_CTRL_1(x)                          (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_FUNC_TEST_BOOT_ADDR */
+
+#define BIT_AON_APB_FUNC_TEST_BOOT_ADDR(x)                      (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_LEAKAGE_MAGIC_WORD */
+
+#define BIT_AON_APB_LEAKAGE_MAGIC_WORD(x)                       (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_LEAKAGE_SWITCH */
+
+#define BIT_AON_APB_LEAKAGE_SWITCH                              BIT(0)
+
+/* REG_AON_APB_AUDCP_DSP_CTRL0 */
+
+#define BIT_AON_APB_AUDCP_DSP_BOOT_VECTOR(x)                    (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AUDCP_DSP_CTRL1 */
+
+#define BIT_AON_APB_AUDCP_STCK_DSP                              BIT(13)
+#define BIT_AON_APB_AUDCP_STMS_DSP                              BIT(12)
+#define BIT_AON_APB_AUDCP_STDO_DSP                              BIT(11)
+#define BIT_AON_APB_AUDCP_STDI_DSP                              BIT(10)
+#define BIT_AON_APB_AUDCP_STRTCK_DSP                            BIT(9)
+#define BIT_AON_APB_AUDCP_SW_JTAG_ENA_DSP                       BIT(8)
+#define BIT_AON_APB_AUDCP_DSP_EXTERNAL_WAIT                     BIT(1)
+#define BIT_AON_APB_AUDCP_DSP_BOOT                              BIT(0)
+
+/* REG_AON_APB_AUDCP_CTRL */
+
+#define BIT_AON_APB_NR_DSP1_2_AUD_ACCESS_EN                     BIT(9)
+#define BIT_AON_APB_NR_DSP0_2_AUD_ACCESS_EN                     BIT(8)
+#define BIT_AON_APB_NR_CR8_2_AUD_ACCESS_EN                      BIT(7)
+#define BIT_AON_APB_CM4_2_AUD_ACCESS_EN                         BIT(6)
+#define BIT_AON_APB_AP_2_AUD_ACCESS_EN                          BIT(5)
+#define BIT_AON_APB_PS_CR8_2_AUD_ACCESS_EN                      BIT(4)
+#define BIT_AON_APB_V3PS_CR5_2_AUD_ACCESS_EN                    BIT(3)
+#define BIT_AON_APB_V3PHY_CR8_2_AUD_ACCESS_EN                   BIT(2)
+#define BIT_AON_APB_AUDCP_FRC_CLK_DSP_EN                        BIT(1)
+#define BIT_AON_APB_TOP_2_AUD_ACCESS_EN                         BIT(0)
+
+/* REG_AON_APB_V3_CTRL */
+
+#define BIT_AON_APB_V3_AON_FRC_WSYS_LT_STOP                     BIT(4)
+#define BIT_AON_APB_V3_AON_FRC_WSYS_STOP                        BIT(3)
+#define BIT_AON_APB_V3_DSP_DEEP_SLEEP_EN                        BIT(2)
+
+/* REG_AON_APB_V3_CR5_CTRL */
+
+#define BIT_AON_APB_V3PHY_CR5_SLBTCMSB                          BIT(14)
+#define BIT_AON_APB_V3PHY_CR5_TEINIT                            BIT(13)
+#define BIT_AON_APB_V3PHY_CR5_CFGNMFI0                          BIT(12)
+#define BIT_AON_APB_V3PHY_CR5_CFGIE                             BIT(11)
+#define BIT_AON_APB_V3PHY_CR5_CFGEE                             BIT(10)
+#define BIT_AON_APB_V3PHY_CR5_DBGNOCLKSTOP                      BIT(9)
+#define BIT_AON_APB_V3PHY_CR5_NCPUHALT0                         BIT(8)
+#define BIT_AON_APB_V3PS_CR5_TEINIT                             BIT(5)
+#define BIT_AON_APB_V3PS_CR5_CFGNMFI0                           BIT(4)
+#define BIT_AON_APB_V3PS_CR5_CFGIE                              BIT(3)
+#define BIT_AON_APB_V3PS_CR5_CFGEE                              BIT(2)
+#define BIT_AON_APB_V3PS_CR5_DBGNOCLKSTOP                       BIT(1)
+#define BIT_AON_APB_V3PS_CR5_NCPUHALT0                          BIT(0)
+
+/* REG_AON_APB_V3PS_CR5_CTRL_1 */
+
+#define BIT_AON_APB_V3PS_CR5_AXI_VP_BASE(x)                     (((x) & 0xFFFFF) << 8)
+#define BIT_AON_APB_V3PS_CR5_AXI_VP_SIZE(x)                     (((x) & 0x1F) << 1)
+#define BIT_AON_APB_V3PS_CR5_INITPPX                            BIT(0)
+
+/* REG_AON_APB_V3PHY_CR5_CTRL_1 */
+
+#define BIT_AON_APB_V3PHY_CR5_AXI_VP_BASE(x)                    (((x) & 0xFFFFF) << 8)
+#define BIT_AON_APB_V3PHY_CR5_AXI_VP_SIZE(x)                    (((x) & 0x1F) << 1)
+#define BIT_AON_APB_V3PHY_CR5_INITPPX                           BIT(0)
+
+/* REG_AON_APB_PSCP_CR8_CTRL */
+
+#define BIT_AON_APB_PSCP_CR8_FORCE_DIVN_ON                      BIT(9)
+#define BIT_AON_APB_PSCP_CR8_MFILTEREN                          BIT(8)
+#define BIT_AON_APB_PSCP_CR8_TEINIT(x)                          (((x) & 0x3) << 6)
+#define BIT_AON_APB_PSCP_CR8_VINITHI(x)                         (((x) & 0x3) << 4)
+#define BIT_AON_APB_PSCP_CR8_NMFI(x)                            (((x) & 0x3) << 2)
+#define BIT_AON_APB_PSCP_CR8_CFGEE(x)                           (((x) & 0x3))
+
+/* REG_AON_APB_NRCP_CTRL */
 
 
-#endif /* AON_APB_H */
+/* REG_AON_APB_NRCP_CR8_CTRL */
+
+#define BIT_AON_APB_NRCP_CR8_FORCE_DIVN_ON                      BIT(9)
+#define BIT_AON_APB_NRCP_CR8_MFILTEREN                          BIT(8)
+#define BIT_AON_APB_NRCP_CR8_TEINIT(x)                          (((x) & 0x3) << 6)
+#define BIT_AON_APB_NRCP_CR8_VINITHI(x)                         (((x) & 0x3) << 4)
+#define BIT_AON_APB_NRCP_CR8_NMFI(x)                            (((x) & 0x3) << 2)
+#define BIT_AON_APB_NRCP_CR8_CFGEE(x)                           (((x) & 0x3))
+
+/* REG_AON_APB_NRCP_DSP0_CTRL */
+
+#define BIT_AON_APB_NRDSP0_STOP_SD                              BIT(2)
+#define BIT_AON_APB_NRDSP0_EXTERNAL_WAIT                        BIT(1)
+#define BIT_AON_APB_NRDSP0_BOOT                                 BIT(0)
+
+/* REG_AON_APB_NRCP_DSP1_CTRL */
+
+#define BIT_AON_APB_NRDSP1_STOP_SD                              BIT(2)
+#define BIT_AON_APB_NRDSP1_EXTERNAL_WAIT                        BIT(1)
+#define BIT_AON_APB_NRDSP1_BOOT                                 BIT(0)
+
+/* REG_AON_APB_NRCP_DSP0_BOOT_VECTOR */
+
+#define BIT_AON_APB_NRDSP0_BOOT_VECTOR(x)                       (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_NRCP_DSP1_BOOT_VECTOR */
+
+#define BIT_AON_APB_NRDSP1_BOOT_VECTOR(x)                       (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DBG_DJTAG_CTRL */
+
+#define BIT_AON_APB_DBGSYS_CSSYS_STM_NSGUAREN                   BIT(16)
+#define BIT_AON_APB_DJTAG_SRC_MUX_SEL                           BIT(0)
+
+/* REG_AON_APB_PSCP_SIM1_TOP_CTRL */
+
+#define BIT_AON_APB_CP_SIM1_CLK_PL                              BIT(5)
+#define BIT_AON_APB_CP_SIM1_DETECT_EN                           BIT(4)
+#define BIT_AON_APB_CP_BAT1_DETECT_EN                           BIT(3)
+#define BIT_AON_APB_CP_SIM1_DETECT_POL                          BIT(2)
+#define BIT_AON_APB_CP_BAT1_DETECT_POL                          BIT(1)
+#define BIT_AON_APB_CP_SIM1_OFF_PD_EN                           BIT(0)
+
+/* REG_AON_APB_PSCP_SIM2_TOP_CTRL */
+
+#define BIT_AON_APB_CP_SIM2_CLK_PL                              BIT(5)
+#define BIT_AON_APB_CP_SIM2_DETECT_EN                           BIT(4)
+#define BIT_AON_APB_CP_BAT2_DETECT_EN                           BIT(3)
+#define BIT_AON_APB_CP_SIM2_DETECT_POL                          BIT(2)
+#define BIT_AON_APB_CP_BAT2_DETECT_POL                          BIT(1)
+#define BIT_AON_APB_CP_SIM2_OFF_PD_EN                           BIT(0)
+
+/* REG_AON_APB_PSCP_SIM3_TOP_CTRL */
+
+#define BIT_AON_APB_CP_SIM3_CLK_PL                              BIT(5)
+#define BIT_AON_APB_CP_SIM3_DETECT_EN                           BIT(4)
+#define BIT_AON_APB_CP_BAT3_DETECT_EN                           BIT(3)
+#define BIT_AON_APB_CP_SIM3_DETECT_POL                          BIT(2)
+#define BIT_AON_APB_CP_BAT3_DETECT_POL                          BIT(1)
+#define BIT_AON_APB_CP_SIM3_OFF_PD_EN                           BIT(0)
+
+/* REG_AON_APB_AP_SIM_TOP_CTRL */
+
+#define BIT_AON_APB_AP_SIM_CLK_PL                               BIT(5)
+#define BIT_AON_APB_AP_SIM_DETECT_EN                            BIT(4)
+#define BIT_AON_APB_AP_BAT_DETECT_EN                            BIT(3)
+#define BIT_AON_APB_AP_SIM_DETECT_POL                           BIT(2)
+#define BIT_AON_APB_AP_BAT_DETECT_POL                           BIT(1)
+#define BIT_AON_APB_AP_SIM_OFF_PD_EN                            BIT(0)
+
+/* REG_AON_APB_V3_PS_SIM1_TOP_CTRL */
+
+#define BIT_AON_APB_V3_SIM1_CLK_PL                              BIT(5)
+#define BIT_AON_APB_V3_SIM1_DETECT_EN                           BIT(4)
+#define BIT_AON_APB_V3_BAT1_DETECT_EN                           BIT(3)
+#define BIT_AON_APB_V3_SIM1_DETECT_POL                          BIT(2)
+#define BIT_AON_APB_V3_BAT1_DETECT_POL                          BIT(1)
+#define BIT_AON_APB_V3_SIM1_OFF_PD_EN                           BIT(0)
+
+/* REG_AON_APB_V3_PS_SIM2_TOP_CTRL */
+
+#define BIT_AON_APB_V3_SIM2_CLK_PL                              BIT(5)
+#define BIT_AON_APB_V3_SIM2_DETECT_EN                           BIT(4)
+#define BIT_AON_APB_V3_BAT2_DETECT_EN                           BIT(3)
+#define BIT_AON_APB_V3_SIM2_DETECT_POL                          BIT(2)
+#define BIT_AON_APB_V3_BAT2_DETECT_POL                          BIT(1)
+#define BIT_AON_APB_V3_SIM2_OFF_PD_EN                           BIT(0)
+
+/* REG_AON_APB_V3_PS_SIM3_TOP_CTRL */
+
+#define BIT_AON_APB_V3_SIM3_CLK_PL                              BIT(5)
+#define BIT_AON_APB_V3_SIM3_DETECT_EN                           BIT(4)
+#define BIT_AON_APB_V3_BAT3_DETECT_EN                           BIT(3)
+#define BIT_AON_APB_V3_SIM3_DETECT_POL                          BIT(2)
+#define BIT_AON_APB_V3_BAT3_DETECT_POL                          BIT(1)
+#define BIT_AON_APB_V3_SIM3_OFF_PD_EN                           BIT(0)
+
+/* REG_AON_APB_AON_SDIO */
+
+#define BIT_AON_APB_SDIO2_SLICE_EN                              BIT(3)
+#define BIT_AON_APB_PSCP_SDIO_ENABLE                            BIT(2)
+#define BIT_AON_APB_V3PS_SDIO_ENABLE                            BIT(1)
+#define BIT_AON_APB_SDIO_MODULE_SEL                             BIT(0)
+
+/* REG_AON_APB_MTX_URGENCY_CTRL */
+
+#define BIT_AON_APB_ARURGENCY_M6(x)                             (((x) & 0x3) << 26)
+#define BIT_AON_APB_AWURGENCY_M6(x)                             (((x) & 0x3) << 24)
+#define BIT_AON_APB_ARURGENCY_M5(x)                             (((x) & 0x3) << 22)
+#define BIT_AON_APB_AWURGENCY_M5(x)                             (((x) & 0x3) << 20)
+#define BIT_AON_APB_ARURGENCY_M4(x)                             (((x) & 0x3) << 18)
+#define BIT_AON_APB_AWURGENCY_M4(x)                             (((x) & 0x3) << 16)
+#define BIT_AON_APB_ARURGENCY_M3(x)                             (((x) & 0x3) << 14)
+#define BIT_AON_APB_AWURGENCY_M3(x)                             (((x) & 0x3) << 12)
+#define BIT_AON_APB_ARURGENCY_M2(x)                             (((x) & 0x3) << 10)
+#define BIT_AON_APB_AWURGENCY_M2(x)                             (((x) & 0x3) << 8)
+#define BIT_AON_APB_ARURGENCY_M1(x)                             (((x) & 0x3) << 6)
+#define BIT_AON_APB_AWURGENCY_M1(x)                             (((x) & 0x3) << 4)
+#define BIT_AON_APB_ARURGENCY_M0(x)                             (((x) & 0x3) << 2)
+#define BIT_AON_APB_AWURGENCY_M0(x)                             (((x) & 0x3))
+
+/* REG_AON_APB_MTX_URGENCY_STATS */
+
+#define BIT_AON_APB_ARURGENCY_AON_MAIN_MTX(x)                   (((x) & 0x3) << 2)
+#define BIT_AON_APB_AWURGENCY_AON_MAIN_MTX(x)                   (((x) & 0x3))
+
+/* REG_AON_APB_NR_DSP0_CTRL0 */
+
+#define BIT_AON_APB_NR_DSP0_BOOT_VECTOR(x)                      (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_NR_DSP0_CTRL1 */
+
+#define BIT_AON_APB_NR_DSP0_STCK_DSP                            BIT(13)
+#define BIT_AON_APB_NR_DSP0_STMS_DSP                            BIT(12)
+#define BIT_AON_APB_NR_DSP0_STDO_DSP                            BIT(11)
+#define BIT_AON_APB_NR_DSP0_STDI_DSP                            BIT(10)
+#define BIT_AON_APB_NR_DSP0_STRTCK_DSP                          BIT(9)
+#define BIT_AON_APB_NR_DSP0_SW_JTAG_ENA_DSP                     BIT(8)
+#define BIT_AON_APB_NR_DSP0_DSP_EXTERNAL_WAIT                   BIT(1)
+#define BIT_AON_APB_NR_DSP0_DSP_BOOT                            BIT(0)
+
+/* REG_AON_APB_NR_DSP1_CTRL0 */
+
+#define BIT_AON_APB_NR_DSP1_BOOT_VECTOR(x)                      (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_NR_DSP1_CTRL1 */
+
+#define BIT_AON_APB_NR_DSP1_STCK_DSP                            BIT(13)
+#define BIT_AON_APB_NR_DSP1_STMS_DSP                            BIT(12)
+#define BIT_AON_APB_NR_DSP1_STDO_DSP                            BIT(11)
+#define BIT_AON_APB_NR_DSP1_STDI_DSP                            BIT(10)
+#define BIT_AON_APB_NR_DSP1_STRTCK_DSP                          BIT(9)
+#define BIT_AON_APB_NR_DSP1_SW_JTAG_ENA_DSP                     BIT(8)
+#define BIT_AON_APB_NR_DSP1_DSP_EXTERNAL_WAIT                   BIT(1)
+#define BIT_AON_APB_NR_DSP1_DSP_BOOT                            BIT(0)
+
+/* REG_AON_APB_SDIO_SLV_ADDR_OFFSET */
+
+#define BIT_AON_APB_SDIO_SLV_ADDR_OFFSET                        BIT(0)
+
+/* REG_AON_APB_APCPU_CFG_CTRL */
+
+#define BIT_AON_APB_APCPU_PWAKEUPDBG_FORCE_OON                  BIT(4)
+#define BIT_AON_APB_APCPU_GICP_ALLOW_NS                         BIT(3)
+#define BIT_AON_APB_APCPU_GICT_ALLOW_NS                         BIT(2)
+#define BIT_AON_APB_APCPU_GICCDISABLE                           BIT(1)
+#define BIT_AON_APB_APCPU_CRYPTDODISABLE                        BIT(0)
+
+/* REG_AON_APB_SP_AON_DDR_EXTEND */
+
+#define BIT_AON_APB_SP_AON_DDR_EXTEND(x)                        (((x) & 0x3))
+
+/* REG_AON_APB_AON_APB_CLK_SEL */
+
+#define BIT_AON_APB_CGM_AON_APB_LP_SEL(x)                       (((x) & 0x7))
+
+/* REG_AON_APB_AUTO_GATE_CTRL0 */
+
+#define BIT_AON_APB_CGM_AP_AXI_APCPU_AUTO_GATE_SEL              BIT(31)
+#define BIT_AON_APB_CGM_EMC_FORCE_EN                            BIT(28)
+#define BIT_AON_APB_CGM_EMC_AUTO_GATE_SEL                       BIT(27)
+#define BIT_AON_APB_CGM_AON_APB_PUB_FORCE_EN                    BIT(24)
+#define BIT_AON_APB_CGM_AON_APB_PUB_AUTO_GATE_SEL               BIT(23)
+#define BIT_AON_APB_CGM_AON_APB_AUDCP_FORCE_EN                  BIT(22)
+#define BIT_AON_APB_CGM_AON_APB_AUDCP_AUTO_GATE_SEL             BIT(21)
+#define BIT_AON_APB_CGM_AON_APB_PSCP_FORCE_EN                   BIT(20)
+#define BIT_AON_APB_CGM_AON_APB_PSCP_AUTO_GATE_SEL              BIT(19)
+#define BIT_AON_APB_CGM_AON_APB_V3_FORCE_EN                     BIT(18)
+#define BIT_AON_APB_CGM_AON_APB_V3_AUTO_GATE_SEL                BIT(17)
+#define BIT_AON_APB_CGM_AON_APB_NR_FORCE_EN                     BIT(16)
+#define BIT_AON_APB_CGM_AON_APB_NR_AUTO_GATE_SEL                BIT(15)
+#define BIT_AON_APB_CGM_AON_APB_AP_FORCE_EN                     BIT(14)
+#define BIT_AON_APB_CGM_AON_APB_AP_AUTO_GATE_SEL                BIT(13)
+#define BIT_AON_APB_CGM_AP_AXI_FORCE_EN                         BIT(12)
+#define BIT_AON_APB_CGM_AP_AXI_AUTO_GATE_SEL                    BIT(11)
+#define BIT_AON_APB_CGM_CP1_AXI_AP_FORCE_EN                     BIT(10)
+#define BIT_AON_APB_CGM_CP1_AXI_AP_AUTO_GATE_SEL                BIT(9)
+#define BIT_AON_APB_CGM_CP0_AXI_AP_FORCE_EN                     BIT(8)
+#define BIT_AON_APB_CGM_CP0_AXI_AP_AUTO_GATE_SEL                BIT(7)
+#define BIT_AON_APB_CGM_APCPU_PMU_AUTO_GATE_SEL                 BIT(2)
+#define BIT_AON_APB_CGM_APCPU_PMU_FORCE_EN                      BIT(1)
+#define BIT_AON_APB_MBOX_AUTO_GATE_SEL                          BIT(0)
+
+/* REG_AON_APB_AUTO_GATE_CTRL1 */
+
+#define BIT_AON_APB_CGM_DMC_REF_AUTO_GATE_SEL                   BIT(4)
+#define BIT_AON_APB_CGM_TOP_DVFS_ROOT_AUTO_GATE_SEL             BIT(3)
+#define BIT_AON_APB_CGM_TOP_DVFS_ROOT_FORCE_EN                  BIT(2)
+
+/* REG_AON_APB_AUTO_GATE_CTRL3 */
+
+#define BIT_AON_APB_CGM_PERIPH_AUTO_GATE_EN                     BIT(13)
+#define BIT_AON_APB_CGM_GIC_AUTO_GATE_EN                        BIT(12)
+#define BIT_AON_APB_CGM_ACP_AUTO_GATE_EN                        BIT(11)
+#define BIT_AON_APB_CGM_AXI_PERIPH_AUTO_GATE_EN                 BIT(10)
+#define BIT_AON_APB_CGM_ACE_AUTO_GATE_EN                        BIT(9)
+#define BIT_AON_APB_CGM_SCU_AUTO_GATE_EN                        BIT(8)
+#define BIT_AON_APB_CGM_CORE1_AUTO_GATE_EN                      BIT(1)
+#define BIT_AON_APB_CGM_CORE0_AUTO_GATE_EN                      BIT(0)
+
+/* REG_AON_APB_V3_LPC_CTRL */
+
+#define BIT_AON_APB_V3_FRC_STOP_ACK                             BIT(8)
+#define BIT_AON_APB_V3_FRC_STOP_REQ                             BIT(0)
+
+/* REG_AON_APB_PSCP_LPC_CTRL */
+
+#define BIT_AON_APB_PSCP_FRC_STOP_ACK                           BIT(8)
+#define BIT_AON_APB_PSCP_FRC_STOP_REQ                           BIT(0)
+
+/* REG_AON_APB_AP_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU_FRC_STOP_ACK                          BIT(9)
+#define BIT_AON_APB_AP_FRC_STOP_ACK                             BIT(8)
+#define BIT_AON_APB_APCPU_FRC_STOP_REQ                          BIT(1)
+#define BIT_AON_APB_AP_FRC_STOP_REQ                             BIT(0)
+
+/* REG_AON_APB_AUDCP_LPC_CTRL */
+
+#define BIT_AON_APB_AUDCP_FRC_STOP_ACK                          BIT(8)
+#define BIT_AON_APB_AUDCP_FRC_STOP_REQ                          BIT(0)
+
+/* REG_AON_APB_NRCP_LPC_CTRL */
+
+#define BIT_AON_APB_NRCP_FRC_STOP_ACK                           BIT(8)
+#define BIT_AON_APB_NRCP_FRC_STOP_REQ                           BIT(0)
+
+/* REG_AON_APB_APCPU_AXI_CTRL */
+
+#define BIT_AON_APB_CGM_APCPU_AXI_AUTO_FREQ_DOWN_CTRL_SEL       BIT(3)
+#define BIT_AON_APB_CGM_APCPU_AXI_AUTO_FREQ_DOWN_EN             BIT(2)
+#define BIT_AON_APB_CGM_APCPU_AXI_SEL_IDLE(x)                   (((x) & 0x3))
+
+/* REG_AON_APB_APCPU_CLK_CTRL0 */
+
+#define BIT_AON_APB_APCPU_CORE_WAKEUP_ACE_CLK_EN                BIT(1)
+#define BIT_AON_APB_APCPU_CORE_WAKEUP_SCU_CLK_EN                BIT(0)
+
+/* REG_AON_APB_PUB_CLK_GATING_CTRL */
+
+#define BIT_AON_APB_PUB_APB_FW_EB                               BIT(17)
+#define BIT_AON_APB_PUB_REG_EB                                  BIT(16)
+#define BIT_AON_APB_DMC_EB                                      BIT(15)
+
+/* REG_AON_APB_DDRPHY_VREP */
+
+#define BIT_AON_APB_PHY_VREF_ADJ(x)                             (((x) & 0xFF) << 2)
+#define BIT_AON_APB_PHY_VREF_PD                                 BIT(1)
+#define BIT_AON_APB_PHY_VREF_HI_C                               BIT(0)
+
+/* REG_AON_APB_CGM_RESCUE */
+
+#define BIT_AON_APB_CGM_RESCUE(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AON_APB_FREQ_CTRL */
+
+#define BIT_AON_APB_AON_APB_MASTER_BUSY(x)                      (((x) & 0x1FFF) << 2)
+#define BIT_AON_APB_AON_APB_FREQ_CTRL_EN                        BIT(1)
+#define BIT_AON_APB_AON_APB_IDLE_EN                             BIT(0)
+
+/* REG_AON_APB_APCPU_MONITOR_STATUS */
+
+#define BIT_AON_APB_MONITOR_GATE_AUTO_EN_STATUS(x)              (((x) & 0xF) << 4)
+#define BIT_AON_APB_MONITOR_WAIT_EN_STATUS(x)                   (((x) & 0xF))
+
+/* REG_AON_APB_APCPU_DEBUG_PWR_LP_CTRL */
+
+#define BIT_AON_APB_APCPU_LP_NUM_DEBUG_PWR(x)                   (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_APCPU_LP_EB_DEBUG_PWR                       BIT(0)
+
+/* REG_AON_APB_APCPU_GIC_COL_LP_CTRL */
+
+#define BIT_AON_APB_APCPU_LP_NUM_GIC_COL(x)                     (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_APCPU_LP_EB_GIC_COL                         BIT(0)
+
+/* REG_AON_APB_APCPU_CLUSTER_ATB_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU_CLUSTER_ATB_LP_NUM(x)                 (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_APCPU_CLUSTER_ATB_LP_EB                     BIT(0)
+
+/* REG_AON_APB_APCPU_CLUSTER_APB_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU_CLUSTER_APB_LP_NUM(x)                 (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_APCPU_CLUSTER_APB_LP_EB                     BIT(0)
+
+/* REG_AON_APB_APCPU_CLUSTER_GIC_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU_CLUSTER_GIC_LP_NUM(x)                 (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_APCPU_CLUSTER_GIC_LP_EB                     BIT(0)
+
+/* REG_AON_APB_APCPU_GIC600_GIC_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU_GIC600_GIC_LP_NUM(x)                  (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_APCPU_GIC600_GIC_LP_EB                      BIT(0)
+
+/* REG_AON_APB_APCPU_DBG_BLK_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU_DBG_BLK_LP_NUM(x)                     (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_APCPU_DBG_BLK_LP_EB                         BIT(0)
+
+/* REG_AON_APB_APCPU_TOP_MTX_M0_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU_TOP_MTX_LP_NUM(x)                     (((x) & 0xFFFF) << 9)
+#define BIT_AON_APB_APCPU_TOP_MTX_MIAN_LP_EB                    BIT(8)
+#define BIT_AON_APB_APCPU_TOP_MTX_S3_LP_EB                      BIT(7)
+#define BIT_AON_APB_APCPU_TOP_MTX_S2_LP_EB                      BIT(6)
+#define BIT_AON_APB_APCPU_TOP_MTX_S1_LP_EB                      BIT(5)
+#define BIT_AON_APB_APCPU_TOP_MTX_S0_LP_EB                      BIT(4)
+#define BIT_AON_APB_APCPU_TOP_MTX_M3_LP_EB                      BIT(3)
+#define BIT_AON_APB_APCPU_TOP_MTX_M2_LP_EB                      BIT(2)
+#define BIT_AON_APB_APCPU_TOP_MTX_M1_LP_EB                      BIT(1)
+#define BIT_AON_APB_APCPU_TOP_MTX_M0_LP_EB                      BIT(0)
+
+/* REG_AON_APB_APCPU_CLUSTER_SCU_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU_CLUSTER_SCU_LP_NUM(x)                 (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_APCPU_CLUSTER_SCU_LP_EB                     BIT(0)
+
+/* REG_AON_APB_APCPU_DDR_AB_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU_DDR_AB_LP_NUM(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_APCPU_DDR_AB_LP_EB                          BIT(0)
+
+/* REG_AON_APB_APCPU_QOS_CTRL */
+
+#define BIT_AON_APB_QOS_DAP_APCPU(x)                            (((x) & 0xF) << 20)
+#define BIT_AON_APB_QOS_ETR_APCPU(x)                            (((x) & 0xF) << 16)
+#define BIT_AON_APB_ARQOS_THRESHOLD_APCPU(x)                    (((x) & 0xF) << 12)
+#define BIT_AON_APB_AWQOS_THRESHOLD_APCPU(x)                    (((x) & 0xF) << 8)
+#define BIT_AON_APB_ARQOS_APCPU(x)                              (((x) & 0xF) << 4)
+#define BIT_AON_APB_AWQOS_APCPU(x)                              (((x) & 0xF))
+
+/* REG_AON_APB_APCPU_URGENCY_CTRL */
+
+#define BIT_AON_APB_ARURGENCY_APCPU(x)                          (((x) & 0x3) << 14)
+#define BIT_AON_APB_AWURGENCY_APCPU(x)                          (((x) & 0x3) << 12)
+#define BIT_AON_APB_ARURGENCY_APCPU_M3(x)                       (((x) & 0x3) << 10)
+#define BIT_AON_APB_AWURGENCY_APCPU_M3(x)                       (((x) & 0x3) << 8)
+#define BIT_AON_APB_ARURGENCY_APCPU_M2(x)                       (((x) & 0x3) << 6)
+#define BIT_AON_APB_AWURGENCY_APCPU_M2(x)                       (((x) & 0x3) << 4)
+#define BIT_AON_APB_ARURGENCY_APCPU_M0(x)                       (((x) & 0x3) << 2)
+#define BIT_AON_APB_AWURGENCY_APCPU_M0(x)                       (((x) & 0x3))
+
+/* REG_AON_APB_AON_MTX_PROT_CFG */
+
+#define BIT_AON_APB_HPROT_DMAW(x)                               (((x) & 0xF) << 4)
+#define BIT_AON_APB_HPROT_DMAR(x)                               (((x) & 0xF))
+
+/* REG_AON_APB_APCU_LPC_CTRL */
+
+#define BIT_AON_APB_APCPU2AP_LP_ACK                             BIT(3)
+#define BIT_AON_APB_APCPU2AP_LP_FORCE                           BIT(2)
+#define BIT_AON_APB_DAP2APCPU_LP_ACK                            BIT(1)
+#define BIT_AON_APB_DAP2APCPU_LP_FORCE                          BIT(0)
+
+/* REG_AON_APB_CM42AON_LPC_CTRL */
+
+#define BIT_AON_APB_CM4_TO_AON_AXI_PU_NUM(x)                    (((x) & 0xFF) << 17)
+#define BIT_AON_APB_CM4_TO_AON_AXI_LP_NUM(x)                    (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_CM4_TO_AON_AXI_LP_EB                        BIT(0)
+
+/* REG_AON_APB_AON_MTX_MAIN_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_MAIN_PU_NUM(x)                      (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_MAIN_LP_NUM(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_MAIN_LP_EB                          BIT(0)
+
+/* REG_AON_APB_AON_MTX_M0_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_M0_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_M0_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_M0_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_M1_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_M1_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_M1_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_M1_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_M2_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_M2_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_M2_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_M2_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_M3_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_M3_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_M3_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_M3_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_M4_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_M4_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_M4_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_M4_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_M5_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_M5_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_M5_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_M5_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_M6_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_M6_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_M6_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_M6_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_S0_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_S0_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_S0_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_S0_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_S1_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_S1_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_S1_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_S1_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_S2_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_S2_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_S2_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_S2_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_S3_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_S3_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_S3_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_S3_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_S4_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_S4_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_S4_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_S4_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_S5_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_S5_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_S5_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_S5_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_S6_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_S6_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_S6_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_S6_LP_EB                            BIT(0)
+
+/* REG_AON_APB_AON_MTX_S7_LPC_CTRL */
+
+#define BIT_AON_APB_AON_MTX_S7_PU_NUM(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_AON_MTX_S7_LP_NUM(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_AON_MTX_S7_LP_EB                            BIT(0)
+
+/* REG_AON_APB_EAXI_MTX_M0_LPC_CTRL */
+
+#define BIT_AON_APB_EAXI_MTX_M0_PU_NUM(x)                       (((x) & 0xFF) << 17)
+#define BIT_AON_APB_EAXI_MTX_M0_LP_NUM(x)                       (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_EAXI_MTX_M0_LP_EB                           BIT(0)
+
+/* REG_AON_APB_EAXI_MTX_M1_LPC_CTRL */
+
+#define BIT_AON_APB_EAXI_MTX_M1_PU_NUM(x)                       (((x) & 0xFF) << 17)
+#define BIT_AON_APB_EAXI_MTX_M1_LP_NUM(x)                       (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_EAXI_MTX_M1_LP_EB                           BIT(0)
+
+/* REG_AON_APB_EAXI_MTX_M2_LPC_CTRL */
+
+#define BIT_AON_APB_EAXI_MTX_M2_PU_NUM(x)                       (((x) & 0xFF) << 17)
+#define BIT_AON_APB_EAXI_MTX_M2_LP_NUM(x)                       (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_EAXI_MTX_M2_LP_EB                           BIT(0)
+
+/* REG_AON_APB_EAXI_MTX_S0_LPC_CTRL */
+
+#define BIT_AON_APB_EAXI_MTX_S0_PU_NUM(x)                       (((x) & 0xFF) << 17)
+#define BIT_AON_APB_EAXI_MTX_S0_LP_NUM(x)                       (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_EAXI_MTX_S0_LP_EB                           BIT(0)
+
+/* REG_AON_APB_EAXI_MTX_S1_LPC_CTRL */
+
+#define BIT_AON_APB_EAXI_MTX_S1_PU_NUM(x)                       (((x) & 0xFF) << 17)
+#define BIT_AON_APB_EAXI_MTX_S1_LP_NUM(x)                       (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_EAXI_MTX_S1_LP_EB                           BIT(0)
+
+/* REG_AON_APB_EAXI_MTX_MAIN_LPC_CTRL */
+
+#define BIT_AON_APB_EAXI_MTX_MAIN_PU_NUM(x)                     (((x) & 0xFF) << 17)
+#define BIT_AON_APB_EAXI_MTX_MAIN_LP_NUM(x)                     (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_EAXI_MTX_MAIN_LP_EB                         BIT(0)
+
+/* REG_AON_APB_AON_SOC_USB_CTRL */
+
+#define BIT_AON_APB_U2U3_REF_CLK_SEL(x)                         (((x) & 0x3) << 3)
+#define BIT_AON_APB_USB_BUSCLK_SEL_SOC                          BIT(2)
+#define BIT_AON_APB_USB_DIVN_MUX_SEL                            BIT(1)
+
+/* REG_AON_APB_PCIE_SLV_ADDR_OFFSET */
+
+#define BIT_AON_APB_PCIE_MOD_SEL                                BIT(16)
+#define BIT_AON_APB_PCIE_SLV_ADDR_OFFSET(x)                     (((x) & 0x3FF))
+
+/* REG_AON_APB_AP_EMMC_PHY_CTRL */
+
+#define BIT_AON_APB_AP_EMMC_IO_POWER_OFF_DELAY                  BIT(25)
+#define BIT_AON_APB_AP_EMMC_IO_POWER_OFF                        BIT(24)
+#define BIT_AON_APB_AP_EMMC_CARDDET_DBNC_THD_32K(x)             (((x) & 0xFF) << 16)
+#define BIT_AON_APB_AP_EMMC_BATTERY_DBNC_THD_32K(x)             (((x) & 0xFF) << 8)
+#define BIT_AON_APB_AP_EMMC_CARDDET_DBNC_EN_32K                 BIT(7)
+#define BIT_AON_APB_AP_EMMC_BATTERY_DBNC_EN_32K                 BIT(6)
+#define BIT_AON_APB_AP_EMMC_BATTERY_DEB_EN_32K                  BIT(5)
+#define BIT_AON_APB_AP_EMMC_BATTERY_PRESENT_32K                 BIT(4)
+#define BIT_AON_APB_AP_EMMC_CARD_PROTECT_32K                    BIT(3)
+#define BIT_AON_APB_AP_EMMC_CARD_PRESENT_32K                    BIT(2)
+#define BIT_AON_APB_AP_EMMC_BATTERY_DET                         BIT(1)
+#define BIT_AON_APB_AP_EMMC_CARD_DET                            BIT(0)
+
+/* REG_AON_APB_AP_SDIO1_PHY_CTRL */
+
+#define BIT_AON_APB_AP_SDIO1_IO_POWER_OFF_DELAY                 BIT(25)
+#define BIT_AON_APB_AP_SDIO1_IO_POWER_OFF                       BIT(24)
+#define BIT_AON_APB_AP_SDIO1_CARDDET_DBNC_THD_32K(x)            (((x) & 0xFF) << 16)
+#define BIT_AON_APB_AP_SDIO1_BATTERY_DBNC_THD_32K(x)            (((x) & 0xFF) << 8)
+#define BIT_AON_APB_AP_SDIO1_CARDDET_DBNC_EN_32K                BIT(7)
+#define BIT_AON_APB_AP_SDIO1_BATTERY_DBNC_EN_32K                BIT(6)
+#define BIT_AON_APB_AP_SDIO1_BATTERY_DEB_EN_32K                 BIT(5)
+#define BIT_AON_APB_AP_SDIO1_BATTERY_PRESENT_32K                BIT(4)
+#define BIT_AON_APB_AP_SDIO1_CARD_PROTECT_32K                   BIT(3)
+#define BIT_AON_APB_AP_SDIO1_CARD_PRESENT_32K                   BIT(2)
+#define BIT_AON_APB_AP_SDIO1_BATTERY_DET                        BIT(1)
+#define BIT_AON_APB_AP_SDIO1_CARD_DET                           BIT(0)
+
+/* REG_AON_APB_PS_SDIO2_PHY_CTRL */
+
+#define BIT_AON_APB_PS_SDIO2_IO_POWER_OFF_DELAY                 BIT(25)
+#define BIT_AON_APB_PS_SDIO2_IO_POWER_OFF                       BIT(24)
+#define BIT_AON_APB_PS_SDIO2_CARDDET_DBNC_THD_32K(x)            (((x) & 0xFF) << 16)
+#define BIT_AON_APB_PS_SDIO2_BATTERY_DBNC_THD_32K(x)            (((x) & 0xFF) << 8)
+#define BIT_AON_APB_PS_SDIO2_CARDDET_DBNC_EN_32K                BIT(7)
+#define BIT_AON_APB_PS_SDIO2_BATTERY_DBNC_EN_32K                BIT(6)
+#define BIT_AON_APB_PS_SDIO2_BATTERY_DEB_EN_32K                 BIT(5)
+#define BIT_AON_APB_PS_SDIO2_BATTERY_PRESENT_32K                BIT(4)
+#define BIT_AON_APB_PS_SDIO2_CARD_PROTECT_32K                   BIT(3)
+#define BIT_AON_APB_PS_SDIO2_CARD_PRESENT_32K                   BIT(2)
+#define BIT_AON_APB_PS_SDIO2_BATTERY_DET                        BIT(1)
+#define BIT_AON_APB_PS_SDIO2_CARD_DET                           BIT(0)
+
+/* REG_AON_APB_V3PS_SDIO2_PHY_CTRL */
+
+#define BIT_AON_APB_V3PS_SDIO2_IO_POWER_OFF_DELAY               BIT(25)
+#define BIT_AON_APB_V3PS_SDIO2_IO_POWER_OFF                     BIT(24)
+#define BIT_AON_APB_V3PS_SDIO2_CARDDET_DBNC_THD_32K(x)          (((x) & 0xFF) << 16)
+#define BIT_AON_APB_V3PS_SDIO2_BATTERY_DBNC_THD_32K(x)          (((x) & 0xFF) << 8)
+#define BIT_AON_APB_V3PS_SDIO2_CARDDET_DBNC_EN_32K              BIT(7)
+#define BIT_AON_APB_V3PS_SDIO2_BATTERY_DBNC_EN_32K              BIT(6)
+#define BIT_AON_APB_V3PS_SDIO2_BATTERY_DEB_EN_32K               BIT(5)
+#define BIT_AON_APB_V3PS_SDIO2_BATTERY_PRESENT_32K              BIT(4)
+#define BIT_AON_APB_V3PS_SDIO2_CARD_PROTECT_32K                 BIT(3)
+#define BIT_AON_APB_V3PS_SDIO2_CARD_PRESENT_32K                 BIT(2)
+#define BIT_AON_APB_V3PS_SDIO2_BATTERY_DET                      BIT(1)
+#define BIT_AON_APB_V3PS_SDIO2_CARD_DET                         BIT(0)
+
+/* REG_AON_APB_RVBARADDR0 */
+
+#define BIT_AON_APB_RVBARADDR0(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_RVBARADDR1 */
+
+#define BIT_AON_APB_RVBARADDR1(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_APCPU_PU_NUM */
+
+#define BIT_AON_APB_APCPU_ACE_PU_NUM(x)                         (((x) & 0xFF) << 8)
+#define BIT_AON_APB_APCPU_MTX_PU_NUM(x)                         (((x) & 0xFF))
+
+/* REG_AON_APB_APCPU_L3CACHE_RAM_PD_BYPASS */
+
+#define BIT_AON_APB_APCPU_L3CACHE_RAM_PD_BYPASS                 BIT(0)
+
+/* REG_AON_APB_AON_TO_AUDCP_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AON_TO_AUDCP(x)                      (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_AON_TO_AUDCP(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AON_TO_AUDCP                          BIT(0)
+
+/* REG_AON_APB_AP_TO_NR_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AP_TO_NR(x)                          (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_AP_TO_NR(x)                          (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AP_TO_NR                              BIT(0)
+
+/* REG_AON_APB_AP_TO_PSCP_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AP_TO_PSCP(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_AP_TO_PSCP(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AP_TO_PSCP                            BIT(0)
+
+/* REG_AON_APB_APCPU_TO_AP_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_APCPU_TO_AP(x)                       (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_APCPU_TO_AP(x)                       (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_APCPU_TO_AP                           BIT(0)
+
+/* REG_AON_APB_NR_TO_AP_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_NR_TO_AP(x)                          (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_NR_TO_AP(x)                          (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_NR_TO_AP                              BIT(0)
+
+/* REG_AON_APB_NR_TO_PSCP_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_NR_TO_PSCP(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_NR_TO_PSCP(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_NR_TO_PSCP                            BIT(0)
+
+/* REG_AON_APB_PSCP_TO_AP_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_PSCP_TO_AP(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_PSCP_TO_AP(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_PSCP_TO_AP                            BIT(0)
+
+/* REG_AON_APB_PSCP_TO_NR_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_PSCP_TO_NR(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_PSCP_TO_NR(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_PSCP_TO_NR                            BIT(0)
+
+/* REG_AON_APB_PSCP_TO_V3_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_PSCP_TO_V3(x)                        (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_PSCP_TO_V3(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_PSCP_TO_V3                            BIT(0)
+
+/* REG_AON_APB_AUDCP_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_LP_NUM_AUDCP_TO_PUB(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AUDCP_TO_PUB                          BIT(0)
+
+/* REG_AON_APB_AON_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_LP_NUM_AON_TO_PUB(x)                        (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AON_TO_PUB                            BIT(0)
+
+/* REG_AON_APB_CSSYS_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_LP_NUM_CSSYS_TO_PUB(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_CSSYS_TO_PUB                          BIT(0)
+
+/* REG_AON_APB_APCPU_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_APCPU_TO_PUB(x)                      (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_APCPU_TO_PUB(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_APCPU_TO_PUB                          BIT(0)
+
+/* REG_AON_APB_AP_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AP_TO_PUB(x)                         (((x) & 0xFF) << 17)
+#define BIT_AON_APB_LP_NUM_AP_TO_PUB(x)                         (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AP_TO_PUB                             BIT(0)
+
+/* REG_AON_APB_NRACC_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_LP_NUM_NRACC_TO_PUB(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_NRACC_TO_PUB                          BIT(0)
+
+/* REG_AON_APB_NRCPU_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_LP_NUM_NRCPU_TO_PUB(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_NRCPU_TO_PUB                          BIT(0)
+
+/* REG_AON_APB_V3CPU_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_LP_NUM_V3CPU_TO_PUB(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_V3CPU_TO_PUB                          BIT(0)
+
+/* REG_AON_APB_V3ACC_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_LP_NUM_V3ACC_TO_PUB(x)                      (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_V3ACC_TO_PUB                          BIT(0)
+
+/* REG_AON_APB_PSCP_TO_PUB_RS_LPC_CTRL */
+
+#define BIT_AON_APB_LP_NUM_PSCP_TO_PUB(x)                       (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_PSCP_TO_PUB                           BIT(0)
+
+/* REG_AON_APB_AB_W_AGCP2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_AGCP2EMC(x)                     (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_AGCP2EMC                  BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_AGCP2EMC                      BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_AGCP2EMC(x)                     (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_AGCP2EMC                         BIT(0)
+
+/* REG_AON_APB_AB_W_AONSYS2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_AONSYS2EMC(x)                   (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_AONSYS2EMC                BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_AONSYS2EMC                    BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_AONSYS2EMC(x)                   (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_AONSYS2EMC                       BIT(0)
+
+/* REG_AON_APB_AB_W_APCPU2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_APCPU2EMC(x)                    (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_APCPU2EMC                 BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_APCPU2EMC                     BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_APCPU2EMC(x)                    (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_APCPU2EMC                        BIT(0)
+
+/* REG_AON_APB_AB_W_CSSYS2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_CSSYS2EMC(x)                    (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_CSSYS2EMC                 BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_CSSYS2EMC                     BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_CSSYS2EMC(x)                    (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_CSSYS2EMC                        BIT(0)
+
+/* REG_AON_APB_AB_W_MINIAP2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_MINIAP2EMC(x)                   (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_MINIAP2EMC                BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_MINIAP2EMC                    BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_MINIAP2EMC(x)                   (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_MINIAP2EMC                       BIT(0)
+
+/* REG_AON_APB_AB_W_NRACC2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_NRACC2EMC(x)                    (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_NRACC2EMC                 BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_NRACC2EMC                     BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_NRACC2EMC(x)                    (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_NRACC2EMC                        BIT(0)
+
+/* REG_AON_APB_AB_W_NRCPU2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_NRCPU2EMC(x)                    (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_NRCPU2EMC                 BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_NRCPU2EMC                     BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_NRCPU2EMC(x)                    (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_NRCPU2EMC                        BIT(0)
+
+/* REG_AON_APB_AB_W_V3ACC2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_V3ACC2EMC(x)                    (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_V3ACC2EMC                 BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_V3ACC2EMC                     BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_V3ACC2EMC(x)                    (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_V3ACC2EMC                        BIT(0)
+
+/* REG_AON_APB_AB_W_V3CPU2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_V3CPU2EMC(x)                    (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_V3CPU2EMC                 BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_V3CPU2EMC                     BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_V3CPU2EMC(x)                    (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_V3CPU2EMC                        BIT(0)
+
+/* REG_AON_APB_AB_W_PSCP2EMC_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AB_W_PSCP2EMC(x)                     (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AB_W_PSCP2EMC                  BIT(18)
+#define BIT_AON_APB_LP_FORCE_AB_W_PSCP2EMC                      BIT(17)
+#define BIT_AON_APB_LP_NUM_AB_W_PSCP2EMC(x)                     (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AB_W_PSCP2EMC                         BIT(0)
+
+/* REG_AON_APB_AHB2AHB_ASYNC_CTRL */
+
+#define BIT_AON_APB_NOBUF_EARLY_RESP_EN                         BIT(2)
+#define BIT_AON_APB_SCLK_AUTO_GATE_EN                           BIT(1)
+#define BIT_AON_APB_MCLK_AUTO_GATE_EN                           BIT(0)
+
+/* REG_AON_APB_APCPU_ATB_CLK_DFS_CTRL */
+
+#define BIT_AON_APB_APCPU_ATB_CLK_DFS_CTRL_DIV                  BIT(1)
+#define BIT_AON_APB_APCPU_ATB_CLK_DFS_CTRL_SEL                  BIT(0)
+
+/* REG_AON_APB_AON_APB_DFS_CTRL */
+
+#define BIT_AON_APB_AON_APB_DFS_SUB_SYS_MASK                    BIT(1)
+#define BIT_AON_APB_AON_APB_DFS_REG_SLICE_MASK                  BIT(0)
+
+/* REG_AON_APB_AON_TO_PUB_RF_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_AON_TO_PUB_RF(x)                     (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_AON_TO_PUB_RF                  BIT(18)
+#define BIT_AON_APB_LP_FORCE_AON_TO_PUB_RF                      BIT(17)
+#define BIT_AON_APB_LP_NUM_AON_TO_PUB_RF(x)                     (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_AON_TO_PUB_RF                         BIT(0)
+
+/* REG_AON_APB_EAXI_TO_APCPU_LPC_CTRL */
+
+#define BIT_AON_APB_PU_NUM_EAXI_TO_APCPU(x)                     (((x) & 0xFF) << 19)
+#define BIT_AON_APB_LP_FORCE_ACK_EAXI_TO_APCPU                  BIT(18)
+#define BIT_AON_APB_LP_FORCE_EAXI_TO_APCPU                      BIT(17)
+#define BIT_AON_APB_LP_NUM_EAXI_TO_APCPU(x)                     (((x) & 0xFFFF) << 1)
+#define BIT_AON_APB_LP_EB_EAXI_TO_APCPU                         BIT(0)
+
+/* REG_AON_APB_EWARLY_WAKEUP_EN */
+
+#define BIT_AON_APB_EARLY_WAKEUP_EN                             BIT(0)
+
+/* REG_AON_APB_PWR_CTRL */
+
+#define BIT_AON_APB_EFUSE_PWON_RD_END_FLAG                      BIT(2)
+
+/* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG4 */
+
+#define BIT_AON_APB_REG_DBG_MOD_SEL_AON(x)                      (((x) & 0xFF) << 24)
+#define BIT_AON_APB_REG_DBG_MOD_SEL_PUB(x)                      (((x) & 0xFF) << 16)
+#define BIT_AON_APB_REG_DBG_MOD_SEL_AUDCP(x)                    (((x) & 0xFF) << 8)
+#define BIT_AON_APB_REG_DBG_MOD_SEL_AP(x)                       (((x) & 0xFF))
+
+/* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG0 */
+
+#define BIT_AON_APB_REG_DBG_MOD_SEL_NR(x)                       (((x) & 0xFF) << 24)
+#define BIT_AON_APB_REG_DBG_MOD_SEL_V3(x)                       (((x) & 0xFF) << 16)
+#define BIT_AON_APB_REG_DBG_MOD_SEL_PSCP(x)                     (((x) & 0xFF) << 8)
+#define BIT_AON_APB_REG_DBG_BUS_SEL_APCPU(x)                    (((x) & 0xFF))
+
+/* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG1 */
+
+#define BIT_AON_APB_REG_DBG_BUS_SEL_AP(x)                       (((x) & 0xFF) << 24)
+#define BIT_AON_APB_REG_DBG_BUS_SEL_PSCP(x)                     (((x) & 0xFF) << 16)
+#define BIT_AON_APB_REG_DBG_BUS_SEL_V3(x)                       (((x) & 0xFF) << 8)
+#define BIT_AON_APB_REG_DBG_BUS_SEL_AUDCP(x)                    (((x) & 0xFF))
+
+/* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG2 */
+
+#define BIT_AON_APB_REG_DBG_BUS_SEL_PUB(x)                      (((x) & 0xFF) << 24)
+#define BIT_AON_APB_REG_DBG_BUS_SEL_NR(x)                       (((x) & 0xFF) << 16)
+#define BIT_AON_APB_REG_DBG_BUS_SEL_AON(x)                      (((x) & 0xFF) << 8)
+
+/* REG_AON_APB_SYS_DEBUG_BUS_SEL_CFG3 */
+
+#define BIT_AON_APB_REG_DBG_MOD_SEL_APCPU(x)                    (((x) & 0xFF) << 16)
+#define BIT_AON_APB_REG_DBG_SYS_SEL_B(x)                        (((x) & 0xFF) << 8)
+#define BIT_AON_APB_REG_DBG_SYS_SEL(x)                          (((x) & 0xFF))
+
+/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG1 */
+
+#define BIT_AON_APB_DBG_BUS4_SEL(x)                             (((x) & 0x3F) << 24)
+#define BIT_AON_APB_DBG_BUS3_SEL(x)                             (((x) & 0x3F) << 18)
+#define BIT_AON_APB_DBG_BUS2_SEL(x)                             (((x) & 0x3F) << 12)
+#define BIT_AON_APB_DBG_BUS1_SEL(x)                             (((x) & 0x3F) << 6)
+#define BIT_AON_APB_DBG_BUS0_SEL(x)                             (((x) & 0x3F))
+
+/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG2 */
+
+#define BIT_AON_APB_DBG_BUS9_SEL(x)                             (((x) & 0x3F) << 24)
+#define BIT_AON_APB_DBG_BUS8_SEL(x)                             (((x) & 0x3F) << 18)
+#define BIT_AON_APB_DBG_BUS7_SEL(x)                             (((x) & 0x3F) << 12)
+#define BIT_AON_APB_DBG_BUS6_SEL(x)                             (((x) & 0x3F) << 6)
+#define BIT_AON_APB_DBG_BUS5_SEL(x)                             (((x) & 0x3F))
+
+/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG3 */
+
+#define BIT_AON_APB_DBG_BUS14_SEL(x)                            (((x) & 0x3F) << 24)
+#define BIT_AON_APB_DBG_BUS13_SEL(x)                            (((x) & 0x3F) << 18)
+#define BIT_AON_APB_DBG_BUS12_SEL(x)                            (((x) & 0x3F) << 12)
+#define BIT_AON_APB_DBG_BUS11_SEL(x)                            (((x) & 0x3F) << 6)
+#define BIT_AON_APB_DBG_BUS10_SEL(x)                            (((x) & 0x3F))
+
+/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG4 */
+
+#define BIT_AON_APB_DBG_BUS19_SEL(x)                            (((x) & 0x3F) << 24)
+#define BIT_AON_APB_DBG_BUS18_SEL(x)                            (((x) & 0x3F) << 18)
+#define BIT_AON_APB_DBG_BUS17_SEL(x)                            (((x) & 0x3F) << 12)
+#define BIT_AON_APB_DBG_BUS16_SEL(x)                            (((x) & 0x3F) << 6)
+#define BIT_AON_APB_DBG_BUS15_SEL(x)                            (((x) & 0x3F))
+
+/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG5 */
+
+#define BIT_AON_APB_DBG_BUS24_SEL(x)                            (((x) & 0x3F) << 24)
+#define BIT_AON_APB_DBG_BUS23_SEL(x)                            (((x) & 0x3F) << 18)
+#define BIT_AON_APB_DBG_BUS22_SEL(x)                            (((x) & 0x3F) << 12)
+#define BIT_AON_APB_DBG_BUS21_SEL(x)                            (((x) & 0x3F) << 6)
+#define BIT_AON_APB_DBG_BUS20_SEL(x)                            (((x) & 0x3F))
+
+/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG6 */
+
+#define BIT_AON_APB_DBG_BUS29_SEL(x)                            (((x) & 0x3F) << 24)
+#define BIT_AON_APB_DBG_BUS28_SEL(x)                            (((x) & 0x3F) << 18)
+#define BIT_AON_APB_DBG_BUS27_SEL(x)                            (((x) & 0x3F) << 12)
+#define BIT_AON_APB_DBG_BUS26_SEL(x)                            (((x) & 0x3F) << 6)
+#define BIT_AON_APB_DBG_BUS25_SEL(x)                            (((x) & 0x3F))
+
+/* REG_AON_APB_PAD_DBG_BUS_SEL_CFG7 */
+
+#define BIT_AON_APB_DBG_BUS31_SEL(x)                            (((x) & 0x3F) << 6)
+#define BIT_AON_APB_DBG_BUS30_SEL(x)                            (((x) & 0x3F))
+
+/* REG_AON_APB_PAD_DBG_BUS_DATA_A */
+
+#define BIT_AON_APB_PAD_DBG_BUS_DATA_A(x)                       (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_PAD_DBG_BUS_DATA_B */
+
+#define BIT_AON_APB_PAD_DBG_BUS_DATA_B(x)                       (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_PAD_DBG_BUS_DATA_OUT */
+
+#define BIT_AON_APB_PAD_DBG_BUS_DATA_OUT(x)                     (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DBG_BUS_DATA_V3 */
+
+#define BIT_AON_APB_DBG_BUS_DATA_V3(x)                          (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DBG_BUS_DATA_PSCP */
+
+#define BIT_AON_APB_DBG_BUS_DATA_PSCP(x)                        (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DBG_BUS_DATA_AUDCP */
+
+#define BIT_AON_APB_DBG_BUS_DATA_AUDCP(x)                       (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_SCC_DBG_BUS */
+
+#define BIT_AON_APB_SCC_DBG_BUS(x)                              (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DEBUG_FILTER_0 */
+
+#define BIT_AON_APB_MATCH_SEL                                   BIT(19)
+#define BIT_AON_APB_WAIT_OVER(x)                                (((x) & 0xFFFF) << 3)
+#define BIT_AON_APB_ENABLE_COUNTER                              BIT(2)
+#define BIT_AON_APB_ENABLE_FILTER                               BIT(1)
+#define BIT_AON_APB_DEBUG_MODE                                  BIT(0)
+
+/* REG_AON_APB_DEBUG_FILTER_1 */
+
+#define BIT_AON_APB_ADDR_FLT(x)                                 (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DEBUG_FILTER_2 */
+
+#define BIT_AON_APB_ADDR_OVER(x)                                (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DEBUG_FILTER_3 */
+
+#define BIT_AON_APB_ADDR_DIFF(x)                                (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DEBUG_FILTER_4 */
+
+#define BIT_AON_APB_LATEST_ADDR(x)                              (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DEBUG_FILTER_5 */
+
+#define BIT_AON_APB_ADDR_MASK(x)                                (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_TPIU_DATA_TO_SERDES_SEL */
+
+#define BIT_AON_APB_TPIU_TO_SERDES_SEL                          BIT(0)
+
+/* REG_AON_APB_MTX_BUSMON_EB */
+
+#define BIT_AON_APB_BUSMON_EB_DBD_MTX                           BIT(2)
+#define BIT_AON_APB_BUSMON_EB_EAXI_MTX                          BIT(1)
+#define BIT_AON_APB_BUSMON_EB_AON_MAIN_MTX                      BIT(0)
+
+/* REG_AON_APB_AON_CHIP_ID0 */
+
+#define BIT_AON_APB_AON_CHIP_ID0(x)                             (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AON_CHIP_ID1 */
+
+#define BIT_AON_APB_AON_CHIP_ID1(x)                             (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AON_PLAT_ID0 */
+
+#define BIT_AON_APB_AON_PLAT_ID0(x)                             (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AON_PLAT_ID1 */
+
+#define BIT_AON_APB_AON_PLAT_ID1(x)                             (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AON_IMPL_ID */
+
+#define BIT_AON_APB_AON_IMPL_ID(x)                              (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AON_MFT_ID */
+
+#define BIT_AON_APB_AON_MFT_ID(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AON_VER_ID */
+
+#define BIT_AON_APB_AON_VER_ID(x)                               (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_AON_CHIP_ID */
+
+#define BIT_AON_APB_AON_CHIP_ID(x)                              (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_USER_RSV_FLAG1 */
+
+#define BIT_AON_APB_USER_RSV_FLAG1_B1                           BIT(1)
+#define BIT_AON_APB_USER_RSV_FLAG1_B0                           BIT(0)
+
+/* REG_AON_APB_BOND_OPT0 */
+
+#define BIT_AON_APB_BOND_OPTION0(x)                             (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_DEVICE_LIFE_CYCLE */
+
+#define BIT_AON_APB_BOND_OPTION1(x)                             (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_RES_REG0 */
+
+#define BIT_AON_APB_RES_REG0(x)                                 (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_RES_REG1 */
+
+#define BIT_AON_APB_RES_REG1(x)                                 (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_CP_RFFE_RES_REG0 */
+
+#define BIT_AON_APB_CP_RFFE_RES_REG0(x)                         (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_CP_RFFE_RES_REG1 */
+
+#define BIT_AON_APB_CP_RFFE_RES_REG1(x)                         (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_CP_RFFE_RES_REG2 */
+
+#define BIT_AON_APB_CP_RFFE_RES_REG2(x)                         (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_CP_RFFE_RES_REG3 */
+
+#define BIT_AON_APB_CP_RFFE_RES_REG3(x)                         (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_CP_RFFE_RES_REG4 */
+
+#define BIT_AON_APB_CP_RFFE_RES_REG4(x)                         (((x) & 0xFFFFFFFF))
+
+/* REG_AON_APB_CP_RFFE_RES_REG5 */
+
+#define BIT_AON_APB_CP_RFFE_RES_REG5(x)                         (((x) & 0xFFFFFFFF))
+
+#endif
 
