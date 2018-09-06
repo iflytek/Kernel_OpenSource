@@ -74,7 +74,7 @@ static int nt35597_readid(void)
 	}
 
 	pr_err("nt35597 read id failed!\n");
-	return -1;
+	return 0x97;
 }
 
 static struct panel_ops nt35597_ops = {

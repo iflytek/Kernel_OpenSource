@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Spreadtrum Communications Inc.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -23,23 +23,19 @@ static int dsi_glb_parse_dt(struct dsi_context *ctx)
 
 static void dsi_glb_enable(struct dsi_context *ctx)
 {
-	pr_info("dsi global enable\n");
+	sci_glb_set(REG_AP_AHB_AHB_EB, BIT_AP_AHB_DSI_EB);
 }
 
 static void dsi_glb_disable(struct dsi_context *ctx)
 {
-	pr_info("dsi global disable\n");
+	sci_glb_clr(REG_AP_AHB_AHB_EB, BIT_AP_AHB_DSI_EB);
 }
 
 static void dsi_reset(struct dsi_context *ctx)
 {
-/*
-// before ECO
-	sci_glb_set(REG_AON_APB_APB_RST1, BIT_AON_DISP_SOFT_RST);
+	sci_glb_set(REG_AP_AHB_AHB_RST, BIT_AP_AHB_DSI_SOFT_RST);
 	udelay(10);
-	sci_glb_clr(REG_AON_APB_APB_RST1, BIT_AON_DISP_SOFT_RST);
-*/
-// after ECO
+	sci_glb_clr(REG_AP_AHB_AHB_RST, BIT_AP_AHB_DSI_SOFT_RST);
 }
 
 static void dsi_power_domain(struct dsi_context *ctx, int enable)
