@@ -94,7 +94,7 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	boot_mode_t boot_role = get_boot_role();
 	int chip_version = 0;
 	dl_packet_t ack_packet;
-	DA_INFO_T Da_Info;
+	DA_INFO_T Da_Info = {0};
 
 #ifdef CONFIG_USB_ENUM_IN_UBOOT
 	chip_version = sprd_get_chip_version();
