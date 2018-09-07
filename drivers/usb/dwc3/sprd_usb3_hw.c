@@ -35,13 +35,12 @@ static void usb_clk_enable(u32 is_on)
 {
 	u32 val;
 
-	val = readl(REG_IPA_AHB_IPA_EB);
+	val = readl(REG_AON_APB_APB_EB1);
 	if (is_on)
-		writel(val | (BIT_IPA_AHB_USB_EB | BIT_IPA_AHB_USB_SUSPEND_EB
-			| BIT_IPA_AHB_USB_REF_EB), REG_IPA_AHB_IPA_EB);
+		/* Purpose: To enable clk cfg */
+		writel(val | BIT_AON_APB_CKG_EB, REG_AON_APB_APB_EB1);
 	else
-		writel(val & ~(BIT_IPA_AHB_USB_EB | BIT_IPA_AHB_USB_SUSPEND_EB
-			| BIT_IPA_AHB_USB_REF_EB), REG_IPA_AHB_IPA_EB);
+		writel(val & ~BIT_AON_APB_CKG_EB, REG_AON_APB_APB_EB1);
 }
 
 #ifdef CONFIG_FPGA
@@ -245,6 +244,11 @@ static usb_disable()
 	val = readl(REG_PMU_APB_ANALOG_PHY_PD_CFG);
 	val |= (BIT_PMU_APB_USB3_PHY_PD_REG | BIT_PMU_APB_USB2_PHY_PD_REG);
 	writel(val, REG_PMU_APB_ANALOG_PHY_PD_CFG);
+
+	/*disable analog*/
+	val = readl(REG_AON_APB_APB_EB1);
+	writel(val & ~BIT_AON_APB_ANA_EB, REG_AON_APB_APB_EB1);
+
 }
 static void usb_phy_enable(u32 is_on)
 {

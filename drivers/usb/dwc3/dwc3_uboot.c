@@ -52,8 +52,8 @@ int usb_driver_init(unsigned int max_speed)
 
 void usb_driver_exit(void)
 {
-	usb_clk_enable(0);
 	usb_phy_enable(0);
+	usb_clk_enable(0);
 }
 
 int usb_gadget_handle_interrupts(void)
