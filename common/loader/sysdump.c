@@ -230,7 +230,27 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 
 	return;
 }
-
+/* Get the memory block belong to kernel(linux_memory) in sysdump_mem	*/
+static int get_elfhdr_ptload_mem(struct sysdump_mem *dump_mem, int dump_mem_num, struct sysdump_mem *ptload_mem)
+{
+	int i,j;
+	int k = 0;
+	for(i = 0; i < dump_mem_num; i++){
+		debugf("sprd_dump_mem[%d].paddr is 0x%lx\n", i, dump_mem[i].paddr);
+		for(j = 0; j < mem_num; j++ ){
+			debugf("linux_memory[%d].paddr is 0x%lx paddr+size is 0x%lx\n", j, linux_memory[j].addr, linux_memory[j].addr + linux_memory[j].size);
+			if((dump_mem[i].paddr >= linux_memory[j].addr) && (dump_mem[i].paddr <= linux_memory[j].addr + linux_memory[j].size)){
+				/*	the dump_mem region is belong to linux memory ,mark as elfhdr ptload */
+				ptload_mem[k].paddr = dump_mem[i].paddr;
+				ptload_mem[k].vaddr = dump_mem[i].vaddr;
+				ptload_mem[k].size = dump_mem[i].size;
+				debugf("elfhdr pt_load memory[%d] addr = 0x%llx, size = 0x%llx !!!\n", k, ptload_mem[k].paddr, ptload_mem[k].size);
+				k++;
+			}
+		}
+	}
+	return k;
+}
 static size_t get_elfhdr_size(int nphdr)
 {
 	size_t elfhdr_len;
@@ -285,7 +305,6 @@ static char *storenote(struct memelfnote *men, char *bufp)
 }
 
 #endif
-
 static void sysdump_fill_core_hdr(struct pt_regs *regs,
 						struct sysdump_mem *sysmem, int mem_num,
 						char *bufp, int nphdr, int dataoff)
@@ -296,7 +315,6 @@ static void sysdump_fill_core_hdr(struct pt_regs *regs,
 	off_t offset = 0;
 	Elf_Off f_offset = dataoff;
 	int i;
-
 	/* setup ELF header */
 	elf = (struct elfhdr *) bufp;
 	bufp += sizeof(struct elfhdr);
@@ -1207,6 +1225,8 @@ void write_sysdump_before_boot(int rst_mode)
 	unsigned char sysdump_checksum[1000] = {0};
 	int i, j, k, sprd_dump_mem_num, ret, fs_type;
 	struct sysdump_mem sprd_dump_mem[MAX_NUM_DUMP_MEM];
+	struct sysdump_mem sprd_ptload_mem[MAX_NUM_DUMP_MEM];/*elfheader pt_load memory block,exclude not linux kernel memroy in sprd_dump_mem*/
+	int sprd_ptload_mem_num;/*elfheader pt_load memory block*/
 	int mod, key_code, auto_test_flag = 0, s_length =0, chk_length = 0, dt_fail = 0;
 	char fnbuf[72] = {0}, fnbuf_rename[72] = {0}, *path, *waddr, *string, *check_sum;
 
@@ -1289,13 +1309,14 @@ void write_sysdump_before_boot(int rst_mode)
 		}
 
 		infop->mem_num = sprd_dump_mem_num;
-		infop->elfhdr_size = get_elfhdr_size(infop->mem_num);
+		sprd_ptload_mem_num = get_elfhdr_ptload_mem(sprd_dump_mem, sprd_dump_mem_num, sprd_ptload_mem);
+		infop->elfhdr_size = get_elfhdr_size(sprd_ptload_mem_num);
 		memset((char *)infop + sizeof(*infop), 0, infop->elfhdr_size);
 		sysdump_fill_core_hdr(NULL,
-					sprd_dump_mem,
-					sprd_dump_mem_num,
+					sprd_ptload_mem,
+					sprd_ptload_mem_num,
 					(char *)infop + sizeof(*infop),
-					infop->mem_num + 1,
+					sprd_ptload_mem_num + 1,
 					infop->elfhdr_size);
 
 		if ((rst_mode == CMD_WATCHDOG_REBOOT) || (rst_mode == CMD_AP_WATCHDOG_REBOOT) || \
