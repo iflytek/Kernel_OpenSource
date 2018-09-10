@@ -1330,7 +1330,7 @@ int sprd_sec_verify_lockstatus(unsigned char *lockstatus, unsigned int status_le
 
 	if(*v_lock_state_ret == VBOOT_STATUS_LOCK)
 	{
-		debugf("verify unlock status failed. \n");
+		//debugf("verify unlock status failed. \n");
 		ret = -1;
 	}
 

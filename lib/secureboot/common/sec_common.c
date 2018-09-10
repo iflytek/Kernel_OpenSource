@@ -950,8 +950,6 @@ unsigned int get_lock_status(void)
 
 	ret = sprd_sec_verify_lockstatus(lock_flag, PDT_INFO_LOCK_FLAG_MAX_SIZE);
 
-	debugf("sprd_sec_verify_lockstatus ret %d.\n", ret);
-
 	if(ret != 0) {
 		g_DeviceStatus = VBOOT_STATUS_LOCK; /*default lock status.*/
 	}
