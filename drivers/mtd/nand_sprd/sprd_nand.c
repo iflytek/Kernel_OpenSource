@@ -243,7 +243,7 @@ void NandSetRandomizer (NAND_CTL * this,uint32_t seedAddr)
 	__32reg_write(NFC_POLY7_REG,0x400010);
 	__32reg_write(NFC_SEED_ADDRH_REG,0);
 	__32reg_write(NFC_SEED_ADDRL_REG,seedAddr);
-	__32reg_write(NFC_CFG3_REG,0x00003);//use 8 polynomial and enalbe randomizing
+	__32reg_write(NFC_CFG3_REG,_CFG3_RANDOM_EN | _CFG3_USE_POLY4R1_SEL(1) | _CFG3_DETECT_ALL_FF);//use 8 polynomial and enalbe randomizing
 }
 
 void nfc_dump(uint32_t nand_ctl){
@@ -1787,7 +1787,7 @@ int nand_write_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
 	ret = callback_writePageInBlk(nfcBase, page,
 					1, NULL,ifHasMBuf, ifHasSBuf,
 					MTD_OPS_PLACE_OOB);
-	__32reg_write(NFC_CFG3_REG,0x0);//disable random
+	__32reg_write(NFC_CFG3_REG,_CFG3_DETECT_ALL_FF);//disable random and enable detect_all_ff
 	return ret;
 }
 
@@ -1806,7 +1806,7 @@ int nand_read_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
 					1, NULL,ifHasMBuf, ifHasSBuf,
 					MTD_OPS_PLACE_OOB, &(mtd->ecc_stats));
 	memcpy(buf, this->mBuf_p, (1 << this->pageShift));
-	__32reg_write(NFC_CFG3_REG,0x0);//disable random
+	__32reg_write(NFC_CFG3_REG,_CFG3_DETECT_ALL_FF);//disable random and enable detect_all_ff
 	return ret;
 }
 

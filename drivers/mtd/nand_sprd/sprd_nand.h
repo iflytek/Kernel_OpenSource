@@ -42,7 +42,6 @@
 #define BUS_WIDTH                   (1 << 14)
 #define SPAR_DLEN_CFG               (1 << 13)
 #define SECNUM_IN_INST              (1 << 12)
-#define DETECT_ALL_FF               (1 << 11)
 #define NFC_RW                      (1 << 8)
 #define MAIN_SPAR_APT               (1 << 6)
 #define SPAR_USE                    (1 << 5)
@@ -213,7 +212,6 @@ struct bootloader_header
 #define _CFG0_DEF1_BUS_WIDTH(width)				(((!!(width!=BW_08))&0x1)<<14)
 #define _CFG0_SET_SPARE_ONLY_INFO_PROD_EN		(1<<13)
 #define _CFG0_DEF0_SECT_NUM_IN_INST				(0<<12)
-#define _CFG0_DEF0_DETECT_ALL_FF				(1<<11)
 #define _CFG0_SET_CS_SEL(cs)					(((cs)&0x3)<<9)
 #define _CFG0_CS_MAX							4
 #define _CFG0_CS_MSKCLR							(~(0x3<<9))
@@ -243,8 +241,9 @@ struct bootloader_header
 												/*NFC_CFG3 --checked *//*may be unused */
 #define _CFG3_SEED_LOOP_CNT(cnt)			(((cnt)&0x3FF)<<16)
 #define _CFG3_SEED_LOOP_EN					(1<<2)
-#define _CFG3_unused_POLY4R1_SEL(sel)		(((sel)&0x1)<<1)
+#define _CFG3_USE_POLY4R1_SEL(sel)		(((sel)&0x1)<<1)
 #define _CFG3_RANDOM_EN						(1)
+#define _CFG3_DETECT_ALL_FF					(1<<3)
 
 /*NFC_CFG2 bit define --checked*/
 #define _CFG4_ONLY_SEL_MODE 					BIT_14
