@@ -198,7 +198,7 @@
 #define SPRD_EMMC_BASE                                     SPRD_EMMC_PHYS
 #define SPRD_SDIO0_BASE                                    SPRD_SDIO0_PHYS
 /* referenced by sprd_musb2_def.h */
-#define SPRD_USB_BASE                                      SPRD_USB3_AHB_PHYS
+#define SPRD_USB_BASE                                      SPRD_USB_REG_PHYS
 /* referenced by adi.c */
 #define SPRD_MISC_PHYS                                     SPRD_ADI_PHYS
 /* referenced by sprd_i2c.c, just tricky */
