@@ -4,13 +4,13 @@
 unsigned short fdl_calc_checksum(unsigned char *data, unsigned long len)
 {
 	unsigned short num = 0;
-	unsigned long chkSum = 0;
+	unsigned long long chkSum = 0;
 	while(len>1) {
 		num = (unsigned short)(*data);
 		data++;
 		num |= (((unsigned short)(*data))<<8);
 		data++;
-		chkSum += (unsigned long)num;
+		chkSum += (unsigned long long)num;
 		len -= 2;
 	}
 	if(len) {
