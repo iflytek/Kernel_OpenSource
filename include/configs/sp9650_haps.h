@@ -49,9 +49,9 @@
 #define COUNTER_FREQUENCY		(0x1800000)	/* 24MHz */
 
 /* Generic Interrupt Controller Definitions */
-#define CONFIG_GICV2
-#define GICD_BASE			(0x12001000)
-#define GICC_BASE			(0x12002000)
+#define CONFIG_GICV3
+#define GICD_BASE			(0x12000000)
+#define GICR_BASE			(0x12004000)
 
 #define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM_1
 #define CONFIG_SYS_MEMTEST_END		(PHYS_SDRAM_1 + 0x0800000)
@@ -218,6 +218,16 @@
 #define CONFIG_EMMC_BOOT
 #define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
+
+/* bootm kernel and pmsys from ddr */
+#define CONFIG_DDR_BOOT
+#ifdef CONFIG_DDR_BOOT
+#undef CONFIG_UFS_BOOT
+#undef CONFIG_EMMC_BOOT
+#undef CONFIG_NAND_BOOT
+
+#define CONFIG_DDR_BOOT_BOOTIMAGE_ADR   (0x82000000)
+#endif
 
 /*file system config*/
 #define CONFIG_FAT_WRITE
