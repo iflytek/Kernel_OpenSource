@@ -16,6 +16,7 @@
 extern struct panel_driver dummy_mipi_driver;
 extern struct panel_driver ili9881c_xxx_driver;
 extern struct panel_driver ili9881c_3lane_driver;
+extern struct panel_driver ili9881c_skyworth_driver;
 extern struct panel_driver st7701_boe_driver;
 extern struct panel_driver st7701_coe_driver;
 extern struct panel_driver nt35532_truly_driver;
@@ -37,6 +38,12 @@ static struct panel_cfg supported_panel[] = {
 	{
 		.lcd_id = 0x9881,
 		.drv = &ili9881c_3lane_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_ILI9881C_SKYWORTH_HD
+	{
+		.lcd_id = 0x98814,
+		.drv = &ili9881c_skyworth_driver,
 	},
 #endif
 #ifdef CONFIG_LCD_ST7701_BOE_MIPI_WVGA

@@ -21,6 +21,17 @@ static uint32_t lcd_width_to_kernel;
 static uint32_t lcd_hight_to_kernel;
 static struct panel_driver *panel_drv;
 
+#ifdef CONFIG_BACKLIGHT_DSI
+void set_backlight(int brightness)
+{
+	if (panel_drv->ops->set_brightness) {
+		panel_drv->ops->set_brightness(brightness);
+	}
+	pr_info("lcd cabc backlight brightness==%d\n",brightness);
+	return;
+}
+#endif
+
 struct panel_info *panel_info_attach(void)
 {
 	return panel_drv->info;
