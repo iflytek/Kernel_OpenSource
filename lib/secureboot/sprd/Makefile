@@ -28,6 +28,10 @@ ifneq ($(CONFIG_SOC_SHARKL5),)
 obj-y += sec_efuse_sharkl5.o
 obj-y += sec_efuse_sharkl5_drv.o
 endif
+ifneq ($(CONFIG_SOC_ROC1),)
+obj-y += sec_efuse_roc1.o
+obj-y += sec_efuse_roc1_drv.o
+endif
 
 ifneq ($(CONFIG_SC9833)$(CONFIG_SOC_SHARKLJ1)$(CONFIG_SPRD_SOC_SP9853I),)
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r3p0/inc

@@ -23,4 +23,7 @@
 #ifdef CONFIG_SOC_SHARKL5
 #include "sec_efuse_sharkl5.h"
 #endif
+#ifdef CONFIG_SOC_ROC1
+#include "sec_efuse_roc1.h"
+#endif
 #endif
