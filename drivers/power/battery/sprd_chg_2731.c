@@ -55,6 +55,18 @@
 /* CHG_CFG5 */
 #define BITS_ICRSET(x)		(((x) & 0x3) << 8)
 
+/* CHG_PD */
+#define SC2731_CHG_PD			BIT(0)
+
+int sprd_charge_pd_control(bool enable)
+{
+	if (enable)
+		return sci_adi_write(CHG_CFG0, 0, SC2731_CHG_PD);
+
+	return sci_adi_write(CHG_CFG0, SC2731_CHG_PD,
+			     SC2731_CHG_PD);
+}
+
 static void sprd2731_chg_init(void)
 {
 	debugf("sprd2731_init\n");

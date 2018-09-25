@@ -24,6 +24,17 @@ void sprdchg_stop_charge(int value)
 	ANA_REG_MSK_OR(ANA_REG_GLB_CHGR_CTRL0, BIT_CHGR_PD, BIT_CHGR_PD);
 }
 
+int sprd_charge_pd_control(bool enable)
+{
+	if (enable)
+		ANA_REG_MSK_OR(ANA_REG_GLB_CHGR_CTRL0, 0, BIT_CHGR_PD_EXT);
+	else
+		ANA_REG_MSK_OR(ANA_REG_GLB_CHGR_CTRL0, BIT_CHGR_PD_EXT,
+			     BIT_CHGR_PD_EXT);
+
+	return 0;
+}
+
 static void sprdchg_set_recharge(void)
 {
 	ANA_REG_OR(ANA_REG_GLB_CHGR_CTRL0, BIT_RECHG);

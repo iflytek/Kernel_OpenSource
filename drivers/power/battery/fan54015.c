@@ -284,12 +284,12 @@ void fan54015_ta_start_charging(void)
 
 void sprdchg_fan54015_start_chg(int type)
 {
-	fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_CE_N,FAN5405_CE_N_SHIFT, ENCHARGER);
+	sprd_charge_pd_control(true);
 }
  void sprdchg_fan54015_stop_charging(int value)
 {
 	printf("stop charge\n");
-	fan54015_set_value(FAN5405_REG_CONTROL1, FAN5405_CE_N,FAN5405_CE_N_SHIFT, DISCHARGER);
+	sprd_charge_pd_control(false);
 }
 void  fan54015_sw_reset(void)
 {
