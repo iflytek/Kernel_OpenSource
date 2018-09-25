@@ -501,6 +501,9 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 #ifdef CONFIG_VBOOT_V2
 	vboot_secure_process_flow(partition_name);
 
+#ifdef CONFIG_DMVERITY_DISABLE
+    debug("skip to check system & vendor version.\n");
+#else
 //secboot_secure_process_flow may be called several times, but system/vendor,only need to be checked on time
     debug("begin to check system & vendor version.\n");
     if (!system_vendor_done && g_DeviceStatus != VBOOT_STATUS_UNLOCK)
@@ -509,6 +512,7 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 		vboot_verify_vbmeta("vendor");
 		system_vendor_done=true;
     }
+#endif
 #else
 	if (-1 == secure_load_partition(partition_name,size,offset,ram_addr)){
 		while(ret);
