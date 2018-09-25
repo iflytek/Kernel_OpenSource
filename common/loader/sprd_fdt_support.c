@@ -19,6 +19,7 @@
 #endif
 
 extern void *lcd_get_base_addr(void *lcd_base);
+extern uint32_t lcd_get_pixel_clock(void);
 extern uint32_t load_lcd_id_to_kernel();
 extern uint32_t load_lcd_width_to_kernel();
 extern uint32_t load_lcd_hight_to_kernel();
@@ -827,6 +828,20 @@ int fdt_fixup_lcdsize(void *fdt)
 	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
 	return ret;
 }
+
+int fdt_fixup_pixelclock(void *fdt)
+{
+	char buf[32];
+	uint32_t pixel_clk;
+
+	memset(buf, 0, 32);
+
+	pixel_clk = lcd_get_pixel_clock();
+	sprintf(buf, "pixel_clock=%u", pixel_clk);
+
+	return fdt_chosen_bootargs_append(fdt, buf, 1);
+}
+
 int fdt_fixup_serialno(void *fdt)
 {
 	char buf[255];

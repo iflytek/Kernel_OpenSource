@@ -37,6 +37,11 @@ struct panel_info *panel_info_attach(void)
 	return panel_drv->info;
 }
 
+uint32_t lcd_get_pixel_clock(void)
+{
+	return panel_drv->info->pixel_clk;
+}
+
 void save_lcd_size_to_kernel(uint32_t width, uint32_t hight)
 {
 	lcd_width_to_kernel = width;

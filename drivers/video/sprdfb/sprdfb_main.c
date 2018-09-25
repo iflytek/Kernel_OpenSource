@@ -42,6 +42,11 @@ struct sprdfb_device *dev_cabc_bl =NULL;
 static uint32_t lcd_adc_to_kernel = 0;
 static int32_t is_lcd_enable = false;
 
+uint32_t lcd_get_pixel_clock(void)
+{
+	return 0;
+}
+
 void inline save_lcd_id_to_kernel(uint32_t id)
 {
 	lcd_id_to_kernel = id;
