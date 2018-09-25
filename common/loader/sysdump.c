@@ -217,8 +217,23 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 	sysdump_lcd_printf("writing 0x%lx bytes to sd file %s\n",
 		memsize, filename);
 
-	if (fs_type==FS_FAT32)
+	if (fs_type==FS_FAT32){
 		ret = file_fat_write(filename, memaddr, 0, memsize, &actwrite);
+		debugf("have write 0x%lx bytes to the file\n",actwrite);
+		if(ret >= 0 && actwrite > 0){
+			//actwrite = 0;// may cause sprd_dump_mem_num to be 0
+			ret = fat_size(filename, &actwrite);
+			debugf("fat_size is 0x%lx bytes\n",actwrite);
+			if(ret < 0 || actwrite == 0){
+				debugf("fat_size is 0,so try write again");
+				ret = file_fat_write(filename, memaddr, 0, memsize, &actwrite);
+			}
+		}
+		else{
+			debugf("file_fat_write fail,try write again,actwrite=0x%lx\n",actwrite);
+			ret = file_fat_write(filename, memaddr, 0, memsize, &actwrite);
+		}
+	}
 	else if (fs_type==FS_EXFAT)
 		ret = file_exfat_write(filename, memaddr, memsize);
 	else
