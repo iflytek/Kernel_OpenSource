@@ -58,3 +58,4 @@ obj-$(CONFIG_SC9630) += sc9630/
 obj-$(CONFIG_SC9833) += sc9833/
 obj-$(CONFIG_SOC_PIKE2) += pike2/
 obj-$(CONFIG_SOC_SHARKLE) += sharkle/
+obj-$(CONFIG_SOC_SHARKL3) += sharkl3/
