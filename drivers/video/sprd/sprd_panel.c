@@ -24,7 +24,7 @@ static struct panel_driver *panel_drv;
 #ifdef CONFIG_BACKLIGHT_DSI
 void set_backlight(int brightness)
 {
-	if (panel_drv->ops->set_brightness) {
+	if (panel_drv && panel_drv->ops->set_brightness) {
 		panel_drv->ops->set_brightness(brightness);
 	}
 	pr_info("lcd cabc backlight brightness==%d\n",brightness);
