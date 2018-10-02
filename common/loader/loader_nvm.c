@@ -1026,11 +1026,12 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		return 0;
 	}
 #ifdef CONFIG_OF_LIBFDT_OVERLAY
-	if ((BOOT_HEADER_VERSION_ONE == hdr->dt_size) &&
-		(0 == memcmp(bootmode, RECOVERY_PART, strlen(RECOVERY_PART)))) {
-		load_and_merge_dtbo(partition, *dt_addr);
-	} else {
-		merge_dtbo(*dt_addr);
+	if (BOOT_HEADER_VERSION_ONE == hdr->dt_size) {
+		if (0 == memcmp(bootmode, RECOVERY_PART, strlen(RECOVERY_PART))) {
+			load_and_merge_dtbo(partition, *dt_addr);
+		} else {
+			merge_dtbo(*dt_addr);
+		}
 	}
 #endif
 #endif
