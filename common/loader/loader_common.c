@@ -97,6 +97,7 @@ void fdt_fixup_all(u8 *fdt_blob)
 
 #ifdef CONFIG_SPLASH_SCREEN
 	fdt_fixup_lcdid(fdt_blob);
+	fdt_fixup_lcdname(fdt_blob);
 	fdt_fixup_lcdbase(fdt_blob);
 	fdt_fixup_lcdsize(fdt_blob);
 	fdt_fixup_pixelclock(fdt_blob);
@@ -174,6 +175,7 @@ void fdt_fixup_all_x86(u8 *fdt_blob)
 
 #ifdef CONFIG_SPLASH_SCREEN
 	fdt_fixup_lcdid(fdt_blob);
+	fdt_fixup_lcdname(fdt_blob);
 	fdt_fixup_lcdbase(fdt_blob);
 	fdt_fixup_lcdsize(fdt_blob);
 	fdt_fixup_pixelclock(fdt_blob);

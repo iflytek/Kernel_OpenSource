@@ -17,8 +17,6 @@
 #include "sprd_dphy.h"
 
 static uint32_t lcd_id_to_kernel;
-static uint32_t lcd_width_to_kernel;
-static uint32_t lcd_hight_to_kernel;
 static struct panel_driver *panel_drv;
 
 #ifdef CONFIG_BACKLIGHT_DSI
@@ -45,15 +43,12 @@ uint32_t lcd_get_pixel_clock(void)
 		return 0;
 }
 
-void save_lcd_size_to_kernel(uint32_t width, uint32_t hight)
+const char *lcd_get_name(void)
 {
-	lcd_width_to_kernel = width;
-	lcd_hight_to_kernel = hight;
-}
-
-void save_lcd_id_to_kernel(uint32_t id)
-{
-	lcd_id_to_kernel = id;
+	if (panel_drv && panel_drv->info)
+		return panel_drv->info->lcd_name;
+	else
+		return NULL;
 }
 
 uint32_t load_lcd_id_to_kernel(void)
@@ -63,12 +58,18 @@ uint32_t load_lcd_id_to_kernel(void)
 
 uint32_t load_lcd_width_to_kernel(void)
 {
-	return lcd_width_to_kernel;
+	if (panel_drv && panel_drv->info)
+		return panel_drv->info->width;
+	else
+		return 0;
 }
 
 uint32_t load_lcd_hight_to_kernel(void)
 {
-	return lcd_hight_to_kernel;
+	if (panel_drv && panel_drv->info)
+		return panel_drv->info->height;
+	else
+		return 0;
 }
 
 static int panel_if_init(void)
@@ -147,8 +148,7 @@ int sprd_panel_probe(void)
 
 	panel_info.vl_row = info->height;
 	panel_info.vl_col = info->width;
-	save_lcd_id_to_kernel(supported_panel[i].lcd_id);
-	save_lcd_size_to_kernel(info->height, info->width);
+	lcd_id_to_kernel = supported_panel[i].lcd_id;
 
 	return 0;
 }

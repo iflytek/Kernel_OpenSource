@@ -829,6 +829,24 @@ int fdt_fixup_lcdsize(void *fdt)
 	return ret;
 }
 
+__weak const char *lcd_get_name(void) { return NULL; }
+
+int fdt_fixup_lcdname(void *fdt)
+{
+	char buf[64];
+	const char *lcd_name;
+
+	lcd_name = lcd_get_name();
+	if (!lcd_name)
+		return 0;
+
+	memset(buf, 0, sizeof(buf));
+
+	sprintf(buf, "lcd_name=%s", lcd_name);
+
+	return fdt_chosen_bootargs_append(fdt, buf, 1);
+}
+
 int fdt_fixup_pixelclock(void *fdt)
 {
 	char buf[32];
