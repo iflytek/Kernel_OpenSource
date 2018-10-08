@@ -8,7 +8,7 @@
 #include <sparse_format.h>
 #include <sprd_common_rw.h>
 #include <sprd_rpmb.h>
-#include <sprd_mmc.h>
+#include <mmc.h>
 
 #include <secure_boot.h>
 #include <secureboot/sec_common.h>
@@ -165,7 +165,7 @@ uint8_t emmc_2ndhand_detect()
 	/* judge the partition config */
 	part_config = mmc->part_config;
 	/* spreadtrum do not use BOOT_ACK,if the BOOT_ACK is 1,the emmc is used by other vendor */
-	if ((part_config >> 6) != 0x0) {
+	if (((part_config >> 6) & 0x1) == 0x1) {
 		printf("The Emmc partition config was used\n");
 		result |= PARTITION_CONFIG_EXIST;
 	}
