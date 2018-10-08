@@ -205,8 +205,7 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 	void *memaddr, unsigned long memsize)
 {
 	int ret = 0;
-	unsigned long actwrite = 0;
-
+	loff_t actwrite = 0;
 	if (path) {
 		do {} while (0); /* TODO: jianjun.he */
 	}
