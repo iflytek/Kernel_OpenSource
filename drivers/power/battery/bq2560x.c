@@ -404,7 +404,7 @@ static void chg_bq2560x_set_limit_cur(int limit)
 		limit = 3200;
 
 	reg_value = limit / REG00_IINLIM_BASE;
-	bq2560x_set_chg_current_limit(limit);
+	bq2560x_set_chg_current_limit(reg_value);
 }
 
 static int chg_bq2560x_cmd(enum sprdchg_cmd cmd, int value)
