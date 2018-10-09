@@ -72,6 +72,8 @@ static uchar *const s_force_secure_check[] = {
 	"wdsp",
 	"w_modem",
 	"w_gdsp",
+	"dtb",
+	"dtbo",
 	#ifdef CONFIG_SUPPORT_WIFI
 	"wcnmodem",
 	#endif
@@ -498,8 +500,17 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
 {
 	uint32_t ret = 1;
 	static bool system_vendor_product_done=false;
+    static bool dtb_dtbo_done = false;
 #ifdef CONFIG_VBOOT_V2
 	vboot_secure_process_flow(partition_name);
+#ifdef CONFIG_VBOOT_SYSTEMASROOT
+    debug("check dtb & dtbo \n");
+    if (!dtb_dtbo_done) {
+        vboot_secure_process_flow("dtb");
+        vboot_secure_process_flow("dtbo");
+        dtb_dtbo_done = true;
+    }
+#endif
 
 #ifdef CONFIG_DMVERITY_DISABLE
     debug("skip to check system & vendor version.\n");
