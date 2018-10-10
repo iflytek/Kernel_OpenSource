@@ -374,4 +374,5 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+#define CONFIG_RTC_START_YEAR		2015
 #endif /* __TSHARK_L_H */
