@@ -56,18 +56,20 @@ uint32_t load_lcd_id_to_kernel(void)
 	return lcd_id_to_kernel;
 }
 
+/* WORKAROUND: to keep the same order with sprdfb_panel.c */
 uint32_t load_lcd_width_to_kernel(void)
 {
 	if (panel_drv && panel_drv->info)
-		return panel_drv->info->width;
+		return panel_drv->info->height;
 	else
 		return 0;
 }
 
+/* WORKAROUND: to keep the same order with sprdfb_panel.c */
 uint32_t load_lcd_hight_to_kernel(void)
 {
 	if (panel_drv && panel_drv->info)
-		return panel_drv->info->height;
+		return panel_drv->info->width;
 	else
 		return 0;
 }
