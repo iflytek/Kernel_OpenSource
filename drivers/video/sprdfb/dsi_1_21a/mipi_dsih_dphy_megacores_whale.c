@@ -358,11 +358,11 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 		}
 #if defined(CONFIG_SC9833)
 		delta_freq = delta_freq / khz * (i + 1);
-		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
+		pll->kstep = pll->ref_clk * hopping_period;
 		pll->kdelta = (((1 << 20) * delta_freq / pll->ref_clk / pll->kstep) -3) / 4;
 #elif defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_PIKE2)
 		delta_freq = delta_freq / khz * (i + 1);
-		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
+		pll->kstep = pll->ref_clk * hopping_period;
 		pll->kdelta = ((1 << 20) * delta_freq / pll->ref_clk / pll->kstep);
 #else
 		pll->kstep = pll->ref_clk * hopping_period;
@@ -373,11 +373,11 @@ static int mipi_dsih_dphy_calc_pll_param(dphy_t *phy, struct dphy_pll *pll)
 		origin_freq = pll->freq;
 #if defined(CONFIG_SC9833)
 		delta_freq = pll->freq / khz * 0.015 *2 * (i + 1);
-		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
+		pll->kstep = pll->ref_clk * hopping_period;
 		pll->kdelta = (((1 << 20) * delta_freq / pll->ref_clk / pll->kstep) -3) / 4;
 #elif defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_PIKE2)
 		delta_freq = delta_freq / khz * (i + 1);
-		pll->kstep = pll->ref_clk * mhz * hopping_period / mhz;
+		pll->kstep = pll->ref_clk * hopping_period;
 		pll->kdelta = ((1 << 20) * delta_freq / pll->ref_clk / pll->kstep);
 #endif
 	}
