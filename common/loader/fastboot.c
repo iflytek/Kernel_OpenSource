@@ -943,7 +943,7 @@ void fb_cmd_getsocid(const char *arg, void *data, uint64_t sz){
 	int ret = 0;
 	uint8_t socIdBuff[32] __attribute__((aligned(4096)));
 	ret = get_socid(socIdBuff, sizeof(socIdBuff));
-	char s[32] = {0};
+	char s[33] = {0};
 	if(ret!=0){
 		sprintf(s, " ret is %04x", ret);
 		fastboot_fail(s);
