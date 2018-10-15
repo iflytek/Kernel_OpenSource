@@ -151,6 +151,7 @@ int fdt_fixup_vboot(void *fdt)
 #else
     fdt_fixup_ando_vboot(fdt);
 #endif
+    return 0;
 }
 
 int fdt_fixup_ando_vboot(void *fdt)

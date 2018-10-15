@@ -206,7 +206,7 @@ AvbIOResult read_from_partition_system(AvbOps     *ops,
                                        void       *buf,
                                        size_t     *out_num_read) {
     int      ret = 0;
-    uint64_t partition_size;
+    uint64_t partition_size = 0;
 
     debug("read partition name: %s, offset = 0x%llx, num_bytes = 0x%x\n",
            partition_name, offset_from_partition, num_bytes);
