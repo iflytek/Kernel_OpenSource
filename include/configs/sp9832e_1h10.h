@@ -42,7 +42,12 @@
 /* SMP Spin Table Definitions */
 #define CPU_RELEASE_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x7fff0)
 
-
+#ifdef DEBUG
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+#define CONFIG_AUTOBOOT_KEYED 1
+#define CONFIG_AUTOBOOT_PROMPT "Press q to abort autoboot in %d seconds"
+#define CONFIG_AUTOBOOT_STOP_STR "q"
+#endif
 
 /* Generic Timer Definitions */
 #define COUNTER_FREQUENCY		(0x1800000)	/* 24MHz */
