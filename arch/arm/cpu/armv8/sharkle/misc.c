@@ -5,7 +5,6 @@
 #include <asm/arch/common.h>
 #include <otp_helper.h>
 #include <sprd_pmic_misc.h>
-#include <asm/arch-sharkle/pinmap.h>
 
 /*
 	REG_AON_APB_BOND_OPT0  ==> romcode set
@@ -95,26 +94,6 @@ void scx35_pmu_reconfig(void) {}
 #define E2	0x65320000
 #define WHAL	0x5768616C
 
-void rf_sen_gpio_init()
-{
-	sprd_gpio_request(NULL, 1);
-	sprd_gpio_direction_output(NULL,1,0);
-	sprd_gpio_request(NULL, 2);
-	sprd_gpio_direction_output(NULL,2,0);
-	sprd_gpio_request(NULL,3);
-	sprd_gpio_direction_output(NULL,3,0);
-}
-extern int (*arch_poweroff)(void);
-int sharkle_poweroff()
-{
-	__raw_writel(0x30, CTL_PIN_BASE + REG_PIN_RFSDA0);
-	__raw_writel(0x30, CTL_PIN_BASE + REG_PIN_RFSCK0);
-	__raw_writel(0x30, CTL_PIN_BASE + REG_PIN_RFSEN0);
-
-	return 0;
-}
-
-
 int sprd_get_chipid(int *chip_id, int *version_id)
 {
 
@@ -200,8 +179,7 @@ void misc_init()
 	pmic_misc_init();
 
 	sprd_get_chipid(NULL, NULL);
-	rf_sen_gpio_init();
-	arch_poweroff = sharkle_poweroff;
+
 #if defined CONFIG_SMT
 	set_smt();
 #endif
