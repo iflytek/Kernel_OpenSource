@@ -45,9 +45,9 @@ int board_init(void)
 	pmic_adc_Init();
 	/*FPGA forbiden*/
 	pin_init();
+	sprd_gpio_init();
 	misc_init();
 	sprd_eic_init();
-	sprd_gpio_init();
 	sprd_led_init();
 	/*FPGA forbiden*/
 	sprd_pmu_lowpower_init();
