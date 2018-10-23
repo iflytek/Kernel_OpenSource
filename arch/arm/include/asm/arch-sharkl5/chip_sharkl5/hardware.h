@@ -162,8 +162,6 @@
 #define SPRD_USB_BASE                                      SPRD_USB_REG_PHYS
 /* referenced by adi.c */
 #define SPRD_MISC_PHYS                                     SPRD_ADI_PHYS
-/* referenced by sprd_i2c.c, just tricky */
-#define SPRD_I2C_BASE                                      SPRD_I2C0_PHYS
 /* referenced by timer.c */
 #define SPRD_APCPUTS0_BASE                                 SPRD_APCPUTS0_PHYS
 /* referenced by pmic.h */
