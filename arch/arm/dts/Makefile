@@ -199,7 +199,8 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	ums510_haps.dtb \
 	ums510_1h10.dtb \
 	sp9650_haps.dtb \
-	sp9863a_1h10_32b.dtb
+	sp9863a_1h10_32b.dtb \
+	sp9863a_3h10_32b.dtb
 
 targets += $(dtb-y)
 

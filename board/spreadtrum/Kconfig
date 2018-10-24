@@ -394,6 +394,12 @@ config TARGET_SP9863A_1H10_32B
 	help
 	  This is the Spreadtrum sharkl3 Board
 
+config TARGET_SP9863A_3H10_32B
+	bool "Spreadtrum sharkl3"
+	select CPU_V7
+	help
+	  This is the Spreadtrum sharkl3 Board
+
 config ZEBU
 	bool "zebu board"
 	default n
@@ -487,4 +493,5 @@ source "board/spreadtrum/ums510_haps/Kconfig"
 source "board/spreadtrum/ums510_1h10/Kconfig"
 source "board/spreadtrum/sp9650_haps/Kconfig"
 source "board/spreadtrum/sp9863a_1h10_32b/Kconfig"
+source "board/spreadtrum/sp9863a_3h10_32b/Kconfig"
 endif
