@@ -376,5 +376,40 @@ int pin_init(void);
 #define BIT_PIN_SLP_NUL        ( 0 )
 #define BIT_PIN_SLP_Z          ( 0 )
 #define BIT_PIN_NULL           ( 0 )
+
+/* uart port mux*/
+#define	UART_INFO_SYS_SEL_MASK	(BIT_0 | BIT_1 | BIT_2 | BIT_3)
+#define	UART_INFO1_SHIFT		4
+#define	UART_INFO2_SHIFT		10
+#define	UART_INFO3_SHIFT		16
+#define	UART_INFO4_SHIFT		20
+#define UART_INFO5_SHIFT		24
+#define UART_INFO6_SHIFT		28
+
+#define UART_INFO7_SHIFT		0
+#define UART_INFO8_SHIFT		5
+#define UART_INFO9_SHIFT		9
+
+#define BITS_UART_INF0_SYS_SEL(_x_)	(( _x_ ) & UART_INFO_SYS_SEL_MASK)
+#define BITS_UART_INF1_SYS_SEL(_x_)	((( _x_ ) >> UART_INFO1_SHIFT ) & UART_INFO_SYS_SEL_MASK)
+#define BITS_UART_INF2_SYS_SEL(_x_)	((( _x_ ) >> UART_INFO2_SHIFT ) & UART_INFO_SYS_SEL_MASK)
+#define BITS_UART_INF3_SYS_SEL(_x_)     ((( _x_ ) >> UART_INFO3_SHIFT ) & UART_INFO_SYS_SEL_MASK)
+#define BITS_UART_INF4_SYS_SEL(_x_)     ((( _x_ ) >> UART_INFO4_SHIFT ) & UART_INFO_SYS_SEL_MASK)
+#define BITS_UART_INF5_SYS_SEL(_x_)     ((( _x_ ) >> UART_INFO5_SHIFT ) & UART_INFO_SYS_SEL_MASK)
+#define BITS_UART_INF6_SYS_SEL(_x_)     ((( _x_ ) >> UART_INFO6_SHIFT ) & UART_INFO_SYS_SEL_MASK)
+#define BITS_UART_INF7_SYS_SEL(_x_)     ((( _x_ ) >> UART_INFO7_SHIFT ) & UART_INFO_SYS_SEL_MASK)
+#define BITS_UART_INF8_SYS_SEL(_x_)     ((( _x_ ) >> UART_INFO8_SHIFT ) & UART_INFO_SYS_SEL_MASK)
+#define BITS_UART_INF9_SYS_SEL(_x_)     ((( _x_ ) >> UART_INFO9_SHIFT ) & UART_INFO_SYS_SEL_MASK)
+
+#define UART_MATRIX_MTX_CFG(u0, u1, u2, u3, u4, u5, u6) \
+	((u0) | ((u1) << UART_INFO1_SHIFT) | ((u2) << UART_INFO2_SHIFT) | ((u3) << UART_INFO3_SHIFT) | \
+	((u4) << UART_INFO4_SHIFT) | ((u5) << UART_INFO5_SHIFT) | ((u6) << UART_INFO6_SHIFT))
+#define UART_MATRIX_MTX_CFG1(u7, u8, u9) \
+	((u7) | ((u8) << UART_INFO8_SHIFT) | ((u9) << UART_INFO9_SHIFT))
+
+#define SPRD_MAX_UART_CTRL_NUM		16
+#define SPRD_MAX_UART_PORT_NUM		11
+#define SPRD_MAX_UPORT_SEL_NUM		15
+
 #endif //_PINMAP_H_
 

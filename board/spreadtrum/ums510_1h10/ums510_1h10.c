@@ -131,11 +131,10 @@ static void battery_init(void)
 
 int board_late_init(void)
 {
-
- boot_mode_t boot_role;
-        extern chipram_env_t* get_chipram_env(void);
-        chipram_env_t* cr_env = get_chipram_env();
-        boot_role = cr_env->mode;
+	boot_mode_t boot_role;
+	extern chipram_env_t* get_chipram_env(void);
+	chipram_env_t* cr_env = get_chipram_env();
+	boot_role = cr_env->mode;
 
 	boot_pwr_check();
 
@@ -149,6 +148,7 @@ int board_late_init(void)
 	debugf("CHG init OK!\n");
 #endif
 	board_keypad_init();
+	uart_pin_cfg_show();
 	return 0;
 }
 

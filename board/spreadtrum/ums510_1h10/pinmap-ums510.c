@@ -22,10 +22,14 @@
 #include <asm/io.h>
 #include <asm/arch/pinmap.h>
 #include <power/sprd_pmic/sprd_2730_pinmap.h>
+#include <hw_mux_cfg.h>
 
 #define BIT_PIN_SLP_ALL  (BIT_PIN_SLP_AP|BIT_PIN_SLP_PUBCP|BIT_PIN_SLP_WTLCP|BIT_PIN_SLP_AUDCP|BIT_PIN_SLP_CM4)
 #define BIT_PIN_SLP_ALL_CP  (BIT_PIN_SLP_PUBCP|BIT_PIN_SLP_WTLCP|BIT_PIN_SLP_AUDCP|BIT_PIN_SLP_CM4)
 #define BIT_PIN_SLP_ALL_NO_CM4        (BIT_PIN_SLP_AP|BIT_PIN_SLP_PUBCP|BIT_PIN_SLP_WTLCP|BIT_PIN_SLP_AUDCP)
+
+#define PIN_UART_MATRIX_MTX_CFG_VALUE	(0x16B21800)
+#define PIN_UART_MATRIX_MTX_CFG1_VALUE	(0x000010E4)
 
 static pinmap_t pinmap[]={
 {REG_PIN_CTRL_REG0,0x00000000},//SIMCARD0_BAT_DET_AP
@@ -365,6 +369,140 @@ static pinmap_t adie_pinmap[]={
 {REG_PIN_ANA_PTESTO,            BITS_ANA_PIN_DS(1)|BIT_ANA_PIN_NUL|BITS_ANA_PIN_AF(2)|BIT_ANA_PIN_SLP_IE},//TSX_OSC_DYNAMIC_SEL
 };
 
+volatile pin_mux uport = {
+	.magic_header = SPRD_MAGIC_HEADER,
+	.uart_port_num = 10,
+	.version = SPRD_UART_MUX_VERSION,
+	.port = {
+			{
+				.index = 0,
+				.reg = BITS_UART_INF0_SYS_SEL(PIN_UART_MATRIX_MTX_CFG_VALUE),
+				.select = 13,
+				.name = {
+					"ap_uart0", "pubcp_uart0", "ltedsp_uart0", "ltedsp_uart1",
+					"cm4_uart0", "cm4_uart1", "auddsp_uart0", "Reserver", "Reserver",
+					"Reserver", "Reserver", "Reserver", "pubcp_uart1",
+				},
+			},
+			{
+				.index = 1,
+				.reg = BITS_UART_INF1_SYS_SEL(PIN_UART_MATRIX_MTX_CFG_VALUE),
+				.select = 13,
+				.name = {
+					"ap_uart1", "ap_uart0", "ap_uart2", "Reserver", "Reserver",
+					"pubcp_uart0", "tgdsp_uart0", "ltedsp_uart0", "ltedsp_uart1",
+					"cm4_uart0", "cm4_uart1", "auddsp_uart0", "pubcp_uart1",
+				},
+			},
+			{
+				.index = 2,
+				.reg = BITS_UART_INF2_SYS_SEL(PIN_UART_MATRIX_MTX_CFG_VALUE),
+				.select = 13,
+				.name = {
+					"ap_uart2", "ap_uart1", "ap_uart2", "Reserver", "Reserver",
+					"cm4_uart0", "pubcp_uart0", "tgdsp_uart0", "ltedsp_uart0",
+					"ltedsp_uart1", "cm4_uart1", "auddsp_uart0", "pubcp_uart1",
+				},
+			},
+			{
+				.index = 3,
+				.reg = BITS_UART_INF3_SYS_SEL(PIN_UART_MATRIX_MTX_CFG_VALUE),
+				.select = 13,
+				.name = {
+					"wtlcp_wci2", "tgdsp_uart0", "ltedsp_uart0", "ltedsp_uart1",
+					"cm4_uart0", "pubcp_uart0", "cm4_uart1", "auddsp_uart0",
+					"ap_uart0", "ap_uart1", "ap_uart2", "Reserver", "pubcp_uart1",
+				},
+			},
+			{
+				.index = 4,
+				.reg = BITS_UART_INF4_SYS_SEL(PIN_UART_MATRIX_MTX_CFG_VALUE),
+				.select = 13,
+				.name = {
+					"ap_uart0", "tgdsp_uart0", "ltedsp_uart0", "ltedsp_uart1",
+					"pubcp_uart0", "cm4_uart0", "Reserver", "Reserver", "cm4_uart1",
+					"auddsp_uart0", "ap_uart1", "ap_uart2", "pubcp_uart1",
+				},
+			},
+			{
+				.index = 5,
+				.reg = BITS_UART_INF5_SYS_SEL(PIN_UART_MATRIX_MTX_CFG_VALUE),
+				.select = 13,
+				.name = {
+					"ap_uart0", "ltedsp_uart0", "ltedsp_uart1", "wtlcp_wci2",
+					"Reserver", "Reserver", "cm4_uart0", "cm4_uart1", "auddsp_uart0",
+					"Reserver", "Reserver", "Reserver", "pubcp_uart1",
+				},
+			},
+			{
+				.index= 6,
+				.reg = BITS_UART_INF6_SYS_SEL(PIN_UART_MATRIX_MTX_CFG_VALUE),
+				.select = 13,
+				.name = {
+					"pubcp_uart0", "tgdsp_uart0", "ltedsp_uart0", "ltedsp_uart1",
+					"auddsp_uart0", "wtlcp_wci2", "cm4_uart0", "cm4_uart1", "ap_uart0",
+					"ap_uart1", "ap_uart2", "Reserver", "pubcp_uart1",
+				},
+			},
+			{
+				.index = 7,
+				.reg = BITS_UART_INF7_SYS_SEL(PIN_UART_MATRIX_MTX_CFG1_VALUE),
+				.select = 12,
+				.name = {
+					"ap_uart0", "ap_uart1", "ap_uart2", "pubcp_uart0", "pubcp_uart1",
+					"tgdsp_uart0", "ltedsp_uart0", "ltedsp_uart1", "auddsp_uart0",
+					"wtlcp_wci2", "cm4_uart0", "cm4_uart1",
+				},
+			},
+			{
+				.index = 8,
+				.reg = BITS_UART_INF8_SYS_SEL(PIN_UART_MATRIX_MTX_CFG1_VALUE),
+				.select = 12,
+				.name = {
+					"ap_uart0", "ap_uart1", "ap_uart2", "pubcp_uart0", "pubcp_uart1",
+					"tgdsp_uart0", "ltedsp_uart0", "ltedsp_uart1", "auddsp_uart0",
+					"wtlcp_wci2", "cm4_uart0", "cm4_uart1",
+				},
+			},
+			{
+				.index = 9,
+				.reg = BITS_UART_INF9_SYS_SEL(PIN_UART_MATRIX_MTX_CFG1_VALUE),
+				.select = 12,
+				.name = {
+					"ap_uart0", "ap_uart1", "ap_uart2", "pubcp_uart0", "pubcp_uart1",
+					"tgdsp_uart0", "ltedsp_uart0", "ltedsp_uart1", "auddsp_uart0",
+					"wtlcp_wci2", "cm4_uart0", "cm4_uart1",
+				},
+			},
+		},
+	.magic_end = SPRD_MAGIC_END,
+};
+
+static void pin_uart_port_cfg(void)
+{
+	pin_uart_port_sel_t *up = uport.port;
+	__raw_writel(UART_MATRIX_MTX_CFG(up[0].reg, up[1].reg, up[2].reg,
+					up[3].reg, up[4].reg, up[5].reg,
+					up[6].reg), CTL_PIN_BASE + REG_PIN_UART_MATRIX_MTX_CFG );
+	__raw_writel(UART_MATRIX_MTX_CFG1(up[7].reg, up[8].reg, up[9].reg),
+					CTL_PIN_BASE + REG_PIN_UART_MATRIX_MTX_CFG1 );
+}
+
+void uart_pin_cfg_show(void)
+{
+	pin_uart_port_sel_t *up = uport.port;
+	int i = 0;
+
+	printf("uart pin cfg show:\n");
+	printf("cfg1_reg:0x%08lX,cfg2_reg:0x%08lX\n", 
+		__raw_readl(CTL_PIN_BASE + REG_PIN_UART_MATRIX_MTX_CFG),
+		 __raw_readl(CTL_PIN_BASE + REG_PIN_UART_MATRIX_MTX_CFG1) );
+	printf("uport.uart_port_num=%d\n", uport.uart_port_num);
+	for(i = 0; i < uport.uart_port_num; i++) {
+		printf("[%d] port%d:%d:%s\n", i, up[i].index, up[i].reg, up[i].name[ up[i].reg ] );
+	}
+}
+
 int  pin_init(void)
 {
 	int i;
@@ -375,6 +513,8 @@ int  pin_init(void)
 	for (i = 0; i < sizeof(adie_pinmap)/sizeof(adie_pinmap[0]); i++) {
 		sci_adi_set(CTL_ANA_PIN_BASE + adie_pinmap[i].reg, adie_pinmap[i].val);
 	}
+
+	pin_uart_port_cfg();
 
 	return 0;
 }
