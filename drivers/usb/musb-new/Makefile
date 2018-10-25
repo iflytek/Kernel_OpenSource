@@ -17,6 +17,7 @@ obj-$(CONFIG_USB_PHY_SHARKL3) += sharkl3_usb_phy.o
 obj-$(CONFIG_USB_PHY_ROC1) += roc1_usb_phy.o
 obj-$(CONFIG_USB_PHY_SHARKL5) += sharkl5_usb_phy.o
 obj-$(CONFIG_USB_PHY_ORCA) += orca_usb_phy.o
+obj-$(CONFIG_USB_PHY_SHARKL5PRO) += sharkl5pro_usb_phy.o
 
 ccflags-y := $(call cc-option,-Wno-unused-variable) \
 		$(call cc-option,-Wno-unused-but-set-variable) \

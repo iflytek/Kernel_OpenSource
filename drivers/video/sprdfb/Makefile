@@ -52,6 +52,7 @@ obj-$(CONFIG_SOC_SHARKLE) += sprdfb_chip_9835.o
 obj-$(CONFIG_SOC_SHARKL3) += sprdfb_chip_9855.o
 obj-$(CONFIG_SOC_ROC1) += sprdfb_chip_710.o
 obj-$(CONFIG_SOC_SHARKL5) += sprdfb_chip_510.o
+obj-$(CONFIG_SOC_SHARKL5PRO) += sprdfb_chip_518.o
 obj-$(CONFIG_SOC_IWHALE2) += sprdfb_chip_9861.o
 obj-$(CONFIG_SPRD_SOC_SP9853I) += sprdfb_chip_9853i.o
 obj-$(CONFIG_SOC_PIKE2) += sprdfb_chip_7731e.o
