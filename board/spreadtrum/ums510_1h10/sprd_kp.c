@@ -6,12 +6,14 @@
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_eic.h>
 
+#define SPRD_VOLUMEDOWN_GPIO 124
+
 void board_keypad_init(void)
 {
-/*
+
 	sprd_gpio_request(NULL, 124);
 	sprd_gpio_direction_input(NULL, 124);
-
+/*
 	sprd_gpio_request(NULL, 125);
 	sprd_gpio_direction_input(NULL, 125);
 */
@@ -32,15 +34,13 @@ unsigned char board_key_scan(void)
 	debugf("gpio_volumeup = %d\n",gpio_volumeup);
 	if(gpio_volumeup < 0)
 		errorf("[eic keys] volumeup : sprd_eic_get return ERROR!\n");
-	if(gpio_volumeup > 0) {
+	if(gpio_volumeup == 0) {
 		key_code = KEY_VOLUMEUP;
 		debugf("[eic keys] volumeup pressed!\n");
 	 }
 
-	sprd_eic_request(SPRD_DDIE_EIC_EXTINT2);
-	udelay(3000);
-	gpio_volumedown = sprd_eic_get(SPRD_DDIE_EIC_EXTINT2);
-		debugf("gpio_volumedown = %d\n",gpio_volumedown);
+	gpio_volumedown = sprd_gpio_get(NULL, SPRD_VOLUMEDOWN_GPIO);
+	debugf("gpio_volumedown = %d\n",gpio_volumedown);
 	if(gpio_volumedown < 0)
 		errorf("[eic keys] volumedown : sprd_eic_get return ERROR!\n");
 	if(gpio_volumedown == 0) {
