@@ -394,6 +394,12 @@ config TARGET_SP9863A_3H10_32B
 	help
 	  This is the Spreadtrum sharkl3 Board
 
+config TARGET_SP9863A_3C10_32B
+	bool "Spreadtrum sharkl3"
+	select CPU_V7
+	help
+	  This is the Spreadtrum sharkl3 Board
+
 config TARGET_UMS518_HAPS
         bool "Spreadtrum sharkl5pro"
         select ARM64
@@ -493,5 +499,6 @@ source "board/spreadtrum/ums510_1h10/Kconfig"
 source "board/spreadtrum/sp9650_haps/Kconfig"
 source "board/spreadtrum/sp9863a_1h10_32b/Kconfig"
 source "board/spreadtrum/sp9863a_3h10_32b/Kconfig"
+source "board/spreadtrum/sp9863a_3c10_32b/Kconfig"
 source "board/spreadtrum/ums518_haps/Kconfig"
 endif
