@@ -23,6 +23,9 @@
 #elif defined(CONFIG_ADIE_SC2720)
 #include "sc2720_reg_base.h"
 #include "__regs_ana_sc2720_glb.h"
+#elif defined(CONFIG_ADIE_SC2730)
+#include "sc2730_reg_base.h"
+#include "__regs_ana_sc2730_glb.h"
 #else
 #error "PMIC address is not defined!"
 #endif

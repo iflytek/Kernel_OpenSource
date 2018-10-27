@@ -142,7 +142,7 @@ static struct pmic_adc_para para = {
 	.adc_data_off = 128,
 };
 
-#elif defined(CONFIG_ADIE_SC2720)
+#elif defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 
 static struct pmic_adc_para para = {
 	.small_adc_p0 = 833,

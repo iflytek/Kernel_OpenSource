@@ -16,8 +16,12 @@ else
 ifdef CONFIG_ADIE_SC2720
 obj-y += sprd_chg_2720.o
 else
+ifdef CONFIG_ADIE_SC2730
+obj-y += sprd_chg_2730.o
+else
 obj-y += sprd_chg.o
 endif #CONFIG_ADIE_SC2720
+endif
 endif
 endif
 obj-$(CONFIG_FAN54015_CHARGE_IC)+= fan54015.o

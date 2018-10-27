@@ -21,6 +21,7 @@ obj-$(CONFIG_POWER_FSL) += power_fsl.o
 obj-$(CONFIG_POWER_I2C) += power_i2c.o
 obj-$(CONFIG_POWER_SPI) += power_spi.o
 obj-$(CONFIG_ADIE_SC2720) += regulator_2720.o
+obj-$(CONFIG_ADIE_SC2730) += regulator_2730.o
 
 ifneq ($(strip $(CONFIG_ADIE_SC2723)$(CONFIG_ADIE_SC2723S)),)
     obj-y += dcdc_cal_sc2723.o
