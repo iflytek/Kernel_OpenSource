@@ -25,7 +25,7 @@
 #include <common.h>
 
 typedef unsigned int u32;
-#if defined(CONFIG_ADIE_SC2720)
+#if defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 #define ADC_REG_BASE                       (ADC_BASE + 0x0004)
 #else
 #define ADC_REG_BASE                        ADC_BASE
@@ -55,7 +55,7 @@ typedef unsigned int u32;
 
 /* ADC_SW_CH_CFG */
 
-#if defined(CONFIG_ADIE_SC2720)
+#if defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 #define BIT_CH_SCALE(_X_)			(((_X_) & 0x3) << 9)
 #else
 #define BIT_CH_SCALE(_X_)			(((_X_) & 0x1) << 5)
@@ -141,7 +141,6 @@ static struct pmic_adc_para para = {
 	.blk_width = 16,
 	.adc_data_off = 128,
 };
-
 #elif defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 
 static struct pmic_adc_para para = {
@@ -322,7 +321,8 @@ static int pmic_adc_set_current(u8 enable, int isen)
 	return 0;
 }
 
-#elif defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
+#elif defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720) || \
+	defined(CONFIG_ADIE_SC2730)
 
 static int pmic_adc_set_isen(u8 enable, int isen)
 {
@@ -640,6 +640,84 @@ static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
 	}
 	return RATIO(1, 1);
 }
+
+#elif defined(CONFIG_ADIE_SC2730)
+static int pmic_adc_get_ratio(uint16_t channel, int scale, int mux)
+{
+	if(channel > ADC_CHAN_MAX)
+		return RATIO(1, 1);
+
+	switch (channel) {
+		case ADC_CHANNEL14:
+			switch (scale) {
+			case 0:
+				return RATIO(68, 900);
+			case 1:
+				return RATIO(68, 1760);
+			case 2:
+				return RATIO(68, 2327);
+			case 3:
+				return RATIO(68, 3654);
+			default:
+				return RATIO(1, 1);
+			}
+		case ADC_CHANNEL15:
+			switch (scale) {
+			case 0:
+				return RATIO(1, 3);
+			case 1:
+				return RATIO(1000, 5865);
+			case 2:
+				return RATIO(500, 3879);
+			case 3:
+				return RATIO(500, 6090);
+			default:
+				return RATIO(1, 1);
+			}
+		case ADC_CHANNEL16:
+			switch (scale) {
+			case 0:
+				return RATIO(48, 100);
+			case 1:
+				return RATIO(480, 1955);
+			case 2:
+				return RATIO(480, 2586);
+			case 3:
+				return RATIO(48, 406);
+			default:
+				return RATIO(1, 1);
+			}
+		case ADC_CHANNEL21:
+		case ADC_CHANNEL22:
+		case ADC_CHANNEL23:
+			switch (scale) {
+			case 0:
+				return RATIO(3, 8);
+			case 1:
+				return RATIO(375, 1955);
+			case 2:
+				return RATIO(375, 2586);
+			case 3:
+				return RATIO(300, 3248);
+			default:
+				return RATIO(1, 1);
+			}
+		default:
+			switch (scale) {
+			case 0:
+				return RATIO(1, 1);
+			case 1:
+				return RATIO(1000, 1955);
+			case 2:
+				return RATIO(1000, 2586);
+			case 3:
+				return RATIO(100, 406);
+			default:
+				return RATIO(1, 1);
+			}
+	}
+	return RATIO(1, 1);
+}
 #endif
 
 static int sprd_get_adc_small_scale_cal(uint32_t *p_cal_data)
@@ -669,7 +747,7 @@ static int sprd_get_adc_small_scale_cal(uint32_t *p_cal_data)
 	debugf("1.0V adc data 0x%x\n", adc_data);
 	p_cal_data[0] = (para.small_vol_p0) | (adc_data << 16);
 #elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || \
-	defined(CONFIG_ADIE_SC2720)
+	defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 	/* adc 0.1V */
 	adc_data =
 		 (((deta >> 8) & 0x00FF) + para.small_adc_p1 - para.adc_data_off) * 4;
@@ -759,7 +837,7 @@ void pmic_adc_Init(void)
 
 	ANA_REG_OR(ADC_CTRL, ADC_EN_BIT);
 	ANA_REG_OR(ADC_CTRL, ADC_MODE_12B);
-#if defined(CONFIG_ADIE_SC2720)
+#if defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 	ANA_REG_OR(ADC_CTRL, BIT_ADC_OFFSET_CAL_EN);
 	ANA_REG_MSK_OR(ADC_CTRL, BIT_AUXAD_AVERAGE(0x3), BIT_AUXAD_AVERAGE(~0));
 #endif

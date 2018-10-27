@@ -23,7 +23,8 @@
 typedef unsigned int u32;
 
 /* registers definitions for controller ANA_REGS_EFUSE */
-#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || \
+	defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 #define ANA_REG_EFUSE_GLB_CTRL          SCI_ADDR(ANA_REGS_EFUSE_BASE, 0x0000)
 #define ANA_REG_EFUSE_DATA_RD           SCI_ADDR(ANA_REGS_EFUSE_BASE, 0x0004)
 #define ANA_REG_EFUSE_DATA_WR           SCI_ADDR(ANA_REGS_EFUSE_BASE, 0x0008)
@@ -98,7 +99,8 @@ u32 SCI_GetTickCount(void);
 
 #define ANA_REGS_EFUSE_BASE ANA_EFS_BASE
 #define EFUSE_BLOCK_MAX                 ( 32 )
-#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || \
+	defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 #define EFUSE_BLOCK_WIDTH               ( 16 )	/* bit counts */
 #define VALUE_TYPE	u16
 #else
@@ -148,7 +150,8 @@ static __inline int pmic_efuse_wait_clear(u32 bits)
 	timeout = jiffies + msecs_to_jiffies(3000);
 	while (bit_status) {
 		val = sci_adi_read(ANA_REG_EFUSE_STATUS);
-#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || \
+	defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 		bit_status = (~val) & bits;
 #else
 		bit_status = val & bits;
@@ -168,7 +171,8 @@ u32 sprd_pmic_efuse_read(int blk_index)
 	u32 val = 0;
 
 	pmic_efuse_power_on();
-#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || \
+	defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 	sci_adi_set(ANA_REG_EFUSE_MODE_CTRL, BIT_NORMAL_RD_FLAG_CLR);
 	if (IS_ERR_VALUE(pmic_efuse_wait_clear(BIT_STANDBY_BUSY)))
 		goto out;
@@ -176,7 +180,8 @@ u32 sprd_pmic_efuse_read(int blk_index)
 	sci_adi_raw_write(ANA_REG_EFUSE_BLOCK_INDEX,
 			  BITS_READ_WRITE_INDEX(blk_index));
 	sci_adi_set(ANA_REG_EFUSE_MODE_CTRL, BIT_RD_START);
-#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720)
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) || \
+	defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 	if (IS_ERR_VALUE(pmic_efuse_wait_clear(BIT_NORMAL_RD_DONE)))
 		goto out;
 #else
@@ -188,7 +193,8 @@ u32 sprd_pmic_efuse_read(int blk_index)
 	/* FIXME: reverse the otp value */
 	val = BITS_EFUSE_DATA_RD(~val);
 #endif
-#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)|| defined(CONFIG_ADIE_SC2720)
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)|| \
+	defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 	sci_adi_set(ANA_REG_EFUSE_MODE_CTRL, BIT_NORMAL_RD_FLAG_CLR);
 #endif
 out:

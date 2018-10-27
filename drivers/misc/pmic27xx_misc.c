@@ -155,7 +155,7 @@ void pmic_misc_init(void)
 #endif
 
 #if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721) \
-	|| defined(CONFIG_ADIE_SC2720)
+	|| defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 	sci_adi_write(ANA_REG_GLB_OTP_CTRL, (BIT_OTP_EN|BITS_OTP_OP(0)), (BIT_OTP_EN|BITS_OTP_OP(3)));	//open otp and set 135C
 #endif
 
