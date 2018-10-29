@@ -10,5 +10,6 @@ obj-$(CONFIG_LCD_NT35596_BOE_MIPI_FHD) += lcd_nt35596_boe_mipi_fhd.o
 obj-$(CONFIG_LCD_NT35597_BOE_MIPI_HD) += lcd_nt35597_boe_mipi_hd.o
 obj-$(CONFIG_LCD_NT35597_FPGA_MIPI_2K) += lcd_nt35597_fpga_mipi_2k.o
 obj-$(CONFIG_LCD_JD9161_XXX_MIPI_WVGA) += lcd_jd9161_xxx_mipi_wvga.o
+obj-$(CONFIG_LCD_JD9366D_TRULY_MIPI_HDP) += lcd_jd9366d_truly_mipi_hdp.o
 obj-$(CONFIG_LCD_RM67191_EDO_MIPI_FHD) += lcd_rm67191_edo_mipi_fhd.o
 obj-$(CONFIG_LCD_R61350_TRULY_MIPI_HD) += lcd_r61350_truly_mipi_hd.o
