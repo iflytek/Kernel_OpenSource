@@ -327,9 +327,6 @@
 #define CONFIG_PREBOOT "role"
 #define CONFIG_BOARD_LATE_INIT
 
-/*rf board id */
-#define CONFIG_BOARD_ID
-
 /*sprd charge*/
 #define CONFIG_SPRD_EXT_IC_POWER
 #define CONFIG_SPRD2700_CHARGE_IC

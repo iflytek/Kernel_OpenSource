@@ -320,9 +320,6 @@
 //#define CONFIG_SMPL_EN
 #define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
 
-/*rf board id */
-#define CONFIG_BOARD_ID
-
 /* Chip Driver Macro Definitions End*/
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C_V2

@@ -355,9 +355,6 @@
 //#define CONFIG_SMPL_EN
 #define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
 
-/*rf board id */
-#define CONFIG_BOARD_ID
-
 /* Chip Driver Macro Definitions End*/
 /*active arm7 ram before access to it*/
 #define CONFIG_ARM7_RAM_ACTIVE

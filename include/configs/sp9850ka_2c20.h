@@ -313,9 +313,6 @@
 #define CONFIG_PREBOOT "role"
 #define CONFIG_BOARD_LATE_INIT
 
-/*rf board id */
-#define CONFIG_BOARD_ID
-
 /* Chip Driver Macro Definitions Start*/
 /*sprd adc*/
 #define CONFIG_SPRD_ADC
