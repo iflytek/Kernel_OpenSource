@@ -40,33 +40,33 @@ typedef struct{
 }VBootResultInfo;
 
 typedef struct{
-	char * img_name;
-	uint32_t img_name_len;
-	char * img_addr; //the base address of image to verify
-	uint32_t img_len; //length of image
-	char * vbmeta_img_addr;
-	uint32_t vbmeta_img_len;
-	char * vbmeta_pubkey_addr;
-	uint32_t vbmeta_pubkey_len;
-	char * vb_cmdline_addr;
-	uint32_t vb_cmdline_len;
+	uint64_t img_name;
+	uint64_t img_name_len;
+	uint64_t img_addr; //the base address of image to verify
+	uint64_t img_len; //length of image
+	uint64_t vbmeta_img_addr;
+	uint64_t vbmeta_img_len;
+	uint64_t vbmeta_pubkey_addr;
+	uint64_t vbmeta_pubkey_len;
+	uint64_t vb_cmdline_addr;
+	uint64_t vb_cmdline_len;
 	VBootResultInfo * verify_return_data;
-	uint32_t verify_return_data_len;
-	uint32_t vboot_unlock_status;
+	uint64_t verify_return_data_len;
+	uint64_t vboot_unlock_status;
 }VbootVerifyInfo;
 
 /* Add for fastboot flashing lock_bootloader/unlock bootloader command */
 typedef struct {
-	char *vbmeta_img_addr;				//vbmeta image addr
-	uint32_t vbmeta_img_len;			//vbmeta image size
-	char *vbmeta_pubkey_addr;			//address to save vbmeta image hash
-	uint32_t vbmeta_pubkey_len;			//hash length
-	char *product_sn_addr;				//product serial number addr
-	uint32_t product_sn_len;			//product serial number length
-	char *product_sn_signature_addr;		//product serial number addr
-	uint32_t product_sn_signature_len;		//product serial number length
+	uint64_t vbmeta_img_addr;				//vbmeta image addr
+	uint64_t vbmeta_img_len;			//vbmeta image size
+	uint64_t vbmeta_pubkey_addr;			//address to save vbmeta image hash
+	uint64_t vbmeta_pubkey_len;			//hash length
+	uint64_t product_sn_addr;				//product serial number addr
+	uint64_t product_sn_len;			//product serial number length
+	uint64_t product_sn_signature_addr;		//product serial number addr
+	uint64_t product_sn_signature_len;		//product serial number length
 	VBootResultInfo * verify_return_data;
-	uint32_t verify_return_data_len;
+	uint64_t verify_return_data_len;
 }VbootUnlockVerifyInfo;
 
 #if 0
