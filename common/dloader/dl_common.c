@@ -62,7 +62,7 @@ unsigned short fdl_calc_checksum64(unsigned char *data, unsigned long len) {
 unsigned char fdl_check_crc(uint8_t* buf, uint32_t size,uint32_t checksum)
 {
 	uint16_t crc;
-	uint16_t len;
+	uint16_t len = 0;
 	static uint8_t check_flag = 0x0;
 
 	if(!check_flag) {
