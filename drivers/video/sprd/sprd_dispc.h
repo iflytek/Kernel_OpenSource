@@ -26,12 +26,12 @@
 #define wait_event_interruptible_timeout(queue, flag, timeout) \
 ({\
 	u32 count;\
-	if (!flag) {\
-		for (count = 0; !flag && (count < timeout); count++) {\
+	if (!(flag)) {\
+		for (count = 0; !(flag) && (count < timeout); count++) {\
 			msleep(1);\
 		}\
 	}\
-	flag;\
+	(flag);\
 })
 
 #define msecs_to_jiffies(x)	(x)

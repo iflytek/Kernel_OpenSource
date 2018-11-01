@@ -373,10 +373,12 @@ static int32_t dpu_wait_stop_done(struct dispc_context *ctx)
 static int32_t dpu_wait_update_done(struct dispc_context *ctx)
 {
 	int rc;
+	struct dpu_reg *reg = (struct dpu_reg *)ctx->base;
 
 	/*wait for reg update done interrupt*/
-	rc = wait_event_interruptible_timeout(ctx->wait_queue, evt_update,
-					       msecs_to_jiffies(500));
+	rc = wait_event_interruptible_timeout(ctx->wait_queue,
+			reg->dpu_int_sts & DISPC_INT_UPDATE_DONE_MASK,
+			msecs_to_jiffies(500));
 	evt_update = false;
 
 	if (!rc) {
