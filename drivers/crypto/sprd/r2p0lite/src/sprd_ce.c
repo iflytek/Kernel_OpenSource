@@ -553,7 +553,7 @@ void sprd_ce_reset(void) {
 }
 
 void sprd_ce_init(void) {
-#ifdef CONFIG_SOC_SHARKL5
+#if defined(CONFIG_SOC_SHARKL5) || defined(CONFIG_SOC_ROC1)
 	s_ahb_vaddr = sprd_pal_paddr_to_vaddr(CTL_BASE_AP_APB);
 #else
 	s_ahb_vaddr = sprd_pal_paddr_to_vaddr(SPRD_AHB_PHYS);
