@@ -6,7 +6,7 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-11-07 10:41:46
  *
  */
 
@@ -755,6 +755,10 @@
 /* REG_PUB_APB_HW_DESKEWPLL_PD_CTRL1 */
 
 #define BIT_PUB_APB_DFS_FC_ACK_ASSERT_WAIT_CNT(x)                (((x) & 0xFF) << 8)
+#define BIT_PUB_APB_DFS_HW_FRQ_SEL_SW(x)                         (((x) & 0x7) << 4)
+#define BIT_PUB_APB_DFS_HW_FRQ_SEL_SET                           BIT(3)
+#define BIT_PUB_APB_DFS_CUR_CLK_MODE_TOGGLE                      BIT(2)
+#define BIT_PUB_APB_HW_DESKEW_PLL_PD_DEFAULT_HIGH                BIT(1)
 #define BIT_PUB_APB_HW_DESKEW_PLL_PO_AHEAD_EN                    BIT(0)
 
 /* REG_PUB_APB_VOTE_MASTER_EN */

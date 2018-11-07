@@ -6,7 +6,7 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-11-07 10:41:46
  *
  */
 
@@ -41,6 +41,7 @@
 #define REG_PMU_APB_PD_AUDCP_AUDDSP_CFG                           ( CTL_BASE_PMU_APB + 0x005C )
 #define REG_PMU_APB_PD_AUDCP_SYS_CFG                              ( CTL_BASE_PMU_APB + 0x0060 )
 #define REG_PMU_APB_PUBCP_FRC_STOP_REQ_FOR_WTL                    ( CTL_BASE_PMU_APB + 0x0064 )
+#define REG_PMU_APB_PD_CDMA_SYS_CFG                               ( CTL_BASE_PMU_APB + 0x0068 )
 #define REG_PMU_APB_PD_PUB_SYS_CFG                                ( CTL_BASE_PMU_APB + 0x006C )
 #define REG_PMU_APB_AP_WAKEUP_POR_CFG                             ( CTL_BASE_PMU_APB + 0x0070 )
 #define REG_PMU_APB_XTL_WAIT_CNT                                  ( CTL_BASE_PMU_APB + 0x0074 )
@@ -115,6 +116,7 @@
 #define REG_PMU_APB_APCPU_C2_CORE_INT_DISABLE                     ( CTL_BASE_PMU_APB + 0x01C4 )
 #define REG_PMU_APB_APCPU_C7_CORE_INT_DISABLE                     ( CTL_BASE_PMU_APB + 0x01D8 )
 #define REG_PMU_APB_APCPU_C7_DSLP_ENA                             ( CTL_BASE_PMU_APB + 0x01E8 )
+#define REG_PMU_APB_CDMA_DSLP_ENA                                 ( CTL_BASE_PMU_APB + 0x01EC )
 #define REG_PMU_APB_WTLCP_TGDSP_DSLP_ENA                          ( CTL_BASE_PMU_APB + 0x0200 )
 #define REG_PMU_APB_WTLCP_LDSP_DSLP_ENA                           ( CTL_BASE_PMU_APB + 0x0204 )
 #define REG_PMU_APB_AP_DSLP_ENA                                   ( CTL_BASE_PMU_APB + 0x0208 )
@@ -167,6 +169,7 @@
 #define REG_PMU_APB_APCPU_C0_CFG                                  ( CTL_BASE_PMU_APB + 0x0384 )
 #define REG_PMU_APB_APCPU_C1_CFG                                  ( CTL_BASE_PMU_APB + 0x0388 )
 #define REG_PMU_APB_APCPU_C2_CFG                                  ( CTL_BASE_PMU_APB + 0x038C )
+#define REG_PMU_APB_APCPU_DSLP_ENA_SRST_MASK_CFG                  ( CTL_BASE_PMU_APB + 0x0390 )
 #define REG_PMU_APB_APCPU_C7_CFG                                  ( CTL_BASE_PMU_APB + 0x03A0 )
 #define REG_PMU_APB_GIC_CFG                                       ( CTL_BASE_PMU_APB + 0x03A8 )
 #define REG_PMU_APB_FIREWALL_WAKEUP_PUB                           ( CTL_BASE_PMU_APB + 0x03AC )
@@ -244,6 +247,11 @@
 #define REG_PMU_APB_DPLL1_CNT_DONE_BYP                            ( CTL_BASE_PMU_APB + 0x0514 )
 #define REG_PMU_APB_SRAM_DLY_CTRL_CFG                             ( CTL_BASE_PMU_APB + 0x0518 )
 #define REG_PMU_APB_WDG_TRIG_DBG_RECOV_CFG                        ( CTL_BASE_PMU_APB + 0x051C )
+#define REG_PMU_APB_PD_CDMA_SYS_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x0600 )
+#define REG_PMU_APB_CDMA_DEEP_SLEEP_CNT                           ( CTL_BASE_PMU_APB + 0x0610 )
+#define REG_PMU_APB_CDMA_DEEP_SLEEP_CFG                           ( CTL_BASE_PMU_APB + 0x0620 )
+#define REG_PMU_APB_CDMA_WAKEUP_CFG                               ( CTL_BASE_PMU_APB + 0x0624 )
+#define REG_PMU_APB_CDMA_PROC1_PWR_CFG                            ( CTL_BASE_PMU_APB + 0x0630 )
 #define REG_PMU_APB_PD_APCPU_C0_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x0700 )
 #define REG_PMU_APB_PD_APCPU_C1_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x0704 )
 #define REG_PMU_APB_PD_APCPU_C2_SHUTDOWN_MARK_STATUS              ( CTL_BASE_PMU_APB + 0x0708 )
@@ -501,6 +509,16 @@
 
 #define BIT_PMU_APB_PUBCP_FRC_STOP_REQ_FOR_WTL                     BIT(0)
 
+/* REG_PMU_APB_PD_CDMA_SYS_CFG */
+
+#define BIT_PMU_APB_PD_CDMA_SYS_MEM_RET_SEL                         BIT(27)
+#define BIT_PMU_APB_PD_CDMA_SYS_MEM_RET_REG                         BIT(26)
+#define BIT_PMU_APB_PD_CDMA_SYS_FORCE_SHUTDOWN                      BIT(25)
+#define BIT_PMU_APB_PD_CDMA_SYS_AUTO_SHUTDOWN_EN                    BIT(24)
+#define BIT_PMU_APB_PD_CDMA_SYS_PWR_ON_DLY(x)                       (((x) & 0xFF) << 16)
+#define BIT_PMU_APB_PD_CDMA_SYS_PWR_ON_SEQ_DLY(x)                   (((x) & 0xFF) << 8)
+#define BIT_PMU_APB_PD_CDMA_SYS_ISO_ON_DLY(x)                       (((x) & 0xFF))
+
 /* REG_PMU_APB_PD_PUB_SYS_CFG */
 
 #define BIT_PMU_APB_PD_PUB_SYS_FORCE_SHUTDOWN                      BIT(25)
@@ -542,6 +560,8 @@
 
 /* REG_PMU_APB_XTL0_REL_CFG */
 
+#define BIT_PMU_APB_XTL0_CDMA_AUTO_SEL                              BIT(11)
+#define BIT_PMU_APB_XTL0_CDMA_SEL                                   BIT(10)
 #define BIT_PMU_APB_XTL0_FRC_OFF                                   BIT(9)
 #define BIT_PMU_APB_XTL0_FRC_ON                                    BIT(8)
 #define BIT_PMU_APB_XTL0_TOP_DVFS_SEL                              BIT(7)
@@ -554,18 +574,23 @@
 
 /* REG_PMU_APB_XTL1_REL_CFG */
 
-#define BIT_PMU_APB_XTL1_FRC_OFF                                   BIT(9)
-#define BIT_PMU_APB_XTL1_FRC_ON                                    BIT(8)
-#define BIT_PMU_APB_XTL1_TOP_DVFS_SEL                              BIT(7)
-#define BIT_PMU_APB_XTL1_SP_SYS_SEL                                BIT(5)
-#define BIT_PMU_APB_XTL1_PUB_SYS_SEL                               BIT(4)
-#define BIT_PMU_APB_XTL1_AUDCP_SYS_SEL                             BIT(3)
-#define BIT_PMU_APB_XTL1_PUBCP_SEL                                 BIT(2)
-#define BIT_PMU_APB_XTL1_WTLCP_SEL                                 BIT(1)
-#define BIT_PMU_APB_XTL1_AP_SEL                                    BIT(0)
+#define BIT_PMU_APB_XTL1_CDMA_AUTO_SEL                              BIT(11)
+#define BIT_PMU_APB_XTL1_CDMA_SEL                                   BIT(10)
+#define BIT_PMU_APB_XTL1_FRC_OFF                                    BIT(9)
+#define BIT_PMU_APB_XTL1_FRC_ON                                     BIT(8)
+#define BIT_PMU_APB_XTL1_TOP_DVFS_SEL                               BIT(7)
+#define BIT_PMU_APB_XTL1_SP_SYS_SEL                                 BIT(5)
+#define BIT_PMU_APB_XTL1_PUB_SYS_SEL                                BIT(4)
+#define BIT_PMU_APB_XTL1_AUDCP_SYS_SEL                              BIT(3)
+#define BIT_PMU_APB_XTL1_PUBCP_SEL                                  BIT(2)
+#define BIT_PMU_APB_XTL1_WTLCP_SEL                                  BIT(1)
+#define BIT_PMU_APB_XTL1_AP_SEL                                     BIT(0)
 
 /* REG_PMU_APB_ISPPLL_REL_CFG */
 
+#define BIT_PMU_APB_ISPPLL_CDMA2PMU_AUTO_SEL                        BIT(13)
+#define BIT_PMU_APB_ISPPLL_CDMA_AUTO_SEL                            BIT(12)
+#define BIT_PMU_APB_ISPPLL_CDMA_SEL                                 BIT(11)
 #define BIT_PMU_APB_ISPPLL_REF_SEL                                 BIT(10)
 #define BIT_PMU_APB_ISPPLL_FRC_OFF                                 BIT(9)
 #define BIT_PMU_APB_ISPPLL_FRC_ON                                  BIT(8)
@@ -579,6 +604,8 @@
 
 /* REG_PMU_APB_XTLBUF0_REL_CFG */
 
+#define BIT_PMU_APB_XTLBUF0_CDMA_AUTO_SEL                           BIT(11)
+#define BIT_PMU_APB_XTLBUF0_CDMA_SEL                                BIT(10)
 #define BIT_PMU_APB_XTLBUF0_FRC_OFF                                BIT(9)
 #define BIT_PMU_APB_XTLBUF0_FRC_ON                                 BIT(8)
 #define BIT_PMU_APB_XTLBUF0_TOP_DVFS_SEL                           BIT(7)
@@ -591,6 +618,8 @@
 
 /* REG_PMU_APB_XTLBUF1_REL_CFG */
 
+#define BIT_PMU_APB_XTLBUF1_CDMA_AUTO_SEL                           BIT(11)
+#define BIT_PMU_APB_XTLBUF1_CDMA_SEL                                BIT(10)
 #define BIT_PMU_APB_XTLBUF1_FRC_OFF                                BIT(9)
 #define BIT_PMU_APB_XTLBUF1_FRC_ON                                 BIT(8)
 #define BIT_PMU_APB_XTLBUF1_TOP_DVFS_SEL                           BIT(7)
@@ -603,6 +632,9 @@
 
 /* REG_PMU_APB_DPLL0_REL_CFG */
 
+#define BIT_PMU_APB_DPLL0_CDMA2PMU_AUTO_SEL                         BIT(13)
+#define BIT_PMU_APB_DPLL0_CDMA_AUTO_SEL                             BIT(12)
+#define BIT_PMU_APB_DPLL0_CDMA_SEL                                  BIT(11)
 #define BIT_PMU_APB_DPLL0_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_DPLL0_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_DPLL0_FRC_OFF                                  BIT(8)
@@ -616,6 +648,9 @@
 
 /* REG_PMU_APB_DPLL1_REL_CFG */
 
+#define BIT_PMU_APB_DPLL1_CDMA2PMU_AUTO_SEL                         BIT(13)
+#define BIT_PMU_APB_DPLL1_CDMA_AUTO_SEL                             BIT(12)
+#define BIT_PMU_APB_DPLL1_CDMA_SEL                                  BIT(11)
 #define BIT_PMU_APB_DPLL1_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_DPLL1_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_DPLL1_FRC_OFF                                  BIT(8)
@@ -629,6 +664,9 @@
 
 /* REG_PMU_APB_LTEPLL_REL_CFG */
 
+#define BIT_PMU_APB_LTEPLL_CDMA2PMU_AUTO_SEL                        BIT(14)
+#define BIT_PMU_APB_LTEPLL_CDMA_AUTO_SEL                            BIT(13)
+#define BIT_PMU_APB_LTEPLL_CDMA_SEL                                 BIT(12)
 #define BIT_PMU_APB_LTEPLL_REF_SEL(x)                              (((x) & 0x3) << 10)
 #define BIT_PMU_APB_LTEPLL_FRC_OFF                                 BIT(9)
 #define BIT_PMU_APB_LTEPLL_FRC_ON                                  BIT(8)
@@ -642,6 +680,9 @@
 
 /* REG_PMU_APB_TWPLL_REL_CFG */
 
+#define BIT_PMU_APB_TWPLL_CDMA2PMU_AUTO_SEL                         BIT(14)
+#define BIT_PMU_APB_TWPLL_CDMA_AUTO_SEL                             BIT(13)
+#define BIT_PMU_APB_TWPLL_CDMA_SEL                                  BIT(12)
 #define BIT_PMU_APB_TWPLL_REF_SEL(x)                               (((x) & 0x3) << 10)
 #define BIT_PMU_APB_TWPLL_FRC_OFF                                  BIT(9)
 #define BIT_PMU_APB_TWPLL_FRC_ON                                   BIT(8)
@@ -655,6 +696,9 @@
 
 /* REG_PMU_APB_GPLL_REL_CFG */
 
+#define BIT_PMU_APB_GPLL_CDMA2PMU_AUTO_SEL                          BIT(13)
+#define BIT_PMU_APB_GPLL_CDMA_AUTO_SEL                              BIT(12)
+#define BIT_PMU_APB_GPLL_CDMA_SEL                                   BIT(11)
 #define BIT_PMU_APB_GPLL_TOP_DVFS_SEL                              BIT(10)
 #define BIT_PMU_APB_GPLL_REF_SEL                                   BIT(9)
 #define BIT_PMU_APB_GPLL_FRC_OFF                                   BIT(8)
@@ -668,6 +712,9 @@
 
 /* REG_PMU_APB_RPLL_REL_CFG */
 
+#define BIT_PMU_APB_RPLL_CDMA2PMU_AUTO_SEL                          BIT(14)
+#define BIT_PMU_APB_RPLL_CDMA_AUTO_SEL                              BIT(13)
+#define BIT_PMU_APB_RPLL_CDMA_SEL                                   BIT(12)
 #define BIT_PMU_APB_RPLL_REF_SEL(x)                                (((x) & 0x3) << 10)
 #define BIT_PMU_APB_RPLL_FRC_OFF                                   BIT(9)
 #define BIT_PMU_APB_RPLL_FRC_ON                                    BIT(8)
@@ -691,6 +738,7 @@
 #define BIT_PMU_APB_WTLCP_LDSP_SOFT_RST                            BIT(14)
 #define BIT_PMU_APB_WCDMA_AON_SOFT_RST                             BIT(13)
 #define BIT_PMU_APB_WTLCP_AON_SOFT_RST                             BIT(12)
+#define BIT_PMU_APB_CDMA_SOFT_RST                                   BIT(11)
 #define BIT_PMU_APB_AUDCP_AUDDSP_SOFT_RST                          BIT(10)
 #define BIT_PMU_APB_AUDCP_SYS_SOFT_RST                             BIT(9)
 #define BIT_PMU_APB_SP_SYS_SOFT_RST                                BIT(8)
@@ -717,6 +765,7 @@
 
 /* REG_PMU_APB_PWR_STATUS0_DBG */
 
+#define BIT_PMU_APB_PD_CDMA_SYS_STATE(x)                            (((x) & 0xFF) << 16)
 #define BIT_PMU_APB_PD_AP_VSP_STATE(x)                             (((x) & 0xFF) << 8)
 #define BIT_PMU_APB_PD_AP_SYS_STATE(x)                             (((x) & 0xFF))
 
@@ -756,6 +805,7 @@
 #define BIT_PMU_APB_PUBCP_FORCE_DEEP_SLEEP                         BIT(18)
 #define BIT_PMU_APB_WTLCP_FORCE_DEEP_SLEEP                         BIT(17)
 #define BIT_PMU_APB_AP_FORCE_DEEP_SLEEP                            BIT(16)
+#define BIT_PMU_APB_CDMA_FORCE_DEEP_SLEEP                           BIT(15)
 #define BIT_PMU_APB_AUDCP_FORCE_SYSTEM_SLEEP                       BIT(14)
 #define BIT_PMU_APB_GPU_TOP_FORCE_SYSTEM_SLEEP                     BIT(13)
 #define BIT_PMU_APB_PUBCP_FORCE_SYSTEM_SLEEP                       BIT(11)
@@ -766,6 +816,7 @@
 #define BIT_PMU_APB_SP_SYS_DEEP_SLEEP                              BIT(6)
 #define BIT_PMU_APB_AUDCP_DEEP_SLEEP                               BIT(5)
 #define BIT_PMU_APB_PUB_SYS_DEEP_SLEEP                             BIT(4)
+#define BIT_PMU_APB_CDMA_DEEP_SLEEP                                 BIT(3)
 #define BIT_PMU_APB_PUBCP_DEEP_SLEEP                               BIT(2)
 #define BIT_PMU_APB_WTLCP_DEEP_SLEEP                               BIT(1)
 #define BIT_PMU_APB_AP_DEEP_SLEEP                                  BIT(0)
@@ -789,7 +840,9 @@
 
 /* REG_PMU_APB_SLEEP_STATUS */
 
+#define BIT_PMU_APB_CDMA_AUTO_SLP_STATUS(x)                         (((x) & 0xF) << 24)
 #define BIT_PMU_APB_SP_SYS_SLP_STATUS(x)                           (((x) & 0xF) << 20)
+#define BIT_PMU_APB_CDMA_SLP_STATUS(x)                              (((x) & 0xF) << 16)
 #define BIT_PMU_APB_AUDCP_SLP_STATUS(x)                            (((x) & 0xF) << 12)
 #define BIT_PMU_APB_PUBCP_SLP_STATUS(x)                            (((x) & 0xF) << 8)
 #define BIT_PMU_APB_WTLCP_SLP_STATUS(x)                            (((x) & 0xF) << 4)
@@ -814,6 +867,9 @@
 
 /* REG_PMU_APB_CPPLL_REL_CFG */
 
+#define BIT_PMU_APB_CPPLL_CDMA2PMU_AUTO_SEL                         BIT(13)
+#define BIT_PMU_APB_CPPLL_CDMA_AUTO_SEL                             BIT(12)
+#define BIT_PMU_APB_CPPLL_CDMA_SEL                                  BIT(11)
 #define BIT_PMU_APB_CPPLL_REF_SEL                                  BIT(10)
 #define BIT_PMU_APB_CPPLL_FRC_OFF                                  BIT(9)
 #define BIT_PMU_APB_CPPLL_FRC_ON                                   BIT(8)
@@ -905,6 +961,7 @@
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_DONE                          BIT(28)
 #define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_DONE                      BIT(23)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_DONE                            BIT(22)
+#define BIT_PMU_APB_PD_CDMA_SYS_BISR_DONE                           BIT(21)
 #define BIT_PMU_APB_PD_WTLCP_TD_PROC_BISR_DONE                     BIT(20)
 #define BIT_PMU_APB_PD_WTLCP_LTE_PROC_BISR_DONE                    BIT(19)
 #define BIT_PMU_APB_PD_AON_MEM_BISR_DONE                           BIT(18)
@@ -931,6 +988,7 @@
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_BUSY                          BIT(28)
 #define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_BUSY                      BIT(23)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_BUSY                            BIT(22)
+#define BIT_PMU_APB_PD_CDMA_SYS_BISR_BUSY                           BIT(21)
 #define BIT_PMU_APB_PD_WTLCP_TD_PROC_BISR_BUSY                     BIT(20)
 #define BIT_PMU_APB_PD_WTLCP_LTE_PROC_BISR_BUSY                    BIT(19)
 #define BIT_PMU_APB_PD_AON_MEM_BISR_BUSY                           BIT(18)
@@ -957,6 +1015,7 @@
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_FORCE_BYP                     BIT(28)
 #define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_FORCE_BYP                 BIT(23)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_FORCE_BYP                       BIT(22)
+#define BIT_PMU_APB_PD_CDMA_SYS_BISR_FORCE_BYP                      BIT(21)
 #define BIT_PMU_APB_PD_WTLCP_TD_PROC_BISR_FORCE_BYP                BIT(20)
 #define BIT_PMU_APB_PD_WTLCP_LTE_PROC_BISR_FORCE_BYP               BIT(19)
 #define BIT_PMU_APB_PD_AON_MEM_BISR_FORCE_BYP                      BIT(18)
@@ -983,6 +1042,7 @@
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_FORCE_EN                      BIT(28)
 #define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_FORCE_EN                  BIT(23)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_FORCE_EN                        BIT(22)
+#define BIT_PMU_APB_PD_CDMA_SYS_BISR_FORCE_EN                       BIT(21)
 #define BIT_PMU_APB_PD_WTLCP_TD_PROC_BISR_FORCE_EN                 BIT(20)
 #define BIT_PMU_APB_PD_WTLCP_LTE_PROC_BISR_FORCE_EN                BIT(19)
 #define BIT_PMU_APB_PD_AON_MEM_BISR_FORCE_EN                       BIT(18)
@@ -1039,6 +1099,7 @@
 /* REG_PMU_APB_SLEEP_XTLON_CTRL */
 
 #define BIT_PMU_APB_SP_SYS_SLEEP_XTL_ON                            BIT(5)
+#define BIT_PMU_APB_CDMA_SLEEP_XTL_ON                               BIT(4)
 #define BIT_PMU_APB_AUDCP_SYS_SLEEP_XTL_ON                         BIT(3)
 #define BIT_PMU_APB_PUBCP_SLEEP_XTL_ON                             BIT(2)
 #define BIT_PMU_APB_WTLCP_SLEEP_XTL_ON                             BIT(1)
@@ -1076,10 +1137,13 @@
 
 /* REG_PMU_APB_PWR_CNT_WAIT_CFG1 */
 
+#define BIT_PMU_APB_CDMA_PWR_WAIT_CNT(x)                            (((x) & 0xFF) << 16)
 #define BIT_PMU_APB_SP_SYS_PWR_WAIT_CNT(x)                         (((x) & 0xFF) << 8)
 
 /* REG_PMU_APB_RCO_REL_CFG */
 
+#define BIT_PMU_APB_RCO_CDMA_AUTO_SEL                               BIT(12)
+#define BIT_PMU_APB_RCO_CDMA_SEL                                    BIT(11)
 #define BIT_PMU_APB_RCO_CSYSPWRUPREQ_SEL                           BIT(10)
 #define BIT_PMU_APB_RCO_FRC_OFF                                    BIT(9)
 #define BIT_PMU_APB_RCO_FRC_ON                                     BIT(8)
@@ -1097,6 +1161,9 @@
 
 /* REG_PMU_APB_MPLL0_REL_CFG */
 
+#define BIT_PMU_APB_MPLL0_CDMA2PMU_AUTO_SEL                         BIT(13)
+#define BIT_PMU_APB_MPLL0_CDMA_AUTO_SEL                             BIT(12)
+#define BIT_PMU_APB_MPLL0_CDMA_SEL                                  BIT(11)
 #define BIT_PMU_APB_MPLL0_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_MPLL0_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_MPLL0_FRC_OFF                                  BIT(8)
@@ -1110,6 +1177,9 @@
 
 /* REG_PMU_APB_MPLL1_REL_CFG */
 
+#define BIT_PMU_APB_MPLL1_CDMA2PMU_AUTO_SEL                         BIT(13)
+#define BIT_PMU_APB_MPLL1_CDMA_AUTO_SEL                             BIT(12)
+#define BIT_PMU_APB_MPLL1_CDMA_SEL                                  BIT(11)
 #define BIT_PMU_APB_MPLL1_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_MPLL1_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_MPLL1_FRC_OFF                                  BIT(8)
@@ -1123,6 +1193,9 @@
 
 /* REG_PMU_APB_MPLL2_REL_CFG */
 
+#define BIT_PMU_APB_MPLL2_CDMA2PMU_AUTO_SEL                         BIT(13)
+#define BIT_PMU_APB_MPLL2_CDMA_AUTO_SEL                             BIT(12)
+#define BIT_PMU_APB_MPLL2_CDMA_SEL                                  BIT(11)
 #define BIT_PMU_APB_MPLL2_TOP_DVFS_SEL                             BIT(10)
 #define BIT_PMU_APB_MPLL2_REF_SEL                                  BIT(9)
 #define BIT_PMU_APB_MPLL2_FRC_OFF                                  BIT(8)
@@ -1206,6 +1279,9 @@
 /* REG_PMU_APB_APCPU_C7_DSLP_ENA */
 
 #define BIT_PMU_APB_APCPU_C7_DSLP_ENA                              BIT(0)
+/* REG_PMU_APB_CDMA_DSLP_ENA */
+
+#define BIT_PMU_APB_CDMA_DSLP_ENA                                   BIT(0)
 
 /* REG_PMU_APB_WTLCP_TGDSP_DSLP_ENA */
 
@@ -1348,6 +1424,7 @@
 #define BIT_PMU_APB_AP_LIGHT_SLEEP_CNT_CLR                         BIT(9)
 #define BIT_PMU_APB_PUB_SYS_LIGHT_SLEEP_CNT_CLR                    BIT(8)
 #define BIT_PMU_APB_AUDCP_SYS_LIGHT_SLEEP_CNT_CLR                  BIT(7)
+#define BIT_PMU_APB_CDMA_DEEP_SLEEP_CNT_CLR                         BIT(6)
 #define BIT_PMU_APB_SP_SYS_DEEP_SLEEP_CNT_CLR                      BIT(5)
 #define BIT_PMU_APB_PUBCP_DEEP_SLEEP_CNT_CLR                       BIT(4)
 #define BIT_PMU_APB_WTLCP_DEEP_SLEEP_CNT_CLR                       BIT(3)
@@ -1368,6 +1445,8 @@
 
 /* REG_PMU_APB_PAD_OUT_CHIP_SLEEP_CFG */
 
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_CDMA_AUTO_DEEP_SLEEP_MASK    BIT(14)
+#define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_CDMA_DEEP_SLEEP_MASK         BIT(13)
 #define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_POL_SEL                     BIT(12)
 #define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_TOP_DVFS_DEEP_SLEEP_MASK    BIT(11)
 #define BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_PLL_PD_MASK                 BIT(10)
@@ -1383,6 +1462,8 @@
 
 /* REG_PMU_APB_PAD_OUT_XTL_EN0_CFG */
 
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_CDMA_AUTO_DEEP_SLEEP_MASK       BIT(14)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN0_CDMA_DEEP_SLEEP_MASK            BIT(13)
 #define BIT_PMU_APB_PAD_OUT_XTL_EN0_POL_SEL                        BIT(12)
 #define BIT_PMU_APB_PAD_OUT_XTL_EN0_TOP_DVFS_DEEP_SLEEP_MASK       BIT(11)
 #define BIT_PMU_APB_PAD_OUT_XTL_EN0_PLL_PD_MASK                    BIT(10)
@@ -1398,6 +1479,8 @@
 
 /* REG_PMU_APB_PAD_OUT_XTL_EN1_CFG */
 
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_CDMA_AUTO_DEEP_SLEEP_MASK       BIT(14)
+#define BIT_PMU_APB_PAD_OUT_XTL_EN1_CDMA_DEEP_SLEEP_MASK            BIT(13)
 #define BIT_PMU_APB_PAD_OUT_XTL_EN1_POL_SEL                        BIT(12)
 #define BIT_PMU_APB_PAD_OUT_XTL_EN1_TOP_DVFS_DEEP_SLEEP_MASK       BIT(11)
 #define BIT_PMU_APB_PAD_OUT_XTL_EN1_PLL_PD_MASK                    BIT(10)
@@ -1413,6 +1496,8 @@
 
 /* REG_PMU_APB_PAD_OUT_DCDC_ARM0_EN_CFG */
 
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_CDMA_AUTO_DEEP_SLEEP_MASK  BIT(15)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_CDMA_DEEP_SLEEP_MASK       BIT(14)
 #define BIT_PMU_APB_DCDC_ARM0_PD_EN                                BIT(13)
 #define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_POL_SEL                   BIT(12)
 #define BIT_PMU_APB_PAD_OUT_DCDC_ARM0_EN_TOP_DVFS_DEEP_SLEEP_MASK  BIT(11)
@@ -1429,6 +1514,8 @@
 
 /* REG_PMU_APB_PAD_OUT_DCDC_ARM1_EN_CFG */
 
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_CDMA_AUTO_DEEP_SLEEP_MASK  BIT(14)
+#define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_CDMA_DEEP_SLEEP_MASK       BIT(13)
 #define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_POL_SEL                   BIT(12)
 #define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_TOP_DVFS_DEEP_SLEEP_MASK  BIT(11)
 #define BIT_PMU_APB_PAD_OUT_DCDC_ARM1_EN_PLL_PD_MASK               BIT(10)
@@ -1444,6 +1531,8 @@
 
 /* REG_PMU_APB_DCXO_LP_DEEP_SLEEP_CFG */
 
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_CDMA_AUTO_DEEP_SLEEP_MASK    BIT(14)
+#define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_CDMA_DEEP_SLEEP_MASK         BIT(13)
 #define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_POL_SEL                     BIT(12)
 #define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_TOP_DVFS_DEEP_SLEEP_MASK    BIT(11)
 #define BIT_PMU_APB_DCXO_LC_DEEP_SLEEP_PLL_PD_MASK                 BIT(10)
@@ -1460,6 +1549,7 @@
 /* REG_PMU_APB_BISR_FORCE_SEL */
 
 #define BIT_PMU_APB_PD_APCPU_C7_BISR_FORCE_SEL                     BIT(29)
+#define BIT_PMU_APB_PD_CDMA_SYS_BISR_FORCE_SEL                      BIT(25)
 #define BIT_PMU_APB_PD_GPU_RGX_DUST_BISR_FORCE_SEL                 BIT(24)
 #define BIT_PMU_APB_PD_AP_VSP_BISR_FORCE_SEL                       BIT(23)
 #define BIT_PMU_APB_PD_AUDCP_AUDDSP_BISR_FORCE_SEL                 BIT(22)
@@ -1591,6 +1681,11 @@
 /* REG_PMU_APB_APCPU_C2_CFG */
 
 #define BIT_PMU_APB_APCPU_VINITHI_C2                               BIT(0)
+
+/* REG_PMU_APB_APCPU_DSLP_ENA_SRST_MASK_CFG */
+
+#define BIT_PMU_APB_APCPU_CORE_DSLP_ENA_SOFT_RST_MASK(x)            (((x) & 0xF) << 1)
+#define BIT_PMU_APB_APCPU_TOP_DSLP_ENA_SOFT_RST_MASK                BIT(0)
 
 /* REG_PMU_APB_APCPU_C7_CFG */
 
@@ -1836,6 +1931,7 @@
 
 /* REG_PMU_APB_DUAL_RAIL_RAM_FORCE_PD_CFG */
 
+#define BIT_PMU_APB_RAM_PD_CDMA_SYS_FRC                             BIT(31)
 #define BIT_PMU_APB_RAM_PD_APCPU_SNOOP_FILTER_FRC                  BIT(30)
 #define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P3_FRC                BIT(29)
 #define BIT_PMU_APB_RAM_PD_APCPU_L3CACHE_TAG_P2_FRC                BIT(28)
@@ -2130,6 +2226,32 @@
 /* REG_PMU_APB_WDG_TRIG_DBG_RECOV_CFG */
 
 #define BIT_PMU_APB_WDG_RST_TRIG_DBG_RECOV_EN                      BIT(0)
+
+/* REG_PMU_APB_PD_CDMA_SYS_SHUTDOWN_MARK_STATUS */
+
+#define BIT_PMU_APB_PD_CDMA_SYS_SHUTDOWN_MARK(x)                    (((x) & 0xF))
+
+/* REG_PMU_APB_CDMA_DEEP_SLEEP_CNT */
+
+#define BIT_PMU_APB_CDMA_DEEP_SLEEP_CNT(x)                          (((x) & 0xFF))
+
+/* REG_PMU_APB_CDMA_DEEP_SLEEP_CFG */
+
+#define BIT_PMU_APB_CDMA_DEEP_STOP_BYP                              BIT(0)
+
+/* REG_PMU_APB_CDMA_WAKEUP_CFG */
+
+#define BIT_PMU_APB_CDMA_DO_WAKE_REQ                                BIT(1)
+#define BIT_PMU_APB_CDMA_1X_WAKE_REQ                                BIT(0)
+
+/* REG_PMU_APB_CDMA_PROC1_PWR_CFG */
+
+#define BIT_PMU_APB_PD_CDMA_PROC1_PWR_CTRL_SEL                      BIT(8)
+#define BIT_PMU_APB_PD_CDMA_PROC1_ST_ISO_REG                        BIT(4)
+#define BIT_PMU_APB_PD_CDMA_PROC1_ST_SHUTDOWN_D_B_REG               BIT(3)
+#define BIT_PMU_APB_PD_CDMA_PROC1_ST_SHUTDOWN_M_B_REG               BIT(2)
+#define BIT_PMU_APB_PD_CDMA_PROC1_ST_MEM_PD_REG                     BIT(1)
+#define BIT_PMU_APB_PD_CDMA_PROC1_ST_MEM_RET_REG                    BIT(0)
 
 /* REG_PMU_APB_PD_APCPU_C0_SHUTDOWN_MARK_STATUS */
 

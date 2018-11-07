@@ -6,7 +6,7 @@
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-11-07 10:41:46
  *
  */
 
@@ -599,6 +599,7 @@
 #define BIT_AON_APB_DJTAG_WTLCP_SOFT_RST                        BIT(6)
 #define BIT_AON_APB_DJTAG_PUBCP_SOFT_RST                        BIT(5)
 #define BIT_AON_APB_DJTAG_MM_SOFT_RST                           BIT(4)
+#define BIT_AON_APB_DJTAG_CDMA2K_SOFT_RST                       BIT(3)
 #define BIT_AON_APB_DJTAG_GPU_SOFT_RST                          BIT(2)
 #define BIT_AON_APB_DJTAG_APCPU_SOFT_RST                        BIT(1)
 #define BIT_AON_APB_DJTAG_AP_SOFT_RST                           BIT(0)
@@ -1328,8 +1329,6 @@
 #define BIT_AON_APB_M2G_ANALOG_BB_TOP_SINDRV_ENA                BIT(4)
 #define BIT_AON_APB_R2G_ANALOG_BB_TOP_SINDRV_ENA_SQUARE         BIT(3)
 #define BIT_AON_APB_C2G_ANALOG_BB_TOP_CLK26MHZ_AUD_EN           BIT(2)
-#define BIT_AON_APB_C2G_ANALOG_USB20_USB20_PS_PD_S              BIT(1)
-#define BIT_AON_APB_C2G_ANALOG_USB20_USB20_PS_PD_L              BIT(0)
 
 /* REG_AON_APB_SINDRV_POWER_CTRL */
 

@@ -26,7 +26,6 @@
 #include "./chip_sharkl5/ap_clk_core.h"
 #include "./chip_sharkl5/gpu_apb.h"
 #include "./chip_sharkl5/gpu_dvfs_apb.h"
-#include "./chip_sharkl5/mem_fw_pub.h"
 #include "./chip_sharkl5/mm_ahb.h"
 #include "./chip_sharkl5/mm_clk_core.h"
 #include "./chip_sharkl5/pmu_apb.h"
