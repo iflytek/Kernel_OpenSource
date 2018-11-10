@@ -2,10 +2,11 @@
 #include <adi_hal_internal.h>
 #include <sprd_led.h>
 
-#define ANA_BTLC_CTRL   SCI_ADDR(ANA_BTLC_BASE, 0x0000)
-#define ANA_BLTC_R_DUTY SCI_ADDR(ANA_BTLC_BASE, 0x0008)
-#define ANA_BLTC_G_DUTY SCI_ADDR(ANA_BTLC_BASE, 0x0018)
-#define ANA_BLTC_B_DUTY SCI_ADDR(ANA_BTLC_BASE, 0x0028)
+#define ANA_BLTC_CTRL   SCI_ADDR(ANA_BLTC_BASE, 0x0000)
+#define ANA_BLTC_R_DUTY SCI_ADDR(ANA_BLTC_BASE, 0x0008)
+#define ANA_BLTC_G_DUTY SCI_ADDR(ANA_BLTC_BASE, 0x0018)
+#define ANA_BLTC_B_DUTY SCI_ADDR(ANA_BLTC_BASE, 0x0028)
+#define ANA_BLTC_STS    SCI_ADDR(ANA_BLTC_BASE, 0x0034)
 
 #define BLTC_EN          BIT(9)
 #define RTC_BLTC_EN      BIT(7)
@@ -20,6 +21,10 @@
 #define B_RUN            BIT(8)
 #define B_TYPE           BIT(9)
 
+#define SC2730_RGB_PD_SW BIT(12)
+#define SC2730_RGB_HW_PD BIT(13)
+#define SC2730_RGB_V     (0xf8)
+
 static uint32_t init = 0;
 
 // TODO: difference between sc2723 and sc2731
@@ -33,15 +38,22 @@ void sprd_led_init(void)
 	ANA_REG_OR(ANA_REG_GLB_WHTLED_CTRL, WHTLED_PD);
 	ANA_REG_OR(ANA_REG_GLB_WHTLED_CTRL, WHTLED_SERIES_EN);
 
-	printf("[LED] init led\n");
-
-	init = 1;
 #endif
+
+#ifdef CONFIG_ADIE_SC2730
+	ANA_REG_OR(ANA_REG_GLB_MODULE_EN0, BLTC_EN);
+	ANA_REG_OR(ANA_REG_GLB_RTC_CLK_EN0, RTC_BLTC_EN);
+	ANA_REG_BIC(ANA_BLTC_CTRL, SC2730_RGB_PD_SW);
+	ANA_REG_BIC(ANA_BLTC_CTRL, SC2730_RGB_HW_PD);
+	ANA_REG_BIC(ANA_BLTC_STS, SC2730_RGB_V);
+#endif
+	printf("[LED] init led\]");
+	init = 1;
 }
 
 void sprd_led_disable(LedType type)
 {
-#ifdef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2731)  || defined(CONFIG_ADIE_SC2730)
 	uint32_t bits;
 
 	if (!init)
@@ -61,7 +73,7 @@ void sprd_led_disable(LedType type)
 		break;
 	}
 
-	ANA_REG_BIC(ANA_BTLC_CTRL, bits);
+	ANA_REG_BIC(ANA_BLTC_CTRL, bits);
 
 	printf("[LED] disable led, type=%d\n", type);
 #endif
@@ -69,7 +81,7 @@ void sprd_led_disable(LedType type)
 
 void sprd_led_set_brightness(LedType type, uint32_t brightness)
 {
-#ifdef CONFIG_ADIE_SC2731
+#if defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2730)
 	uint32_t bits, reg;
 
 	if (!init)
@@ -95,7 +107,7 @@ void sprd_led_set_brightness(LedType type, uint32_t brightness)
 		break;
 	}
 
-	ANA_REG_OR(ANA_BTLC_CTRL, bits);
+	ANA_REG_OR(ANA_BLTC_CTRL, bits);
 	ANA_REG_MSK_OR(reg, (brightness << 8) | 0xFF, 0xFFFF);
 
 	printf("[LED] set brightness, type=%d, brightness=%u\n", type, brightness);
