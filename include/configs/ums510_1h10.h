@@ -355,4 +355,6 @@
 #ifdef CONFIG_ADIE_SC2730
 #define ADI_15BIT_MODE
 #endif
+
+#define CONFIG_RTC_START_YEAR		0
 #endif /* __CONFIG_H  */
