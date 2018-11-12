@@ -1639,8 +1639,9 @@ extern boot_image_required_t *get_cp_load_table(void);
 #endif
 
 #ifdef CONFIG_TEE_FIREWALL
-	fdt_reserved_mem_multimedia_parse(dt_adr);
+	//fdt_reserved_mem_multimedia_parse(dt_adr);
 #endif
+
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)
     tos_end_notify();
 #endif

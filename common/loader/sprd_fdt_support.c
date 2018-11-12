@@ -363,25 +363,15 @@ int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t 
 }
 #else
 int uboot_set_secure_range_paraneters(mem_type type,fdt_addr_t start,fdt_addr_t size){
-	uint32_t ret;
-	uint32_t smcid;
-	uint32_t funcid;
 	mem_info mi __attribute__((aligned(4096)));
-
-	smcid  = TEESMC_SIPCALL_WITH_ARG;
-	funcid = FUNCTYPE_SET_SECURE_RANGE_PARAM;
-	struct smc_param param;
+	smc_param *param;
 	mi.type = type;
 	mi.start_high = (start >> 32);
 	mi.start_low = (start & 0xffffffff);
 	mi.size = size;
-	param.a0 = smcid;
-	param.a1 = funcid;
-	param.a2 = &mi;
-	param.a3 = sizeof(mem_info);
-	tee_smc_call(&param);
-	ret = param.a0;
-	return ret;
+	param = tee_common_call(FUNCTYPE_SET_SECURE_RANGE_PARAM, (uint32_t)(&mi), (uint32_t)(sizeof(mem_info)));
+
+	return param->a0;
 }
 #endif
 
