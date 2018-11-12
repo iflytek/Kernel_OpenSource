@@ -69,6 +69,12 @@ int i2c_hwchannel_set(unsigned int chn, unsigned int config, int n)
 void i2c_dvfs_hwchn_init(int n)
 {
         hw_i2c_clk_enable(n);
+
+#ifdef CONFIG_SPRD_UMS510_HW_CHNL
+        i2c_hwchannel_set(DVFS_TX_5_CHNL, DVFS_TX_5_ADDR, n);
+        i2c_hwchannel_set(DVFS_TX_7_CHNL, DVFS_TX_7_ADDR, n);
+#else
         i2c_hwchannel_set(DVFS_RX_CHNL, DVFS_RX_ADDR, n);
         i2c_hwchannel_set(DVFS_TX_CHNL, DVFS_TX_ADDR, n);
+#endif
 }

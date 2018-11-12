@@ -368,8 +368,14 @@
 
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C_V3
+#define CONFIG_SPRD_HW_I2C
+#define CONFIG_SPRD_UMS510_HW_CHNL
 #define CONFIG_SPRDCHG_I2C_BUS 5
 #define CONFIG_SPRD2703_CHARGE_IC
+
+#define CONFIG_DVFS_ADDR		0x49
+#define CINFIG_DVFS_TX_5_REG_ADDR	0x04
+#define CINFIG_DVFS_TX_7_REG_ADDR	0x03
 
 /*-----------------------------------------------------------------------
  * Cache Configuration
