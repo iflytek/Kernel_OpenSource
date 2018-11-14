@@ -27,7 +27,8 @@ void memset_dsp_share_memory()
 
 void modem_entry()
 {
-
+	audcp_boot(CONFIG_AUDCP_BOOT_VECTOR);
+	debugf("audio cp boot ok\n");
 	memset_dsp_share_memory();
 
 #ifndef CONFIG_KERNEL_BOOT_CP

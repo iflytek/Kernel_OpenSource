@@ -11,7 +11,7 @@
 #define SPRD_DEBUG_LEVEL		2
 
 //#define CONFIG_KERNEL_BOOT_CP
-
+#define CONFIG_AUDCP_BOOT_VECTOR 0x44800040
 #define CONFIG_MEM_LAYOUT_DECOUPLING
 
 /*sharklj1 fpga/zebu debug*/
