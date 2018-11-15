@@ -39,7 +39,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	100000,
 #else
 	REG_AP_CLK_CORE_CGM_EMMC_2X_CFG,
-	BIT2,
+	BIT_0 | BIT_1,
 	/* selsect 2x clock source, baseclk = freq / 2 */
 	195000000,
 	400000,
@@ -64,7 +64,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	100000,
 #else
 	REG_AP_CLK_CORE_CGM_SDIO0_2X_CFG,
-	BIT2,
+	BIT_0 | BIT_1,
 	/* selsect 2x clock source, baseclk = freq / 2 */
 	195000000,
 	400000,
