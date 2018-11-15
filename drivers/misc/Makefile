@@ -50,7 +50,7 @@ else
 obj-y += ap_efuse.o otp_helper.o
 endif
 endif
-ifneq ($(CONFIG_ADIE_SC2723)$(CONFIG_ADIE_SC2723S)$(CONFIG_ADIE_SC2731)$(CONFIG_ADIE_SC2721)$(CONFIG_ADIE_SC2720),)
+ifneq ($(CONFIG_ADIE_SC2723)$(CONFIG_ADIE_SC2723S)$(CONFIG_ADIE_SC2731)$(CONFIG_ADIE_SC2721)$(CONFIG_ADIE_SC2720)$(CONFIG_ADIE_SC2730),)
 obj-y += pmic_efuse.o
 endif
 obj-y += pmic27xx_misc.o

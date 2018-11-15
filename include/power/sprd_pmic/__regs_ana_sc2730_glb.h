@@ -322,6 +322,7 @@
 #define BIT_CAL_EN                               BIT(0)
 
 #define BIT_ANA_FGU_EN                   BIT_FGU_EN
+#define BIT_ANA_EFS_EN                   BIT_EFS_EN
 #define BIT_ANA_ADC_EN                   BIT_ADC_EN
 #define BIT_ANA_EIC_EN                   BIT_EIC_EN
 #define BIT_ANA_WDG_EN                   BIT_WDG_EN
