@@ -109,7 +109,7 @@ extern unsigned int g_DeviceStatus;
 #define IRAM_BEGIN   0xe6000000
 #elif defined (CONFIG_SOC_SHARKLE)||defined (CONFIG_SOC_SHARKL3)
 #define IRAM_BEGIN   0x5000
-#elif defined (CONFIG_SOC_SHARKL5)
+#elif defined (CONFIG_SOC_SHARKL5)||defined (CONFIG_SOC_ROC1)
 #define IRAM_BEGIN   0x5500
 #elif defined (CONFIG_SOC_PIKE2)
 #define IRAM_BEGIN 0x50002e00
