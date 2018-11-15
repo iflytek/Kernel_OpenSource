@@ -973,12 +973,17 @@ __init void sprd_gpio_init(void)
 #endif
 void sprd_gpio_init(void)
 {
-	#if defined(CONFIG_SPX15)
+#if defined(CONFIG_SPX15)
 	REG32(REG_AON_APB_APB_EB0) |= BIT_AON_GPIO_EB;
+#else
+	#if defined(CONFIG_SOC_SHARKL5)
+		REG32(REG_GPIO_EB) |= BIT_GPIO_EB;
 	#else
-	REG32(REG_AON_APB_APB_EB0) |= BIT_GPIO_EB;
+		REG32(REG_AON_APB_APB_EB0) |= BIT_GPIO_EB;
+	#endif
+
 	#if defined(CONFIG_ADIE_SC2713)
-	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_GPIO_EN);
+		ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_GPIO_EN);
 	#endif
-	#endif
+#endif
 }

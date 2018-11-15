@@ -611,12 +611,19 @@ void    usb_ldo_switch(int flag)
 
 static void usb_enable_module(int en)
 {
+#if defined(CONFIG_SOC_SHARKL5)
+	if (en){
+		__raw_bits_or(BIT_USB_EB, REG_USB_EB);
+	}else {
+		__raw_bits_and(~BIT_USB_EB, REG_USB_EB);
+	}
+#else
 	if (en){
 		__raw_bits_or(BIT_USB_EB, REG_AP_AHB_AHB_EB);
 	}else {
 		__raw_bits_and(~BIT_USB_EB, REG_AP_AHB_AHB_EB);
 	}
-
+#endif
 }
 void Musb_mdelay(uint32_t msecs)
 {
@@ -633,8 +640,11 @@ static void usb_startup(void)
 	usb_enable_module(1);
 	Musb_mdelay(10);
 	usb_ldo_switch(1);
-
+#if defined(CONFIG_SOC_SHARKL5)
+	__raw_bits_or(BIT_USB_EB, REG_USB_EB);
+#else
 	__raw_bits_or(BIT_USB_EB, REG_AP_AHB_AHB_EB);
+#endif
 	usb_phy_init();
 	Musb_mdelay(5);
 }

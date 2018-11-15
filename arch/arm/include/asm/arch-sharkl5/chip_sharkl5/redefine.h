@@ -41,20 +41,23 @@
 #define BIT_AON_APB_TMR_EB			BIT_AON_APB_AON_TMR_EB
 
 /* referenced by gpio.c */
+#define REG_GPIO_EB					REG_AON_APB_APB_EB1
 #define BIT_GPIO_EB                             BIT_AON_APB_GPIO_EB
 
 /* referenced by eic.c */
+#define REG_EIC_EB					REG_AON_APB_APB_EB2
 #define BIT_EIC_EB                              BIT_AON_APB_EIC_EB
 #define BIT_EIC_RTC_EB                          BIT_AON_APB_EIC_RTC_EB
 #define BIT_EIC_RTCDV5_EB                       BIT_AON_APB_EIC_RTCDV5_EB
-#define SPRD_EIC_PHYS				SPRD_AON_EIC_EXT0_PHYS
-#define SPRD_EIC1_PHYS				SPRD_AON_EIC_EXT1_PHYS
+#define SPRD_EIC_PHYS				SPRD_AON_EIC_EXT2_PHYS
+#define SPRD_EIC1_PHYS				SPRD_AON_EIC_EXT3_PHYS
 
 /* referenced by serial_sprd.c */
 #define BIT_UART0_EB                            BIT_AP_APB_UART0_EB
 #define BIT_UART1_EB                            BIT_AP_APB_UART1_EB
 
 /* referenced by sprd_musb2_driver.c */
+#define REG_USB_EB					REG_AON_APB_APB_EB1
 #define BIT_USB_EB                              BIT_AON_APB_OTG_UTMI_EB
 
 /* referenced by sharkl5_usb_phy.c */

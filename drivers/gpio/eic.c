@@ -243,7 +243,12 @@ static void sprd_eic_free(unsigned offset)
 
 void sprd_eic_init(void)
 {
+#if defined(CONFIG_SOC_SHARKL5)
+	REG32(REG_EIC_EB) |= BIT_EIC_EB;
+#else
 	REG32(REG_AON_APB_APB_EB0) |= BIT_EIC_EB;
+#endif
+
 	REG32(REG_AON_APB_APB_RTC_EB) |= BIT_EIC_RTC_EB|BIT_EIC_RTCDV5_EB;
 	ANA_REG_OR(ANA_REG_GLB_ARM_MODULE_EN, BIT_ANA_EIC_EN);
 	ANA_REG_OR(ANA_REG_GLB_RTC_CLK_EN,    BIT_RTC_EIC_EN);
