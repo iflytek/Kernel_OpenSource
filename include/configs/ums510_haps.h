@@ -19,7 +19,7 @@
 
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
-
+#define CONFIG_SPRD_UID
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
@@ -140,7 +140,6 @@
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
 #define CONFIG_SYS_SDRAM_SIZE     PHYS_SDRAM_1_SIZE
 #define CONFIG_SYS_SDRAM_END (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE)
-
 
 #ifndef CONFIG_DUAL_DDR
 #define CONFIG_NR_DRAM_BANKS		1
