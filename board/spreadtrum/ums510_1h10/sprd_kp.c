@@ -29,7 +29,6 @@ unsigned char board_key_scan(void)
 
 
 	sprd_eic_request(EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE);
-	udelay(3000);
 	gpio_volumeup = sprd_eic_get(EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE);
 	debugf("gpio_volumeup = %d\n",gpio_volumeup);
 	if(gpio_volumeup < 0)
