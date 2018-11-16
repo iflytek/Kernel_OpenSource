@@ -61,32 +61,54 @@ static void logo_flip(void)
 
 int get_fb_base_from_dt(void)
 {
-	int phandle = 0;
+	int phandle;
+	const char *label;
 	unsigned long base, size, offset;
 	const void *fdt_blob = gd->fdt_blob;
 	struct panel_info *panel = panel_info_attach();
-	int nodeoffset = fdt_path_offset(fdt_blob, "/ion");
+	int nodeoffset;
 
-	pr_info("ion node offset = %d\n", nodeoffset);
-	if (nodeoffset == -FDT_ERR_NOTFOUND)
+	nodeoffset = fdt_path_offset(fdt_blob, "/ion");
+	if (nodeoffset == -FDT_ERR_NOTFOUND) {
+		pr_err("Failed to find /ion node\n");
 		return -1;
+	}
 
 	nodeoffset = fdt_subnode_offset(fdt_blob, nodeoffset, "heap@3");
-	pr_info("heap3 node offset = %d\n", nodeoffset);
-	if (nodeoffset == -FDT_ERR_NOTFOUND)
+	if (nodeoffset == -FDT_ERR_NOTFOUND) {
+		pr_err("Failed to find heap@3 sub node\n");
 		return -1;
+	}
+
+	label = fdt_getprop(fdt_blob, nodeoffset, "label", NULL);
+	if (label == NULL) {
+		pr_err("Failed to decode label property\n");
+		return -1;
+	}
 
 	phandle = fdtdec_lookup_phandle(fdt_blob, nodeoffset, "memory-region");
-	pr_info("memory-region phandle = %d\n", phandle);
-	if (phandle == -FDT_ERR_NOTFOUND)
+	if (phandle == -FDT_ERR_NOTFOUND) {
+		pr_err("Failed to decode memory-region property\n");
 		return -1;
+	}
 
 	if (fdtdec_decode_region(fdt_blob, phandle, "reg", &base, &size)) {
-		pr_err("Failed to decode reg property \n");
+		pr_err("Failed to decode reg property\n");
 		return -EINVAL;
 	}
 
 	/*
+	 * For carveout_logo, it is wb_reserved memory.
+	 * Which is not used by kernel ion module. So it
+	 * will not be cleared by ion driver.
+	 */
+	if (!strcmp(label, "carveout_logo")) {
+		gd->fb_base = base;
+		return 0;
+	}
+
+	/*
+	 * For carveout_fb, it is fb_reserved memory.
 	 * We use the third reserved buffer for uboot logo,
 	 * and the first reserved buffer is for write back.
 	 */
