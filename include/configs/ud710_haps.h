@@ -207,14 +207,17 @@
 #define DFS_ADDR    0x50800000
 #define DFS_SIZE    (64*1024)
 
+/*eMMC & UFS self adaption*/
+#define CONFIG_BLK_DEV_BOOT
+
+/*UFS config*/
+#define CONFIG_UFS
 
 /*eMMC config*/
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
 #define CONFIG_EMMC_VERSION_R10P0
 
-/*eMMC boot*/
-#define CONFIG_EMMC_BOOT
 #define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
 

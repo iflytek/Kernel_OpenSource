@@ -12,6 +12,18 @@ uint32_t fatal_err = 0;
 
 struct backstage_recovery bs_recv;
 
+struct lu_specific_cfg_tbl factory_lu_tbl[] = {
+	/*lu_index, bootable,               log2blksz,  blkcnt,  lu_context, memory_type*/
+	{0x00,              MAIN_BOOT, 		    0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1},
+	{0x01,              ALTERNATE_BOOT, 0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1},
+	{0x02,              NONE_BOOT, 	    0x0C, 		0        ,    	0xFF,		NORMAL_MEMORY},
+	{0	  ,              0		       ,              0	     ,            0	 ,       0       ,		0}
+};
+
+struct lu_common_cfg_tbl lu_common_tbl = {
+	/*write_protect, 		      provisioning_type,              data_reliability*/
+	WRITE_PROTECT_POWERON,  PROV_ENABLE_WITH_TPRZ, DATA_PROTECTED
+};
 
 static inline uint32_t ufs_readl(int reg)
 {
@@ -861,9 +873,9 @@ void enable_ahb_ufs(void)
 {
 	uint32_t temp = 0;
 
-	temp = readl((void *)SPRD_AHB_BASE);
+	//temp = readl((void *)SPRD_AHB_BASE);
 	temp |= BIT(23);
-	writel(temp, (void *)SPRD_AHB_BASE);
+	//writel(temp, (void *)SPRD_AHB_BASE);
 
 	return;
 }
@@ -873,11 +885,11 @@ void soft_reset_aon_ufs(void)
 	uint32_t temp = 0;
 	uint32_t temp1 = 0;
 
-	temp = readl((void *)REG_AON_APB_AON_UFS_CTRL);
+	//temp = readl((void *)REG_AON_APB_AON_UFS_CTRL);
 	temp1 = temp |( 1 << 6) | (1 << 7);
-	writel(temp1, (void *)REG_AON_APB_AON_UFS_CTRL);
+	//writel(temp1, (void *)REG_AON_APB_AON_UFS_CTRL);
 	udelay(1000);
-	writel(temp, (void *)REG_AON_APB_AON_UFS_CTRL);
+	//writel(temp, (void *)REG_AON_APB_AON_UFS_CTRL);
 
 }
 
@@ -1873,9 +1885,11 @@ ulong ufs_write_backstage(int dev_num, lbaint_t start, lbaint_t blkcnt, const vo
 	return blkcnt;
 }
 
-ulong ufs_query_backstage(lbaint_t blkcnt)
+ulong ufs_query_backstage(int dev_num, lbaint_t blkcnt, const void *src)
 {
 	int ret = 0;
+
+	bs_recv.dev = dev_num;
 	ret = wait_for_previous_scsi_completion();
 	if (UFS_SUCCESS != ret)
 		reset_and_restore_hc();
@@ -1908,10 +1922,14 @@ void ufs_register_blk_device(int lun_index, uint32_t log2_blk_sz, uint64_t blk_c
 	ufs_info.block_dev[lun_index].block_read = ufs_bread;
 	ufs_info.block_dev[lun_index].block_write = ufs_bwrite;
 	ufs_info.block_dev[lun_index].block_erase = ufs_erase;
+	if (NONE_BOOT == type) {
+	ufs_info.block_dev[lun_index].backstage_block_write = ufs_write_backstage;
+	ufs_info.block_dev[lun_index].backstage_write_query = ufs_query_backstage;
+	}
 	return;
 }
 
-void ufs_update_native(void)
+int ufs_update_native(void)
 {
 	int lun_index = 0;
 	int ret = 0;
@@ -1972,9 +1990,24 @@ void ufs_update_native(void)
 		}
 
 	}
-	return;
+	ret = ufs_lu_reconstruct(factory_lu_tbl, &lu_common_tbl);
+	if (UFS_SUCCESS != ret)
+		return -1;
+	return 0;
 }
 
+int get_lun_by_bootable(enum lu_bootable target)
+{
+	int id = 0;
+	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
+		if (0 == factory_lu_tbl[id].log2blksz)
+			break;
+		/*TODO, only support single user lu now*/
+		if (factory_lu_tbl[id].bootable == target)
+			return factory_lu_tbl[id].lu_index;
+	}
+	return -1;
+}
 
 block_dev_desc_t *ufs_get_dev(int dev)
 {
@@ -1991,3 +2024,35 @@ block_dev_desc_t *ufs_get_dev(int dev)
 	errorf("CANNOT find UFS device %d\n", dev);
 	return NULL;
 }
+
+int ufs_get_dev_id(int bootable_part)
+{
+	int id = 0;
+
+	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
+		if (0 == factory_lu_tbl[id].log2blksz)
+			break;
+		if (factory_lu_tbl[id].bootable == bootable_part)
+			return factory_lu_tbl[id].lu_index;
+	}
+	return -1;
+}
+
+u64 ufs_get_hwpartsize(int bootable_part)
+{
+	int id = 0;
+	int lu_index;
+
+	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
+		if (0 == factory_lu_tbl[id].log2blksz)
+			break;
+		if (factory_lu_tbl[id].bootable == bootable_part)
+			lu_index = factory_lu_tbl[id].lu_index;
+	}
+
+	if (IF_TYPE_UFS == ufs_info.block_dev[lu_index].if_type) {
+		return ufs_info.block_dev[lu_index].lba * ufs_info.block_dev[lu_index].blksz;
+	}
+
+}
+

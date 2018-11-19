@@ -3,23 +3,37 @@
 #include <part.h>
 #include <sprd_common_rw.h>
 #include <ext4fs.h>
-
-#ifdef CONFIG_CMD_UBI
-#include <ubi_uboot.h>
-#endif
-#ifdef  CONFIG_EMMC_BOOT
 #include <mmc.h>
-#endif
-#ifdef CONFIG_UFS_BOOT
-#include <sprd_ufs.h>
-#endif
+#include <chipram_env.h>
 #ifdef  CONFIG_NAND_BOOT
 #include <jffs2/load_kernel.h>
 #include <linux/mtd/partitions.h>
 #include <nand.h>
+#include <ubi_uboot.h>
 #include <dl_ubi.h>
 #endif
+
+DECLARE_GLOBAL_DATA_PTR;
+
 static disk_partition_t local_part_info;
+
+enum block_boot_part {
+	USER_PART       = 0x00,
+	BOOT_PART1   = 0x01,
+	BOOT_PART2      = 0x02
+};
+
+char *block_dev_get_name(void)
+{
+	char *boot_device_name;
+
+	if (gd->boot_device == BOOT_DEVICE_UFS)
+		boot_device_name = "ufs";
+	else
+		boot_device_name = "mmc";//if not ufs return emmc for default
+
+	return boot_device_name;
+}
 
 int block_dev_read(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, char *buf)
 {
@@ -223,128 +237,90 @@ fail:
 	return -1;
 }
 
-
-#ifdef CONFIG_UFS_BOOT
-
-struct lu_specific_cfg_tbl factory_lu_tbl[] = {
-	/*lu_index, bootable,               log2blksz,  blkcnt,  lu_context, memory_type*/
-	{0x00,              MAIN_BOOT, 		    0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1},
-	{0x01,              ALTERNATE_BOOT, 0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1},
-	{0x02,              NONE_BOOT, 	    0x0C, 		0        ,    	0xFF,		NORMAL_MEMORY},
-	{0	  ,              0		       ,              0	     ,            0	 ,       0       ,		0}
-};
-
-struct lu_common_cfg_tbl lu_common_tbl = {
-	/*write_protect, 		      provisioning_type,              data_reliability*/
-	WRITE_PROTECT_POWERON,  PROV_ENABLE_WITH_TPRZ, DATA_PROTECTED
-};
-
-
-int get_lun_by_bootable(enum lu_bootable target)
-{
-	int id = 0;
-	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
-		if (0 == factory_lu_tbl[id].log2blksz)
-			break;
-		/*TODO, only support single user lu now*/
-		if (factory_lu_tbl[id].bootable == target)
-			return factory_lu_tbl[id].lu_index;
-	}
-	return -1;
-}
-
-int get_user_lun(disk_partition_t *part_info, char *part_name)
-{
-	int id = 0;
-	int ret = 0;
-	block_dev_desc_t *dev_desc;
-
-	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
-		if (0 == factory_lu_tbl[id].log2blksz)
-			break;
-		if (factory_lu_tbl[id].bootable == NONE_BOOT) {
-			dev_desc = get_dev("ufs", factory_lu_tbl[id].lu_index);
-			if (NULL == dev_desc)
-				continue;
-			ret = get_partition_info_by_name(dev_desc, part_name, part_info);
-			if (0 == ret)
-				return factory_lu_tbl[id].lu_index;
-		}
-	}
-
-	return -1;
-
-}
-
-
 int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 {
 	int dev_id = 0;
-	uint64_t part_start = 0;
+	char *ifname;
+	lbaint_t part_start = 0;
 	disk_partition_t part_info;
 	block_dev_desc_t *dev_desc;
 	uint64_t total_part_size = 0;
+	int ret = 0;
+
+	ifname = block_dev_get_name();
 
 	if (0 == strcmp(part_name, "splloader")) {
-		dev_id = get_lun_by_bootable(MAIN_BOOT);
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART1);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART1);
 	} else if (0 == strcmp(part_name, "splloader_bak")) {
-		dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
 	} else if (0 == strcmp(part_name, "uboot")) {
-		dev_id = get_user_lun(&part_info, part_name);
-		if (-1 == dev_id) {
-			dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+		if (-1 == ret) {
+			ret = 0;
+			dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+			dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
 		} else {
-			part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
+			part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
 			if (size + offset > total_part_size) {
 				errorf("uboot read size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
-				return -1;
+				ret = -1;
 			}
 		}
 	} else {
-		dev_id = get_user_lun(&part_info, part_name);
-		part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+		part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
 		if (size + offset > total_part_size) {
 			errorf("read size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
-			return -1;
+			ret = -1;
 		}
 	}
 
-	if (-1 == dev_id)
+	if (-1 == ret || NULL == dev_desc)
 		return -1;
 
-	dev_desc = get_dev("ufs", dev_id);
-	if (NULL == dev_desc)
-		return -1;
-	/*TODO, can not support spl and uboot whole partition reading*/
 	if (0 == size)
 		size = total_part_size;
 
 	offset += part_start;
 
-	debugf("UFS read in byte, size=0x%llx, offset=0x%llx\n", size, offset);
 	return block_dev_read(dev_desc, size, offset, buf);
 
 }
 
-
 int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t offset, char *buf)
 {
 	int dev_id = 0;
+	char *ifname;
 	uint64_t part_start = 0;
 	disk_partition_t part_info;
 	block_dev_desc_t *dev_desc;
 	uint64_t total_part_size = 0;
+	int ret = 0;
+
+	ifname = block_dev_get_name();
 
 	if (0 == strcmp(part_name, "splloader")) {
-		dev_id = get_lun_by_bootable(MAIN_BOOT);
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART1);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART1);
 	} else if(0 == strcmp(part_name, "splloader_bak")) {
-		dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
 	} else if(0 == strcmp(part_name, "uboot")) {
-		dev_id = get_user_lun(&part_info, part_name);
-		if (-1 == dev_id) {
-			dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+		if (-1 == ret) {
+			ret = 0;
+			dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+			dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
 		} else {
 			part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
 			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
@@ -354,7 +330,9 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 			}
 		}
 	} else {
-		dev_id = get_user_lun(&part_info, part_name);
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
 		if (size + offset > total_part_size) {
@@ -363,380 +341,6 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 		}
 	}
 
-	if (-1 == dev_id)
-		return -1;
-
-	dev_desc = get_dev("ufs", dev_id);
-	if (NULL == dev_desc)
-		return -1;
-
-	offset += part_start;
-
-	return block_dev_write(dev_desc, size, offset, buf);
-
-}
-
-
-int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
-{
-	int dev_id = 0;
-	lbaint_t part_start = 0;
-	disk_partition_t part_info;
-	block_dev_desc_t *dev_desc;
-	uint64_t total_part_size = 0;
-	ulong ret = 0;
-	int type = NONE_BOOT;
-	if (0 == strcmp(part_name, "erase_all")) {
-		debugf("erase all the flash\n");
-		for (type = NONE_BOOT; type <= ALTERNATE_BOOT; type++) {
-			dev_id = get_lun_by_bootable(type);
-			if (-1 == dev_id)
-				return -1;
-			dev_desc = get_dev("ufs", dev_id);
-			if (NULL == dev_desc)
-				return -1;
-			ret = dev_desc->block_erase(dev_desc->dev, 0, dev_desc->lba);
-			if (ret != dev_desc->lba)
-				return -1;
-		}
-		return 0;
-	}
-
-	if (0 == strcmp(part_name, "splloader")) {
-		dev_id = get_lun_by_bootable(MAIN_BOOT);
-	} else if (0 == strcmp(part_name, "splloader_bak")) {
-		dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
-	} else if (0 == strcmp(part_name, "uboot")) {
-		dev_id = get_user_lun(&part_info, part_name);
-		if (-1 == dev_id) {
-			dev_id = get_lun_by_bootable(ALTERNATE_BOOT);
-		} else {
-			part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
-			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-			if (size + offset > total_part_size) {
-				errorf("uboot erase size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
-				return -1;
-			}
-		}
-	} else {
-		dev_id = get_user_lun(&part_info, part_name);
-		part_start = (uint64_t)part_info.blksz * (uint64_t)part_info.start;
-		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-		if (size + offset > total_part_size) {
-			errorf("erase size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
-			return -1;
-		}
-	}
-
-	if (-1 == dev_id)
-		return -1;
-
-	dev_desc = get_dev("ufs", dev_id);
-	if (NULL == dev_desc)
-		return -1;
-
-	if (0 == size)
-		size = total_part_size;
-
-	offset += (uint64_t)part_start;
-
-	return block_dev_erase(dev_desc, size, offset);
-
-}
-
-int common_write_backstage(char *part_name, uint32_t size, uint64_t offset, char *buf)
-{
-	static int dev_id = 0;
-	lbaint_t start = 0;
-	lbaint_t blk_num = 0;
-	uint64_t total_part_size = 0;
-	block_dev_desc_t *dev_desc = NULL;
-	int ret = 0;
-	if (0 != strcmp(part_name, local_part_info.name))
-		dev_id = get_user_lun(&local_part_info, part_name);
-
-	/*invoker must guarantee that the size and offset aligned to the block size*/
-	if (0 != size % local_part_info.blksz || 0 != offset % local_part_info.blksz) {
-		errorf("input size or offset not aligned, size(0x%x), offset(0x%x)\n", size, offset);
-		return -1;
-	}
-
-	if (0 != (ulong)buf % 4) {
-		errorf("input buffer must aligned to 4! buffer(0x%lx)\n", (ulong)buf);
-		return -1;
-	}
-
-	blk_num = size / local_part_info.blksz;
-	start = local_part_info.start + (offset / local_part_info.blksz);
-	if (blk_num + start > local_part_info.size + local_part_info.start) {
-		errorf("backstage write size overflow the total partition size\n");
-		return -1;
-	}
-
-	/*only none boot lun support backstage write*/
-	if (blk_num != ufs_write_backstage(dev_id, start, blk_num, buf))
-		return -1;
-
-	return 0;
-}
-
-int common_query_backstage(char *part_name, uint32_t size, char *buf)
-{
-	lbaint_t blk_num = 0;
-	if (0 != strcmp(part_name, local_part_info.name))
-		return -1;
-	blk_num = size / local_part_info.blksz;
-	if (blk_num != ufs_query_backstage(blk_num))
-		return -1;
-
-	return 0;
-}
-
-int common_repartition(disk_partition_t *partitions, int parts_count)
-{
-	int dev_id = 0;
-	block_dev_desc_t *dev_desc;
-	int counter = 0;
-	int ret = 0;
-
-	ret = ufs_lu_reconstruct(factory_lu_tbl, &lu_common_tbl);
-	if (UFS_SUCCESS != ret)
-		return -1;
-
-	/*future extention, now we only have one none boot lu*/
-	dev_id = get_lun_by_bootable(NONE_BOOT);
-	if (-1 == dev_id)
-		return -1;
-
-	dev_desc = get_dev("ufs", dev_id);
-	if (NULL == dev_desc)
-		return -1;
-
-	while (counter < 3) {
-		ret = gpt_restore(dev_desc, SPRD_DISK_GUID_STR, partitions, parts_count);
-		if (0 == ret)
-			break;
-		counter++;
-	}
-
-	if (3 == counter) {
-		return -1;
-	} else {
-		init_part(dev_desc);
-		return 0;
-	}
-}
-
-int32_t common_get_lba_size(void)
-{
-	int id = 0;
-	for (id = 0; id < UFS_MAX_LU_NUM; id++) {
-		if (0 == factory_lu_tbl[id].log2blksz)
-			break;
-		if (NONE_BOOT == factory_lu_tbl[id].bootable)
-			return (1 << factory_lu_tbl[id].log2blksz);
-	}
-	errorf("No NONE_BOOT LU in factory lu table, can not get lba size\n");
-	return -1;
-}
-
-int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
-{
-#ifdef CONFIG_FS_EXT4
-	static int dev_id = 0;
-	disk_partition_t info;
-	block_dev_desc_t *dev_desc;
-	loff_t len_read = 0;
-
-	dev_id = get_user_lun(&info, mpart);
-
-	dev_desc = get_dev("ufs", dev_id);
-	if (NULL == dev_desc) {
-		errorf("ext4_read_content get dev error\n");
-		return -1;
-	}
-
-	/* set the device as block device */
-	ext4fs_set_blk_dev(dev_desc, &info);
-
-	/* mount the filesystem */
-	if (!ext4fs_mount(info.size)) {
-		errorf("Bad ext4 partition:%s\n",  mpart);
-		ext4fs_close();
-		return -1;
-	}
-
-	/* start read */
-	if (ext4_read_file(filenm, buf, 0, len, &len_read) == -1) {
-		errorf("** Error ext4_read_file() **\n");
-		ext4fs_close();
-		return -1;
-	}
-	debugf("read %s ok, len : 0x%llx", filenm, len_read);
-	ext4fs_close();
-	return 0;
-#else
-	return -1;
-#endif
-
-}
-
-int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
-{
-	/*do not write in uboot now*/
-	return -1;
-}
-
-
-#endif
-
-#ifdef CONFIG_EMMC_BOOT
-int get_img_partition_id(char *part_name, unsigned int *id)
-{
-	int ret = 0;
-	disk_partition_t part_info;
-	block_dev_desc_t *dev_desc;
-
-	if (0 == strcmp(part_name, "splloader")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
-	} else if (0 == strcmp(part_name, "splloader_bak")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-	} else if (0 == strcmp(part_name, "uboot")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-		if (-1 == ret) {
-			ret = 0;
-			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-		}
-	} else {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-	}
-
-	ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
-	*id = part_info.part_num + 1;
-
-	return ret;
-}
-
-#ifdef CONFIG_PARTITION_UUIDS
-int get_img_partition_uuid(char *part_name, char* uuid)
-{
-	int ret = 0;
-	disk_partition_t part_info;
-	block_dev_desc_t *dev_desc;
-
-	if (uuid == NULL) {
-		return -1;
-	}
-
-	if (0 == strcmp(part_name, "splloader")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
-	} else if (0 == strcmp(part_name, "splloader_bak")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-	} else if (0 == strcmp(part_name, "uboot")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-		if (-1 == ret) {
-			ret = 0;
-			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-		}
-	} else {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-	}
-
-	ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
-
-	strncpy(uuid, part_info.uuid, 37);
-	debugf("part_name: %s, uuid: %s\n", part_name, uuid);
-
-	return ret;
-}
-#endif
-
-int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
-{
-	uint64_t part_start = 0;
-	disk_partition_t part_info;
-	block_dev_desc_t *dev_desc;
-	uint64_t total_part_size = 0;
-	int ret = 0;
-
-	if (0 == strcmp(part_name, "splloader")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
-	} else if (0 == strcmp(part_name, "splloader_bak")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-	} else if (0 == strcmp(part_name, "uboot")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
-		if (-1 == ret) {
-			ret = 0;
-			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-		} else {
-			part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
-			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-			if (size + offset > total_part_size) {
-				errorf("uboot read size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
-				ret = -1;
-			}
-		}
-	} else {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
-		part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
-		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-		if (size + offset > total_part_size) {
-			errorf("read size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
-			ret = -1;
-		}
-	}
-
-	if (-1 == ret || NULL == dev_desc)
-		return -1;
-
-	if (0 == size)
-		size = total_part_size;
-
-	offset += part_start;
-
-	return block_dev_read(dev_desc, size, offset, buf);
-
-}
-
-
-int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t offset, char *buf)
-{
-	uint64_t part_start = 0;
-	disk_partition_t part_info;
-	block_dev_desc_t *dev_desc;
-	uint64_t total_part_size = 0;
-	int ret = 0;
-
-	if (0 == strcmp(part_name, "splloader")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
-	} else if (0 == strcmp(part_name, "splloader_bak")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-	} else if (0 == strcmp(part_name, "uboot")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
-		if (-1 == ret) {
-			debugf("no uboot partition in user hardwarepart, write to boot2\n");
-			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-			ret = 0;
-		} else {
-			part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
-			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-			if (size + offset > total_part_size)
-				ret = -1;
-		}
-	} else {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
-		part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
-		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
-		if (size + offset > total_part_size) {
-			errorf("write size(0x%llx) + offset(0x%llx) overflow the total partition size(0x%llx)\n", size, offset, total_part_size);
-			ret = -1;
-		}
-	}
-
 	if (-1 == ret || NULL == dev_desc)
 		return -1;
 
@@ -748,56 +352,70 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 
 int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 {
+	int dev_id = 0;
 	uint64_t part_start = 0;
+	char *ifname;
 	disk_partition_t part_info;
 	block_dev_desc_t *dev_desc;
 	uint64_t total_part_size = 0;
 	int ret = 0;
 
+	ifname = block_dev_get_name();
+
 	if (0 == strcmp(part_name, "erase_all")) {
 		debugf("erase all the flash\n");
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
-		total_part_size = emmc_get_capacity(PARTITION_BOOT1);
+
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART1);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART1);
+		total_part_size = get_devsize_hwpart(ifname, BOOT_PART1);
 		if (NULL == dev_desc || 0 == total_part_size)
 			return -1;
 		if (0 != block_dev_erase(dev_desc, total_part_size, 0))
 			return -1;
 
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-		total_part_size = emmc_get_capacity(PARTITION_BOOT2);
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
+		total_part_size = get_devsize_hwpart(ifname, BOOT_PART2);
 		if (NULL == dev_desc || 0 == total_part_size)
 			return -1;
 		if (0 != block_dev_erase(dev_desc, total_part_size, 0))
 			return -1;
 
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-		total_part_size = emmc_get_capacity(PARTITION_USER);
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		total_part_size = get_devsize_hwpart(ifname, USER_PART);
 		if (NULL == dev_desc || 0 == total_part_size)
 			return -1;
 		if (0 != block_dev_erase(dev_desc, total_part_size, 0))
 			return -1;
+
 		return 0;
 	}
 
 	if (0 == strcmp(part_name, "splloader")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT1);
-		total_part_size = emmc_get_capacity(PARTITION_BOOT1);
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART1);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART1);
+		total_part_size = get_devsize_hwpart(ifname, BOOT_PART1);
 	} else if (0 == strcmp(part_name, "splloader_bak")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-		total_part_size = emmc_get_capacity(PARTITION_BOOT2);
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
+		total_part_size = get_devsize_hwpart(ifname, BOOT_PART2);
 	} else if (0 == strcmp(part_name, "uboot")) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
 		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		if (-1 == ret) {
 			ret = 0;
-			dev_desc = get_dev_hwpart("mmc", 0, PARTITION_BOOT2);
-			total_part_size = emmc_get_capacity(PARTITION_BOOT2);
+			dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+			dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
+			total_part_size = get_devsize_hwpart(ifname, BOOT_PART2);
 		} else {
 			part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 			total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
 		}
 	} else {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
 		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
 		part_start = (uint64_t)part_info.start * (uint64_t)part_info.blksz;
 		total_part_size = (uint64_t)part_info.blksz * (uint64_t)part_info.size;
@@ -827,15 +445,188 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 	return 0;
 }
 
+int common_repartition(disk_partition_t *partitions, int parts_count)
+{
+	block_dev_desc_t *dev_desc;
+	int dev_id = 0;
+	char *ifname;
+	int counter = 0;
+	int ret = 0;
+
+	ifname = block_dev_get_name();
+	dev_id = get_devnum_hwpart(ifname, USER_PART);
+	dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+
+	memset(&local_part_info, 0 , sizeof(disk_partition_t));
+	while (counter < 3) {
+		ret = gpt_restore(dev_desc, SPRD_DISK_GUID_STR, partitions, parts_count);
+		if (0 == ret)
+			break;
+		counter++;
+	}
+
+	if (3 == counter) {
+		return -1;
+	} else {
+		init_part(dev_desc);
+		return 0;
+	}
+}
+
+int get_img_partition_id(char *part_name, unsigned int *id)
+{
+	int dev_id = 0;
+	char *ifname;
+	int ret = 0;
+	disk_partition_t part_info;
+	block_dev_desc_t *dev_desc;
+
+	ifname = block_dev_get_name();
+
+	if (0 == strcmp(part_name, "splloader")) {
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART1);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART1);
+	} else if (0 == strcmp(part_name, "splloader_bak")) {
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
+	} else if (0 == strcmp(part_name, "uboot")) {
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		if (-1 == ret) {
+			ret = 0;
+			dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+			dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
+		}
+	} else {
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+	}
+
+	ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+	*id = part_info.part_num + 1;
+
+	return ret;
+}
+
+int32_t common_get_lba_size(void)
+{
+	int dev_id = 0;
+	block_dev_desc_t *dev_desc;
+	char *ifname;
+
+	ifname = block_dev_get_name();
+	dev_id = get_devnum_hwpart(ifname, USER_PART);
+	dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+	if (NULL == dev_desc)
+		return -1;
+
+	return (int32_t)dev_desc->blksz;
+}
+
+int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
+{
+#ifdef CONFIG_FS_EXT4
+	static int dev_id = 0;
+	char *ifname;
+	disk_partition_t info;
+	block_dev_desc_t *dev_desc;
+	loff_t len_read = 0;
+
+	ifname = block_dev_get_name();
+	dev_id = get_devnum_hwpart(ifname, USER_PART);
+	dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+
+	if (NULL == dev_desc) {
+		errorf("ext4_read_content get dev error\n");
+		return -1;
+	}
+
+	/* set the device as block device */
+	ext4fs_set_blk_dev(dev_desc, &info);
+
+	/* mount the filesystem */
+	if (!ext4fs_mount(info.size)) {
+		errorf("Bad ext4 partition:%s\n",  mpart);
+		ext4fs_close();
+		return -1;
+	}
+
+	/* start read */
+	if (ext4_read_file(filenm, buf, 0, len, &len_read) == -1) {
+		errorf("** Error ext4_read_file() **\n");
+		ext4fs_close();
+		return -1;
+	}
+	debugf("read %s ok, len : 0x%llx", filenm, len_read);
+	ext4fs_close();
+	return 0;
+#else
+	return -1;
+#endif
+}
+
+int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
+{
+	/*do not write in uboot now*/
+	return -1;
+}
+
+#ifdef CONFIG_PARTITION_UUIDS
+int get_img_partition_uuid(char *part_name, char* uuid)
+{
+	int ret = 0;
+	int dev_id = 0;
+	char *ifname;
+	disk_partition_t part_info;
+	block_dev_desc_t *dev_desc;
+
+	if (uuid == NULL) {
+		return -1;
+	}
+
+	ifname = block_dev_get_name();
+	if (0 == strcmp(part_name, "splloader")) {
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART1);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART1);
+	} else if (0 == strcmp(part_name, "splloader_bak")) {
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
+	} else if (0 == strcmp(part_name, "uboot")) {
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+		if (-1 == ret) {
+			dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+			dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
+		}
+	} else {
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+	}
+
+	ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+	strncpy(uuid, part_info.uuid, 37);
+	debugf("part_name: %s, uuid: %s\n", part_name, uuid);
+
+	return ret;
+}
+#endif
+
 int common_write_backstage(char *part_name, uint32_t size, uint64_t offset, char *buf)
 {
+	int dev_id = 0;
 	lbaint_t start = 0;
 	lbaint_t blk_num = 0;
 	uint64_t total_part_size = 0;
 	block_dev_desc_t *dev_desc = NULL;
 	int ret = 0;
+	char *ifname;
+
+	ifname = block_dev_get_name();
+
+	dev_id = get_devnum_hwpart(ifname, USER_PART);
+	dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
 	if (0 != strcmp(part_name, local_part_info.name)) {
-		dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
 		ret = get_partition_info_by_name(dev_desc, part_name, &local_part_info);
 	}
 
@@ -856,115 +647,32 @@ int common_write_backstage(char *part_name, uint32_t size, uint64_t offset, char
 		return -1;
 
 	/*only user partition can use backstage write*/
-	if (blk_num != emmc_write_backstage(PARTITION_USER, start, blk_num, buf))
+	if (blk_num != dev_desc->backstage_block_write(dev_id, start, blk_num, buf))
 		return -1;
 
 	return 0;
 }
-
 
 int common_query_backstage(char *part_name, uint32_t size, char *buf)
 {
+	int dev_id = 0;
 	lbaint_t blk_num = 0;
+	block_dev_desc_t *dev_desc = NULL;
+	char *ifname;
+
+	ifname = block_dev_get_name();
+
+	dev_id = get_devnum_hwpart(ifname, USER_PART);
+	dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
 	if (0 != strcmp(part_name, local_part_info.name))
 		return -1;
+
 	blk_num = size / local_part_info.blksz;
-	if (blk_num != emmc_query_backstage(PARTITION_USER, blk_num, buf))
+	if (blk_num != dev_desc->backstage_write_query(dev_id, blk_num, buf))
 		return -1;
 
 	return 0;
 }
-
-
-int common_repartition(disk_partition_t *partitions, int parts_count)
-{
-	block_dev_desc_t *dev_desc;
-	int counter = 0;
-	int ret = 0;
-
-	memset(&local_part_info, 0 , sizeof(disk_partition_t));
-	dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-	if (NULL == dev_desc) {
-		errorf("get mmc device hardware part(%d) fail\n", PARTITION_USER);
-		return -1;
-	}
-
-	while (counter < 3) {
-		ret = gpt_restore(dev_desc, SPRD_DISK_GUID_STR, partitions, parts_count);
-		if (0 == ret)
-			break;
-		counter++;
-	}
-
-	if (3 == counter) {
-		return -1;
-	} else {
-		init_part(dev_desc);
-		return 0;
-	}
-}
-
-int32_t common_get_lba_size(void)
-{
-	block_dev_desc_t *dev_desc;
-
-	dev_desc = get_dev_hwpart("mmc", 0, PARTITION_USER);
-	if (NULL == dev_desc)
-		return -1;
-
-	return (int32_t)dev_desc->blksz;
-}
-
-int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
-{
-#ifdef CONFIG_FS_EXT4
-	disk_partition_t info;
-	block_dev_desc_t *dev_desc;
-	loff_t len_read = 0;
-
-	dev_desc = get_dev("mmc", 0);
-	if (NULL == dev_desc) {
-		errorf("ext4_read_content get dev error\n");
-		return -1;
-	}
-
-	if (get_partition_info_by_name(dev_desc, mpart, &info) == -1) {
-		errorf("## Valid EFI partition not found ##\n");
-		return -1;
-	}
-
-	/* set the device as block device */
-	ext4fs_set_blk_dev(dev_desc, &info);
-
-	/* mount the filesystem */
-	if (!ext4fs_mount(info.size)) {
-		errorf("Bad ext4 partition:%s\n",  mpart);
-		ext4fs_close();
-		return -1;
-	}
-
-	/* start read */
-	if (ext4_read_file(filenm, buf, 0, len, &len_read) == -1) {
-		ext4fs_close();
-		return -1;
-	}
-	debugf("read %s ok, len : 0x%llx", filenm, len_read);
-	ext4fs_close();
-	return 0;
-#else
-	return -1;
-#endif
-}
-
-int do_fs_file_write(char *mpart, char *filenm, void *buf, int len)
-{
-	/*do not write in uboot now*/
-	return -1;
-}
-
-#endif
-
-
 
 #ifdef CONFIG_NAND_BOOT
 extern int ubifs_init(void);

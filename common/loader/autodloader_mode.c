@@ -18,7 +18,7 @@ static const char VERSION_STR[] = {"SPRD4:AutoD"};
 int act_as_romcode = 0;
 
 extern struct FDL_ChannelHandler *gFdlUsedChannel;
-#ifdef CONFIG_EMMC_BOOT
+#ifndef CONFIG_NAND_BOOT
 extern uint64_t emmc_buf_size;
 #endif
 extern int usb_serial_init(void);
@@ -181,10 +181,10 @@ int autodloader_mainhandler(void)
 	ANA_REG_SET(ANA_REG_GLB_POR_RST_MONITOR, 0);
 	/*start from here, we play a role of RomCode*/
 	act_as_romcode = 1;
-	#ifdef	CONFIG_EMMC_BOOT
+#ifndef CONFIG_NAND_BOOT
 	emmc_buf_size = SZ_128M;
 	debugf("emmc_buf_size = 0x%llx\n",emmc_buf_size);
-	#endif
+#endif
 	/* initialize usb module*/
 	if(autodloader_initusb())
 		return 0;

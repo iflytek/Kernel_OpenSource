@@ -40,6 +40,7 @@
 #include <post.h>
 #include <logbuff.h>
 #include <asm/sections.h>
+#include <chipram_env.h>
 
 #ifdef CONFIG_BITBANGMII
 #include <miiphy.h>
@@ -660,15 +661,17 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	mmc_initialize(gd->bd);
 #endif
 
+#if defined(CONFIG_BLK_DEV_BOOT)
+	gd->boot_device = get_bootdevice();
+	if (gd->boot_device == BOOT_DEVICE_UFS)
+		ufs_init();
+	else if (gd->boot_device == BOOT_DEVICE_EMMC)
+		board_mmc_initialize(gd->bd);
+#else
 #ifdef CONFIG_EMMC_BOOT
-#ifndef CONFIG_ZEBU
-	puts("MMC:   ");
+	gd->boot_device = BOOT_DEVICE_EMMC;
 	board_mmc_initialize(gd->bd);
 #endif
-#endif
-
-#ifdef CONFIG_UFS
-	ufs_init();
 #endif
 
 #ifdef CONFIG_CMD_SCSI
@@ -785,3 +788,4 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	/* NOTREACHED - no way out of command loop except booting */
 }
+

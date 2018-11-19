@@ -2092,6 +2092,8 @@ struct mmc *mmc_create(const struct mmc_config *cfg, void *priv)
 	mmc->block_dev.block_read = mmc_bread;
 	mmc->block_dev.block_write = mmc_bwrite;
 	mmc->block_dev.block_erase = mmc_berase;
+	mmc->block_dev.backstage_block_write = emmc_write_backstage;
+	mmc->block_dev.backstage_write_query = emmc_query_backstage;
 #ifdef CONFIG_EMMC_WP
 	mmc->block_dev.block_pwr_wp = mmc_set_pwr_wp;
 #endif
@@ -2579,13 +2581,6 @@ out:
 }
 
 /*
- * TODO:
- * The original macro CONFIG_SUPPORT_EMMC_BOOT has been changed to
- * CONFIG_EMMC_BOOT by someone. Because a round of codes reply it.
- * So we may change it in the future but not now.
- */
-#ifdef CONFIG_EMMC_BOOT
-/*
  * This function changes the size of boot partition and the size of rpmb
  * partition present on EMMC devices.
  *
@@ -2760,7 +2755,7 @@ int mmc_boot_part_access(struct mmc *mmc, u8 ack, u8 part_num, u8 access)
 	return 0;
 }
 
-int emmc_write_backstage(char part_num, uint32_t start_block,
+ulong emmc_write_backstage(char part_num, uint32_t start_block,
 			uint32_t num, uint8_t *buf)
 {
 	struct mmc *mmc = find_mmc_device(EMMC);
@@ -2778,7 +2773,7 @@ int emmc_write_backstage(char part_num, uint32_t start_block,
 	return ret;
 }
 
-int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf)
+ulong emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf)
 {
 	struct mmc *mmc = find_mmc_device(EMMC);
 	int ret = 0;
@@ -2818,4 +2813,8 @@ u64 emmc_get_capacity(char part_num)
 		return 0;
 	}
 }
-#endif /* CONFIG_EMMC_BOOT */
+
+u64 mmc_get_hwpartsize(int hwpart)
+{
+	return emmc_get_capacity((char)hwpart);
+}

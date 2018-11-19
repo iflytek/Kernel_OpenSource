@@ -25,6 +25,8 @@
 #include <asm/arch/chip_id.h>
 #endif
 
+DECLARE_GLOBAL_DATA_PTR;
+
 static int dl_times=0;
 static struct dl_cmd *cmdlist = NULL;
 extern int sprd_clean_rtc(void);
@@ -162,11 +164,12 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	else {
 		Da_Info.dwVersion = 2;
 		Da_Info.bDisableHDLC = 1;
-#ifdef CONFIG_EMMC_BOOT
+
+	if (gd->boot_device == BOOT_DEVICE_EMMC)
 		Da_Info.bIsOldMemory = emmc_2ndhand_detect();
-#else
+	else
 		Da_Info.bIsOldMemory = 0;
-#endif
+
 		ack_packet.body.type = BSL_INCOMPATIBLE_PARTITION;
 		memcpy((unchar *)ack_packet.body.content, (unchar *)&Da_Info,sizeof(Da_Info));
 		ack_packet.body.size = sizeof(Da_Info);

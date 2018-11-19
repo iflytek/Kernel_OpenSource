@@ -38,11 +38,16 @@ typedef struct block_dev_desc {
 	unsigned long   (*block_erase)(int dev,
 				       lbaint_t start,
 				       lbaint_t blkcnt);
-#ifdef CONFIG_EMMC_WP
 	unsigned long   (*block_pwr_wp)(int dev,
 				       lbaint_t start,
 				       int grpcnt);
-#endif
+	unsigned long	(*backstage_block_write)(int dev,
+				      uint32_t start,
+				      uint32_t blkcnt,
+				      const void *buffer);
+	unsigned long	(*backstage_write_query)(int dev,
+				       uint32_t blkcnt,
+				       const void *buffer);
 	void		*priv;		/* driver private struct pointer */
 }block_dev_desc_t;
 
@@ -109,17 +114,23 @@ typedef struct disk_partition {
 #ifdef CONFIG_PARTITIONS
 block_dev_desc_t *get_dev(const char *ifname, int dev);
 block_dev_desc_t *get_dev_hwpart(const char *ifname, int dev, int hwpart);
+int get_devnum_hwpart(const char *ifname, int hwpart);
 block_dev_desc_t* ide_get_dev(int dev);
 block_dev_desc_t* sata_get_dev(int dev);
 block_dev_desc_t* scsi_get_dev(int dev);
 block_dev_desc_t* usb_stor_get_dev(int dev);
 block_dev_desc_t* mmc_get_dev(int dev);
+u64 mmc_get_hwpartsize(int hwpart);
+u64 ufs_get_hwpartsize(int hwpart);
+block_dev_desc_t* sd_get_dev(int dev);
 int mmc_select_hwpart(int dev_num, int hwpart);
 block_dev_desc_t* systemace_get_dev(int dev);
 block_dev_desc_t* mg_disk_get_dev(int dev);
 block_dev_desc_t *host_get_dev(int dev);
 int host_get_dev_err(int dev, block_dev_desc_t **blk_devp);
 block_dev_desc_t *ufs_get_dev(int dev);
+int ufs_get_dev_id(int hwpart);
+
 
 
 /* disk/part.c */
@@ -140,6 +151,9 @@ static inline block_dev_desc_t* sata_get_dev(int dev) { return NULL; }
 static inline block_dev_desc_t* scsi_get_dev(int dev) { return NULL; }
 static inline block_dev_desc_t* usb_stor_get_dev(int dev) { return NULL; }
 static inline block_dev_desc_t* mmc_get_dev(int dev) { return NULL; }
+u64 mmc_get_hwpartsize(int hwpart){ return NULL; }
+u64 ufs_get_hwpartsize(int hwpart){ return NULL; }
+static inline block_dev_desc_t* sd_get_dev(int dev) { return NULL; }
 static inline int mmc_select_hwpart(int dev_num, int hwpart) { return -1; }
 static inline block_dev_desc_t* systemace_get_dev(int dev) { return NULL; }
 static inline block_dev_desc_t* mg_disk_get_dev(int dev) { return NULL; }

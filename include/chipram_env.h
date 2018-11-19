@@ -8,6 +8,11 @@ typedef enum bootloader_mode {
 	BOOTLOADER_MODE_LOAD =0x104
 }boot_mode_t;
 
+typedef enum boot_device {
+	BOOT_DEVICE_EMMC = 0x205,
+	BOOT_DEVICE_UFS =0x206
+}boot_device_t;
+
 #define CHIPRAM_ENV_MAGIC	0x43454e56
 typedef struct chipram_env {
 	u32 magic; //0x43454e56

@@ -110,6 +110,7 @@ typedef struct global_data {
 #endif
 	struct udevice *cur_serial_dev;	/* current serial device */
 	struct arch_global_data arch;	/* architecture-specific data */
+	unsigned long boot_device; /* current boot device */
 } gd_t;
 #endif
 

@@ -23,6 +23,8 @@ struct block_drvr {
 	char *name;
 	block_dev_desc_t* (*get_dev)(int dev);
 	int (*select_hwpart)(int dev_num, int hwpart);
+	int (*get_dev_num_hwpart)(int hwpart);
+	u64 (*get_dev_size_hwpart)(int hwpart);
 };
 
 #ifdef CONFIG_EFI_PARTITION
@@ -47,6 +49,13 @@ static const struct block_drvr block_drvr[] = {
 		.name = "mmc",
 		.get_dev = mmc_get_dev,
 		.select_hwpart = mmc_select_hwpart,
+		.get_dev_size_hwpart = mmc_get_hwpartsize,
+	},
+#endif
+#if defined(CONFIG_SD)
+	{
+		.name = "sd",
+		.get_dev = sd_get_dev,
 	},
 #endif
 #if defined(CONFIG_SYSTEMACE)
@@ -59,6 +68,8 @@ static const struct block_drvr block_drvr[] = {
 	{
 		.name = "ufs",
 		.get_dev = ufs_get_dev,
+		.get_dev_num_hwpart = ufs_get_dev_id,
+		.get_dev_size_hwpart = ufs_get_hwpartsize,
 	},
 #endif
 
@@ -115,6 +126,76 @@ block_dev_desc_t *get_dev(const char *ifname, int dev)
 {
 	return get_dev_hwpart(ifname, dev, 0);
 }
+
+u64 get_devsize_hwpart(const char *ifname, int hwpart)
+{
+	const struct block_drvr *drvr = block_drvr;
+	u64 (*get_devsize)(int hwpart);
+	char *name;
+	u64 ret;
+
+	if (!ifname)
+		return -1;
+
+	name = drvr->name;
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+	name += gd->reloc_off;
+#endif
+	while (drvr->name) {
+		name = drvr->name;
+		get_devsize = drvr->get_dev_size_hwpart;
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+		name += gd->reloc_off;
+		if (get_devsize)
+			get_devsize += gd->reloc_off;
+#endif
+		if (strncmp(ifname, name, strlen(name)) == 0) {
+			if (!get_devsize)
+				return 0;
+			ret = get_devsize(hwpart);
+			if (ret < 0)
+				return -1;
+			return ret;
+		}
+		drvr++;
+	}
+	return -1;
+}
+
+int get_devnum_hwpart(const char *ifname, int hwpart)
+{
+	const struct block_drvr *drvr = block_drvr;
+	int (*get_dev_num)(int hwpart);
+	char *name;
+	int ret;
+
+	if (!ifname)
+		return -1;
+
+	name = drvr->name;
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+	name += gd->reloc_off;
+#endif
+	while (drvr->name) {
+		name = drvr->name;
+		get_dev_num = drvr->get_dev_num_hwpart;
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+		name += gd->reloc_off;
+		if (get_dev_num)
+			get_dev_num += gd->reloc_off;
+#endif
+		if (strncmp(ifname, name, strlen(name)) == 0) {
+			if (!get_dev_num)
+				return 0;
+			ret = get_dev_num(hwpart);
+			if (ret < 0)
+				return -1;
+			return ret;
+		}
+		drvr++;
+	}
+	return -1;
+}
 #else
 block_dev_desc_t *get_dev_hwpart(const char *ifname, int dev, int hwpart)
 {
@@ -125,6 +206,12 @@ block_dev_desc_t *get_dev(const char *ifname, int dev)
 {
 	return NULL;
 }
+
+int get_devnum_hwpart(const char *ifname, int hwpart)
+{
+	return NULL;
+}
+
 #endif
 
 #ifdef HAVE_BLOCK_DEVICE

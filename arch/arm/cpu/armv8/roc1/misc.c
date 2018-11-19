@@ -5,6 +5,7 @@
 #include <asm/arch/common.h>
 #include <otp_helper.h>
 #include <sprd_pmic_misc.h>
+#include <chipram_env.h>
 
 /*
 	REG_AON_APB_BOND_OPT0  ==> romcode set
@@ -200,5 +201,16 @@ PUBLIC int get_dram_cs0_size(void)
 {
 	mem_cs_info_t *cs_info_ptr = 0x1C00;
 	return cs_info_ptr->cs0_size;
+}
+
+boot_device_t get_bootdevice(void)
+{
+	unsigned int boot_val = 0;
+
+	boot_val = (* (volatile unsigned int *) (REG_AON_APB_BOOT_MODE)) & 0x3;
+	if (boot_val == 0x3)
+		return BOOT_DEVICE_EMMC;
+	else
+		return BOOT_DEVICE_UFS;
 }
 

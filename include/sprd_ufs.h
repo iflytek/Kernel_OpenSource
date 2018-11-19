@@ -788,7 +788,7 @@ struct unmap_para_list {
 
 
 ulong ufs_write_backstage(int dev_num, lbaint_t start, lbaint_t blkcnt, const void *src);
-ulong ufs_query_backstage(lbaint_t blkcnt);
+ulong ufs_query_backstage(int dev_num, lbaint_t blkcnt, const void *src);
 
 
 #endif

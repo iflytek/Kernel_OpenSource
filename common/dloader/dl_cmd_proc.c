@@ -1,11 +1,11 @@
 
 #include <common.h>
 #include "dl_cmd_proc.h"
-#ifdef CONFIG_EMMC_BOOT
-#include "dl_operate.h"
-#endif
+
 #ifdef CONFIG_NAND_BOOT
 #include "dl_nand_operate.h"
+#else
+#include "dl_operate.h"
 #endif
 
 #include <boot_mode.h>

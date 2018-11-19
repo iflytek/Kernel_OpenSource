@@ -5,9 +5,6 @@
 #include "root_inspect.h"
 #include "loader_common.h"
 #include "sprd_common_rw.h"
-#ifdef CONFIG_EMMC_BOOT
-#include <mmc.h>
-#endif
 
 u32 get_rootflag(root_stat_t *stat)
 {

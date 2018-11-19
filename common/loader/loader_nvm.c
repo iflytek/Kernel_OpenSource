@@ -8,6 +8,7 @@
 #include "dl_operate.h"
 #include "sci_img.h"
 #include "sprd_common_rw.h"
+#include <chipram_env.h>
 #ifdef  CONFIG_SPRD_HW_I2C
 #include <sprd_i2c_hwchn.h>
 #endif
@@ -1632,10 +1633,13 @@ extern boot_image_required_t *get_cp_load_table(void);
 	 // add for SOTER end
 
 //#if defined(TOS_TRUSTY) && defined(CONFIG_EMMC_BOOT) && defined(CONFIG_SPRD_RPMB)
-#if defined(CONFIG_EMMC_BOOT) && defined(CONFIG_SPRD_RPMB)
-	uboot_set_rpmb_size();
-	uboot_is_wr_rpmb_key();
-	uboot_check_rpmb_key();
+
+#if defined(CONFIG_SPRD_RPMB)
+	if(gd->boot_device == BOOT_DEVICE_EMMC) {
+		uboot_set_rpmb_size();
+		uboot_is_wr_rpmb_key();
+		uboot_check_rpmb_key();
+	}
 #endif
 
 #ifdef CONFIG_TEE_FIREWALL

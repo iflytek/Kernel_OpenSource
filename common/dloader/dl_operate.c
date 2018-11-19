@@ -150,7 +150,7 @@ uint16_t eMMCCheckSum(const uint32_t * src, int32_t len)
 	return (uint16_t) (~sum);
 }
 
-#ifdef CONFIG_EMMC_BOOT
+#ifdef CONFIG_MMC
 uint8_t emmc_2ndhand_detect()
 {
 	char part_config;

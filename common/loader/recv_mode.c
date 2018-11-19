@@ -48,7 +48,7 @@ int get_recovery_message(struct recovery_message *out)
 
 }
 
-#ifdef CONFIG_EMMC_BOOT
+#ifndef CONFIG_NAND_BOOT
 int set_recovery_message(const struct recovery_message *in)
 {
 	if (common_raw_write("misc", sizeof(struct recovery_message), (uint64_t)0, (uint64_t)0, (char *)in)) {

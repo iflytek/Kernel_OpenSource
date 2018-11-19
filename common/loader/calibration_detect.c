@@ -605,7 +605,6 @@ u32 Vlx_GetFixedNvitemAddr(u16 identifier, u32 search_start, u32 search_end)
 
 int read_adc_calibration_data(char *buffer,int size)
 {
-#if 1
 	chipram_env_t* cr_env = get_chipram_env();
 	boot_mode_t boot_role = cr_env->mode;
 	if (boot_role == BOOTLOADER_MODE_DOWNLOAD)
@@ -641,25 +640,7 @@ int read_adc_calibration_data(char *buffer,int size)
 		size=48;
 	memcpy(buffer,&nv_buffer[2],size);
 	free(tmp);
-	return size;
-#elif defined(CONFIG_EMMC_BOOT) && defined (CONFIG_SC8825)
-	#define FIXNV_ADR        0x80480000
-	calibration_param_T *calibration_base;
-	u32 item_base;
-	uint16 *value = (uint16 *)(&buffer[8]);
-	item_base = Vlx_GetFixedNvitemAddr(VLX_ADC_ID, FIXNV_ADR, (FIXNV_ADR+FIXNV_SIZE));
-	if(item_base == 0xFFFFFFFF)
-		return 0;
-	calibration_base = (calibration_param_T *)item_base;
-	if(!((calibration_base->adc).reserved[7] & (BIT_9)))
-		return 0;
 
-	value[0] = ((calibration_base->adc).battery[0]) & 0xFFFF;
-	value[1] = ((calibration_base->adc).battery[0] >> 16 ) & 0xFFFF;
-	value[2] = ((calibration_base->adc).battery[1]) & 0xFFFF;
-	value[3] = ((calibration_base->adc).battery[1] >> 16 ) & 0xFFFF;
 	return size;
-#endif
-	return 0;
 }
 

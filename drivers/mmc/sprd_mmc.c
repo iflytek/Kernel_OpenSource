@@ -1510,6 +1510,9 @@ int mmc_register(struct mmc *mmc)
 	mmc->block_dev.block_read = mmc_bread;
 	mmc->block_dev.block_write = mmc_bwrite;
 	mmc->block_dev.block_erase = mmc_berase;
+	mmc->block_dev.backstage_block_write = mmc_bwrite_backstage;
+	mmc->block_dev.backstage_write_query = mmc_query_bwrite_backstage;
+
 	if (!mmc->b_max)
 		mmc->b_max = CONFIG_SYS_MMC_MAX_BLK_COUNT;
 
@@ -2067,6 +2070,11 @@ u64 emmc_get_capacity(char part_num)
 u64 emmc_get_capacity(char part_num)
 {
 	return emmc_get_capacity(part_num);
+}
+
+u64 mmc_get_hwpartsize(int hwpart)
+{
+	return emmc_get_capacity((char)hwpart);
 }
 
 #endif

@@ -414,6 +414,7 @@ static int initr_mmc(void)
 static int initr_board_mmc(void)
 {
 	puts("MMC:   ");
+	gd->boot_device = BOOT_DEVICE_EMMC;
 	board_mmc_initialize(gd->bd);
 	return 0;
 }
@@ -423,6 +424,7 @@ static int initr_board_mmc(void)
 static int initr_ufs(void)
 {
 	puts("UFS:   ");
+	gd->boot_device = BOOT_DEVICE_UFS;
 	ufs_init();
 	return 0;
 }

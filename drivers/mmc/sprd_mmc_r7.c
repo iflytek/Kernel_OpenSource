@@ -1995,7 +1995,8 @@ struct mmc *mmc_create(const struct mmc_config *cfg, void *priv)
 	mmc->block_dev.block_read = mmc_bread;
 	mmc->block_dev.block_write = mmc_bwrite;
 	mmc->block_dev.block_erase = mmc_berase;
-
+	mmc->block_dev.backstage_block_write = mmc_bwrite_backstage;
+	mmc->block_dev.backstage_write_query = mmc_query_bwrite_backstage;
 	/* setup initial part type */
 	mmc->block_dev.part_type = mmc->cfg->part_type;
 
@@ -2379,14 +2380,6 @@ int mmc_set_rst_n_function(struct mmc *mmc, u8 enable)
 			  enable);
 }
 
-
-/*
- * TODO:
- * The original macro CONFIG_SUPPORT_EMMC_BOOT has been changed to
- * CONFIG_EMMC_BOOT by someone. Because a round of codes reply it.
- * So we may change it in the future but not now.
- */
-#ifdef CONFIG_EMMC_BOOT
 /*
  * This function changes the size of boot partition and the size of rpmb
  * partition present on EMMC devices.
@@ -2618,6 +2611,7 @@ u64 emmc_get_capacity(char part_num)
 	}
 }
 
-
-
-#endif
+u64 mmc_get_hwpartsize(int hwpart)
+{
+	return emmc_get_capacity((char)hwpart);
+}

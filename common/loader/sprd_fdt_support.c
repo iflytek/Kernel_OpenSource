@@ -14,9 +14,12 @@
 #include <asm/arch/sprd_reg.h>
 #include <uboot_sec_drv.h>
 #include <fdtdec.h>
+#include <chipram_env.h>
 #ifdef CONFIG_VBOOT_V2
 #include <avb/uboot_avb_ops.h>
 #endif
+
+DECLARE_GLOBAL_DATA_PTR;
 
 extern void *lcd_get_base_addr(void *lcd_base);
 extern uint32_t lcd_get_pixel_clock(void);
@@ -30,9 +33,8 @@ extern void tee_call_request(unsigned int **mem_ptr);
 extern int fdtdec_decode_region_private(const void *blob, int node, const char *prop_name,
 			 fdt_addr_t *basep, fdt_size_t *sizep);
 extern int poweron_by_calibration(void);
-#ifdef CONFIG_EMMC_BOOT
 extern int get_img_partition_id(char *part_name, unsigned int *id);
-#endif
+
 /*for verified boot*/
 enVerifiedState g_verifiedbootstate = v_state_green;
 extern unsigned int g_DeviceStatus;
@@ -1140,13 +1142,13 @@ void fdt_fixup_secureboot_param(void *fdt_blob)
 		}
 	}
 /*TODO*/
-#ifdef  CONFIG_EMMC_BOOT
-	if (0 != common_raw_read("uboot" , SEC_HEADER_MAX_SIZE,
-			PUBKEY_VLR_BLOCK_INDEX*EMMC_SECTOR_SIZE, (uint8_t *) pubk)) {
-				errorf("PARTITION_BOOT2 read error \n");
-				return 0;
-			}
-#endif
+	if(gd->boot_device == BOOT_DEVICE_EMMC) {
+		if (0 != common_raw_read("uboot" , SEC_HEADER_MAX_SIZE,
+				PUBKEY_VLR_BLOCK_INDEX*EMMC_SECTOR_SIZE, (uint8_t *) pubk)) {
+					errorf("PARTITION_BOOT2 read error \n");
+					return 0;
+		}
+	}
 
 	str_len = strlen(buf);
 	sprintf(&buf[str_len]," pubk=");
@@ -1458,64 +1460,65 @@ int fdt_fixup_loglevel(void *fdt)
 int fdt_fixup_system_mount_part_num(void *fdt)
 {
 	int ret = 0;
-#ifdef CONFIG_EMMC_BOOT
-	unsigned int num;
-	int nodeoffset;
-	const char *path;
-	char buf[128];
-	int str_len;
 
-	char *path_copy, *s, *v, *v_copy, *k;
+	if (gd->boot_device == BOOT_DEVICE_EMMC) {
+		unsigned int num;
+		int nodeoffset;
+		const char *path;
+		char buf[128];
+		int str_len;
 
-	get_img_partition_id("system", &num);
-	memset(buf, 0, sizeof(buf));
+		char *path_copy, *s, *v, *v_copy, *k;
 
-	/* Find the "chosen" node */
-	nodeoffset = fdt_path_offset(fdt, "/chosen");
-	/* If there is no "chosen" node in the blob, leave */
-	if (nodeoffset < 0) {
-		errorf("fdt_chosen_bootargs_replace: cann't find chosen");
-		return -1;
-	}
+		get_img_partition_id("system", &num);
+		memset(buf, 0, sizeof(buf));
 
-	/* If the property exists, get the value */
-	path = fdt_getprop(fdt, nodeoffset, "bootargs", NULL);
-	if (path == NULL) {
-		errorf("bootargs is null\n");
-		return -1;
-	}
-	path_copy = strdup(path);
-	if (path_copy == NULL) {
-		errorf("path_copy string copy failed!\n");
-		return -1;
-	}
-	s = path_copy;
-	while ((v = strsep(&s, " ")) != NULL) {
-		v_copy = strdup(v);
-		if (v_copy == NULL) {
-			errorf("v_copy string copy failed!\n");
-			free(path_copy);
+		/* Find the "chosen" node */
+		nodeoffset = fdt_path_offset(fdt, "/chosen");
+		/* If there is no "chosen" node in the blob, leave */
+		if (nodeoffset < 0) {
+			errorf("fdt_chosen_bootargs_replace: cann't find chosen");
 			return -1;
 		}
 
-		k = strsep(&v, "=");
-		if (!k) {
-			free(v_copy);
-			continue;
+		/* If the property exists, get the value */
+		path = fdt_getprop(fdt, nodeoffset, "bootargs", NULL);
+		if (path == NULL) {
+			errorf("bootargs is null\n");
+			return -1;
 		}
+		path_copy = strdup(path);
+		if (path_copy == NULL) {
+			errorf("path_copy string copy failed!\n");
+			return -1;
+		}
+		s = path_copy;
+		while ((v = strsep(&s, " ")) != NULL) {
+			v_copy = strdup(v);
+			if (v_copy == NULL) {
+				errorf("v_copy string copy failed!\n");
+				free(path_copy);
+				return -1;
+			}
 
-		if (strncmp("/dev/mmcblk0p", v, 13) == 0) {
-			memset(buf, 0, 128);
-			sprintf(buf, "/dev/mmcblk0p%d", num);
-			str_len = strlen(buf);
-			buf[str_len] = '\0';
-			ret = fdt_chosen_bootargs_replace(fdt, v, buf);
+			k = strsep(&v, "=");
+			if (!k) {
+				free(v_copy);
+				continue;
+			}
+
+			if (strncmp("/dev/mmcblk0p", v, 13) == 0) {
+				memset(buf, 0, 128);
+				sprintf(buf, "/dev/mmcblk0p%d", num);
+				str_len = strlen(buf);
+				buf[str_len] = '\0';
+				ret = fdt_chosen_bootargs_replace(fdt, v, buf);
+				free(v_copy);
+				break;
+			}
 			free(v_copy);
-			break;
 		}
-		free(v_copy);
+		free(path_copy);
 	}
-	free(path_copy);
-#endif
 	return ret;
 }

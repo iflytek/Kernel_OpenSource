@@ -304,8 +304,8 @@ struct mmc {
 };
 
 u64 emmc_get_capacity(char part_num);
-int emmc_write_backstage(char part_num, uint32_t start_block, uint32_t num, uint8_t *buf);
-int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf);
+ulong emmc_write_backstage(char part_num, uint32_t start_block, uint32_t num, uint8_t *buf);
+ulong emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf);
 
 
 int mmc_register(struct mmc *mmc);
