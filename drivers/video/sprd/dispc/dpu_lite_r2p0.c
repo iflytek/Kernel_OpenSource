@@ -107,11 +107,14 @@ struct dpu_reg {
 	u32 reserved_0x03A8_0x03AC[2];
 	u32 dpu_fbc_cfg0;
 	u32 dpu_fbc_cfg1;
-	u32 reserved_0x03B8_0x03EC[14];
+	u32 dpu_fbc_cfg2;
+	u32 reserved_0x03BC_0x03EC[13];
 	u32 rf_ram_addr;
 	u32 rf_ram_rdata_low;
 	u32 rf_ram_rdata_high;
-	u32 reserved_0x03FC_0x07FC[257];
+	u32 reserved_0x03FC;
+	u32 cabc_hist[16];
+	u32 reserved_0x0440_0x07FC[240];
 	u32 mmu_en;
 	u32 mmu_update;
 	u32 mmu_min_vpn;
@@ -158,8 +161,8 @@ enum {
 	ENHANCE_CFG_ID_HSV,
 	ENHANCE_CFG_ID_CM,
 	ENHANCE_CFG_ID_SLP,
-	ENHANCE_CFG_ID_LTM,
 	ENHANCE_CFG_ID_GAMMA,
+	ENHANCE_CFG_ID_CABC,
 	ENHANCE_CFG_ID_MAX
 };
 
@@ -169,8 +172,10 @@ struct enhance_module {
 	u32 hsv_en: 1;
 	u32 cm_en: 1;
 	u32 slp_en: 1;
-	u32 ltm_en: 1;
 	u32 gamma_en: 1;
+	u32 ltm_en: 1;
+	u32 slp_mask_en: 1;
+	u32 cabc_en: 1;
 };
 
 struct scale_cfg {
@@ -238,9 +243,11 @@ struct slp_cfg {
 	u8 second_bright_factor;
 	u8 first_percent_th;
 	u8 first_max_bright_th;
-	u8 clip_limit_high;
-	u8 clip_limit_low;
-	u8 clip_limit_step;
+	u16 low_clip;
+	u16 high_clip;
+	u16 step_clip;
+	u16 mask_height;
+	u16 dummy;
 };
 
 struct enhance_cfg {
@@ -940,7 +947,9 @@ void __maybe_unused dpu_enhance_cfg(struct dispc_context *ctx,
 		switch (cfg[i].id) {
 		case ENHANCE_CFG_ID_MODULE_EN:
 			mod = cfg[i].param;
-			reg->dpu_enhance_cfg = (mod->ltm_en << 6) |
+			reg->dpu_enhance_cfg = (mod->cabc_en << 8) |
+						(mod->slp_mask_en << 7) |
+						(mod->ltm_en << 6) |
 						(mod->gamma_en << 5) |
 						(mod->slp_en << 4) |
 						(mod->cm_en << 3) |
@@ -992,12 +1001,11 @@ void __maybe_unused dpu_enhance_cfg(struct dispc_context *ctx,
 					slp->brightness;
 			reg->slp_cfg1 = (slp->first_max_bright_th << 8) |
 					slp->first_percent_th;
-			break;
-		case ENHANCE_CFG_ID_LTM:
-			slp = cfg[i].param;
-			reg->slp_cfg2 = (slp->clip_limit_step << 24) |
-					(slp->clip_limit_high << 12) |
-					slp->clip_limit_low;
+			reg->slp_cfg2 = (slp->step_clip << 24) |
+					(slp->high_clip << 12) |
+					slp->low_clip;
+			reg->slp_cfg3 = (slp->dummy << 12) |
+				slp->mask_height;
 			break;
 		case ENHANCE_CFG_ID_GAMMA:
 			gamma = cfg[i].param;
