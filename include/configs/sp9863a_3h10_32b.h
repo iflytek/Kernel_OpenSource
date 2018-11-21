@@ -140,7 +140,7 @@
 #define CONFIG_SYS_LOAD_ADDR		(PHYS_SDRAM_1 + 0x10000000)
 
 /* Physical Memory Map */
-#define  CONFIG_DUAL_DDR
+//#define  CONFIG_DUAL_DDR /*32 bit sp9832e no need dual ddr*/
 
 #define PHYS_SDRAM_1			0x80000000	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE		0x20000000	/* 512 MB */
