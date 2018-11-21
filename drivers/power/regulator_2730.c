@@ -19,6 +19,8 @@
 #define debug2(format, arg...)		regu_debug("\t\t" format, ## arg)
 
 #define WR_UNLOCK 0x6e7f
+#define IB_ZCD_THRESHOLD_MAX 111
+#define IB_ZCD_THRESHOLD_MIN 67
 
 #define GENMASK(h, l) \
 	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
@@ -115,6 +117,26 @@ struct regulator_desc __init0 __init_begin = {0};
 #include "__sc2730_regulator_map.h"
 struct regulator_desc __init2 __init_end = {0};
 
+static struct {
+	int id;
+	const char* name;
+	int efuse_block_id;
+	int efuse_bit_mask;
+	int pmic_regs_addr;
+	int pmic_regs_mask;
+} reinit_node[] = {
+	{0,"DCDC_CPU",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_CPU_REG2,	BITS_DCDC_CPU_ZCD(0x3)},
+	{1,"DCDC_GPU",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_GPU_REG2,	BITS_DCDC_GPU_ZCD(0x3)},
+	{2,"DCDC_CORE",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_CORE_REG2,	BITS_DCDC_CORE_ZCD(0x3)},
+	{3,"DCDC_MODEM",	14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_MODEM_REG2,	BITS_DCDC_MODEM_ZCD(0x3)},
+	{4,"DCDC_MEM",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_MEM_REG2,	BITS_DCDC_MEM_ZCD(0x3)},
+	{5,"DCDC_MEMQ",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_MEMQ_REG2,	BITS_DCDC_MEMQ_ZCD(0x3)},
+	{6,"DCDC_GEN0",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_GEN0_REG2,	BITS_DCDC_GEN0_ZCD(0x3)},
+	{7,"DCDC_GEN1",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_GEN1_REG2,	BITS_DCDC_GEN1_ZCD(0x3)},
+	{8,"DCDC_WPA",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_WPA_REG3,	BITS_DCDC_WPA_ZCD(0x3)},
+	{9,"DCDC_SRAM",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_SRAM_REG2,	BITS_DCDC_SRAM_ZCD(0x3)},
+	{-1,NULL,0,0},
+};
 static int dcdc_get_trimming_step(struct regulator_desc *desc, int to_vol)
 {
 	return 1000 * 100 / 32;	/*uV */
@@ -312,6 +334,34 @@ int regulator_set_voltage(const char con_id[], int to_vol)
 
 static int reload_regulator_config()
 {
+	int i,shft,ib_trim_val,reload_val;
+	u32 efuse_val;
+
+	efuse_val = sprd_pmic_efuse_read(reinit_node[0].efuse_block_id);
+	shft = __ffs(reinit_node[0].efuse_bit_mask);
+	ib_trim_val = (efuse_val & reinit_node[0].efuse_bit_mask)
+		>> shft;
+	shft = __ffs(reinit_node[i].pmic_regs_mask);
+
+	if(ib_trim_val >= IB_ZCD_THRESHOLD_MAX){
+		reload_val = 2;
+		for(i = 0; reinit_node[i].id != -1; i++)
+			ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
+					reload_val << shft,
+					reinit_node[i].pmic_regs_mask);
+	}else if(ib_trim_val <= IB_ZCD_THRESHOLD_MIN){
+		reload_val = 0;
+		for(i = 0; reinit_node[i].id != -1; i++)
+			ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
+					reload_val << shft,
+					reinit_node[i].pmic_regs_mask);
+	}else{
+		reload_val = 1;
+		for(i = 0; reinit_node[i].id != -1; i++)
+			ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
+					reload_val << shft,
+					reinit_node[i].pmic_regs_mask);
+	}
 	return 0;
 }
 
