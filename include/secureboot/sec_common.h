@@ -24,11 +24,11 @@
 #define PRODUCT_SN_SIGNATURE_SIZE	(512)
 
 typedef struct{
-	unsigned long img_addr;		//the base address of image to verify
-	unsigned long img_len;		//length of image
-	unsigned long pubkeyhash;	//pubkey hash for verifying image
-	unsigned long hash_len;		//length of pubkeyhash
-	unsigned long flag;		//sprd or sansa plan
+	uint64_t img_addr;		//the base address of image to verify
+	uint64_t img_len;		//length of image
+	uint64_t pubkeyhash;	//pubkey hash for verifying image
+	uint64_t hash_len;		//length of pubkeyhash
+	uint64_t flag;		//sprd or sansa plan
 }imgToVerifyInfo;
 
 /*add for vboot v2*/
