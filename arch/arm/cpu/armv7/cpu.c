@@ -77,5 +77,9 @@ int cleanup_before_linux_select(int flags)
 
 int cleanup_before_linux(void)
 {
+#ifdef CONFIG_SOC_SHARKL3
+	return cleanup_before_linux_select(CBL_SHOW_BOOTSTAGE_REPORT);
+#else
 	return cleanup_before_linux_select(CBL_ALL);
+#endif
 }
