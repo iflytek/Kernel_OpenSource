@@ -122,7 +122,9 @@ static void dispc_reset(struct dispc_context *ctx)
 
 static void dispc_power_domain(struct dispc_context *ctx, int enable)
 {
-
+	sci_glb_set(REG_AP_AHB_AP_QOS2,
+			BIT_AP_AHB_ARQOS_THRESHHOLD_DISP(0xC) |
+			BIT_AP_AHB_AWQOS_THRESHHOLD_DISP(0xF));
 }
 
 static struct dispc_clk_ops dispc_clk_ops = {

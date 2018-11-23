@@ -522,7 +522,7 @@ static int dpu_init(struct dispc_context *ctx)
 	reg->blend_size = size;
 
 	reg->dpu_cfg0 = 0;
-	reg->dpu_cfg1 = 0x00447171;
+	reg->dpu_cfg1 = 0x0044aada;
 	reg->dpu_cfg2 = 0;
 	dpu_clean(ctx);
 	reg->dpu_enhance_cfg = 0;
