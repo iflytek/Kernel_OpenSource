@@ -2555,7 +2555,7 @@ int mmc_boot_part_access(struct mmc *mmc, u8 ack, u8 part_num, u8 access)
 	return 0;
 }
 
-int emmc_write_backstage(char part_num, uint32_t start_block,
+ulong emmc_write_backstage(char part_num, uint32_t start_block,
 			uint32_t num, uint8_t *buf)
 {
 	struct mmc *mmc = find_mmc_device(EMMC);
@@ -2573,7 +2573,7 @@ int emmc_write_backstage(char part_num, uint32_t start_block,
 	return ret;
 }
 
-int emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf)
+ulong emmc_query_backstage(char part_num, uint32_t num, uint8_t *buf)
 {
 	struct mmc *mmc = find_mmc_device(EMMC);
 	int ret = 0;
