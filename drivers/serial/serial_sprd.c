@@ -70,8 +70,11 @@ static int sprd_serial_init(void)
 
 	/* Enable UART*/
 	sprd_apb_eb(CONSOLE_PORT);
+#ifdef CONFIG_ZEBU
+	printf("Using uart baudrate setting in SML\n");
+#else
 	sprd_init(CONSOLE_PORT, divider);
-
+#endif
     return 0;
 }
 

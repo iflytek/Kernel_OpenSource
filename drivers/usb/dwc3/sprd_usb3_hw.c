@@ -30,7 +30,9 @@ static struct dwc3_device dwc3_dev = {
 	.dis_u3_susphy_quirk = 1,
 	.dis_u2_susphy_quirk = 1,
 };
-
+#ifdef CONFIG_ZEBU
+static void usb_clk_enable(u32 is_on){}
+#else
 static void usb_clk_enable(u32 is_on)
 {
 	u32 val;
@@ -42,7 +44,7 @@ static void usb_clk_enable(u32 is_on)
 	else
 		writel(val & ~BIT_AON_APB_CKG_EB, REG_AON_APB_APB_EB1);
 }
-
+#endif
 #ifdef CONFIG_FPGA
 static void usb_phy_enable(u32 is_on)
 {

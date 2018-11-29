@@ -136,8 +136,9 @@ extern int fdt_fixup_cp_coupling_info(void *blob);
 	/*for verified boot*/
 	fdt_fixup_verified_boot(fdt_blob);
 	fdt_fixup_flash_lock_state(fdt_blob);
-
+#ifndef CONFIG_ZEBU
 	fdt_fixup_serialno(fdt_blob);
+#endif
 	fdt_fixup_chosen_bootargs_board_private(fdt_blob);
 
 #ifdef CONFIG_SANSA_SECBOOT

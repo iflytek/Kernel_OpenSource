@@ -657,8 +657,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	onenand_init();
 #endif
 
+#ifndef CONFIG_ZEBU
 #ifdef CONFIG_GENERIC_MMC
 	mmc_initialize(gd->bd);
+#endif
 #endif
 
 #if defined(CONFIG_BLK_DEV_BOOT)

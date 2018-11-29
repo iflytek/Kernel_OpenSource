@@ -1216,68 +1216,30 @@ int secure_get_partition_size(uchar * partition_name, uint64_t * size)
 #ifdef CONFIG_ZEBU
 void vlx_nand_boot_zebu(char *kernel_pname, int backlight_set, int lcd_enable)
 {
-    struct boot_img_hdr *boot_hdr = (void *) raw_header;
-    ulong bzImage_size = 0;
-    ulong initrd_size = 0;
-    ulong dtb_size = 0;
-    ulong dt_img_adr = 0;
-	uint64_t fdt_size = 0;
-	int ret;
-
-	if(lcd_enable) {
-		extern void lcd_enable(void);
-		debug("[LCD] Drawing the logo...\n");
-		drv_lcd_init();
-		lcd_splash(LOGO_PART);
-		lcd_enable();
-	}
-
-    /* load bootimg to RAM  */
-    boot_hdr = malloc(512*4);
-    memcpy((void *)boot_hdr,(const void *)BOOTIMG_ADR,512*4);
-    memcpy((void *)raw_header,(const void *)BOOTIMG_ADR,512*4);
-    if (!memcmp(boot_hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-	bzImage_size = (boot_hdr->kernel_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
-	initrd_size = (boot_hdr->ramdisk_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
-	dtb_size = (boot_hdr->dt_size + (KERNL_PAGE_SIZE-1))&(~(KERNL_PAGE_SIZE -1));
-	memcpy((void *)KERNEL_ADR,(const void *)BOOTIMG_ADR+512*4,bzImage_size);
-	memcpy((void *)RAMDISK_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size,initrd_size);
-	memcpy((void *)DT_ADR,(const void *)BOOTIMG_ADR+512*4+bzImage_size+initrd_size,dtb_size);
-
-	debugf("\nthe kernel is loading in the address:%x,size is %d\n",KERNEL_ADR,bzImage_size);
-	debugf("\nthe ramdisk is loading in the address:%x,size is %d\n",RAMDISK_ADR,initrd_size);
-	debugf("\nthe dtb is loading in the address:%x,size is %d\n",DT_ADR,dtb_size);
-    }
-    else {
-	errorf("A wrong boot.img here,please check!\n");
-    }
-	free(boot_hdr);
+	uint32_t size = DT_SIZE;
+	size = (size+(KERNL_PAGE_SIZE - 1)) & (~(KERNL_PAGE_SIZE - 1));
+	uint64_t dt_img_adr = RAMDISK_ADR - size - KERNL_PAGE_SIZE;
+	debugf("%s,dt_img_addr:%p\n",__func__,dt_img_adr);
 
 	/* copy kernel/dt/ramdisk/sml from jointRAM to InterlaceRAM */
 #ifdef CONFIG_INTERLACE_RAM_COPY
 	memcpy(KERNEL_ADR,SRC_KERNEL_ADR,KERNEL_SIZE);
 	memcpy(RAMDISK_ADR,SRC_RAMDISK_ADR,RAMDISK_SIZE);
-#endif
-
-#ifdef CONFIG_INTERLACE_RAM_COPY
+	memcpy(dt_img_adr,SRC_DT_ADR,DT_SIZE);
 	debugf("copy kernel to interlace RAM done\n");
 #endif
-	dt_img_adr = DT_ADR;
+
 	if (load_dtb((uint64_t)DT_ADR,(void*)dt_img_adr)) {
-	debugf("dt load error!\n");
-	return;
+		debugf("dt load error!\n");
+		return;
 	}
 
-	fdt_size = fdt_totalsize(DT_ADR);
-	ret = fdt_open_into(DT_ADR, DT_ADR, fdt_size + FDT_ADD_SIZE);
-	if (0 != ret) {
-		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
-	}
 	fdt_fixup_all((uchar *)DT_ADR);
-	fdt_initrd_norsvmem((uchar *)DT_ADR,RAMDISK_ADR,RAMDISK_ADR+initrd_size, 1);
+	uint32_t r_size = RAMDISK_SIZE;
+	r_size = (r_size+(KERNL_PAGE_SIZE - 1)) & (~(KERNL_PAGE_SIZE - 1));
+	fdt_initrd_norsvmem((uchar *)DT_ADR, RAMDISK_ADR, RAMDISK_ADR+r_size, 1);
 
 	vlx_entry(DT_ADR);
-
 }
 #endif
 

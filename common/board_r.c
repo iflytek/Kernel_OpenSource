@@ -829,8 +829,10 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_CMD_ONENAND
 	initr_onenand,
 #endif
+#ifndef  CONFIG_ZEBU
 #ifdef CONFIG_GENERIC_MMC
 	initr_mmc,
+#endif
 #endif
 #ifdef CONFIG_EMMC_BOOT
 	initr_board_mmc,
