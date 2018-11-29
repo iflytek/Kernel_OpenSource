@@ -74,6 +74,7 @@ extern int sprd_host_init(int sdio_type);
 extern struct rtc_time get_time_by_sec(void);
 extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
 extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
+extern void merge_dtbo(uchar *dt_start_addr);
 extern unsigned char board_key_scan(void);
 extern int fdt_get_addr_size(const void *fdt, int node, const char *propname,
 		   uint64_t *addrp, mem_size_t *sizep);
@@ -540,6 +541,10 @@ unsigned char *get_dt_addr(void)
 			load_fixup_dt_img("dtb", &dt_addr);
 		else
 			load_fixup_dt_img("boot", &dt_addr);
+#ifdef CONFIG_OF_LIBFDT_OVERLAY
+		if (BOOT_HEADER_VERSION_ONE == hdr->dt_size)
+			merge_dtbo(dt_addr);
+#endif
 	}
 	return dt_addr;
 }

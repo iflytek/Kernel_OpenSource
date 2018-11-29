@@ -780,7 +780,7 @@ error:
 /**
 	Function for do memory defragment and load dtb
 */
-static void merge_dtbo(uchar *dt_start_addr)
+void merge_dtbo(uchar *dt_start_addr)
 {
 #ifdef CONFIG_OF_LIBFDT_OVERLAY
 	struct dt_table_header *table_header;
