@@ -128,17 +128,45 @@ static struct {
 	int pmic_regs_addr;
 	int pmic_regs_mask;
 } reinit_node[] = {
-	{0,"DCDC_CPU",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_CPU_REG2,	BITS_DCDC_CPU_ZCD(0x3)},
-	{1,"DCDC_GPU",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_GPU_REG2,	BITS_DCDC_GPU_ZCD(0x3)},
-	{2,"DCDC_CORE",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_CORE_REG2,	BITS_DCDC_CORE_ZCD(0x3)},
-	{3,"DCDC_MODEM",	14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_MODEM_REG2,	BITS_DCDC_MODEM_ZCD(0x3)},
-	{4,"DCDC_MEM",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_MEM_REG2,	BITS_DCDC_MEM_ZCD(0x3)},
-	{5,"DCDC_MEMQ",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_MEMQ_REG2,	BITS_DCDC_MEMQ_ZCD(0x3)},
-	{6,"DCDC_GEN0",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_GEN0_REG2,	BITS_DCDC_GEN0_ZCD(0x3)},
-	{7,"DCDC_GEN1",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_GEN1_REG2,	BITS_DCDC_GEN1_ZCD(0x3)},
-	{8,"DCDC_WPA",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_WPA_REG3,	BITS_DCDC_WPA_ZCD(0x3)},
-	{9,"DCDC_SRAM",		14,	GENMASK(15,9),	ANA_REG_GLB_DCDC_SRAM_REG2,	BITS_DCDC_SRAM_ZCD(0x3)},
-	{-1,NULL,0,0},
+	{0, "DCDC_CPU_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_CPU_REG2, BITS_DCDC_CPU_ZCD(0x3)},
+	{1, "DCDC_GPU_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_GPU_REG2, BITS_DCDC_GPU_ZCD(0x3)},
+	{2, "DCDC_CORE_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_CORE_REG2, BITS_DCDC_CORE_ZCD(0x3)},
+	{3, "DCDC_MODEM_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_MODEM_REG2, BITS_DCDC_MODEM_ZCD(0x3)},
+	{4, "DCDC_MEM_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_MEM_REG2, BITS_DCDC_MEM_ZCD(0x3)},
+	{5, "DCDC_MEMQ_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_MEMQ_REG2, BITS_DCDC_MEMQ_ZCD(0x3)},
+	{6, "DCDC_GEN0_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_GEN0_REG2, BITS_DCDC_GEN0_ZCD(0x3)},
+	{7, "DCDC_GEN1_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_GEN1_REG2, BITS_DCDC_GEN1_ZCD(0x3)},
+	{8, "DCDC_WPA_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_WPA_REG3, BITS_DCDC_WPA_ZCD(0x3)},
+	{9, "DCDC_SRAM_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_SRAM_REG2, BITS_DCDC_SRAM_ZCD(0x3)},
+	{-1, NULL, 0, 0, 0, 0},
+};
+static struct {
+	int id;
+	const char* name;
+	int value;
+	int pmic_regs_addr;
+	int pmic_regs_mask;
+} reinit_node_cfg[] = {
+	{0, "DCDC_CPU_DTM", 0x2, ANA_REG_GLB_DCDC_CPU_REG0, BITS_DCDC_CPU_DEADTIME(0x3)},
+	{1, "DCDC_GPU_DTM", 0x2, ANA_REG_GLB_DCDC_GPU_REG0, BITS_DCDC_GPU_DEADTIME(0x3)},
+	{2, "DCDC_CORE_DTM", 0x2, ANA_REG_GLB_DCDC_CORE_REG0, BITS_DCDC_CORE_DEADTIME(0x3)},
+	{3, "DCDC_MODEM_DTM", 0x2, ANA_REG_GLB_DCDC_MODEM_REG0, BITS_DCDC_MODEM_DEADTIME(0x3)},
+	{4, "DCDC_MEM_DTM", 0x2, ANA_REG_GLB_DCDC_MEM_REG0, BITS_DCDC_MEM_DEADTIME(0x3)},
+	{5, "DCDC_MEMQ_DTM", 0x2, ANA_REG_GLB_DCDC_MEMQ_REG0, BITS_DCDC_MEMQ_DEADTIME(0x3)},
+	{6, "DCDC_GEN0_DTM", 0x2, ANA_REG_GLB_DCDC_GEN0_REG0, BITS_DCDC_GEN0_DEADTIME(0x3)},
+	{7, "DCDC_GEN1_DTM", 0x2, ANA_REG_GLB_DCDC_GEN1_REG0, BITS_DCDC_GEN1_DEADTIME(0x3)},
+	{8, "DCDC_SRAM_DTM", 0x2, ANA_REG_GLB_DCDC_SRAM_REG0, BITS_DCDC_SRAM_DEADTIME(0x3)},
+	{9, "DCDC_WPA_DTM", 0x3, ANA_REG_GLB_DCDC_WPA_REG0, BITS_DCDC_WPA_DEADTIME(0x3)},
+	{10, "DCDC_CPU_CF", 0x1, ANA_REG_GLB_DCDC_CPU_REG1, BITS_DCDC_CPU_CF(0x3)},
+	{11, "DCDC_GPU_CF", 0x1, ANA_REG_GLB_DCDC_GPU_REG1, BITS_DCDC_GPU_CF(0x3)},
+	{12, "DCDC_MODEM_CF", 0x1, ANA_REG_GLB_DCDC_MODEM_REG1, BITS_DCDC_MODEM_CF(0x3)},
+	{13, "DCDC_WPA_CF", 0x1, ANA_REG_GLB_DCDC_WPA_REG0, BITS_DCDC_WPA_CF(0x3)},
+	{14, "DCDC_CPU_STBOP", 0x2DF, ANA_REG_GLB_DCDC_CPU_REG2, GENMASK(12,0)},
+	{15, "DCDC_GPU_STBOP", 0x2DF, ANA_REG_GLB_DCDC_GPU_REG2, GENMASK(12,0)},
+	{16, "DCDC_CORE_STBOP", 0x2D8, ANA_REG_GLB_DCDC_CORE_REG2, GENMASK(12,0)},
+	{17, "DCDC_MODEM_STBOP", 0xD9F, ANA_REG_GLB_DCDC_MODEM_REG2, GENMASK(12,0)},
+	{18, "DCDC_SRAM_STBOP", 0x2D8, ANA_REG_GLB_DCDC_SRAM_REG2, GENMASK(12,0)},
+	{-1, NULL, 0, 0, 0},
 };
 static int dcdc_get_trimming_step(struct regulator_desc *desc, int to_vol)
 {
@@ -340,31 +368,30 @@ static int reload_regulator_config()
 	int i,shft,ib_trim_val,reload_val;
 	u32 efuse_val;
 
+	for(i = 0; reinit_node_cfg[i].id != -1; i++){
+		shft = __ffs(reinit_node_cfg[i].pmic_regs_mask);
+		ANA_REG_MSK_OR(reinit_node_cfg[i].pmic_regs_addr,
+				reinit_node_cfg[i].value << shft,
+				reinit_node_cfg[i].pmic_regs_mask);
+	}
+
 	efuse_val = sprd_pmic_efuse_read(reinit_node[0].efuse_block_id);
 	shft = __ffs(reinit_node[0].efuse_bit_mask);
 	ib_trim_val = (efuse_val & reinit_node[0].efuse_bit_mask)
 		>> shft;
 	shft = __ffs(reinit_node[i].pmic_regs_mask);
 
-	if(ib_trim_val >= IB_ZCD_THRESHOLD_MAX){
+	if(ib_trim_val >= IB_ZCD_THRESHOLD_MAX)
 		reload_val = 2;
-		for(i = 0; reinit_node[i].id != -1; i++)
-			ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
-					reload_val << shft,
-					reinit_node[i].pmic_regs_mask);
-	}else if(ib_trim_val <= IB_ZCD_THRESHOLD_MIN){
+	else if(ib_trim_val <= IB_ZCD_THRESHOLD_MIN)
 		reload_val = 0;
-		for(i = 0; reinit_node[i].id != -1; i++)
-			ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
-					reload_val << shft,
-					reinit_node[i].pmic_regs_mask);
-	}else{
+	else
 		reload_val = 1;
-		for(i = 0; reinit_node[i].id != -1; i++)
-			ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
-					reload_val << shft,
-					reinit_node[i].pmic_regs_mask);
-	}
+	for(i = 0; reinit_node[i].id != -1; i++)
+		ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
+				reload_val << shft,
+				reinit_node[i].pmic_regs_mask);
+
 	return 0;
 }
 
