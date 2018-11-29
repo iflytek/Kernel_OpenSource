@@ -132,10 +132,10 @@ u64 get_devsize_hwpart(const char *ifname, int hwpart)
 	const struct block_drvr *drvr = block_drvr;
 	u64 (*get_devsize)(int hwpart);
 	char *name;
-	u64 ret;
+	u64 ret = 0;
 
 	if (!ifname)
-		return -1;
+		return 0;
 
 	name = drvr->name;
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
@@ -153,13 +153,11 @@ u64 get_devsize_hwpart(const char *ifname, int hwpart)
 			if (!get_devsize)
 				return 0;
 			ret = get_devsize(hwpart);
-			if (ret < 0)
-				return -1;
 			return ret;
 		}
 		drvr++;
 	}
-	return -1;
+	return 0;
 }
 
 int get_devnum_hwpart(const char *ifname, int hwpart)
