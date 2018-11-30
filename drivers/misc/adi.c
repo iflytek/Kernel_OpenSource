@@ -152,7 +152,7 @@ static inline int __adi_fifo_drain(void)
 #define ANA_PHYS_BASE			( SPRD_MISC_PHYS )
 #define ANA_ADDR_SIZE			( SZ_32K + SZ_4K )
 #define ADDR_VERIFY(_X_)	do { \
-	BUG_ON((_X_) < ANA_VIRT_BASE || (_X_) > (ANA_VIRT_BASE + ANA_ADDR_SIZE));} while (0)
+	BUG_ON((_X_) < SPRD_ADISLAVE_PHYS || (_X_) > (SPRD_ADISLAVE_PHYS + ANA_ADDR_SIZE));} while (0)
 
 static inline u32 __adi_translate_addr(u32 regvddr)
 {
