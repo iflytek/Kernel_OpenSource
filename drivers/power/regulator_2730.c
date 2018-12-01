@@ -19,6 +19,7 @@
 #define debug2(format, arg...)		regu_debug("\t\t" format, ## arg)
 
 #define WR_UNLOCK 0x6e7f
+#define TRANS_26M_EN 1
 #define IB_ZCD_THRESHOLD_MAX 111
 #define IB_ZCD_THRESHOLD_MIN 67
 
@@ -368,6 +369,7 @@ static int reload_regulator_config()
 int regulator_pmic_init(void)
 {
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE, BITS_PWR_WR_PROT_VALUE(WR_UNLOCK));
+	ANA_REG_OR(ANA_REG_GLB_TSX_CTRL0, BITS_DCXO_26M_REF_OUT_EN(TRANS_26M_EN));
 	reload_regulator_config();
 	return 0;
 }
