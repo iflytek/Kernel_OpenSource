@@ -26,11 +26,9 @@ phys_size_t get_real_ram_size(void)
 
 void enable_global_clocks(void)
 {
-#if 0
 	__raw_writel(BIT_AON_APB_MM_EB | BIT_AON_APB_GPU_EB, REG_AON_APB_APB_EB0 + 0x1000);
 	while (__raw_readl(REG_PMU_APB_PWR_STATUS3_DBG) & BIT_PMU_APB_PD_MM_TOP_STATE(~0));
 	sci_glb_set(REG_MM_AHB_AHB_EB, BIT_MM_AHB_CKG_EB);
-#endif
 }
 
 extern void setup_chipram_env(void);
