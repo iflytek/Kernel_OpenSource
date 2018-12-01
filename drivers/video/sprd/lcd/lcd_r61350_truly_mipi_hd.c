@@ -176,7 +176,7 @@ static struct panel_info r61350_info = {
 	.height = 1280,
 
 	/* DPI specific parameters */
-	.pixel_clk = 128000000, /*Hz*/
+	.pixel_clk = 64000000, /*Hz*/
 	.rgb_timing = {
 		.hfp = 80,
 		.hbp = 80,
