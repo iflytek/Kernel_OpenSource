@@ -132,7 +132,7 @@ static int sprdfgu_cal_get(unsigned int *p_cal_data)
 
 	return 0;
 
-#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)|| defined(CONFIG_ADIE_SC2720)
+#elif defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)|| defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 	data = sprd_pmic_efuse_read_bits(BITSINDEX(3, 0, 16), 9);
 	debugf("fgu_cal_get 4.2 data data: 0x%x\n", data);
 	p_cal_data[0] = (data + 6963) - 4096 - 256;
