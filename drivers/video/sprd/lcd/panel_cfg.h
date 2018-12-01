@@ -108,7 +108,7 @@ static struct panel_cfg supported_panel[] = {
 		.drv = &rm67191_edo_driver,
 	},
 #endif
-#ifdef CONFIG_LCD_R1350_TRULY_MIPI_HD
+#ifdef CONFIG_LCD_R61350_TRULY_MIPI_HD
 	{
 		.lcd_id = 0x61350,
 		.drv = &r61350_truly_driver,
