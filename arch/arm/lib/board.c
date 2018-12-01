@@ -584,9 +584,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	monitor_flash_len = (ulong)&__rel_dyn_end - (ulong)_start;
 
 	/* Enable caches */
-#ifndef CONFIG_SOC_SHARKL5
 	enable_caches();
-#endif
 
 	debug("monitor flash len: %08lX\n", monitor_flash_len);
 	board_init();	/* Setup chipselects */
