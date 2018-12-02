@@ -87,7 +87,7 @@
 #define CONFIG_DCDCCORE_DROP_STEP_DLY			4  //(4 + 1) * 32k clock / step
 
 /* Debug config */
-//#define CONFIG_DEBUG_DCDCLDO_FORCE_ON
+#define CONFIG_DEBUG_DCDCLDO_FORCE_ON
 
 /* SharkL5 Lowpower feature support end */
 
