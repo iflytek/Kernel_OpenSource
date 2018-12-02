@@ -34,7 +34,7 @@
 static pinmap_t pinmap[]={
 {REG_PIN_CTRL_REG0,0x00000000},//SIMCARD0_BAT_DET_AP
 {REG_PIN_CTRL_REG1,0x00000000},//WDRST_OUT_SEL->AP_WATCH_DOG
-{REG_PIN_CTRL_REG2,0x80000000},//DP FS/LS driver is enabled;DM FS/LS driver is enabled;multiplex dp/dm port of usb;
+{REG_PIN_CTRL_REG2,0x00000000},//DP FS/LS driver is enabled;DM FS/LS driver is enabled;multiplex dp/dm port of usb;
 {REG_PIN_CTRL_REG3,0x00000000},//
 {REG_PIN_CTRL_REG4,0x00000000},//
 {REG_PIN_CTRL_REG5,0x00104B00},//pubcp_sim0_bd_eb;pubcp_sim1_bd_eb;ap_sdio0_bd_eb;ap_emmc_db_eb;sim0_det_sel->pbucp sim0;card_det_sel->ap sd0 card;aon_usb_audio_iis->audcp vbc iis2 path;
