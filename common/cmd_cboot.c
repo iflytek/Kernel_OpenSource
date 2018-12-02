@@ -253,10 +253,6 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	}
 #endif
 
-#ifdef CONFIG_SOC_SHARKL5
-	normal_mode();
-#endif
-
 #if defined CONFIG_ZEBU || defined CONFIG_FPGA
 	normal_mode();
 #endif
