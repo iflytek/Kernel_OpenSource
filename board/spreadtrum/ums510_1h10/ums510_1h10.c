@@ -156,7 +156,6 @@ int board_late_init(void)
 	debugf("CHG init OK!\n");
 #endif
 	board_keypad_init();
-	uart_pin_cfg_show();
 	return 0;
 }
 

@@ -10,6 +10,10 @@
 #define SPRD_MAX_SYS_NAME_LEN		20
 #define SPRD_UART_MUX_VERSION		0x0000
 
+#define SPRD_MAX_UART_CTRL_NUM		16
+#define SPRD_MAX_UART_PORT_NUM		11
+#define SPRD_MAX_UPORT_SEL_NUM		15
+
 typedef struct {
 	uint32_t index;
 	uint32_t reg;
