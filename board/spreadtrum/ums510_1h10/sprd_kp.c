@@ -33,7 +33,7 @@ unsigned char board_key_scan(void)
 	debugf("gpio_volumeup = %d\n",gpio_volumeup);
 	if(gpio_volumeup < 0)
 		errorf("[eic keys] volumeup : sprd_eic_get return ERROR!\n");
-	if(gpio_volumeup == 1) {
+	if(gpio_volumeup > 0) {
 		key_code = KEY_VOLUMEUP;
 		debugf("[eic keys] volumeup pressed!\n");
 	 }
