@@ -29,7 +29,6 @@ void modem_entry()
 {
 	audcp_boot(CONFIG_AUDCP_BOOT_VECTOR);
 	debugf("audio cp boot ok\n");
-#if 0
 	memset_dsp_share_memory();
 
 #ifndef CONFIG_KERNEL_BOOT_CP
@@ -42,7 +41,6 @@ void modem_entry()
 		sp_boot();
 		debugf("boot sp  OK\n");
 	}
-#endif
 #endif
 }
 
