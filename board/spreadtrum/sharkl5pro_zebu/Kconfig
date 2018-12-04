@@ -1,0 +1,18 @@
+if TARGET_SHARKL5PRO_ZEBU
+
+config SYS_BOARD
+	default "sharkl5pro_zebu"
+
+config SYS_VENDOR
+	default "spreadtrum"
+
+config SYS_SOC
+	default "sharkl5pro"
+
+config SYS_CONFIG_NAME
+	default "sharkl5pro_zebu"
+
+config SYS_TEXT_BASE
+	default 0x9f000000
+
+endif

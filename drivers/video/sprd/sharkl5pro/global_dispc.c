@@ -26,7 +26,10 @@ static uint32_t dpu_core_clk[] = {
 static uint32_t dpi_clk_src[] = {
 	96000000,
 	128000000,
-	153600000
+	153600000,
+	192000000,
+	204800000,
+	273000000,
 };
 
 static uint32_t dpi_src_val;

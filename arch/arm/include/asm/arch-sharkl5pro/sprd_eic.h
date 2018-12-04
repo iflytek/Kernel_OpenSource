@@ -19,7 +19,8 @@
 #define EIC_VBAT_OVI        167
 
 #if defined(CONFIG_ADIE_SC2723S) || defined(CONFIG_ADIE_SC2723) \
-	|| defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)
+	|| defined(CONFIG_ADIE_SC2731) || defined(CONFIG_ADIE_SC2721)\
+        || defined(CONFIG_TARGET_SHARKL5PRO_ZEBU)
 #define EIC_AUDIO_HEAD_INS3	168
 #define EIC_BATDET		169
 #define EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE		170

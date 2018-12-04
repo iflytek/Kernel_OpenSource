@@ -376,6 +376,12 @@ config TARGET_UMS510_1H10
         help
           This is the Spreadtrum sharkl5 Board
 
+config TARGET_SHARKL5PRO_ZEBU
+        bool "Spreadtrum sharkl5pro"
+        select ARM64
+        help
+          This is the Spreadtrum sharkl5pro Board
+
 config TARGET_SP9650_HAPS
         bool "Spreadtrum orca"
         select ARM64
@@ -501,4 +507,5 @@ source "board/spreadtrum/sp9863a_1h10_32b/Kconfig"
 source "board/spreadtrum/sp9863a_3h10_32b/Kconfig"
 source "board/spreadtrum/sp9863a_3c10_32b/Kconfig"
 source "board/spreadtrum/ums518_haps/Kconfig"
+source "board/spreadtrum/sharkl5pro_zebu/Kconfig"
 endif
