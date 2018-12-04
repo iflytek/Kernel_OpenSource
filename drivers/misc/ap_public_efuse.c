@@ -182,7 +182,12 @@ static void ap_efuse_read_power_off(void)
 
 static void efuse_clk_enable(void)
 {
+#if defined(CONFIG_SOC_SHARKL5) || defined(CONFIG_SOC_SHARKL5PRO) || \
+	defined(CONFIG_SOC_ROC1) || defined(CONFIG_SOC_ORCA)
+	sci_glb_set(REG_AON_APB_APB_EB1, BIT_EFUSE_EB);
+#else
 	sci_glb_set(REG_AON_APB_APB_EB0, BIT_EFUSE_EB);
+#endif
 }
 
 static void ap_efuse_prog_lock(bool en_lock)
