@@ -101,6 +101,7 @@
 #define SPRD_AUDCP_PERI_PHYS                               0x33000000
 #define SPRD_CORESIGHT_STM_PHYS                            0x34000000
 #define SPRD_CORESIGHT_SEC_PHYS                            0x3C000000
+#define SPRD_CORESIGHT_ETB                                 0x3C003000
 #define SPRD_SP_AHB_REG_PHYS                               0x51000000
 #define SPRD_SP_SYSTIMER_PHYS                              0x51020000
 #define SPRD_SP_TIMER_PHYS                                 0x51030000
