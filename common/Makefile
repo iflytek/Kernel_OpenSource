@@ -288,7 +288,11 @@ obj-y += s_record.o
 obj-y += xyzModem.o
 obj-y += cmd_disk.o
 
+ifdef CONFIG_DDR_BOOT
+obj-y += sprd_ddr_rw.o
+else
 obj-y += sprd_common_rw.o
+endif
 obj-$(CONFIG_UFS) += cmd_ufs.o
 obj-y += low_power_wa.o
 
