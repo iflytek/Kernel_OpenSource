@@ -673,6 +673,11 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 		for (i = 0; i < height; ++i) {
 			WATCHDOG_RESET();
 			for (j = 0; j < width; j++) {
+#ifdef CONFIG_BMP_OPTIMIZE_CONVERT_16BPIX
+				*(uint16_t *)fb = cmap_base[*bmap];
+				bmap++;
+				fb += sizeof(uint16_t) / sizeof(*fb);
+#else
 				if (bpix != 16) {
 					fb_put_byte(&fb, &bmap);
 				} else {
@@ -691,6 +696,7 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 					bmap++;
 					fb += sizeof(uint16_t) / sizeof(*fb);
 				}
+#endif
 			}
 			bmap += (padded_width - width);
 			fb -= byte_width + lcd_line_length;
