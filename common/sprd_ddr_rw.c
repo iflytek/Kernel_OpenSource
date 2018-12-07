@@ -50,19 +50,25 @@ int get_img_partition_uuid(char *part_name, char* uuid)
 int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 {
 	uint64_t part_start = 0;
+	int ret = -1;
 
-	if (part_name && !strcmp(part_name, "boot")) {
-		part_start = CONFIG_DDR_BOOT_BOOTIMAGE_ADR;
-	} else {
-		return -1;
+	if (part_name) {
+		if (!strcmp(part_name, "boot")) {
+			part_start = CONFIG_DDR_BOOT_BOOTIMAGE_ADR;
+			ret = 0;
+		} else if (!strcmp(part_name, "l_modem")) {
+			part_start = CONFIG_PSCP_IMG_ADDR;
+			ret = 0;
+		}
+
+		if (!ret) {
+			offset += part_start;
+			memcpy(buf, offset, size);
+		}
 	}
 
-	offset += part_start;
-	memcpy(buf, offset, size);
-
-	return 0;
+	return ret;
 }
-
 
 int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t offset, char *buf)
 {

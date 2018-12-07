@@ -88,7 +88,8 @@ static inline void pubcp_boot(void)
 /*****************************************************************************/
 void pmic_arm7_RAM_active(void)
 {
-	//TODO
+	/* orca cm4 sys reset is release default, can do nothing */
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_SYS_SOFT_RST; /* sys reset */
 }
 
 
@@ -99,7 +100,7 @@ void pmic_arm7_RAM_active(void)
 /*****************************************************************************/
 static inline void sp_boot(void)
 {
-	//*((volatile u32*)REG_PMU_APB_CP_SOFT_RST) &= ~BIT_PMU_APB_SP_CORE_SOFT_RST;   /* core release */
+	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_CORE_SOFT_RST;   /* core release */
 }
 
 /**---------------------------------------------------------------------------*

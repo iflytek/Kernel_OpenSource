@@ -227,6 +227,7 @@
 #undef CONFIG_NAND_BOOT
 
 #define CONFIG_DDR_BOOT_BOOTIMAGE_ADR   (0x82000000)
+#define CONFIG_PSCP_IMG_ADDR (0x8d400000)
 #endif
 
 /*file system config*/
