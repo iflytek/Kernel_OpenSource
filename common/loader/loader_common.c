@@ -318,10 +318,8 @@ static int start_linux_armv8(uchar *dt_addr)
 	/*sharkle and sharklj1 need disable mmu and cache before jump into kernel*/
 	cleanup_before_linux();
 
-#ifndef CONFIG_DDR_BOOT
 	/*start modem CP */
 	modem_entry();
-#endif
 
 #ifdef CONFIG_MINI_TRUSTZONE
 	trustzone_entry(TRUSTZONE_ADR + 0x200);

@@ -27,18 +27,6 @@ void memset_dsp_share_memory()
 
 void modem_entry()
 {
-	memset_dsp_share_memory();
 
-#ifndef CONFIG_KERNEL_BOOT_CP
-	sp_boot();
-	pubcp_boot();
-	debugf("boot CP1 OK\n");
-#else
-	extern unsigned int g_charger_mode;
-	if(g_charger_mode) {
-		sp_boot();
-		debugf("boot sp  OK\n");
-	}
-#endif
 }
 
