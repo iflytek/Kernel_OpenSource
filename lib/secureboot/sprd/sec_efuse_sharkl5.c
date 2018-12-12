@@ -4,9 +4,9 @@ const int map0_block_index[34] = {
 	24,25,26,27,28,29,30,31,	//HUK
 	16,17,18,19,20,21,22,23,	//KCE
 	 8, 9,10,11,12,13,14,15,	//ROTPK0
-	 7,							//SEC_VERSION
+	 7,				//SEC_VERSION
 	 2, 3, 4, 5, 32,33,34,35,	// ROTPK1
-	 6							//LCS
+	 6				//LCS
 };
 
 const int *pmap = map0_block_index;
@@ -32,19 +32,19 @@ static inline uint32 is_bit_set(uint32 * pdata, uint32 bit_pos)
 
 static int is_huk_write(void)
 {
-    uint32 bitmap[4] = {0};
-    int ret = 1;
-    int i, block_id;
+	uint32 bitmap[4] = {0};
+	int ret = 1;
+	int i, block_id;
 
 	efuse_read_lock_bits_map(bitmap);
 
-    for (i = HUK_BLOCK_START; i <= HUK_BLOCK_END; i++)
-    {
-        block_id = pmap[i];
-        ret = ret & (is_bit_set(bitmap, (block_id << 1)));
-    }
+	for (i = HUK_BLOCK_START; i <= HUK_BLOCK_END; i++)
+	{
+		block_id = pmap[i];
+		ret = ret & (is_bit_set(bitmap, (block_id << 1)));
+	}
 
-    return ret;
+	return ret;
 }
 
 static int is_rotpk_write(void)

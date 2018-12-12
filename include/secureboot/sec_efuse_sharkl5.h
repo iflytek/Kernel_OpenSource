@@ -31,7 +31,7 @@ do	\
 } while (0)
 
 /*********************EFUSE BLOCK INDEX MAPPING**************/
-#define NONE					(255)
+#define NONE				(255)
 #define HUK_BLOCK_START			(0)
 #define HUK_BLOCK_END			(7)
 #define KCE_BLOCK_START			(8)
@@ -43,11 +43,11 @@ do	\
 #define ROTPK1_BLOCK_END		(32)
 #define CYCLE_STATE_BLOCK		(33)
 #define LOCK_BIT_BLOCK			(34)
-#define NSEC_VER_BLOCK_START	(36)
+#define NSEC_VER_BLOCK_START		(36)
 #define NSEC_VER_BLOCK_END		(42)
-#define RESERVED_BLOCK_START	(NONE)
+#define RESERVED_BLOCK_START		(NONE)
 #define RESERVED_BLOCK_END		(NONE)
-#define ENDORKEY_BLOCK_START	(NONE)
+#define ENDORKEY_BLOCK_START		(NONE)
 #define ENDORKEY_BLOCK_END		(NONE)
 
 /********************** Public Part **********************/
