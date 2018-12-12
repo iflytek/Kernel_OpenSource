@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-12-06 15:47:51
  *
  */
-
 
 #ifndef MM_CLK_CORE_H
 #define MM_CLK_CORE_H
 
 #define CTL_BASE_MM_CLK_CORE 0x62100000
-
 
 #define REG_MM_CLK_CORE_CGM_MM_AHB_CFG             ( CTL_BASE_MM_CLK_CORE + 0x0020 )
 #define REG_MM_CLK_CORE_CGM_MM_MTX_CFG             ( CTL_BASE_MM_CLK_CORE + 0x0024 )
@@ -71,7 +69,7 @@
 
 /* REG_MM_CLK_CORE_CGM_DCAM_IF_CFG */
 
-#define BIT_MM_CLK_CORE_CGM_DCAM_IF_CFG_CGM_DCAM_IF_SEL(x)                   (((x) & 0x3))
+#define BIT_MM_CLK_CORE_CGM_DCAM_IF_CFG_CGM_DCAM_IF_SEL(x)                   (((x) & 0x7))
 
 /* REG_MM_CLK_CORE_CGM_DCAM_AXI_CFG */
 
@@ -79,7 +77,7 @@
 
 /* REG_MM_CLK_CORE_CGM_ISP_CFG */
 
-#define BIT_MM_CLK_CORE_CGM_ISP_CFG_CGM_ISP_SEL(x)                           (((x) & 0x3))
+#define BIT_MM_CLK_CORE_CGM_ISP_CFG_CGM_ISP_SEL(x)                           (((x) & 0x7))
 
 /* REG_MM_CLK_CORE_CGM_MIPI_CSI0_CFG */
 
@@ -104,7 +102,4 @@
 
 #define BIT_MM_CLK_CORE_CGM_CSI_PHY_SCAN_ONLY_CFG_CGM_CSI_PHY_SCAN_ONLY_SEL  BIT(0)
 
-
-#endif /* MM_CLK_CORE_H */
-
-
+#endif

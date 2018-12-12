@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-12-06 15:47:51
  *
  */
-
 
 #ifndef ANLG_PHY_G1_H
 #define ANLG_PHY_G1_H
 
 #define CTL_BASE_ANLG_PHY_G1 0x323A0000
-
 
 #define REG_ANLG_PHY_G1_ANALOG_MIPI_DSI_4LANE_DSI_4L_TXCLKLANE          ( CTL_BASE_ANLG_PHY_G1 + 0x0000 )
 #define REG_ANLG_PHY_G1_ANALOG_MIPI_DSI_4LANE_DSI_4L_TXDATA_0           ( CTL_BASE_ANLG_PHY_G1 + 0x0004 )
@@ -198,6 +196,8 @@
 
 /* REG_ANLG_PHY_G1_ANALOG_MIPI_DSI_4LANE_DSI_ISO_SW */
 
+#define BIT_ANLG_PHY_G1_ANALOG_MIPI_DSI_4LANE_DSI_DIV6CLK_GATEEN             BIT(2)
+#define BIT_ANLG_PHY_G1_ANALOG_MIPI_DSI_4LANE_DSI_PHY_MODE                   BIT(1)
 #define BIT_ANLG_PHY_G1_ANALOG_MIPI_DSI_4LANE_DSI_ISO_SW_EN                  BIT(0)
 
 /* REG_ANLG_PHY_G1_ANALOG_MIPI_DSI_4LANE_REG_SEL_CFG_0 */
@@ -237,6 +237,7 @@
 
 /* REG_ANLG_PHY_G1_ANALOG_MIPI_DSI_4LANE_REG_SEL_CFG_1 */
 
+#define BIT_ANLG_PHY_G1_DBG_SEL_ANALOG_MIPI_DSI_4LANE_DSI_PHY_MODE           BIT(11)
 #define BIT_ANLG_PHY_G1_DBG_SEL_ANALOG_MIPI_DSI_4LANE_DSI_FORCEPLL           BIT(10)
 #define BIT_ANLG_PHY_G1_DBG_SEL_ANALOG_MIPI_DSI_4LANE_DSI_TESTDIN            BIT(9)
 #define BIT_ANLG_PHY_G1_DBG_SEL_ANALOG_MIPI_DSI_4LANE_DSI_TESTEN             BIT(8)
@@ -249,7 +250,4 @@
 #define BIT_ANLG_PHY_G1_DBG_SEL_ANALOG_MIPI_DSI_4LANE_DSI_TXSKEWCALHS_3      BIT(1)
 #define BIT_ANLG_PHY_G1_DBG_SEL_ANALOG_MIPI_DSI_4LANE_DSI_ISO_SW_EN          BIT(0)
 
-
-#endif /* ANLG_PHY_G1_H */
-
-
+#endif

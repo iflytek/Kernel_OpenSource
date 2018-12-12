@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-12-06 15:47:51
  *
  */
-
 
 #ifndef AON_DBG_APB_H
 #define AON_DBG_APB_H
 
 #define CTL_BASE_AON_DBG_APB 0x32890000
-
 
 #define REG_AON_DBG_APB_APCPU_COMM_CTRL          ( CTL_BASE_AON_DBG_APB + 0x0000 )
 #define REG_AON_DBG_APB_APCPU_PROT_CTRL          ( CTL_BASE_AON_DBG_APB + 0x0004 )
@@ -30,8 +28,8 @@
 
 #define BIT_AON_DBG_APB_APCPU_AWSTASHLPIDENS   BIT(20)
 #define BIT_AON_DBG_APB_APCPU_AWSTASHLPIDS(x)  (((x) & 0xF) << 16)
-#define BIT_AON_DBG_APB_APCPU_CFGTE(x)         (((x) & 0xF) << 8)
-#define BIT_AON_DBG_APB_APCPU_AA64NAA32(x)     (((x) & 0xF))
+#define BIT_AON_DBG_APB_APCPU_CFGTE(x)         (((x) & 0xFF) << 8)
+#define BIT_AON_DBG_APB_APCPU_AA64NAA32(x)     (((x) & 0xFF))
 
 /* REG_AON_DBG_APB_APCPU_PROT_CTRL */
 
@@ -45,6 +43,7 @@
 #define BIT_AON_DBG_APB_DAP_DEVICEEN           BIT(31)
 #define BIT_AON_DBG_APB_DAP_DBGEN              BIT(30)
 #define BIT_AON_DBG_APB_DAP_SPIDBGEN           BIT(29)
+#define BIT_AON_DBG_APB_CDMA2K_DBGEN           BIT(12)
 #define BIT_AON_DBG_APB_VDSP_DBGEN             BIT(11)
 #define BIT_AON_DBG_APB_GPU_DBGEN              BIT(10)
 #define BIT_AON_DBG_APB_TG_JTAG_EN             BIT(9)
@@ -75,6 +74,7 @@
 #define BIT_AON_DBG_APB_DAP_DEVICEEN_NON_SEC   BIT(31)
 #define BIT_AON_DBG_APB_DAP_DBGEN_NON_SEC      BIT(30)
 #define BIT_AON_DBG_APB_DAP_SPIDBGEN_NON_SEC   BIT(29)
+#define BIT_AON_DBG_APB_CDMA2K_DBGEN_NON_SEC   BIT(12)
 #define BIT_AON_DBG_APB_VDSP_DBGEN_NON_SEC     BIT(11)
 #define BIT_AON_DBG_APB_GPU_DBGEN_NON_SEC      BIT(10)
 #define BIT_AON_DBG_APB_TG_JTAG_EN_NON_SEC     BIT(9)
@@ -98,7 +98,4 @@
 #define BIT_AON_DBG_APB_EFUSE_DEBUG_BOND_OFF   BIT(31)
 #define BIT_AON_DBG_APB_EFUSE_SECURE_DEBUG     BIT(30)
 
-
-#endif /* AON_DBG_APB_H */
-
-
+#endif

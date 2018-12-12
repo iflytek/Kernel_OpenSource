@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-12-06 15:47:51
  *
  */
-
 
 #ifndef MM_AHB_H
 #define MM_AHB_H
 
 #define CTL_BASE_MM_AHB 0x62200000
-
 
 #define REG_MM_AHB_AHB_EB                      ( CTL_BASE_MM_AHB + 0x0000 )
 #define REG_MM_AHB_AHB_RST                     ( CTL_BASE_MM_AHB + 0x0004 )
@@ -34,6 +32,7 @@
 #define REG_MM_AHB_MM_IP_BUSY                  ( CTL_BASE_MM_AHB + 0x0038 )
 #define REG_MM_AHB_MM_AS_BDG_STATE             ( CTL_BASE_MM_AHB + 0x003C )
 #define REG_MM_AHB_MM_LPC_CTRL_FD              ( CTL_BASE_MM_AHB + 0x0040 )
+#define REG_MM_AHB_MM_LPC_CTRL_SLICE_ISP       ( CTL_BASE_MM_AHB + 0x0044 )
 
 /* REG_MM_AHB_AHB_EB */
 
@@ -55,9 +54,9 @@
 #define BIT_MM_AHB_FD_SOFT_RST                    BIT(26)
 #define BIT_MM_AHB_DVFS_SOFT_RST                  BIT(24)
 #define BIT_MM_AHB_DCAM_ALL_SOFT_RST              BIT(23)
-#define BIT_MM_AHB_ISP_DCAM0_SOFT_RST             BIT(22)
-#define BIT_MM_AHB_ISP_DCAM1_SOFT_RST             BIT(21)
-#define BIT_MM_AHB_DCAM_SOFT_RST_MASK             BIT(20)
+#define BIT_MM_AHB_FD_VAU_SOFT_RST                BIT(22)
+#define BIT_MM_AHB_CPP_VAU_SOFT_RST               BIT(21)
+#define BIT_MM_AHB_JPG_VAU_SOFT_RST               BIT(20)
 #define BIT_MM_AHB_JPG_SOFT_RST_MASK              BIT(19)
 #define BIT_MM_AHB_CPP_SOFT_RST_MASK              BIT(18)
 #define BIT_MM_AHB_MM_MAIN_SOFT_RST               BIT(17)
@@ -66,12 +65,12 @@
 #define BIT_MM_AHB_CPP_PATH1_SOFT_RST             BIT(14)
 #define BIT_MM_AHB_CPP_DMA_SOFT_RST               BIT(13)
 #define BIT_MM_AHB_ISP_AHB_SOFT_RST               BIT(12)
-#define BIT_MM_AHB_ISP_AXI_SOFT_RST               BIT(11)
+#define BIT_MM_AHB_ISP_VAU_SOFT_RST               BIT(11)
 #define BIT_MM_AHB_ISP_SOFT_RST                   BIT(10)
 #define BIT_MM_AHB_MIPI_CSI0_SOFT_RST             BIT(9)
 #define BIT_MM_AHB_MIPI_CSI1_SOFT_RST             BIT(8)
 #define BIT_MM_AHB_MIPI_CSI2_SOFT_RST             BIT(7)
-#define BIT_MM_AHB_DCAM_AXIM_SOFT_RST             BIT(6)
+#define BIT_MM_AHB_DCAM_VAU_SOFT_RST              BIT(6)
 #define BIT_MM_AHB_DCAM0_SOFT_RST                 BIT(5)
 #define BIT_MM_AHB_DCAM1_SOFT_RST                 BIT(4)
 #define BIT_MM_AHB_DCAM2_SOFT_RST                 BIT(3)
@@ -187,7 +186,10 @@
 #define BIT_MM_AHB_LP_EB_FD                       BIT(16)
 #define BIT_MM_AHB_LP_NUM_FD(x)                   (((x) & 0xFFFF))
 
+/* REG_MM_AHB_MM_LPC_CTRL_SLICE_ISP */
 
-#endif /* MM_AHB_H */
+#define BIT_MM_AHB_PU_NUM_SLICE_ISP(x)            (((x) & 0xFF) << 24)
+#define BIT_MM_AHB_LP_EB_SLICE_ISP                BIT(16)
+#define BIT_MM_AHB_LP_NUM_SLICE_ISP(x)            (((x) & 0xFFFF))
 
-
+#endif

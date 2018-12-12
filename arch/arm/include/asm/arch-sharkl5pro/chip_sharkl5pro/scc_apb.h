@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-12-06 15:47:51
  *
  */
-
 
 #ifndef SCC_APB_H
 #define SCC_APB_H
 
 #define CTL_BASE_SCC_APB 0x324D0000
-
 
 #define REG_SCC_APB_SCC_TUNE_LMT_CFG   ( CTL_BASE_SCC_APB + 0x0000 )
 #define REG_SCC_APB_SCC_TUNE_STATUS    ( CTL_BASE_SCC_APB + 0x0004 )
@@ -116,7 +114,4 @@
 
 #define BIT_SCC_APB_SCC_ROSC_SW_RST(x)             (((x) & 0xF))
 
-
-#endif /* SCC_APB_H */
-
-
+#endif

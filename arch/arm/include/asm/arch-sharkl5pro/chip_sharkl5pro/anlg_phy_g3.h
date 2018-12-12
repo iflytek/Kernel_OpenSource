@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-12-06 15:47:51
  *
  */
-
 
 #ifndef ANLG_PHY_G3_H
 #define ANLG_PHY_G3_H
 
 #define CTL_BASE_ANLG_PHY_G3 0x323C0000
-
 
 #define REG_ANLG_PHY_G3_ANALOG_BB_TOP_RPLL_CTRL0                 ( CTL_BASE_ANLG_PHY_G3 + 0x0000 )
 #define REG_ANLG_PHY_G3_ANALOG_BB_TOP_RPLL_CTRL1                 ( CTL_BASE_ANLG_PHY_G3 + 0x0004 )
@@ -462,6 +460,8 @@
 
 /* REG_ANLG_PHY_G3_ANALOG_MPLL2_MPLL2_CTRL7 */
 
+#define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL_CLK_JITTER_MON_EN       BIT(26)
+#define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL_CLK_JITTER_MON_SEL(x)   (((x) & 0xF) << 22)
 #define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL2_VCTRLH_SEL(x)          (((x) & 0x7) << 19)
 #define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL2_VCTRLL_SEL(x)          (((x) & 0x7) << 16)
 #define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL2_RG_CLOSELOOP_EN        BIT(15)
@@ -473,8 +473,8 @@
 #define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL2_ISO_SW_EN              BIT(5)
 #define BIT_ANLG_PHY_G3_ANALOG_MPLL2_TEST_CLK_EN                  BIT(4)
 #define BIT_ANLG_PHY_G3_ANALOG_MPLL2_TEST_SEL                     BIT(3)
-#define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL_CLK_JITTER_MON_EN       BIT(2)
-#define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL_CLK_JITTER_MON_SEL(x)   (((x) & 0x3))
+#define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL_RESERVED_BIT2           BIT(2)
+#define BIT_ANLG_PHY_G3_ANALOG_MPLL2_MPLL_RESERVED_BIT1_0(x)      (((x) & 0x3))
 
 /* REG_ANLG_PHY_G3_ANALOG_MPLL2_SCU_DVFS_INDEX0 */
 
@@ -534,7 +534,4 @@
 #define BIT_ANLG_PHY_G3_DBG_SEL_ANALOG_MPLL2_MPLL2_RST            BIT(1)
 #define BIT_ANLG_PHY_G3_DBG_SEL_ANALOG_MPLL2_MPLL2_PD             BIT(0)
 
-
-#endif /* ANLG_PHY_G3_H */
-
-
+#endif

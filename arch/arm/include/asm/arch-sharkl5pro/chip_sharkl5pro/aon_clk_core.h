@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-05-08 16:01:53
+ * updated at 2018-12-06 15:47:51
  *
  */
-
 
 #ifndef AON_CLK_CORE_H
 #define AON_CLK_CORE_H
 
 #define CTL_BASE_AON_CLK_CORE 0x32080200
-
 
 #define REG_AON_CLK_CORE_CGM_AON_APB_CFG                ( CTL_BASE_AON_CLK_CORE + 0x0020 )
 #define REG_AON_CLK_CORE_CGM_ADI_CFG                    ( CTL_BASE_AON_CLK_CORE + 0x0024 )
@@ -83,6 +81,7 @@
 #define REG_AON_CLK_CORE_CGM_CPHY_CFG_CFG               ( CTL_BASE_AON_CLK_CORE + 0x011C )
 #define REG_AON_CLK_CORE_CGM_CSI_PHY_SCAN_ONLY_CFG      ( CTL_BASE_AON_CLK_CORE + 0x0120 )
 #define REG_AON_CLK_CORE_CGM_WCDMA_SLICE_SCAN_ONLY_CFG  ( CTL_BASE_AON_CLK_CORE + 0x0124 )
+#define REG_AON_CLK_CORE_CGM_26M_ETC_CFG                ( CTL_BASE_AON_CLK_CORE + 0x0128 )
 
 /* REG_AON_CLK_CORE_CGM_AON_APB_CFG */
 
@@ -359,7 +358,8 @@
 
 #define BIT_AON_CLK_CORE_CGM_WCDMA_SLICE_SCAN_ONLY_CFG_CGM_WCDMA_SLICE_SCAN_ONLY_SEL  BIT(0)
 
+/* REG_AON_CLK_CORE_CGM_26M_ETC_CFG */
 
-#endif /* AON_CLK_CORE_H */
+#define BIT_AON_CLK_CORE_CGM_26M_ETC_CFG_CGM_26M_ETC_SEL                              BIT(0)
 
-
+#endif
