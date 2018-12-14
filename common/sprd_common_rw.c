@@ -541,6 +541,11 @@ int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)
 		return -1;
 	}
 
+	if (get_partition_info_by_name(dev_desc, mpart, &info) == -1) {
+		errorf("## Valid EFI partition not found ##\n");
+		return -1;
+	}
+
 	/* set the device as block device */
 	ext4fs_set_blk_dev(dev_desc, &info);
 
