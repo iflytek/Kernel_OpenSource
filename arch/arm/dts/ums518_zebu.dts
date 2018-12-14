@@ -9,9 +9,9 @@
 /dts-v1/;
 
 / {
-	model = "Spreadtrum sharkl5pro_zebu Board";
+	model = "Spreadtrum ums518_zebu Board";
 
-	compatible = "sprd,sharkl5pro_zebu";
+	compatible = "sprd,ums518_zebu";
 
 	sprd,sc-id = <9862 1 0x20000>;
 

@@ -388,7 +388,7 @@ config TARGET_UMS510_1H10_32B
         help
           This is the Spreadtrum sharkl5 Board
 
-config TARGET_SHARKL5PRO_ZEBU
+config TARGET_UMS518_ZEBU
         bool "Spreadtrum sharkl5pro"
         select ARM64
         help
@@ -527,6 +527,6 @@ source "board/spreadtrum/sp9863a_1h10_32b/Kconfig"
 source "board/spreadtrum/sp9863a_3h10_32b/Kconfig"
 source "board/spreadtrum/sp9863a_3c10_32b/Kconfig"
 source "board/spreadtrum/ums518_haps/Kconfig"
-source "board/spreadtrum/sharkl5pro_zebu/Kconfig"
 source "board/spreadtrum/ums518_haps_bkd/Kconfig"
+source "board/spreadtrum/ums518_zebu/Kconfig"
 endif
