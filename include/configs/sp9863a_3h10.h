@@ -55,6 +55,12 @@
 #define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM_1
 #define CONFIG_SYS_MEMTEST_END		(PHYS_SDRAM_1 + 0x0800000)
 
+//#define DDR_MEM_TEST
+
+#ifdef DDR_MEM_TEST
+#undef CONFIG_KERNEL_BOOT_CP
+#endif
+
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 5 * 1024 * 1024)
 
