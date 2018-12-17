@@ -61,12 +61,33 @@ int board_init(void)
 }
 int dram_init(void)
 {
-	/*
-	 * Clear spin table so that secondary processors
-	 * observe the correct value after waken up from wfe.
-	 */
-	*(unsigned long *)CPU_RELEASE_ADDR = 0;
+#ifdef CONFIG_DDR_AUTO_DETECT
+	ulong sdram_base = CONFIG_SYS_SDRAM_BASE;
+	ulong sdram_size = 0;
+	chipram_env_t * env = CHIPRAM_ENV_LOCATION;
+	if (CHIPRAM_ENV_MAGIC != env->magic) {
+		printf("Chipram magic wrong , ddr data may be broken\n");
+		return 0;
+	}
+
+	real_ram_size = 0;
+
+	if (env->cs_number == 1) {
+		real_ram_size += env->cs0_size;
+		debugf("dram cs0 size %x\n",env->cs0_size);
+	} else if(env->cs_number == 2){
+		real_ram_size += env->cs0_size;
+		real_ram_size += env->cs1_size;
+		debugf("dram cs0 size %x\ndram cs1 size %x\n",env->cs0_size, env->cs1_size);
+	}
+
+	//real_ram_size = get_ram_size((volatile void *)sdram_base, real_ram_size);
+#else
+	real_ram_size = REAL_SDRAM_SIZE;
+#endif
+
 	gd->ram_size = PHYS_SDRAM_1_SIZE;
+
 	return 0;
 }
 
@@ -90,17 +111,16 @@ int misc_init_r(void)
 static void battery_init(void)
 {
 	sprdchg_common_cfg();
-	sprdchg_fan54015_init();
+	sprdchg_2703_init();
 	sprdbat_init();
 }
 
 int board_late_init(void)
 {
-
- boot_mode_t boot_role;
-        extern chipram_env_t* get_chipram_env(void);
-        chipram_env_t* cr_env = get_chipram_env();
-        boot_role = cr_env->mode;
+	boot_mode_t boot_role;
+	extern chipram_env_t* get_chipram_env(void);
+	chipram_env_t* cr_env = get_chipram_env();
+	boot_role = cr_env->mode;
 
 	boot_pwr_check();
 

@@ -7,19 +7,14 @@
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
-xxx
+
 #define SPRD_DEBUG_LEVEL		2
 
-//#define CONFIG_KERNEL_BOOT_CP
-
+#define CONFIG_KERNEL_BOOT_CP
 #define CONFIG_MEM_LAYOUT_DECOUPLING
-
-/*sharklj1 fpga/zebu debug*/
-#define BOOTIMG_ADR	0x8D000000
 
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
-
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
@@ -30,7 +25,7 @@ xxx
 //#define CONFIG_SYS_DCACHE_OFF
 //#define CONFIG_SYS_ICACHE_OFF
 
-#define CONFIG_IDENT_STRING		"roc1"
+#define CONFIG_IDENT_STRING		"ROC1"
 
 #define CONFIG_SYS_INIT_SP_ADDR     \
 	(CONFIG_SYS_SDRAM_END - 0x10000 - GENERATED_GBL_DATA_SIZE)
@@ -38,11 +33,8 @@ xxx
 /* Flat Device Tree Definitions */
 #define CONFIG_OF_LIBFDT
 
-
 /* SMP Spin Table Definitions */
 #define CPU_RELEASE_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x7fff0)
-
-
 
 /* Generic Timer Definitions */
 #define COUNTER_FREQUENCY		(0x1800000)	/* 24MHz */
@@ -58,17 +50,14 @@ xxx
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 5 * 1024 * 1024)
 
-
 /*timer*/
 #define CONFIG_SYS_HZ			1000
 #define CONFIG_SPRD_TIMER_CLK		1000 /*32768*/
 
-
-
- /* SPREADTRUM BIGPHONE board - SoC Configuration */
+/* SPREADTRUM BIGPHONE board - SoC Configuration */
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
 #define CONFIG_SOC_ROC1
-#define CONFIG_ADIE_SC2721
+#define CONFIG_ADIE_SC2730
 
 #define CONFIG_DTS_MEM_LAYOUT
 
@@ -84,6 +73,11 @@ xxx
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
+/*
+ * log config
+ */
+#define CONFIG_SPRD_LOG
+
 /*sprd watchdog*/
 #define CONFIG_HW_WATCHDOG
 #define CONFIG_SPRD_WATCHDOG
@@ -92,6 +86,7 @@ xxx
 #define CONFIG_RTC_SPRD
 
 /*sprd normal efuse*/
+#define CONFIG_SPRD_UID
 #define CONFIG_SPRD_AP_NORMAL_EFUSE
 /*sprd adc*/
 #define CONFIG_SPRD_ADC
@@ -140,7 +135,7 @@ xxx
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
 #define CONFIG_SYS_SDRAM_SIZE     PHYS_SDRAM_1_SIZE
 #define CONFIG_SYS_SDRAM_END (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE)
-
+#define CONFIG_DDR_AUTO_DETECT
 
 #ifndef CONFIG_DUAL_DDR
 #define CONFIG_NR_DRAM_BANKS		1
@@ -153,7 +148,12 @@ xxx
 #define CONFIG_SYS_SDRAM_END2 (CONFIG_SYS_SDRAM_BASE2 + CONFIG_SYS_SDRAM_SIZE2)
 #endif
 
-
+#ifdef DEBUG
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+#define CONFIG_AUTOBOOT_KEYED 1
+#define CONFIG_AUTOBOOT_PROMPT "Press q to abort autoboot in %d seconds"
+#define CONFIG_AUTOBOOT_STOP_STR "q"
+#endif
 
 /* Initial environment variables */
 #define CONFIG_BOOTCOMMAND			"cboot normal"
@@ -167,7 +167,7 @@ xxx
 
 /* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE		1024	/* Console I/O Buffer Size */
-#define CONFIG_SYS_PROMPT		"sharklE# "
+#define CONFIG_SYS_PROMPT		"roc1# "
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
 									sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
@@ -175,30 +175,22 @@ xxx
 #define CONFIG_CMDLINE_EDITING		1
 #define CONFIG_SYS_MAXARGS		64	/* max command args */
 
-
 #define	CONFIG_PREBOOT		"role"
-
 
 #define MEM_INIT_PARA "mem=512M"
 #define MTDIDS_DEFAULT "nand0=sprd-nand"
 #define MTDPARTS_DEFAULT "mtdparts=sprd-nand:256k(spl),768k(2ndbl),512k(kpanic),-(ubipac)"
 #define CONFIG_BOOTARGS MEM_INIT_PARA" loglevel=7 console=ttyS0,115200n8 init=/init " MTDPARTS_DEFAULT
 
-/*auto boot with normal mode*/
-//#define CONFIG_AUTOBOOT
-
 /*boot with modem*/
 #define BOOT_NATIVE_LINUX_MODEM  1
-
-//#define CONFIG_MINI_TRUSTZONE
 
 #define CONFIG_SUPPORT_LTE
 #define CONFIG_ADVANCED_LTE
 
-//#define CONFIG_SUPPORT_WLTE
-//#define CONFIG_SUPPORT_GSM
-
-#define LTE_AGDSP_SIZE  0x00260000
+#define CONFIG_SUPPORT_AGDSP
+#define CONFIG_AUDCP_BOOT_VECTOR 0x44800040
+#define LTE_AGDSP_SIZE  0x00600000
 #define LTE_AGDSP_ADDR (0x89600000 - LTE_AGDSP_SIZE)
 
 #define FIXNV_SIZE     0x100000
@@ -206,7 +198,6 @@ xxx
 #define CONFIG_DFS_ENABLE
 #define DFS_ADDR    0x800000
 #define DFS_SIZE    (256*1024)
-
 
 /*eMMC config*/
 #define CONFIG_EMMC_BOOT
@@ -221,25 +212,20 @@ xxx
 #define CONFIG_FAT_WRITE
 #define CONFIG_FS_EXT4
 
-
 /*used in usb drv*/
 #define CHIP_ENDIAN_LITTLE
 #define _LITTLE_ENDIAN 1
-//#define CONFIG_USB_DWC3
-//#ifdef CONFIG_USB_DWC3
-//#define CONFIG_USB_DWC3_GADGET
-//#define CONFIG_USB_DWC3_SPRD
-//#endif
+#define CONFIG_USB_DWC3
+#ifdef CONFIG_USB_DWC3
+#define CONFIG_USB_DWC3_GADGET
+#define CONFIG_USB_DWC3_SPRD
+#else
 #define CONFIG_MUSB_GADGET
 #define CONFIG_USB_SPRD_DMA
 #define CONFIG_USB_GADGET_MUSB_HDRC
-#define TMSC_16NM_FFPLL 0x5533166e /* USB3.0_PHY_TSMC_16NM */
-#define USB3_PHY_TUNE1 0x919e9dec
-#define USB3_PHY_TUNE2 0x0f0560fe
 #define CONFIG_USB_PHY_ROC1
-//#define CALIBRATION_FLAG_CP0           0x88AF0000
+#endif
 #define CALIBRATION_FLAG_CP1	0x8d7d0000
-//#define CONFIG_DWC_OTG
 #define CONFIG_MODEM_CALIBERATE
 #define CALIBRATE_ENUM_MS 15000
 #define CALIBRATE_IO_MS 2000
