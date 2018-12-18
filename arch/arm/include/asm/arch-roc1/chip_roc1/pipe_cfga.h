@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:55
+ * updated at 2018-12-18 10:53:50
  *
  */
+
 
 #ifndef PIPE_CFGA_H
 #define PIPE_CFGA_H
 
 #define CTL_BASE_PIPE_CFGA 0x3240C000
+
 
 #define REG_PIPE_CFGA_DIG_CFG0   ( CTL_BASE_PIPE_CFGA + 0x0000 )
 #define REG_PIPE_CFGA_DIG_CFG1   ( CTL_BASE_PIPE_CFGA + 0x0004 )
@@ -476,4 +478,7 @@
 #define BIT_PIPE_CFGA_ANA_CFG14_CFG_MISC_OUT(x)               (((x) & 0xF) << 4)
 #define BIT_PIPE_CFGA_ANA_CFG14_CFG_MISC_IN(x)                (((x) & 0xF))
 
-#endif
+
+#endif /* PIPE_CFGA_H */
+
+

@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-15 19:53:52
+ * updated at 2018-12-18 10:54:28
  *
  */
+
 
 #ifndef MM_CLK_CORE_H
 #define MM_CLK_CORE_H
 
 #define CTL_BASE_MM_CLK_CORE 0x62100000
+
 
 #define REG_MM_CLK_CORE_CGM_MM_AHB_CFG             ( CTL_BASE_MM_CLK_CORE + 0x0020 )
 #define REG_MM_CLK_CORE_CGM_MM_MTX_CFG             ( CTL_BASE_MM_CLK_CORE + 0x0024 )
@@ -102,4 +104,7 @@
 
 #define BIT_MM_CLK_CORE_CGM_CSI_PHY_SCAN_ONLY_CFG_CGM_CSI_PHY_SCAN_ONLY_SEL  BIT(0)
 
-#endif
+
+#endif /* MM_CLK_CORE_H */
+
+

@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-15 19:53:52
+ * updated at 2018-12-18 10:54:28
  *
  */
+
 
 #ifndef IPA_CLK_CORE_H
 #define IPA_CLK_CORE_H
 
-#define CTL_BASE_IPA_CLK_CORE 0x21010000
+#define CTL_BASE_IPA_CLK_CORE 0x21050000
+
 
 #define REG_IPA_CLK_CORE_CGM_IPA_CORE_CFG    ( CTL_BASE_IPA_CLK_CORE + 0x0020 )
 #define REG_IPA_CLK_CORE_CGM_IPA_MTX_CFG     ( CTL_BASE_IPA_CLK_CORE + 0x0024 )
@@ -87,4 +89,7 @@
 
 #define BIT_IPA_CLK_CORE_CGM_32K_OUT_CFG_CGM_32K_OUT_SEL            BIT(0)
 
-#endif
+
+#endif /* IPA_CLK_CORE_H */
+
+

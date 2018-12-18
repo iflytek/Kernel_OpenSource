@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:56
+ * updated at 2018-12-18 10:54:34
  *
  */
+
 
 #ifndef TOP_DVFS_APB_H
 #define TOP_DVFS_APB_H
 
 #define CTL_BASE_TOP_DVFS_APB 0x322A0000
+
 
 #define REG_TOP_DVFS_APB_DCDC_MM_FIX_VOLTAGE_CTRL                    ( CTL_BASE_TOP_DVFS_APB + 0x0000 )
 #define REG_TOP_DVFS_APB_DCDC_MM_DVFS_WAIT_WINDOW_CFG                ( CTL_BASE_TOP_DVFS_APB + 0x0004 )
@@ -974,4 +976,7 @@
 
 #define BIT_TOP_DVFS_APB_DVFS_RES_REG3(x)                      (((x) & 0xFFFFFFFF))
 
-#endif
+
+#endif /* TOP_DVFS_APB_H */
+
+

@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-15 19:53:52
+ * updated at 2018-12-18 10:54:28
  *
  */
+
 
 #ifndef AI_CLK_CORE_H
 #define AI_CLK_CORE_H
 
 #define CTL_BASE_AI_CLK_CORE 0x6FD04000
+
 
 #define REG_AI_CLK_CORE_CGM_CAMBRICON_CFG      ( CTL_BASE_AI_CLK_CORE + 0x0020 )
 #define REG_AI_CLK_CORE_CGM_POWERVR_CFG        ( CTL_BASE_AI_CLK_CORE + 0x0024 )
@@ -57,4 +59,7 @@
 
 #define BIT_AI_CLK_CORE_CGM_DVFS_AI_CFG_CGM_DVFS_AI_SEL                BIT(0)
 
-#endif
+
+#endif /* AI_CLK_CORE_H */
+
+

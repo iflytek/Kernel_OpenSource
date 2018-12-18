@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:54
+ * updated at 2018-12-18 10:55:02
  *
  */
+
 
 #ifndef IPA_AHB_H
 #define IPA_AHB_H
 
 #define CTL_BASE_IPA_AHB 0x21040000
+
 
 #define REG_IPA_AHB_IPA_RST                       ( CTL_BASE_IPA_AHB + 0x0000 )
 #define REG_IPA_AHB_IPA_EB                        ( CTL_BASE_IPA_AHB + 0x0004 )
@@ -509,4 +511,7 @@
 
 #define BIT_IPA_AHB_AP_INT_TO_IPA_CM4_EN(x)              (((x) & 0xFFFFFFFF))
 
-#endif
+
+#endif /* IPA_AHB_H */
+
+

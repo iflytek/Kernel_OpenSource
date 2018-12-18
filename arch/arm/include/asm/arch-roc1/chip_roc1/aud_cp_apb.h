@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:54
+ * updated at 2018-12-18 10:54:21
  *
  */
+
 
 #ifndef AUD_CP_APB_H
 #define AUD_CP_APB_H
 
 #define CTL_BASE_AUD_CP_APB 0x0150D000
+
 
 #define REG_AUD_CP_APB_APB_EB         ( CTL_BASE_AUD_CP_APB + 0x0000 )
 #define REG_AUD_CP_APB_APB_RST        ( CTL_BASE_AUD_CP_APB + 0x0004 )
@@ -66,4 +68,7 @@
 
 #define BIT_AUD_CP_APB_IRAM_ENDIAN_SEL      BIT(0)
 
-#endif
+
+#endif /* AUD_CP_APB_H */
+
+

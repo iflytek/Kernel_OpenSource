@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:55
+ * updated at 2018-12-18 10:53:50
  *
  */
+
 
 #ifndef MPHY_CFGA_H
 #define MPHY_CFGA_H
 
 #define CTL_BASE_MPHY_CFGA 0x323B8000
+
 
 #define REG_MPHY_CFGA_DIG_CFG0   ( CTL_BASE_MPHY_CFGA + 0x0000 )
 #define REG_MPHY_CFGA_DIG_CFG1   ( CTL_BASE_MPHY_CFGA + 0x0004 )
@@ -778,4 +780,7 @@
 #define BIT_MPHY_CFGA_DIG_CFG66_PLL_BIST_OK_LATCH              BIT(16)
 #define BIT_MPHY_CFGA_DIG_CFG66_PLL_BIST_CNT_LATCH(x)          (((x) & 0xFFFF))
 
-#endif
+
+#endif /* MPHY_CFGA_H */
+
+

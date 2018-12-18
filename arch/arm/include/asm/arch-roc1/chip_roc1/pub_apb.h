@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:55
+ * updated at 2018-12-18 10:55:31
  *
  */
+
 
 #ifndef PUB_APB_H
 #define PUB_APB_H
 
 #define CTL_BASE_PUB_APB 0x31050000
+
 
 #define REG_PUB_APB_DDR_EB                          ( CTL_BASE_PUB_APB + 0x0000 )
 #define REG_PUB_APB_DDR_SOFT_RST                    ( CTL_BASE_PUB_APB + 0x0004 )
@@ -1117,4 +1119,7 @@
 
 #define BIT_PUB_APB_PUB0_DUMMY_REG1(x)                           (((x) & 0xFFFFFFFF))
 
-#endif
+
+#endif /* PUB_APB_H */
+
+

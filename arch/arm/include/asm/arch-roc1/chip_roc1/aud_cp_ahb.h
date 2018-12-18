@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:54
+ * updated at 2018-12-18 10:54:21
  *
  */
+
 
 #ifndef AUD_CP_AHB_H
 #define AUD_CP_AHB_H
 
 #define CTL_BASE_AUD_CP_AHB 0x015E0000
+
 
 #define REG_AUD_CP_AHB_MODULE_EB0_STS         ( CTL_BASE_AUD_CP_AHB + 0x0000 )
 #define REG_AUD_CP_AHB_MODULE_EB1_STS         ( CTL_BASE_AUD_CP_AHB + 0x0004 )
@@ -444,4 +446,7 @@
 #define BIT_AUD_CP_AHB_PU_NUM_S7(x)                      (((x) & 0xFF) << 8)
 #define BIT_AUD_CP_AHB_PU_NUM_ASYNC_BRIDGE(x)            (((x) & 0xFF))
 
-#endif
+
+#endif /* AUD_CP_AHB_H */
+
+

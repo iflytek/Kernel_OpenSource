@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:55
+ * updated at 2018-12-18 10:54:28
  *
  */
+
 
 #ifndef PRE_DIV_CLK_GEN_H
 #define PRE_DIV_CLK_GEN_H
 
 #define CTL_BASE_PRE_DIV_CLK_GEN 0x32080000
+
 
 #define REG_PRE_DIV_CLK_GEN_SOFT_CNT_DONE0_CFG                 ( CTL_BASE_PRE_DIV_CLK_GEN + 0x0020 )
 #define REG_PRE_DIV_CLK_GEN_PLL_WAIT_SEL0_CFG                  ( CTL_BASE_PRE_DIV_CLK_GEN + 0x0024 )
@@ -657,4 +659,7 @@
 
 #define BIT_PRE_DIV_CLK_GEN_MONITOR_GATE_AUTO_EN_STATUS50_CFG_MONITOR_GATE_AUTO_EN_STATUS5(x)  (((x) & 0x1F))
 
-#endif
+
+#endif /* PRE_DIV_CLK_GEN_H */
+
+

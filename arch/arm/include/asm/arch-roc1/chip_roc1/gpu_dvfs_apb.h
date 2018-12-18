@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:54
+ * updated at 2018-12-18 10:54:34
  *
  */
+
 
 #ifndef GPU_DVFS_APB_H
 #define GPU_DVFS_APB_H
 
 #define CTL_BASE_GPU_DVFS_APB 0x60110000
+
 
 #define REG_GPU_DVFS_APB_GPU_DVFS_HOLD_CTRL                ( CTL_BASE_GPU_DVFS_APB + 0x0000 )
 #define REG_GPU_DVFS_APB_GPU_DVFS_WAIT_WINDOW_CFG          ( CTL_BASE_GPU_DVFS_APB + 0x0004 )
@@ -317,4 +319,7 @@
 #define BIT_GPU_DVFS_APB_GPU_MEM_DFS_IDLE_DISABLE           BIT(1)
 #define BIT_GPU_DVFS_APB_GPU_CORE_DFS_IDLE_DISABLE          BIT(0)
 
-#endif
+
+#endif /* GPU_DVFS_APB_H */
+
+

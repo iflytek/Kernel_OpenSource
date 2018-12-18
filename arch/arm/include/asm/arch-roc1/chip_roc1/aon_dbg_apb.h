@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-08-09 17:05:54
+ * updated at 2018-12-18 10:53:58
  *
  */
+
 
 #ifndef AON_DBG_APB_H
 #define AON_DBG_APB_H
 
 #define CTL_BASE_AON_DBG_APB 0x32890000
+
 
 #define REG_AON_DBG_APB_APCPU_COMM_CTRL          ( CTL_BASE_AON_DBG_APB + 0x0000 )
 #define REG_AON_DBG_APB_APCPU_PROT_CTRL          ( CTL_BASE_AON_DBG_APB + 0x0004 )
@@ -102,4 +104,7 @@
 #define BIT_AON_DBG_APB_EFUSE_DEBUG_BOND_OFF   BIT(31)
 #define BIT_AON_DBG_APB_EFUSE_SECURE_DEBUG     BIT(30)
 
-#endif
+
+#endif /* AON_DBG_APB_H */
+
+
