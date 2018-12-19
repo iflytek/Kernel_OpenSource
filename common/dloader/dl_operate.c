@@ -683,7 +683,8 @@ OPERATE_STATUS _download_image(void)
 
 	/*image with backup partition*/
 	bakup_header = (sys_img_header *) g_eMMCBuf;
-	if (IMG_BAK_HEADER == bakup_header->mMagicNum) {
+	if ((IMG_BAK_HEADER == bakup_header->mMagicNum) ||
+		(0 == strcmp("vbmeta", g_dl_eMMCStatus.curUserPartitionName))) {
 		status = _img_write_with_backup(g_dl_eMMCStatus.curUserPartitionName);
 		if (OPERATE_IGNORE != status)
 			return status;
