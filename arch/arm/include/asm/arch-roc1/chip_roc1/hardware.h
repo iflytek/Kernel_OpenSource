@@ -71,7 +71,11 @@
 #define SPRD_AUD_CP_INTC_PHYS             0x320f0000
 #endif
 #define SPRD_ADI_PHYS                     0x32100000
+#ifdef ADI_15BIT_MODE
+#define SPRD_ADISLAVE_PHYS                0x32120000
+#else
 #define SPRD_ADISLAVE_PHYS                0x32108000
+#endif
 #define SPRD_THM0_PHYS                    0x32200000
 #define SPRD_THM1_PHYS                    0x32210000
 #define SPRD_THM2_PHYS                    0x32220000

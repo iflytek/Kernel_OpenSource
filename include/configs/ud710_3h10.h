@@ -334,4 +334,7 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+#ifdef CONFIG_ADIE_SC2730
+#define ADI_15BIT_MODE
+#endif
 #endif /* __CONFIG_H  */
