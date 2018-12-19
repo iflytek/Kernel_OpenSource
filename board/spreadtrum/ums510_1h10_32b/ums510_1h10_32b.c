@@ -26,9 +26,35 @@ phys_size_t get_real_ram_size(void)
 
 void enable_global_clocks(void)
 {
+	/* tmp power up mm and gpu here */
+	CHIP_REG_SET(REG_PMU_APB_PD_MM_TOP_CFG,
+		//BIT_PMU_APB_PD_MM_TOP_FORCE_SHUTDOWN |
+		//BIT_PMU_APB_PD_MM_TOP_AUTO_SHUTDOWN_EN |
+		BIT_PMU_APB_PD_MM_TOP_PWR_ON_DLY(1) |
+		BIT_PMU_APB_PD_MM_TOP_PWR_ON_SEQ_DLY(1) |
+		BIT_PMU_APB_PD_MM_TOP_ISO_ON_DLY(1) |
+		0
+	);
+
+	CHIP_REG_SET(REG_PMU_APB_PD_GPU_TOP_CFG0,
+		//BIT_PMU_APB_PD_GPU_TOP_FORCE_SHUTDOWN |
+		//BIT_PMU_APB_PD_GPU_TOP_AUTO_SHUTDOWN_EN |
+		BIT_PMU_APB_PD_GPU_TOP_PWR_ON_DLY(1) |
+		BIT_PMU_APB_PD_GPU_TOP_PWR_ON_SEQ_DLY(1) |
+		BIT_PMU_APB_PD_GPU_TOP_ISO_ON_DLY(2) |
+		0
+	);
+
 	__raw_writel(BIT_AON_APB_MM_EB | BIT_AON_APB_GPU_EB, REG_AON_APB_APB_EB0 + 0x1000);
 	while (__raw_readl(REG_PMU_APB_PWR_STATUS3_DBG) & BIT_PMU_APB_PD_MM_TOP_STATE(~0));
 	sci_glb_set(REG_MM_AHB_AHB_EB, BIT_MM_AHB_CKG_EB);
+}
+
+static void thm_overheate_en(void)
+{
+	sci_glb_set(REG_AON_APB_OVERHEAT_CTRL, BIT_AON_APB_THM0_OVERHEAT_ALARM_ADIE_EN |
+					BIT_AON_APB_THM1_OVERHEAT_ALARM_ADIE_EN |
+					BIT_AON_APB_THM2_OVERHEAT_ALARM_ADIE_EN );
 }
 
 extern void setup_chipram_env(void);
@@ -51,6 +77,7 @@ int board_init(void)
 	sprd_pmu_lowpower_init();
 	TDPllRefConfig(1);
 	enable_global_clocks();
+	thm_overheate_en();
 #endif
 	return 0;
 }
@@ -112,11 +139,10 @@ static void battery_init(void)
 
 int board_late_init(void)
 {
-
- boot_mode_t boot_role;
-        extern chipram_env_t* get_chipram_env(void);
-        chipram_env_t* cr_env = get_chipram_env();
-        boot_role = cr_env->mode;
+	boot_mode_t boot_role;
+	extern chipram_env_t* get_chipram_env(void);
+	chipram_env_t* cr_env = get_chipram_env();
+	boot_role = cr_env->mode;
 
 	boot_pwr_check();
 

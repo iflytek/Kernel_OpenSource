@@ -20,6 +20,8 @@
 #include <asm/arch/sdio_reg.h>
 #include <asm/arch/common.h>
 
+#include <sprd_sdhci_r11.h>
+
 /*
  * TODO：
  * Now many macros(such as: SPRD_EMMC_BASE, REG_AP_CLK_EMMC_CFG)
@@ -51,7 +53,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	REG_AON_APB_CGM_CLK_TOP_REG1,
 	BIT_AON_APB_CGM_EMMC_2X_EN|BIT_AON_APB_CGM_EMMC_1X_EN,
 
-	"vddgen",
+	"vddgen0",
 	"vddemmccore",
 },
 {
@@ -85,6 +87,20 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 struct sdio_base_info *get_sdcontrol_info(uint32_t device_type)
 {
 	return  &sdio_ctrl_info[device_type];
+}
+
+
+
+int if_host_sd_type(struct sdhci_host *host)
+{
+	int i = 0;
+
+	for ( ; i < sizeof(sdio_ctrl_info); ++i) {
+                if (sdio_ctrl_info[i].regbase == (u32)(host->ioaddr)) {
+			return sdio_ctrl_info[i].dev_type == SD;
+		}
+	}
+	return 0;
 }
 
 
