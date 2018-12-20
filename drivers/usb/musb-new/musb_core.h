@@ -383,6 +383,7 @@ struct musb {
 	u8			int_usb;
 	u16			int_rx;
 	u16			int_tx;
+	u16			int_listend;
 
 	struct usb_phy		*xceiv;
 

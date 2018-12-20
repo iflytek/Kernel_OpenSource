@@ -709,6 +709,7 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
 		musb_writew(musb->mregs, MUSB_INTRTXE, musb->epmask);
 		musb_writew(musb->mregs, MUSB_INTRRXE, musb->epmask & 0xfffe);
 		musb_writeb(musb->mregs, MUSB_INTRUSBE, 0xf7);
+		musb_writew(musb->mregs, MUSB_LISTEND_INT_EN, musb->epmask & 0xfffe);
 #ifndef __UBOOT__
 		struct usb_hcd *hcd = musb_to_hcd(musb);
 
@@ -937,6 +938,7 @@ void musb_start(struct musb *musb)
 	musb_writew(regs, MUSB_INTRTXE, musb->epmask);
 	musb_writew(regs, MUSB_INTRRXE, musb->epmask & 0xfffe);
 	musb_writeb(regs, MUSB_INTRUSBE, 0xf7);
+	musb_writew(musb->mregs, MUSB_LISTEND_INT_EN, musb->epmask & 0xfffe);
 
 	musb_writeb(regs, MUSB_TESTMODE, 0);
 #if 0
@@ -986,6 +988,7 @@ static void musb_generic_disable(struct musb *musb)
 	musb_writeb(mbase, MUSB_INTRUSBE, 0);
 	musb_writew(mbase, MUSB_INTRTXE, 0);
 	musb_writew(mbase, MUSB_INTRRXE, 0);
+	musb_writew(musb->mregs, MUSB_LISTEND_INT_EN, 0);
 
 	/* off */
 	musb_writeb(mbase, MUSB_DEVCTL, 0);
@@ -994,6 +997,7 @@ static void musb_generic_disable(struct musb *musb)
 	temp = musb_readb(mbase, MUSB_INTRUSB);
 	temp = musb_readw(mbase, MUSB_INTRTX);
 	temp = musb_readw(mbase, MUSB_INTRRX);
+	temp = musb_readw(mbase, MUSB_LISTEND_INT_STS);
 
 }
 
@@ -1543,6 +1547,7 @@ static irqreturn_t generic_interrupt(int irq, void *__hci)
 	musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
 	musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
 	musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
+	musb->int_listend = musb_readw(musb->mregs, MUSB_LISTEND_INT_STS);
 
 	if (musb->int_usb || musb->int_tx || musb->int_rx)
 		retval = musb_interrupt(musb);
@@ -1565,9 +1570,10 @@ static irqreturn_t generic_interrupt(int irq, void *__hci)
 	musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
 	musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
 	musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
+	musb->int_listend = musb_readw(musb->mregs, MUSB_LISTEND_INT_STS);
 	reg_dma = musb_readl(musb->mregs, MUSB_DMA_INTR_MASK_STATUS);
-	//dev_dbg(musb->controller, "sprd_musb_interrupt usb%04x tx%04x rx%04x dma%x\n",
-			//musb->int_usb, musb->int_tx, musb->int_rx, reg_dma);
+	//dev_dbg(musb->controller, "sprd_musb_interrupt usb%04x tx%04x rx%04x listend%04x dma%x\n",
+	//		musb->int_usb, musb->int_tx, musb->int_rx, musb->int_listend, reg_dma);
 
 	if (musb->int_usb || ((musb->int_tx & 0x01) == 0x01)) {
 		if (!reg_dma)

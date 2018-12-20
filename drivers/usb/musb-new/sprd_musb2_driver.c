@@ -611,7 +611,7 @@ void    usb_ldo_switch(int flag)
 
 static void usb_enable_module(int en)
 {
-#if defined(CONFIG_SOC_SHARKL5)
+#ifdef REG_USB_EB
 	if (en){
 		__raw_bits_or(BIT_USB_EB, REG_USB_EB);
 	}else {
@@ -640,7 +640,7 @@ static void usb_startup(void)
 	usb_enable_module(1);
 	Musb_mdelay(10);
 	usb_ldo_switch(1);
-#if defined(CONFIG_SOC_SHARKL5)
+#ifdef REG_USB_EB
 	__raw_bits_or(BIT_USB_EB, REG_USB_EB);
 #else
 	__raw_bits_or(BIT_USB_EB, REG_AP_AHB_AHB_EB);

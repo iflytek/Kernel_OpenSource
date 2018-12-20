@@ -57,6 +57,7 @@
 #define BIT_UART1_EB                            BIT_AP_APB_UART1_EB
 
 /* referenced by sprd_musb2_driver.c */
+#define REG_USB_EB                              REG_AON_APB_APB_EB1
 #define BIT_USB_EB                              BIT_AON_APB_OTG_PHY_EB
 
 /* referenced by roc1_usb_phy.c */

@@ -236,6 +236,9 @@
 #define MUSB_INDEX		0x0E	/* 8 bit */
 #define MUSB_TESTMODE		0x0F	/* 8 bit */
 
+#define MUSB_LISTEND_INT_STS   0x34c
+#define MUSB_LISTEND_INT_EN    0x34e
+
 /* Get offset for a given FIFO from musb->mregs */
 #if defined(CONFIG_USB_MUSB_TUSB6010) ||	\
 	defined(CONFIG_USB_MUSB_TUSB6010_MODULE)

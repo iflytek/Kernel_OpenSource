@@ -376,11 +376,7 @@ irqreturn_t sprd_dma_interrupt(struct musb *musb, u32 int_hsdma)
 					(bchannel - 15), 0);
 			}
 		} else {
-#ifdef CONFIG_SOC_SHARKL5
-			if (intr & CHN_LLIST_INT_MASK_STATUS) {
-#else
-			if (musb->int_tx & (1 << bchannel)) {
-#endif
+			if ((musb->int_tx | musb->int_listend) & (1 << bchannel)) {
 				/* clear interrupt */
 				intr |= CHN_LLIST_INT_CLR;
 				musb_writel(mbase, MUSB_DMA_CHN_INTR(bchannel),
