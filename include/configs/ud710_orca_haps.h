@@ -201,22 +201,22 @@
 #define LTE_AGDSP_SIZE  0x00260000
 #define LTE_AGDSP_ADDR (0x89600000 - LTE_AGDSP_SIZE)
 
-#define FIXNV_SIZE     0xc8000
+#define FIXNV_SIZE     0x100000
 
 #define CONFIG_DFS_ENABLE
-#define DFS_ADDR    0x50800000
-#define DFS_SIZE    (64*1024)
+#define DFS_ADDR    0x800000
+#define DFS_SIZE    (256*1024)
 
 
 /*eMMC config*/
+#define CONFIG_EMMC_BOOT
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
 #define CONFIG_EMMC_VERSION_R10P0
 
-/*eMMC boot*/
-#define CONFIG_EMMC_BOOT
 #define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
+#define EMMC_SECTOR_SIZE 512
 
 /*file system config*/
 #define CONFIG_FAT_WRITE

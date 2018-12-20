@@ -67,6 +67,7 @@
 #define REG_AP_AHB_OTG_PHY_CTRL			REG_AON_APB_OTG_PHY_CTRL
 
 /* referenced by ud710_haps.c */
+/* referenced by ud710_orca_haps.c */
 #define REG_PMU_APB_PD_GPU_TOP_CFG		REG_PMU_APB_PD_GPU_TOP_CFG0
 
 /* register redefiniton for compatible */
