@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-04 11:00:16
+ * updated at 2018-12-20 14:46:42
  *
  */
 
-#ifndef CS_DBG_APB
-#define CS_DBG_APB
+
+#ifndef CS_DBG_APB_H
+#define CS_DBG_APB_H
 
 #define CTL_BASE_CS_DBG_APB 0x7800A000
+
 
 #define REG_CS_DBG_APB_BUS_BUSY_TIMER         ( CTL_BASE_CS_DBG_APB + 0x0000 )
 #define REG_CS_DBG_APB_MISC_STATUS            ( CTL_BASE_CS_DBG_APB + 0x0004 )
@@ -119,6 +121,7 @@
 
 /* REG_CS_DBG_APB_DBG_CTRL */
 
+#define BIT_CS_DBG_APB_DBG_SYS_CLK_GATING_SEL         BIT(18)
 #define BIT_CS_DBG_APB_ANTI_HANG_EN                   BIT(17)
 #define BIT_CS_DBG_APB_U_SYS_AON_CSSYS_EN_REG         BIT(16)
 #define BIT_CS_DBG_APB_APCPU_DAP_EN_REG               BIT(15)
@@ -486,5 +489,7 @@
 
 #define BIT_CS_DBG_APB_ETR_AXI_MON_AWADDR3(x)         (((x) & 0xFFFFFFF))
 
-#endif
+
+#endif /* CS_DBG_APB_H */
+
 

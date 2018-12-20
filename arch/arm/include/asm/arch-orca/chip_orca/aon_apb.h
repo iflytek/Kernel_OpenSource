@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-04 11:00:16
+ * updated at 2018-12-20 14:46:42
  *
  */
 
-#ifndef AON_APB
-#define AON_APB
+
+#ifndef AON_APB_H
+#define AON_APB_H
 
 #define CTL_BASE_AON_APB 0x64020000
+
 
 #define REG_AON_APB_APB_EB0                          ( CTL_BASE_AON_APB + 0x0000 )
 #define REG_AON_APB_APB_EB1                          ( CTL_BASE_AON_APB + 0x0004 )
@@ -663,6 +665,10 @@
 #define BIT_AON_APB_SP_INT_REQ_PWR_UP_ALL_WAKEUP_EN             BIT(26)
 #define BIT_AON_APB_SP_INT_REQ_AP_WDG_RST_WAKEUP_EN             BIT(25)
 #define BIT_AON_APB_SP_INT_REQ_APCPU_WDG_RST_WAKEUP_EN          BIT(24)
+#define BIT_AON_APB_SP_INT_REQ_APCPU_BUSMON_WAKEUP_EN           BIT(23)
+#define BIT_AON_APB_SP_INT_REQ_PSCP_BUSMON_WAKEUP_EN            BIT(22)
+#define BIT_AON_APB_SP_INT_REQ_AUDCP_BUSMON_WAKEUP_EN           BIT(21)
+#define BIT_AON_APB_SP_INT_REQ_AP_SYS_BUSMON_WAKEUP_EN          BIT(20)
 #define BIT_AON_APB_SP_INT_REQ_MBOX_SRC_SIPC_SP_CM4_WAKEUP_EN   BIT(18)
 #define BIT_AON_APB_SP_INT_REQ_MBOX_SRC_CM4_WAKEUP_EN           BIT(17)
 #define BIT_AON_APB_SP_INT_REQ_MBOX_TAR_CM4_WAKEUP_EN           BIT(16)
@@ -673,9 +679,12 @@
 #define BIT_AON_APB_SP_INT_REQ_EIC_NON_LAT_WAKEUP_EN            BIT(11)
 #define BIT_AON_APB_SP_INT_REQ_EIC_LAT_WAKEUP_EN                BIT(10)
 #define BIT_AON_APB_SP_INT_REQ_CM4_DMA_WAKEUP_EN                BIT(9)
+#define BIT_AON_APB_SP_INT_REQ_GPIO_WAKEUP_EN                   BIT(8)
 #define BIT_AON_APB_SP_INT_REQ_CM4_SYST_WAKEUP_EN               BIT(7)
 #define BIT_AON_APB_SP_INT_REQ_CM4_I2C0_SLV_WAKEUP_EN           BIT(6)
 #define BIT_AON_APB_SP_INT_REQ_CM4_WDG_WAKEUP_EN                BIT(5)
+#define BIT_AON_APB_SP_INT_REQ_EIC1_NON_LAT_WAKEUP_EN           BIT(4)
+#define BIT_AON_APB_SP_INT_REQ_EIC1_LAT_WAKEUP_EN               BIT(3)
 #define BIT_AON_APB_SP_INT_REQ_CM4_UART0_WAKEUP_EN              BIT(2)
 
 /* REG_AON_APB_SP_WAKEUP_MASK_EN1 */
@@ -703,6 +712,7 @@
 #define BIT_AON_APB_SP_INT_REQ_THM0_WAKEUP_EN                   BIT(7)
 #define BIT_AON_APB_SP_INT_REQ_PWR_UP_PUB_WAKEUP_EN             BIT(6)
 #define BIT_AON_APB_SP_INT_REQ_PWR_UP_AP_WAKEUP_EN              BIT(5)
+#define BIT_AON_APB_SP_INT_REQ_BUSMON_TMC_WAKEUP_EN             BIT(4)
 #define BIT_AON_APB_SP_INT_REQ_BUSMON_DAP_MTX_WAKEUP_EN         BIT(3)
 #define BIT_AON_APB_SP_INT_REQ_BUSMON_NR_WAKEUP_EN              BIT(2)
 #define BIT_AON_APB_SP_INT_REQ_BUSMON_AP_WAKEUP_EN              BIT(1)
@@ -1553,6 +1563,7 @@
 
 /* REG_AON_APB_AUTO_GATE_CTRL1 */
 
+#define BIT_AON_APB_CGM_PUB_CLK_ANLG_IO_APB_EN                  BIT(5)
 #define BIT_AON_APB_CGM_DMC_REF_AUTO_GATE_SEL                   BIT(4)
 #define BIT_AON_APB_CGM_TOP_DVFS_ROOT_AUTO_GATE_SEL             BIT(3)
 #define BIT_AON_APB_CGM_TOP_DVFS_ROOT_FORCE_EN                  BIT(2)
@@ -2042,11 +2053,13 @@
 
 /* REG_AON_APB_V3CPU_TO_PUB_RS_LPC_CTRL */
 
+#define BIT_AON_APB_PU_NUM_V3CPU_TO_PUB(x)                      (((x) & 0xFF) << 17)
 #define BIT_AON_APB_LP_NUM_V3CPU_TO_PUB(x)                      (((x) & 0xFFFF) << 1)
 #define BIT_AON_APB_LP_EB_V3CPU_TO_PUB                          BIT(0)
 
 /* REG_AON_APB_V3ACC_TO_PUB_RS_LPC_CTRL */
 
+#define BIT_AON_APB_PU_NUM_V3ACC_TO_PUB(x)                      (((x) & 0xFF) << 17)
 #define BIT_AON_APB_LP_NUM_V3ACC_TO_PUB(x)                      (((x) & 0xFFFF) << 1)
 #define BIT_AON_APB_LP_EB_V3ACC_TO_PUB                          BIT(0)
 
@@ -2404,5 +2417,7 @@
 
 #define BIT_AON_APB_CP_RFFE_RES_REG5(x)                         (((x) & 0xFFFFFFFF))
 
-#endif
+
+#endif /* AON_APB_H */
+
 

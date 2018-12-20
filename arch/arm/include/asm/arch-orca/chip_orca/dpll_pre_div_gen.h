@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-04 11:00:16
+ * updated at 2018-12-20 14:46:43
  *
  */
 
-#ifndef DPLL_PRE_DIV_GEN
-#define DPLL_PRE_DIV_GEN
+
+#ifndef DPLL_PRE_DIV_GEN_H
+#define DPLL_PRE_DIV_GEN_H
 
 #define CTL_BASE_DPLL_PRE_DIV_GEN 0x00000000
+
 
 #define REG_DPLL_PRE_DIV_GEN_SOFT_CNT_DONE0_CFG                ( CTL_BASE_DPLL_PRE_DIV_GEN + 0x0020 )
 #define REG_DPLL_PRE_DIV_GEN_PLL_WAIT_SEL0_CFG                 ( CTL_BASE_DPLL_PRE_DIV_GEN + 0x0024 )
@@ -56,5 +58,7 @@
 
 #define BIT_DPLL_PRE_DIV_GEN_MONITOR_GATE_AUTO_EN_STATUS0_CFG_MONITOR_GATE_AUTO_EN_STATUS(x)  (((x) & 0x3))
 
-#endif
+
+#endif /* DPLL_PRE_DIV_GEN_H */
+
 

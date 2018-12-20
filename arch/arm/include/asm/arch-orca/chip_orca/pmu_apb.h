@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-04 11:00:16
+ * updated at 2018-12-20 14:46:43
  *
  */
 
-#ifndef PMU_APB
-#define PMU_APB
+
+#ifndef PMU_APB_H
+#define PMU_APB_H
 
 #define CTL_BASE_PMU_APB 0x64010000
+
 
 #define REG_PMU_APB_PD_APCPU_TOP_CFG                              ( CTL_BASE_PMU_APB + 0x0000 )
 #define REG_PMU_APB_PD_APCPU_C0_CFG                               ( CTL_BASE_PMU_APB + 0x0004 )
@@ -847,6 +849,7 @@
 
 /* REG_PMU_APB_PUB_SYS_SLEEP_BYPASS_CFG */
 
+#define BIT_PMU_APB_PUB_PD_VOL_DOWN_ENA                            BIT(4)
 #define BIT_PMU_APB_PUB_SYS_VOL_ADJ_ENA                            BIT(3)
 #define BIT_PMU_APB_PUB_SYS_SELF_REFRESH_FLAG_BYPASS               BIT(2)
 #define BIT_PMU_APB_PUB_SYS_PWR_PD_ACK_BYPASS                      BIT(1)
@@ -908,12 +911,14 @@
 #define BIT_PMU_APB_DDR_PUB_RET_EN                                 BIT(27)
 #define BIT_PMU_APB_DDR_PHY_ISO_RST_EN                             BIT(26)
 #define BIT_PMU_APB_DDR_UMCTL_RET_EN                               BIT(25)
-#define BIT_PMU_APB_DDR_PHY_AUTO_RET_EN                            BIT(24)
+#define BIT_PMU_APB_DDR_PHY_CHB_AUTO_RET_EN                        BIT(24)
+#define BIT_PMU_APB_DDR_PHY_CHA_AUTO_RET_EN                        BIT(23)
 
 /* REG_PMU_APB_DDR_PHY_RET_CFG */
 
 #define BIT_PMU_APB_DDR_UMCTL_SOFT_RST                             BIT(16)
-#define BIT_PMU_APB_DDR_PHY_CKE_RET_EN                             BIT(0)
+#define BIT_PMU_APB_DDR_PHY_CHB_CKE_RET_EN                         BIT(1)
+#define BIT_PMU_APB_DDR_PHY_CHA_CKE_RET_EN                         BIT(0)
 
 /* REG_PMU_APB_CLK26M_SEL_CFG */
 
@@ -1802,6 +1807,7 @@
 
 /* REG_PMU_APB_PCIE_SLP_CFG */
 
+#define BIT_PMU_APB_AP_CP_HANDSHK(x)                               (((x) & 0x1F) << 7)
 #define BIT_PMU_APB_PCIE_CLKREQ_PLL_GATE_MASK                      BIT(6)
 #define BIT_PMU_APB_PERST_AP_WAKEUP_EN                             BIT(5)
 #define BIT_PMU_APB_REG_PERST_N_ASSERT                             BIT(4)
@@ -2849,8 +2855,8 @@
 /* REG_PMU_APB_REG_SYS_DDR_PWR_HS_ACK */
 
 #define BIT_PMU_APB_REG_CS_SYS_DDR_PWR_HS_ACK                      BIT(11)
-#define BIT_PMU_APB_REG_IPA_SYS_DDR_PWR_HS_ACK                     BIT(10)
-#define BIT_PMU_APB_REG_AI_SYS_DDR_PWR_HS_ACK                      BIT(9)
+#define BIT_PMU_APB_FRC_TOP_ASYNC_BRG_ENA                          BIT(10)
+#define BIT_PMU_APB_ASYNC_BRG_EB_IGNORE                            BIT(9)
 #define BIT_PMU_APB_REG_NRCP_SYS_DDR_PWR_HS_ACK                    BIT(8)
 #define BIT_PMU_APB_REG_AUDCP_SYS_DDR_PWR_HS_ACK                   BIT(7)
 #define BIT_PMU_APB_REG_PSCP_SYS_DDR_PWR_HS_ACK                    BIT(6)
@@ -2936,5 +2942,7 @@
 
 #define BIT_PMU_APB_IPA_LIGHT_SLEEP_CNT(x)                         (((x) & 0xFF))
 
-#endif
+
+#endif /* PMU_APB_H */
+
 

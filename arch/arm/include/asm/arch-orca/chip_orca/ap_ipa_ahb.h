@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-04 11:00:16
+ * updated at 2018-12-20 14:46:42
  *
  */
 
-#ifndef AP_IPA_AHB
-#define AP_IPA_AHB
+
+#ifndef AP_IPA_AHB_H
+#define AP_IPA_AHB_H
 
 #define CTL_BASE_AP_IPA_AHB 0x29000000
+
 
 #define REG_AP_IPA_AHB_AHB_EB                      ( CTL_BASE_AP_IPA_AHB + 0x0000 )
 #define REG_AP_IPA_AHB_AHB_RST                     ( CTL_BASE_AP_IPA_AHB + 0x0004 )
@@ -82,6 +84,8 @@
 #define REG_AP_IPA_AHB_SYS_ACCESS_EN               ( CTL_BASE_AP_IPA_AHB + 0x034C )
 #define REG_AP_IPA_AHB_CGM_GATE_EN                 ( CTL_BASE_AP_IPA_AHB + 0x0350 )
 #define REG_AP_IPA_AHB_IP_BUSY_GATE_EN             ( CTL_BASE_AP_IPA_AHB + 0x0354 )
+#define REG_AP_IPA_AHB_SDSLV_CTRL                  ( CTL_BASE_AP_IPA_AHB + 0x0358 )
+#define REG_AP_IPA_AHB_PCIE_SW_MSI_INT             ( CTL_BASE_AP_IPA_AHB + 0x035C )
 #define REG_AP_IPA_AHB_RESERVE0                    ( CTL_BASE_AP_IPA_AHB + 0x0400 )
 #define REG_AP_IPA_AHB_RESERVE1                    ( CTL_BASE_AP_IPA_AHB + 0x0404 )
 
@@ -116,6 +120,7 @@
 
 /* REG_AP_IPA_AHB_USB1_CTRL */
 
+#define BIT_AP_IPA_AHB_PIPE3_POWERPRESENT1               BIT(16)
 #define BIT_AP_IPA_AHB_UTMISRP_BVALID_REG1               BIT(15)
 #define BIT_AP_IPA_AHB_OTG_VBUS_VALID_PHYREG1            BIT(14)
 #define BIT_AP_IPA_AHB_OTG_VBUS_VALID_PHYREG_SEL1        BIT(13)
@@ -612,6 +617,7 @@
 
 /* REG_AP_IPA_AHB_PCIE_CTRL */
 
+#define BIT_AP_IPA_AHB_PCIE_SNPS_AXI_AUTO_GATE           BIT(12)
 #define BIT_AP_IPA_AHB_PCIE_DEVICE_TYPE(x)               (((x) & 0xF) << 8)
 #define BIT_AP_IPA_AHB_AP_CTL_PCIE(x)                    (((x) & 0xFF))
 
@@ -631,6 +637,14 @@
 
 #define BIT_AP_IPA_AHB_USE_SDIO_SLV_BUSY                 BIT(0)
 
+/* REG_AP_IPA_AHB_SDSLV_CTRL */
+
+#define BIT_AP_IPA_AHB_SDSLV_DEBUG_EB                    BIT(0)
+
+/* REG_AP_IPA_AHB_PCIE_SW_MSI_INT */
+
+#define BIT_AP_IPA_AHB_PCIE_SW_MSI_INT(x)                (((x) & 0xFFFFFFFF))
+
 /* REG_AP_IPA_AHB_RESERVE0 */
 
 #define BIT_AP_IPA_AHB_RESERVE0(x)                       (((x) & 0xFFFFFFFF))
@@ -639,5 +653,7 @@
 
 #define BIT_AP_IPA_AHB_RESERVE1(x)                       (((x) & 0xFFFFFFFF))
 
-#endif
+
+#endif /* AP_IPA_AHB_H */
+
 

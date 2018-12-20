@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-04 11:00:16
+ * updated at 2018-12-20 14:46:43
  *
  */
 
-#ifndef PUB_AHB
-#define PUB_AHB
+
+#ifndef PUB_AHB_H
+#define PUB_AHB_H
 
 #define CTL_BASE_PUB_AHB 0x61030000
+
 
 #define REG_PUB_AHB_DMC_EXT_LPCTRL_CFG        ( CTL_BASE_PUB_AHB + 0x3000 )
 #define REG_PUB_AHB_DMC_EXT_LPCTRL_SEQL       ( CTL_BASE_PUB_AHB + 0x3004 )
@@ -461,5 +463,7 @@
 
 #define BIT_PUB_AHB_MPU_CFG15_HIGH_RANGE(x)   (((x) & 0x7FFFFFF))
 
-#endif
+
+#endif /* PUB_AHB_H */
+
 

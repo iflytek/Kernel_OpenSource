@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-04 11:00:16
+ * updated at 2018-12-20 14:46:42
  *
  */
 
-#ifndef APCPU_CLK_CORE
-#define APCPU_CLK_CORE
+
+#ifndef APCPU_CLK_CORE_H
+#define APCPU_CLK_CORE_H
 
 #define CTL_BASE_APCPU_CLK_CORE 0x63970000
+
 
 #define REG_APCPU_CLK_CORE_CGM_CORE0_CFG      ( CTL_BASE_APCPU_CLK_CORE + 0x0020 )
 #define REG_APCPU_CLK_CORE_CGM_CORE1_CFG      ( CTL_BASE_APCPU_CLK_CORE + 0x0024 )
@@ -62,5 +64,7 @@
 #define BIT_APCPU_CLK_CORE_CGM_PERIPH_CFG_CGM_PERIPH_DIV(x)        (((x) & 0x7) << 8)
 #define BIT_APCPU_CLK_CORE_CGM_PERIPH_CFG_CGM_PERIPH_SEL(x)        (((x) & 0x3))
 
-#endif
+
+#endif /* APCPU_CLK_CORE_H */
+
 

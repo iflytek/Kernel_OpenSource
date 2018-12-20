@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-04 11:00:16
+ * updated at 2018-12-20 14:46:42
  *
  */
 
-#ifndef AON_CLK_CORE
-#define AON_CLK_CORE
+
+#ifndef AON_CLK_CORE_H
+#define AON_CLK_CORE_H
 
 #define CTL_BASE_AON_CLK_CORE 0x63170200
+
 
 #define REG_AON_CLK_CORE_CGM_AON_APB_CFG                        ( CTL_BASE_AON_CLK_CORE + 0x0020 )
 #define REG_AON_CLK_CORE_CGM_SP_AHB_CFG                         ( CTL_BASE_AON_CLK_CORE + 0x0024 )
@@ -496,5 +498,7 @@
 
 #define BIT_AON_CLK_CORE_CGM_26M_PMU_CFG_CGM_26M_PMU_SEL                    BIT(0)
 
-#endif
+
+#endif /* AON_CLK_CORE_H */
+
 

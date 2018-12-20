@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-05 09:54:03
+ * updated at 2018-12-20 14:46:42
  *
  */
 
-#ifndef ANLG_PHY_TOP
-#define ANLG_PHY_TOP
+
+#ifndef ANLG_PHY_TOP_H
+#define ANLG_PHY_TOP_H
 
 #define CTL_BASE_ANLG_PHY_TOP 0x63460000
+
 
 #define REG_ANLG_PHY_TOP_ANALOG_RCO100M_RTC100M_CTRL            ( CTL_BASE_ANLG_PHY_TOP + 0x0000 )
 #define REG_ANLG_PHY_TOP_ANALOG_RCO100M_REG_SEL_CFG_0           ( CTL_BASE_ANLG_PHY_TOP + 0x0004 )
@@ -513,5 +515,7 @@
 #define BIT_ANLG_PHY_TOP_DBG_SEL_ANALOG_BB_TOP_APCNON5G_G1             BIT(1)
 #define BIT_ANLG_PHY_TOP_DBG_SEL_ANALOG_BB_TOP_U2U3_REF_SEL            BIT(0)
 
-#endif
+
+#endif /* ANLG_PHY_TOP_H */
+
 

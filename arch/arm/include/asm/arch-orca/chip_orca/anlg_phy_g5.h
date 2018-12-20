@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-05 09:54:03
+ * updated at 2018-12-20 14:46:42
  *
  */
 
-#ifndef ANLG_PHY_G5
-#define ANLG_PHY_G5
+
+#ifndef ANLG_PHY_G5_H
+#define ANLG_PHY_G5_H
 
 #define CTL_BASE_ANLG_PHY_G5 0x634F0000
+
 
 #define REG_ANLG_PHY_G5_ANALOG_BB_TOP_ANA_BB_SINE_CTRL1      ( CTL_BASE_ANLG_PHY_G5 + 0x0004 )
 #define REG_ANLG_PHY_G5_ANALOG_BB_TOP_ANA_BB_SINE_CTRL2      ( CTL_BASE_ANLG_PHY_G5 + 0x0008 )
@@ -187,6 +189,7 @@
 
 /* REG_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_CLK_CTRL */
 
+#define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_DBG_SEL_CLK26M_RESERVED     BIT(4)
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_CLK_EN                 BIT(3)
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_CLK_OD                 BIT(2)
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_TEST_CLK_DIV(x)             (((x) & 0x3))
@@ -195,5 +198,7 @@
 
 #define BIT_ANLG_PHY_G5_ANALOG_BB_TOP_ANALOG_DUMMY_REG(x)         (((x) & 0xFFFFFFFF))
 
-#endif
+
+#endif /* ANLG_PHY_G5_H */
+
 

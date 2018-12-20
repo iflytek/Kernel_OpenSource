@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-09-05 09:54:03
+ * updated at 2018-12-20 14:46:42
  *
  */
 
-#ifndef ANLG_PHY_G10
-#define ANLG_PHY_G10
+
+#ifndef ANLG_PHY_G10_H
+#define ANLG_PHY_G10_H
 
 #define CTL_BASE_ANLG_PHY_G10 0x63520000
+
 
 #define REG_ANLG_PHY_G10_ANALOG_RCO100M_RTC100M_CTRL          ( CTL_BASE_ANLG_PHY_G10 + 0x0000 )
 #define REG_ANLG_PHY_G10_ANALOG_RCO100M_WRAP_RCO_CTRL         ( CTL_BASE_ANLG_PHY_G10 + 0x0004 )
@@ -39,5 +41,7 @@
 #define BIT_ANLG_PHY_G10_ANALOG_EFUSE4K_EFS_AT1                     BIT(1)
 #define BIT_ANLG_PHY_G10_ANALOG_EFUSE4K_EFS_AT0                     BIT(0)
 
-#endif
+
+#endif /* ANLG_PHY_G10_H */
+
 
