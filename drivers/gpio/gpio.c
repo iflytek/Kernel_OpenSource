@@ -976,7 +976,7 @@ void sprd_gpio_init(void)
 #if defined(CONFIG_SPX15)
 	REG32(REG_AON_APB_APB_EB0) |= BIT_AON_GPIO_EB;
 #else
-	#if defined(CONFIG_SOC_SHARKL5)
+	#ifdef REG_GPIO_EB
 		REG32(REG_GPIO_EB) |= BIT_GPIO_EB;
 	#else
 		REG32(REG_AON_APB_APB_EB0) |= BIT_GPIO_EB;

@@ -243,7 +243,7 @@ static void sprd_eic_free(unsigned offset)
 
 void sprd_eic_init(void)
 {
-#if defined(CONFIG_SOC_SHARKL5)
+#ifdef REG_EIC_EB
 	REG32(REG_EIC_EB) |= BIT_EIC_EB;
 #else
 	REG32(REG_AON_APB_APB_EB0) |= BIT_EIC_EB;
