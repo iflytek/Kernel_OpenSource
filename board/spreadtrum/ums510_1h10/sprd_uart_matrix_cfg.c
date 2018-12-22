@@ -64,7 +64,7 @@ volatile pin_mux uport = {
 				.reg = BITS_UART_INF2_SYS_SEL(PIN_UART_MATRIX_MTX_CFG_VALUE),
 				.select = 13,
 				.name = {
-					"ap_uart2", "ap_uart1", "ap_uart2", "Reserver", "Reserver",
+					"ap_uart2", "ap_uart1", "ap_uart0", "Reserver", "Reserver",
 					"cm4_uart0", "pubcp_uart0", "tgdsp_uart0", "ltedsp_uart0",
 					"ltedsp_uart1", "cm4_uart1", "auddsp_uart0", "pubcp_uart1",
 				},
