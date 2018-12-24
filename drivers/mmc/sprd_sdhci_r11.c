@@ -688,12 +688,10 @@ static void sdhci_set_ios(struct mmc *mmc)
 	ctrl &= ~SDHCI_CTRL_DMA_MASK;
 	if (host->quirks & SDHCI_QUIRK_NO_HISPD_BIT)
 		ctrl &= ~SDHCI_CTRL_HISPD;
-#if 1
-	if (if_host_sd_type(host)) {
-		sdhc_set_dll_invert(host, SPRD_SDHC_BIT_CMD_DLY_INV |
-					SPRD_SDHC_BIT_POSRD_DLY_INV, 1);
-	}
-#endif
+
+	sdhc_set_dll_invert(host, SPRD_SDHC_BIT_CMD_DLY_INV |
+			    SPRD_SDHC_BIT_POSRD_DLY_INV, 1);
+
 	sdhci_writeb(host, ctrl, SDHCI_HOST_CONTROL_REG1);
 }
 
