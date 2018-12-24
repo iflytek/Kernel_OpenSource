@@ -10,7 +10,7 @@
 
 #define SPRD_DEBUG_LEVEL		2
 
-#define CONFIG_KERNEL_BOOT_CP
+//#define CONFIG_KERNEL_BOOT_CP
 #define CONFIG_MEM_LAYOUT_DECOUPLING
 
 /*build aarch64 u-boot.elf*/
@@ -325,7 +325,7 @@
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C_V2
 #define CONFIG_SPRDCHG_I2C_BUS 4
-#define CONFIG_FAN54015_CHARGE_IC
+#define CONFIG_SPRD2703_CHARGE_IC
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

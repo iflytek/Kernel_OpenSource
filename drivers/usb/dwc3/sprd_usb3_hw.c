@@ -80,7 +80,7 @@ void setpll_clock(void)
 	/* Purpose: To select IPA core clk: 192M  */
 	val = readl(REG_IPA_CLK_CORE_CGM_IPA_CORE_CFG);
 	val &= ~(BIT_IPA_CLK_CORE_CGM_IPA_CORE_CFG_CGM_IPA_CORE_SEL(0x3));
-	val | = BIT_IPA_CLK_CORE_CGM_IPA_CORE_CFG_CGM_IPA_CORE_SEL(0x1);
+	val |= BIT_IPA_CLK_CORE_CGM_IPA_CORE_CFG_CGM_IPA_CORE_SEL(0x1);
 	writel(val,
 			REG_IPA_CLK_CORE_CGM_IPA_CORE_CFG);
 
@@ -111,7 +111,7 @@ void setpll_clock(void)
 	val = readl(REG_AON_SEC_APB_APCPU_TOP_MISC_CLK_CFG);
 	val &= ~(BIT_AON_SEC_APB_CGM_PERIPH_DIV(7) |
 			BIT_AON_SEC_APB_CGM_PERIPH_SEL(3));
-	val | = (BIT_AON_SEC_APB_CGM_PERIPH_DIV(3) |
+	val |= (BIT_AON_SEC_APB_CGM_PERIPH_DIV(3) |
 			BIT_AON_SEC_APB_CGM_PERIPH_SEL(2));
 	writel(val, REG_AON_SEC_APB_APCPU_TOP_MISC_CLK_CFG);
 
@@ -119,7 +119,7 @@ void setpll_clock(void)
 	val = readl(REG_AON_SEC_APB_APCPU_TOP_MISC_CLK_CFG);
 	val &= ~(BIT_AON_SEC_APB_CGM_GIC_DIV(7) |
 			BIT_AON_SEC_APB_CGM_GIC_SEL(3));
-	val | = (BIT_AON_SEC_APB_CGM_GIC_DIV(3) |
+	val |= (BIT_AON_SEC_APB_CGM_GIC_DIV(3) |
 			BIT_AON_SEC_APB_CGM_GIC_SEL(2));
 	writel(val, REG_AON_SEC_APB_APCPU_TOP_MISC_CLK_CFG);
 
@@ -127,7 +127,7 @@ void setpll_clock(void)
 	val = readl(REG_AON_SEC_APB_APCPU_ANANKE_CLK_CFG);
 	val &= ~(BIT_AON_SEC_APB_CGM_CORE4_DIV(7) |
 			BIT_AON_SEC_APB_CGM_CORE4_SEL(7));
-	val | = (BIT_AON_SEC_APB_CGM_CORE4_DIV(1) |
+	val |= (BIT_AON_SEC_APB_CGM_CORE4_DIV(1) |
 			BIT_AON_SEC_APB_CGM_CORE4_SEL(1));
 	writel(val, REG_AON_SEC_APB_APCPU_ANANKE_CLK_CFG);
 
