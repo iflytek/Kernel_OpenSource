@@ -531,7 +531,7 @@ static int fixup_image_partition_name(const char *rname,
 		p = pinfo->partition + index;
 	}
 
-	if (!strcmp(p, NV_PARTITION_KEY)) {
+	if (!strcmp(p, NV_PARTITION_KEY) && strcmp(pinfo->partition + strlen(PARTITION_PREFIX), "deltanv")) {
 		if (!strcmp(pinfo->partition + strlen(PARTITION_PREFIX), "runnv"))
 			strcpy(pinfo->partition + strlen(PARTITION_PREFIX), "runtimenv");
 
