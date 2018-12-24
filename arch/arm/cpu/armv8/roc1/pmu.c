@@ -579,7 +579,7 @@ void CSP_Init(uint32_t gen_para)
 
 	//as defaut byp ufs_pwr_gate, if board use ufs,the ufs owner will clear it.
 	CHIP_REG_OR(REG_PMU_APB_UFS_PWR_GATE_BYP_CFG,
-		REG_PMU_APB_UFS_PWR_GATE_BYP_CFG);
+		BIT_PMU_APB_UFS_PWR_GATE_BYP);
 }
 #endif
 
