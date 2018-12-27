@@ -132,6 +132,7 @@
 #define SPRD_SEC_DEBUG_REG_PHYS           0x32890000
 #endif
 #define SPRD_CORESIGHT_STM_PHYS           0x34000000
+#define SPRD_CORESIGHT_ETB                0x3C003000
 #if 0
 #define SPRD_SP_AHB_REG_PHYS              0x51000000
 #define SPRD_SP_SYSTIMER_PHYS             0x51020000
