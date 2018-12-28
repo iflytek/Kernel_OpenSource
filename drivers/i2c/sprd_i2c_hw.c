@@ -66,15 +66,16 @@ int i2c_hwchannel_set(unsigned int chn, unsigned int config, int n)
         return 0;
 }
 
-void i2c_dvfs_hwchn_init(int n)
+void i2c_dvfs_hwchn_init(void)
 {
-        hw_i2c_clk_enable(n);
+	int i, j;
 
-#ifdef CONFIG_SPRD_UMS510_HW_CHNL
-        i2c_hwchannel_set(DVFS_TX_5_CHNL, DVFS_TX_5_ADDR, n);
-        i2c_hwchannel_set(DVFS_TX_7_CHNL, DVFS_TX_7_ADDR, n);
-#else
-        i2c_hwchannel_set(DVFS_RX_CHNL, DVFS_RX_ADDR, n);
-        i2c_hwchannel_set(DVFS_TX_CHNL, DVFS_TX_ADDR, n);
-#endif
+	for(i = 0; i < SPRD_I2C_NUM; i++){
+		hw_i2c_clk_enable(i);
+		for(j = 0; j < sprd_hw_i2c[i].num; j++){
+			i2c_hwchannel_set(sprd_hw_i2c[i].channel[j].channel_num,
+				sprd_hw_i2c[i].channel[j].addr, i);
+		}
+	}
+
 }

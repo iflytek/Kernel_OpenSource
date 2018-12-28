@@ -1615,7 +1615,7 @@ extern boot_image_required_t *get_cp_load_table(void);
 #endif
 
 #ifdef  CONFIG_SPRD_HW_I2C
-	i2c_dvfs_hwchn_init(0);
+	i2c_dvfs_hwchn_init();
 #endif
 
 	vlx_entry(dt_adr);
