@@ -176,18 +176,18 @@ static struct panel_info r61350_info = {
 	.height = 1280,
 
 	/* DPI specific parameters */
-	.pixel_clk = 64000000, /*Hz*/
+	.pixel_clk = 76800000, /*Hz*/
 	.rgb_timing = {
 		.hfp = 80,
 		.hbp = 80,
 		.hsync = 20,
-		.vfp = 16,
+		.vfp = 127,
 		.vbp = 13,
 		.vsync = 2,
 	},
 
 	/* MIPI DSI specific parameters */
-	.phy_freq = 500000,
+	.phy_freq = 600000,
 	.lane_num = 4,
 #ifdef CMD_MODE_ENABLE
 	.work_mode = SPRD_MIPI_MODE_CMD,
