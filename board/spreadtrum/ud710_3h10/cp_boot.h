@@ -119,6 +119,26 @@ static inline void sp_boot(void)
 	*((volatile u32*)REG_AON_APB_CM4_SYS_SOFT_RST) &= ~BIT_AON_APB_CM4_CORE_SOFT_RST;   /* core release */
 }
 
+/* After power up, dsp will reset automatically and run automatically.
+ * If sw don't want reset dsp manually, it should assure that power on dsp is the last step.
+ * or else the dsp will run abnormally. */
+static inline void audcp_boot(u32 boot_vector)
+{
+	*((volatile u32 *)REG_PMU_APB_PD_AUDCP_SYS_CFG) &= ~BIT_PMU_APB_PD_AUDCP_SYS_FORCE_SHUTDOWN;
+	*((volatile u32 *)REG_PMU_APB_SLEEP_CTRL) &= ~BIT_PMU_APB_AUDCP_FORCE_DEEP_SLEEP;
+	*((volatile u32 *)REG_PMU_APB_PD_AUDCP_AUDDSP_CFG) &= ~BIT_PMU_APB_PD_AUDCP_AUDDSP_AUTO_SHUTDOWN_EN;
+
+	*((volatile u32 *)REG_AON_APB_AUDCP_BOOT_PROT) &= ~BIT_AON_APB_AUDCP_REG_PROT_VAL(~0);
+	*((volatile u32 *)REG_AON_APB_AUDCP_BOOT_PROT) |= BIT_AON_APB_AUDCP_REG_PROT_VAL(0x9620);
+
+	*((volatile u32 *)REG_AON_APB_AUDCP_DSP_CTRL0) = BIT_AON_APB_AUDCP_DSP_BOOT_VECTOR(boot_vector);
+	*((volatile u32 *)REG_AON_APB_AUDCP_DSP_CTRL1) |= BIT_AON_APB_AUDCP_DSP_BOOT;
+
+	*((volatile u32 *)REG_PMU_APB_CP_SOFT_RST) &= ~(BIT_PMU_APB_AUDCP_SYS_SOFT_RST |
+							BIT_PMU_APB_AUDCP_AUDDSP_SOFT_RST);
+	*((volatile u32 *)REG_PMU_APB_SOFT_RST_SEL) &= ~BIT_PMU_APB_SOFT_RST_SEL(4);
+}
+
 /**---------------------------------------------------------------------------*
  **                         Compiler Flag                                     *
  **---------------------------------------------------------------------------*/
