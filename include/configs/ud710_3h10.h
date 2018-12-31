@@ -73,9 +73,7 @@
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
-/*
- * log config
- */
+/* log config */
 #define CONFIG_SPRD_LOG
 
 /*sprd watchdog*/
@@ -86,7 +84,6 @@
 #define CONFIG_RTC_SPRD
 
 /*sprd normal efuse*/
-#define CONFIG_SPRD_UID
 #define CONFIG_SPRD_AP_NORMAL_EFUSE
 /*sprd adc*/
 #define CONFIG_SPRD_ADC
@@ -122,12 +119,11 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 
-
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LOAD_ADDR		(PHYS_SDRAM_1 + 0x10000000)
 
 /* Physical Memory Map */
-#define  CONFIG_DUAL_DDR
+//#define  CONFIG_DUAL_DDR
 
 #define PHYS_SDRAM_1			0x80000000	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE		0x20000000	/* 512 MB */
@@ -159,7 +155,6 @@
 #define CONFIG_BOOTCOMMAND			"cboot normal"
 #define CONFIG_BOOTDELAY		0
 #define	CONFIG_EXTRA_ENV_SETTINGS				"mtdparts=" MTDPARTS_DEFAULT "\0"
-
 
 /* Do not preserve environment */
 #define CONFIG_ENV_IS_NOWHERE		1
@@ -250,12 +245,10 @@
 #define LOW_BAT_VOL            3500 /*phone battery voltage low than this value will not boot up*/
 #define LOW_BAT_VOL_CHG        3300    //3.3V charger connect
 
-
 /*for device tree*/
 #define DT_PLATFROM_ID 710
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
-
 
 #define SIMLOCK_ADR      (0x891FE800+0x4)   //0x4 just for data header
 
@@ -264,7 +257,6 @@
 #define RAMDISK_ADR     0x85500000
 
 #define VLX_TAG_ADDR    0x82000100
-
 
 #define TRUSTRAM_ADR    0x82000000
 #define TRUSTZONE_ADR   0x00001E00
@@ -297,6 +289,7 @@
 #define FB_DOWNLOAD_BUF_EXT1_SIZE      (224*1024*1024)
 
 /*uid blk config*/
+#define CONFIG_SPRD_UID
 #define UID_START 78
 #define UID_END 79
 #define UID_DOUBLE 1
@@ -316,21 +309,18 @@
 
  /*SMPL config*/
 //#define CONFIG_SMPL_EN
-#define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
+//#define CONFIG_SMPL_THRESHOLD 	0		//one step is 0.25S
 
 /* Chip Driver Macro Definitions End*/
 /*active arm7 ram before access to it*/
 #define CONFIG_ARM7_RAM_ACTIVE
-
 
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C_V2
 #define CONFIG_SPRDCHG_I2C_BUS 4
 #define CONFIG_SPRD2703_CHARGE_IC
 
-/*-----------------------------------------------------------------------
- * Cache Configuration
- */
+/* Cache Configuration */
 #define CONFIG_SYS_CACHELINE_SIZE	64
 
 /* coresight dump ETB data */
