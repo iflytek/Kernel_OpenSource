@@ -16,122 +16,12 @@
 #include "linux-compat.h"
 #include "core.h"
 
-//#define TMSC_28NM_HPM		0x5533286e /* USB3.0_PHY_TSMC_28MN */
-//#define TMSC_16NM_FFPLL	0x5533166e /* USB3.0_PHY_TSMC_16MN */
-
-extern int regulator_enable(const char con_id[]);
-extern int regulator_disable(const char con_id[]);
-
-#define LDO_USB3 "vddusb33"
-
-static struct dwc3_device dwc3_dev = {
-	.base = SPRD_USB_BASE,
-	.maximum_speed = USB_SPEED_HIGH,
-	.dis_u3_susphy_quirk = 1,
-	.dis_u2_susphy_quirk = 1,
-};
-#ifdef CONFIG_ZEBU
-static void usb_clk_enable(u32 is_on){}
-#else
-static void usb_clk_enable(u32 is_on)
-{
-	u32 val;
-
-	val = readl(REG_AON_APB_APB_EB1);
-	if (is_on)
-		/* Purpose: To enable clk cfg */
-		writel(val | BIT_AON_APB_CKG_EB, REG_AON_APB_APB_EB1);
-	else
-		writel(val & ~BIT_AON_APB_CKG_EB, REG_AON_APB_APB_EB1);
-}
-#endif
 #ifdef CONFIG_FPGA
 static void usb_phy_enable(u32 is_on)
 {
 	debugf("%s, enter !\n", __func__);
 }
 #else
-void setpll_clock(void)
-{
-	uint32_t val;
-
-	debugf("%s, enter !\n", __func__);
-	/* Purpose: all clk generated form TWPLL */
-	/* Purpose: To enable clk cfg */
-	val = readl(REG_AON_APB_APB_EB1);
-	writel(val | BIT_AON_APB_CKG_EB, REG_AON_APB_APB_EB1);
-
-	/* Purpose: To select AON USB clk: 96M */
-	val = readl(REG_AON_CLK_CORE_CGM_USB_CFG);
-	val &= ~(0x7);
-	val |= (0x3);
-	writel(val, REG_AON_CLK_CORE_CGM_USB_CFG);
-
-	/* Purpose: To select  USB suspend: 1M */
-	val = readl(REG_AON_CLK_CORE_CGM_USB_SUSPEND_CFG);
-	writel(val | BIT_AON_CLK_CORE_CGM_USB_SUSPEND_CFG_CGM_USB_SUSPEND_SEL,
-			REG_AON_CLK_CORE_CGM_USB_CFG);
-
-	/* Purpose: To select IPA USB clk: 24M */
-	val = readl(REG_IPA_CLK_CORE_CGM_USB_REF_CFG);
-	writel(val | BIT_IPA_CLK_CORE_CGM_USB_REF_CFG_CGM_USB_REF_SEL,
-			REG_IPA_CLK_CORE_CGM_USB_REF_CFG);
-
-	/* Purpose: To select IPA core clk: 192M  */
-	val = readl(REG_IPA_CLK_CORE_CGM_IPA_CORE_CFG);
-	val &= ~(BIT_IPA_CLK_CORE_CGM_IPA_CORE_CFG_CGM_IPA_CORE_SEL(0x3));
-	val |= BIT_IPA_CLK_CORE_CGM_IPA_CORE_CFG_CGM_IPA_CORE_SEL(0x1);
-	writel(val,
-			REG_IPA_CLK_CORE_CGM_IPA_CORE_CFG);
-
-	/* Purpose: To select aon apb clk: 96M  */
-	val = readl(REG_AON_CLK_CORE_CGM_AON_APB_CFG);
-	val &= ~(0x7);
-	val |= (0x5);
-	writel(val, REG_AON_CLK_CORE_CGM_AON_APB_CFG);
-
-	/* Purpose: To select ap axi clk: 128M  */
-	val = readl(REG_AON_CLK_CORE_CGM_AP_AXI_CFG);
-	val &= ~(0x3);
-	val |= (0x2);
-	writel(val, REG_AON_CLK_CORE_CGM_AP_AXI_CFG);
-
-	/* Purpose: To select scu clk: 256M */
-	val = readl(REG_AON_SEC_APB_APCPU_BUS_CLK_CFG);
-	val &= ~(0x77);
-	val |= (0x21);
-	writel(val, REG_AON_SEC_APB_APCPU_BUS_CLK_CFG);
-
-	/* Purpose: To select ace clk: 256M */
-	val = readl(REG_AON_SEC_APB_APCPU_BUS_CLK_CFG);
-	val &= ~(0x7000);
-	writel(val, REG_AON_SEC_APB_APCPU_BUS_CLK_CFG);
-
-	/* Purpose: To select periph clk: 128M */
-	val = readl(REG_AON_SEC_APB_APCPU_TOP_MISC_CLK_CFG);
-	val &= ~(BIT_AON_SEC_APB_CGM_PERIPH_DIV(7) |
-			BIT_AON_SEC_APB_CGM_PERIPH_SEL(3));
-	val |= (BIT_AON_SEC_APB_CGM_PERIPH_DIV(3) |
-			BIT_AON_SEC_APB_CGM_PERIPH_SEL(2));
-	writel(val, REG_AON_SEC_APB_APCPU_TOP_MISC_CLK_CFG);
-
-	/* Purpose: To select  gic clk: 128M */
-	val = readl(REG_AON_SEC_APB_APCPU_TOP_MISC_CLK_CFG);
-	val &= ~(BIT_AON_SEC_APB_CGM_GIC_DIV(7) |
-			BIT_AON_SEC_APB_CGM_GIC_SEL(3));
-	val |= (BIT_AON_SEC_APB_CGM_GIC_DIV(3) |
-			BIT_AON_SEC_APB_CGM_GIC_SEL(2));
-	writel(val, REG_AON_SEC_APB_APCPU_TOP_MISC_CLK_CFG);
-
-	/* Purpose: To select ANANKE core0  clk: 384M */
-	val = readl(REG_AON_SEC_APB_APCPU_ANANKE_CLK_CFG);
-	val &= ~(BIT_AON_SEC_APB_CGM_CORE4_DIV(7) |
-			BIT_AON_SEC_APB_CGM_CORE4_SEL(7));
-	val |= (BIT_AON_SEC_APB_CGM_CORE4_DIV(1) |
-			BIT_AON_SEC_APB_CGM_CORE4_SEL(1));
-	writel(val, REG_AON_SEC_APB_APCPU_ANANKE_CLK_CFG);
-
-}
 
 static void usb_enable()
 {
@@ -194,10 +84,6 @@ static void usb_enable()
 			BIT_IPA_AHB_PAM_IPA_SOFT_RST | BIT_IPA_AHB_IPA_SOFT_RST) ;
 	writel(val , REG_IPA_AHB_IPA_RST);
 
-	/* enable AON USB control 16bit */
-	//val = readl(REG_AON_APB_OTG_PHY_CTRL);
-	//writel(val | BIT_AON_APB_UTMI_WIDTH_SEL, REG_AON_APB_OTG_PHY_CTRL);
-
 	/* enable USB2 PHY 16bit */
 	val = readl(REG_ANLG_PHY_G3_ANALOG_USB20_USB20_UTMI_CTL1);
 	writel(val | BIT_ANLG_PHY_G3_ANALOG_USB20_USB20_DATABUS16_8,
@@ -248,14 +134,13 @@ static usb_disable()
 	writel(val, REG_PMU_APB_ANALOG_PHY_PD_CFG);
 
 	/*disable analog*/
-	val = readl(REG_AON_APB_APB_EB1);
-	writel(val & ~BIT_AON_APB_ANA_EB, REG_AON_APB_APB_EB1);
+	val = readl(REG_USB_EB);
+	writel(val & ~BIT_AON_APB_ANA_EB | BIT_USB_EB, REG_USB_EB);
 
 }
 static void usb_phy_enable(u32 is_on)
 {
 	if (is_on) {
-		setpll_clock();
 		usb_enable();
 	} else {
 		usb_disable();
