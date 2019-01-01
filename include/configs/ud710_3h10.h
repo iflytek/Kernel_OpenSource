@@ -340,4 +340,5 @@
 #endif
 
 #define CONFIG_RTC_START_YEAR		0
+#define CONFIG_DEBUG_DCDCLDO_FORCE_ON  //for bringup
 #endif /* __CONFIG_H  */
