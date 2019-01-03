@@ -30,6 +30,7 @@ static void logo_flip(void)
 	struct sprd_dispc *dispc = &dispc_device;
 	struct sprd_restruct_config *config;
 	struct panel_info *panel = panel_info_attach();
+	uint8_t logo_bpp = panel_info.vl_bpix > 16 ? 4 : 2;
 
 	config = malloc(sizeof(struct sprd_restruct_config) +
 			sizeof(struct sprd_adf_hwlayer));
@@ -41,7 +42,7 @@ static void logo_flip(void)
 	config->hwlayers[0].iova_plane[0] = gd->fb_base;
 	config->hwlayers[0].n_planes = 1;
 	config->hwlayers[0].alpha = 0xFF;
-	config->hwlayers[0].pitch[0] = panel->width * 2;
+	config->hwlayers[0].pitch[0] = panel->width * logo_bpp;
 	config->hwlayers[0].dst_w = panel->width;
 	config->hwlayers[0].dst_h = panel->height;
 	config->hwlayers[0].dst_x = 0;
@@ -50,9 +51,10 @@ static void logo_flip(void)
 	config->hwlayers[0].start_y = 0;
 	config->hwlayers[0].start_w = 0;
 	config->hwlayers[0].start_h = 0;
-	config->hwlayers[0].format = DRM_FORMAT_RGB565;
 	config->hwlayers[0].blending = HWC_BLENDING_NONE;
 	config->hwlayers[0].compression = 0;
+	config->hwlayers[0].format = logo_bpp == 2 ?
+		DRM_FORMAT_RGB565 : DRM_FORMAT_ARGB8888;
 
 	sprd_dispc_flip(dispc, config);
 
@@ -153,7 +155,7 @@ void lcd_ctrl_init(void *lcdbase)
 	u32 bmp_header_size = 8192;
 
 	sprdfb_probe();
-	size = lcd_get_size(&lcd_line_length) >> 1;
+	size = lcd_get_size(&lcd_line_length);
 	size += bmp_header_size;
 	bmp = malloc(size);
 	if (!bmp) {

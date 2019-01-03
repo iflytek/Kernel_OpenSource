@@ -325,7 +325,7 @@ int splash_screen_prepare(uchar *logo_part_name, u8 *addr)
 	size_t size ;
 	u32 bmp_header_size = 8192;
 
-	size = lcd_get_size(&lcd_line_length) >> 1;
+	size = lcd_get_size(&lcd_line_length);
 	size += bmp_header_size;
 #ifndef CONFIG_ZEBU
 	if (0 != common_raw_read(logo_part_name, (uint64_t)size, (uint64_t)0, addr)) {

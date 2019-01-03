@@ -101,6 +101,7 @@ void fdt_fixup_all(u8 *fdt_blob)
 	fdt_fixup_lcdbase(fdt_blob);
 	fdt_fixup_lcdsize(fdt_blob);
 	fdt_fixup_pixelclock(fdt_blob);
+	fdt_fixup_lcdbpix(fdt_blob);
 #endif
 
 #ifndef CONFIG_ZEBU
@@ -180,6 +181,7 @@ void fdt_fixup_all_x86(u8 *fdt_blob)
 	fdt_fixup_lcdbase(fdt_blob);
 	fdt_fixup_lcdsize(fdt_blob);
 	fdt_fixup_pixelclock(fdt_blob);
+	fdt_fixup_lcdbpix(fdt_blob);
 #endif
 
 	fdt_fixup_adc_calibration_data(fdt_blob);

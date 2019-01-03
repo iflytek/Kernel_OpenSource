@@ -645,11 +645,6 @@ static struct panel_cfg panel_cfg[] = {
 },
 };
 
-vidinfo_t panel_info = {
-	.vl_bpix = 4,
-	.cmap = colormap,
-};
-
 static int32_t panel_reset_dispc(struct panel_spec *self)
 {
 	dispc_write(1, DISPC_RSTN);

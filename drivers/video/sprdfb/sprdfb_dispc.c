@@ -136,7 +136,10 @@ static void dispc_layer_init(struct sprdfb_device *dev)
 	/* alpha mode select  - block alpha*/
 	reg_val |= (1 << 2);
 #if defined(CONFIG_SPRD_SOC_SP9853I) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SOC_ROC1) || defined(CONFIG_SOC_SHARKL5) || defined(CONFIG_SOC_SHARKL5PRO)
-	reg_val |= (DPU_LAYER_FORMAT_RGB565 << 4);
+	if (panel_info.vl_bpix > 16)
+		reg_val |= (DPU_LAYER_FORMAT_ARGB888 << 4);
+	else
+		reg_val |= (DPU_LAYER_FORMAT_RGB565 << 4);
 	/* B0B1B2B3 */
 	reg_val |= (0 << 8);
 #else

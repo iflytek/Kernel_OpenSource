@@ -43,6 +43,11 @@ uint32_t lcd_get_pixel_clock(void)
 		return 0;
 }
 
+uint32_t lcd_get_bpix(void)
+{
+	return panel_info.vl_bpix;
+}
+
 const char *lcd_get_name(void)
 {
 	if (panel_drv && panel_drv->info)

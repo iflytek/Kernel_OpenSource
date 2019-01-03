@@ -67,7 +67,15 @@ static char lcd_flush_dcache;	/* 1 to flush dcache after each lcd update */
 
 static uint16_t colormap[256];
 __weak vidinfo_t panel_info = {
-	.vl_bpix = 4,
+#if defined(CONFIG_BMP_32BPP)
+	.vl_bpix = 32,
+#elif defined(CONFIG_BMP_24BPP)
+	.vl_bpix = 32,
+#elif defined(CONFIG_BMP_16BPP)
+	.vl_bpix = 16,
+#else
+	.vl_bpix = 8,
+#endif
 	.cmap = colormap,
 };
 
@@ -157,8 +165,10 @@ static void test_pattern(void)
  */
 __weak int lcd_get_size(int *line_length)
 {
-	*line_length = (panel_info.vl_col * NBITS(panel_info.vl_bpix)) / 8;
-	return *line_length * panel_info.vl_row;
+	int line = panel_info.vl_col * panel_info.vl_bpix >> 3;
+
+	*line_length = panel_info.vl_bpix > 8 ? line : line * 2;
+	return line * panel_info.vl_row;
 }
 
 /* dummy function */
@@ -301,7 +311,7 @@ ulong lcd_setmem(ulong addr)
 	int line_length;
 
 	debug("LCD panel info: %d x %d, %d bit/pix\n", panel_info.vl_col,
-		panel_info.vl_row, NBITS(panel_info.vl_bpix));
+		panel_info.vl_row, panel_info.vl_bpix);
 
 	size = lcd_get_size(&line_length);
 
@@ -604,24 +614,28 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 
 	colors = 1 << bmp_bpix;
 
-	bpix = NBITS(panel_info.vl_bpix);
-
-	if (bpix != 1 && bpix != 8 && bpix != 16 && bpix != 32) {
-		printf ("Error: %d bit/pixel mode, but BMP has %d bit/pixel\n",
-			bpix, bmp_bpix);
-
-		return 1;
+	switch(bmp_bpix) {
+		case 8:
+		case 16:
+			bpix = 16;
+			break;
+		case 24:
+		case 32:
+			bpix = bmp_bpix;
+			break;
+		default:
+			bpix = 0;
+			break;
 	}
 
 	/*
 	 * We support displaying 8bpp BMPs on 16bpp LCDs
 	 * and displaying 24bpp BMPs on 32bpp LCDs
 	 * */
-	if (bpix != bmp_bpix &&
-	    !(bmp_bpix == 8 && bpix == 16) &&
-	    !(bmp_bpix == 24 && bpix == 32)) {
+	if (!bpix) {
 		printf ("Error: %d bit/pixel mode, but BMP has %d bit/pixel\n",
-			bpix, get_unaligned_le16(&bmp->header.bit_count));
+			bpix, bmp_bpix);
+
 		return 1;
 	}
 
@@ -715,19 +729,20 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 		}
 		break;
 #endif /* CONFIG_BMP_16BPP */
-#if defined(CONFIG_BMP_24BMP)
+#if defined(CONFIG_BMP_24BPP)
 	case 24:
 		for (i = 0; i < height; ++i) {
 			for (j = 0; j < width; j++) {
 				*(fb++) = *(bmap++);
 				*(fb++) = *(bmap++);
 				*(fb++) = *(bmap++);
-				*(fb++) = 0;
+				*(fb++) = 0xFF;
 			}
-			fb -= lcd_line_length + width * (bpix / 8);
+			bmap += (padded_width - width) * 4;
+			fb -= (width * 4 + lcd_line_length);
 		}
 		break;
-#endif /* CONFIG_BMP_24BMP */
+#endif /* CONFIG_BMP_24BPP */
 #if defined(CONFIG_BMP_32BPP)
 	case 32:
 		for (i = 0; i < height; ++i) {
@@ -737,7 +752,8 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 				*(fb++) = *(bmap++);
 				*(fb++) = *(bmap++);
 			}
-			fb -= lcd_line_length + width * (bpix / 8);
+			bmap += (padded_width - width) * 4;
+			fb -= (width * 4 + lcd_line_length);
 		}
 		break;
 #endif /* CONFIG_BMP_32BPP */

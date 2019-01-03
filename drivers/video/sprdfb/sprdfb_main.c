@@ -47,6 +47,11 @@ uint32_t lcd_get_pixel_clock(void)
 	return 0;
 }
 
+uint32_t lcd_get_bpix(void)
+{
+	return panel_info.vl_bpix;
+}
+
 void inline save_lcd_id_to_kernel(uint32_t id)
 {
 	lcd_id_to_kernel = id;
@@ -219,7 +224,7 @@ void lcd_ctrl_init(void *lcdbase)
 	u32 bmp_header_size = 8192;
 
 	sprdfb_probe(lcdbase);
-	size = lcd_get_size(&lcd_line_length) >> 1;
+	size = lcd_get_size(&lcd_line_length);
 	size += bmp_header_size;
 	bmp = malloc(size);
 	if (!bmp) {

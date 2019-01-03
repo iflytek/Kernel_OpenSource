@@ -853,6 +853,19 @@ int fdt_fixup_pixelclock(void *fdt)
 	return fdt_chosen_bootargs_append(fdt, buf, 1);
 }
 
+int fdt_fixup_lcdbpix(void *fdt)
+{
+	char buf[16];
+	uint32_t bpix = 0;
+
+	memset(buf, 0, 16);
+
+	bpix = lcd_get_bpix();
+	sprintf(buf, "logo_bpix=%d", bpix);
+
+	return fdt_chosen_bootargs_append(fdt, buf, 1);
+}
+
 int fdt_fixup_serialno(void *fdt)
 {
 	char buf[255];
