@@ -5,6 +5,8 @@
 static int power_on_voltage_init(void)
 {
 	regulator_set_voltage("vddsim2",2800);
+/*resolve asic workaround issue that the power supply fluctuate serious.*/
+	regulator_set_voltage("vddrf1v25",1245);
 	return 0;
 }
 
