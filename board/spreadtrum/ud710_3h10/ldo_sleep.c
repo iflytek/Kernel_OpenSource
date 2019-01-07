@@ -8,30 +8,29 @@ void dcdc_ldo_power_on()
 #if defined(CONFIG_ADIE_SC2730)
 	/* In SC2730, this DCDC/LDO is power on default */
 	//regulator_enable("vddsram");
-	//regulator_enable("vddmemq");
+	//regulator_enable("vddmenq");
 	//regulator_enable("vddmodem");
-	//regulator_enable("vdd18dcxo");
-	//regulator_enable("vddemm");
+	//regulator_enable("vdddcxo");
 	//regulator_enable("vddgen0");
 	//regulator_enable("vddgen1");
-	//regulator_enable("vddmem");
+	//regulator_enable("vddmen");
 	//regulator_enable("vddcore");
 	//regulator_enable("vddcpu");
 	//regulator_enable("vddgpu");
-	//regulator_enable("vdd18");
+	//regulator_enable("avdd18");
 	//regulator_enable("vdd28");
-
-	regulator_enable("vddrf1v8");
+	//regulator_enable("vddemmccore"); //not emm which is used by efuse
+	//regulator_enable("vddsdcore");
+	//regulator_enable("vddsdio");
+	//regulator_enable("vddusb33");
+	//regulator_enable("vddrf1v8");
+	//regulator_enable("avdd12");
 	regulator_enable("vddrf1v25");
-	regulator_enable("avdd12");
-	regulator_enable("vdd28");
-	regulator_enable("vdddcxo");
-	regulator_enable("vddldo0");
 
 	/* In SC2730, this LDO is power off default */
 #if defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
-	regulator_enable("vddcamio");
 	regulator_enable("vddwcn");
+	//regulator_enable("vddcamio"); //regulator not support in u-boot
 	regulator_enable("vddcamd1");
 	regulator_enable("vddcamd0");
 	regulator_enable("vddcama0");
@@ -40,10 +39,8 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vddsim0");
 	//regulator_enable("vddsim1");
 	regulator_enable("vddsim2");
-	regulator_enable("vddemmccore");
-	regulator_enable("vddsdio");
 	regulator_enable("vddwifipa");
-	regulator_enable("vddusb33");
+	regulator_enable("vddldo0");
 	regulator_enable("vddldo1");
 	regulator_enable("vddldo2");
 #endif
@@ -113,9 +110,9 @@ void pmic_lowpower_config(void)
 
 	//DCDC pd an drop config in sleep mode
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		BIT_SLP_DCDCMODEM_PD_EN |
+		BIT_SLP_DCDCMODEM_PD_EN |       //ap_sys/vsp/dpu/wtlcp/pubcp
 		//BIT_SLP_DCDCMEMQ_PD_EN |      //for ddr keep on even sleep
-		BIT_SLP_DCDCSRAM_PD_EN |		//Deep with mem retention
+		BIT_SLP_DCDCSRAM_PD_EN |		//GPU/MM/AP/Ananke/corinth/cpu top
 		//BIT_SLP_DCDCSRAM_DROP_EN |
 		//BIT_SLP_DCDCMODEM_DROP_EN |
 		//BIT_SLP_DCDCGPU_DROP_EN |
@@ -123,7 +120,7 @@ void pmic_lowpower_config(void)
 		//BIT_SLP_DCDCCORE_DROP_EN |
 	#endif
 		//BIT_SLP_DCDCWPA_PD_EN |       //should shutdown by user self
-		//BIT_SLP_DCDCGPU_PD_EN |       //should shutdown by user self
+		BIT_SLP_DCDCGPU_PD_EN |       	//GPU/ISP/CPP/JPG/AUDCP
 		//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
 		BIT_SLP_DCDCGEN1_PD_EN |
 		0
@@ -136,7 +133,7 @@ void pmic_lowpower_config(void)
 		BIT_SLP_DCDCMEM_LP_EN |
 		//BIT_SLP_DCDCGPU_LP_EN |      //cannot config slp_lp
 		//BIT_SLP_DCDCCORE_LP_EN |     //cannot config slp_lp
-		BIT_SLP_DCDCCPU_LP_EN |
+		BIT_SLP_DCDCCPU_LP_EN |        //AI use
 		BIT_SLP_DCDCGEN1_LP_EN |
 		BIT_SLP_DCDCGEN0_LP_EN |
 		BIT_SLP_DCDCWPA_LP_EN |
@@ -161,7 +158,7 @@ void pmic_lowpower_config(void)
 		BIT_SLP_LDO_VDDCAMD0_PD_EN |
 		BIT_SLP_LDO_VDDCAMA0_PD_EN |
 		BIT_SLP_LDO_VDDSIM2_PD_EN |
-		BIT_SLP_LDO_VDDSIM1_PD_EN | //?
+		BIT_SLP_LDO_VDDSIM1_PD_EN |
 		0
 	);
 
@@ -238,7 +235,7 @@ void pmic_lowpower_config(void)
 		//BIT_SLP_LDO_VDDCAMA1_PD_EN | //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDSIM0_PD_EN |  //smi use.should shutdown by user self
 		BIT_SLP_LDO_AVDD18_PD_EN |     //pcie/ufs/dsi/usb/marlin...
-		BIT_SLP_LDO_VDDLDO1_PD_EN |    //who use it.need check?
+		BIT_SLP_LDO_VDDLDO1_PD_EN |    //not use
 		0
 	);
 
@@ -262,7 +259,7 @@ void pmic_lowpower_config(void)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL1,
-		BIT_SLP_LDO_VDDLDO2_LP_EN |
+		//BIT_SLP_LDO_VDDLDO2_LP_EN |
 		//BIT_SLP_LDO_AVDD12_LP_EN |
 		BIT_SLP_LDO_VDDWCN_LP_EN |
 		//BIT_SLP_LDO_VDDCAMD1_LP_EN |
@@ -279,9 +276,9 @@ void pmic_lowpower_config(void)
 
 
 	ANA_REG_SET(ANA_REG_GLB_DCDC_XTL_EN,
-		//BIT_DCDC_CORE_EXT_XTL0_EN |
+		BIT_DCDC_CORE_EXT_XTL0_EN |
 		//BIT_DCDC_CORE_EXT_XTL1_EN |
-		//BIT_DCDC_CORE_EXT_XTL2_EN |
+		BIT_DCDC_CORE_EXT_XTL2_EN |
 		//BIT_DCDC_CORE_EXT_XTL3_EN |
 		//BIT_DCDC_CORE_EXT_XTL4_EN |
 		//BIT_DCDC_CORE_EXT_XTL5_EN |
@@ -301,7 +298,7 @@ void pmic_lowpower_config(void)
 		//BIT_DCDC_GEN0_EXT_XTL3_EN |
 		//BIT_DCDC_GEN0_EXT_XTL4_EN |
 		//BIT_DCDC_GEN0_EXT_XTL5_EN |
-		//BIT_DCDC_SRAM_EXT_XTL0_EN |
+		BIT_DCDC_SRAM_EXT_XTL0_EN |
 		//BIT_DCDC_SRAM_EXT_XTL1_EN |
 		//BIT_DCDC_SRAM_EXT_XTL2_EN |
 		//BIT_DCDC_SRAM_EXT_XTL3_EN |
@@ -317,7 +314,7 @@ void pmic_lowpower_config(void)
 		//BIT_DCDC_CPU_EXT_XTL3_EN |
 		//BIT_DCDC_CPU_EXT_XTL4_EN |
 		//BIT_DCDC_CPU_EXT_XTL5_EN |
-		//BIT_DCDC_GPU_EXT_XTL0_EN |
+		BIT_DCDC_GPU_EXT_XTL0_EN |
 		//BIT_DCDC_GPU_EXT_XTL1_EN |
 		//BIT_DCDC_GPU_EXT_XTL2_EN |
 		//BIT_DCDC_GPU_EXT_XTL3_EN |
@@ -336,7 +333,7 @@ void pmic_lowpower_config(void)
 		//BIT_DCDC_GEN1_EXT_XTL0_EN |
 		//BIT_DCDC_GEN1_EXT_XTL1_EN |
 		//BIT_DCDC_GEN1_EXT_XTL2_EN |
-		//BIT_DCDC_GEN1_EXT_XTL3_EN |
+		BIT_DCDC_GEN1_EXT_XTL3_EN |
 		//BIT_DCDC_GEN1_EXT_XTL4_EN |
 		//BIT_DCDC_GEN1_EXT_XTL5_EN |
 		0
@@ -525,10 +522,10 @@ void pmic_lowpower_config(void)
 		//BIT_LDO_VDDWCN_EXT_XTL3_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL4_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL5_EN |
-		//BIT_LDO_AVDD18_EXT_XTL0_EN |
+		BIT_LDO_AVDD18_EXT_XTL0_EN |
 		//BIT_LDO_AVDD18_EXT_XTL1_EN |
 		//BIT_LDO_AVDD18_EXT_XTL2_EN |
-		//BIT_LDO_AVDD18_EXT_XTL3_EN |
+		BIT_LDO_AVDD18_EXT_XTL3_EN |
 		//BIT_LDO_AVDD18_EXT_XTL4_EN |
 		//BIT_LDO_AVDD18_EXT_XTL5_EN |
 		0
@@ -538,7 +535,7 @@ void pmic_lowpower_config(void)
 		//BIT_LDO_VDDLDO0_EXT_XTL0_EN |
 		//BIT_LDO_VDDLDO0_EXT_XTL1_EN |
 		//BIT_LDO_VDDLDO0_EXT_XTL2_EN |
-		//BIT_LDO_VDDLDO0_EXT_XTL3_EN |
+		BIT_LDO_VDDLDO0_EXT_XTL3_EN |
 		//BIT_LDO_VDDLDO0_EXT_XTL4_EN |
 		//BIT_LDO_VDDLDO0_EXT_XTL5_EN |
 		//BIT_LDO_VDDWIFIPA_EXT_XTL0_EN |
@@ -594,10 +591,11 @@ void sprd_pmu_lowpower_init(void)
 	//Config pmu paratmers
 	CSP_Init(0);
 
-	//Power on other dcdc/ldo
-	dcdc_ldo_power_on();
-#endif
 	/* DCDCCORE drop config for bringup */
 	dcdccore_deep_drop_config();
+#endif
+
+	//Power on other dcdc/ldo
+	dcdc_ldo_power_on();
 #endif
 }
