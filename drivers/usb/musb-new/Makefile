@@ -13,6 +13,7 @@ obj-$(CONFIG_USB_SPRD_DMA) += sprd_musbhsdma.o
 obj-$(CONFIG_USB_PHY_SPRD) += sprd_usb_phy.o
 obj-$(CONFIG_USB_PHY_SNPS) += snps_usb_phy.o
 obj-$(CONFIG_USB_PHY_SHARKLE) += sharkle_usb_phy.o
+obj-$(CONFIG_USB_PHY_SHARKLER) += sharkler_usb_phy.o
 obj-$(CONFIG_USB_PHY_SHARKL3) += sharkl3_usb_phy.o
 obj-$(CONFIG_USB_PHY_ROC1) += roc1_usb_phy.o
 obj-$(CONFIG_USB_PHY_SHARKL5) += sharkl5_usb_phy.o
