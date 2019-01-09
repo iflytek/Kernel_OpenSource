@@ -117,7 +117,7 @@ static inline int BITRATE(struct usb_gadget *g)
  * It's for devices with only CDC Ethernet configurations.
  */
 #define FASTBOOT_VENDOR_NUM		0x18D1	/* Goolge VID */
-#define FASTBOOT_PRODUCT_NUM		0x0FFF	/* Fastboot Product ID */
+#define FASTBOOT_PRODUCT_NUM		0x4ee0	/* Fastboot Product ID */
 //#define FASTBOOT_PRODUCT_NUM          0x0C02  /* Linux-USB Ethernet Gadget */
 
 /*
@@ -177,7 +177,7 @@ static struct usb_device_descriptor device_desc = {
 
 	.bcdUSB = __constant_cpu_to_le16(0x0200),
 
-	.bDeviceClass = USB_CLASS_VENDOR_SPEC,
+	.bDeviceClass = 0,
 	.bDeviceSubClass = 0,
 	.bDeviceProtocol = 0,
 
