@@ -775,36 +775,39 @@ void sprd_fb_secure_verify(uint8_t *name,uint8_t * header,uint8_t *code)
 
 void sprd_calc_hbk(void)
 {
-	unsigned int t_readValue = 0;
-	char  *boot_mode_type_str;
+    unsigned int t_readValue = 0;
+    char  *boot_mode_type_str;
+    sys_img_header  *imghdr = NULL;
 
-  	boot_mode_type_str = getenv("bootmode");
-  	if (NULL != boot_mode_type_str)
-  	{
-		if(!strncmp(boot_mode_type_str, "cali", 4))
-		{
-		/**read spl image**/
-		#ifdef TOS_TRUSTY
-		img_verify_info_tos->img_addr= (uint8_t*)(gd->arg_start_base+PAGE_ALIGN);
-		memcpy((unsigned char *)img_verify_info_tos->img_addr,IRAM_BEGIN,SPL_IMAGE_SIZE);
-		//common_raw_read("splloader",SPL_IMAGE_SIZE, 0, (unsigned char *)img_verify_info_tos->img_addr);
-		img_verify_info_tos->img_len = SPL_IMAGE_SIZE;
-		img_verify_info_tos->flag = SPRD_FLAG;
-		printf("sprd_calc_hbk p1:%x, p2:%x,P3:%x\n",img_verify_info_tos->img_addr,img_verify_info_tos->img_len,img_verify_info_tos->flag);
-		uboot_get_hbk(img_verify_info_tos,sizeof(imgToVerifyInfo));
-		#else
-		//memcpy((unsigned char *)img_verify_info.img_addr,IRAM_BEGIN,SPL_IMAGE_SIZE);
-		common_raw_read("splloader", (uint64_t)SPL_IMAGE_SIZE, (uint64_t)0, (unsigned char *)img_verify_info.img_addr);
-		img_verify_info.img_len = SPL_IMAGE_SIZE;
-		img_verify_info.flag = SPRD_FLAG;
-		printf("sprd_calc_hbk p1:%llx, p2:%llx,P3:%x\n",img_verify_info.img_addr,img_verify_info.img_len,img_verify_info.flag);
-		uboot_get_hbk(&img_verify_info,sizeof(imgToVerifyInfo));
-		#endif
-		}
-		else
-		{
-		printf("no calibration mode\n");
-		}
-  	}
+    boot_mode_type_str = getenv("bootmode");
+    if (NULL != boot_mode_type_str) {
+        if (!strncmp(boot_mode_type_str, "cali", 4)) {
+            /**read spl image**/
+#ifdef TOS_TRUSTY
+            img_verify_info_tos->img_addr= (uint8_t*)(gd->arg_start_base+PAGE_ALIGN);
+            imghdr = (sys_img_header *)IRAM_BEGIN;
+            if (imghdr->mMagicNum != IMG_BAK_HEADER ) {
+                printf("Invalid spl image, return");
+                return;
+            }
+            img_verify_info_tos->img_len = (uint64_t)(imghdr->mImgSize + SYS_HEADER_SIZE + CERT_SIZE);
+            img_verify_info_tos->flag = SPRD_FLAG;
+            printf("spl imgsize = 0x%x\n", img_verify_info_tos->img_len);
+            memcpy((unsigned char *)img_verify_info_tos->img_addr, IRAM_BEGIN,
+                    img_verify_info_tos->img_len);
+            printf("sprd_calc_hbk p1:%x, p2:%x,P3:%x\n",img_verify_info_tos->img_addr,img_verify_info_tos->img_len,img_verify_info_tos->flag);
+            uboot_get_hbk(img_verify_info_tos,sizeof(imgToVerifyInfo));
+#else
+            //memcpy((unsigned char *)img_verify_info.img_addr,IRAM_BEGIN,SPL_IMAGE_SIZE);
+            common_raw_read("splloader", (uint64_t)SPL_IMAGE_SIZE, (uint64_t)0, (unsigned char *)img_verify_info.img_addr);
+            img_verify_info.img_len = SPL_IMAGE_SIZE;
+            img_verify_info.flag = SPRD_FLAG;
+            printf("sprd_calc_hbk p1:%llx, p2:%llx,P3:%x\n",img_verify_info.img_addr,img_verify_info.img_len,img_verify_info.flag);
+            uboot_get_hbk(&img_verify_info,sizeof(imgToVerifyInfo));
+#endif
+        } else {
+            printf("not in calibration mode\n");
+        }
+    }
 }
 
