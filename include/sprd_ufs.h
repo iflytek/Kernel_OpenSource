@@ -10,12 +10,7 @@
 /* Versions of UFSHCI specification that the controller implementation supports */
 #define DWC_UFS_HC_VERSION_1_1 0x00010100
 #define DWC_UFS_HC_VERSION_2_0 0x00000200
-
-/*two M-phy used in FPGA, select one*/
-//#define USE_SNPS_MPHY_TC
-#define UFS_INTEL_MPHY_TC
-
-#define USE_SNPS_UFS_HC
+#define DWC_UFS_HC_VERSION_2_1 0x00000210
 
 /* General Macros Used in Driver */
 #define BIT(n)                 (1L     << (n))
@@ -232,7 +227,7 @@ struct ufs_driver_info {
 
 
 /*Put it here temporarily*/
-#define REG_BASE_ADDRESS 0xE2200000
+#define REG_BASE_ADDRESS         ufs_info.base_addr
 
 /* UFSHCD Registers Offsets */
 #define DW_UFS_CAP        0x00

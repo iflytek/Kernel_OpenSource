@@ -194,15 +194,17 @@
 #define DFS_ADDR    0x800000
 #define DFS_SIZE    (256*1024)
 
+/*ufs and emmc one software multi hardware,auto detect*/
+#define CONFIG_BLK_DEV_BOOT
 /*eMMC config*/
-#define CONFIG_EMMC_BOOT
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
 #define CONFIG_EMMC_VERSION_R11P0
-
 #define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
 #define EMMC_SECTOR_SIZE 512
+/*UFS config*/
+#define CONFIG_UFS
 
 /*file system config*/
 #define CONFIG_FAT_WRITE

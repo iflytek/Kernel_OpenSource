@@ -4,6 +4,7 @@
 #include <malloc.h>
 #include <linux/io.h>
 #include <asm/arch/sprd_reg.h>
+#include <asm/arch/ufs_cfg.h>
 #include "asm/cache.h"
 
 struct   ufs_driver_info ufs_info;
@@ -60,11 +61,6 @@ int dwc_reset_hc()
 	while (retry != 0) {
 		if(1 == ufs_readl(DW_UFS_HCE)) {
 			debugf("Reset UFS host controller success\n");
-#ifdef USE_SNPS_UFS_HC
-			/* Set the CLK Divider Register */
-			ufs_writel(DW_UFS_HCLKDIV, CLK_DIV_DEFAULT);
-			ufs_writel(DW_UFS_OCPTHRTL, DISABLE_CLK_GATE);
-#endif
 			return UFS_SUCCESS;
 		}
 
@@ -155,92 +151,6 @@ void dme_set(uint32_t mib, uint32_t value)
 	return;
 }
 
-/***************************************************************
- *
- * setup_snps_mphy_tc
- * Description: Programs the Unipro and Synopsys Mphy for 
- *
- ***************************************************************/
-void setup_snps_mphy_tc()
-{
-	dme_set(0x0000d0a0, 0x10);
-
-	dme_set(0x0000802b, 0x00);
-	dme_set(0x000080bf, 0x01);
-	dme_set(0x000080ea, 0x80);
-	dme_set(0x000080cd, 0x02);
-	dme_set(0x000080e6, 0x04);
-	dme_set(0x000080f1, 0x44);
-
-	dme_set(0x000000eb, 0x0d);
-	dme_set(0x000100eb, 0x0d);
-	dme_set(0x000400eb, 0x01);
-	dme_set(0x000500eb, 0x01);
-
-	dme_set(0x000000ec, 0x19);
-	dme_set(0x000100ec, 0x19);
-	dme_set(0x000400ec, 0x19);
-	dme_set(0x000500ec, 0x19);
-
-	dme_set(0x000000f0, 0x12);
-	dme_set(0x000100f0, 0x12);
-	dme_set(0x000400f0, 0x02);
-	dme_set(0x000500f0, 0x02);
-
-	dme_set(0x000400ba, 0x80);
-	dme_set(0x000500ba, 0x80);
-
-	dme_set(0x000080f3, 0x64);
-	dme_set(0x000000f1, 0xd6);
-	dme_set(0x000100f1, 0xd6);
-
-	dme_set(0x000080fb, 0x09);
-	dme_set(0x000080f0, 0x00);
-
-	dme_set(0x000400f2, 0x03);
-	dme_set(0x000500f2, 0x03);
-	dme_set(0x000400bd, 0x16);
-	dme_set(0x000500bd, 0x16);
-	dme_set(0x000400c7, 0x22);
-	dme_set(0x000500c7, 0x22);
-	dme_set(0x000080f8, 0x00);
-
-	dme_set(0x000400f3, 0xa4);
-	dme_set(0x000500f3, 0xa4);
-	dme_set(0x000400b4, 0x01);
-	dme_set(0x000500b4, 0x01);
-	dme_set(0x000400f4, 0x01);
-	dme_set(0x000500f4, 0x01);
-	dme_set(0x000400e9, 0x28);
-	dme_set(0x000500e9, 0x28);
-	dme_set(0x000400bf, 0x2f);
-	dme_set(0x000500bf, 0x2f);
-	dme_set(0x000400b5, 0x1e);
-	dme_set(0x000500b5, 0x1e);
-
-	dme_set(0x0000d085, 0x01);
-	dme_set(0x0000d000, 0x01);
-
-	dme_set(0x000015aa, 0x02);
-	dme_set(0x000015a8, 0x40);
-	dme_set(0x000015a7, 0x10);
-	dme_set(0x0000d084, 0x0a);
-	dme_set(0x0000d0af, 0x00);
-	dme_set(0x000015a4, 0xfa);
-	dme_set(0x0000d09e, 0x01);
-
-	return;
-}
-
-
-void setup_mphy_tc()
-{
-#ifdef USE_SNPS_MPHY_TC
-	setup_snps_mphy_tc();
-#endif
-	return;
-}
-
 /****************************************************************
  *
  * check_uic_link_startup_result
@@ -274,7 +184,7 @@ static void create_nop_out_upiu()
 	tmp_ptr = ufs_info.cmd_desc->command_upiu;
 	cmd_upiu_ptr = (struct dwc_ufs_nop_req_upiu*)tmp_ptr;
 
-	if (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
+	if ((ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0) || (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_1))
 		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
 	else
 		ufs_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
@@ -345,7 +255,7 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
 	cmd_upiu_ptr = (struct dwc_ufs_query_upiu *)tmp_ptr;
 
 	/* UTRD Descriptor Programming for processing command */
-	if (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
+	if ((ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0) || (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_1))
 		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
 	else
 		ufs_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
@@ -400,7 +310,7 @@ static int wait_for_cmd_completion()
 	int retry = RW_RETRY_CNT;
 	uint32_t is_status = 0;
 
-	flush_dcache_range(0, 0);
+	flush_dcache_all();
 	/* Set the doorbell for processing the request */
 	ufs_writel(DW_UFS_UTRLDBR, BIT(0));
 
@@ -798,7 +708,7 @@ int write_read_descriptor(void *req_upiu)
 	uint8_t *ptr;
 
 	/* UTRD Descriptor Programming for processing command */
-	if (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
+	if ((ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0) || (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_1))
 		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(UTP_NO_DATA_TRANSFER | UTP_UFS_STORAGE_COMMAND);
 	else
 		ufs_info.utrd_desc->ct_and_flags = (UTP_NO_DATA_TRANSFER | UTP_DEVICE_MANAGEMENT_FUNCTION);
@@ -869,28 +779,48 @@ void preconfig_utm_descriptor()
 	return;
 }
 
-void enable_ahb_ufs(void)
+void init_global_reg()
 {
-	uint32_t temp = 0;
+	struct ufs_cfg_info *sprd_ufs_info;
 
-	//temp = readl((void *)SPRD_AHB_BASE);
-	temp |= BIT(23);
-	//writel(temp, (void *)SPRD_AHB_BASE);
+	sprd_ufs_info = get_ufscontrol_info();
+	ufs_info.base_addr = sprd_ufs_info->ufs_regbase;
 
-	return;
-}
+	if (sprd_ufs_info->ldo_core != 0)
+		regulator_enable(sprd_ufs_info->ldo_core);
+	if (sprd_ufs_info->ldo_io != 0)
+		regulator_enable(sprd_ufs_info->ldo_io);
 
-void soft_reset_aon_ufs(void)
-{
-	uint32_t temp = 0;
-	uint32_t temp1 = 0;
-
-	//temp = readl((void *)REG_AON_APB_AON_UFS_CTRL);
-	temp1 = temp |( 1 << 6) | (1 << 7);
-	//writel(temp1, (void *)REG_AON_APB_AON_UFS_CTRL);
+	debugf("ufs ldo_core:%s, ldo_io:%s\n",
+	       sprd_ufs_info->ldo_core, sprd_ufs_info->ldo_io);
 	udelay(1000);
-	//writel(temp, (void *)REG_AON_APB_AON_UFS_CTRL);
 
+	CHIP_REG_OR(sprd_ufs_info->apb_enable_reg,
+			sprd_ufs_info->apb_enable_bit);
+	CHIP_REG_OR(sprd_ufs_info->ao_aon_apb_enable_reg,
+			sprd_ufs_info->ao_aon_apb_enable_bit);
+
+	//as defaut byp ufs_pwr_gate, as use ufs,we will clear it.
+	CHIP_REG_AND(sprd_ufs_info->pmu_bypass_enable_reg,
+			~(sprd_ufs_info->pmu_bypass_enable_bit));
+
+	CHIP_REG_AND(sprd_ufs_info->anlg_phy_g1_reg,
+			~(sprd_ufs_info->anlg_phy_g1_reset_bit));
+	udelay(1000);
+	CHIP_REG_OR(sprd_ufs_info->anlg_phy_g1_reg,
+			sprd_ufs_info->anlg_phy_g1_reset_bit);
+
+	CHIP_REG_OR(sprd_ufs_info->apb_reset_reg,
+			sprd_ufs_info->apb_reset_bit);
+	udelay(1000);
+	CHIP_REG_AND(sprd_ufs_info->apb_reset_reg,
+			~(sprd_ufs_info->apb_reset_bit));
+
+	CHIP_REG_OR(sprd_ufs_info->ao_aon_apb_reset_reg,
+			sprd_ufs_info->ao_aon_apb_reset_bit);
+	udelay(1000);
+	CHIP_REG_AND(sprd_ufs_info->ao_aon_apb_reset_reg,
+			~(sprd_ufs_info->ao_aon_apb_reset_bit));
 }
 
 /****************************************************************
@@ -910,24 +840,6 @@ int init_ufs_hostc()
 	int      retry = RETRY_CNT;
 	uint32_t temp = 0;
 
-	enable_ahb_ufs();
-	soft_reset_aon_ufs();
-
-#ifdef UFS_INTEL_MPHY_TC
-	temp = readl((void *)0xE43031D8);
-	temp = temp |( 1 << 6) | (1 << 7);
-	writel(temp, (void *)0xE43031D8);
-
-	writel(0, (void *)0xe41030c8);
-	/*This delay is necessary in FPGA*/
-	udelay(1000);
-#endif
-
-
-#ifdef USE_SNPS_MPHY_TC
-	writel(0x10, (void *)0xE43F0000);
-#endif
-
 	/* Reset the UFS Host Controller */
 	ret = dwc_reset_hc();
 	if(ret != 0)
@@ -940,7 +852,6 @@ int init_ufs_hostc()
 	/* LOOP Back Configuration */
 	ufs_writel(DW_UFS_LBMCFG, LOOPBACK_DEFAULT);
 #else
-
 	/*
 	 * Send locally created DME_LINKSTARTUP UIC command to start the
 	 * Link Startup Procedure
@@ -948,7 +859,6 @@ int init_ufs_hostc()
 	 */
 	while(retry > 0) {
 		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_UCRDY) {
-			setup_mphy_tc();
 			debugf("Send link startup UIC command\n");
 			send_dme_link_startup();
 		} else {
@@ -1096,13 +1006,6 @@ void change_ufs_power_mode(void)
 		}
 		pwr_info.pwr_tx = SLOWAUTO_MODE;
 	}
-
-/*Intel Phy in FPGA can only support Gear 1*/
-#ifdef UFS_INTEL_MPHY_TC
-	pwr_info.gear_rx = UFS_HS_G1;
-	pwr_info.gear_tx = UFS_HS_G1;
-#endif
-
 	debugf("Power mode:pwr_rx(%d), pwr_tx(%d), lane_rx(%d), lane_tx(%d), gear_rx(%d), gear_tx(%d), hs_rate(%d)\n",
 		pwr_info.pwr_rx, pwr_info.pwr_tx, pwr_info.lane_rx, pwr_info.lane_tx,
 		pwr_info.gear_rx, pwr_info.gear_tx, pwr_info.hs_rate);
@@ -1119,12 +1022,6 @@ void change_ufs_power_mode(void)
 
 	dme_set(PA_ACTIVETXDATALANES, pwr_info.lane_tx);
 	dme_set(PA_ACTIVERXDATALANES, pwr_info.lane_rx);
-
-#ifdef UFS_INTEL_MPHY_TC
-	writel(2, (void *)0xe41030c8);
-	/*This delay is necessary*/
-	udelay(1000);
-#endif
 
 	if (FASTAUTO_MODE == pwr_info.pwr_tx || FAST_MODE == pwr_info.pwr_tx)
 		dme_set(PA_TXTERMINATION, 1);
@@ -1164,6 +1061,7 @@ void change_ufs_power_mode(void)
 
 void ufs_init()
 {
+	init_global_reg();
 	init_ufs_hostc();
 	init_ufs_device();
 	ufs_update_native();
@@ -1468,7 +1366,7 @@ static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 	}
 
 	/* Update cmd_type, flags and response upiu length for transfer requests */
-	if (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0)
+	if ((ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_0) || (ufs_info.dwc_ufs_version == DWC_UFS_HC_VERSION_2_1))
 		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(data_direction | UTP_UFS_STORAGE_COMMAND);
 	else
 		ufs_info.utrd_desc->ct_and_flags = (uint8_t)(data_direction | UTP_SCSI_COMMAND);
@@ -1563,7 +1461,7 @@ int send_scsi_cmd_backstage(uint32_t opcode, enum dma_data_direction direction,
 
 	create_cmd_upiu(opcode, direction, lu_info, buf_addr, start, blkcnt, cmd_set_type);
 
-	flush_dcache_range(0, 0);
+	flush_dcache_all();
 	/* Set the doorbell for processing the request */
 	ufs_writel(DW_UFS_UTRLDBR, BIT(0));
 
