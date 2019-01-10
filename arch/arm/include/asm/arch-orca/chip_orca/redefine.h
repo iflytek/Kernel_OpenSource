@@ -32,4 +32,7 @@
 #define BIT_I2C_EB                              BIT_AP_APB_I2C0_EB
 #define BIT_ADI_EB                              BIT_AON_APB_ADI_EB
 
+/* referenced by dwc3 */
+#define	EVT_BUF_ADDR				0x28002A00
+
 #endif

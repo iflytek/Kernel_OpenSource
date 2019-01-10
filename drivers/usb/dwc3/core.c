@@ -22,6 +22,7 @@
 #include <linux/kernel.h>
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
+#include <asm/arch/sprd_reg.h>
 
 #include "core.h"
 #include "gadget.h"
@@ -120,7 +121,7 @@ static struct dwc3_event_buffer *dwc3_alloc_one_event_buffer(struct dwc3 *dwc,
 #ifdef CONFIG_X86
 	evt->buf	= 0xE601E000;
 #else
-	evt->buf	= 0x20b00000; //memalign(length, length);
+	evt->buf	= EVT_BUF_ADDR; //memalign(length, length);
 #endif
 	evt->dma	= evt->buf;
 	if (!evt->buf)

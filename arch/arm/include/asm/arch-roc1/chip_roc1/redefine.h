@@ -83,4 +83,7 @@
 #define BIT_AP_AHB_CE_SEC_EB					   BIT_AP_APB_CE_SEC_EB
 #define BIT_AP_AHB_CE_SEC_SOFT_RST			   BIT_AP_APB_CE_SEC_SOFT_RST
 
+/* referenced by dwc3 */
+#define EVT_BUF_ADDR                            0x20b00000
+
 #endif
