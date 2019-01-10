@@ -22,15 +22,19 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vdd18");
 	//regulator_enable("vdd28");
 
+	regulator_enable("vddrf1v8");
+	regulator_enable("vddrf1v25");
+	regulator_enable("avdd12");
+	regulator_enable("vdd28");
+	regulator_enable("vdddcxo");
+	regulator_enable("vddldo0");
+
 	/* In SC2730, this LDO is power off default */
 #if defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
-	regulator_enable("vddrf1v8");
 	regulator_enable("vddcamio");
 	regulator_enable("vddwcn");
 	regulator_enable("vddcamd1");
 	regulator_enable("vddcamd0");
-	regulator_enable("vddrf1v25");
-	regulator_enable("vdd12");
 	regulator_enable("vddcama0");
 	regulator_enable("vddcama1");
 	regulator_enable("vddcammot");
@@ -41,7 +45,6 @@ void dcdc_ldo_power_on()
 	regulator_enable("vddsdio");
 	regulator_enable("vddwifipa");
 	regulator_enable("vddusb33");
-	regulator_enable("vddldo0");
 	regulator_enable("vddldo1");
 	regulator_enable("vddldo2");
 #endif
@@ -128,16 +131,16 @@ void pmic_lowpower_config(void)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-		BIT_SLP_DCDCSRAM_LP_EN |
-		BIT_SLP_DCDCMODEM_LP_EN |
+		//BIT_SLP_DCDCSRAM_LP_EN |
+		//BIT_SLP_DCDCMODEM_LP_EN |
 		BIT_SLP_DCDCMEMQ_LP_EN |
-		BIT_SLP_DCDCMEM_LP_EN |
-		BIT_SLP_DCDCGPU_LP_EN |
-		BIT_SLP_DCDCCORE_LP_EN |
-		BIT_SLP_DCDCCPU_LP_EN |
-		BIT_SLP_DCDCGEN1_LP_EN |
+		//BIT_SLP_DCDCMEM_LP_EN |
+		//BIT_SLP_DCDCGPU_LP_EN |
+		//BIT_SLP_DCDCCORE_LP_EN |
+		//BIT_SLP_DCDCCPU_LP_EN |
+		//BIT_SLP_DCDCGEN1_LP_EN |
 		BIT_SLP_DCDCGEN0_LP_EN |
-		BIT_SLP_DCDCWPA_LP_EN |
+		//BIT_SLP_DCDCWPA_LP_EN |
 		0
 	);
 
@@ -245,7 +248,7 @@ void pmic_lowpower_config(void)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL0,
-		BIT_SLP_LDO_VDDRF1V8_LP_EN |
+		//BIT_SLP_LDO_VDDRF1V8_LP_EN |
 		//BIT_SLP_LDO_VDDRF1V25_LP_EN |
 		//BIT_SLP_LDO_VDDEMMCCORE_LP_EN |
 		BIT_SLP_LDO_VDD18_DCXO_LP_EN |
@@ -265,16 +268,17 @@ void pmic_lowpower_config(void)
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL1,
 		BIT_SLP_LDO_VDDLDO2_LP_EN |
 		//BIT_SLP_LDO_AVDD12_LP_EN |
-		BIT_SLP_LDO_VDDWCN_LP_EN |
+		//BIT_SLP_LDO_VDDWCN_LP_EN |
 		//BIT_SLP_LDO_VDDCAMD1_LP_EN |
 		//BIT_SLP_LDO_VDDCAMA1_LP_EN |
 		//BIT_SLP_LDO_VDDLDO0_LP_EN |
 		//BIT_SLP_LDO_VDDSIM0_LP_EN |
-		BIT_SLP_LDO_AVDD18_LP_EN |
+		//BIT_SLP_LDO_AVDD18_LP_EN |
 		//BIT_SLP_LDO_VDDLDO1_LP_EN |
 		0
 	);
 
+	ANA_REG_OR(ANA_REG_GLB_TSX_CTRL11, BIT_SLP_DCXO_LP_EN);
 	ANA_REG_OR(ANA_REG_GLB_CLK32KLESS_CTRL0, BIT_SLP_XO_LOW_CUR_EN);
 
 

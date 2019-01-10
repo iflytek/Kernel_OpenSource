@@ -76,7 +76,7 @@
 
 /* SharkL5 Lowpower feature support start */
 
-//#define CONFIG_SUPPORT_LOWPOWER
+#define CONFIG_SUPPORT_LOWPOWER
 //#define CONFIG_SUPPORT_CDMA2000
 
 /* DCDCCORE drop config when chip into deep sleep */
