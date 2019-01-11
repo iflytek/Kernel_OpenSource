@@ -47,6 +47,7 @@ static inline void splash_get_pos(int *x, int *y) { }
 
 #if defined(CONFIG_SPLASH_SCREEN) && defined(CONFIG_LCD)
 int lcd_splash(uchar *logo_part_name);
+int splash_get_bpix(uchar *logo_part_name);
 #else
 static inline int lcd_splash(uchar *logo_part_name)
 {

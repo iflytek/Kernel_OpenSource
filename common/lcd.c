@@ -22,6 +22,7 @@
 #include <asm/io.h>
 #include <asm/unaligned.h>
 #include <video_font.h>
+#include "loader_common.h"
 
 #ifdef CONFIG_LCD_LOGO
 #include <bmp_logo.h>
@@ -67,15 +68,7 @@ static char lcd_flush_dcache;	/* 1 to flush dcache after each lcd update */
 
 static uint16_t colormap[256];
 __weak vidinfo_t panel_info = {
-#if defined(CONFIG_BMP_32BPP)
-	.vl_bpix = 32,
-#elif defined(CONFIG_BMP_24BPP)
-	.vl_bpix = 32,
-#elif defined(CONFIG_BMP_16BPP)
-	.vl_bpix = 16,
-#else
 	.vl_bpix = 8,
-#endif
 	.cmap = colormap,
 };
 
@@ -269,6 +262,8 @@ U_BOOT_CMD(cls,	1, 1, do_lcd_clear, "clear screen", "");
 static int lcd_init(void *lcdbase)
 {
 	//lcdbase will be probed from dts in lcd_ctrl_init, the value here is not correct
+	/* Get logo bits/pixel, initialize panel_info.vl_bpix */
+	splash_get_bpix(LOGO_PART);
 	//debug("[LCD] Initializing LCD frambuffer at %p\n", lcdbase);
 	lcd_ctrl_init(lcdbase);
 
@@ -558,13 +553,11 @@ __weak void fb_put_byte(uchar **fb, uchar **from)
 	*(*fb)++ = *(*from)++;
 }
 
-#if defined(CONFIG_BMP_16BPP)
 __weak void fb_put_word(uchar **fb, uchar **from)
 {
 	*(*fb)++ = *(*from)++;
 	*(*fb)++ = *(*from)++;
 }
-#endif /* CONFIG_BMP_16BPP */
 
 __weak void lcd_set_cmap(struct bmp_image *bmp, unsigned colors)
 {
@@ -717,7 +710,6 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 		}
 		break;
 	}
-#if defined(CONFIG_BMP_16BPP)
 	case 16:
 		for (i = 0; i < height; ++i) {
 			WATCHDOG_RESET();
@@ -728,8 +720,6 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 			fb -= width * 2 + lcd_line_length;
 		}
 		break;
-#endif /* CONFIG_BMP_16BPP */
-#if defined(CONFIG_BMP_24BPP)
 	case 24:
 		for (i = 0; i < height; ++i) {
 			for (j = 0; j < width; j++) {
@@ -742,8 +732,6 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 			fb -= (width * 4 + lcd_line_length);
 		}
 		break;
-#endif /* CONFIG_BMP_24BPP */
-#if defined(CONFIG_BMP_32BPP)
 	case 32:
 		for (i = 0; i < height; ++i) {
 			for (j = 0; j < width; j++) {
@@ -756,7 +744,6 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 			fb -= (width * 4 + lcd_line_length);
 		}
 		break;
-#endif /* CONFIG_BMP_32BPP */
 	default:
 		break;
 	};

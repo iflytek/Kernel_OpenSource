@@ -250,3 +250,9 @@ int bmp_display(ulong addr, int x, int y)
 
 	return ret;
 }
+
+int bmp_get_bpix(ulong addr)
+{
+	struct bmp_image *bmp = (struct bmp_image*)addr;
+	return bmp->header.bit_count;
+}
