@@ -201,6 +201,7 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	ums510_haps.dtb \
 	ums510_1h10.dtb \
 	ums510_1h10_32b.dtb \
+	ums510_2h10_32b.dtb \
 	ums518_zebu.dtb \
 	sp9650_haps.dtb \
 	udx710_1h10.dtb \
