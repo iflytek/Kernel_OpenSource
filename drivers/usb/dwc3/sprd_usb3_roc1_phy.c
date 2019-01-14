@@ -77,9 +77,7 @@ static void usb_enable()
 
 	udelay(10 * 1000);
 	val = readl(REG_IPA_AHB_IPA_RST);
-	val &= ~(BIT_IPA_AHB_USB_SOFT_RST | BIT_IPA_AHB_PAM_U3_SOFT_RST |
-			BIT_IPA_AHB_PAM_IPA_SOFT_RST | BIT_IPA_AHB_IPA_SOFT_RST) ;
-	writel(val , REG_IPA_AHB_IPA_RST);
+	writel(val & ~BIT_IPA_AHB_USB_SOFT_RST, REG_IPA_AHB_IPA_RST);
 
 	/* enable USB2 PHY 16bit */
 	val = readl(REG_ANLG_PHY_G3_ANALOG_USB20_USB20_UTMI_CTL1);
