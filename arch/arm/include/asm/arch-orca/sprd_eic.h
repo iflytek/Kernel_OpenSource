@@ -27,6 +27,9 @@
 #define EIC_SWITCHG_VIN1_OVI	171
 #define EIC_EXT_XTL_EN0		172
 #endif
+#elif defined(CONFIG_ADIE_SC2730)
+#define EIC_BATDET			163
+#define EIC_KEY2_7S_RST_EXT_RSTN_ACTIVE		164
 #endif
 
 #define SPRD_DDIE_EIC_START 0
