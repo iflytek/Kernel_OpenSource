@@ -53,6 +53,14 @@ static const ddr_partition_t ddr_partition_info[] = {
 #ifdef CONFIG_PSCP_IMG_ADDR
 	{"l_modem", CONFIG_PSCP_IMG_ADDR},
 #endif
+#ifdef CONFIG_NRPHY_IMG_ADDR
+	{"l_nrphy", CONFIG_NRPHY_IMG_ADDR},
+#endif
+#ifdef CONFIG_V3PHY_IMG_ADDR
+	{"l_v3phy", CONFIG_V3PHY_IMG_ADDR},
+#endif
+
+
 };
 
 int get_img_partition_id(char *part_name, unsigned int *id)

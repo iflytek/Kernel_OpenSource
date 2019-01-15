@@ -379,17 +379,19 @@ err:
 }
 
 static int do_parse_decoup_info_v1(struct cp_mem_coupling_info *info,
-				   struct fdt_header *fdt)
+				   struct fdt_header *fdt, const char *name_value)
 {
 	int i, val = 1;
 	int p_offs, offs;
 	int is_new_format;
+	int len;
 	uint64_t base;
 	uint32_t size;
 	uint32_t cp_base = 0;
 	uint32_t na, ns;
 	char name[64];
 	char value[64];
+	const char *prop_value;
 	struct property prop;
 	struct region_info *region;
 	struct mem_resource *res;
@@ -404,18 +406,27 @@ static int do_parse_decoup_info_v1(struct cp_mem_coupling_info *info,
 
 	is_new_format = 0;
 
-	strncpy(name, "sprd,decoup", sizeof(name));
-	strncpy(value, "cproc-use-decoup", sizeof(value));
+	strncpy(name, "sprd,name", sizeof(name));
+	strncpy(value, name_value, sizeof(value));
 	offs = fdt_node_offset_by_prop_value(fdt, 0, name, value, strlen(value) + 1);
 	if (offs < 0) {
-		strncpy(value, "cproc-use-decoup-v1", sizeof(value));
-		offs = fdt_node_offset_by_prop_value(fdt, 0, name, value, strlen(value) + 1);
-		if (offs < 0) {
-			debugf("the cp memory info already exist, don't need to parse\n");
-			return 1;
-		}
+		debugf("the node is not exist, don't need to parse\n");
+		return 1;
+	}
 
-		is_new_format = 1;
+	prop_value = fdt_getprop(fdt, offs, "sprd,decoup",&len);
+	if(NULL == prop_value) {
+		debugf("decoup is not exist, don't need to parse\n");
+		return 1;
+	} else {
+		debugf("prop_value = %s \n",prop_value);
+		if (0 != strncmp(prop_value, "cproc-use-decoup", len)) {
+			if (0 != strncmp(prop_value, "cproc-use-decoup-v1", len)) {
+				debugf("decoup value error, don't need to parse\n");
+				return 1;
+			}
+			is_new_format = 1;
+		}
 	}
 
 	add_fdt_total_size(EXPAND_FDT_SIZE, fdt);
@@ -648,7 +659,7 @@ err0:
 	return -1;
 }
 
-int fdt_fixup_cp_coupling_info(void *blob)
+int fdt_fixup_cp_coupling_info(void *blob, const char* node_name)
 {
 	int ret, has_dbg_region = 0;
 	uint64_t secure_boot_offset = 0;
@@ -668,7 +679,7 @@ int fdt_fixup_cp_coupling_info(void *blob)
 
 	fdt = (struct fdt_header *)blob;
 
-	ret = fixup_image_partition_name(DECOUPLING_INFO_PARTITION, &mp);
+	ret = fixup_image_partition_name(node_name, &mp);
 	if (!ret) {
 		memset(&i_info, 0, sizeof(boot_image_required_t));
 		i_info.partition = mp.partition;
@@ -729,7 +740,15 @@ int fdt_fixup_cp_coupling_info(void *blob)
 				fdt_fixup_cp_reserved_mem(fdt);
 
 			do_parse_decoup_sipc_info(decoup_data, fdt);
-			return do_parse_decoup_info_v1(decoup_data, fdt);
+
+			if(!strcmp("modem", node_name))
+				return do_parse_decoup_info_v1(decoup_data, fdt,"cptl");
+			#ifdef CONFIG_SUPPORT_NR
+			if(!strcmp("nrphy", node_name))
+				return do_parse_decoup_info_v1(decoup_data, fdt,"nrphy");
+			if(!strcmp("v3phy", node_name))
+				return do_parse_decoup_info_v1(decoup_data, fdt,"v3phy");
+			#endif
 
 		} else {
 			goto err;

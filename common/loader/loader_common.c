@@ -12,7 +12,17 @@
 #include "trustzone_def.h"
 #endif
 
+#ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+#include "cp_mem_decoupling.h"
+#endif
 #include "sprd_cpcmdline.h"
+
+#define DECOUPLING_INFO_PARTITION "modem"
+#ifdef CONFIG_SUPPORT_NR
+#define DECOUPLING_INFO_PARTITION_NRPHY "nrphy"
+#define DECOUPLING_INFO_PARTITION_V3PHY "v3phy"
+#endif
+
 
 unsigned char raw_header[8192];
 unsigned int g_charger_mode = 0;
@@ -119,9 +129,13 @@ void fdt_fixup_all(u8 *fdt_blob)
 #endif
 
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
-extern int fdt_fixup_cp_coupling_info(void *blob);
-	fdt_fixup_cp_coupling_info(fdt_blob);
+	fdt_fixup_cp_coupling_info(fdt_blob, DECOUPLING_INFO_PARTITION);
+#ifdef CONFIG_SUPPORT_NR
+	fdt_fixup_cp_coupling_info(fdt_blob, DECOUPLING_INFO_PARTITION_NRPHY);
+	fdt_fixup_cp_coupling_info(fdt_blob, DECOUPLING_INFO_PARTITION_V3PHY);
 #endif
+#endif
+
 	/*max let cp_cmdline_fixup befor fdt_fixup_cp_boot*/
 	cp_cmdline_fixup();
 	fdt_fixup_cp_boot(fdt_blob);
@@ -189,8 +203,11 @@ void fdt_fixup_all_x86(u8 *fdt_blob)
 	fdt_fixup_serialno(fdt_blob);
 
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
-extern int fdt_fixup_cp_coupling_info(void *blob);
-	fdt_fixup_cp_coupling_info(fdt_blob);
+	fdt_fixup_cp_coupling_info(fdt_blob, DECOUPLING_INFO_PARTITION);
+#ifdef CONFIG_SUPPORT_NR
+	fdt_fixup_cp_coupling_info(fdt_blob, DECOUPLING_INFO_PARTITION_NRPHY);
+	fdt_fixup_cp_coupling_info(fdt_blob, DECOUPLING_INFO_PARTITION_V3PHY);
+#endif
 #endif
 
 	/*max let cp_cmdline_fixup befor fdt_fixup_cp_boot*/

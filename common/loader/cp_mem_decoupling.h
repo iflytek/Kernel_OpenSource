@@ -22,7 +22,6 @@
 #define PARTITION_PREFIX	"l_"
 #endif
 #define NV_PARTITION_KEY	"nv"
-#define	DECOUPLING_INFO_PARTITION	"modem"
 
 enum {
 	ignore_t = 0,
@@ -128,5 +127,5 @@ union composite_header {
 	struct cp_mem_coupling_info mem_decoup;
 };
 
-int fdt_fixup_cp_coupling_info(void *blob);
+int fdt_fixup_cp_coupling_info(void *blob, const char* node_name);
 #endif

@@ -685,7 +685,7 @@ int fdt_fixup_cp_reserved_mem(void *fdt)
 
 	cell = fdt_getprop(fdt, offset, "sprd,cpdbg-size", &lenp);
 	if (!cell) {
-		debugf("the cp has no debug area");
+		debugf("the cp has no debug area\n");
 		return 0;
 	}
 
