@@ -79,21 +79,21 @@ int lcd_splash(uchar *logo_part_name)
 int splash_get_bpix(uchar *logo_part_name)
 {
 	u8 bpix;
-	u8 bmp[100] = {0};
+	u8 bmp[128] = {0};
 
 #ifndef CONFIG_ZEBU
-	if (0 != common_raw_read(logo_part_name, (uint64_t)100, (uint64_t)0, bmp)) {
+	if (0 != common_raw_read(logo_part_name, (uint64_t)sizeof(bmp), (uint64_t)0, bmp)) {
 		debug("failed to read logo partition:%s\n", logo_part_name);
 		return -1;
 	}
 #else
-	memcpy(addr, 0xb0000000, (size_t)size);
+	memcpy(bmp, 0xb0000000, (size_t)sizeof(bmp));
 #endif
 
 	bpix = bmp_get_bpix(bmp);
 	if (bpix == 8 || bpix == 16 || bpix == 24 || bpix == 32) {
-		panel_info.vl_bpix = bpix > 16 ? 32 : bpix;
-		debugf("get bmp bpix = %d, set bpix = %d\n", bpix, panel_info.vl_bpix);
+		panel_info.vl_bpix = bpix;
+		debugf("get bmp bpix = %d\n", bpix);
 	} else {
 		panel_info.vl_bpix = 8;
 		debugf("get bmp bpix format error! set default bpix = %d\n", panel_info.vl_bpix);

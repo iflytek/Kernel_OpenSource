@@ -158,10 +158,11 @@ static void test_pattern(void)
  */
 __weak int lcd_get_size(int *line_length)
 {
-	int line = panel_info.vl_col * panel_info.vl_bpix >> 3;
+	int bpp = panel_info.vl_bpix >> 3;
 
-	*line_length = panel_info.vl_bpix > 8 ? line : line * 2;
-	return line * panel_info.vl_row;
+	/* DPU support ARGB8888(4Byte) and RGB565(2Byte) */
+	*line_length = (bpp > 2 ? 4 : 2) * panel_info.vl_col;
+	return panel_info.vl_col * panel_info.vl_row * bpp;
 }
 
 /* dummy function */
@@ -237,7 +238,7 @@ void lcd_clear(void)
 	u32 *ppix = lcd_base;
 	u32 i;
 	for (i = 0;
-	   i < (lcd_line_length * panel_info.vl_row)/NBYTES(panel_info.vl_bpix);
+	   i < panel_info.vl_col * panel_info.vl_row;
 	   i++) {
 		*ppix++ = bg_color;
 	}
@@ -357,8 +358,9 @@ void lcd_logo_plot(int x, int y)
 {
 	ushort i, j;
 	uchar *bmap = &bmp_logo_bitmap[0];
-	unsigned bpix = NBITS(panel_info.vl_bpix);
-	uchar *fb = (uchar *)(lcd_base + y * lcd_line_length + x * bpix / 8);
+	unsigned bpix = panel_info.vl_bpix;
+	uchar *fb = (uchar *)(lcd_base + y * lcd_line_length +
+				x * lcd_line_length / panel_info.vl_col);
 	ushort *fb16;
 
 	debug("Logo: width %d  height %d  colors %d\n",
@@ -586,7 +588,7 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 	struct bmp_image *bmp = (struct bmp_image *)map_sysmem(bmp_image, 0);
 	uchar *bmap;
 	ushort padded_width;
-	unsigned long width, height, byte_width;
+	unsigned long width, height, bmp_width, fb_width;
 	unsigned long pwidth = panel_info.vl_col;
 	unsigned colors, bpix, bmp_bpix;
 	int hdr_size;
@@ -652,7 +654,8 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 
 	bmap = (uchar *)bmp + get_unaligned_le32(&bmp->header.data_offset);
 	fb   = (uchar *)(lcd_base +
-		(y + height - 1) * lcd_line_length + x * bpix / 8);
+		(y + height - 1) * lcd_line_length +
+		x * (lcd_line_length / panel_info.vl_col));
 
 	switch (bmp_bpix) {
 	case 1:
@@ -672,10 +675,11 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 		}
 #endif
 
-		if (bpix != 16)
-			byte_width = width;
-		else
-			byte_width = width * 2;
+		struct bmp_color_table_entry *entry;
+		uint val;
+
+		bmp_width = padded_width - width;
+		fb_width = width * 2 + lcd_line_length;
 
 		for (i = 0; i < height; ++i) {
 			WATCHDOG_RESET();
@@ -683,14 +687,11 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 #ifdef CONFIG_BMP_OPTIMIZE_CONVERT_16BPIX
 				*(uint16_t *)fb = cmap_base[*bmap];
 				bmap++;
-				fb += sizeof(uint16_t) / sizeof(*fb);
+				fb += 2;
 #else
 				if (bpix != 16) {
 					fb_put_byte(&fb, &bmap);
 				} else {
-					struct bmp_color_table_entry *entry;
-					uint val;
-
 					if (cmap_base) {
 						val = cmap_base[*bmap];
 					} else {
@@ -701,26 +702,32 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 					}
 					*(uint16_t *)fb = val;
 					bmap++;
-					fb += sizeof(uint16_t) / sizeof(*fb);
+					fb += 2;
 				}
 #endif
 			}
-			bmap += (padded_width - width);
-			fb -= byte_width + lcd_line_length;
+			bmap += bmp_width;
+			fb -= fb_width;
 		}
 		break;
 	}
 	case 16:
+		bmp_width = (padded_width - width) * 2;
+		fb_width = width * 2 + lcd_line_length;
+
 		for (i = 0; i < height; ++i) {
 			WATCHDOG_RESET();
 			for (j = 0; j < width; j++)
 				fb_put_word(&fb, &bmap);
 
-			bmap += (padded_width - width) * 2;
-			fb -= width * 2 + lcd_line_length;
+			bmap += bmp_width;
+			fb -= fb_width;
 		}
 		break;
 	case 24:
+		bmp_width = (padded_width - width) * 3;
+		fb_width = width * 4 + lcd_line_length;
+
 		for (i = 0; i < height; ++i) {
 			for (j = 0; j < width; j++) {
 				*(fb++) = *(bmap++);
@@ -728,11 +735,14 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 				*(fb++) = *(bmap++);
 				*(fb++) = 0xFF;
 			}
-			bmap += (padded_width - width) * 4;
-			fb -= (width * 4 + lcd_line_length);
+			bmap += bmp_width;
+			fb -= fb_width;
 		}
 		break;
 	case 32:
+		bmp_width = (padded_width - width) * 4;
+		fb_width = width * 4 + lcd_line_length;
+
 		for (i = 0; i < height; ++i) {
 			for (j = 0; j < width; j++) {
 				*(fb++) = *(bmap++);
@@ -740,8 +750,8 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 				*(fb++) = *(bmap++);
 				*(fb++) = *(bmap++);
 			}
-			bmap += (padded_width - width) * 4;
-			fb -= (width * 4 + lcd_line_length);
+			bmap += bmp_width;
+			fb -= fb_width;
 		}
 		break;
 	default:
