@@ -334,6 +334,12 @@ config TARGET_UD710_HAPS
         help
           This is the Spreadtrum roc1 Board
 
+config TARGET_UD710_2H10
+        bool "Spreadtrum roc1"
+        select ARM64
+        help
+          This is the Spreadtrum roc1 Board
+
 config TARGET_UD710_3H10
         bool "Spreadtrum roc1"
         select ARM64
@@ -525,6 +531,7 @@ source "board/spreadtrum/sp9832ep_haps/Kconfig"
 source "board/spreadtrum/sp9855a_haps/Kconfig"
 source "board/spreadtrum/sp9850ka_2c30/Kconfig"
 source "board/spreadtrum/ud710_haps/Kconfig"
+source "board/spreadtrum/ud710_2h10/Kconfig"
 source "board/spreadtrum/ud710_3h10/Kconfig"
 source "board/spreadtrum/ud710_orca_haps/Kconfig"
 source "board/spreadtrum/sp9863a_1h10/Kconfig"

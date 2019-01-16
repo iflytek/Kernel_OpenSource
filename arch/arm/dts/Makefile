@@ -190,6 +190,7 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9832ep_haps.dtb \
 	sp9855a_haps.dtb \
 	ud710_haps.dtb	\
+	ud710_2h10.dtb	\
 	ud710_3h10.dtb	\
 	ud710_orca_haps.dtb	\
 	sp9863a_1h10.dtb \
