@@ -123,7 +123,7 @@ static usb_disable()
 
 	/*disable analog*/
 	val = readl(REG_USB_EB);
-	writel(val & ~BIT_AON_APB_ANA_EB | BIT_USB_EB, REG_USB_EB);
+	writel(val & ~BIT_USB_EB, REG_USB_EB);
 
 }
 void usb_phy_enable(u32 is_on)
