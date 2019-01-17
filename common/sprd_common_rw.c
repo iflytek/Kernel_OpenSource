@@ -508,6 +508,44 @@ int get_img_partition_id(char *part_name, unsigned int *id)
 	return ret;
 }
 
+int get_img_partition_size(char *part_name, uint64_t *size)
+{
+	int dev_id = 0;
+	char *ifname;
+	int ret = 0;
+	disk_partition_t part_info;
+	block_dev_desc_t *dev_desc;
+
+	ifname = block_dev_get_name();
+
+	if (0 == strcmp(part_name, "splloader")) {
+		*size = get_devsize_hwpart(ifname, BOOT_PART1);
+		return ret;
+	} else if (0 == strcmp(part_name, "splloader_bak")) {
+		*size = get_devsize_hwpart(ifname, BOOT_PART2);
+		return ret;
+	} else if (0 == strcmp(part_name, "uboot")) {
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		if (-1 == ret) {
+			ret = 0;
+			*size = get_devsize_hwpart(ifname, BOOT_PART1);
+			return ret;
+		}
+	} else {
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+	}
+
+	ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+
+	*size = part_info.size * part_info.blksz;
+
+	return ret;
+}
+
+
+
 int32_t common_get_lba_size(void)
 {
 	int dev_id = 0;

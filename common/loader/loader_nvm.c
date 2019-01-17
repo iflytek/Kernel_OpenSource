@@ -1190,25 +1190,10 @@ int secure_verify_partition(block_dev_desc_t * dev, uchar * partition_name, void
 int secure_get_partition_size(uchar * partition_name, uint64_t * size)
 {
 	int ret = 0;
-	disk_partition_t info;
-	block_dev_desc_t *dev = NULL;
 
-	dev = get_dev("mmc", 0);
-	if (NULL == dev) {
-		errorf("Fatal Error,get_dev mmc failed!\n");
-		return -1;
-	}
+	ret = get_img_partition_size(partition_name, size);
 
-	if (get_partition_info_by_name(dev, partition_name, &info)) {
-		errorf("verify get partition %s info failed!\n", partition_name);
-		ret = -1;
-	}
-
-	if (size) {
-		*size = info.size * EMMC_SECTOR_SIZE;
-	}
-
-	debugf("partition:%s, info.name:%s, info.size:%d, size:0x%llx\n", partition_name, info.name,  info.size , *size);
+	debugf("partition:%s,size:0x%llx\n", partition_name, *size);
 	return ret;
 }
 #endif
