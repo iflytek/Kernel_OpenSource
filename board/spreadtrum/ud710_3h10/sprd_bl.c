@@ -3,7 +3,7 @@
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
 
-#define PWM_INDEX  1
+#define PWM_INDEX  0
 
 /*r3p0*/
 
