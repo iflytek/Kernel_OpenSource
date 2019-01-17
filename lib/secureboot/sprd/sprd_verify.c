@@ -5,6 +5,7 @@
 #include <crypto/sprdsha.h>
 #include <secureboot/sec_common.h>
 #include <secureboot/sec_efuse_api.h>
+#include <lcd_console.h>
 #ifdef CONFIG_VBOOT_V2
 #include "libavb.h"
 #include <avb/uboot_avb_ops.h>
@@ -612,9 +613,16 @@ int8_t check_sprdimgheader(uint8_t *header, uint8_t *payload)
         avb_sha256_update(&sha256_ctx, payload, img_header->mImgSize);
         hash_temp = avb_sha256_final(&sha256_ctx);
         if (0 == memcmp(img_header->mPayloadHash, hash_temp, 32))
+        {
             return 0;
-        else
+        } else if(0 == memcmp(payload, "AVE0", 4)){
+            secf("dm-verity verify failed to notify user\n");
+            lcd_printf("System corrupt! Reflash your device.");
+            while(1);
+        } else
+        {
             return -1;
+        }
     } else {
         return -1;
     }
