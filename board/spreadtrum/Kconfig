@@ -418,6 +418,12 @@ config TARGET_SP9650_HAPS
         help
           This is the Spreadtrum orca Board
 
+config TARGET_UDX710_HAPS
+        bool "Spreadtrum orca"
+        select ARM64
+        help
+          This is the Spreadtrum orca haps Board
+
 config TARGET_UDX710_1H10
         bool "Spreadtrum orca"
         select ARM64
