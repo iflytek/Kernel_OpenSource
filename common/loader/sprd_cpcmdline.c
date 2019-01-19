@@ -15,10 +15,8 @@ static const char *cmd_arr[] = {
 	RF_HW_INFO,
 	K32_LESS,
 	AUTO_TEST,
-#ifdef CONFIG_BOARD_ID
 	CRYSTAL_TYPE,
 	RF_HW_ID,
-#endif
 #ifdef CONFIG_SC9833
 	RF_CHIP_ID,
 #endif
@@ -145,14 +143,15 @@ void cp_cmdline_fixup(void)
 	}
 #endif
 /* crystal and rf band auto adaption used on some platforms, such as sharkl, pike series */
-#if (defined(CONFIG_SC9833) || defined(CONFIG_SOC_SHARKLJ1) || defined(CONFIG_SOC_SHARKLE) || defined(CONFIG_SOC_PIKE2) || defined(CONFIG_SOC_SHARKL3) || defined(CONFIG_SPRD_SOC_SP9853I))
+/* Using RF band adaption in each board configuration and print information in cpcmdline*/
 #if (defined(CONFIG_BOARD_ID) || defined(CONFIG_BAND_DETECT))
 	//rf band auto adaption
 	boardid = sprd_get_bandinfo();
 	sprintf(buf,"%d",boardid);
 	cmdline_add_cp_cmdline(RF_BOARD_ID, buf);
 #endif
-#ifdef CONFIG_BOARD_ID
+/* Printing the clock and crystal type in cpcmdline by clk & crystal adaption */
+#if (defined(CONFIG_BOARD_ID) || defined(CONFIG_ADIE_SC2730))
 	//board id
 	value_less=sprd_get_boardid();
 	sprintf(buf,"%d",value_less);
@@ -165,7 +164,6 @@ void cp_cmdline_fixup(void)
 	//32k crystal auto adaption
 	sprintf(buf,"%d", sprd_get_32k());
 	cmdline_add_cp_cmdline(K32_LESS, buf);
-#endif
 
 #ifdef CONFIG_SC9833
 	{
@@ -184,4 +182,3 @@ char *cp_getcmdline(void)
 {
 	return g_CPcmdlineBuf;
 }
-
