@@ -108,10 +108,8 @@ block_dev_desc_t *get_dev_hwpart(const char *ifname, int dev, int hwpart)
 			block_dev_desc_t *dev_desc = reloc_get_dev(dev);
 			if (!dev_desc)
 				return NULL;
-			if (hwpart == 0 && !select_hwpart)
-				return dev_desc;
 			if (!select_hwpart)
-				return NULL;
+				return dev_desc;
 			ret = select_hwpart(dev_desc->dev, hwpart);
 			if (ret < 0)
 				return NULL;

@@ -122,6 +122,15 @@ void send_dme_link_startup(void)
 	ufs_writel(DW_UFS_UICCMD,(UIC_LINK_STARTUP_CMD & 0xFF));
 }
 
+void ufs_exit_hibernate(void)
+{
+
+	send_uic_command(UIC_EXIT_HIBERNATE, 0, 0, 0);
+	wait_uic_complete();
+
+}
+
+
 uint32_t dme_get(uint32_t mib)
 {
 	mib = (mib << 16) | ((mib >> 16) & 0x0000FFFF);
@@ -782,9 +791,12 @@ void preconfig_utm_descriptor()
 void init_global_reg()
 {
 	struct ufs_cfg_info *sprd_ufs_info;
+	struct unipro_cfg_info *sprd_unipro_info;
 
 	sprd_ufs_info = get_ufscontrol_info();
-	ufs_info.base_addr = sprd_ufs_info->ufs_regbase;
+	sprd_unipro_info = get_uniprocontrol_info();
+
+	ufs_info.base_addr = sprd_ufs_info->ufshci_regbase;
 
 	if (sprd_ufs_info->ldo_core != 0)
 		regulator_enable(sprd_ufs_info->ldo_core);
@@ -792,18 +804,29 @@ void init_global_reg()
 		regulator_enable(sprd_ufs_info->ldo_io);
 
 	debugf("ufs ldo_core:%s, ldo_io:%s\n",
-	       sprd_ufs_info->ldo_core, sprd_ufs_info->ldo_io);
+		   sprd_ufs_info->ldo_core, sprd_ufs_info->ldo_io);
 	udelay(1000);
+
+	CHIP_REG_SET(sprd_ufs_info->ufs_tx_clk_cfg,
+			sprd_ufs_info->ufs_tx_clk_val);
+
+	CHIP_REG_SET(sprd_ufs_info->ufs_rx_clk_cfg,
+			sprd_ufs_info->ufs_rx_clk_val);
 
 	CHIP_REG_OR(sprd_ufs_info->apb_enable_reg,
 			sprd_ufs_info->apb_enable_bit);
 	CHIP_REG_OR(sprd_ufs_info->ao_aon_apb_enable_reg,
 			sprd_ufs_info->ao_aon_apb_enable_bit);
 
-	//as defaut byp ufs_pwr_gate, as use ufs,we will clear it.
+	/*enable mipi use c2g trim value without efuse*/
+	CHIP_REG_OR(sprd_ufs_info->anlg_phy_g1_trim_sel_reg,
+			sprd_ufs_info->anlg_phy_g1_trim_bit);
+
+	/*as defaut byp ufs_pwr_gate, as use ufs,we will clear it*/
 	CHIP_REG_AND(sprd_ufs_info->pmu_bypass_enable_reg,
 			~(sprd_ufs_info->pmu_bypass_enable_bit));
 
+	/*reset mphy */
 	CHIP_REG_AND(sprd_ufs_info->anlg_phy_g1_reg,
 			~(sprd_ufs_info->anlg_phy_g1_reset_bit));
 	udelay(1000);
@@ -821,6 +844,54 @@ void init_global_reg()
 	udelay(1000);
 	CHIP_REG_AND(sprd_ufs_info->ao_aon_apb_reset_reg,
 			~(sprd_ufs_info->ao_aon_apb_reset_bit));
+
+	/*reset unipro data-link network transport dme */
+	CHIP_REG_OR(sprd_unipro_info->dl_reset_reg,
+			sprd_unipro_info->dl_reset_bit);
+	udelay(1000);
+	CHIP_REG_AND(sprd_unipro_info->dl_reset_reg,
+			~(sprd_unipro_info->dl_reset_bit));
+
+	CHIP_REG_OR(sprd_unipro_info->n_reset_reg,
+			sprd_unipro_info->n_reset_bit);
+	udelay(1000);
+	CHIP_REG_AND(sprd_unipro_info->n_reset_reg,
+			~(sprd_unipro_info->n_reset_bit));
+
+	CHIP_REG_OR(sprd_unipro_info->t_reset_reg,
+			sprd_unipro_info->t_reset_bit);
+	udelay(1000);
+	CHIP_REG_AND(sprd_unipro_info->t_reset_reg,
+			~(sprd_unipro_info->t_reset_bit));
+
+	CHIP_REG_OR(sprd_unipro_info->dme_reset_reg,
+			sprd_unipro_info->dme_reset_bit);
+	udelay(1000);
+	CHIP_REG_AND(sprd_unipro_info->dme_reset_reg,
+				~(sprd_unipro_info->dme_reset_bit));
+
+	CHIP_REG_OR(ufs_info.base_addr + DW_UFS_RESET_MISC, (BIT_12 | BIT_28));
+
+	CHIP_REG_AND(sprd_ufs_info->utp_reset_reg,
+			~(sprd_ufs_info->utp_reset_bit));
+	udelay(1000);
+	CHIP_REG_OR(sprd_ufs_info->utp_reset_reg,
+			sprd_ufs_info->utp_reset_bit);
+
+	udelay(1000);
+	CHIP_REG_AND(ufs_info.base_addr + DW_UFS_RESET_MISC, ~(BIT_12 | BIT_28));
+
+	CHIP_REG_OR(sprd_ufs_info->ao_regbase,
+			sprd_ufs_info->ao_rest_bit);
+	udelay(1000);
+	CHIP_REG_AND(sprd_ufs_info->ao_regbase,
+			~(sprd_ufs_info->ao_rest_bit));
+
+	CHIP_REG_OR(sprd_unipro_info->pa_rxtx_reset_reg,
+			sprd_unipro_info->pa_rxtx_reset_bit);
+	udelay(1000);
+	CHIP_REG_AND(sprd_unipro_info->pa_rxtx_reset_reg,
+			~(sprd_unipro_info->pa_rxtx_reset_bit));
 }
 
 /****************************************************************
@@ -840,13 +911,14 @@ int init_ufs_hostc()
 	int      retry = RETRY_CNT;
 	uint32_t temp = 0;
 
+	ufs_exit_hibernate();
+
 	/* Reset the UFS Host Controller */
 	ret = dwc_reset_hc();
 	if(ret != 0)
 		return ret;
 
-	/* Update the DWC UFSHCI specification that the controller implementation supports*/	
-	ufs_info.dwc_ufs_version = ufs_readl(DW_UFS_VER);
+	ufs_info.dwc_ufs_version = DWC_UFS_HC_VERSION_2_1;
 
 #ifdef DWC_UFS_LOOPBACK_MODE /* For Debug Purpose Only */
 	/* LOOP Back Configuration */
@@ -965,6 +1037,7 @@ int init_ufs_device()
 	}
 
 	return ret;
+
 }
 
 
@@ -1079,18 +1152,25 @@ void release_desc_mem()
 void reset_and_restore_hc()
 {
 	release_desc_mem();
+	init_global_reg();
 	init_ufs_hostc();
 	init_ufs_device();
 	change_ufs_power_mode();
 }
 
-uint32_t align_to_alloc_unit(uint64_t blk_cnt, uint32_t log2_blk_sz)
+uint32_t enhance_memory_alloc_unit(enum lu_memory_type memory_type,uint64_t blk_cnt, uint32_t log2_blk_sz)
 {
 	uint32_t au_num = 0;
-	uint64_t multi = 0;
+	uint64_t total_size = 0;
+	uint16_t alloc_adj = 1;
 
-	multi = (1 << log2_blk_sz) /SZ_512;
-	au_num = (uint32_t)PAD_COUNT(blk_cnt * multi, ufs_info.alloc_unit_sz);
+	if (memory_type == ENHANCED_MEMORY_1)
+		alloc_adj = ufs_info.bootAdjFac;
+	else
+		alloc_adj = 1;
+
+	total_size = blk_cnt * (1 << log2_blk_sz);
+	au_num = total_size * alloc_adj / (ufs_info.alloc_unit_sz * SZ_512);
 
 	return au_num;
 }
@@ -1148,8 +1228,9 @@ int compare_cfg_lu_table(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cf
 			}
 		}
 
-		aligned_au_new = align_to_alloc_unit(lu_cfg[lun_index].blkcnt, lu_cfg[lun_index].log2blksz);
-		aligned_au_old = align_to_alloc_unit(ufs_info.lu_info[lun_index].blkcnt, ufs_info.lu_info[lun_index].log2blksz);
+		aligned_au_new = enhance_memory_alloc_unit(lu_cfg[lun_index].memory_type, lu_cfg[lun_index].blkcnt, lu_cfg[lun_index].log2blksz);
+		aligned_au_old = enhance_memory_alloc_unit(ufs_info.lu_info[lun_index].memory_type, ufs_info.lu_info[lun_index].blkcnt, ufs_info.lu_info[lun_index].log2blksz);
+
 		if (aligned_au_new != aligned_au_old) {
 			debugf("lun_index(%d) blkcnt diff with old one\n", lun_index);
 			ret = LU_INFO_DIFF;
@@ -1209,6 +1290,7 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 	if (req_cfg_desc != default_desc)
 		memcpy(req_cfg_desc, default_desc, sizeof(struct ufs_cfg_desc_tbl));
 	req_cfg_desc->bBootEnable = 0x01;
+	req_cfg_desc->bDescrAccessEn = 0x01;
 	id = 0;
 	assigned_au = 0;
 	for (lu_index = 0; lu_index < UFS_MAX_LU_NUM; lu_index++) {
@@ -1239,7 +1321,7 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 				debugf("Use all remain space, alloc unit=0x%x, big endian=0x%x\n", au_num, req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits);
 				break;
 			} else {
-				au_num = align_to_alloc_unit(new_cfg[id].blkcnt, new_cfg[id].log2blksz);
+				au_num = enhance_memory_alloc_unit(new_cfg[id].memory_type, new_cfg[id].blkcnt, new_cfg[id].log2blksz);
 				req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
 				debugf("Assign space, alloc unit=0x%x, big endian=0x%x\n", au_num, req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits);
 				id++;
@@ -1657,7 +1739,6 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 		errorf("TEST UNIT READY fail!Can not write UFS device\n");
 		return 0;
 	}
-
 	if (0 != (ulong)src % 4) {
 		errorf("UFS write source addr not aligned to 4 bytes, it will harm the write efficiency!\n");
 		max_write_size = ufs_info.max_prdt_cap > SZ_1M ? SZ_1M : ufs_info.max_prdt_cap;
@@ -1862,8 +1943,9 @@ int ufs_update_native(void)
 	ufs_info.alloc_unit_sz = geo_desc->bAllocationUnitSize * segment_size;
 	ufs_info.dev_total_cap = be64_to_cpu(geo_desc->qTotalRawDeviceCapacity);
 	ufs_info.max_context = geo_desc->bMaxContexIDNumber;
+	ufs_info.bootAdjFac = be16_to_cpu(geo_desc->wEnhanced1CapAdjFac) / SZ_256;
 	debugf("UFS device total cap=0x%llx,allocation unit size=0x%x\n", ufs_info.dev_total_cap, ufs_info.alloc_unit_sz);
-	
+
 	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++)	{
 		memset(&ufs_info.block_dev[lun_index], 0 ,sizeof(block_dev_desc_t));
 		memset(&ufs_info.lu_info[lun_index], 0 ,sizeof(struct lu_info_tbl));
@@ -1913,9 +1995,7 @@ block_dev_desc_t *ufs_get_dev(int dev)
 		errorf("Required UFS device id exceed the max ufs device number(%d)\n", UFS_MAX_DEV_NUM);
 		return NULL;
 	}
-
 	if (IF_TYPE_UFS == ufs_info.block_dev[dev].if_type) {
-		//debugf("Find the UFS device %d\n", dev);
 		return &ufs_info.block_dev[dev];
 	}
 

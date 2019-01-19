@@ -21,6 +21,7 @@
 #define UIC_PEER_GET_CMD                                0x3
 #define UIC_ENDPOINT_RESET_CMD   0x15
 #define UIC_LINK_STARTUP_CMD   0x16
+#define UIC_EXIT_HIBERNATE     0x18
 #define MAX_PRDT_ENTRIES       128
 #define PRDT_BUFFER_SIZE       SZ_256K
 #define TOTAL_PRDT_CAP		((MAX_PRDT_ENTRIES) * (PRDT_BUFFER_SIZE))
@@ -214,13 +215,13 @@ struct ufs_driver_info {
 	uint8_t		   wlu_num;
 	uint8_t		   boot_enable;
 	uint8_t		   max_context;
+	uint16_t	   bootAdjFac;
 	uint16_t 		wSpecVersion; /* Device Specification version */
-    	uint32_t 		dwc_ufs_version; /* Versions of UFSHCI specification that the controller implementation supports*/
+	uint32_t 		dwc_ufs_version; /* Versions of UFSHCI specification that the controller implementation supports*/
 	uint32_t		   alloc_unit_sz;  /*in unit of 512 bytes*/
 	uint32_t		prdt_entry_size;   /*Physical Region Description Table entry size, unit of bytes*/
 	uint64_t		max_prdt_cap;   /*Physical Region Description Table total capability, unit of bytes*/
 	uint64_t		dev_total_cap;   /*total capacity, in unit of 512 bytes*/
-	
 	block_dev_desc_t  block_dev[UFS_MAX_DEV_NUM];
 	struct lu_info_tbl       lu_info[UFS_MAX_LU_NUM];
 } ;
@@ -248,7 +249,8 @@ struct ufs_driver_info {
 #define DW_UFS_UICCMDARG1 0x94
 #define DW_UFS_UICCMDARG2 0x98
 #define DW_UFS_UICCMDARG3 0x9C
-#define DW_UFS_OCPTHRTL  0xC0
+#define DW_UFS_RESET_MISC 0xB0
+#define DW_UFS_OCPTHRTL   0xC0
 #define DW_UFS_LBMCFG     0xF0
 #define DW_UFS_HCLKDIV    0xFC
 
@@ -713,7 +715,17 @@ struct ufs_geo_desc_tbl {
 	uint8_t	bSupportedSecRTypes;
 	uint16_t	wSupportedMemoryTypes;
 	uint32_t	dSystemCodeMaxNAllocU;
-	uint8_t	ignored[32];
+	uint16_t	wSystemCodeCapAdjFac;
+	uint32_t	dNonPersistMaxNAllocU;
+	uint16_t	wNonPersistCapAdjFac;
+	uint32_t	dEnhanced1MaxNAllocU;
+	uint16_t	wEnhanced1CapAdjFac;
+	uint32_t	dEnhanced2MaxNAllocU;
+	uint16_t	wEnhanced2CapAdjFac;
+	uint32_t	dEnhanced3MaxNAllocU;
+	uint16_t	wEnhanced3CapAdjFac;
+	uint32_t	dEnhanced4MaxNAllocU;
+	uint16_t	wEnhanced4CapAdjFac;
 } __attribute__ ((packed));
 
 
