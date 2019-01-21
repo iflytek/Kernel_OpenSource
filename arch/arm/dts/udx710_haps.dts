@@ -9,11 +9,11 @@
 /dts-v1/;
 
 / {
-	model = "Spreadtrum 9650_haps Board";
+	model = "Spreadtrum udx710_haps Board";
 
-	compatible = "sprd,sp9650_haps";
+	compatible = "sprd,udx710_haps";
 
-	sprd,sc-id = <9650 1 0x20000>;
+	sprd,sc-id = <710 1 0x20000>;
 
 	reserved-memory {
 		#address-cells = <2>;

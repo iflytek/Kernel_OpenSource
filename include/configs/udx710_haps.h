@@ -20,7 +20,7 @@
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
 
-#define CONFIG_SP9650_HAPS
+#define CONFIG_UDX710_HAPS
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
@@ -274,7 +274,7 @@
 
 
 /*for device tree*/
-#define DT_PLATFROM_ID 9650
+#define DT_PLATFROM_ID 710
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 
