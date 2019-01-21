@@ -32,6 +32,7 @@ extern   "C"
 #ifndef CONFIG_FPGA
 void pmu_commom_config(void)
 {
+#if 0 //TODO
 	uint32_t reg_val;
 
 	CHIP_REG_SET(REG_PMU_APB_PD_CA53_TOP_CFG,
@@ -271,15 +272,18 @@ void pmu_commom_config(void)
 		BIT_PMU_APB_PHY_PWR_DLY(0x01) |
 		0
 	);
+#endif
 }
 
 /*sharkLE deepsleep: 0.7V; normal: 0.9V*/
 static void dcdc_core_ds_config(uint32_t core_cal_para, uint32_t core_ctrl_para)
 {
+#if 0 //TODO
 	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1,
 			BITS_DCDC_CORE_CAL_DS_SW(core_cal_para)|
 			BITS_DCDC_CORE_CTRL_DS_SW(core_ctrl_para)
 	);
+#endif
 }
 
 void CSP_Init(uint32_t gen_para)

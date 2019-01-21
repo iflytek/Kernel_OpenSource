@@ -37,7 +37,7 @@ static void __raw_bits_or(unsigned int v, unsigned int a)
 
 void set_backlight(uint32_t brightness)
 {
-#ifndef CONFIG_FPGA
+#if 0//TODO ndef CONFIG_FPGA
 	int index = PWM_INDEX;
 
 	__raw_bits_or((0x1 << 0), REG_AON_CLK_CORE_CGM_PWM0_CFG + index * 4);//ext_26m select
