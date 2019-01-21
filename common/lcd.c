@@ -82,10 +82,11 @@ void lcd_sync(void)
 	 */
 #if (defined(CONFIG_ARM) || defined(CONFIG_X86)) && !defined(CONFIG_SYS_DCACHE_OFF)
 	int line_length;
+	lcd_get_size(&line_length);
 
 	if (lcd_flush_dcache)
 		flush_dcache_range(lcd_base,
-			(lcd_base + lcd_get_size(&line_length)));
+			(lcd_base + line_length * panel_info.vl_row));
 #elif defined(CONFIG_SANDBOX) && defined(CONFIG_VIDEO_SANDBOX_SDL)
 	static ulong last_sync;
 
@@ -309,7 +310,8 @@ ulong lcd_setmem(ulong addr)
 	debug("LCD panel info: %d x %d, %d bit/pix\n", panel_info.vl_col,
 		panel_info.vl_row, panel_info.vl_bpix);
 
-	size = lcd_get_size(&line_length);
+	lcd_get_size(&line_length);
+	size = line_length * panel_info.vl_row;
 
 	/* Round up to nearest full page, or MMU section if defined */
 	size = ALIGN(size, CONFIG_LCD_ALIGNMENT);
