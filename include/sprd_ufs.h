@@ -46,7 +46,7 @@
 #define PWR_LOCAL   1
 
 
-
+#define UFS_PLATFORM_LU_NUM        3
 #define UFS_MAX_LU_NUM    8
 #define UFS_MAX_CARD_NUM   0
 #define UFS_MAX_DEV_NUM ((UFS_MAX_LU_NUM) + (UFS_MAX_CARD_NUM))

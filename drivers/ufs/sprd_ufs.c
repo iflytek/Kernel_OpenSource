@@ -13,12 +13,11 @@ uint32_t fatal_err = 0;
 
 struct backstage_recovery bs_recv;
 
-struct lu_specific_cfg_tbl factory_lu_tbl[] = {
+struct lu_specific_cfg_tbl factory_lu_tbl[UFS_PLATFORM_LU_NUM] = {
 	/*lu_index, bootable,               log2blksz,  blkcnt,  lu_context, memory_type*/
-	{0x00,              MAIN_BOOT, 		    0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1},
-	{0x01,              ALTERNATE_BOOT, 0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1},
-	{0x02,              NONE_BOOT, 	    0x0C, 		0        ,    	0xFF,		NORMAL_MEMORY},
-	{0	  ,              0		       ,              0	     ,            0	 ,       0       ,		0}
+	{0x00,             NONE_BOOT, 	    0x0C, 		0        ,    	0xFF,		NORMAL_MEMORY},
+	{0x01,              MAIN_BOOT, 		    0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1},
+	{0x02,              ALTERNATE_BOOT, 0x0C, 		1024,    	0x0,			ENHANCED_MEMORY_1}
 };
 
 struct lu_common_cfg_tbl lu_common_tbl = {
@@ -1187,7 +1186,7 @@ int compare_cfg_lu_table(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cf
 		return LU_INFO_DIFF;
 	}
 
-	for (lun_index = 0; lun_index < UFS_MAX_LU_NUM; lun_index++) {
+	for (lun_index = 0; lun_index < UFS_PLATFORM_LU_NUM; lun_index++) {
 		if (lu_cfg[lun_index].lu_index != ufs_info.lu_info[lun_index].lu_index
 				|| lu_cfg[lun_index].bootable != ufs_info.lu_info[lun_index].bootable
 				|| lu_cfg[lun_index].log2blksz != ufs_info.lu_info[lun_index].log2blksz
@@ -1204,37 +1203,25 @@ int compare_cfg_lu_table(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cf
 			break;
 		}
 
-		/*meet the end of the table or this lu extend to the maximum blk*/
-		if (0 == lu_cfg[lun_index].blkcnt) {
-			if (UFS_MAX_LU_NUM - 1 == lun_index || 0 == ufs_info.lu_info[lun_index + 1].log2blksz) {
-				debugf("Meet the last lu(%d)\n", ufs_info.lu_info[lun_index].lu_index);
-				last_lu = 1;
-			}
-			if (0 == ufs_info.lu_info[lun_index].log2blksz) {
-				debugf("meet the table end, lu config same\n");
-				break;
-			}
-		}
-
-		if (1 == last_lu) {
-			if (common_cfg->write_protect != ufs_info.lu_info[lun_index].write_protect
-					|| common_cfg->provisioning_type != ufs_info.lu_info[lun_index].provisioning_type
-					|| common_cfg->data_reliability != ufs_info.lu_info[lun_index].data_reliability) {
-				debugf("lun_index(%d) different in common config...\n ", ufs_info.lu_info[lun_index].lu_index);
-				ret = LU_INFO_DIFF;
-				break;
-			} else {
-				break;
-			}
-		}
-
-		aligned_au_new = enhance_memory_alloc_unit(lu_cfg[lun_index].memory_type, lu_cfg[lun_index].blkcnt, lu_cfg[lun_index].log2blksz);
-		aligned_au_old = enhance_memory_alloc_unit(ufs_info.lu_info[lun_index].memory_type, ufs_info.lu_info[lun_index].blkcnt, ufs_info.lu_info[lun_index].log2blksz);
-
-		if (aligned_au_new != aligned_au_old) {
-			debugf("lun_index(%d) blkcnt diff with old one\n", lun_index);
+		if (common_cfg->write_protect != ufs_info.lu_info[lun_index].write_protect
+				|| common_cfg->provisioning_type != ufs_info.lu_info[lun_index].provisioning_type
+				|| common_cfg->data_reliability != ufs_info.lu_info[lun_index].data_reliability) {
+			debugf("lun_index(%d) different in common config...\n ", ufs_info.lu_info[lun_index].lu_index);
 			ret = LU_INFO_DIFF;
 			break;
+		} else {
+			break;
+		}
+
+		if (ufs_info.lu_info[lun_index].memory_type == ENHANCED_MEMORY_1) {
+			aligned_au_new = enhance_memory_alloc_unit(lu_cfg[lun_index].memory_type, lu_cfg[lun_index].blkcnt, lu_cfg[lun_index].log2blksz);
+			aligned_au_old = enhance_memory_alloc_unit(ufs_info.lu_info[lun_index].memory_type, ufs_info.lu_info[lun_index].blkcnt, ufs_info.lu_info[lun_index].log2blksz);
+
+			if (aligned_au_new != aligned_au_old) {
+				debugf("lun_index(%d) blkcnt diff with old one\n", lun_index);
+				ret = LU_INFO_DIFF;
+				break;
+			}
 		}
 	}
 
@@ -1291,10 +1278,19 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 		memcpy(req_cfg_desc, default_desc, sizeof(struct ufs_cfg_desc_tbl));
 	req_cfg_desc->bBootEnable = 0x01;
 	req_cfg_desc->bDescrAccessEn = 0x01;
-	id = 0;
 	assigned_au = 0;
+
+	/*pre allocate allocation_unit*/
+	for(id = 0; id < UFS_PLATFORM_LU_NUM; id++) {
+		if (0 != new_cfg[id].blkcnt) {
+		au_num = enhance_memory_alloc_unit(new_cfg[id].memory_type, new_cfg[id].blkcnt, new_cfg[id].log2blksz);
+		assigned_au += au_num;
+		}
+	}
+
+	id = 0;
 	for (lu_index = 0; lu_index < UFS_MAX_LU_NUM; lu_index++) {
-		if (0 == id && 0 != lu_index)
+		if (UFS_PLATFORM_LU_NUM == id)
 			break;
 		if (lu_index == new_cfg[id].lu_index) {
 			req_cfg_desc->unit_cfg[lu_index].bLUEnable = 0x01;
@@ -1319,15 +1315,12 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 				au_num = (ufs_info.dev_total_cap / ufs_info.alloc_unit_sz) - assigned_au;
 				req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
 				debugf("Use all remain space, alloc unit=0x%x, big endian=0x%x\n", au_num, req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits);
-				break;
 			} else {
 				au_num = enhance_memory_alloc_unit(new_cfg[id].memory_type, new_cfg[id].blkcnt, new_cfg[id].log2blksz);
 				req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
 				debugf("Assign space, alloc unit=0x%x, big endian=0x%x\n", au_num, req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits);
-				id++;
-				assigned_au += au_num;
 			}
-
+		id++;
 		}
 	}
 
@@ -1368,7 +1361,7 @@ int verify_lu_cfg(struct lu_specific_cfg_tbl *lu_cfg)
 	if (0 == lu_cfg[0].log2blksz)
 		return LU_INFO_ILLEGAL;
 	
-	for (loop = 0; loop < UFS_MAX_LU_NUM; loop++) {
+	for (loop = 0; loop < UFS_PLATFORM_LU_NUM; loop++) {
 		if (MAIN_BOOT == lu_cfg[loop].bootable) {
 			if (1 == boota_occupied)
 				return LU_INFO_ILLEGAL;
