@@ -14,7 +14,7 @@
 #include "sprd_panel.h"
 
 extern struct panel_driver dummy_mipi_driver;
-extern struct panel_driver ili9881c_xxx_driver;
+extern struct panel_driver ili9881c_truly_driver;
 extern struct panel_driver ili9881c_3lane_driver;
 extern struct panel_driver ili9881c_skyworth_driver;
 extern struct panel_driver st7701_boe_driver;
@@ -31,10 +31,10 @@ extern struct panel_driver r61350_truly_driver;
 extern struct panel_driver td4310_truly_driver;
 
 static struct panel_cfg supported_panel[] = {
-#ifdef CONFIG_LCD_ILI9881C_XXX_MIPI_HD
+#ifdef CONFIG_LCD_ILI9881C_TRULY_MIPI_HD
 	{
 		.lcd_id = 0x9881,
-		.drv = &ili9881c_xxx_driver,
+		.drv = &ili9881c_truly_driver,
 	},
 #endif
 #ifdef CONFIG_LCD_ILI9881C_3LANE_MIPI_HD

@@ -292,7 +292,7 @@ static struct panel_ops ili9881c_ops = {
 
 static struct panel_info ili9881c_info = {
 	/* common parameters */
-	.lcd_name = "lcd_ili9881c_xxx_mipi_fhd",
+	.lcd_name = "lcd_ili9881c_truly_mipi_hd",
 	.type = SPRD_PANEL_TYPE_MIPI,
 	.bpp = 24,
 //	.fps = 3,
@@ -318,7 +318,7 @@ static struct panel_info ili9881c_info = {
 	.nc_clk_en = false,
 };
 
-struct panel_driver ili9881c_xxx_driver = {
+struct panel_driver ili9881c_truly_driver = {
 	.info = &ili9881c_info,
 	.ops = &ili9881c_ops,
 };

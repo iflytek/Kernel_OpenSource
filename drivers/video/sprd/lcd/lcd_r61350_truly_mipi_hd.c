@@ -168,7 +168,7 @@ static struct panel_ops r61350_ops = {
 
 static struct panel_info r61350_info = {
 	/* common parameters */
-	.lcd_name = "lcd_r61350_truly_mipi_fhd",
+	.lcd_name = "lcd_r61350_truly_mipi_hd",
 	.type = SPRD_PANEL_TYPE_MIPI,
 	.bpp = 24,
 //	.fps = 60,

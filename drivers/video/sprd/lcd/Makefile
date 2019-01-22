@@ -1,5 +1,5 @@
 obj-y += lcd_dummy_mipi_hd.o
-obj-$(CONFIG_LCD_ILI9881C_XXX_MIPI_HD) += lcd_ili9881c_xxx_mipi_hd.o
+obj-$(CONFIG_LCD_ILI9881C_TRULY_MIPI_HD) += lcd_ili9881c_truly_mipi_hd.o
 obj-$(CONFIG_LCD_ILI9881C_3LANE_MIPI_HD) += lcd_ili9881c_3lane_mipi_hd.o
 obj-$(CONFIG_LCD_ILI9881C_SKYWORTH_HD) += lcd_ili9881c_skyworth_mipi_hd.o
 obj-$(CONFIG_LCD_ST7701_BOE_MIPI_WVGA) += lcd_st7701_boe_mipi_wvga.o
