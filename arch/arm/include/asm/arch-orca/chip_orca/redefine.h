@@ -15,13 +15,21 @@
 /* macro definition for compatible */
 #define REG_AON_APB_APB_RTC_EB					REG_AON_APB_APB_RTC_EB0
 
-/* bit redefinition for compatible */
-#define BIT_EFUSE_EB                            BIT_AON_APB_EFUSE_EB
-#define BIT_EFUSE_SOFT_RST                      BIT_AON_APB_EFUSE_SOFT_RST
+/* referenced by gpio.c */
+#define REG_GPIO_EB                             REG_AON_APB_APB_EB1
 #define BIT_GPIO_EB                             BIT_AON_APB_GPIO_EB
+
+/* referenced by eic.c */
+#define REG_EIC_EB				REG_AON_APB_APB_EB2
 #define BIT_EIC_EB                              BIT_AON_APB_EIC_EB
 #define BIT_EIC_RTC_EB                          BIT_AON_APB_EIC_RTC_EB
 #define BIT_EIC_RTCDV5_EB                       BIT_AON_APB_EIC_RTCDV5_EB
+#define SPRD_EIC_PHYS				SPRD_AON_PERI_EIC_EXT2_PHYS
+#define SPRD_EIC1_PHYS				SPRD_AON_PERI_EIC_EXT3_PHYS
+
+/* bit redefinition for compatible */
+#define BIT_EFUSE_EB                            BIT_AON_APB_EFUSE_EB
+#define BIT_EFUSE_SOFT_RST                      BIT_AON_APB_EFUSE_SOFT_RST
 /* there is no uart0 on sharkle, just tricky */
 #define BIT_UART0_EB                            BIT_AP_APB_UART0_EB
 #define BIT_UART1_EB                            BIT_AP_APB_UART0_EB
