@@ -360,4 +360,5 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+#define CONFIG_RTC_START_YEAR           0
 #endif /* __CONFIG_H  */
