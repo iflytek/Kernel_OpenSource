@@ -75,6 +75,31 @@ int sprd_get_chip_uid(char *buf)
 	return 0;
 }
 
+int sprd_get_chip_hex_uid(char *buf)
+{
+	u32 blocks[2] = {0};
+
+#if defined (CONFIG_SPRD_AP_NORMAL_EFUSE)
+	if(get_chipram_env()->mode == BOOTLOADER_MODE_DOWNLOAD){
+		if (sprd_secure_efuse_read(UID_START, UID_START, &blocks[1], UID_DOUBLE)) {
+			return -2;
+		}
+		if (sprd_secure_efuse_read(UID_END, UID_END, &blocks[0], UID_DOUBLE)) {
+			return -2;
+           }
+	}else{
+		blocks[1] = sprd_efuse_double_read(UID_START,UID_DOUBLE);
+		blocks[0] = sprd_efuse_double_read(UID_END,UID_DOUBLE);
+	}
+#else
+	blocks[0]= sprd_ap_efuse_read(UID_START);
+	blocks[1]= sprd_ap_efuse_read(UID_END);
+#endif
+
+	sprintf(buf, "%08x%08x", blocks[0], blocks[1]);
+	return 0;
+}
+
 void sprd_uid_bin_info(void)
 {
 	char uid[25] = {0};
