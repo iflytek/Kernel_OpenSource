@@ -29,6 +29,11 @@ void dcdc_ldo_power_on()
 	regulator_enable("vdddcxo");
 	regulator_enable("vddldo0");
 
+	/*
+	 * enable vddsim2 forever workaround for PMIC ext issue.
+	 */
+	regulator_enable("vddsim2");
+
 	/* In SC2730, this LDO is power off default */
 #if defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
 	regulator_enable("vddcamio");
