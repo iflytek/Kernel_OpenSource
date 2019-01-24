@@ -228,6 +228,7 @@ struct ufs_driver_info {
 
 
 /*Put it here temporarily*/
+extern struct   ufs_driver_info ufs_info;
 #define REG_BASE_ADDRESS         ufs_info.base_addr
 
 /* UFSHCD Registers Offsets */

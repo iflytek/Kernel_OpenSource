@@ -1,6 +1,8 @@
 #include <common.h>
 #include <sprd_ufs.h>
 #include "protocol_util.h"
+#include "uiccmd.h"
+#include "ip_env.h"
 #include <malloc.h>
 #include <linux/io.h>
 #include <asm/arch/sprd_reg.h>
@@ -24,17 +26,6 @@ struct lu_common_cfg_tbl lu_common_tbl = {
 	/*write_protect, 		      provisioning_type,              data_reliability*/
 	WRITE_PROTECT_POWERON,  PROV_ENABLE_WITH_TPRZ, DATA_PROTECTED
 };
-
-static inline uint32_t ufs_readl(int reg)
-{
-	return readl((void *)REG_BASE_ADDRESS + reg);
-}
-
-static inline void ufs_writel(int reg, uint32_t val)
-{
-	writel(val, (void *)REG_BASE_ADDRESS + reg);
-}
-
 
 /***************************************************************
  *
@@ -70,94 +61,6 @@ int dwc_reset_hc()
 	return UFS_TIMEOUT;
 }
 
-/***************************************************************
- *
- * send_uic_command
- * Description: Programs the Command Argument and the Command
- *     Register to send the DME_LINK_STARTUP command 
- *     to the device
- *
- ***************************************************************/
-void send_uic_command(uint32_t command, uint32_t arg1, uint32_t arg2, uint32_t arg3)
-{
-
-	ufs_writel(DW_UFS_UICCMDARG1,arg1);
-	ufs_writel(DW_UFS_UICCMDARG2,arg2);
-	ufs_writel(DW_UFS_UICCMDARG3,arg3);
-
-	ufs_writel(DW_UFS_UICCMD,(command & 0xFF));
-}
-
-int wait_uic_complete()
-{
-	int retry = 100;
-	uint32_t uccs_intr_res = 0;
-
-	/*wait for the UIC Command to complete by checking UCCS field*/
-	while(retry > 0) {
-		udelay(1000);
-		uccs_intr_res = ufs_readl(DW_UFS_IS) & DW_UFS_IS_UCCS;
-		if (uccs_intr_res) {
-			ufs_writel(DW_UFS_IS, uccs_intr_res);
-			break;
-		}
-		retry--;
-	}
-
-	if (0 == retry)
-		return UFS_TIMEOUT;
-	else
-		return UFS_SUCCESS;
-
-}
-
-void send_dme_link_startup(void)
-{
-
-	ufs_writel(DW_UFS_UICCMDARG1,0);
-	ufs_writel(DW_UFS_UICCMDARG2,0);
-	ufs_writel(DW_UFS_UICCMDARG3,0);
-
-	ufs_writel(DW_UFS_UICCMD,(UIC_LINK_STARTUP_CMD & 0xFF));
-}
-
-void ufs_exit_hibernate(void)
-{
-
-	send_uic_command(UIC_EXIT_HIBERNATE, 0, 0, 0);
-	wait_uic_complete();
-
-}
-
-
-uint32_t dme_get(uint32_t mib)
-{
-	mib = (mib << 16) | ((mib >> 16) & 0x0000FFFF);
-	send_uic_command(UIC_GET_CMD, mib, 0, 0);
-	wait_uic_complete();
-
-	return ufs_readl(DW_UFS_UICCMDARG3);
-}
-
-uint32_t dme_peer_get(uint32_t mib)
-{
-	mib = (mib << 16) | ((mib >> 16) & 0x0000FFFF);
-	send_uic_command(UIC_PEER_GET_CMD, mib, 0, 0);
-	wait_uic_complete();
-
-	return ufs_readl(DW_UFS_UICCMDARG3);
-}
-
-void dme_set(uint32_t mib, uint32_t value)
-{
-	mib = (mib << 16) | ((mib >> 16) & 0x0000FFFF);
-	send_uic_command(UIC_SET_CMD, mib, 0, value);
-
-	wait_uic_complete();
-
-	/*return with no error*/
-	return;
-}
 
 /****************************************************************
  *
@@ -787,112 +690,6 @@ void preconfig_utm_descriptor()
 	return;
 }
 
-void init_global_reg()
-{
-	struct ufs_cfg_info *sprd_ufs_info;
-	struct unipro_cfg_info *sprd_unipro_info;
-
-	sprd_ufs_info = get_ufscontrol_info();
-	sprd_unipro_info = get_uniprocontrol_info();
-
-	ufs_info.base_addr = sprd_ufs_info->ufshci_regbase;
-
-	if (sprd_ufs_info->ldo_core != 0)
-		regulator_enable(sprd_ufs_info->ldo_core);
-	if (sprd_ufs_info->ldo_io != 0)
-		regulator_enable(sprd_ufs_info->ldo_io);
-
-	debugf("ufs ldo_core:%s, ldo_io:%s\n",
-		   sprd_ufs_info->ldo_core, sprd_ufs_info->ldo_io);
-	udelay(1000);
-
-	CHIP_REG_SET(sprd_ufs_info->ufs_tx_clk_cfg,
-			sprd_ufs_info->ufs_tx_clk_val);
-
-	CHIP_REG_SET(sprd_ufs_info->ufs_rx_clk_cfg,
-			sprd_ufs_info->ufs_rx_clk_val);
-
-	CHIP_REG_OR(sprd_ufs_info->apb_enable_reg,
-			sprd_ufs_info->apb_enable_bit);
-	CHIP_REG_OR(sprd_ufs_info->ao_aon_apb_enable_reg,
-			sprd_ufs_info->ao_aon_apb_enable_bit);
-
-	/*enable mipi use c2g trim value without efuse*/
-	CHIP_REG_OR(sprd_ufs_info->anlg_phy_g1_trim_sel_reg,
-			sprd_ufs_info->anlg_phy_g1_trim_bit);
-
-	/*as defaut byp ufs_pwr_gate, as use ufs,we will clear it*/
-	CHIP_REG_AND(sprd_ufs_info->pmu_bypass_enable_reg,
-			~(sprd_ufs_info->pmu_bypass_enable_bit));
-
-	/*reset mphy */
-	CHIP_REG_AND(sprd_ufs_info->anlg_phy_g1_reg,
-			~(sprd_ufs_info->anlg_phy_g1_reset_bit));
-	udelay(1000);
-	CHIP_REG_OR(sprd_ufs_info->anlg_phy_g1_reg,
-			sprd_ufs_info->anlg_phy_g1_reset_bit);
-
-	CHIP_REG_OR(sprd_ufs_info->apb_reset_reg,
-			sprd_ufs_info->apb_reset_bit);
-	udelay(1000);
-	CHIP_REG_AND(sprd_ufs_info->apb_reset_reg,
-			~(sprd_ufs_info->apb_reset_bit));
-
-	CHIP_REG_OR(sprd_ufs_info->ao_aon_apb_reset_reg,
-			sprd_ufs_info->ao_aon_apb_reset_bit);
-	udelay(1000);
-	CHIP_REG_AND(sprd_ufs_info->ao_aon_apb_reset_reg,
-			~(sprd_ufs_info->ao_aon_apb_reset_bit));
-
-	/*reset unipro data-link network transport dme */
-	CHIP_REG_OR(sprd_unipro_info->dl_reset_reg,
-			sprd_unipro_info->dl_reset_bit);
-	udelay(1000);
-	CHIP_REG_AND(sprd_unipro_info->dl_reset_reg,
-			~(sprd_unipro_info->dl_reset_bit));
-
-	CHIP_REG_OR(sprd_unipro_info->n_reset_reg,
-			sprd_unipro_info->n_reset_bit);
-	udelay(1000);
-	CHIP_REG_AND(sprd_unipro_info->n_reset_reg,
-			~(sprd_unipro_info->n_reset_bit));
-
-	CHIP_REG_OR(sprd_unipro_info->t_reset_reg,
-			sprd_unipro_info->t_reset_bit);
-	udelay(1000);
-	CHIP_REG_AND(sprd_unipro_info->t_reset_reg,
-			~(sprd_unipro_info->t_reset_bit));
-
-	CHIP_REG_OR(sprd_unipro_info->dme_reset_reg,
-			sprd_unipro_info->dme_reset_bit);
-	udelay(1000);
-	CHIP_REG_AND(sprd_unipro_info->dme_reset_reg,
-				~(sprd_unipro_info->dme_reset_bit));
-
-	CHIP_REG_OR(ufs_info.base_addr + DW_UFS_RESET_MISC, (BIT_12 | BIT_28));
-
-	CHIP_REG_AND(sprd_ufs_info->utp_reset_reg,
-			~(sprd_ufs_info->utp_reset_bit));
-	udelay(1000);
-	CHIP_REG_OR(sprd_ufs_info->utp_reset_reg,
-			sprd_ufs_info->utp_reset_bit);
-
-	udelay(1000);
-	CHIP_REG_AND(ufs_info.base_addr + DW_UFS_RESET_MISC, ~(BIT_12 | BIT_28));
-
-	CHIP_REG_OR(sprd_ufs_info->ao_regbase,
-			sprd_ufs_info->ao_rest_bit);
-	udelay(1000);
-	CHIP_REG_AND(sprd_ufs_info->ao_regbase,
-			~(sprd_ufs_info->ao_rest_bit));
-
-	CHIP_REG_OR(sprd_unipro_info->pa_rxtx_reset_reg,
-			sprd_unipro_info->pa_rxtx_reset_bit);
-	udelay(1000);
-	CHIP_REG_AND(sprd_unipro_info->pa_rxtx_reset_reg,
-			~(sprd_unipro_info->pa_rxtx_reset_bit));
-}
-
 /****************************************************************
  *
  * init_ufs_hostc
@@ -910,7 +707,7 @@ int init_ufs_hostc()
 	int      retry = RETRY_CNT;
 	uint32_t temp = 0;
 
-	ufs_exit_hibernate();
+	dme_hibernate_exit();
 
 	/* Reset the UFS Host Controller */
 	ret = dwc_reset_hc();
@@ -931,14 +728,12 @@ int init_ufs_hostc()
 	while(retry > 0) {
 		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_UCRDY) {
 			debugf("Send link startup UIC command\n");
-			send_dme_link_startup();
+			dme_link_startup();
 		} else {
 			dwc_reset_hc();
 			retry--;
 			continue;
 		}
-
-		wait_uic_complete();
 
 		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_DP) {
 			debugf("Connection been established with UFS device!\n");
@@ -1568,13 +1363,6 @@ struct lu_info_tbl *find_lu_info(int lun)
 	return NULL;
 }
 
-int endpoint_reset(void)
-{
-	send_uic_command(UIC_ENDPOINT_RESET_CMD, 0, 0, 0);
-
-	return wait_uic_complete();
-}
-
 int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_tbl *common_cfg)
 {
 	int ret = 0;
@@ -1633,7 +1421,7 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 #if 0
 	/*TODO for option*/
 	//ret = poweron_reset();
-	ret = endpoint_reset();
+	ret = dme_endpoint_reset();
 	if (UFS_SUCCESS != ret) {
 		errorf("UFS rreset device fail!ret=%d\n",ret);
 		return ret;
