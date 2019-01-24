@@ -40,3 +40,9 @@ ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0/inc
 
 obj-y += r2p0/
 endif
+
+ifneq ($(CONFIG_SOC_ORCA),)
+ccflags-y := -I$(srctree)/drivers/crypto/sprd/sw/inc
+
+obj-y += sw/
+endif

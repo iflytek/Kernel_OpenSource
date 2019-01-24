@@ -40,3 +40,8 @@ ifneq ($(CONFIG_SOC_IWHALE2),)
 obj-y += sprd_crypto_r2p0.o
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0/inc
 endif
+
+ifneq ($(CONFIG_SOC_ORCA),)
+obj-y += sprd_crypto_sw.o
+ccflags-y := -I$(srctree)/drivers/crypto/sprd/sw/inc
+endif
