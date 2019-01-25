@@ -499,7 +499,7 @@ void secboot_terminal(void)
 void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
 {
 	uint32_t ret = 1;
-	static bool system_vendor_product_done=false;
+	static bool system_vendor_product_done = false;
     static bool dtb_dtbo_done = false;
 #ifdef CONFIG_VBOOT_V2
 	vboot_secure_process_flow(partition_name);
@@ -519,12 +519,17 @@ void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t o
     debug("begin to check system & vendor & product version.\n");
     if (!system_vendor_product_done && g_DeviceStatus != VBOOT_STATUS_UNLOCK)
     {
-		vboot_verify_vbmeta("system");
-		vboot_verify_vbmeta("vendor");
+        if (0 != memcmp(partition_name, RECOVERY_PART, strlen(RECOVERY_PART)))
+        {
+            vboot_verify_vbmeta("system");
+            vboot_verify_vbmeta("vendor");
 #if defined (BOARD_PRODUCTIMAGE_PARTITION_SIZE)
-		vboot_verify_vbmeta("product");
+            vboot_verify_vbmeta("product");
 #endif
-		system_vendor_product_done=true;
+        } else {
+            debug("skip check system & vendor & product in recovery mode.\n");
+        }
+        system_vendor_product_done = true;
     }
 #endif
 #else
