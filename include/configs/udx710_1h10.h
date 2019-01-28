@@ -76,11 +76,7 @@
 
 /* SPRD Serial Configuration */
 #define CONFIG_SPRD_UART		1
-#define CONFIG_SYS_SC8800X_UART1	1
-#define CONFIG_CONS_INDEX	1	/* use UART0 for console */
-#define CONFIG_SPRD_UART_PORTS	{ (void *) (CONFIG_SYS_SERIAL0), (void *) (CONFIG_SYS_SERIAL1) }
-#define CONFIG_SYS_SERIAL0		0x70000000
-#define CONFIG_SYS_SERIAL1		0x70100000
+#define CONFIG_CONS_INDEX	0	/* use UART0 for console */
 
 /* Default baud rate */
 #define CONFIG_BAUDRATE		115200
