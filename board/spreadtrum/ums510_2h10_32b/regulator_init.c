@@ -1,6 +1,7 @@
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_reg.h>
 #include <adi_hal_internal.h>
+#define WCN_26M_EN 0x3
 
 static int power_on_voltage_init(void)
 {
@@ -12,6 +13,9 @@ static int power_on_voltage_init(void)
 
 int regulator_init(void)
 {
+	/*
+	 */
+	ANA_REG_OR(ANA_REG_GLB_TSX_CTRL0, BITS_DCXO_26M_REF_OUT_EN(WCN_26M_EN));
 	power_on_voltage_init();
 	return 0;
 }
