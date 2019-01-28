@@ -15,13 +15,6 @@
 #include <sprd_regulator.h>
 #include "linux-compat.h"
 
-#ifdef CONFIG_FPGA
-void usb_phy_enable(u32 is_on)
-{
-	debugf("%s, enter !\n", __func__);
-}
-#else
-
 static void usb_enable()
 {
 	u32 val;
@@ -105,7 +98,7 @@ static void usb_enable()
 	udelay(30 * 1000);
 }
 
-static usb_disable()
+static void usb_disable()
 {
 	u32 val;
 
@@ -134,5 +127,4 @@ void usb_phy_enable(u32 is_on)
 		usb_disable();
 	}
 }
-#endif
 

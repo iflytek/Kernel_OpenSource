@@ -76,7 +76,7 @@ static void usb_enable()
 	writel(val , REG_AP_IPA_AHB_USB1_CTRL);
 }
 
-static usb_disable()
+static void usb_disable()
 {
 	u32 val;
 
