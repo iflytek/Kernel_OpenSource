@@ -630,6 +630,7 @@ static int nt35695_readid(void)
 
 static int nt35695_power(int on)
 {
+#ifndef CONFIG_FPGA
 	if (on) {
 		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_AVDDEN);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVDDEN, 1);
@@ -650,7 +651,7 @@ static int nt35695_power(int on)
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 0);
 		mdelay(5);
 	}
-
+#endif
 	return 0;
 }
 
@@ -670,7 +671,11 @@ static struct panel_info nt35695_info = {
 	.height = 1920,
 
 	/* DPI specific parameters */
+#ifdef CONFIG_FPGA
+	.pixel_clk = 6500000, /*Hz*/
+#else
 	.pixel_clk = 153600000, /*Hz*/
+#endif
 	.rgb_timing = {
 		.hfp = 176,
 		.hbp = 16,
@@ -681,7 +686,11 @@ static struct panel_info nt35695_info = {
 	},
 
 	/* MIPI DSI specific parameters */
+#ifdef CONFIG_FPGA
+	.phy_freq = 300000, /*Kbps*/
+#else
 	.phy_freq = 9798*100,
+#endif
 	.lane_num = 4,
 #ifdef CMD_MODE_ENABLE
 	.work_mode = SPRD_MIPI_MODE_CMD,

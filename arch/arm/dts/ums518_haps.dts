@@ -65,9 +65,9 @@
 			reg = <0x0 0x99800000 0x0 0x3000000>;
 		};
 
-		/* (720x1280x4Bytes + 7200Bytes) x 4Buffers */
-		fb_reserved: framebuffer@befc0000{
-			reg = <0x0 0xbefc0000 0x0 0x1000000>;
+		/* (1088x1920x4Bytes) x 4Buffers + AFBC header*/
+		fb_reserved: framebuffer@bc000000{
+			reg = <0x0 0xbc000000 0x0 0x2000000>;
 		};
 	};
 
