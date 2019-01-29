@@ -138,6 +138,7 @@ static struct {
 	{7, "DCDC_GEN1_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_GEN1_REG2, BITS_DCDC_GEN1_ZCD(0x3)},
 	{8, "DCDC_WPA_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_WPA_REG3, BITS_DCDC_WPA_ZCD(0x3)},
 	{9, "DCDC_SRAM_ZCD", 14, GENMASK(15,9), ANA_REG_GLB_DCDC_SRAM_REG2, BITS_DCDC_SRAM_ZCD(0x3)},
+	{10, "LDO_DCXO_LP", 14, GENMASK(4,1), ANA_REG_GLB_LDO_VDD18_DCXO_REG2, BITS_LDO_VDD18_DCXO_REFTRIM_LP(0xF)},
 	{-1, NULL, 0, 0, 0, 0},
 };
 static struct {
@@ -387,10 +388,22 @@ static int reload_regulator_config()
 		reload_val = 0;
 	else
 		reload_val = 1;
-	for(i = 0; reinit_node[i].id != -1; i++)
+	for(i = 0; reinit_node[i].id <= 9; i++)
 		ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
 				reload_val << shft,
 				reinit_node[i].pmic_regs_mask);
+
+	for(i = 10; reinit_node[i].id != -1; i++) {
+		efuse_val = sprd_pmic_efuse_read(reinit_node[i].efuse_block_id);
+		shft = __ffs(reinit_node[i].efuse_bit_mask);
+		reload_val = (efuse_val & reinit_node[i].efuse_bit_mask)
+			>> shft;
+		shft = __ffs(reinit_node[i].pmic_regs_mask);
+		ANA_REG_MSK_OR(reinit_node[i].pmic_regs_addr,
+						reload_val << shft,
+						reinit_node[i].pmic_regs_mask);
+
+	}
 
 	return 0;
 }
