@@ -20,7 +20,7 @@
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
 
-
+#define CONFIG_UDX710_2H10
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
@@ -37,8 +37,9 @@
 	(CONFIG_SYS_SDRAM_END - 0x10000 - GENERATED_GBL_DATA_SIZE)
 
 /* Flat Device Tree Definitions */
+#ifndef CONFIG_OF_LIBFDT
 #define CONFIG_OF_LIBFDT
-
+#endif
 
 /* SMP Spin Table Definitions */
 #define CPU_RELEASE_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x7fff0)
@@ -69,7 +70,7 @@
  /* SPREADTRUM BIGPHONE board - SoC Configuration */
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
 #define CONFIG_SOC_ORCA
-#define CONFIG_ADIE_SC2721
+#define CONFIG_ADIE_SC2730
 
 #define CONFIG_DTS_MEM_LAYOUT
 
@@ -220,15 +221,14 @@
 #define CONFIG_EMMC_RST_N_FUNCTION
 #define EMMC_SECTOR_SIZE 512
 
-/* bootm kernel and pmsys from ddr */
-//#define CONFIG_DDR_BOOT
+/* bootm kernel from ddr */
+/* boot from EMMC #define CONFIG_DDR_BOOT */
 #ifdef CONFIG_DDR_BOOT
 #undef CONFIG_UFS_BOOT
 #undef CONFIG_EMMC_BOOT
 #undef CONFIG_NAND_BOOT
 
 #define CONFIG_DDR_BOOT_BOOTIMAGE_ADR   (0x82100000)
-#define CONFIG_PSCP_IMG_ADDR (0x8d400000)
 #endif
 
 /*file system config*/
@@ -274,7 +274,7 @@
 
 
 /*for device tree*/
-#define DT_PLATFROM_ID 9650
+#define DT_PLATFROM_ID 710
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 
@@ -347,7 +347,7 @@
 
 
 #define CONFIG_SYS_I2C
-#define CONFIG_SPRD_I2C_V2
+#define CONFIG_SPRD_I2C_V3
 #define CONFIG_SPRDCHG_I2C_BUS 4
 #define CONFIG_FAN54015_CHARGE_IC
 
@@ -359,4 +359,5 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+#define CONFIG_RTC_START_YEAR           0
 #endif /* __CONFIG_H  */

@@ -213,7 +213,7 @@
 /*eMMC config*/
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
-#define CONFIG_EMMC_VERSION_R8P0
+#define CONFIG_EMMC_VERSION_R11P0
 
 /*eMMC boot*/
 #define CONFIG_EMMC_BOOT
@@ -221,15 +221,15 @@
 #define CONFIG_EMMC_RST_N_FUNCTION
 #define EMMC_SECTOR_SIZE 512
 
-/* bootm kernel and pmsys from ddr */
+/* bootm kernel from ddr */
 #define CONFIG_DDR_BOOT
 #ifdef CONFIG_DDR_BOOT
 #undef CONFIG_UFS_BOOT
 #undef CONFIG_EMMC_BOOT
 #undef CONFIG_NAND_BOOT
 
+/* udx710_1h10 boot from ddr, only load bootimage */
 #define CONFIG_DDR_BOOT_BOOTIMAGE_ADR   (0x82100000)
-#define CONFIG_PSCP_IMG_ADDR (0x8d400000)
 #endif
 
 /*file system config*/
