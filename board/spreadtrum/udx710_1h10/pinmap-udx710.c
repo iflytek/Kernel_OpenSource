@@ -421,7 +421,7 @@ int  pin_init(void)
 		sci_adi_set(CTL_ANA_PIN_BASE + adie_pinmap[i].reg, adie_pinmap[i].val);
 	}
 
-	//pin_uart_port_cfg();
+	pin_uart_port_cfg();
 
 	return 0;
 }
