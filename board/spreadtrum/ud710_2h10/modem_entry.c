@@ -24,6 +24,14 @@ void memset_dsp_share_memory()
 	memset((void *)TGDSP_SHARE_MEM_START,0x0,0x1000);//4k
 	memset((void *)MULTI_MODE_MEM_START,0x0,0x1000);//4k
 }
+void modem_power_on()
+{
+	sprd_gpio_request(NULL,15);
+	sprd_gpio_direction_output(NULL, 15, 1);
+	msleep(1000);
+	sprd_gpio_direction_output(NULL, 15, 0);
+	debugf("modem power on\n");
+}
 
 void modem_entry()
 {
@@ -41,5 +49,6 @@ void modem_entry()
 		debugf("boot sp  OK\n");
 	}
 #endif
+	modem_power_on();
 }
 
