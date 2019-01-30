@@ -2,7 +2,7 @@
 #include <asm/arch/pinmap.h>
 #include <hw_mux_cfg.h>
 
-#define PIN_UART_MATRIX_MTX_CFG_VALUE	(0x1602180C)
+#define PIN_UART_MATRIX_MTX_CFG_VALUE	(0x1600180C)
 #define PIN_UART_MATRIX_MTX_CFG1_VALUE	(0x000010E2)
 /* uart port mux*/
 #define UART_INFO_SYS_SEL_MASK	(BIT_0 | BIT_1 | BIT_2 | BIT_3)
