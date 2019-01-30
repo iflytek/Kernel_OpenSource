@@ -11,7 +11,7 @@
 #define SPRD_DEBUG_LEVEL		2
 
 #define CONFIG_KERNEL_BOOT_CP
-#define CONFIG_MEM_LAYOUT_DECOUPLING
+//#define CONFIG_MEM_LAYOUT_DECOUPLING
 
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
