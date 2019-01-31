@@ -46,6 +46,8 @@
 #define SC2703_WLED_CONFIG6                    0x88
 #define SC2703_WLED_CONFIG7                    0x89
 #define SC2703_WLED_CONFIG9                    0x8B
+/* change WLED PHY CLOCK: 0: 0.5M, 1: 1.0M, 2: 1.5M, 3: 0.75M */
+#define SC2703_WLED_PHY_CLOCK_SELECT           0x8C
 #define SC2703_WLED_BOOST_CONTROL1             0x90
 #define SC2703_WLED_BOOST_CONTROL2             0x91
 
@@ -270,6 +272,9 @@
 #define SC2703_WLED_DISCHARGE_SEL_MASK               (0x7 << 2)
 #define SC2703_WLED_PANIC_PERIOD_SHIFT               5
 #define SC2703_WLED_PANIC_PERIOD_MASK                (0x3 << 5)
+/* SC2703_WLED_PHY_CLOCK_SELECT = 0x8c */
+#define SC2703_WLED_PHY_CLK_SEL_SHITF                0
+#define SC2703_WLED_PHY_CLK_SEL_MASK                 (0x3 << 0)
 /* SC2703_WLED_BOOST_CONTROL1 = 0x90 */
 #define SC2703_SEL_POC_LIMIT_SHIFT                   0
 #define SC2703_SEL_POC_LIMIT_MASK                    (0x3 << 0)

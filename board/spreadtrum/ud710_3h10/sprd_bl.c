@@ -89,6 +89,10 @@ void set_backlight(uint32_t brightness)
 	/* set WLED_MODE to duty-detect-analog-mode */
 	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG1, value);
 
+	/* change WLED PHY CLOCK: 0: 0.5M, 1: 1.0M, 2: 1.5M, 3: 0.75M */
+	value = 0x2 << SC2703_WLED_PHY_CLK_SEL_SHITF;
+	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_PHY_CLOCK_SELECT, value);
+
 	/* disable IDAC RAMP to avoid backlight flash when power on */
 	value = i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG7);
 	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG7, value | SC2703_IDAC_RAMP_DIS_MASK);
