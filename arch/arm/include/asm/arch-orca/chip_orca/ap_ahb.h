@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
+ * Copyright (C) 2019 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-12-20 14:46:42
+ * updated at 2019-02-11 15:07:05
  *
  */
 

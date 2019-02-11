@@ -63,6 +63,7 @@
 /* Address Mapping definitions for sub-system AON */
 #define SPRD_SP_IMC_0_0_PHYS            (0x00000000)
 #define SPRD_SP_IMC_1_0_PHYS            (0x00008000)
+#define SPRD_WCN_ADDA_TEST_TOP_PHYS     (0x06390000)
 #define SPRD_IMC_0_0_PHYS               (0x60000000)
 #define SPRD_IMC_1_0_PHYS               (0x60008000)
 #define SPRD_SP_AHB_PHYS                (0x62010000)
@@ -74,6 +75,7 @@
 #define SPRD_CM4_UART0_TOP_PHYS         (0x620e0000)
 #define SPRD_SP_EIC_GPIO_TOP_PHYS       (0x620f0000)
 #define SPRD_SP_EIC1_TOP_PHYS           (0x62100000)
+#define SPRD_AON_MTX_MAIN_MTX_WRAP_PHYS (0x63000000)
 
 #define SPRD_AON_PERI_INTC_AP0_PHYS     (0x63020000)
 #define SPRD_AON_PERI_INTC_AP1_PHYS     (0x63030000)
@@ -152,6 +154,8 @@
 #define SPRD_AON_PERI_AP_WDG_PHYS       (0x63950000)
 #define SPRD_AON_PERI_AP_KPD_PHYS       (0x63960000)
 #define SPRD_APCPU_CLK_PHYS             (0x63970000)
+#define SPRD_AON_DVFS_TOP_PHYS          (0x63980000)
+#define SPRD_APCPU_DVFS_TOP_PHYS        (0x63988000)
 #define SPRD_AON_PERI_ADI_MST_PHYS      (0x63a00000)
 #define SPRD_ADISLAVE_PHYS              (0x63a20000)
 #define SPRD_AON_SPINLOCK_PHYS          (0x64000000)
