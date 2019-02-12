@@ -537,7 +537,10 @@ int dl_cmd_set_debuginfo(dl_packet_t *packet, void *arg)
 			memcpy(debuginfo_buf, raw_data, size);
 			debuginfo_buf[size] = '\0';
 			debuginfo_size = size + 1;
-			offset = DEBUG_INFO_OFFSET + 0x200;
+
+			/* fixbug SPCSS00552570, packet BSL_CMD_ENABLE_DEBUG_MODE use for loglevel handle only */
+			debugf("get debuginfo {%s}\n", debuginfo_buf);
+			offset = DEBUG_INFO_OFFSET;
 			if(0 != common_raw_write("miscdata", debuginfo_size, (uint64_t)0, offset, debuginfo_buf)){
 				op_res = OPERATE_WRITE_ERROR;
 			}

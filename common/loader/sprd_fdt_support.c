@@ -1453,10 +1453,27 @@ int fdt_fixup_loglevel(void *fdt)
 				break;
 			}
 
-			if (strcmp("enable", p) == 0) {
-				ret = fdt_chosen_bootargs_replace(fdt, v_copy, "loglevel=7");
-				if (ret < 0)
-					errorf("set logleve = 7 failed!\n");
+			debugf("read loglevel data {%s} from misc\n", p);
+			if (!strncmp("enable", p, strlen("enable"))) {
+				char buf[16], *t = p, l = '\0';
+
+				t += strlen("enable");
+				if (!t[0])
+					l = '7';
+				else if (!strncmp(t, ":level=", strlen(":level="))) {
+					t += strlen(":level=");
+					if (t[0] >= '1' && t[0] <= '6' && t[1] == '\0')
+						l = t[0];
+				}
+
+				if (l) {
+					sprintf(buf, "loglevel=%c", l);
+					ret = fdt_chosen_bootargs_replace(fdt, v_copy, buf);
+					if (ret < 0)
+						errorf("set %s failed!\n", buf);
+					else
+						debugf("\nupdate kernel %s\n", buf);
+				}
 			}
 
 			free(v_copy);
