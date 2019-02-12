@@ -30,8 +30,8 @@
 
 
 static pinmap_t pinmap[]={
-{REG_PIN_CTRL_REG0,        0x00000004},//sim0_sys_dlp_mode -> normal; sim1_sys_dlp_mode -> normal; sim2_sys_dlp_mode -> power down mode;
-{REG_PIN_CTRL_REG1,        0x000003F0},//sim0/1 SDA,CLK,RST iso -> 1; sim2 SDA,CLK,RST iso -> 0; wdrst_out_sel -> AP watch dog;
+{REG_PIN_CTRL_REG0,        0x00000000},//reserved;
+{REG_PIN_CTRL_REG1,        0x00000000},//reserved;
 {REG_PIN_CTRL_REG2,        0x00000000},//uart_usb_phy_sel -> normal uart1 path; DM/DP FS/LS driver is enabled;
 {REG_PIN_CTRL_REG3,        0x00000000},//SP_EIC_DPAD source select
 {REG_PIN_CTRL_REG4,        0x00000000},//SP_EIC_DPAD source select
@@ -87,11 +87,11 @@ static pinmap_t pinmap[]={
 {REG_PIN_EMMC_D7,                       BITS_PIN_AF(0)},
 {REG_MISC_PIN_EMMC_D7,                  BITS_PIN_DS(3)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPD|BIT_PIN_SLP_Z},//NC
 {REG_PIN_PCIE_CLKREQ,                   BITS_PIN_AF(0)},
-{REG_MISC_PIN_PCIE_CLKREQ,              BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_NUL|BIT_PIN_SLP_OE},//AP_CP_PCIE_CLKREQ(Slaver, two way)
+{REG_MISC_PIN_PCIE_CLKREQ,              BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPD|BIT_PIN_SLP_Z},//AP_CP_PCIE_CLKREQ(Slaver, two way)
 {REG_PIN_PCIE_RST,                      BITS_PIN_AF(0)},
-{REG_MISC_PIN_PCIE_RST,                 BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPU|BIT_PIN_SLP_IE},//AP_CP_PCIE_RST(Slaver,IE)
+{REG_MISC_PIN_PCIE_RST,                 BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPD|BIT_PIN_SLP_Z},//AP_CP_PCIE_RST(Slaver,IE)
 {REG_PIN_PCIE_WAKE,                     BITS_PIN_AF(0)},
-{REG_MISC_PIN_PCIE_WAKE,                BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPU|BIT_PIN_SLP_IE},//AP_CP_PCIE_WAKE(two way)
+{REG_MISC_PIN_PCIE_WAKE,                BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPD|BIT_PIN_SLP_Z},//AP_CP_PCIE_WAKE(two way)
 {REG_PIN_SD0_D_3,                       BITS_PIN_AF(0)},
 {REG_MISC_PIN_SD0_D_3,                  BITS_PIN_DS(3)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPD|BIT_PIN_SLP_Z},//AP_CP_SD2_D3
 {REG_PIN_SD0_D_2,                       BITS_PIN_AF(0)},
