@@ -357,4 +357,10 @@
 #define CONFIG_ETB_DUMP
 
 #define CONFIG_RTC_START_YEAR           0
+
+/* board device special config */
+#define CONFIG_NONE_LED
+#define CONFIG_NONE_VIBRATOR
+#define CONFIG_NONE_KEY
+
 #endif /* __CONFIG_H  */

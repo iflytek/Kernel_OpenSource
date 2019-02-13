@@ -358,4 +358,9 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+/* board device special config */
+#define CONFIG_NONE_LED
+#define CONFIG_NONE_VIBRATOR
+#define CONFIG_NONE_KEY
+
 #endif /* __CONFIG_H  */

@@ -1,7 +1,5 @@
 #include <config.h>
 #include <asm/io.h>
-//#include <asm/arch/chip_drv_config_extern.h>
-//#include <asm/arch/bits.h>
 #include <linux/types.h>
 #include "adi_hal_internal.h"
 #include <asm/arch/sprd_reg.h>
@@ -18,6 +16,12 @@
 #endif
 #define LDO_VIBR_V_U		(0xB4)
 
+#ifdef CONFIG_NONE_VIBRATOR
+
+void set_vibrator(int on) {}
+void vibrator_hw_init(void) {}
+
+#else
 
 void set_vibrator(int on)
 {
@@ -46,3 +50,5 @@ void vibrator_hw_init(void)
 	ANA_REG_MSK_OR(ANA_VIBRATOR_CTRL0_U,LDO_VIBR_V_U,LDO_VIBR_V_U);
 #endif
 }
+
+#endif

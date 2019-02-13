@@ -25,6 +25,14 @@
 #define SC2730_RGB_HW_PD BIT(13)
 #define SC2730_RGB_V     (0xf8)
 
+#ifdef CONFIG_NONE_LED
+
+void sprd_led_init(void) {}
+void sprd_led_disable(LedType type) {}
+void sprd_led_set_brightness(LedType type, uint32_t brightness) {}
+
+#else
+
 static uint32_t init = 0;
 
 // TODO: difference between sc2723 and sc2731
@@ -113,3 +121,5 @@ void sprd_led_set_brightness(LedType type, uint32_t brightness)
 	printf("[LED] set brightness, type=%d, brightness=%u\n", type, brightness);
 #endif
 }
+
+#endif
