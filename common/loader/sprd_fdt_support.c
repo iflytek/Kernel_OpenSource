@@ -1552,3 +1552,53 @@ int fdt_fixup_system_mount_part_num(void *fdt)
 	}
 	return ret;
 }
+
+#ifdef CONFIG_GET_CPU_SERIAL_NUMBER
+extern int sprd_get_chip_hex_uid(char *buf);
+extern void sha256_csum_wd_sw(const unsigned char *input,unsigned int ilen,
+		unsigned char *output,unsigned int chunk_sz);
+int fdt_fixup_cpu_serial_number(void *fdt)
+{
+	char *serial;
+	int err;
+	char serial_num[17];
+	char raw_serial_num[32];
+	char mask_serial_num[65];
+	int cnt;
+
+	err = fdt_check_header(fdt);
+	if (err < 0) {
+		printf("fdt_root: %s\n", fdt_strerror(err));
+		return err;
+	}
+
+	memset(serial_num, 0, sizeof(serial_num));
+	err = sprd_get_chip_hex_uid(serial_num);
+	if (err < 0) {
+		printf("read serial number error\n");
+		return err;
+	}
+
+	memset(raw_serial_num, 0, sizeof(raw_serial_num));
+	sha256_csum_wd_sw(serial_num, strlen(serial_num), raw_serial_num, NULL);
+
+	memset(mask_serial_num, 0, sizeof(mask_serial_num));
+	for (cnt = 0; cnt < sizeof(raw_serial_num); cnt++) {
+		sprintf(mask_serial_num + cnt * 2, "%02x", raw_serial_num[cnt]);
+	}
+
+	serial = mask_serial_num;
+	if (serial) {
+		err = fdt_setprop(fdt, 0, "serial-number", serial,
+				  strlen(serial) + 1);
+
+		if (err < 0) {
+			printf("WARNING: could not set serial-number %s.\n",
+			       fdt_strerror(err));
+			return err;
+		}
+	}
+
+	return 0;
+}
+#endif

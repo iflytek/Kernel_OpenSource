@@ -42,7 +42,8 @@
 /* SMP Spin Table Definitions */
 #define CPU_RELEASE_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x7fff0)
 
-
+/* get soc serial number */
+#define CONFIG_GET_CPU_SERIAL_NUMBER
 
 /* Generic Timer Definitions */
 #define COUNTER_FREQUENCY		(0x1800000)	/* 24MHz */
