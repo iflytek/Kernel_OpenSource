@@ -88,13 +88,6 @@ int misc_init_r(void)
 	return 0;
 }
 
-static void battery_init(void)
-{
-	sprdchg_common_cfg();
-	sprdchg_fan54015_init();
-	sprdbat_init();
-}
-
 int board_late_init(void)
 {
 
@@ -111,7 +104,6 @@ int board_late_init(void)
 	nand_ubi_dev_init();
 	debugf("nand ubi init OK!\n");
 #endif
-	battery_init();
 	debugf("CHG init OK!\n");
 #endif
 	board_keypad_init();
