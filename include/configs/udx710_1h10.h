@@ -72,6 +72,24 @@
 #define CONFIG_SOC_ORCA
 #define CONFIG_ADIE_SC2730
 
+
+/* Orca Lowpower feature support start */
+//#define CONFIG_SUPPORT_LOWPOWER
+
+/* DCDCCORE drop config when chip into deep sleep */
+//#define CONFIG_DCDCCORE_DEEP_DROP_EN
+#define CONFIG_DCDCCORE_DEEP_DROP_VOL 			600 //mV
+
+/* DCDCCORE drop step config */
+//#define CONFIG_DCDCCORE_DROP_STEP_EN
+#define CONFIG_DCDCCORE_DROP_STEP_VOL			20 //mV
+#define CONFIG_DCDCCORE_DROP_STEP_DLY			4  //(4 + 1) * 32k clock / step
+
+/* Debug config */
+#define CONFIG_DEBUG_DCDCLDO_FORCE_ON
+/* Orca Lowpower feature support end */
+
+
 #define CONFIG_DTS_MEM_LAYOUT
 
 /* SPRD Serial Configuration */
