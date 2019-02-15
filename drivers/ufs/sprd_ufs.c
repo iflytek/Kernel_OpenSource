@@ -854,7 +854,7 @@ void change_ufs_power_mode(void)
 		return;
 	}
 
-	pwr_info.gear_rx = UFS_HS_G2;
+	pwr_info.gear_rx = dme_get(PA_MAXRXHSGEAR);
 	if (0 == pwr_info.gear_rx) {
 		pwr_info.gear_rx = dme_get(PA_MAXRXPWMGEAR);
 		if (0 == pwr_info.gear_rx) {
@@ -864,7 +864,7 @@ void change_ufs_power_mode(void)
 		pwr_info.pwr_rx = SLOWAUTO_MODE;
 	}
 
-	pwr_info.gear_tx = UFS_HS_G2;
+	pwr_info.gear_tx = dme_peer_get(PA_MAXRXHSGEAR);
 	if (0 == pwr_info.gear_tx) {
 		pwr_info.gear_tx = dme_peer_get(PA_MAXRXPWMGEAR);
 		if (0 == pwr_info.gear_tx) {

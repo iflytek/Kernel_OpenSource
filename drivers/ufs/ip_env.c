@@ -110,6 +110,11 @@ void init_global_reg(void)
 	udelay(1000);
 	CHIP_REG_AND(sprd_unipro_info->pa_rxtx_reset_reg,
 			~(sprd_unipro_info->pa_rxtx_reset_bit));
+
+	CHIP_REG_OR(0x323B808C,BIT_15);
+	CHIP_REG_OR(0x323B801C,BIT_24);
+
+	CHIP_REG_OR(0x71800148,BIT_0);
 }
 
 
