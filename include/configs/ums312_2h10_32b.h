@@ -300,7 +300,7 @@
 
 
 /*for device tree*/
-#define DT_PLATFROM_ID 510
+#define DT_PLATFROM_ID 312
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 
@@ -375,7 +375,7 @@
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C_V3
 #define CONFIG_SPRD_HW_I2C
-#define CONFIG_SPRD_UMS510_HW_CHNL
+#define CONFIG_SPRD_UMS312_HW_CHNL
 #define CONFIG_SPRDCHG_I2C_BUS 5
 #define CONFIG_FAN54015_CHARGE_IC
 

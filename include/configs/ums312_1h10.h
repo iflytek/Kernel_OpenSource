@@ -18,11 +18,10 @@
 #define BOOTIMG_ADR	0x8D000000
 
 /*build aarch64 u-boot.elf*/
-//#define CONFIG_REMAKE_ELF
+#define CONFIG_REMAKE_ELF
 #define CONFIG_SPRD_UID
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
-#define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
 #define CONFIG_BOARD_LATE_INIT         /* call board_late_init() */
 //#define CONFIG_SUPPORT_RAW_INITRD
@@ -69,7 +68,6 @@
 
  /* SPREADTRUM BIGPHONE board - SoC Configuration */
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
-#define CONFIG_ARCH_SHARK
 #define CONFIG_SOC_SHARKL5
 #define CONFIG_ADIE_SC2730
 
@@ -94,8 +92,6 @@
 
 /* SharkL5 Lowpower feature support end */
 
-
-
 #define CONFIG_DTS_MEM_LAYOUT
 
 /* SPRD Serial Configuration */
@@ -114,6 +110,7 @@
  * log config
  */
 #define CONFIG_SPRD_LOG
+#define CONFIG_LOG_2_EMMC
 
 /*sprd watchdog*/
 #define CONFIG_HW_WATCHDOG
@@ -163,7 +160,7 @@
 #define CONFIG_SYS_LOAD_ADDR		(PHYS_SDRAM_1 + 0x10000000)
 
 /* Physical Memory Map */
-//#define  CONFIG_DUAL_DDR
+#define  CONFIG_DUAL_DDR
 
 #define PHYS_SDRAM_1			0x80000000	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE		0x20000000	/* 512 MB */
@@ -249,7 +246,7 @@
 /*eMMC config*/
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
-#define CONFIG_EMMC_VERSION_R10P0
+#define CONFIG_EMMC_VERSION_R11P0
 /*sprdimageversion Dynamic acquisition rpmb's size*/
 #define CONFIG_SPRD_RPMB
 
@@ -300,14 +297,14 @@
 
 
 /*for device tree*/
-#define DT_PLATFROM_ID 510
+#define DT_PLATFROM_ID 312
 #define DT_HARDWARE_ID 1
 #define DT_SOC_VER     0x20000
 
 
 #define SIMLOCK_ADR      (0x891FE800+0x4)   //0x4 just for data header
 
-#define KERNEL_ADR      0x80008000
+#define KERNEL_ADR      0x80080000
 #define DT_ADR          0x85400000
 #define RAMDISK_ADR     0x85500000
 
@@ -337,7 +334,7 @@
 #define CONFIG_LCD_ILI9881C_TRULY_MIPI_HD
 #define CONFIG_LCM_GPIO_RSTN    50
 #define CONFIG_SYS_WHITE_ON_BLACK
-#define LCD_BPP LCD_COLOR16
+#define LCD_BPP LCD_COLOR32
 
 /*fastboot*/
 #define SCRATCH_ADDR    (CONFIG_SYS_SDRAM_BASE + 0x100000)
@@ -375,7 +372,7 @@
 #define CONFIG_SYS_I2C
 #define CONFIG_SPRD_I2C_V3
 #define CONFIG_SPRD_HW_I2C
-#define CONFIG_SPRD_UMS510_HW_CHNL
+#define CONFIG_SPRD_UMS312_HW_CHNL
 #define CONFIG_SPRDCHG_I2C_BUS 5
 #define CONFIG_SPRD2703_CHARGE_IC
 
@@ -396,7 +393,4 @@
 #endif
 
 #define CONFIG_RTC_START_YEAR		0
-
-/* fixbug 1014166 for 32bit board */
-#define CONFIG_SYS_64BIT_LBA
 #endif /* __CONFIG_H  */

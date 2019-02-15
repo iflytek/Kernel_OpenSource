@@ -9,11 +9,11 @@
 /dts-v1/;
 
 / {
-	model = "Spreadtrum 510_1h10 Board";
+	model = "Spreadtrum 312_1h10 Board";
 
-	compatible = "sprd,ums510_1h10";
+	compatible = "sprd,ums312_1h10";
 
-	sprd,sc-id = <510 1 0x20000>;
+	sprd,sc-id = <312 1 0x20000>;
 
 	reserved-memory {
 		#address-cells = <2>;

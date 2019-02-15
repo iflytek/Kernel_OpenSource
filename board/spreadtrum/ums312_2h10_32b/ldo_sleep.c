@@ -213,7 +213,7 @@ void pmic_lowpower_config(void)
 		0
 	);
 #endif
-	/*ums510 1h10 board is 32kless*/
+	/*ums312 1h10 board is 32kless*/
 	//32k less
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
 		BIT_SLP_LDO_VDDRF1V8_PD_EN |

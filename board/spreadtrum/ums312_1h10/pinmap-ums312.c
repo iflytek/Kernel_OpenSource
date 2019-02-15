@@ -1,6 +1,6 @@
 /*This file is created by PINMAP tool
- *Device: SharkL5_UMS510
- *Version: UMS510_1_IRD_A_SCH_V1.0.0_Pinmap_V1.0 20181012
+ *Device: SharkL5_UMS312
+ *Version: UMS312_1_IRD_A_SCH_V1.0.0_Pinmap_V1.0 20181012
  *Creat Time: 2018/10/12 14:17:28
  *Author: Yang.Ni
  */
