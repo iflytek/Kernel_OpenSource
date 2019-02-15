@@ -37,7 +37,7 @@ static void efuse_unlock(void)
 
 Efuse_Result_Ret efuse_write_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble)
 {
-	/*uint32  i, j;
+	uint32  i, j;
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	efuse_lock();
 
@@ -76,14 +76,13 @@ Efuse_Result_Ret efuse_write_drv(uint32 start_id, uint32 end_id, uint32 *pReadDa
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
 	efuse_disable();
 	efuse_unlock();
-	return ret;*/
-  	return 0;
+	return ret;
 }
 
 
 Efuse_Result_Ret efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadData,uint32 Isdouble)
 {
-	/*uint32  i, j;
+	uint32  i, j;
 	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	efuse_lock();
 	efuse_enable();
@@ -113,14 +112,13 @@ Efuse_Result_Ret efuse_read_drv(uint32 start_id, uint32 end_id, uint32 *pReadDat
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
   	efuse_disable();
 	efuse_unlock();
-	return ret;*/
-  	return 0;
+	return ret;
 }
 
 
 Efuse_Result_Ret efuse_rewrite_double_bit(uint32 block_id, uint32 writeData)
 {
-	/*Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
+	Efuse_Result_Ret ret = EFUSE_RESULT_SUCCESS;
 	efuse_lock();
 	efuse_enable();
 	write32(EFUSE_SEC_MAGIC_NUM, EFUSE_MAGIC);			// SET magic number
@@ -149,8 +147,7 @@ Efuse_Result_Ret efuse_rewrite_double_bit(uint32 block_id, uint32 writeData)
 	write32(EFUSE_SEC_MAGIC_NUM, 0X0);				// CLR magic number
 	efuse_disable();
 	efuse_unlock();
-	return ret;*/
-  	return 0;
+	return ret;
 }
 
 Efuse_Result_Ret efuse_huk_program(void)
