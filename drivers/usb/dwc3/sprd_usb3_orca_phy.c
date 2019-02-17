@@ -15,13 +15,6 @@
 #include <sprd_regulator.h>
 #include "linux-compat.h"
 
-#ifdef CONFIG_FPGA
-void usb_phy_enable(u32 is_on)
-{
-	debugf("%s, enter !\n", __func__);
-}
-#else
-
 static void usb_enable()
 {
 	u32 val;
@@ -87,10 +80,6 @@ static void usb_disable()
 	writel(val & ~(BIT_AP_IPA_AHB_USB1_EB | BIT_AP_IPA_AHB_USB1_SUSPEND_EB
 		 | BIT_AP_IPA_AHB_USB1_REF_EB), REG_AP_IPA_AHB_AHB_EB);
 
-	/*disable analog*/
-	val = readl(REG_AON_APB_APB_EB1);
-	writel(val & ~BIT_AON_APB_ANA_EB, REG_AON_APB_APB_EB1);
-
 }
 void usb_phy_enable(u32 is_on)
 {
@@ -100,5 +89,3 @@ void usb_phy_enable(u32 is_on)
 		usb_disable();
 	}
 }
-#endif
-
