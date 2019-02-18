@@ -90,6 +90,10 @@ static void sc2703_charger_ic_init(void)
 		SC2703_CHG_REG_MASK_ALL, SC2703_VSYS_UV_SWITCH_VAL);
 	sc2703_update_reg_bits(SC2703_REG_UNLOCK,
 		SC2703_CHG_REG_MASK_ALL, SC2703_CHG_REG_DISABLE_VAL);
+
+	/* Set flash voltage output 4.8v */
+	sc2703_update_reg_bits(SC2703_DCDC_CTRL_F,
+		SC2703_DCDC_REV_VOUT_MASK, 0);
 }
 
 /*
