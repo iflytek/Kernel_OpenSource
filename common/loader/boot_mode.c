@@ -200,9 +200,41 @@ extern int drv_lcd_init (void);
 	return;
 }
 
+#ifdef CONFIG_ERASE_SPL_AUTO_DOWNLOAD
+/**
+ * If the SPL is erased, the romcode will enter the download process.
+ * Notice: SPL must download.
+ */
+int erase_spl_enter_download_mode(void)
+{
+	if (0 != common_raw_erase("splloader", (uint64_t)0, (uint64_t)0)) {
+		debugf("erase partition splloader fail!\n");
+		return -1;
+	} else {
+		if (0 != common_raw_erase("splloader_bak", (uint64_t)0, (uint64_t)0)) {
+			debugf("erase partition splloader_bak fail!\n");
+			return -2;
+		} else {
+			debugf("erase partition splloader and splloader_bak ok\n");
+			reset_to_normal(CMD_NORMAL_MODE);
+			while(1);
+		}
+	}
+
+	return 0;
+}
+#endif
+
 void autodloader_mode(void)
 {
 	debugf("Enter autodloader mode\n");
+
+#ifdef CONFIG_ERASE_SPL_AUTO_DOWNLOAD
+	if (0 != erase_spl_enter_download_mode()) {
+		debugf("erase partition splloader and splloader_bak fail!\n");
+		debugf("enter old autodloader_mode!\n");
+	}
+#endif
 
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR) && (defined CONFIG_SPRD_SOC_SP9853I)
 	tos_start_notify();
