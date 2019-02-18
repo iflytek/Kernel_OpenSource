@@ -29,6 +29,17 @@ extern   "C"
 {
 #endif
 
+
+#define AON_IDLE_CLK_RCO_4M	0
+#define AON_IDLE_CLK_4M_AON	1
+#define AON_IDLE_CLK_13M_AON	2
+#define AON_IDLE_CLK_RCO_25M	3
+#define AON_IDLE_CLK_26M_AON	4
+#define AON_IDLE_CLK_96M	5
+#define AON_IDLE_CLK_RCO_100M	6
+#define AON_IDLE_CLK_128M	7
+
+
 void pmu_sequence_config(void)
 {
 	/* Sharkl5 low power typical parameter.xls 2018.10.09 4M */
@@ -580,10 +591,26 @@ void pad_out_sel_config(void)
 	);
 }
 
+//AON idle config
+void aon_idle_config(void)
+{
+	uint32_t value = 0U;
+
+	//Get register value and mask bit
+	value = CHIP_REG_GET(REG_AON_APB_AON_APB_FREQ_CTRL) | BIT_AON_APB_AON_APB_IDLE_EN;
+
+	//Enable aon idle
+	CHIP_REG_SET(REG_AON_APB_AON_APB_FREQ_CTRL, value);
+
+	//4M clock when aon idle
+	CHIP_REG_SET(REG_AON_APB_AON_APB_CLK_SEL, AON_IDLE_CLK_RCO_4M);
+}
+
 void CSP_Init(uint32_t gen_para)
 {
 	pmu_sequence_config();
 	pad_out_sel_config();
+	aon_idle_config();
 }
 
 
