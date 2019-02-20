@@ -28,9 +28,9 @@ void modem_power_on()
 {
 	sprd_gpio_request(NULL,15);
 	sprd_gpio_direction_output(NULL, 15, 1);
-	msleep(1000);
+	msleep(2000);
 	sprd_gpio_direction_output(NULL, 15, 0);
-	debugf("modem power on\n");
+	debugf("wait 2s for modem power on\n");
 }
 
 void modem_entry()
