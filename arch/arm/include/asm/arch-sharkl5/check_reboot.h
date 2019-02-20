@@ -25,6 +25,8 @@ bit[9]: SYSDUMP enable/disable flag
 #define   HWRST_STATUS_NORMAL3			(0x00f1)
 #define   HWRST_STATUS_SYSDUMPEN		(0x200)
 
+#define   HWRST_STATUS_SECURITY			(0x0002)
+
 #define   HW_PBINT2_STATUS				(0x8)
 #define   HW_VCHG_STATUS				(0x20)
 #define   HW_7SRST_STATUS				(0x80)
