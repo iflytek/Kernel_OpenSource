@@ -32,7 +32,7 @@ static inline uint32 is_bit_set(uint32 * pdata, uint32 bit_pos)
 
 static int is_huk_write(void)
 {
-    uint32 bitmap[4] = {0};
+    uint32 bitmap[5] = {0};
     int ret = 1;
     int i, block_id;
 
@@ -49,7 +49,7 @@ static int is_huk_write(void)
 
 static int is_rotpk_write(void)
 {
-	uint32 bitmap[4] = {0};
+	uint32 bitmap[5] = {0};
 	int ret = 1;
 	int i, block_id;
 
@@ -66,7 +66,7 @@ static int is_rotpk_write(void)
 
 static int is_backup_rotpk_write(void)
 {
-	uint32 bitmap[4] = {0};
+	uint32 bitmap[5] = {0};
 	int ret = 1;
 	int i, block_id;
 
@@ -83,11 +83,11 @@ static int is_backup_rotpk_write(void)
 
 static int is_zero_bitmap(void)
 {
-	uint32 bitmap[4] = {0};
+	uint32 bitmap[5] = {0};
 	int ret = 0;
 
 	efuse_read_lock_bits_map(bitmap);
-	ret = !(bitmap[0] | bitmap[1] | bitmap[2] | bitmap[3]);
+	ret = !(bitmap[0] | bitmap[1] | bitmap[2] | bitmap[3] | bitmap[4]);
 
 	return ret;
 }
