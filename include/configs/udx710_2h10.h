@@ -250,6 +250,9 @@
 #define CONFIG_FAT_WRITE
 #define CONFIG_FS_EXT4
 
+/*uart after download*/
+#define CONFIG_USB_ENUM_IN_UBOOT
+#define USB_FIX_VERSION 2
 
 /*used in usb drv*/
 #define CHIP_ENDIAN_LITTLE

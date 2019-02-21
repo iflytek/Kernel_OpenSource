@@ -160,3 +160,8 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 	return ;
 }
 
+uint32_t sprd_get_chip_version(void)
+{
+	return 1;
+}
+
