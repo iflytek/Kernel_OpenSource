@@ -6,6 +6,7 @@
 
 static int power_on_voltage_init(void)
 {
+	regulator_set_voltage("vddrf1v25",1100);
 	return 0;
 }
 
