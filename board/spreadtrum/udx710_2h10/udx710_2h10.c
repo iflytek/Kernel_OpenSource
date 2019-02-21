@@ -97,6 +97,7 @@ int board_late_init(void)
         boot_role = cr_env->mode;
 
 	boot_pwr_check();
+	sprdfgu_init();
 
 #if !defined(CONFIG_FPGA)
 #ifdef CONFIG_NAND_BOOT
