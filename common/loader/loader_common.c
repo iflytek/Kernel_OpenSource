@@ -16,6 +16,7 @@
 #include "cp_mem_decoupling.h"
 #endif
 #include "sprd_cpcmdline.h"
+#include <asm/arch/sprd_reg.h>
 
 #define DECOUPLING_INFO_PARTITION "modem"
 #ifdef CONFIG_SUPPORT_NR
@@ -94,6 +95,18 @@ char *get_product_sn(void)
 	return serial_number_to_transfer;
 }
 
+#ifdef CONFIG_DDR_BOOT
+static void wait_modem_image_loader_completed(void)
+{
+	u32 modemimagedone = BIT(8);
+	u32 ret = 0;
+
+	do {
+		ret = *(volatile u32 *)REG_PMU_APB_PCIE_SLP_CFG;
+	} while (!(ret & modemimagedone));
+}
+#endif
+
 void fdt_fixup_all(u8 *fdt_blob)
 {
 	uint32_t fdt_size;
@@ -129,6 +142,10 @@ void fdt_fixup_all(u8 *fdt_blob)
 #endif
 
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
+#ifdef CONFIG_DDR_BOOT
+	debugf("enter wait download modem image completed\n");
+	wait_modem_image_loader_completed();
+#endif
 	fdt_fixup_cp_coupling_info(fdt_blob, DECOUPLING_INFO_PARTITION);
 #ifdef CONFIG_SUPPORT_NR
 	fdt_fixup_cp_coupling_info(fdt_blob, DECOUPLING_INFO_PARTITION_NRPHY);
