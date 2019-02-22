@@ -1552,7 +1552,7 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 			ret = send_scsi_cmd(UFS_OP_WRITE_10, DMA_TO_DEVICE, lu_info, src, start, cur, 0);
 			if (ret != UFS_SUCCESS)
 				return 0;
-
+			
 			blocks_todo -= cur;
 			start += cur;
 			src += cur << lu_info->log2blksz;
@@ -1562,26 +1562,6 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 	return blkcnt;
 }
 
-static long ufs_sync(int dev_num)
-{
-	int ret = 0;
-
-	struct lu_info_tbl *lu_info = find_lu_info(dev_num);
-	if (NULL == lu_info)
-		return 0;
-
-	ret = test_unit_ready(lu_info);
-	if (UFS_SUCCESS != ret) {
-		errorf("TEST UNIT READY fail!Can not erase UFS device\n");
-		return -1;
-	}
-
-	ret = send_scsi_cmd(UFS_OP_SYNCHRONIZE_CACHE_10, DMA_NONE, lu_info, NULL, 0, 0, 0);
-	if (ret != UFS_SUCCESS)
-		return -1;
-
-	return 0;
-}
 
 static ulong ufs_erase(int dev_num, lbaint_t start, lbaint_t blkcnt)
 {
@@ -1702,8 +1682,6 @@ void ufs_register_blk_device(int lun_index, uint32_t log2_blk_sz, uint64_t blk_c
 	ufs_info.block_dev[lun_index].block_read = ufs_bread;
 	ufs_info.block_dev[lun_index].block_write = ufs_bwrite;
 	ufs_info.block_dev[lun_index].block_erase = ufs_erase;
-	ufs_info.block_dev[lun_index].block_sync = ufs_sync;
-
 	if (NONE_BOOT == type) {
 	ufs_info.block_dev[lun_index].backstage_block_write = ufs_write_backstage;
 	ufs_info.block_dev[lun_index].backstage_write_query = ufs_query_backstage;

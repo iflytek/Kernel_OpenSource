@@ -2092,7 +2092,6 @@ struct mmc *mmc_create(const struct mmc_config *cfg, void *priv)
 	mmc->block_dev.block_read = mmc_bread;
 	mmc->block_dev.block_write = mmc_bwrite;
 	mmc->block_dev.block_erase = mmc_berase;
-	mmc->block_dev.block_sync = NULL;
 	mmc->block_dev.backstage_block_write = emmc_write_backstage;
 	mmc->block_dev.backstage_write_query = emmc_query_backstage;
 #ifdef CONFIG_EMMC_WP
