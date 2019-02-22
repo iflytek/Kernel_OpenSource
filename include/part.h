@@ -38,6 +38,7 @@ typedef struct block_dev_desc {
 	unsigned long   (*block_erase)(int dev,
 				       lbaint_t start,
 				       lbaint_t blkcnt);
+	long            (*block_sync)(int dev);
 	unsigned long   (*block_pwr_wp)(int dev,
 				       lbaint_t start,
 				       int grpcnt);
