@@ -52,6 +52,8 @@ SPECIAL_PARTITION_CFG const s_special_partition_cfg[] = {
 	{{"tdruntimenv1"}, {"tdruntimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"g_fixnv1"}, {"g_fixnv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"g_runtimenv1"}, {"g_runtimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
+	{{"nr_fixnv1"}, {"nr_fixnv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
+	{{"nr_runtimenv1"}, {"nr_runtimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"l_fixnv1"}, {"l_fixnv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"l_runtimenv1"}, {"l_runtimenv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
 	{{"tl_fixnv1"}, {"tl_fixnv2"}, IMG_RAW, PARTITION_PURPOSE_NV},
@@ -1061,7 +1063,9 @@ OPERATE_STATUS dl_download_midst(uint16_t size, char *buf)
 #endif
 
 #else
-	if ((IMG_RAW == g_dl_eMMCStatus.curImgType) && (g_status.total_size > ALTERNATIVE_BUFFER_SIZE))
+	if ((IMG_RAW == g_dl_eMMCStatus.curImgType)
+	     && ((PARTITION_PURPOSE_NV != g_dl_eMMCStatus.partitionpurpose)
+		  && (g_status.total_size > ALTERNATIVE_BUFFER_SIZE)))
 		ret = speedup_download_process(size, buf);
 	else
 		ret = regular_download_process(size, buf);

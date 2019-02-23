@@ -35,6 +35,8 @@ static dl_nv_info_t s_nv_backup_cfg[] = {
 	{"l_fixnv1", "l_fixnv2"},
 	{"runtimenv1", "runtimenv2"},
 	{"l_runtimenv1", "l_runtimenv2"},
+	{"nr_fixnv1", "nr_fixnv2"},
+	{"nr_runtimenv1", "nr_runtimenv2"},
 	{"tdfixnv1", "tdfixnv2"},
 	{"tdruntimenv1", "tdruntimenv2"},
 	{"wfixnv1", "wfixnv2"},
