@@ -18,6 +18,6 @@ unsigned char board_key_scan(void)
 
 unsigned int check_key_boot(unsigned char key)
 {
-      return 0;
+      return CMD_NORMAL_MODE;
 }
 

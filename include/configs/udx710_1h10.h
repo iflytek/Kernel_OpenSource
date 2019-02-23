@@ -118,7 +118,7 @@
 /*sprd gpio*/
 #define CONFIG_SPRD_GPIO
 #define CONFIG_SPRD_EIC_EXT1
-#define CONFIG_POWERKEY_DEFAULT_HIGH
+//#define CONFIG_POWERKEY_DEFAULT_HIGH
 /* Chip Driver Macro Definitions End*/
 
 /* Command line configuration */
