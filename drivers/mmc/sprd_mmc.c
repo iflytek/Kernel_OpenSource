@@ -1510,6 +1510,7 @@ int mmc_register(struct mmc *mmc)
 	mmc->block_dev.block_read = mmc_bread;
 	mmc->block_dev.block_write = mmc_bwrite;
 	mmc->block_dev.block_erase = mmc_berase;
+	mmc->block_dev.block_sync = NULL;
 	mmc->block_dev.backstage_block_write = mmc_bwrite_backstage;
 	mmc->block_dev.backstage_write_query = mmc_query_bwrite_backstage;
 

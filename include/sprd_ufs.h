@@ -25,7 +25,7 @@
 #define MAX_PRDT_ENTRIES       128
 #define PRDT_BUFFER_SIZE       SZ_256K
 #define TOTAL_PRDT_CAP		((MAX_PRDT_ENTRIES) * (PRDT_BUFFER_SIZE))
-#define LOGICAL_BLK_SIZE       4096 
+#define LOGICAL_BLK_SIZE       4096
 #define NUM_OF_DESC            1
 #define ALIGN_SIZE             1024
 #define LOOPBACK_DEFAULT       0xb01
@@ -36,7 +36,7 @@
 #define HCE_RESET              0x1
 #define SENSE_KEY_INDEX        2
 #define CMD_DESC_ALIGNMENT     128
-#define ALIGNED_UPIU_SIZE      512 
+#define ALIGNED_UPIU_SIZE      512
 #define SCSI_TRANS_TYPE        0x21
 #define NOP_TRANS_TYPE         0x20
 #define UNIT_DESCS_COUNT       8
@@ -430,7 +430,7 @@ enum ufs_hs_gear_tag {
 /*
  * Command UPIU Structure
  */
-struct dwc_ufs_cmd_upiu	
+struct dwc_ufs_cmd_upiu
 {
 	uint8_t trans_type;
 	uint8_t flags;
@@ -468,7 +468,7 @@ struct dwc_ufs_query_upiu
 /*
  * NOP OUT UPIU Structure
  */
-struct dwc_ufs_nop_req_upiu	
+struct dwc_ufs_nop_req_upiu
 {
 	uint8_t trans_type;
 	uint8_t flags;
@@ -484,7 +484,7 @@ struct dwc_ufs_nop_req_upiu
 /*
  * NOP IN UPIU Structure
  */
-struct dwc_ufs_nop_resp_upiu	
+struct dwc_ufs_nop_resp_upiu
 {
 	uint8_t trans_type;
 	uint8_t flags;
@@ -531,7 +531,7 @@ struct dwc_ufs_prd {
 	uint32_t    size;
 };
 
-/* 
+/*
  * Command Descriptor Structure
  */
 struct dwc_ufs_tcd {
@@ -563,7 +563,7 @@ struct dwc_ufs_utrd {
  * Size of this structure is 32 bytes
  * The data structure should support 32 bit or 64 bit memory buffer address
  * space. This structure is in BIG ENDINA Format
- */ 
+ */
 struct dwc_ufs_tm_req_upiu
 {
 	uint8_t trans_type;
@@ -589,7 +589,7 @@ struct dwc_ufs_tm_req_upiu
  * Size of this structure is 32 bytes
  * The data structure should support 32 bit or 64 bit memory buffer address
  * space. This structure is in BIG ENDINA Format
- */ 
+ */
 struct dwc_ufs_tm_resp_upiu
 {
 	uint8_t trans_type;
@@ -646,7 +646,7 @@ struct partitionDesc
 
 struct partitionDescTable {
 	uint8_t bNumberLU;            /* Used internally by driver */
-	uint8_t bAllocationUnitSize;  /* Used internally by driver */ 
+	uint8_t bAllocationUnitSize;  /* Used internally by driver */
 	uint32_t dSegmentSize;        /* used internally by driver */
 	struct partitionDesc *partitionDescPtr[8];
 };

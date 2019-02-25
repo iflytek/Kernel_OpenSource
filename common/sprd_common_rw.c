@@ -435,7 +435,7 @@ int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 
 	if(block_dev_erase(dev_desc, size, offset))
 		return -1;
-		
+
 	if (0 == strcmp(part_name, "uboot")) {
 		uchar buf[512] = { 0x5A };
 		printf("Use Write 5A pattern to uboot partition for check download status\n");
@@ -471,6 +471,51 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 		init_part(dev_desc);
 		return 0;
 	}
+}
+
+int common_partition_sync(char *part_name)
+{
+	int dev_id = 0;
+	char *ifname;
+	disk_partition_t part_info;
+	block_dev_desc_t *dev_desc;
+	int ret = 0;
+
+	ifname = block_dev_get_name();
+
+	if (0 == strcmp(part_name, "splloader")) {
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART1);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART1);
+	} else if (0 == strcmp(part_name, "splloader_bak")) {
+		dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
+	} else if (0 == strcmp(part_name, "uboot")) {
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+		if (-1 == ret) {
+			ret = 0;
+			dev_id = get_devnum_hwpart(ifname, BOOT_PART2);
+			dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART2);
+		}
+	} else {
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		ret = get_partition_info_by_name(dev_desc, part_name, &part_info);
+		if (-1 == ret)
+			return -1;
+	}
+
+	if (NULL == dev_desc)
+		return -1;
+
+	if(NULL == dev_desc->block_sync)
+		return 0;
+
+	if (0 != dev_desc->block_sync(dev_desc->dev))
+		return -1;
+
+	return 0;
 }
 
 int get_img_partition_id(char *part_name, unsigned int *id)
@@ -955,19 +1000,19 @@ int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t 
 
 int common_raw_erase(char *part_name, uint64_t size, uint64_t offset)
 {
-	
+
 }
 
 
 
 int common_repartition(disk_partition_t *partitions, int parts_count)
 {
-	
+
 }
 
 int32_t common_get_lba_size(void)
 {
-	
+
 }
 
 int do_fs_file_read(char *mpart, char *filenm, void *buf, int len)

@@ -1089,6 +1089,10 @@ OPERATE_STATUS dl_download_end(void)
 	}
 
 	g_status.total_size = 0;
+
+	if (0 != common_partition_sync(g_dl_eMMCStatus.curUserPartitionName))
+		return OPERATE_WRITE_ERROR;
+
 	return OPERATE_SUCCESS;
 }
 

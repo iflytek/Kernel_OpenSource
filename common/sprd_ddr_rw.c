@@ -126,6 +126,11 @@ int common_repartition(disk_partition_t *partitions, int parts_count)
 	return -1;
 }
 
+int common_partition_sync(char *part_name)
+{
+	return -1;
+}
+
 int32_t common_get_lba_size(void)
 {
 	return -1;
