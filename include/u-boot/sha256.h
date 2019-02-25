@@ -19,4 +19,8 @@ void sha256_finish(sha256_context * ctx, uint8_t digest[SHA256_SUM_LEN]);
 void sha256_csum_wd(const unsigned char *input, unsigned int ilen,
 		unsigned char *output, unsigned int chunk_sz);
 
+#ifdef CONFIG_GET_CPU_SERIAL_NUMBER
+void sha256_csum_wd_sw(const unsigned char *input,unsigned int ilen,
+		unsigned char *output,unsigned int chunk_sz);
+#endif
 #endif /* _SHA256_H */
