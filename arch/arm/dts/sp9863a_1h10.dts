@@ -65,9 +65,9 @@
 			reg = <0x0 0x99800000 0x0 0x3000000>;
 		};
 
-		/* 1080x1920x4Bytes x 4Buffers */
-		fb_reserved: framebuffer@9d000000{
-			reg = <0x0 0x9d000000 0x0 0x2000000>;
+		/* 1080x1920x4Bytes */
+		wb_reserved: writeback@9e817000{
+			reg = <0x0 0x9e817000 0x0 0x7e9000>;
 		};
 	};
 
@@ -78,9 +78,9 @@
 
 		heap@3 {
 			reg = <3>;
-			label = "carveout_fb";
+			label = "carveout_logo";
 			type = <2>;
-			memory-region = <&fb_reserved>;
+			memory-region = <&wb_reserved>;
 		};
 
 		heap@4 {
