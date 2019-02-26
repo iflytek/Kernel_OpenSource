@@ -47,6 +47,7 @@ unsigned check_reboot_mode(void)
 	if(HWRST_RTCSTATUS_DOWNLOAD_BOOT == rtc_domain_reg_read()) {
 		debugf("rtc_domain_reg get reboot normal mode \n");
 		rtc_domain_reg_write(HWRST_RTCSTATUS_DEFAULT);
+		ANA_REG_SET(ANA_REG_GLB_POR_RST_MONITOR, 0); //clear flag
 		return CMD_NORMAL_MODE;
 	}
 /*for download mode reboot system ---- end*/
