@@ -95,7 +95,7 @@ char *get_product_sn(void)
 	return serial_number_to_transfer;
 }
 
-#ifdef CONFIG_DDR_BOOT
+#ifdef SUPPORT_WAIT_MODEMIMAGE_DOWNLOAD
 static void wait_modem_image_loader_completed(void)
 {
 	u32 modemimagedone = BIT(8);
@@ -142,7 +142,7 @@ void fdt_fixup_all(u8 *fdt_blob)
 #endif
 
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
-#ifdef CONFIG_DDR_BOOT
+#ifdef SUPPORT_WAIT_MODEMIMAGE_DOWNLOAD
 	debugf("enter wait download modem image completed\n");
 	wait_modem_image_loader_completed();
 #endif
