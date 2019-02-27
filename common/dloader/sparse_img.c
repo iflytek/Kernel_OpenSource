@@ -71,6 +71,7 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 	int chunk;
 	u32 fill_val;
 	u32 *fillbuf;
+	u64 sparse_sz, part_sz;
 
 	g_buf_index = 0;
 
@@ -96,6 +97,25 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 			errorf("Unknown major version number\n");
 			goto fail;
 		}
+
+		/* erase partition before spare image write */
+		sparse_sz = (u64)sparse_header.total_blks * (u64)sparse_header.blk_sz;
+		if (sparse_sz) {
+			if ((get_img_partition_size(partname, &part_sz) >= 0)
+					&& (part_sz > 0)) {
+				if (sparse_sz > part_sz) {
+					errorf("fail: sparse sz(0x%llx) large than partition sz(0x%llx)\n", sparse_sz, part_sz);
+					goto fail;
+				} else {
+					debugf("sparse img write, erase partition %s sz 0x%llx\n", partname, sparse_sz);
+					if (common_raw_erase(partname, sparse_sz > part_sz ? part_sz : sparse_sz, offset)) {
+						errorf("sparse image write, erase partition %s fail\n", partname);
+						goto fail;
+					}
+				}
+			}
+		}
+
 		if (sparse_header.file_hdr_sz > SPARSE_HEADER_LEN) {
 			/* Skip the remaining bytes in a header that is longer than
 		 	* we expected.
