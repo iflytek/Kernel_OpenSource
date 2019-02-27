@@ -57,6 +57,7 @@ int board_init(void)
 	TDPllRefConfig(1);
 	enable_global_clocks();
 	thm_overheate_en();
+	enable_ext_reset_mode();
 #endif
 	return 0;
 }

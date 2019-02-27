@@ -110,6 +110,11 @@ int pbint_7s_rst_cfg(uint32_t en, uint32_t sw_rst, uint32_t short_rst)
 	return pbint_7s_rst_disable(!en);
 }
 
+void enable_ext_reset_mode(void)
+{
+	sci_adi_set(ANA_REG_GLB_POR_7S_CTRL, BIT_EXT_RSTN_MODE);
+}
+
 int is_hw_smpl_enable(void)
 {
 	return !!(sci_adi_read(ANA_REG_GLB_SMPL_CTRL1) & BIT_SMPL_EN);
