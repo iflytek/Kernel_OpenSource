@@ -200,6 +200,8 @@
 #define CONFIG_MMC
 #define CONFIG_MMC_SDMA
 #define CONFIG_EMMC_VERSION_R11P0
+/*sprdimageversion Dynamic acquisition rpmb's size*/
+#define CONFIG_SPRD_RPMB
 #define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
 #define EMMC_SECTOR_SIZE 512
