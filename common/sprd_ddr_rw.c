@@ -8,7 +8,7 @@
  *  Author        : $Author$
  *  Created By    : zhenxiong.lai
  *  Created       : Thu Dec 6 08:32:13 2018
- *  Last Modified : <181206.0833>
+ *  Last Modified : <190228.1634>
  *
  *  Description	
  *
@@ -74,6 +74,11 @@ int get_img_partition_uuid(char *part_name, char* uuid)
 	return -1;
 }
 #endif
+
+int get_img_partition_size(char *part_name, uint64_t *size)
+{
+	return -1;
+}
 
 int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 {
