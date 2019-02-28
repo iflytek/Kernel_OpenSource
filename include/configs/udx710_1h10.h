@@ -384,4 +384,7 @@
 #define CONFIG_NONE_VIBRATOR
 #define CONFIG_NONE_KEY
 
+/* PCIe Configuration */
+#define CONFIG_PCIE_SPRD
+
 #endif /* __CONFIG_H  */
