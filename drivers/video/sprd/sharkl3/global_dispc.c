@@ -32,17 +32,7 @@ static uint32_t dpi_src_val;
 
 static uint8_t calc_dpu_core_clk(uint32_t pclk)
 {
-	int i;
-
-	pclk *= 2;
-
-	for (i = 0; i < ARRAY_SIZE(dpu_core_clk); i++) {
-		if (pclk <= dpu_core_clk[i])
-			return i;
-	}
-
-	pr_err("calc DPU_CORE_CLK failed, use default\n");
-	return 2;
+	return ARRAY_SIZE(dpu_core_clk) - 1;
 }
 
 static uint8_t calc_dpi_clk_src(uint32_t pclk)
