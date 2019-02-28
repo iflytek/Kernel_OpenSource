@@ -11765,6 +11765,15 @@ CONFIG_REGULATOR
 	[must] user
 	[missing plat description] none
 	[function] Support regulator core.
+CONFIG_REGULATOR_DA9121
+	[arch] arm64
+	[plat] orca
+	[missing plat] roc1,sharkl3,sharkl5,sharkl5_32
+	[field] menu,code
+	[subsys] regulator
+	[must] user
+	[missing plat description]
+	[function] SUPPORT DA9121 regulator function.
 CONFIG_REGULATOR_DA9211
 	[arch] arm64
 	[plat] roc1

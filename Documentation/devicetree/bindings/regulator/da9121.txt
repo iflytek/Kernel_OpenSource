@@ -1,0 +1,51 @@
+* Dialog Semiconductor DA9121 Single-channel dual-phase buck converter
+
+Required properties:
+
+- compatible : Should be "dlg,da9121" for DA9121
+- reg : Specifies the I2C slave address.
+- interrupt-parent : Specifies the reference to the interrupt controller.
+- interrupts : IRQ line information.
+
+Optional properties:
+
+- dlg,irq-polling-delay-passive : Specify the polling period, measured in
+  milliseconds, between interrupt status update checks.
+
+Sub-nodes:
+
+- regulators : This node defines the settings for the BUCK. The content of the
+  sub-node is defined by the standard binding for regulators; see regulator.txt.
+  The DA9121 regulator is bound using their names listed below:
+
+    buck1 : BUCK1
+
+Optional properties for regulators:
+
+- enable-gpios : Specify a valid GPIO for platform control of the regualtor.
+
+Example:
+	pmic: da9121@68 {
+		compatible = "dlg,da9121";
+		reg = <0x68>;
+
+		interrupt-parent = <&gpio6>;
+		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
+		buck-gpios = <&ap_gpio 133 0>;
+
+		dlg,irq-polling-delay-passive = <2000>;
+
+		regulators {
+			DA9121_BUCK1: buck1 {
+				regulator-name = "BUCK1";
+				regulator-min-microvolt = <300000>;
+				regulator-max-microvolt = <1900000>;
+				regulator-min-microamp = <3500000>;
+				regulator-max-microamp = <10000000>;
+				regulator-boot-on;
+				enable-gpios = <&gpio 1 0>;
+			};
+		};
+	};
+
+
