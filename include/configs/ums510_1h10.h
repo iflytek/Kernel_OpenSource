@@ -110,6 +110,7 @@
  * log config
  */
 #define CONFIG_SPRD_LOG
+#define CONFIG_LOG_2_EMMC
 
 /*sprd watchdog*/
 #define CONFIG_HW_WATCHDOG
