@@ -1225,66 +1225,6 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 }
 #endif
 
-int check_split_dump_mem(int sprd_dump_mem_num, struct sysdump_mem *sprd_dump_mem)
-{
-       int mem_num = sprd_dump_mem_num;
-       unsigned long size = 0;
-       unsigned long paddr = 0;
-       unsigned long vaddr = 0;
-       int j = 0, i = 0;;
-
-       debugf("------------- show mem blocks before split ------------------ \n");
-       for (i = 0; i < mem_num; i++) {
-                       debugf("mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", i, sprd_dump_mem[i].paddr, sprd_dump_mem[i].vaddr, sprd_dump_mem[i].size);
-       }
-       for (i = 0; i < sprd_dump_mem_num; i++) {
-               /* record current add,size  */
-               size = sprd_dump_mem[i].size;
-               paddr = sprd_dump_mem[i].paddr;
-               vaddr = sprd_dump_mem[i].vaddr;
-               j = 0;
-
-               while (size > SZ_1G) {
-                       debugf("mem block  %d too big , need split it %d ...........\n", i, j);
-                       if (j == 0) {
-                               sprd_dump_mem[i].paddr = paddr;
-                               sprd_dump_mem[i].vaddr = vaddr;
-                               sprd_dump_mem[i].size = SZ_1G;
-                               debugf("check split in while ...mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", i, sprd_dump_mem[i].paddr, sprd_dump_mem[i].vaddr, sprd_dump_mem[i].size);
-                       } else {
-                               sprd_dump_mem[mem_num - 1 + j].paddr = paddr+j*SZ_1G;
-                               sprd_dump_mem[mem_num - 1 + j].vaddr = vaddr+j*SZ_1G;
-                               sprd_dump_mem[mem_num - 1 + j].size = SZ_1G;
-                               debugf("check split in while ...mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", i, sprd_dump_mem[i].paddr, sprd_dump_mem[i].vaddr, sprd_dump_mem[i].size);
-                       }
-                       size -= SZ_1G;
-                       j++;
-               }
-               if (size != 0) {
-                       if (j == 0) {
-                               sprd_dump_mem[i].paddr = paddr;
-                               sprd_dump_mem[i].vaddr = vaddr;
-                               sprd_dump_mem[i].size = size;
-                               debugf("check split last ...mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n",\
-                                                i, sprd_dump_mem[i].paddr, sprd_dump_mem[i].vaddr, sprd_dump_mem[i].size);
-                       } else {
-                               sprd_dump_mem[mem_num - 1 + j].paddr = paddr+j*SZ_1G;
-                               sprd_dump_mem[mem_num - 1 + j].vaddr = vaddr+j*SZ_1G;
-                               sprd_dump_mem[mem_num - 1 + j].size = size;
-                               debugf("check split last...mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n",\
-                                       mem_num - 1 + j, sprd_dump_mem[mem_num - 1 + j].paddr, sprd_dump_mem[mem_num - 1 + j].vaddr, sprd_dump_mem[mem_num - 1 + j].size);
-                       }
-               }
-               mem_num += j;
-       }
-       debugf("mem block num : old(%d) ----> new(%d) \n", sprd_dump_mem_num, mem_num);
-       debugf("------------- show mem blocks after split ------------------ \n");
-       for (i = 0; i < mem_num; i++) {
-           debugf("New mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", i, sprd_dump_mem[i].paddr, sprd_dump_mem[i].vaddr, sprd_dump_mem[i].size);
-       }
-       return mem_num;
-}
-
 int enter_sysdump_flag = 0;
 
 void write_sysdump_before_boot(int rst_mode)
@@ -1386,7 +1326,7 @@ void write_sysdump_before_boot(int rst_mode)
 			sprd_dump_mem_num = get_total_dump_memory(sprd_dump_mem);
 			infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
 		}
-		sprd_dump_mem_num = check_split_dump_mem(sprd_dump_mem_num, sprd_dump_mem);
+
 		infop->mem_num = sprd_dump_mem_num;
 		sprd_ptload_mem_num = get_elfhdr_ptload_mem(sprd_dump_mem, sprd_dump_mem_num, sprd_ptload_mem);
 		infop->elfhdr_size = get_elfhdr_size(sprd_ptload_mem_num);
