@@ -18,6 +18,7 @@
 #define debug1(format, arg...)		regu_debug("\t" format, ## arg)
 #define debug2(format, arg...)		regu_debug("\t\t" format, ## arg)
 
+#define CBANK_VALUE 0x5
 #define WR_UNLOCK 0x6e7f
 #define TSX_WR_UNLOCK 0x1990
 #define TRANS_26M_EN 1
@@ -408,6 +409,17 @@ static int reload_regulator_config()
 	return 0;
 }
 
+void reset_cbank_value(void)
+{
+	u16 chip_id_low;
+	chip_id_low = sci_adi_read(ANA_REG_GLB_CHIP_ID_LOW) & 0xffff;
+
+	if(chip_id_low <= 0xa001) {
+	ANA_REG_SET(ANA_REG_GLB_TSX_CTRL11, BITS_DCXO_CORE_CBANK_LP(CBANK_VALUE));
+	}
+
+}
+
 int regulator_pmic_init(void)
 {
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE, BITS_PWR_WR_PROT_VALUE(WR_UNLOCK));
@@ -415,5 +427,6 @@ int regulator_pmic_init(void)
 	ANA_REG_SET(ANA_REG_GLB_TSX_CTRL12, BITS_DCXO_32K_FRAC_DIV_RATIO_CTRL_HP(DIV_COEF));
 	ANA_REG_OR(ANA_REG_GLB_TSX_CTRL0, BITS_DCXO_26M_REF_OUT_EN(TRANS_26M_EN));
 	reload_regulator_config();
+	reset_cbank_value();
 	return 0;
 }
