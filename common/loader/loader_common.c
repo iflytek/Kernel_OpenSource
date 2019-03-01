@@ -17,6 +17,9 @@
 #endif
 #include "sprd_cpcmdline.h"
 #include <asm/arch/sprd_reg.h>
+#ifdef CONFIG_PCIE_SPRD
+#include <linux/pci/pcie_sprd.h>
+#endif
 
 #define DECOUPLING_INFO_PARTITION "modem"
 #ifdef CONFIG_SUPPORT_NR
@@ -105,6 +108,20 @@ static void wait_modem_image_loader_completed(void)
 		ret = *(volatile u32 *)REG_PMU_APB_PCIE_SLP_CFG;
 	} while (!(ret & modemimagedone));
 }
+
+#ifdef CONFIG_PCIE_SPRD
+static void reset_pcie_bar(void)
+{
+
+	debugf("enter reset pcie bar\n");
+	do{
+		if (!sprd_pcie_split_bar()) {
+			debugf("reset pcie bar success\n");
+			break;
+		}
+	}while(1);
+}
+#endif
 #endif
 
 void fdt_fixup_all(u8 *fdt_blob)
@@ -145,6 +162,9 @@ void fdt_fixup_all(u8 *fdt_blob)
 #ifdef SUPPORT_WAIT_MODEMIMAGE_DOWNLOAD
 	debugf("enter wait download modem image completed\n");
 	wait_modem_image_loader_completed();
+#ifdef CONFIG_PCIE_SPRD
+	reset_pcie_bar();
+#endif
 #endif
 	fdt_fixup_cp_coupling_info(fdt_blob, DECOUPLING_INFO_PARTITION);
 #ifdef CONFIG_SUPPORT_NR
