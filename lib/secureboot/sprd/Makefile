@@ -37,7 +37,7 @@ ifneq ($(CONFIG_SC9833)$(CONFIG_SOC_SHARKLJ1)$(CONFIG_SPRD_SOC_SP9853I),)
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r3p0/inc
 endif
 
-ifneq ($(CONFIG_SOC_PIKE2)$(CONFIG_SOC_SHARKLE)$(CONFIG_SOC_SHARKL3)$(CONFIG_SOC_SHARKL5)$(CONFIG_SOC_ROC1),)
+ifneq ($(CONFIG_SOC_PIKE2)$(CONFIG_SOC_SHARKLE)$(CONFIG_SOC_SHARKL3)$(CONFIG_SOC_SHARKL5)$(CONFIG_SOC_ROC1)$(CONFIG_SOC_SHARKL5PRO),)
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r2p0lite/inc
 endif
 

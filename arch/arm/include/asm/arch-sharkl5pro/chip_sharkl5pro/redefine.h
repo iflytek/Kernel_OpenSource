@@ -69,10 +69,11 @@
 #define AON_EMMC_CLK_2X_CFG                     0x90
 
 /* for ce */
-#define REG_AP_AHB_CE_SEC_EB                                       REG_AP_APB_APB_EB
-#define BIT_AP_AHB_CE_SEC_EB					   BIT_AP_APB_CE_SEC_EB
-#define REG_AP_AHB_CE_SEC_SOFT_RST				   REG_AP_APB_APB_RST
-#define BIT_AP_AHB_CE_SEC_SOFT_RST				   BIT_AP_APB_CE_SEC_SOFT_RST
+#define REG_AP_CLK_CORE_CGM_CE_CFG              ( CTL_BASE_AP_CLK_CORE + 0x0068 )
+#define REG_AP_AHB_CE_SEC_EB                    REG_AP_APB_APB_EB
+#define BIT_AP_AHB_CE_SEC_EB                    BIT_AP_APB_CE_SEC_EB
+#define REG_AP_AHB_CE_SEC_SOFT_RST              REG_AP_APB_APB_RST
+#define BIT_AP_AHB_CE_SEC_SOFT_RST              BIT_AP_APB_CE_SEC_SOFT_RST
 
 
 #endif

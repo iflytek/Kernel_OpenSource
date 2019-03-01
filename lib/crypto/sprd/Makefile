@@ -28,7 +28,7 @@ obj-y += sprd_crypto.o
 ccflags-y := -I$(srctree)/drivers/crypto/sprd/r3p0/inc
 endif
 
-ifneq ($(CONFIG_SOC_PIKE2)$(CONFIG_SOC_SHARKLE)$(CONFIG_SOC_SHARKL3)$(CONFIG_SOC_SHARKL5)$(CONFIG_SOC_ROC1),)
+ifneq ($(CONFIG_SOC_PIKE2)$(CONFIG_SOC_SHARKLE)$(CONFIG_SOC_SHARKL3)$(CONFIG_SOC_SHARKL5)$(CONFIG_SOC_ROC1)$(CONFIG_SOC_SHARKL5PRO),)
 ifneq ($(CONFIG_GET_CPU_SERIAL_NUMBER),)
 obj-y += sprdsha256.o
 endif
