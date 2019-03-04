@@ -28,6 +28,11 @@
 #include "sprd_usb3_def.h"
 #include <usb/sprd_usb_drv.h>
 
+/* dwc3 rcv buf size n >= ((dl_size + 0x8)/mps + 1)*mps
+ * or else dwc3 controller can't receive short packet.
+ * */
+#define MAX_RECV_LENGTH 0x10000
+
 static int hdlc_disabled;
 /** Driver context struct */
 static usb3_device_t g_usb3_dev;
