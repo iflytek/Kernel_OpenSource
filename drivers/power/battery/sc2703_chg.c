@@ -198,8 +198,18 @@ static void sprdchg_2703_chgr_cur_limit(int limit)
 	sc2703_charger_input_current_set(limit);
 }
 
+static void sc2703_clr_event(void)
+{
+	sc2703_write_reg(SC2703_EVENT_A, SC2703_EVENT_CLR_MASK);
+	sc2703_write_reg(SC2703_EVENT_B, SC2703_EVENT_CLR_MASK);
+	sc2703_write_reg(SC2703_EVENT_C,
+			 SC2703_EVENT_CLR_MASK & (~SC2703_E_ADC_DONE_MASK));
+	sc2703_write_reg(SC2703_EVENT_D, SC2703_EVENT_CLR_MASK);
+}
+
 static void sprdchg_2703_enable_chg(void)
 {
+	sc2703_clr_event();
 	sc2703_charger_start();
 }
 
