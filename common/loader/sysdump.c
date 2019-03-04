@@ -245,6 +245,30 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 
 	return;
 }
+/* To copy struct sysdump_mem all items to another */
+void copy_sysdump_mem_struct(struct sysdump_mem *dest, struct sysdump_mem *src)
+{
+	dest->paddr = src->paddr;
+	dest->vaddr = src->vaddr;
+	dest->size = src->size;
+	dest->soff = src->soff;
+	dest->type = src->type;
+}
+/* sort the mem list by paddr */
+void sort_mem_list(struct sysdump_mem *mem_list, int mem_num)
+{
+	struct sysdump_mem temp;
+	int i,j;
+	for (i = 0; i < mem_num -1; i++) {
+		for(j = 0; j < mem_num - 1 - i; j++){
+			if (mem_list[j].paddr > mem_list[j + 1].paddr) {
+				copy_sysdump_mem_struct(&temp, &mem_list[j]);
+				copy_sysdump_mem_struct(&mem_list[j], &mem_list[j + 1]);
+				copy_sysdump_mem_struct(&mem_list[j + 1], &temp);
+			}
+		}
+	}
+}
 /* Get the memory block belong to kernel(linux_memory) in sysdump_mem	*/
 static int get_elfhdr_ptload_mem(struct sysdump_mem *dump_mem, int dump_mem_num, struct sysdump_mem *ptload_mem)
 {
@@ -1225,6 +1249,128 @@ static int fill_dump_mem_auto_x86(unsigned char *fdt_blob, int nodeoffset, int o
 }
 #endif
 
+int check_split_dump_mem(int sprd_dump_mem_num, struct sysdump_mem *sprd_dump_mem)
+{
+       struct sysdump_mem sprd_not_ptload_mem[MAX_NUM_DUMP_MEM];
+       struct sysdump_mem sprd_ptload_mem[MAX_NUM_DUMP_MEM];
+       int sprd_ptload_mem_num = 0;
+       int sprd_ptload_mem_flag = 0;
+       int sprd_not_ptload_mem_num = 0;
+       int linux_mem_num = mem_num;/* global variable mem_num is linux_memory number*/
+       int mem_num_tmp = 0;
+       unsigned long size = 0;
+       unsigned long paddr = 0;
+       unsigned long vaddr = 0;
+       unsigned long addr_tmp = 0;
+       int j = 0, i = 0;;
+
+
+       debugf("------------- show all mem blocks before  ------------------ \n");
+       for (i = 0; i < sprd_dump_mem_num; i++) {
+                       debugf("mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", i, sprd_dump_mem[i].paddr, sprd_dump_mem[i].vaddr, sprd_dump_mem[i].size);
+			for(j = 0; j < linux_mem_num; j++ ){
+				if ((sprd_dump_mem[i].paddr >= linux_memory[j].addr) && (sprd_dump_mem[i].paddr <= linux_memory[j].addr + linux_memory[j].size)){ 
+					copy_sysdump_mem_struct(&sprd_ptload_mem[sprd_ptload_mem_num ++],&sprd_dump_mem[i]);
+					sprd_ptload_mem_flag = 1;
+					break;
+				}
+			}
+			if(0 == sprd_ptload_mem_flag){
+					copy_sysdump_mem_struct(&sprd_not_ptload_mem[sprd_not_ptload_mem_num ++],&sprd_dump_mem[i]);
+			}
+			sprd_ptload_mem_flag = 0;
+       }
+       debugf("------------- show ptload mem blocks before ------------------ \n");
+       for (i = 0; i < sprd_ptload_mem_num; i++) {
+           debugf("ptload mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", \
+                   i, sprd_ptload_mem[i].paddr, sprd_ptload_mem[i].vaddr, sprd_ptload_mem[i].size);
+       }
+       debugf("------------- show not ptload mem blocks before ------------------ \n");
+       for (i = 0; i < sprd_not_ptload_mem_num; i++) {
+           debugf("not ptload mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", \
+                    i, sprd_not_ptload_mem[i].paddr, sprd_not_ptload_mem[i].vaddr, sprd_not_ptload_mem[i].size);
+       }
+       debugf("------------- start split ptload  mem blocks before ------------------ \n");
+       mem_num_tmp = sprd_ptload_mem_num;
+       for (i = 0; i < sprd_ptload_mem_num; i++) {
+               /* record current add,size  */
+               size = sprd_ptload_mem[i].size;
+               paddr = sprd_ptload_mem[i].paddr;
+               vaddr = sprd_ptload_mem[i].vaddr;
+               j = 0;
+
+               while (size > SZ_1G) {
+                       debugf("mem block  %d too big , need split it %d ...........\n", i, j);
+                       if (j == 0) {
+                               sprd_ptload_mem[i].paddr = paddr;
+                               sprd_ptload_mem[i].vaddr = vaddr;
+                               sprd_ptload_mem[i].size = SZ_1G;
+                               debugf("check split in while ...mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n",\
+                                        i, sprd_ptload_mem[i].paddr, sprd_ptload_mem[i].vaddr, sprd_ptload_mem[i].size);
+                       } else {
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].paddr = paddr+j*SZ_1G;
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].vaddr = vaddr+j*SZ_1G;
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].size = SZ_1G;
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].soff = 0xffffffff;
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].type = SYSDUMP_RAM;
+                               debugf("check split in while ...mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", \
+                                        i, sprd_ptload_mem[i].paddr, sprd_ptload_mem[i].vaddr, sprd_ptload_mem[i].size);
+                       }
+                       size -= SZ_1G;
+                       j++;
+               }
+               if (size != 0) {
+                       if (j == 0) {
+                               sprd_ptload_mem[i].paddr = paddr;
+                               sprd_ptload_mem[i].vaddr = vaddr;
+                               sprd_ptload_mem[i].size = size;
+                               debugf("check split last ...mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n",\
+                                                i, sprd_ptload_mem[i].paddr, sprd_ptload_mem[i].vaddr, sprd_ptload_mem[i].size);
+                       } else {
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].paddr = paddr+j*SZ_1G;
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].vaddr = vaddr+j*SZ_1G;
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].size = size;
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].soff = 0xffffffff;
+                               sprd_ptload_mem[mem_num_tmp - 1 + j].type = SYSDUMP_RAM;
+                               debugf("check split last...mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n",\
+                                       mem_num_tmp - 1 + j, sprd_ptload_mem[mem_num_tmp - 1 + j].paddr, sprd_ptload_mem[mem_num_tmp - 1 + j].vaddr, sprd_ptload_mem[mem_num_tmp - 1 + j].size);
+                       }
+               }
+               mem_num_tmp += j;
+       }
+      debugf("mem block num : old(%d) ----> new(%d) \n", sprd_ptload_mem_num, mem_num_tmp);
+      sprd_ptload_mem_num = mem_num_tmp;
+       debugf("------------- show ptload mem blocks after split ------------------ \n");
+       for (i = 0; i < sprd_ptload_mem_num; i++) {
+           debugf("ptload mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", \
+                   i, sprd_ptload_mem[i].paddr, sprd_ptload_mem[i].vaddr, sprd_ptload_mem[i].size);
+       }
+      /*  sort ptload mem blocks */
+      sort_mem_list(sprd_ptload_mem, sprd_ptload_mem_num);
+       debugf("------------- show ptload mem blocks after split and sort ------------------ \n");
+       for (i = 0; i < sprd_ptload_mem_num; i++) {
+           debugf("ptload mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", \
+                   i, sprd_ptload_mem[i].paddr, sprd_ptload_mem[i].vaddr, sprd_ptload_mem[i].size);
+       }
+
+      /*  reload sprd_dump_mem from sprd_ptload_mem and sprd_not_ptload_mem */
+       debugf("------------- reload sprd_dump_mem from sprd_ptload_mem and sprd_not_ptload_mem  ------------------ \n");
+       memset(sprd_dump_mem, 0, sizeof(sprd_dump_mem));
+       mem_num_tmp = 0;
+       for (i = 0; i < sprd_ptload_mem_num; i++) {
+              copy_sysdump_mem_struct(&sprd_dump_mem[mem_num_tmp ++], &sprd_ptload_mem[i]);
+       }
+       for (i = 0; i < sprd_not_ptload_mem_num; i++) {
+              copy_sysdump_mem_struct(&sprd_dump_mem[mem_num_tmp ++], &sprd_not_ptload_mem[i]);
+       }
+
+       debugf("------------- show mem blocks after split ------------------ \n");
+       for (i = 0; i < mem_num_tmp; i++) {
+           debugf("New mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", i, sprd_dump_mem[i].paddr, sprd_dump_mem[i].vaddr, sprd_dump_mem[i].size);
+       }
+       return mem_num_tmp;
+}
+
 int enter_sysdump_flag = 0;
 
 void write_sysdump_before_boot(int rst_mode)
@@ -1326,7 +1472,7 @@ void write_sysdump_before_boot(int rst_mode)
 			sprd_dump_mem_num = get_total_dump_memory(sprd_dump_mem);
 			infop->dump_mem_paddr = (unsigned long)sprd_dump_mem;
 		}
-
+		sprd_dump_mem_num = check_split_dump_mem(sprd_dump_mem_num, sprd_dump_mem);
 		infop->mem_num = sprd_dump_mem_num;
 		sprd_ptload_mem_num = get_elfhdr_ptload_mem(sprd_dump_mem, sprd_dump_mem_num, sprd_ptload_mem);
 		infop->elfhdr_size = get_elfhdr_size(sprd_ptload_mem_num);
@@ -1513,8 +1659,11 @@ void write_sysdump_before_boot(int rst_mode)
 		mem = (struct sysdump_mem *)infop->dump_mem_paddr;
 		for (i = 0; i < sprd_dump_mem_num; i++) {
 			if (0xffffffff != mem[i].soff) {
+				debugf("------ mem[%d].soff is %llx ------\n", i, mem[i].soff);
+				debugf("mem[%d].paddr is %llx\n", i, mem[i].paddr);
 				waddr = (char *)infop + sizeof(*infop) +
 						infop->elfhdr_size + mem[i].soff;
+				debugf("but here waddr is %llx\n", waddr);
 			} else {
 				debugf("mem[%d].paddr is %llx\n", i, mem[i].paddr);
 				debugf("mem[%d].size  is %llx\n", i, mem[i].size);

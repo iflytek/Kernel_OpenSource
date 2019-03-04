@@ -22,7 +22,7 @@
 #define SYSDUMP_AUTO_TEST "ylog/ap/sysdump/sysdump_auto_test.txt"
 #define NR_KCORE_MEM		80
 #define SYSDUMP_MAGIC		"SPRD_SYSDUMP_119"
-#define MAX_NUM_DUMP_MEM 20
+#define MAX_NUM_DUMP_MEM 40
 
 #define SPRD_SYSDUMP_MAGIC    RAMDISK_ADR
 
