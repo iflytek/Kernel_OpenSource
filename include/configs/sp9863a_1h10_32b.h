@@ -381,4 +381,5 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
+//#define CONFIG_SYS_64BIT_LBA
 #endif /* __CONFIG_H */

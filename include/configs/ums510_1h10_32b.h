@@ -396,4 +396,7 @@
 #endif
 
 #define CONFIG_RTC_START_YEAR		0
+
+/* fixbug 1014166 for 32bit board */
+#define CONFIG_SYS_64BIT_LBA
 #endif /* __CONFIG_H  */

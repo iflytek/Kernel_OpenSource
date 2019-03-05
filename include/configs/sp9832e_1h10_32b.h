@@ -377,4 +377,7 @@
 #define CONFIG_ETB_DUMP
 
 #define CONFIG_RTC_START_YEAR		2015
+
+/* fixbug 1014166 for 32bit board */
+#define CONFIG_SYS_64BIT_LBA
 #endif /* __TSHARK_L_H */
