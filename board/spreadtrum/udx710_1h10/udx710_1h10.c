@@ -149,7 +149,7 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 	MODE_REGIST(CMD_PANIC_REBOOT, panic_reboot_mode);
 	MODE_REGIST(CMD_AUTODLOADER_REBOOT, autodloader_mode);
 	MODE_REGIST(CMD_SPECIAL_MODE, special_mode);
-	MODE_REGIST(CMD_CHARGE_MODE, charge_mode);
+	MODE_REGIST(CMD_CHARGE_MODE, normal_mode);
 	MODE_REGIST(CMD_ENGTEST_MODE,engtest_mode);
 	MODE_REGIST(CMD_FACTORYTEST_MODE, factorytest_mode);
 	MODE_REGIST(CMD_CALIBRATION_MODE, normal_mode);
