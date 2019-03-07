@@ -125,7 +125,6 @@ void update_sec_version(void)
 
 bool sprd_anti_rollback(uint32_t certtype, uint32_t certversion)
 {
-#ifndef PKCS1_PSS
     int ret = 0;
     secf("image type = %d\n", certtype);
     if (certtype == TRUSTED_FIRMWARE) {
@@ -171,7 +170,6 @@ bool sprd_anti_rollback(uint32_t certtype, uint32_t certversion)
         secf("image type mismatch!! \n");
         return false;
     }
-#endif
     return true;
 }
 #ifndef PKCS1_PSS
