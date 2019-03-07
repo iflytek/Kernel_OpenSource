@@ -99,19 +99,20 @@ char *get_product_sn(void)
 }
 
 #ifdef SUPPORT_WAIT_MODEMIMAGE_DOWNLOAD
-#define MODEM_HEAD_DONE	BIT(11)
-static void wait_modem_head_loader_completed(void)
+static void wait_modem_image_loader_completed(void)
 {
-	u32 ret;
+	u32 modemimagedone = BIT(8);
+	u32 ret = 0;
 
 	do {
 		ret = *(volatile u32 *)REG_PMU_APB_PCIE_SLP_CFG;
-	} while (!(ret & MODEM_HEAD_DONE));
+	} while (!(ret & modemimagedone));
 }
 
 #ifdef CONFIG_PCIE_SPRD
 static void reset_pcie_bar(void)
 {
+
 	debugf("enter reset pcie bar\n");
 	do{
 		if (!sprd_pcie_split_bar()) {
@@ -160,7 +161,7 @@ void fdt_fixup_all(u8 *fdt_blob)
 #ifdef CONFIG_MEM_LAYOUT_DECOUPLING
 #ifdef SUPPORT_WAIT_MODEMIMAGE_DOWNLOAD
 	debugf("enter wait download modem image completed\n");
-	wait_modem_head_loader_completed();
+	wait_modem_image_loader_completed();
 #ifdef CONFIG_PCIE_SPRD
 	reset_pcie_bar();
 #endif

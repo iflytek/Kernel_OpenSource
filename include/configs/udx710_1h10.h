@@ -246,9 +246,9 @@
 
 /* udx710_1h10 boot from ddr, only load bootimage */
 #define CONFIG_DDR_BOOT_BOOTIMAGE_ADR   (0x82100000)
-#define CONFIG_PSCP_IMG_ADDR (0x88000000)
-#define CONFIG_NRPHY_IMG_ADDR (0x88001000)
-#define CONFIG_V3PHY_IMG_ADDR (0x88002000)
+#define CONFIG_PSCP_IMG_ADDR (0x8d400000)
+#define CONFIG_NRPHY_IMG_ADDR (0x94200000)
+#define CONFIG_V3PHY_IMG_ADDR (0x9b000000)
 #endif
 
 /*file system config*/
