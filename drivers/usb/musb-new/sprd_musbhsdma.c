@@ -253,7 +253,7 @@ static int sprd_dma_channel_program(struct dma_channel *channel,
 		cache_start = (unsigned long)(&musb_channel) & 0xffffff40;
 		cache_end = cache_start + 64;
 		invalidate_dcache_range(cache_start, cache_end);
-		dev_dbg(musb->controller,"%p\n",&musb_channel);
+//		dev_dbg(musb->controller,"%p\n",&musb_channel);
 
 		cache_start = (unsigned long)(&linklist_rx);
 		cache_end = cache_start + 64;

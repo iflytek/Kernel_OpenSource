@@ -370,5 +370,7 @@
 /*active arm7 ram before access to it*/
 #define CONFIG_ARM7_RAM_ACTIVE
 
+/* fixbug 1014166 for 32bit board */
+#define CONFIG_SYS_64BIT_LBA
 #endif /* __CONFIG_H */
 
