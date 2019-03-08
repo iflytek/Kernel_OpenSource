@@ -43,7 +43,10 @@ struct boot_img_hdr
 
     unsigned tags_addr;    /* physical addr for kernel tags */
     unsigned page_size;    /* flash page size we assume */
-    unsigned dt_size;      /* device tree in bytes */
+    union{
+    	unsigned dt_size;      /* device tree in bytes */
+	unsigned header_version;
+    };
     /* operating system version and security patch level; for
      * version "A.B.C" and patch level "Y-M-D":
      * ver = A << 14 | B << 7 | C         (7 bits for each of A, B, C)
@@ -90,11 +93,51 @@ struct boot_img_hdr
 **    else: jump to kernel_addr
 */
 #define BOOT_HEADER_VERSION_ONE 1
-
 struct boot_img_hdr_v1 {
     uint32_t recovery_dtbo_size;   /* size in bytes for recovery DTBO image */
     uint64_t recovery_dtbo_offset; /* offset to recovery dtbo in boot image */
     uint32_t header_size;
+} __attribute__((packed));
+
+#define BOOT_HEADER_VERSION_TWO 2
+struct boot_img_hdr_v2{
+    unsigned char magic[BOOT_MAGIC_SIZE];
+
+    unsigned kernel_size;  /* size in bytes */
+    unsigned kernel_addr;  /* physical load addr */
+
+    unsigned ramdisk_size; /* size in bytes */
+    unsigned ramdisk_addr; /* physical load addr */
+
+    unsigned second_size;  /* size in bytes */
+    unsigned second_addr;  /* physical load addr */
+
+    unsigned tags_addr;    /* physical addr for kernel tags */
+    unsigned page_size;    /* flash page size we assume */
+    union{
+        unsigned dt_size;      /* device tree in bytes */
+        unsigned header_version;
+    };
+    /* operating system version and security patch level; for
+     * version "A.B.C" and patch level "Y-M-D":
+     * ver = A << 14 | B << 7 | C         (7 bits for each of A, B, C)
+     * lvl = ((Y - 2000) & 127) << 4 | M  (7 bits for Y, 4 bits for M)
+     * os_version = ver << 11 | lvl */
+    unsigned os_version;
+    unsigned char name[BOOT_NAME_SIZE]; /* asciiz product name */
+
+    unsigned char cmdline[BOOT_ARGS_SIZE];
+
+    unsigned id[8]; /* timestamp / checksum / sha1 / etc */
+        /* Supplemental command line data; kept here to maintain
+     * binary compatibility with older versions of mkbootimg */
+    uint8_t extra_cmdline[BOOT_EXTRA_ARGS_SIZE];
+
+    uint32_t recovery_dtbo_size;   /* size in bytes for recovery DTBO image */
+    uint64_t recovery_dtbo_offset; /* offset to recovery dtbo in boot image */
+    uint32_t header_size;
+    uint32_t dtb_size;             /* size in bytes for DTB image */
+    uint64_t dtb_addr;             /* physical load address for DTB image */
 } __attribute__((packed));
 
 #endif

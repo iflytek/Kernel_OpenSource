@@ -948,6 +948,21 @@ error:
 	return ret;
 }
 
+static uint64_t get_dtb_offset(uchar *partition)
+{
+	struct boot_img_hdr_v2 hdr;
+	debugf("load dtb from %s\r\n", partition);
+	if(0 != common_raw_read(partition, sizeof(struct boot_img_hdr_v2), 0, (char *)&hdr)){
+		errorf("read %s header error\r\n", partition);
+		return 0;
+	}
+	debugf("dtb_size: 0x%x,  dtb_addr: 0x%x\r\n", hdr.dtb_size, hdr.dtb_addr);
+	if(hdr.dtb_size && hdr.dtb_addr)
+		return hdr.dtb_addr;
+	else
+		return 0;
+}
+
 int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **dt_addr )
 {
 	uchar *partition = NULL;
@@ -1006,15 +1021,19 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
 	fdt_fixup_all((uchar *)DT_ADR);
 #else
-
-	if ((0 == common_raw_read("dtb", 10, 0, (char *)DT_ADR))
-		&& (BOOT_HEADER_VERSION_ONE == hdr->dt_size)) {
-		dtb_partname = "dtb";
-		boot_img_offset.dt_offset = 0;
-	} else {
-		dtb_partname = partition;
+	if((0 == get_dtb_offset(partition))){
+		if ((0 == common_raw_read("dtb", 10, 0, (char *)DT_ADR))
+			&& (BOOT_HEADER_VERSION_ONE == hdr->header_version)) {
+			dtb_partname = "dtb";
+			boot_img_offset.dt_offset = 0;
+		} else {
+			dtb_partname = partition;
+		}
 	}
-
+	else {
+		dtb_partname = partition;
+		boot_img_offset.dt_offset = get_dtb_offset(partition);
+	}
 	/* for memory defragment, dr_addr and ramdisk_adr is allocated dynamically*/
 	if (0 == load_fixup_dt_img(dtb_partname, dt_addr)) {
 		if (DT_ADR != *dt_addr) {
