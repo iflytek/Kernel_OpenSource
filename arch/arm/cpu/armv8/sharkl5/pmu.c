@@ -1,34 +1,14 @@
 /******************************************************************************
- ** File Name:      pmu.c                                             *
- ** Author:         Zhongfa.Wang                                              *
- ** DATE:           26/12/2016                                                *
- ** Copyright:      2014 Spreatrum, Incoporated. All Rights Reserved.         *
+ ** File Name:      pmu.c                                                     *
+ ** Author:         Deven.Sheng                                               *
+ ** DATE:           16/11/2018                                                *
+ ** Copyright:      2018 Spreatrum, Incoporated. All Rights Reserved.         *
  ** Description:    This file defines the basic information on chip.          *
- ******************************************************************************
-
- ******************************************************************************
- **                        Edit History                                       *
- ** ------------------------------------------------------------------------- *
- ** DATE           NAME             DESCRIPTION                               *
- ** 26/12/2016     Zhongfa.Wang		Create.                                   *
  ******************************************************************************/
-
-/**---------------------------------------------------------------------------*
- **                         Dependencies                                      *
- **---------------------------------------------------------------------------*/
 #include <asm/io.h>
 #include "adi_hal_internal.h"
-//#include "asm/arch/wdg_drvapi.h"
 #include "asm/arch-sharkl5/sprd_reg.h"
 #include "asm/arch-sharkl5/common.h"
-/**---------------------------------------------------------------------------*
- **                         Compiler Flag                                     *
- **---------------------------------------------------------------------------*/
-#ifdef   __cplusplus
-extern   "C"
-{
-#endif
-
 
 #define AON_IDLE_CLK_RCO_4M	0
 #define AON_IDLE_CLK_4M_AON	1
@@ -38,7 +18,6 @@ extern   "C"
 #define AON_IDLE_CLK_96M	5
 #define AON_IDLE_CLK_RCO_100M	6
 #define AON_IDLE_CLK_128M	7
-
 
 void pmu_sequence_config(void)
 {
@@ -612,13 +591,4 @@ void CSP_Init(uint32_t gen_para)
 	pad_out_sel_config();
 	aon_idle_config();
 }
-
-
-/**---------------------------------------------------------------------------*
- **                         Compiler Flag                                     *
- **---------------------------------------------------------------------------*/
-#ifdef __cplusplus
-}
-#endif
-
 
