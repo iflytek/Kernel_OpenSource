@@ -51,35 +51,13 @@ void dcdc_ldo_power_on()
 #endif
 }
 
-void dcdccore_deep_drop_config(void)
-{
-#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
-	uint32_t drop_val;
-#if defined(CONFIG_DCDCCORE_DROP_STEP_EN)
-	uint32_t step_num;
-	uint32_t step_val;
-#endif
-#endif
-
-#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
-	drop_val = (CONFIG_DCDCCORE_DEEP_DROP_VOL * 1000U) / 3125U;
-	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1, BITS_DCDC_CORE_CTRL_DS_SW(drop_val));
-#if defined(CONFIG_DCDCCORE_DROP_STEP_EN)
-	step_num = CONFIG_DCDCCORE_DEEP_DROP_VOL / CONFIG_DCDCCORE_DROP_STEP_VOL + 1;
-	step_val = (CONFIG_DCDCCORE_DROP_STEP_VOL * 1000U) / 3125U;
-	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL0,
-		BITS_DCDC_CORE_SLP_STEP_DELAY(CONFIG_DCDCCORE_DROP_STEP_DLY) |
-		BITS_DCDC_CORE_SLP_STEP_NUM(step_num) |
-		BITS_DCDC_CORE_SLP_STEP_VOL(step_val) |
-		BIT_DCDC_CORE_SLP_STEP_EN |
-		0);
-#endif
-#endif
-}
-
 void pmic_lowpower_config(void)
 {
 #if defined(CONFIG_ADIE_SC2730)
+#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
+	uint32_t drop_val;
+#endif
+
 	/* DCDC and LDO power globle control */
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE, 0x6E7F);
 	while((ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & 0x8000) != 0x8000);
@@ -106,9 +84,9 @@ void pmic_lowpower_config(void)
 	ANA_REG_SET(ANA_REG_GLB_SLP_CTRL,
 		BIT_LDO_XTL_EN |			//DCDC and LDO can control by EXT_XTL pin
 		BIT_SLP_IO_EN |				//ADIE io can into sleep mode when CHIP_SLEEP high
-	#if !defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
+#if !defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
 		BIT_SLP_LDO_PD_EN |			//DCDC and LDO can pd in sleep mode
-	#endif
+#endif
 		0
 	);
 
@@ -120,9 +98,9 @@ void pmic_lowpower_config(void)
 		//BIT_SLP_DCDCSRAM_DROP_EN |
 		//BIT_SLP_DCDCMODEM_DROP_EN |
 		//BIT_SLP_DCDCGPU_DROP_EN |
-	#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
+#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
 		BIT_SLP_DCDCCORE_DROP_EN |		//DCDCCORE drop when deep
-	#endif
+#endif
 		BIT_SLP_DCDCWPA_PD_EN |
 		BIT_SLP_DCDCGPU_PD_EN |
 		BIT_SLP_DCDCCPU_PD_EN |
@@ -145,7 +123,10 @@ void pmic_lowpower_config(void)
 	);
 
 	/* DCDCCORE drop config */
-	dcdccore_deep_drop_config();
+#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
+	drop_val = (CONFIG_DCDCCORE_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1, BITS_DCDC_CORE_CTRL_DS_SW(drop_val));
+#endif
 
 	//LDO sleep mode config
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
