@@ -4,7 +4,7 @@
 #include <asm/arch/sprd_reg.h>
 
 
-void dcdc_ldo_power_on()
+void dcdc_ldo_power_on(void)
 {
 #if defined(CONFIG_ADIE_SC2730)
 	/* In SC2730, this DCDC/LDO is power on default */
@@ -30,24 +30,22 @@ void dcdc_ldo_power_on()
 	regulator_enable("vddldo0");
 
 	/* In SC2730, this LDO is power off default */
-#if defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
-	regulator_enable("vddcamio");
-	regulator_enable("vddwcn");
-	regulator_enable("vddcamd1");
-	regulator_enable("vddcamd0");
-	regulator_enable("vddcama0");
-	regulator_enable("vddcama1");
-	regulator_enable("vddcammot");
-	regulator_enable("vddsim0");
-	regulator_enable("vddsim1");
-	regulator_enable("vddsim2");
-	regulator_enable("vddemmccore");
-	regulator_enable("vddsdio");
-	regulator_enable("vddwifipa");
-	regulator_enable("vddusb33");
-	regulator_enable("vddldo1");
-	regulator_enable("vddldo2");
-#endif
+	//regulator_enable("vddcamio");
+	//regulator_enable("vddwcn");
+	//regulator_enable("vddcamd1");
+	//regulator_enable("vddcamd0");
+	//regulator_enable("vddcama0");
+	//regulator_enable("vddcama1");
+	//regulator_enable("vddcammot");
+	//regulator_enable("vddsim0");
+	//regulator_enable("vddsim1");
+	//regulator_enable("vddsim2");
+	//regulator_enable("vddemmccore");
+	//regulator_enable("vddsdio");
+	//regulator_enable("vddwifipa");
+	//regulator_enable("vddusb33");
+	//regulator_enable("vddldo1");
+	//regulator_enable("vddldo2");
 #endif
 }
 
@@ -84,9 +82,7 @@ void pmic_lowpower_config(void)
 	ANA_REG_SET(ANA_REG_GLB_SLP_CTRL,
 		BIT_LDO_XTL_EN |			//DCDC and LDO can control by EXT_XTL pin
 		BIT_SLP_IO_EN |				//ADIE io can into sleep mode when CHIP_SLEEP high
-#if !defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
 		BIT_SLP_LDO_PD_EN |			//DCDC and LDO can pd in sleep mode
-#endif
 		0
 	);
 
@@ -94,31 +90,31 @@ void pmic_lowpower_config(void)
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
 		BIT_SLP_DCDCMODEM_PD_EN |
 		//BIT_SLP_DCDCMEMQ_PD_EN |
-		BIT_SLP_DCDCSRAM_PD_EN |		//Deep with mem retention ?
+		BIT_SLP_DCDCSRAM_PD_EN |
 		//BIT_SLP_DCDCSRAM_DROP_EN |
 		//BIT_SLP_DCDCMODEM_DROP_EN |
 		//BIT_SLP_DCDCGPU_DROP_EN |
 #if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
-		BIT_SLP_DCDCCORE_DROP_EN |		//DCDCCORE drop when deep
+		BIT_SLP_DCDCCORE_DROP_EN |
 #endif
-		BIT_SLP_DCDCWPA_PD_EN |
+		//BIT_SLP_DCDCWPA_PD_EN |
 		BIT_SLP_DCDCGPU_PD_EN |
-		BIT_SLP_DCDCCPU_PD_EN |
+		//BIT_SLP_DCDCCPU_PD_EN |
 		BIT_SLP_DCDCGEN1_PD_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-		//BIT_SLP_DCDCSRAM_LP_EN |
-		//BIT_SLP_DCDCMODEM_LP_EN |
+		BIT_SLP_DCDCSRAM_LP_EN |
+		BIT_SLP_DCDCMODEM_LP_EN |
 		BIT_SLP_DCDCMEMQ_LP_EN |
 		BIT_SLP_DCDCMEM_LP_EN |
 		//BIT_SLP_DCDCGPU_LP_EN |
 		//BIT_SLP_DCDCCORE_LP_EN |
-		//BIT_SLP_DCDCCPU_LP_EN |
-		//BIT_SLP_DCDCGEN1_LP_EN |
+		BIT_SLP_DCDCCPU_LP_EN |
+		BIT_SLP_DCDCGEN1_LP_EN |
 		BIT_SLP_DCDCGEN0_LP_EN |
-		//BIT_SLP_DCDCWPA_LP_EN |
+		BIT_SLP_DCDCWPA_LP_EN |
 		0
 	);
 
@@ -132,17 +128,17 @@ void pmic_lowpower_config(void)
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
 		BIT_SLP_LDO_VDDRF1V8_PD_EN |
 		BIT_SLP_LDO_VDDRF1V25_PD_EN |
-		BIT_SLP_LDO_VDDEMMCCORE_PD_EN |
+		//BIT_SLP_LDO_VDDEMMCCORE_PD_EN |
 		//BIT_SLP_LDO_VDD18_DCXO_PD_EN |
 		//BIT_SLP_LDO_VDDWIFIPA_PD_EN |
 		//BIT_SLP_LDO_VDD28_PD_EN |
-		BIT_SLP_LDO_VDDSDCORE_PD_EN |
-		BIT_SLP_LDO_VDDSDIO_PD_EN |
-		BIT_SLP_LDO_VDDUSB33_PD_EN |
-		BIT_SLP_LDO_VDDCAMMOT_PD_EN |
-		BIT_SLP_LDO_VDDCAMIO_PD_EN |
-		BIT_SLP_LDO_VDDCAMD0_PD_EN |
-		BIT_SLP_LDO_VDDCAMA0_PD_EN |
+		//BIT_SLP_LDO_VDDSDCORE_PD_EN |
+		//BIT_SLP_LDO_VDDSDIO_PD_EN |
+		//BIT_SLP_LDO_VDDUSB33_PD_EN |
+		//BIT_SLP_LDO_VDDCAMMOT_PD_EN |
+		//BIT_SLP_LDO_VDDCAMIO_PD_EN |
+		//BIT_SLP_LDO_VDDCAMD0_PD_EN |
+		//BIT_SLP_LDO_VDDCAMA0_PD_EN |
 		//BIT_SLP_LDO_VDDSIM2_PD_EN |
 		//BIT_SLP_LDO_VDDSIM1_PD_EN |
 		0
@@ -153,16 +149,16 @@ void pmic_lowpower_config(void)
 		BIT_SLP_LDO_AVDD12_PD_EN |
 		//BIT_SLP_LDO_VDDWCN_PD_EN |
 		BIT_SLP_LDO_VDDLDO0_PD_EN |
-		BIT_SLP_LDO_VDDCAMD1_PD_EN |
-		BIT_SLP_LDO_VDDCAMA1_PD_EN |
+		//BIT_SLP_LDO_VDDCAMD1_PD_EN |
+		//BIT_SLP_LDO_VDDCAMA1_PD_EN |
 		//BIT_SLP_LDO_VDDSIM0_PD_EN |
 		BIT_SLP_LDO_AVDD18_PD_EN |
-		BIT_SLP_LDO_VDDLDO1_PD_EN |
+		//BIT_SLP_LDO_VDDLDO1_PD_EN |
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL0,
-		//BIT_SLP_LDO_VDDRF1V8_LP_EN |
+		BIT_SLP_LDO_VDDRF1V8_LP_EN |
 		//BIT_SLP_LDO_VDDRF1V25_LP_EN |
 		//BIT_SLP_LDO_VDDEMMCCORE_LP_EN |
 		BIT_SLP_LDO_VDD18_DCXO_LP_EN |
@@ -187,7 +183,7 @@ void pmic_lowpower_config(void)
 		//BIT_SLP_LDO_VDDCAMA1_LP_EN |
 		//BIT_SLP_LDO_VDDLDO0_LP_EN |
 		//BIT_SLP_LDO_VDDSIM0_LP_EN |
-		//BIT_SLP_LDO_AVDD18_LP_EN |
+		BIT_SLP_LDO_AVDD18_LP_EN |
 		//BIT_SLP_LDO_VDDLDO1_LP_EN |
 		0
 	);
@@ -527,8 +523,8 @@ void sprd_pmu_lowpower_init(void)
 	pmic_lowpower_config();
 	//Config pmu paratmers
 	CSP_Init(0);
-	//Power on other dcdc/ldo
-	dcdc_ldo_power_on();
 #endif
+	//Power on dcdc/ldo
+	dcdc_ldo_power_on();
 #endif
 }
