@@ -494,6 +494,7 @@ checkRootDir(struct bootblock *boot, struct fatEntry *fat,
 					empty = p;
 					empcl = cl;
 				}
+				free(buf);
 				return mod;
 			}
 

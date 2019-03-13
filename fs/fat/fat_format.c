@@ -188,7 +188,6 @@ int fat_format(void)
 	block = memalign(ARCH_DMA_MINALIGN, 512);
 	if (block == NULL) {
 		debug("Error: allocating block\n");
-		free(block);
 		return -1;
 	}
 
@@ -200,6 +199,7 @@ int fat_format(void)
 
 	memcpy(&boot_sec, block, sizeof(boot_sector));
 	memset(&bpb, 0, sizeof(bpb));
+	free(block);
 
 	bpb.bps = boot_sec.sector_size[1] << 8 + boot_sec.sector_size[0];
 	bpb.spt = FAT2CPU16(boot_sec.secs_track);
@@ -453,7 +453,6 @@ int fat_format(void)
     return 0;
 
 error:
-	free(block);
 	return -1;
 }
 

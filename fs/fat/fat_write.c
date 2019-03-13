@@ -1028,6 +1028,7 @@ static __u32 find_files_curclust(const char *file_name)
 			(mydata->clust_size) :
 			PREFETCH_BLOCKS, do_fat_read_at_block) < 0) {
 				debug("Error: reading rootdir block\n");
+				free(mydata->fatbuf);
 				return 0;
 			}
 
@@ -1051,6 +1052,7 @@ static __u32 find_files_curclust(const char *file_name)
 		debugf("start_cluster is %u\n",start_cluster);
 		}
 
+	free(mydata->fatbuf);
 	return start_cluster;
 }
 
