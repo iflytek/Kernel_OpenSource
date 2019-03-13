@@ -36,9 +36,9 @@
 
 #include "deflate.h"
 
-#ifdef DEBUG
-#  include <ctype.h>
-#endif
+//#ifdef DEBUG
+#include <linux/ctype.h>
+//#endif
 
 /* ===========================================================================
  * Constants

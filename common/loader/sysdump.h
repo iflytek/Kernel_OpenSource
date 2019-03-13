@@ -14,6 +14,7 @@
 #ifndef __SYSDUMP_H__
 #define __SYSDUMP_H__
 
+#include <rtc.h>
 #include <config.h>
 #include <linux/types.h>
 
@@ -676,4 +677,129 @@ extern Elf64_Dyn _DYNAMIC [];
 
 #endif
 
+
+#ifdef CONFIG_X86
+#define LLX			"0x%08llx"
+#define SYSDUMP_LONG		unsigned long long
+#define U32_T_U64(val1,val2)	(u64)((((u64)(val1))<<32)|((u64)(val2)))
+#else
+#define LLX			"0x%08lx"
+#define SYSDUMP_LONG		unsigned long
+#endif
+
+#if (defined CONFIG_ARM64) || (defined CONFIG_X86)
+typedef uint64_t mem_addr_t;
+typedef uint64_t mem_size_t;
+#else
+typedef uint32_t mem_addr_t;
+typedef uint32_t mem_size_t;
+#endif
+
+struct sysdump_memory {
+	SYSDUMP_LONG addr;
+	SYSDUMP_LONG size;
+};
+
+
+typedef struct smp_header{
+	unsigned int header;
+	unsigned short smp_length;
+	unsigned char  lcn;
+	unsigned char type;
+	unsigned short reserved;
+	unsigned short check_sum;
+	unsigned int diag_sn;
+	unsigned short diag_length;
+	unsigned char diag_type;
+	unsigned char diag_subtype;
+	unsigned int sub_cmd_type;
+}smp_header_t;
+
+#define MAX_DUMP_PKT_SIZE	0x10000 /* max packet size including header */
+#define DUMP_USB_ENUM_MS	300000
+#define DUMP_USB_IO_MS		100000
+#define FN_MAX_SIZE		128
+#define PKT_SZ_40K		0xA000
+
+/* sysdump2.0 start*/
+#define BIT(x)                          (1 << x)
+#define IS_FIRST_BOOT(x)	x & BIT(0) ? 0: 1   /* x & BIT(0) = 1  means not first boot . first boot the value must be 0 .*/
+#define FIRST_BOOT		BIT(0)
+#define AP_FULL_DUMP_ENABLE	BIT(1)
+#define AP_MINI_DUMP_ENABLE	BIT(2)
+#define CHECK_FUNC_MAX 10       /* sysdump enter check func max num*/
+#define SYSDUMP_FILE_MAX 50     /* sysdump file number max */
+#define DUMP_FILE_NAME_SIZE 60 /* sysdump file name size max */
+#define ERROR_FNISH	0xff
+#define CHECKSUM_DATA_LEN 0x1000
+typedef  int (*CHECK_FUNC) (void);
+
+/*	check result all (des)*/
+struct dt_info{
+	unsigned char *dt_addr;
+	int dt_fail;
+	int dts_version ;       /* 0:old version, memory region transfer by DTS;  0xA1: auto calculate linux memory region */
+	int nodeoffset ;
+	int ofs_remem ;
+};
+/*	check result all (des)*/
+struct check_dump_status_result{
+        int full_dump_enable;
+	int mini_dump_enable;
+        int full_dump_allow; /* enable and reset mode allow */
+	int mini_dump_allow; /* enable and reset mode allow */
+        int reset_mode;
+	int path_sdcard;
+	int fs_type;
+	int path_pc;
+	unsigned long sprd_sysdump_magic;
+	int dump_to_pc_flag ;
+	int dump_to_sd_fail ;
+};
+int check_path_valid(void);
+int check_dump_enable_status(void);
+
+
+/*      sysdump target type 	在init&check storage path阶段判断*/
+typedef enum {
+        DUMP_TO_SDCARD = 0,
+	DUMP_TO_PC = 1	,
+	DUMP_TO_DATA=2, /**/
+        INVALID ,
+} sysdump_target;
+/*	To sdcard, fs_type */
+enum {
+	FS_FAT32,
+	FS_EXFAT,
+	FS_INVALID
+};
+struct dump_file_info {
+        char name[DUMP_FILE_NAME_SIZE];				/*	file name，include path when to sd , not when to PC*/
+        void *src_data_addr;					/*	src data paddr*/
+        int src_data_size;					/*	src data size */
+        int dump_level;						/*	dump contents priority，to control dump contens*/
+        int dump_src_type;					/*	src data type like mem ，io，etc*/
+};
+/*      sysdump output contents description     */
+struct dump_output_contents_info {
+        struct dump_file_info file_info[SYSDUMP_FILE_MAX];
+        int sysdump_target;         				/*	target ,dump to where, like sd, pc, internal */
+        int fs_type;						/*	sd need this */
+};
+
+/*      dump resource contents description      */
+struct dump_input_contents_info {
+	int sprd_dump_mem_num;					/* 	Total dump mem block number*/
+	int sprd_ptload_mem_num;				/* 	Total pt_load mem block number in elf_header*/
+	struct sysdump_mem sprd_dump_mem[MAX_NUM_DUMP_MEM];	/*	All dump mem blocks */
+	struct sysdump_mem sprd_ptload_mem[MAX_NUM_DUMP_MEM];	/*	elfheader pt_load memory block,exclude not linux kernel memroy in sprd_dump_mem*/
+	struct sysdump_info *infop;
+	int elfhdr_size;					/*	elf file header size */
+	SYSDUMP_LONG mem_total_size ;				/*	elf file mem total size*/
+	SYSDUMP_LONG file_total_size ;				/*	elf file file total size*/
+	struct pt_regs *regs;
+	unsigned char sysdump_checksum[CHECKSUM_DATA_LEN];
+	int chk_length ;
+};
+/* sysdump2.0 end*/
 #endif //__SYSDUMP_H__

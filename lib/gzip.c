@@ -65,6 +65,7 @@ int zzip(void *dst, unsigned long *lenp, unsigned char *src,
 	s.zfree = zfree;
 	s.opaque = Z_NULL;
 
+	printf("level : %d method : %d , windowBits : %d , memLevel : %d , strategy : %d \n", Z_BEST_SPEED, Z_DEFLATED, window, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY);
 	r = deflateInit2_(&s, Z_BEST_SPEED, Z_DEFLATED,	window,
 			DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
 			ZLIB_VERSION, sizeof(z_stream));
