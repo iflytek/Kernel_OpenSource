@@ -4,6 +4,8 @@
 #include <asm/arch/sprd_reg.h>
 #include <adi_hal_internal.h>
 
+
+#ifndef CONFIG_BACKLIGHT_WHTLED
 #define PWM_INDEX  1
 
 /*r3p0*/
@@ -20,6 +22,48 @@
 #define PWM2_SCALE		0x0
 #define PWM_MOD_MAX 0xff
 #define PWM_REG_MSK 0xffff
+
+#else
+
+#define REG_BLTC_BASE           0x40388180
+#define REG_BLTC_R_PRESCL       (REG_BLTC_BASE + 0x004)
+#define REG_BLTC_R_DUTY         (REG_BLTC_BASE + 0x008)
+#define REG_BLTC_R_CURVE0       (REG_BLTC_BASE + 0x00C)
+#define REG_BLTC_R_CURVE1       (REG_BLTC_BASE + 0x010)
+#define REG_BLTC_G_PRESCL       (REG_BLTC_BASE + 0x014)
+#define REG_BLTC_G_DUTY         (REG_BLTC_BASE + 0x018)
+#define REG_BLTC_G_CURVE0       (REG_BLTC_BASE + 0x01C)
+#define REG_BLTC_G_CURVE1       (REG_BLTC_BASE + 0x020)
+#define REG_BLTC_B_PRESCL       (REG_BLTC_BASE + 0x024)
+#define REG_BLTC_B_DUTY         (REG_BLTC_BASE + 0x028)
+#define REG_BLTC_B_CURVE0       (REG_BLTC_BASE + 0x02C)
+#define REG_BLTC_B_CURVE1       (REG_BLTC_BASE + 0x030)
+#define REG_BLTC_STS            (REG_BLTC_BASE + 0x034)
+
+#define CTL_BASE_ANA_GLB 		0x40388C00
+#define ANA_REG_GLB_MODULE_EN0  (CTL_BASE_ANA_GLB + 0x0008)
+#define ANA_REG_GLB_RTC_CLK_EN0 (CTL_BASE_ANA_GLB + 0x0010)
+#define ANA_REG_GLB_RGB_CTRL    (CTL_BASE_ANA_GLB + 0x02A0)
+
+#define BITS_RGB_V(x)           (((x) & 0x1F) << 4)
+#define BIT_BLTC_EN             BIT(9)
+#define BIT_RTC_BLTC_EN         BIT(7)
+#define X_DUTY					100
+#define X_MODE					(X_DUTY - 1)
+#define X_CURRENT				0x1F	/*0 ~ 0x1F*/
+
+static void bltc_write(u32 value, u32 reg)
+{
+	__raw_writel(value, reg);
+	udelay(100);
+}
+
+static void bltc_bits_or(u32 value, u32 reg)
+{
+	__raw_writel((ANA_REG_GET(reg) | value), reg);
+	udelay(100);
+}
+#endif
 
 static inline uint32_t pwm_read(int index, uint32_t reg)
 {
@@ -54,45 +98,43 @@ void set_backlight(uint32_t brightness)
 		printf("sprd backlight power on. pwm_index=%d  brightness=%d\n", index, brightness);
 	}
 #else
-	u32 bl_brightness, led_level;
-	u32 reg_val;
 
-	printf("sprd backlight power brightness=%d\n", brightness);
-	__raw_writel(0x0,0x40388EA0);
+	u32 duty = brightness * X_DUTY / 0xFF;
 
-	if(0==brightness){
-	__raw_writel(0x0005,0x40388EA0);
-	}
-	else
-	{
-	reg_val = ANA_REG_GET(0x40388C08);
-	reg_val = reg_val | 0x200;
-	__raw_writel(reg_val,0x40388C08);			//bltc en bit
-	udelay(100);
+	duty = ((duty ? duty : 1) << 8) | X_MODE;
 
-	reg_val = ANA_REG_GET(0x40388C10);
-	reg_val = reg_val | 0x80;
-	__raw_writel(reg_val,0x40388C10);			//bltc rtc en bit
-	udelay(100);
+	bltc_write(0x0, ANA_REG_GLB_RGB_CTRL);
 
-	if(brightness <= 16)
-	{
-		__raw_writel(0,0x40388EA0);			//enable RGB LED
-		udelay(100);
-	}
-	else
-	{
-		reg_val = (80 * brightness * 100) / 255 / 3;
-		reg_val = (reg_val -169) / 84;
-		reg_val = reg_val << 4;
-		__raw_writel(reg_val,0x40388EA0);		//enable RGB LED
-		udelay(100);
-	}
+	/*SET BLTC prescale coefficient, no prescl(0 -> 1rtc_clk)*/
+	bltc_write(0x0, REG_BLTC_R_PRESCL);
+	bltc_write(0x0, REG_BLTC_G_PRESCL);
+	bltc_write(0x0, REG_BLTC_B_PRESCL);
 
-	__raw_writel(0xfff,0x40388180);				//enable bltc modules
-	udelay(100);
+	/*SET BLTC Output RISE/FALL Time*/
+	bltc_write(0x0, REG_BLTC_R_CURVE0);
+	bltc_write(0x0, REG_BLTC_G_CURVE0);
+	bltc_write(0x0, REG_BLTC_B_CURVE0);
 
-	}
+	/*SET BLTC Output HIGH/LOW Time*/
+	bltc_write(0x0, REG_BLTC_R_CURVE1);
+	bltc_write(0x0, REG_BLTC_G_CURVE1);
+	bltc_write(0x0, REG_BLTC_B_CURVE1);
+
+	/*SET BLTC DUTY(duty_counter + mod_counter)*/
+	bltc_write(duty, REG_BLTC_R_DUTY);
+	bltc_write(duty, REG_BLTC_G_DUTY);
+	bltc_write(duty, REG_BLTC_B_DUTY);
+
+	bltc_write(0x333, REG_BLTC_BASE);
+
+	/*USE MAX CURRENT 85.71mA= {(1.69+0.84*32)*3}*/
+	/*AS THE backlight DEFAULT OUTPUT CURRENT*/
+	bltc_write(BITS_RGB_V(X_CURRENT), ANA_REG_GLB_RGB_CTRL);
+
+	bltc_bits_or(BIT_BLTC_EN, ANA_REG_GLB_MODULE_EN0);
+
+	bltc_bits_or(BIT_RTC_BLTC_EN, ANA_REG_GLB_RTC_CLK_EN0);
+
 #endif
 	return;
 }
