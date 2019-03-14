@@ -35,6 +35,10 @@ ifeq ($(strip $(PKCS1_PSS_FLAG)),true)
 UBOOT_SECURE_BOOT_FLAG += -DPKCS1_PSS
 endif
 
+ifeq ($(strip $(SHARKL5_CDSP_FLAG)),true)
+UBOOT_SECURE_BOOT_FLAG += -DSHARKL5_CDSP
+endif
+
 ifeq ($(strip $(PRODUCT_VBOOT)),V2)
 UBOOT_SECURE_BOOT_FLAG += -DCONFIG_VBOOT_V2
 ifeq (9,$(filter 9,$(PLATFORM_VERSION)))
