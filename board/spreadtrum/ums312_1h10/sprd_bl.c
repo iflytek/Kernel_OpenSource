@@ -21,7 +21,7 @@
 #define PWM_ENABLE 	(0x0018)
 #define PWM_VERSION	(0x001c)
 
-#define PWM2_SCALE		0x0
+#define PWM2_SCALE		0x3
 #define PWM_MOD_MAX 0xff
 #define PWM_REG_MSK 0xffff
 
