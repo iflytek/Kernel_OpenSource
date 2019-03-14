@@ -580,6 +580,9 @@ void CSP_Init(uint32_t gen_para)
 	//as defaut byp ufs_pwr_gate, if board use ufs,the ufs owner will clear it.
 	CHIP_REG_OR(REG_PMU_APB_UFS_PWR_GATE_BYP_CFG,
 		BIT_PMU_APB_UFS_PWR_GATE_BYP);
+
+	//pub sleep condition
+	CHIP_REG_OR(REG_PMU_APB_LIGHT_SLEEP_ENABLE, BIT_PMU_APB_AON_LSLP_ENA);
 }
 #endif
 
