@@ -392,8 +392,31 @@ int dl_cmd_get_chip_uid(dl_packet_t *packet, void *arg)
 {
 	uint32_t *uid = (unsigned int *) (packet->body.content);
 	int ret=0,tmp=0;
-	char *p = (char *)malloc(64);
+	char p[64];
+
+	memset(p, 0, sizeof(p));
+#ifdef CONFIG_GET_CPU_SERIAL_NUMBER
+	u32 cnt = 0;
+	char serial_num[16];
+	char raw_serial_num[32];
+	char mask_serial_num[65];
+
+	memset(serial_num, 0, sizeof(serial_num));
+	ret = sprd_get_chip_hex_uid(serial_num);
+
+	memset(raw_serial_num, 0, sizeof(raw_serial_num));
+	sha256_csum_wd_sw(serial_num, strlen(serial_num), raw_serial_num, NULL);
+
+	memset(mask_serial_num, 0, sizeof(mask_serial_num));
+	for (cnt = 0; cnt < sizeof(raw_serial_num); cnt++) {
+		sprintf(mask_serial_num + cnt * 2, "%02x", raw_serial_num[cnt]);
+	}
+
+	memcpy(p, mask_serial_num, strlen(mask_serial_num));
+#else
 	ret = sprd_get_chip_uid(p);
+#endif
+
 	if(ret ==0){
 		tmp = strlen(p);
 		tmp = (tmp+1)/2*2;
@@ -410,8 +433,7 @@ int dl_cmd_get_chip_uid(dl_packet_t *packet, void *arg)
 		memset(uid,0,64);
 		dl_send_packet (packet);
 	}
-	if(p != NULL)
-		free(p);
+
 	return 0;
 }
 #else
