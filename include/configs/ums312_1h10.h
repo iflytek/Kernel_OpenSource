@@ -74,6 +74,9 @@
 
 /* SharkL5 Lowpower feature support start */
 #define CONFIG_SUPPORT_LOWPOWER
+#define CONFIG_AON_LPC_EN
+#define CONFIG_AP_LPC_EN
+#define CONFIG_CLOCK_AUTO_GATE_EN
 #define CONFIG_DCDCCORE_DEEP_DROP_EN
 #define CONFIG_DCDCCORE_DEEP_DROP_VOL 	600 //mV
 /* SharkL5 Lowpower feature support end */
