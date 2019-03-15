@@ -4,6 +4,14 @@
 #include <asm/arch/sprd_reg.h>
 
 
+#define WARNING_MESSAGE 					\
+	"***********************************************\n"	\
+	"*                                             *\n"	\
+	"*  This version does not support AA chip !!!  *\n"	\
+	"*                                             *\n"	\
+	"***********************************************\n"
+
+
 void dcdc_ldo_power_on(void)
 {
 #if defined(CONFIG_ADIE_SC2730)
@@ -52,7 +60,7 @@ void dcdc_ldo_power_on(void)
 void pmic_lowpower_config(void)
 {
 #if defined(CONFIG_ADIE_SC2730)
-#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
+#if defined(CONFIG_DEEP_DROP_EN)
 	uint32_t drop_val;
 #endif
 
@@ -88,17 +96,23 @@ void pmic_lowpower_config(void)
 
 	//DCDC pd an drop config in sleep mode
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		BIT_SLP_DCDCMODEM_PD_EN |
+		//BIT_SLP_DCDCMODEM_PD_EN |
 		//BIT_SLP_DCDCMEMQ_PD_EN |
-		BIT_SLP_DCDCSRAM_PD_EN |
-		//BIT_SLP_DCDCSRAM_DROP_EN |
-		//BIT_SLP_DCDCMODEM_DROP_EN |
-		//BIT_SLP_DCDCGPU_DROP_EN |
-#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
+		//BIT_SLP_DCDCSRAM_PD_EN |
+#if CONFIG_DCDCSRAM_DEEP_DROP_EN
+		BIT_SLP_DCDCSRAM_DROP_EN |
+#endif
+#if CONFIG_DCDCMODEM_DEEP_DROP_EN
+		BIT_SLP_DCDCMODEM_DROP_EN |
+#endif
+#if CONFIG_DCDCGPU_DEEP_DROP_EN
+		BIT_SLP_DCDCGPU_DROP_EN |
+#endif
+#if CONFIG_DCDCCORE_DEEP_DROP_EN
 		BIT_SLP_DCDCCORE_DROP_EN |
 #endif
 		//BIT_SLP_DCDCWPA_PD_EN |
-		BIT_SLP_DCDCGPU_PD_EN |
+		//BIT_SLP_DCDCGPU_PD_EN |
 		//BIT_SLP_DCDCCPU_PD_EN |
 		BIT_SLP_DCDCGEN1_PD_EN |
 		0
@@ -118,8 +132,22 @@ void pmic_lowpower_config(void)
 		0
 	);
 
-	/* DCDCCORE drop config */
-#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
+#if CONFIG_DCDCSRAM_DEEP_DROP_EN
+	drop_val = (CONFIG_DCDCSRAM_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_SRAM_SLP_CTRL1, BITS_DCDC_SRAM_CTRL_DS_SW(drop_val));
+#endif
+
+#if CONFIG_DCDCMODEM_DEEP_DROP_EN
+	drop_val = (CONFIG_DCDCMODEM_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_MODEM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
+#endif
+
+#if CONFIG_DCDCGPU_DEEP_DROP_EN
+	drop_val = (CONFIG_DCDCGPU_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_GPU_SLP_CTRL1, BITS_DCDC_GPU_CTRL_DS_SW(drop_val));
+#endif
+
+#if CONFIG_DCDCCORE_DEEP_DROP_EN
 	drop_val = (CONFIG_DCDCCORE_DEEP_DROP_VOL * 1000U) / 3125U;
 	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1, BITS_DCDC_CORE_CTRL_DS_SW(drop_val));
 #endif
@@ -518,6 +546,12 @@ void pmic_lowpower_config(void)
 void sprd_pmu_lowpower_init(void)
 {
 #ifndef CONFIG_FPGA
+	//Get Chip version
+	uint32_t chipid = CHIP_REG_GET(REG_AON_APB_AON_VER_ID);
+	if (!chipid) {
+		printf("\n\n%s\n", WARNING_MESSAGE);
+		while(1);
+	}
 #if defined(CONFIG_SUPPORT_LOWPOWER)
 	//Config the ADIE lowpower
 	pmic_lowpower_config();
