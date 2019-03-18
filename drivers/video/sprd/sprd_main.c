@@ -120,6 +120,53 @@ int get_fb_base_from_dt(void)
 	return 0;
 }
 
+int get_bmp_base_from_dt(void **bmp_base)
+{
+	int phandle;
+	const char *label;
+	unsigned long base, size;
+	const void *fdt_blob = gd->fdt_blob;
+	int nodeoffset;
+
+	nodeoffset = fdt_path_offset(fdt_blob, "/ion");
+	if (nodeoffset == -FDT_ERR_NOTFOUND) {
+		pr_err("Failed to find /ion node\n");
+		return -1;
+	}
+
+	nodeoffset = fdt_subnode_offset(fdt_blob, nodeoffset, "heap@9");
+	if (nodeoffset == -FDT_ERR_NOTFOUND) {
+		pr_err("Failed to find heap@9 sub node\n");
+		return -1;
+	}
+
+	label = fdt_getprop(fdt_blob, nodeoffset, "label", NULL);
+	if (label == NULL) {
+		pr_err("Failed to decode label property\n");
+		return -1;
+	}
+
+	phandle = fdtdec_lookup_phandle(fdt_blob, nodeoffset, "memory-region");
+	if (phandle == -FDT_ERR_NOTFOUND) {
+		pr_err("Failed to decode memory-region property\n");
+		return -1;
+	}
+
+	if (fdtdec_decode_region(fdt_blob, phandle, "reg", &base, &size)) {
+		pr_err("Failed to decode reg property\n");
+		return -EINVAL;
+	}
+
+	if (strcmp(label, "carveout_bmp")) {
+		pr_err("Error label %s, we need carveout_bmp\n", label);
+		return -ENOMEM;
+	}
+
+	*bmp_base = base;
+
+	return 0;
+}
+
 static int sprdfb_probe(void)
 {
 	sprd_panel_probe();
@@ -157,7 +204,11 @@ void lcd_ctrl_init(void *lcdbase)
 	sprdfb_probe();
 	size = lcd_get_size(&lcd_line_length);
 	size += bmp_header_size;
-	bmp = malloc(size);
+	if (get_bmp_base_from_dt(&bmp)) {
+		pr_err("can not found bmp_reserved node in dts, use malloc instead\n");
+		bmp = malloc(size);
+	}
+
 	if (!bmp) {
 		pr_err("failed to alloc bmp space\n");
 		return;
