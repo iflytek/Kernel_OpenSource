@@ -319,6 +319,7 @@
 
 &dpu {
 	status = "okay";
+	sprd,backlight = <&pmic_backlight>;
 };
 
 &iommu_dispc {

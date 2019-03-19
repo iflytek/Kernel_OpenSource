@@ -277,6 +277,7 @@
 
 &dpu {
 	status = "okay";
+	sprd,backlight = <&pmic_backlight>;
 };
 
 &thm_zone {
