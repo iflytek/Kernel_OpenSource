@@ -36,6 +36,9 @@
 #include "./chip_sharkl5/reg_fw0_aon.h"
 #include "./chip_sharkl5/reg_fw1_aon.h"
 #include "./chip_sharkl5/scc_apb.h"
+#include "./chip_sharkl5/apcpu_dvfs_apb.h"
+#include "./chip_sharkl5/ap_dvfs_apb.h"
+#include "./chip_sharkl5/top_dvfs_apb.h"
 #include "./chip_sharkl5/redefine.h"
 
 #endif
