@@ -77,26 +77,26 @@
 #define CONFIG_ADIE_SC2730
 
 
-
 /* SharkL5 Lowpower feature support start */
-
 #define CONFIG_SUPPORT_LOWPOWER
-//#define CONFIG_SUPPORT_CDMA2000
 
-/* DCDCCORE drop config when chip into deep sleep */
-//#define CONFIG_DCDCCORE_DEEP_DROP_EN
-#define CONFIG_DCDCCORE_DEEP_DROP_VOL 			750 //mV
+// LPC Enable Macro
+#define CONFIG_AON_LPC_EN
+#define CONFIG_AP_LPC_EN
+#define CONFIG_CLOCK_AUTO_GATE_EN
 
-/* DCDCCORE drop setp config */
-//#define CONFIG_DCDCCORE_DROP_STEP_EN
-#define CONFIG_DCDCCORE_DROP_STEP_VOL			20 //mV
-#define CONFIG_DCDCCORE_DROP_STEP_DLY			4  //(4 + 1) * 32k clock / step
+// DCDC Drop Enable Macro
+#define CONFIG_DCDCCORE_DEEP_DROP_EN	1
+#define CONFIG_DCDCCORE_DEEP_DROP_VOL 	600 //mV
 
-/* Debug config */
-//#define CONFIG_DEBUG_DCDCLDO_FORCE_ON
+#define CONFIG_DCDCSRAM_DEEP_DROP_EN	1
+#define CONFIG_DCDCSRAM_DEEP_DROP_VOL 	700 //mV
 
+#define CONFIG_DCDCMODEM_DEEP_DROP_EN	1
+#define CONFIG_DCDCMODEM_DEEP_DROP_VOL 	700 //mV
+
+#define CONFIG_DEEP_DROP_EN		CONFIG_DCDCCORE_DEEP_DROP_EN || CONFIG_DCDCSRAM_DEEP_DROP_EN || CONFIG_DCDCMODEM_DEEP_DROP_EN
 /* SharkL5 Lowpower feature support end */
-
 
 
 #define CONFIG_DTS_MEM_LAYOUT
