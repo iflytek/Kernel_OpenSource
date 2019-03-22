@@ -223,3 +223,28 @@ ENTRY(c_runtime_cpu_setup)
 
 	ret
 ENDPROC(c_runtime_cpu_setup)
+
+#ifdef ROC1_CACHE_MODIFICATION
+.globl  wait_sync
+
+.globl	secondary_start
+secondary_start:
+1:	ldr x0, =wait_sync
+	ldr x1, [x0]
+	cmp x1, #0
+	beq 1b
+	mov x0, #1
+	msr S3_0_C15_C2_7, x0
+	nop
+	nop
+	dsb sy
+	isb
+	wfi
+	b .
+
+.globl mmu_dcache_sync_va
+mmu_dcache_sync_va:
+	dc CVAC, x0
+	dsb sy
+	ret
+#endif

@@ -571,6 +571,75 @@ void pmu_commom_config(void)
 	);
 }
 
+#ifdef ROC1_CACHE_MODIFICATION
+volatile u32 wait_sync = 0;
+extern void mmu_dcache_sync_va(u64 va);
+extern void secondary_start();
+/*
+ ********************************************************************
+ *func name:
+ *	cache_workaround
+ *func description:
+ *     1.core0 config core1~core3 boot addr to secondary_boot
+ *	     and then power on core1~core3.
+ *     2.core1~3 powered on and hold until core0 change vddsram
+ *	     to 0.85V
+ *     3.core0 wait until core1~core3 apcpu_mode_state and pwr_state
+ *	     become on and then change vddsram voltage to 0.85V
+ *     4.force core0~4 cache on
+ *     5.after the vddsram voltage become 0.85V, core1~3 enter wfi and
+ *	     apcpu_mode_state become off but keep pwr_state on
+ * param:
+ *     none
+ * return:
+ *     none
+ *********************************************************************
+ */
+void cache_workaround()
+{
+	//config core1~3 boot addr
+	CHIP_REG_SET(REG_AON_SEC_APB_RVBARADDR1, (u32)secondary_start >>2);
+	CHIP_REG_SET(REG_AON_SEC_APB_RVBARADDR2, (u32)secondary_start >>2);
+	CHIP_REG_SET(REG_AON_SEC_APB_RVBARADDR3, (u32)secondary_start >>2);
+
+	//disable core1~3 to enter sleep and power down
+	CHIP_REG_AND(REG_PMU_APB_APCPU_C1_DSLP_ENA, ~BIT_PMU_APB_APCPU_C1_DSLP_ENA);
+	CHIP_REG_AND(REG_PMU_APB_APCPU_C2_DSLP_ENA, ~BIT_PMU_APB_APCPU_C2_DSLP_ENA);
+	CHIP_REG_AND(REG_PMU_APB_APCPU_C3_DSLP_ENA, ~BIT_PMU_APB_APCPU_C3_DSLP_ENA);
+
+	//power on core1~3
+	CHIP_REG_OR(REG_PMU_APB_PD_APCPU_C1_CFG,
+				BIT_PMU_APB_PD_APCPU_C1_AUTO_SHUTDOWN_EN);
+	CHIP_REG_OR(REG_PMU_APB_PD_APCPU_C2_CFG,
+				BIT_PMU_APB_PD_APCPU_C2_AUTO_SHUTDOWN_EN);
+	CHIP_REG_OR(REG_PMU_APB_PD_APCPU_C3_CFG,
+				BIT_PMU_APB_PD_APCPU_C3_AUTO_SHUTDOWN_EN);
+
+	CHIP_REG_OR(REG_PMU_APB_APCPU_DUAL_RAIL_RAM_FORCE_ON_CFG,
+				BIT_PMU_APB_APCPU_SNOOP_FILTER_RAM_FRC_ON |
+				BIT_PMU_APB_APCPU_L3CACHE_TAG_P3_RAM_FRC_ON |
+				BIT_PMU_APB_APCPU_L3CACHE_TAG_P2_RAM_FRC_ON |
+				BIT_PMU_APB_APCPU_L3CACHE_TAG_P1_RAM_FRC_ON |
+				BIT_PMU_APB_APCPU_L3CACHE_TAG_P0_RAM_FRC_ON |
+				BIT_PMU_APB_APCPU_CORE3_RAM_FRC_ON |
+				BIT_PMU_APB_APCPU_CORE2_RAM_FRC_ON |
+				BIT_PMU_APB_APCPU_CORE1_RAM_FRC_ON |
+				BIT_PMU_APB_APCPU_CORE0_RAM_FRC_ON);
+	//core0 wait until core1~core3 apcpu_mode_state and pwr_state on
+	while((CHIP_REG_GET(REG_PMU_APB_APCU_MODE_STATE0) != 0x02020202) ||
+		  (CHIP_REG_GET(REG_PMU_APB_PWR_STATUS6_DBG) != 0x0));
+
+	regulator_set_voltage("vddsram", 850);
+
+	wait_sync = 1;
+	mmu_dcache_sync_va(&wait_sync);
+
+	//chip_sleep mask following signal
+	CHIP_REG_OR(REG_PMU_APB_PAD_OUT_CHIP_SLEEP_CFG,
+				BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_TOP_DVFS_DEEP_SLEEP_MASK |
+				BIT_PMU_APB_PAD_OUT_CHIP_SLEEP_APCPU_TOP_PD_MASK);
+}
+#endif
 
 void CSP_Init(uint32_t gen_para)
 {
@@ -583,6 +652,11 @@ void CSP_Init(uint32_t gen_para)
 
 	//pub sleep condition
 	CHIP_REG_OR(REG_PMU_APB_LIGHT_SLEEP_ENABLE, BIT_PMU_APB_AON_LSLP_ENA);
+
+	//cache workaround
+#ifdef ROC1_CACHE_MODIFICATION
+	cache_workaround();
+#endif
 }
 #endif
 
