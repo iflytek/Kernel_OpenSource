@@ -20,6 +20,9 @@ static const char *cmd_arr[] = {
 #ifdef CONFIG_SC9833
 	RF_CHIP_ID,
 #endif
+#ifdef CONFIG_PMIC_CHIP_ID
+	PMIC_CHIP_ID,
+#endif
 	CHIPUID,
 	MODEM_BOOT_METHOD,
 	NULL
@@ -108,6 +111,7 @@ void cp_cmdline_fixup(void)
 {
 	char *value = NULL;
 	int boardid = 0;
+	unsigned int pmicid = 0;
 	int value_less = 0;
 	char buf[30] = {0};
 	unsigned char v32kless;
@@ -187,13 +191,20 @@ void cp_cmdline_fixup(void)
 	}
 #endif
 
+#ifdef CONFIG_PMIC_CHIP_ID
+	/* get pmic chipid */
+	extern int sprd_get_pmic_chipid(void);
+	pmicid = sprd_get_pmic_chipid();
+	sprintf(buf,"%x",pmicid);
+	cmdline_add_cp_cmdline(PMIC_CHIP_ID, buf);
+#endif
+
 	// modem boot method
 	value = cpcmdline_get_modem_boot_method();
 	if(NULL != value)
 	{
 		cmdline_add_cp_cmdline(MODEM_BOOT_METHOD, value);
 	}
-
 	debugf("cp cmdline: %s\n", g_CPcmdlineBuf);
 }
 

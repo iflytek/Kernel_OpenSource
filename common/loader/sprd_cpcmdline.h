@@ -22,6 +22,10 @@
 #define RF_HW_ID       "rfhw.id"
 #define MODEM_BOOT_METHOD         "modemboot.method"
 
+#ifdef CONFIG_PMIC_CHIP_ID
+#define PMIC_CHIP_ID        "androidboot.pmic.chipid"
+#endif
+
 #define CHIPUID          "chip.uid"
 #define INVALID_BOARD_ID 0xFF
 

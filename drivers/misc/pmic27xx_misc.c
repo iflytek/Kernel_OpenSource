@@ -115,6 +115,15 @@ void enable_ext_reset_mode(void)
 	sci_adi_set(ANA_REG_GLB_POR_7S_CTRL, BIT_EXT_RSTN_MODE);
 }
 
+int sprd_get_pmic_chipid(void)
+{
+	unsigned int  chip_id = 0;
+
+	chip_id = sci_adi_read(ANA_REG_GLB_CHIP_ID_HIGH) & 0xffff;
+
+	return chip_id;
+}
+
 int is_hw_smpl_enable(void)
 {
 	return !!(sci_adi_read(ANA_REG_GLB_SMPL_CTRL1) & BIT_SMPL_EN);
