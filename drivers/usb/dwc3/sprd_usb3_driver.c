@@ -67,6 +67,9 @@ static uint8_t g_out_buffer[MAX_RECV_LENGTH] __attribute__((aligned (128)));
 /** Received data len for EPn out transfer */
 static int g_out_len;
 
+/**Send data done flag for EPn in transfer*/
+static int g_usb_send_done;
+
 /** Send buffer for EPn in transfer */
 //static char g_in_buffer[MAX_RECV_LENGTH];
 
@@ -361,7 +364,7 @@ static void usb3_handle_epn_xfer(usb3_pcd_t *pcd,
 			ep->ep.tri_out = 0;
 		ep->ep.xfer_started = 0;
 	} else if(ep == pcd->in_ep) {
-		/* do nothing */;
+		g_usb_send_done = 1;
 	}
 
 }
@@ -658,6 +661,24 @@ static void usb_receive(usb3_pcd_t *pcd)
 	ep->ep.xfer_started = 1;
 }
 
+
+/**
+ * wait for usb3 data to send
+ */
+static void wait_usb3_send_done(void)
+{
+	usb3_device_t* dev = &g_usb3_dev;
+
+	g_usb_send_done = 0;
+
+	do {
+		usb3_handle_event(dev);
+
+		if (g_usb_send_done > 0)
+			break;
+	} while (1);
+}
+
 /**
  * The routine sends a handshake to download tool
  * and prepares to receive data.
@@ -697,6 +718,7 @@ void usb_send(unsigned char *buf, unsigned int len)
 
 	/* Prepare to get next OUT transfer */
 	usb_receive(pcd);
+	wait_usb3_send_done();
 }
 
 /**
