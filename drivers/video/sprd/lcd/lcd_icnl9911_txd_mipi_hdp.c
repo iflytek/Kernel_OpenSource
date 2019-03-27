@@ -113,9 +113,6 @@ static int icnl9911_readid(void)
 static int icnl9911_power(int on)
 {
 	if (on) {
-		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_1V8EN);
-		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_1V8EN, 1);
-		mdelay(20);
 		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_RSTN);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 1);
 		mdelay(5);
