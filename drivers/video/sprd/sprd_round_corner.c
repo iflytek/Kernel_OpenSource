@@ -136,6 +136,17 @@ inline short rgb565_premult(unsigned short rgb, char alpha)
 		| (b * alpha) / 255;
 }
 
+inline int argb8888_premult(unsigned int lower, unsigned int upper, char alpha)
+{
+	int r, g, b;
+
+	r = (lower >> 16) & 0xff * (255 - alpha) / 255;
+	g = (lower >> 8) & 0xff * (255 - alpha) / 255;
+	b = (lower >> 0) & 0xff * (255 - alpha) / 255;
+
+	return (0xff >> 24) | (r << 16) | (g << 8) | b;
+}
+
 static void dispc_corner_blending(int width, unsigned int *lower,
 		unsigned int *upper, int sec_x, int sec_y)
 {
@@ -144,22 +155,39 @@ static void dispc_corner_blending(int width, unsigned int *lower,
 	int index_l, index_u;
 	int logo_bpp = 16;
 	unsigned char *fb_base = (unsigned char *)lower;
-	unsigned short *p = (unsigned short *)fb_base;
 	short temp;
 
 	radius = CONFIG_CORNER_RADIUS;
 
-	for (i = 0; i < radius; i++) {
-		for (j = 0; j < radius; j++) {
-			index_u = j + i * radius;
-			index_l = sec_x + j + (sec_y + i) * width;
-			alpha = (upper[index_u] & 0xff000000) >> 24;
-			if (alpha) {
-				temp = argb_to_rgb565(upper[index_u]);
-				p[index_l] = alpha * temp / 255 + rgb565_premult(p[index_l], (255 - alpha));
+	if (LCD_BPP == LCD_COLOR16) {
+		unsigned short *p = (unsigned short *)fb_base;
+		for (i = 0; i < radius; i++) {
+			for (j = 0; j < radius; j++) {
+				index_u = j + i * radius;
+				index_l = sec_x + j + (sec_y + i) * width;
+				alpha = (upper[index_u] & 0xff000000) >> 24;
+				if (alpha) {
+					temp = argb_to_rgb565(upper[index_u]);
+					p[index_l] = alpha * temp / 255 +
+						rgb565_premult(p[index_l], (255 - alpha));
+				}
+			}
+		}
+	} else {
+		unsigned int *p = (unsigned int *)fb_base;
+		for (i = 0; i < radius; i++) {
+			for (j = 0; j < radius; j++) {
+				index_u = j + i * radius;
+				index_l = sec_x + j + (sec_y + i) * width;
+				alpha = (upper[index_u] & 0xff000000) >> 24;
+				if (alpha) {
+					p[index_l] = argb8888_premult(p[index_l],
+							upper[index_u], alpha);
+				}
 			}
 		}
 	}
+
 }
 
 void dispc_logo_show_corner(int height, int width, unsigned int addr)
