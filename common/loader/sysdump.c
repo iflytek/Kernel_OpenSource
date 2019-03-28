@@ -68,6 +68,9 @@ extern struct rtc_time get_time_by_sec(void);
 extern int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr);
 extern uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition);
 extern void merge_dtbo(uchar *dt_start_addr);
+#ifdef CONFIG_OF_LIBFDT_OVERLAY
+extern void load_and_merge_dtbo(uchar *partition, uchar *dt_start_addr);
+#endif
 extern unsigned char board_key_scan(void);
 extern int fdt_get_addr_size(const void *fdt, int node, const char *propname,
 		uint64_t *addrp, mem_size_t *sizep);
@@ -602,8 +605,15 @@ unsigned char *get_dt_addr(void)
 		else
 			load_fixup_dt_img("boot", &dt_addr);
 #ifdef CONFIG_OF_LIBFDT_OVERLAY
-		if (BOOT_HEADER_VERSION_ONE == hdr->dt_size)
+		if (BOOT_HEADER_VERSION_ONE == hdr->header_version)
 			merge_dtbo(dt_addr);
+		else if (BOOT_HEADER_VERSION_TWO == hdr->header_version) {
+			struct boot_img_hdr_v1 *hdr_v1 = (struct boot_img_hdr_v1 *)(hdr + 1);
+			if (hdr_v1->recovery_dtbo_size)
+				load_and_merge_dtbo("boot", dt_addr);
+			else
+				merge_dtbo(dt_addr);
+		}
 #endif
 	}
 	return dt_addr;

@@ -857,6 +857,52 @@ void fb_cmd_reboot(const char *arg, void *data, uint64_t sz)
 	reboot_devices(CMD_NORMAL_MODE);
 }
 
+/**
+ * enter userpace fastboot mode
+ * 1. clear flags on misc
+ * 2. reboot into recovery mode
+ */
+void fb_cmd_reboot_recovery(const char *arg, void *data, uint64_t sz)
+{
+	if (0 != clear_recovery_not_run_fastbootd()) {
+		errorf("write flags fail\n");
+		fastboot_fail("write misc fail\n");
+		goto err;
+	}
+
+	fastboot_okay("");
+	usb_driver_exit();
+	reboot_devices(CMD_RECOVERY_MODE);
+	return;
+
+err:
+	usb_driver_exit();
+	reboot_devices(CMD_FASTBOOT_MODE);
+}
+
+/**
+ * enter userpace fastboot mode
+ * 1. set flags on misc
+ * 2. reboot into recovery mode
+ */
+void fb_cmd_reboot_userspace_fastboot(const char *arg, void *data, uint64_t sz)
+{
+	if (0 != set_recovery_run_fastbootd()) {
+		errorf("write flags fail\n");
+		fastboot_fail("write misc fail\n");
+		goto err;
+	}
+
+	fastboot_okay("");
+	usb_driver_exit();
+	reboot_devices(CMD_RECOVERY_MODE);
+	return;
+
+err:
+	usb_driver_exit();
+	reboot_devices(CMD_FASTBOOT_MODE);
+}
+
 void fb_cmd_reboot_bootloader(const char *arg, void *data, uint64_t sz)
 {
 	fastboot_okay("");
@@ -1052,7 +1098,8 @@ int do_fastboot(void)
 	   so even if we can't see cmd"download" in host fastboot cmd list,it is also used */
 	fastboot_register("download:", fb_cmd_download);
 	fastboot_publish("version", "1.0");
-
+	/* Add new command for AndroidQ */
+	fastboot_publish("is-userspace", "no");
 	fastboot_register("flash:", fb_cmd_flash);
 	fastboot_register("erase:", fb_cmd_erase);
 	fastboot_register("boot", fb_cmd_continue);
@@ -1060,6 +1107,8 @@ int do_fastboot(void)
 	fastboot_register("powerdown", fb_cmd_powerdown);
 	fastboot_register("continue", fb_cmd_continue);
 	fastboot_register("reboot-bootloader", fb_cmd_reboot_bootloader);
+	fastboot_register("reboot-fastboot", fb_cmd_reboot_userspace_fastboot);
+	fastboot_register("reboot-recovery", fb_cmd_reboot_recovery);
 #ifdef CONFIG_SECBOOT
 	fastboot_register("flashing", fb_cmd_flashing);
 	fastboot_register("oem", fb_cmd_oem);

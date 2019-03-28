@@ -108,6 +108,7 @@ typedef struct _BOOT_IMG_OFFSET {
 	uint64_t kernel_offset;
 	uint64_t ramdisk_offset;
 	uint64_t dt_offset;
+	uint64_t recovery_dtbo_offset;	/* recovery dtbo/acpio */
 }BOOT_IMG_OFFSET;
 static BOOT_IMG_OFFSET boot_img_offset;
 unsigned int g_DeviceStatus = VBOOT_STATUS_LOCK;
@@ -607,6 +608,101 @@ int _boot_load_required_image(boot_image_required_t img_info)
 
 extern int enter_sysdump_flag;
 
+static uint64_t boot_img_offset_v01(boot_img_hdr *hdr, uint64_t offset)
+{
+	uint64_t size;
+
+	/*kernel image */
+	boot_img_offset.kernel_offset = offset + KERNL_PAGE_SIZE;
+	size = PAD_SIZE(hdr->kernel_size, KERNL_PAGE_SIZE);
+	if (0 == size) {
+		errorf("kernel image should not be zero!\n");
+		return 0;
+	}
+
+	debugf("boot_img_offset.kernel_offset is 0x%llx\n", boot_img_offset.kernel_offset );
+
+	if( hdr->ramdisk_size) {
+		/* ramdisk image */
+		boot_img_offset.ramdisk_offset = boot_img_offset.kernel_offset + size;
+		size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+		if (0 == size) {
+			errorf("ramdisk image size should not be zero\n");
+			return 0;
+		}
+
+		debugf("boot_img_offset.ramdisk_offset is 0x%llx\n", boot_img_offset.ramdisk_offset );
+
+		/* dt image */
+		boot_img_offset.dt_offset = boot_img_offset.ramdisk_offset + size;
+
+		debugf("boot_img_offset.dt_offset is 0x%llx\n", boot_img_offset.dt_offset );
+	}
+
+	return 1;
+}
+
+static uint64_t boot_img_offset_v2(boot_img_hdr *hdr, uint64_t offset)
+{
+	struct boot_img_hdr_v1 *hdr_v1 = (struct boot_img_hdr_v1 *)(hdr + 1);
+	struct boot_img_hdr_v2 *hdr_v2 = (struct boot_img_hdr_v2 *)(hdr_v1 + 1);
+	uint64_t size;
+
+	/* kernel image */
+	boot_img_offset.kernel_offset = offset + KERNL_PAGE_SIZE;
+	size = PAD_SIZE(hdr->kernel_size, KERNL_PAGE_SIZE);
+	if (0 == size) {
+		errorf("kernel image should not be zero!\n");
+		return 0;
+	}
+
+	debugf("boot_img_offset.kernel_offset is 0x%llx\n", boot_img_offset.kernel_offset );
+
+	if( hdr->ramdisk_size) {
+		/* ramdisk image */
+		boot_img_offset.ramdisk_offset = boot_img_offset.kernel_offset + size;
+		size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
+		if (0 == size) {
+			errorf("ramdisk image size should not be zero\n");
+			return 0;
+		}
+
+		debugf("boot_img_offset.ramdisk_offset is 0x%llx\n", boot_img_offset.ramdisk_offset );
+	}
+
+	/* Fixme second stage */
+
+	if (hdr_v1->recovery_dtbo_size) {
+		/* recovery_dtbo_offset */
+		boot_img_offset.recovery_dtbo_offset = boot_img_offset.ramdisk_offset + size;
+		size = PAD_SIZE(hdr_v1->recovery_dtbo_size, KERNL_PAGE_SIZE);
+		if (0 == size) {
+			errorf("recover dtbo image size should not be zero\n");
+			return 0;
+		}
+
+		debugf("boot_img_offset.recovery_dtbo_offset is 0x%llx\n", boot_img_offset.recovery_dtbo_offset);
+	}
+
+	/* dt image */
+	if (hdr_v1->recovery_dtbo_size)
+		boot_img_offset.dt_offset = boot_img_offset.recovery_dtbo_offset + size;
+	else if (hdr->ramdisk_size)
+		boot_img_offset.dt_offset = boot_img_offset.ramdisk_offset + size;
+
+	debugf("boot_img_offset.dt_offset is 0x%llx\n", boot_img_offset.dt_offset );
+	if (hdr_v2->dtb_addr != boot_img_offset.dt_offset)
+		debugf("Warning: dtb addr 0x%llx on boot img hdr\n", hdr_v2->dtb_addr);
+	return 1;
+}
+
+typedef uint64_t (*boot_img_offset_hdl)(boot_img_hdr *, uint64_t);
+static boot_img_offset_hdl boot_img_offset_hdl_tbl[] = {
+	boot_img_offset_v01,
+	boot_img_offset_v01,
+	boot_img_offset_v2,
+};
+
 uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 {
 	uint64_t size;
@@ -635,31 +731,11 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 		errorf("bad boot image header, give up boot!!!!\n");
 		return 0;
 	}
-	/*kernel image */
-	boot_img_offset.kernel_offset = offset + KERNL_PAGE_SIZE;
-	size = PAD_SIZE(hdr->kernel_size, KERNL_PAGE_SIZE);
-	if (0 == size) {
-		errorf("kernel image should not be zero!\n");
+
+	debug("boot_img_hdr header_version: %d\n", hdr->header_version);
+	hdr->header_version %= sizeof(boot_img_offset_hdl_tbl) / sizeof(boot_img_offset_hdl_tbl[0]);
+	if (!boot_img_offset_hdl_tbl[hdr->header_version](hdr, offset)) {
 		return 0;
-	}
-
-	debug("boot_img_offset.kernel_offset is 0x%llx\n", boot_img_offset.kernel_offset );
-
-	if( hdr->ramdisk_size) {
-		/* ramdisk image */
-		boot_img_offset.ramdisk_offset = boot_img_offset.kernel_offset + size;
-		size = PAD_SIZE(hdr->ramdisk_size, KERNL_PAGE_SIZE);
-		if (0 == size) {
-			errorf("ramdisk image size should not be zero\n");
-			return 0;
-		}
-
-		debug("boot_img_offset.ramdisk_offset is 0x%llx\n", boot_img_offset.ramdisk_offset );
-
-		/* dt image */
-		boot_img_offset.dt_offset = boot_img_offset.ramdisk_offset + size;
-
-		debug("boot_img_offset.dt_offset is 0x%llx\n", boot_img_offset.dt_offset );
 	}
 
 	if(enter_sysdump_flag){
@@ -686,7 +762,7 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 /**
 	Function for load dtbo and merge into dtb
 */
-static void load_and_merge_dtbo(uchar *partition, uchar *dt_start_addr)
+void load_and_merge_dtbo(uchar *partition, uchar *dt_start_addr)
 {
 	int ret = 0;
 	int offset = 0;
@@ -948,21 +1024,6 @@ error:
 	return ret;
 }
 
-static uint64_t get_dtb_offset(uchar *partition)
-{
-	struct boot_img_hdr_v2 hdr;
-	debugf("load dtb from %s\r\n", partition);
-	if(0 != common_raw_read(partition, sizeof(struct boot_img_hdr_v2), 0, (char *)&hdr)){
-		errorf("read %s header error\r\n", partition);
-		return 0;
-	}
-	debugf("dtb_size: 0x%x,  dtb_addr: 0x%x\r\n", hdr.dtb_size, hdr.dtb_addr);
-	if(hdr.dtb_size && hdr.dtb_addr)
-		return hdr.dtb_addr;
-	else
-		return 0;
-}
-
 int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **dt_addr )
 {
 	uchar *partition = NULL;
@@ -1021,19 +1082,14 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
 	fdt_fixup_all((uchar *)DT_ADR);
 #else
-	if((0 == get_dtb_offset(partition))){
-		if ((0 == common_raw_read("dtb", 10, 0, (char *)DT_ADR))
-			&& (BOOT_HEADER_VERSION_ONE == hdr->header_version)) {
-			dtb_partname = "dtb";
-			boot_img_offset.dt_offset = 0;
-		} else {
-			dtb_partname = partition;
-		}
-	}
-	else {
+	if ((BOOT_HEADER_VERSION_ONE == hdr->header_version)
+			&& (0 == common_raw_read("dtb", 10, 0, (char *)DT_ADR))) {
+		dtb_partname = "dtb";
+		boot_img_offset.dt_offset = 0;
+	} else {
 		dtb_partname = partition;
-		boot_img_offset.dt_offset = get_dtb_offset(partition);
 	}
+
 	/* for memory defragment, dr_addr and ramdisk_adr is allocated dynamically*/
 	if (0 == load_fixup_dt_img(dtb_partname, dt_addr)) {
 		if (DT_ADR != *dt_addr) {
@@ -1048,12 +1104,17 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		return 0;
 	}
 #ifdef CONFIG_OF_LIBFDT_OVERLAY
-	if (BOOT_HEADER_VERSION_ONE == hdr->dt_size) {
+	if (BOOT_HEADER_VERSION_ONE == hdr->header_version) {
 		if (0 == memcmp(bootmode, RECOVERY_PART, strlen(RECOVERY_PART))) {
 			load_and_merge_dtbo(partition, *dt_addr);
 		} else {
 			merge_dtbo(*dt_addr);
 		}
+	} else if (BOOT_HEADER_VERSION_TWO == hdr->header_version) {
+		if (boot_img_offset.recovery_dtbo_offset)
+			load_and_merge_dtbo(partition, *dt_addr);
+		else
+			merge_dtbo(*dt_addr);
 	}
 #endif
 #endif

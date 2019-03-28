@@ -102,3 +102,28 @@ int get_mode_from_file(void)
 		return 0;
 	}
 }
+
+/* set recovery message to boot fastbootd */
+int set_recovery_run_fastbootd(void)
+{
+	struct recovery_message msg = {0};
+
+	strcpy(msg.command, "boot-fastboot");
+	strcpy(msg.recovery, "recovery\n");
+	strcpy(msg.recovery, "--fastboot\n");
+
+	set_recovery_message(&msg);
+	return 0;
+}
+
+/* clear recovery message for boot fastbootd */
+int clear_recovery_not_run_fastbootd(void)
+{
+	struct recovery_message msg = {0};
+
+	strcpy(msg.command, "boot-recovery");
+	strcpy(msg.recovery, "recovery\n");
+
+	set_recovery_message(&msg);
+	return 0 ;
+}

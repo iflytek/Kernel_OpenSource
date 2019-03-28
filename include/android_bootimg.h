@@ -99,45 +99,51 @@ struct boot_img_hdr_v1 {
     uint32_t header_size;
 } __attribute__((packed));
 
+/* When the boot image header has a version of 2, the structure of the boot
+ * image is as follows:
+ *
+ * +---------------------+
+ * | boot header         | 1 page
+ * +---------------------+
+ * | kernel              | n pages
+ * +---------------------+
+ * | ramdisk             | m pages
+ * +---------------------+
+ * | second stage        | o pages
+ * +---------------------+
+ * | recovery dtbo/acpio | p pages
+ * +---------------------+
+ * | dtb                 | q pages
+ * +---------------------+
+
+ * n = (kernel_size + page_size - 1) / page_size
+ * m = (ramdisk_size + page_size - 1) / page_size
+ * o = (second_size + page_size - 1) / page_size
+ * p = (recovery_dtbo_size + page_size - 1) / page_size
+ * q = (dtb_size + page_size - 1) / page_size
+ *
+ * 0. all entities are page_size aligned in flash
+ * 1. kernel, ramdisk and DTB are required (size != 0)
+ * 2. recovery_dtbo/recovery_acpio is required for recovery.img in non-A/B
+ *    devices(recovery_dtbo_size != 0)
+ * 3. second is optional (second_size == 0 -> no second)
+ * 4. load each element (kernel, ramdisk, second, dtb) at
+ *    the specified physical address (kernel_addr, etc)
+ * 5. If booting to recovery mode in a non-A/B device, extract recovery
+ *    dtbo/acpio and apply the correct set of overlays on the base device tree
+ *    depending on the hardware/product revision.
+ * 6. prepare tags at tag_addr.  kernel_args[] is
+ *    appended to the kernel commandline in the tags.
+ * 7. r0 = 0, r1 = MACHINE_TYPE, r2 = tags_addr
+ * 8. if second_size != 0: jump to second_addr
+ *    else: jump to kernel_addr
+ */
+
 #define BOOT_HEADER_VERSION_TWO 2
-struct boot_img_hdr_v2{
-    unsigned char magic[BOOT_MAGIC_SIZE];
 
-    unsigned kernel_size;  /* size in bytes */
-    unsigned kernel_addr;  /* physical load addr */
-
-    unsigned ramdisk_size; /* size in bytes */
-    unsigned ramdisk_addr; /* physical load addr */
-
-    unsigned second_size;  /* size in bytes */
-    unsigned second_addr;  /* physical load addr */
-
-    unsigned tags_addr;    /* physical addr for kernel tags */
-    unsigned page_size;    /* flash page size we assume */
-    union{
-        unsigned dt_size;      /* device tree in bytes */
-        unsigned header_version;
-    };
-    /* operating system version and security patch level; for
-     * version "A.B.C" and patch level "Y-M-D":
-     * ver = A << 14 | B << 7 | C         (7 bits for each of A, B, C)
-     * lvl = ((Y - 2000) & 127) << 4 | M  (7 bits for Y, 4 bits for M)
-     * os_version = ver << 11 | lvl */
-    unsigned os_version;
-    unsigned char name[BOOT_NAME_SIZE]; /* asciiz product name */
-
-    unsigned char cmdline[BOOT_ARGS_SIZE];
-
-    unsigned id[8]; /* timestamp / checksum / sha1 / etc */
-        /* Supplemental command line data; kept here to maintain
-     * binary compatibility with older versions of mkbootimg */
-    uint8_t extra_cmdline[BOOT_EXTRA_ARGS_SIZE];
-
-    uint32_t recovery_dtbo_size;   /* size in bytes for recovery DTBO image */
-    uint64_t recovery_dtbo_offset; /* offset to recovery dtbo in boot image */
-    uint32_t header_size;
-    uint32_t dtb_size;             /* size in bytes for DTB image */
-    uint64_t dtb_addr;             /* physical load address for DTB image */
+struct boot_img_hdr_v2/* : public boot_img_hdr_v1 */ {
+    uint32_t dtb_size; /* size in bytes for DTB image */
+    uint64_t dtb_addr; /* physical load address for DTB image */
 } __attribute__((packed));
 
 #endif

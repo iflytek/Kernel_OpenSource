@@ -48,6 +48,8 @@ typedef void (*CBOOT_MODE_ENTRY) (void);
 
 
 int get_mode_from_file(void);
+int set_recovery_run_fastbootd(void);
+int clear_recovery_not_run_fastbootd(void);
 int pctool_mode_detect(void);
 int is_bat_low(void);
 int alarm_flag_check(void);
