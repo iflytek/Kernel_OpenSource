@@ -1566,12 +1566,6 @@ int fdt_fixup_cpu_serial_number(void *fdt)
 	char mask_serial_num[65];
 	int cnt;
 
-	err = fdt_check_header(fdt);
-	if (err < 0) {
-		printf("fdt_root: %s\n", fdt_strerror(err));
-		return err;
-	}
-
 	memset(serial_num, 0, sizeof(serial_num));
 	err = sprd_get_chip_hex_uid(serial_num);
 	if (err < 0) {
@@ -1587,16 +1581,12 @@ int fdt_fixup_cpu_serial_number(void *fdt)
 		sprintf(mask_serial_num + cnt * 2, "%02x", raw_serial_num[cnt]);
 	}
 
-	serial = mask_serial_num;
-	if (serial) {
-		err = fdt_setprop(fdt, 0, "serial-number", serial,
-				  strlen(serial) + 1);
+	setenv("serial#", mask_serial_num);
 
-		if (err < 0) {
-			printf("WARNING: could not set serial-number %s.\n",
-			       fdt_strerror(err));
-			return err;
-		}
+	err = fdt_root(fdt);
+	if (err < 0) {
+		printf("set serial number error\n");
+		return err;
 	}
 
 	return 0;
