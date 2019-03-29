@@ -217,15 +217,17 @@
 //#define CONFIG_SUPPORT_WLTE
 //#define CONFIG_SUPPORT_GSM
 
-#define LTE_AGDSP_SIZE  0x00260000
-#define LTE_AGDSP_ADDR (0x89600000 - LTE_AGDSP_SIZE)
+/* boot vector is bin start + header(0x80 bytes) in word size */
+#define CONFIG_SUPPORT_AGDSP
+#define CONFIG_AUDCP_BOOT_VECTOR 0x43700040
+#define LTE_AGDSP_SIZE  0x00600000
+#define LTE_AGDSP_ADDR (0x86e00000 - LTE_AGDSP_SIZE)
 
 #define FIXNV_SIZE     0x700000
 
 #define CONFIG_DFS_ENABLE
 #define DFS_ADDR    0xb000
 #define DFS_SIZE    (0xd000)
-
 
 /*eMMC config*/
 #define CONFIG_MMC
