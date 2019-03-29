@@ -60,10 +60,10 @@ static struct panel_info dummy_info = {
 	.height = 1280,
 
 	/* DPI specific parameters */
-	.pixel_clk = 64000000,
+	.pixel_clk = 76800000,
 	.rgb_timing = {
-		6, 6, 8,
-		6, 6, 8
+		80, 60, 60,
+		38, 12, 4
 	},
 
 	/* MIPI DSI specific parameters */
