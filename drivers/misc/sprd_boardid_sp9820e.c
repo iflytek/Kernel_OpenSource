@@ -113,12 +113,8 @@ static int get_clockid(void)
 /* Return rf band info */
 int sprd_get_bandinfo(void)
 {
-	unsigned int adc_val = 0;
-
-	adc_val = get_adc_value_board(ADC_CHANNEL_FOR_NV);
-	debugf("rfboard.id = %d\n", adc_val);
-
-	return adc_val;
+/* Disable rf band auto-adaptive */
+	return 0;
 }
 
 /* Return crystal type */
