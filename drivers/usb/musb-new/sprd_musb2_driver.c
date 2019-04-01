@@ -480,6 +480,20 @@ static void usb_core_init (unsigned int autodl_mode)
 	readIndex = recv_length = 0;
 	currentDmaBufferIndex = 0;
 
+#ifdef CONFIG_SOC_SHARKL5
+	void* musb_base = SPRD_USB_BASE;
+	u8 c_size;
+
+	musb_writeb(musb_base, MUSB_INDEX, 5);
+	c_size = musb_read_rxfifosz(musb_base);
+	c_size &= ~MUSB_FIFOSZ_DPB;
+	musb_write_rxfifosz(musb_base, c_size);
+
+	musb_writeb(musb_base, MUSB_INDEX, 6);
+	c_size = musb_read_rxfifosz(musb_base);
+	c_size &= ~MUSB_FIFOSZ_DPB;
+	musb_write_rxfifosz(musb_base, c_size);
+#endif
 	cache_start = (unsigned long)(&usb_out_endpoint_buf[0]);
 	cache_end = cache_start + MAX_RECV_LENGTH;
 	invalidate_dcache_range(cache_start, cache_end);
