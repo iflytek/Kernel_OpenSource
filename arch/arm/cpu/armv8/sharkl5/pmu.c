@@ -697,7 +697,7 @@ void clock_auto_gate(void)
 #endif
 }
 
-void CSP_Init(uint32_t gen_para)
+void CSP_Init(uint32_t ddie_id, uint32_t adie_id)
 {
 	pmu_sequence_config();
 	pad_out_sel_config();
