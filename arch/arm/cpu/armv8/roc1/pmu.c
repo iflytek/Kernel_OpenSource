@@ -629,7 +629,7 @@ void cache_workaround()
 	while((CHIP_REG_GET(REG_PMU_APB_APCU_MODE_STATE0) != 0x02020202) ||
 		  (CHIP_REG_GET(REG_PMU_APB_PWR_STATUS6_DBG) != 0x0));
 
-	regulator_set_voltage("vddsram", 850);
+	//regulator_set_voltage("vddsram", 850);
 
 	wait_sync = 1;
 	mmu_dcache_sync_va(&wait_sync);
