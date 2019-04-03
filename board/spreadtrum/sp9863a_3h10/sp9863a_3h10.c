@@ -41,10 +41,10 @@ int board_init(void)
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 	ADI_init();
 	/*FPGA forbiden*/
-	regulator_init();
 	pmic_adc_Init();
 	/*FPGA forbiden*/
 	pin_init();
+	regulator_init();
 	sprd_gpio_init();
 	misc_init();
 	sprd_eic_init();
