@@ -166,9 +166,9 @@ static struct panel_info td4310_info = {
 		.hfp = 50,
 		.hbp = 20,
 		.hsync = 2,
-		.vfp = 4,
+		.vfp = 2,
 		.vbp = 28,
-		.vsync = 2,
+		.vsync = 4,
 	},
 
 	/* MIPI DSI specific parameters */
