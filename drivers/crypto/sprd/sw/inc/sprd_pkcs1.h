@@ -16,7 +16,7 @@
 #ifndef SPRD_PKCS1_H
 #define SPRD_PKCS1_H
 
-#include <sprd_crypto_orca.h>
+#include <sprd_crypto_sw.h>
 
 enum sprd_pkcs_1_v1_5_padding_type
 {

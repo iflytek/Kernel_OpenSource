@@ -30,7 +30,7 @@ obj-y += pk1.o
 obj-y += sprd_pkcs1_mgf1.o
 obj-y += sprd_pkcs1_v1_5.o
 obj-y += sprd_pkcs1_pss.o
-obj-y += sprd_rsa_soft.o
+obj-y += sprd_rsa_sw.o
 obj-y += sprd_sha256_armv8.o
 obj-y += sprd_sha256_core_armv8.o
 

@@ -17,7 +17,7 @@
 #include <sec_string.h>
 #include <pk1.h>
 #include <sprd_pkcs1.h>
-#include <sprd_crypto_orca.h>
+#include <sprd_crypto_sw.h>
 
 sprd_crypto_err_t sprd_rsa_verify(const sprd_rsa_pubkey_t *pub_key,
 		const uint8_t *dig, uint32_t dig_size,
