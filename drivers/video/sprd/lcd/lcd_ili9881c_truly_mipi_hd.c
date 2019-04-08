@@ -305,9 +305,9 @@ static struct panel_info ili9881c_info = {
 		.hfp = 52,
 		.hbp = 26,
 		.hsync = 25,
-		.vfp = 5,
-		.vbp = 9,
-		.vsync = 2,
+		.vfp = 1,
+		.vbp = 11,
+		.vsync = 4,
 	},
 
 	/* MIPI DSI specific parameters */
