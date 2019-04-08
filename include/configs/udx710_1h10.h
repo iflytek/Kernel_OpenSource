@@ -391,7 +391,7 @@
 /* coresight dump ETB data */
 #define CONFIG_ETB_DUMP
 
-#define CONFIG_RTC_START_YEAR           0
+#define CONFIG_RTC_START_YEAR           1970
 
 /* board device special config */
 #define CONFIG_NONE_LED

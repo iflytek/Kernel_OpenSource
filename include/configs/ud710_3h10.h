@@ -350,7 +350,7 @@
 #define ADI_15BIT_MODE
 #endif
 
-#define CONFIG_RTC_START_YEAR		0
+#define CONFIG_RTC_START_YEAR		1970
 #define CONFIG_DEBUG_DCDCLDO_FORCE_ON  //for bringup
 #define CONFIG_SUPPORT_LOWPOWER
 #endif /* __CONFIG_H  */

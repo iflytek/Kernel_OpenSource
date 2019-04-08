@@ -375,5 +375,5 @@
 #define ADI_15BIT_MODE
 #endif
 
-#define CONFIG_RTC_START_YEAR		0
+#define CONFIG_RTC_START_YEAR		1970
 #endif /* __CONFIG_H  */

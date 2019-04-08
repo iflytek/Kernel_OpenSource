@@ -398,7 +398,7 @@
 #define ADI_15BIT_MODE
 #endif
 
-#define CONFIG_RTC_START_YEAR		0
+#define CONFIG_RTC_START_YEAR		1970
 
 /* fixbug 1014166 for 32bit board */
 #define CONFIG_SYS_64BIT_LBA
