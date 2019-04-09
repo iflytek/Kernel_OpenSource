@@ -68,7 +68,7 @@
  /* SPREADTRUM BIGPHONE board - SoC Configuration */
 /* Note: SOC macro should be named as CONFIG_SOC_ProjectName */
 #define CONFIG_SOC_SHARKL5PRO
-#define CONFIG_ADIE_SC2721
+#define CONFIG_ADIE_SC2730
 
 #define CONFIG_DTS_MEM_LAYOUT
 
