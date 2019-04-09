@@ -76,7 +76,7 @@
 
 
 /* Orca Lowpower feature support start */
-//#define CONFIG_SUPPORT_LOWPOWER
+#define CONFIG_SUPPORT_LOWPOWER
 
 /* DCDCCORE drop config when chip into deep sleep */
 //#define CONFIG_DCDCCORE_DEEP_DROP_EN
