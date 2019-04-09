@@ -181,8 +181,8 @@ static struct panel_info r61350_info = {
 		.hfp = 80,
 		.hbp = 80,
 		.hsync = 20,
-		.vfp = 127,
-		.vbp = 13,
+		.vfp = 126,
+		.vbp = 14,
 		.vsync = 2,
 	},
 
