@@ -385,7 +385,7 @@ int pin_init(void);
 #define REG_MISC_PIN_TMS_ARM                     ( 0xC6CC )
 
 /* bits definitions for register REG_PIN_XXX */
-#define BITS_PIN_DS(_x_)                 ( ((_x_) << 19) & (BIT_19|BIT_20|BIT_21 ))
+#define BITS_PIN_DS(_x_)                 ( ((_x_) << 19) & (BIT_19|BIT_20|BIT_21|BIT_22 ))
 #define BIT_PIN_SLP_CM4                  ( BIT_17 )
 #define BIT_PIN_SLP_WCN                  ( BIT_16 )
 #define BIT_PIN_SLP_WTLCP                ( BIT_15 )
