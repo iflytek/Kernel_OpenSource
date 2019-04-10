@@ -256,7 +256,7 @@ struct rtc_time get_time_by_sec(void)
 
 	unsigned long times = sprd_rtc_get_sec();
 	days = times / 86400;
-	times -= (unsigned int) days * 86400;
+	times -= (unsigned long)days * 86400;
 	year = year_base + days / 365;
 	days -= (year - year_base) * 365
 			+ LEAPS_THRU_END_OF(year - 1)
