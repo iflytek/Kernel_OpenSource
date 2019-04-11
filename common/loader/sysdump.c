@@ -1262,7 +1262,7 @@ int check_split_dump_mem(int sprd_dump_mem_num, struct sysdump_mem *sprd_dump_me
        unsigned long paddr = 0;
        unsigned long vaddr = 0;
        unsigned long addr_tmp = 0;
-       int j = 0, i = 0;;
+       unsigned long j = 0, i = 0;;
 
 
        debugf("------------- show all mem blocks before  ------------------ \n");
@@ -1314,7 +1314,7 @@ int check_split_dump_mem(int sprd_dump_mem_num, struct sysdump_mem *sprd_dump_me
                                sprd_ptload_mem[mem_num_tmp - 1 + j].soff = 0xffffffff;
                                sprd_ptload_mem[mem_num_tmp - 1 + j].type = SYSDUMP_RAM;
                                debugf("check split in while ...mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", \
-                                        i, sprd_ptload_mem[i].paddr, sprd_ptload_mem[i].vaddr, sprd_ptload_mem[i].size);
+                                        mem_num_tmp - 1 + j, sprd_ptload_mem[mem_num_tmp - 1 + j].paddr, sprd_ptload_mem[mem_num_tmp - 1 + j].vaddr, sprd_ptload_mem[mem_num_tmp - 1 + j].size);
                        }
                        size -= SZ_1G;
                        j++;
