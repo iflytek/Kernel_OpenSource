@@ -414,7 +414,7 @@ void reset_cbank_value(void)
 	u16 chip_id_low;
 	chip_id_low = sci_adi_read(ANA_REG_GLB_CHIP_ID_LOW) & 0xffff;
 
-	if(chip_id_low <= 0xa001) {
+	if(chip_id_low <= 0xb000) {
 	ANA_REG_SET(ANA_REG_GLB_TSX_CTRL11, BITS_DCXO_CORE_CBANK_LP(CBANK_VALUE));
 	}
 
