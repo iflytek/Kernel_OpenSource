@@ -653,6 +653,9 @@ void CSP_Init(uint32_t gen_para)
 	//pub sleep condition
 	CHIP_REG_OR(REG_PMU_APB_LIGHT_SLEEP_ENABLE, BIT_PMU_APB_AON_LSLP_ENA);
 
+	//hw-dvfs need binding to dcdc_cpu1
+	CHIP_REG_OR(REG_PMU_APB_DVFS_BLOCK_SHUTDOWN_CFG, BIT_PMU_APB_DCDC_CPU1_DVFS_BLOCK_SHUTDOWN_EN);
+
 	//cache workaround
 #ifdef ROC1_CACHE_MODIFICATION
 	cache_workaround();
