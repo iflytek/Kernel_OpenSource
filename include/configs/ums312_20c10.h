@@ -76,8 +76,8 @@
 #define CONFIG_SUPPORT_LOWPOWER
 
 // LPC Enable Macro
-#define CONFIG_AON_LPC_EN
-#define CONFIG_AP_LPC_EN
+//#define CONFIG_AON_LPC_EN
+//#define CONFIG_AP_LPC_EN
 #define CONFIG_CLOCK_AUTO_GATE_EN
 
 // DCDC Drop Enable Macro
