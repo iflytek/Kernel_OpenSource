@@ -400,6 +400,12 @@ config TARGET_UMS312_1H10_32B
         help
           This is the Spreadtrum sharkl5 Board
 
+config TARGET_UMS312_2H10
+        bool "Spreadtrum sharkl5"
+        select ARM64
+        help
+          This is the Spreadtrum sharkl5 Board
+
 config TARGET_UMS312_2H10_32B
         bool "Spreadtrum sharkl5"
         select CPU_V7
@@ -566,6 +572,7 @@ source "board/spreadtrum/sp9863a_tsg/Kconfig"
 source "board/spreadtrum/ums510_haps/Kconfig"
 source "board/spreadtrum/ums312_1h10/Kconfig"
 source "board/spreadtrum/ums312_1h10_32b/Kconfig"
+source "board/spreadtrum/ums312_2h10/Kconfig"
 source "board/spreadtrum/ums312_2h10_32b/Kconfig"
 source "board/spreadtrum/ums312_20c10/Kconfig"
 source "board/spreadtrum/sp9650_haps/Kconfig"
