@@ -5,20 +5,8 @@
 
 #include "sc2703l_bllcd.h"
 
-enum {
-	SC2703L_WLED_BYPASS = 0,
-	SC2703L_WLED_DIRECT = 1,
-	SC2703L_WLED_DUTY_DET_PWM = 2,
-	SC2703L_WLED_DUTY_DET_ANALOG = 3,
-	SC2703L_WLED_DUTY_DET_MIXED = 4,
-	SC2703L_WLED_EXT_R_SINK = 5,
-	SC2703L_WLED_MODE_MAX,
-};
-
 #define SC2703L_LCD_I2C_ADDRESS  0x4b
 #define SC2703L_LCD_I2C_BUS  5
-#define SC2703L_WLED_IDAC_MAX 2047
-#define MAX_BRIGHTNESS 255
 
 #define PWM_INDEX  2
 
@@ -33,7 +21,7 @@ enum {
 #define PWM_ENABLE 	(0x0018)
 #define PWM_VERSION	(0x001c)
 
-#define PWM2_SCALE		0x0
+#define PWM2_SCALE		0x3
 #define PWM_MOD_MAX 0xff
 #define PWM_REG_MSK 0xffff
 
@@ -85,9 +73,9 @@ void lcd_use_sc2703l_to_power_on(void)
 			i2c_reg_read(SC2703L_LCD_I2C_ADDRESS, SC2703L_SYSCTRL_DISPLAY_STATUS));
 	while(loop --);
 }
+
 void set_backlight(uint32_t brightness)
 {
-#if 0
 	u8 value;
 
 	i2c_set_bus_num(SC2703L_LCD_I2C_BUS);
@@ -104,44 +92,12 @@ void set_backlight(uint32_t brightness)
 	value = i2c_reg_read(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_CONFIG7);
 	i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_CONFIG7, value | SC2703L_IDAC_RAMP_DIS_MASK);
 
-	set_backlight_pwms(brightness);
-#endif
-	int value = 0;
-	int pwm_out_duty = 0x80;
+	/* set SEL_POC_LIMIT to 1.5A for WLED boost current limit */
+	value = 1 << SC2703L_SEL_POC_LIMIT_SHIFT;
+	i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_BOOST_CONTROL1, value);
 
 	set_backlight_pwms(brightness);
 
-	if (brightness > 0) {
-
-		brightness = (brightness * SC2703L_WLED_IDAC_MAX)/MAX_BRIGHTNESS;
-
-		i2c_set_bus_num(SC2703L_LCD_I2C_BUS);
-
-		value = (SC2703L_IDAC_LINEAR_MASK)
-			| SC2703L_WLED_IDAC_EN_MASK
-			| SC2703L_WLED_MODE_MASK;
-
-		/* direct mode */
-		i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_CONFIG1, value);
-
-		value = (0x4 << SC2703L_PWM_OUT_FREQ_STEP_SHIFT) | (0 << SC2703L_IDAC_RAMP_RATE_SHIFT) | SC2703L_PWM_IN_FREQ_RANGE_MASK;
-		i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_CONFIG3, value);
-		i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_CONFIG5, pwm_out_duty);
-
-		value = (brightness >> 8) & 0x7;
-		i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_CONFIG2, value);
-
-		value |= SC2703L_WLED_EN_MASK | SC2703L_DISPLAY_EN_MASK;
-		i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_SYSCTRL_DISPLAY_ACTIVE, value);
-		printf("read SC2703L_SYSCTRL_DISPLAY_ACTIVE = 0x%x brightness:%d\n", \
-			i2c_reg_read(SC2703L_LCD_I2C_ADDRESS, SC2703L_SYSCTRL_DISPLAY_STATUS), brightness);
-
-	} else {
-
-		value = i2c_reg_read(SC2703L_LCD_I2C_ADDRESS, SC2703L_SYSCTRL_DISPLAY_ACTIVE);
-		value &= ~SC2703L_WLED_EN_MASK;
-		i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_SYSCTRL_DISPLAY_ACTIVE, value);
-		printf("read SC2703L_SYSCTRL_DISPLAY_ACTIVE = 0x%x brightness:%d\n", \
-			i2c_reg_read(SC2703L_LCD_I2C_ADDRESS, SC2703L_SYSCTRL_DISPLAY_STATUS), brightness);
-	}
+	printf("read SC2703L_SYSCTRL_DISPLAY_STATUS = 0x%x\n",
+		i2c_reg_read(SC2703L_LCD_I2C_ADDRESS, SC2703L_SYSCTRL_DISPLAY_STATUS));
 }
