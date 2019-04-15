@@ -304,10 +304,10 @@ static struct panel_info ili9881c_info = {
 	.rgb_timing = {
 		.hfp = 52,
 		.hbp = 26,
-		.hsync = 25,
-		.vfp = 1,
-		.vbp = 11,
-		.vsync = 4,
+		.hsync = 10,
+		.vfp = 5,
+		.vbp = 9,
+		.vsync = 26,
 	},
 
 	/* MIPI DSI specific parameters */
