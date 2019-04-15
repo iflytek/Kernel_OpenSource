@@ -245,11 +245,29 @@ int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 	disk_partition_t part_info;
 	block_dev_desc_t *dev_desc;
 	uint64_t total_part_size = 0;
+	uint64_t total_part_read_size = 0;
 	int ret = 0;
 
 	ifname = block_dev_get_name();
 
-	if (0 == strcmp(part_name, "splloader")) {
+	if(strstr(part_name, "_size") != NULL) {
+		ret =get_img_partition_size(part_name, &total_part_read_size);
+		debugf("%s = 0x%llx block number: 0x" LBAF "\n",
+				part_name, total_part_read_size, total_part_read_size/512);
+		sprintf(buf, "size:%s: 0x%llx block number: 0x" LBAF "\n",
+				part_name, total_part_read_size, total_part_read_size/512);
+		return ret;
+	} else if(strcmp(part_name, "user_partition") == 0) {
+		dev_id = get_devnum_hwpart(ifname, USER_PART);
+		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
+		part_start = 0;
+		total_part_size = get_devsize_hwpart(ifname, USER_PART);
+		if (size + offset > total_part_size) {
+			errorf("read user partition size(0x%llx + 0x%llx) overflow the total partition size(0x%llx)\n",
+					size, offset, total_part_size);
+			ret = -1;
+		}
+	} else if (0 == strcmp(part_name, "splloader")) {
 		dev_id = get_devnum_hwpart(ifname, BOOT_PART1);
 		dev_desc = get_dev_hwpart(ifname, dev_id, BOOT_PART1);
 	} else if (0 == strcmp(part_name, "splloader_bak")) {
@@ -563,13 +581,16 @@ int get_img_partition_size(char *part_name, uint64_t *size)
 
 	ifname = block_dev_get_name();
 
-	if (0 == strcmp(part_name, "splloader")) {
+	if (0 == strcmp(part_name, "splloader") ||
+			!strcmp(part_name, "splloader_size")) {
 		*size = get_devsize_hwpart(ifname, BOOT_PART1);
 		return ret;
-	} else if (0 == strcmp(part_name, "splloader_bak")) {
+	} else if (0 == strcmp(part_name, "splloader_bak") ||
+			!strcmp(part_name, "splloader_bak_size")) {
 		*size = get_devsize_hwpart(ifname, BOOT_PART2);
 		return ret;
-	} else if (0 == strcmp(part_name, "uboot")) {
+	} else if (0 == strcmp(part_name, "uboot") ||
+			!strcmp(part_name, "uboot_size")) {
 		dev_id = get_devnum_hwpart(ifname, USER_PART);
 		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
 		if (-1 == ret) {
@@ -577,6 +598,9 @@ int get_img_partition_size(char *part_name, uint64_t *size)
 			*size = get_devsize_hwpart(ifname, BOOT_PART1);
 			return ret;
 		}
+	} else if (0 == strcmp(part_name, "user_partition_size")) {
+		*size = get_devsize_hwpart(ifname, USER_PART);
+		return ret;
 	} else {
 		dev_id = get_devnum_hwpart(ifname, USER_PART);
 		dev_desc = get_dev_hwpart(ifname, dev_id, USER_PART);
