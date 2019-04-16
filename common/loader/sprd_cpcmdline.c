@@ -21,6 +21,7 @@ static const char *cmd_arr[] = {
 	RF_CHIP_ID,
 #endif
 	CHIPUID,
+	MODEM_BOOT_METHOD,
 	NULL
 };
 
@@ -51,6 +52,17 @@ static char *cpcmdline_get_lte_mode(void)
 
 	return ltemode;
 }
+
+static char *cpcmdline_get_modem_boot_method(void)
+{
+#ifdef CONFIG_DDR_BOOT
+	return "ddrboot";
+#elif defined CONFIG_EMMC_BOOT
+	return "emmcboot";
+#endif
+	return NULL;
+}
+
 
 static void cmdline_prepare(void)
 {
@@ -174,6 +186,13 @@ void cp_cmdline_fixup(void)
 		cmdline_add_cp_cmdline(RF_CHIP_ID, buf);
 	}
 #endif
+
+	// modem boot method
+	value = cpcmdline_get_modem_boot_method();
+	if(NULL != value)
+	{
+		cmdline_add_cp_cmdline(MODEM_BOOT_METHOD, value);
+	}
 
 	debugf("cp cmdline: %s\n", g_CPcmdlineBuf);
 }

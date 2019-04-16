@@ -20,6 +20,7 @@
 #define AUTO_TEST        "autotest"
 #define CRYSTAL_TYPE    "crystal"
 #define RF_HW_ID       "rfhw.id"
+#define MODEM_BOOT_METHOD         "modemboot.method"
 
 #define CHIPUID          "chip.uid"
 #define INVALID_BOARD_ID 0xFF
