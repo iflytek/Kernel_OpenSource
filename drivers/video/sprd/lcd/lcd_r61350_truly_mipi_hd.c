@@ -28,7 +28,7 @@ static uint8_t init_data[] = {
 	0x39, 0x00, 0x00, 0x03, 0xB6, 0x61, 0x2C,
 
 	//display setting
-	0x39, 0x00, 0x00, 0x07, 0xC0, 0x23, 0xB2, 0x0F, 0x10, 0xC2, 0x7F,
+	0x39, 0x00, 0x00, 0x07, 0xC0, 0x23, 0xB2, 0x22, 0x10, 0xC2, 0x7F,
 
 	//display h-timing setting
 	0x39, 0x00, 0x00, 0x17, 0xC1, 0x0B, 0x6F, 0x01, 0x80, 0x00, 0x00,
@@ -176,18 +176,18 @@ static struct panel_info r61350_info = {
 	.height = 1280,
 
 	/* DPI specific parameters */
-	.pixel_clk = 76800000, /*Hz*/
+	.pixel_clk = 64000000, /*Hz*/
 	.rgb_timing = {
-		.hfp = 80,
-		.hbp = 80,
+		.hfp = 31,
+		.hbp = 31,
 		.hsync = 20,
-		.vfp = 126,
-		.vbp = 14,
+		.vfp = 16,
+		.vbp = 32,
 		.vsync = 2,
 	},
 
 	/* MIPI DSI specific parameters */
-	.phy_freq = 600000,
+	.phy_freq = 500000,
 	.lane_num = 4,
 #ifdef CMD_MODE_ENABLE
 	.work_mode = SPRD_MIPI_MODE_CMD,
