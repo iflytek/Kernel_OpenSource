@@ -608,6 +608,20 @@ void pmic_lowpower_config(uint32_t ddie_id, uint32_t adie_id)
 		BITS_DCXO_26M_REF_OUT_EN(REFOUT0_ON | REFOUT3_ON) |
 		0
 	);
+
+	//Pin exit slp config
+	ANA_REG_SET(ANA_REG_GLB_XTL_WAIT_CTRL0,
+		//BIT_EXT_XTL5_FOR_26M_EN |
+		//BIT_EXT_XTL4_FOR_26M_EN |
+		BIT_EXT_XTL3_FOR_26M_EN |
+		BIT_EXT_XTL2_FOR_26M_EN |
+		BIT_EXT_XTL1_FOR_26M_EN |
+		BIT_EXT_XTL0_FOR_26M_EN |
+		BIT_SLP_XTLBUF_PD_EN |
+		BIT_XTL_EN |
+		BITS_XTL_WAIT(0x32) |
+		0
+	);
 #endif
 }
 
