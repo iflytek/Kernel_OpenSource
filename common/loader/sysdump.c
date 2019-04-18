@@ -77,7 +77,6 @@ struct dt_info dt_info;
 struct dump_input_contents_info dump_input_contents_info;
 CHECK_FUNC apdump_check_func_list[CHECK_FUNC_MAX] = {
 	check_dump_enable_status,
-	check_path_valid,
 };
 
 int is_partition_ok = 1;
@@ -2254,7 +2253,7 @@ int check_dump_enable_status(void)
 
 	return 0;
 }
-void show_check_dump_status_result(void)
+void show_check_enable_status_result(void)
 {
 
 	dump_logd("------------------	%s 	------------------ .\n", __FUNCTION__);
@@ -2263,6 +2262,12 @@ void show_check_dump_status_result(void)
 	dump_logd("full_dump_allow  : %d .\n", check_dump_status_result.full_dump_allow);
 	dump_logd("mini_dump_allow  : %d .\n", check_dump_status_result.mini_dump_allow);
 	dump_logd("reset_mode       : (%x)-(%s) .\n", check_dump_status_result.reset_mode,GET_RST_MODE(check_dump_status_result.reset_mode));
+	return;
+}
+void show_check_path_status_result(void)
+{
+
+	dump_logd("------------------	%s 	------------------ .\n", __FUNCTION__);
 	dump_logd("path_sdcard      : %d .\n", check_dump_status_result.path_sdcard);
 	dump_logd("fs_type          : (%d) .\n", check_dump_status_result.fs_type);
 	dump_logd("fs_type          : (%d)-(%s) .\n", check_dump_status_result.fs_type, GET_FS(check_dump_status_result.fs_type));
@@ -2667,7 +2672,7 @@ void write_sysdump_before_boot(int rst_mode)
 			}
 		}
 	}
-	show_check_dump_status_result();
+	show_check_enable_status_result();
 
 	/* To be compatible with no partition version, when partition exsit, update sysdump_flag ,use new status from partiton */
 	if(is_partition_ok)
@@ -2696,6 +2701,8 @@ void write_sysdump_before_boot(int rst_mode)
 	if(ERROR_FNISH == init_dt_info())
 		goto FINISH;
 
+	check_path_valid();
+	show_check_path_status_result();
 
 retry_dump_to_pc:
 	if(check_dump_status_result.dump_to_pc_flag != 1){
