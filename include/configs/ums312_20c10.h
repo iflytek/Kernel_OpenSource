@@ -26,6 +26,9 @@
 #define CONFIG_BOARD_LATE_INIT         /* call board_late_init() */
 //#define CONFIG_SUPPORT_RAW_INITRD
 
+/*the SPL is erased, the romcode will enter the download process.*/
+#define CONFIG_ERASE_SPL_AUTO_DOWNLOAD
+
 /* Cache Definitions */
 //#define CONFIG_SYS_DCACHE_OFF
 //#define CONFIG_SYS_ICACHE_OFF
