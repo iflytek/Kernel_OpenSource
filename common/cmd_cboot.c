@@ -143,6 +143,7 @@ boot_mode_enum_type get_mode_from_watchdog(void)
 		case CMD_EXT_RSTN_REBOOT_MODE:
 		case CMD_IQ_REBOOT_MODE:
 		case CMD_SPRDISK_MODE:
+		case CMD_FACTORYTEST_MODE:
 			return rst_mode;
 		case CMD_ALARM_MODE:
 			if ((flag = alarm_flag_check())) {

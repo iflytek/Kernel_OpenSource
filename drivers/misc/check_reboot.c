@@ -90,6 +90,8 @@ unsigned check_reboot_mode(void)
 			return CMD_IQ_REBOOT_MODE;
 		else if(rst_mode == HWRST_STATUS_SPRDISK)
 			return CMD_SPRDISK_MODE;
+		else if(rst_mode == HWRST_STATUS_FACTORYTEST)
+			return CMD_FACTORYTEST_MODE;
 #if defined(CONFIG_X86)
 		else if(rst_mode == HWRST_STATUS_MOBILEVISOR)
 			return CMD_VMM_PANIC_MODE;
