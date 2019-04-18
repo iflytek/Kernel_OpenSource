@@ -597,10 +597,5 @@ void sprd_pmu_lowpower_init(void)
 
 	//Power on other dcdc/ldo
 	dcdc_ldo_power_on();
-
-	/* for HW workaround in bringup:using 2730 DCDCCPU for little cores
-	 * need make ai_en keeping pull up
-	 */
-	CHIP_REG_OR(REG_PMU_APB_PD_DCDC_AI_CFG2, BIT_PMU_APB_DCDC_AI_FRC_ON(1));
 #endif
 }
