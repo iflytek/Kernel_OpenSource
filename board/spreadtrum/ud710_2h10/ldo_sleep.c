@@ -31,11 +31,11 @@ void dcdc_ldo_power_on()
 #if defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
 	regulator_enable("vddwcn");
 	//regulator_enable("vddcamio"); //regulator not support in u-boot
-	regulator_enable("vddcamd1");
-	regulator_enable("vddcamd0");
-	regulator_enable("vddcama0");
-	regulator_enable("vddcama1");
-	regulator_enable("vddcammot");
+	//regulator_enable("vddcamd1");
+	//regulator_enable("vddcamd0");
+	//regulator_enable("vddcama0");
+	//regulator_enable("vddcama1");
+	//regulator_enable("vddcammot");
 	//regulator_enable("vddsim0");
 	//regulator_enable("vddsim1");
 	regulator_enable("vddsim2");
