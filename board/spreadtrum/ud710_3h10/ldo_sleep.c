@@ -3,6 +3,12 @@
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_reg.h>
 
+#ifdef ROC1_CACHE_MODIFICATION
+#define CONFIG_DCDCSRAM_DEEP_DROP_VOL  600
+#define CONFIG_DCDCMODEM_DEEP_DROP_VOL 600
+#define CONFIG_DCDCGPU_DEEP_DROP_VOL   600
+#endif
+
 void dcdc_ldo_power_on()
 {
 #if defined(CONFIG_ADIE_SC2730)
@@ -76,6 +82,10 @@ void dcdccore_deep_drop_config(void)
 void pmic_lowpower_config(void)
 {
 #if defined(CONFIG_ADIE_SC2730)
+	#ifdef ROC1_CACHE_MODIFICATION
+	uint32_t drop_val;
+	#endif
+
 	/* DCDC and LDO power globle control */
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE, 0x6E7F);
 	while((ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & 0x8000) != 0x8000);
@@ -101,30 +111,61 @@ void pmic_lowpower_config(void)
 	//ADIE sleep globle control
 	ANA_REG_SET(ANA_REG_GLB_SLP_CTRL,
 		BIT_LDO_XTL_EN |			//DCDC and LDO can control by EXT_XTL pin
-	#if !defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
 		BIT_SLP_IO_EN |				//ADIE io can into sleep mode when CHIP_SLEEP high
 		BIT_SLP_LDO_PD_EN |			//DCDC and LDO can pd in sleep mode
-	#endif
 		0
 	);
 
-	//DCDC pd an drop config in sleep mode
+	/*
+	 * DCDC pd an drop config in sleep mode
+	 * with cache workaround dcdc_sram/dcdc_gpu/dcdc_modem cannot shutdown when
+	 * sleep.if not use workaround, we need check whether can.
+	 */
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		BIT_SLP_DCDCMODEM_PD_EN |       //ap_sys/vsp/dpu/wtlcp/pubcp
+	#ifndef ROC1_CACHE_MODIFICATION
+		BIT_SLP_DCDCMODEM_PD_EN |
+	#else
+		//BIT_SLP_DCDCMODEM_PD_EN |       //ap_sys/vsp/dpu/wtlcp/pubcp
+	#endif
 		//BIT_SLP_DCDCMEMQ_PD_EN |      //for ddr keep on even sleep
+	#ifndef ROC1_CACHE_MODIFICATION
 		BIT_SLP_DCDCSRAM_PD_EN |		//GPU/MM/AP/Ananke/corinth/cpu top
+	#else
+		//BIT_SLP_DCDCSRAM_PD_EN
+	#endif
+	#ifndef ROC1_CACHE_MODIFICATION
 		//BIT_SLP_DCDCSRAM_DROP_EN |
 		//BIT_SLP_DCDCMODEM_DROP_EN |
 		//BIT_SLP_DCDCGPU_DROP_EN |
+	#else
+		BIT_SLP_DCDCSRAM_DROP_EN |
+		BIT_SLP_DCDCMODEM_DROP_EN |
+		BIT_SLP_DCDCGPU_DROP_EN |
+	#endif
 	#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
 		//BIT_SLP_DCDCCORE_DROP_EN |
 	#endif
 		//BIT_SLP_DCDCWPA_PD_EN |       //should shutdown by user self
+	#ifndef ROC1_CACHE_MODIFICATION
 		BIT_SLP_DCDCGPU_PD_EN |       	//GPU/ISP/CPP/JPG/AUDCP
+	#else
+		//BIT_SLP_DCDCGPU_PD_EN |
+	#endif
 		//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
-		BIT_SLP_DCDCGEN1_PD_EN |
+		//BIT_SLP_DCDCGEN1_PD_EN |      //Marlin will use,configure by Marlin
 		0
 	);
+
+	#ifdef ROC1_CACHE_MODIFICATION
+	drop_val = (CONFIG_DCDCSRAM_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_SRAM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
+
+	drop_val = (CONFIG_DCDCMODEM_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_MODEM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
+
+	drop_val = (CONFIG_DCDCGPU_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_GPU_SLP_CTRL1, BITS_DCDC_GPU_CTRL_DS_SW(drop_val));
+	#endif
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
 		BIT_SLP_DCDCSRAM_LP_EN |
@@ -140,72 +181,6 @@ void pmic_lowpower_config(void)
 		0
 	);
 
-	//LDO sleep mode config
-#if 0
-	//32k
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-		BIT_SLP_LDO_VDDRF1V8_PD_EN |
-		BIT_SLP_LDO_VDDRF1V25_PD_EN |
-		BIT_SLP_LDO_VDDEMMCCORE_PD_EN |
-		BIT_SLP_LDO_VDD18_DCXO_PD_EN |
-		BIT_SLP_LDO_VDDWIFIPA_PD_EN |
-		//BIT_SLP_LDO_VDD28_PD_EN |
-		BIT_SLP_LDO_VDDSDCORE_PD_EN |
-		BIT_SLP_LDO_VDDSDIO_PD_EN |
-		BIT_SLP_LDO_VDDUSB33_PD_EN |
-		BIT_SLP_LDO_VDDCAMMOT_PD_EN |
-		BIT_SLP_LDO_VDDCAMIO_PD_EN |
-		BIT_SLP_LDO_VDDCAMD0_PD_EN |
-		BIT_SLP_LDO_VDDCAMA0_PD_EN |
-		BIT_SLP_LDO_VDDSIM2_PD_EN |
-		BIT_SLP_LDO_VDDSIM1_PD_EN |
-		0
-	);
-
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
-		//BIT_SLP_LDO_VDDLDO2_PD_EN |
-		BIT_SLP_LDO_AVDD12_PD_EN |
-		BIT_SLP_LDO_VDDWCN_PD_EN |
-		BIT_SLP_LDO_VDDLDO0_PD_EN |
-		BIT_SLP_LDO_VDDCAMD1_PD_EN |
-		BIT_SLP_LDO_VDDCAMA1_PD_EN |
-		BIT_SLP_LDO_VDDSIM0_PD_EN | //?
-		BIT_SLP_LDO_AVDD18_PD_EN |
-		BIT_SLP_LDO_VDDLDO1_PD_EN |
-		0
-	);
-
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL0,
-		BIT_SLP_LDO_VDDRF1V8_LP_EN |
-		//BIT_SLP_LDO_VDDRF1V25_LP_EN |
-		//BIT_SLP_LDO_VDDEMMCCORE_LP_EN |
-		//BIT_SLP_LDO_VDD18_DCXO_LP_EN |
-		//BIT_SLP_LDO_VDDWIFIPA_LP_EN |
-		BIT_SLP_LDO_VDD28_LP_EN |
-		//BIT_SLP_LDO_VDDSDCORE_LP_EN |
-		//BIT_SLP_LDO_VDDSDIO_LP_EN |
-		//BIT_SLP_LDO_VDDUSB33_LP_EN |
-		//BIT_SLP_LDO_VDDCAMMOT_LP_EN |
-		//BIT_SLP_LDO_VDDCAMD0_LP_EN |
-		//BIT_SLP_LDO_VDDCAMA0_LP_EN |
-		//BIT_SLP_LDO_VDDSIM2_LP_EN |
-		//BIT_SLP_LDO_VDDSIM1_LP_EN |
-		0
-	);
-
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL1,
-		BIT_SLP_LDO_VDDLDO2_LP_EN |
-		//BIT_SLP_LDO_AVDD12_LP_EN |
-		BIT_SLP_LDO_VDDWCN_LP_EN |
-		//BIT_SLP_LDO_VDDCAMD1_LP_EN |
-		//BIT_SLP_LDO_VDDCAMA1_LP_EN |
-		//BIT_SLP_LDO_VDDLDO0_LP_EN |
-		//BIT_SLP_LDO_VDDSIM0_LP_EN |
-		BIT_SLP_LDO_AVDD18_LP_EN |
-		//BIT_SLP_LDO_VDDLDO1_LP_EN |
-		0
-	);
-#endif
 	//32k less
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
 		BIT_SLP_LDO_VDDRF1V8_PD_EN |    //transceiver
@@ -228,13 +203,13 @@ void pmic_lowpower_config(void)
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
 		//BIT_SLP_LDO_VDDLDO2_PD_EN |  //type c use.should shutdown by user self
-		BIT_SLP_LDO_AVDD12_PD_EN |     //csi/dsi/ufs/pcie
+		//BIT_SLP_LDO_AVDD12_PD_EN |   //csi/dsi/ufs/pcie need check by pcie
 		//BIT_SLP_LDO_VDDWCN_PD_EN |   //wcn use.should shutdown by user self
 		//BIT_SLP_LDO_VDDLDO0_PD_EN |  //marlin use.should shutdown by user self
 		//BIT_SLP_LDO_VDDCAMD1_PD_EN | //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDCAMA1_PD_EN | //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDSIM0_PD_EN |  //smi use.should shutdown by user self
-		BIT_SLP_LDO_AVDD18_PD_EN |     //pcie/ufs/dsi/usb/marlin...
+		//BIT_SLP_LDO_AVDD18_PD_EN |   //pcie/ufs/dsi/usb/marlin...marlin config
 		BIT_SLP_LDO_VDDLDO1_PD_EN |    //not use
 		0
 	);
