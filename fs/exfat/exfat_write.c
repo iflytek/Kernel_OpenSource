@@ -1207,7 +1207,6 @@ static int do_exfat_write(const char *filename, void *buffer,
 	exfat_fnext_entry *fname_dent[17];
 
 	exfat_whole_dentry  file_ent;
-	memset(&file_ent, 0, sizeof(file_ent));
 
 	if (read_exfat_bootsec(&bs)) {
 		debugf("Error: reading boot sector\n");
@@ -1275,6 +1274,7 @@ static int do_exfat_write(const char *filename, void *buffer,
 		goto exit;
 	}
 
+	memset(&file_ent, 0, sizeof(file_ent));
 	retdent = exfat_path_walk(mydata, filename, &file_ent);
 	if (retdent==NULL) {
 		debugf("Got error when finding/creating file entry\n");
@@ -1316,10 +1316,11 @@ static int do_exfat_write(const char *filename, void *buffer,
 
 	ret = 0;
 
+exit:
+
 	flush_exfatent(mydata);
 	flush_bitmap(mydata);
 
-exit:
 	if (mydata->fatbuf)
 		exfat_mfree(mydata->fatbuf);
 	if (mydata->bitmap)
@@ -1338,13 +1339,8 @@ exit:
 }
 
 
-extern void lcd_printf(const char *fmt, ...);
 int file_exfat_write(const char *filename, void *buffer, unsigned long maxsize)
 {
-	int ret = 0;
 	debugf("writing %s\n", filename);
-	ret = do_exfat_write(filename, buffer, maxsize);
-	if (ret < 0)
-		lcd_printf("\n T-card write ERROR!!! T-card maybe is bad!!!: ret = %d\n", ret);
-	return ret;
+	return do_exfat_write(filename, buffer, maxsize);
 }
