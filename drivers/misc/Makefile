@@ -96,3 +96,8 @@ endif
 ifdef CONFIG_SC9833
 obj-y += sprd_rfti_sharkl2.o
 endif
+
+# feature of direct access prot for sharkl5pro haps
+ifdef CONFIG_DIRECT_ACC_PROT
+obj-y += sprd_apb_direct_acc_prot.o
+endif

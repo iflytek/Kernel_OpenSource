@@ -14,6 +14,7 @@
 #include <sprd_adc.h>
 #include <sprd_led.h>
 #include <sprd_battery.h>
+#include <sprd_direct_acc_prot.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x40000000;
@@ -39,6 +40,9 @@ void enable_global_clocks(void)
 extern void setup_chipram_env(void);
 int board_init(void)
 {
+#ifdef CONFIG_DIRECT_ACC_PROT
+	direct_acc_prot_enable();
+#endif
 	setup_chipram_env();
 #ifndef CONFIG_FPGA
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;

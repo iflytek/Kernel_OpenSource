@@ -348,4 +348,7 @@
 #ifdef CONFIG_ADIE_SC2730
 #define ADI_15BIT_MODE
 #endif
+
+/* direct access prot configuration  */
+#define CONFIG_DIRECT_ACC_PROT
 #endif /* __CONFIG_H  */
