@@ -899,7 +899,7 @@ static u32 e820_map_auto_detect(struct e820entry *entries)
 	return e820_entries_detect;
 }
 #endif
-
+/* TODO: Double channel should be attention */
 static int get_total_dump_memory(void)
 {
 	int k, i = 0;
@@ -929,8 +929,12 @@ static int get_total_dump_memory(void)
 	}
 
 	linux_mem_num_g = i;
-	for (k = 0; k < linux_mem_num_g; k++)
-		dump_logd("linux memory addr = 0x%llx, size = 0x%llx !!!\n", sprd_dump_mem[k].paddr,sprd_dump_mem[k].size);
+	dump_logd("--	here, we dump all mem , so init linux_memory & sprd_ptload_mem as same data	--!!\n");
+	for (k = 0; k < linux_mem_num_g; k++) {
+		linux_memory[k].addr = sprd_dump_mem[k].paddr;
+		linux_memory[k].size = sprd_dump_mem[k].size;
+		dump_logd("linux memory addr = 0x%llx, size = 0x%llx !!!\n",linux_memory[k].addr, linux_memory[k].size);
+	}
 #else
 	phys_addr_t ddr_base = CONFIG_SYS_SDRAM_BASE;
 	phys_size_t ddr_size = get_real_ram_size();
@@ -943,8 +947,12 @@ static int get_total_dump_memory(void)
 
 	i ++;
 	linux_mem_num_g = i;
-	for (k = 0; k < linux_mem_num_g; k++)
-		dump_logd("linux memory addr = 0x%lx, size = 0x%lx!!!\n", sprd_dump_mem[k].paddr, sprd_dump_mem[k].size);
+	dump_logd("--	here, we dump all mem , so init linux_memory & sprd_ptload_mem as same data	--!!\n");
+	for (k = 0; k < linux_mem_num_g; k++) {
+		linux_memory[k].addr = sprd_dump_mem[k].paddr;
+		linux_memory[k].size = sprd_dump_mem[k].size;
+		dump_logd("linux memory addr = 0x%llx, size = 0x%llx !!!\n",linux_memory[k].addr, linux_memory[k].size);
+	}
 #endif
 
 	return linux_mem_num_g;
