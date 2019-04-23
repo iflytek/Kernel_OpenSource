@@ -113,6 +113,8 @@ int board_late_init(void)
 
 
 CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
+	/*0 get mode from calibration detect*/
+	get_mode_from_pctool,
 	get_mode_from_bat_low,
 	write_sysdump_before_boot_extend,
 	/* 1 get mode from file*/
@@ -121,8 +123,6 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 	get_mode_from_watchdog,
 	/*3 get mode from alarm register*/
 	get_mode_from_alarm_register,
-	/*0 get mode from calibration detect*/
-	get_mode_from_pctool,
 	/*4 get mode from charger*/
 	get_mode_from_charger,
 	/*5 get mode from keypad*/
@@ -148,10 +148,10 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 	MODE_REGIST(CMD_PANIC_REBOOT, panic_reboot_mode);
 	MODE_REGIST(CMD_AUTODLOADER_REBOOT, autodloader_mode);
 	MODE_REGIST(CMD_SPECIAL_MODE, special_mode);
-	MODE_REGIST(CMD_CHARGE_MODE, charge_mode);
+	MODE_REGIST(CMD_CHARGE_MODE, normal_mode);
 	MODE_REGIST(CMD_ENGTEST_MODE,engtest_mode);
 	MODE_REGIST(CMD_FACTORYTEST_MODE, factorytest_mode);
-	MODE_REGIST(CMD_CALIBRATION_MODE, calibration_mode);
+	MODE_REGIST(CMD_CALIBRATION_MODE, normal_mode);
 	MODE_REGIST(CMD_EXT_RSTN_REBOOT_MODE, normal_mode);
 	MODE_REGIST(CMD_IQ_REBOOT_MODE, iq_mode);
 	MODE_REGIST(CMD_ALARM_MODE, alarm_mode);
