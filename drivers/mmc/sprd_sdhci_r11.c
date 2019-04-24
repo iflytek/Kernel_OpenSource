@@ -316,6 +316,7 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 		sdhci_cmd_done(host, cmd);
 		sdhci_writel(host, mask, SDHCI_INT_STATUS);
 	} else {
+		printf("%s: ret = -1, interrupt status: 0x%x\n", __func__, stat);
 		ret = -1;
 	}
 
@@ -340,6 +341,8 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 	}
 	sdhci_reset(host, SDHCI_RESET_CMD);
 	sdhci_reset(host, SDHCI_RESET_DATA);
+	printf("%s interrupt status: 0x%x, CMD%d, delay: 0x%x\n", __func__,
+		stat, cmd->cmdidx, sdhci_readl(host, SDHCI_DLL_DLY));
 	if (stat & SDHCI_INT_TIMEOUT)
 		return TIMEOUT;
 	else
