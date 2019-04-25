@@ -1416,7 +1416,7 @@ CONFIG_CGROUP_SCHED
 	[function] Group CPU scheduler(vts require)
 CONFIG_CHARGER_FAN54015
 	[arch] all
-	[plat] sharkl3,sharkl5_32
+	[plat] sharkl3,sharkl5,sharkl5_32
 	[field] make
 	[subsys] power
 	[must] user
@@ -3045,27 +3045,6 @@ CONFIG_EXPERT
 	[subsys] core
 	[must] console
 	[function] Configure standard kernel features (expert users).
-CONFIG_EXT2_FS
-	[arch] arm64
-	[plat] roc1
-	[field]
-	[subsys]
-	[must]
-	[function]
-CONFIG_EXT2_FS_XATTR
-	[arch] arm64
-	[plat] roc1
-	[field]
-	[subsys]
-	[must]
-	[function]
-CONFIG_EXT3_FS
-	[arch] arm64
-	[plat] roc1
-	[field]
-	[subsys]
-	[must]
-	[function]
 CONFIG_EXT4_ENCRYPTION
 	[arch] all
 	[plat] all
@@ -9780,6 +9759,13 @@ CONFIG_SPRD_APDU
 	[subsys] misc
 	[must] user
 	[function] Spreadtrum apdu driver.
+CONFIG_SPRD_APSYS_DVFS_DEVFREQ
+	[arch] arm64
+	[plat] sharkl5
+	[field] make
+	[subsys] devfreq
+	[must] user
+	[function] Enable apsys dvfs function.
 CONFIG_SPRD_AUDIO_AGDSP_ACCESS
 	[arch] all
 	[plat] roc1,sharkl5,sharkl5_32
@@ -10096,6 +10082,13 @@ CONFIG_SPRD_MEM_OVERLAY_CHECK
 	[must] user
 	[function] This function is used to detected overlay region in
 		   reserved-memory.
+CONFIG_SPRD_MINI_SYSDUMP
+	[arch] arm64
+	[plat] roc1
+	[field]
+	[subsys]
+	[must]
+	[function]
 CONFIG_SPRD_MIPI_LOG_R5P0
 	[arch] arm64
 	[plat] sharkl5
@@ -10350,13 +10343,6 @@ CONFIG_SPRD_TOP_DVFS_DEVFREQ
 	[subsys] devfreq
 	[must] user
 	[function] Enable device dvfs function.
-CONFIG_SPRD_APSYS_DVFS_DEVFREQ
-	[arch] arm64
-	[plat] sharkl5
-	[field] make
-	[subsys] devfreq
-	[must] user
-	[function] Enable apsys dvfs function.
 CONFIG_SPRD_USB3_PHY
 	[arch] arm64
 	[plat] roc1
