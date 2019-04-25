@@ -31,6 +31,7 @@ static void uppercase(char *str, int len)
 
 int disk_write(__u32 block, __u32 nr_blocks, void *buf)
 {
+	int ret = 0;
 	if (!cur_dev || !cur_dev->block_write)
 		return -1;
 
@@ -40,8 +41,15 @@ int disk_write(__u32 block, __u32 nr_blocks, void *buf)
 		return -1;
 	}
 
-	return cur_dev->block_write(cur_dev->dev,
+	ret = cur_dev->block_write(cur_dev->dev,
 			cur_part_info.start + block, nr_blocks,	buf);
+
+	if (ret == 0) {
+		debugf("mmc_bwrite Error!!!\n");
+		ret = -1;
+	}
+
+	return ret;
 }
 
 /*
@@ -708,7 +716,7 @@ set_contents(fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
 			if (CHECK_CLUST(newclust, mydata->fatsize)) {
 				debug("curclust: 0x%x\n", newclust);
 				debug("Invalid FAT entry\n");
-				return 0;
+				return -1;
 			}
 			endclust = newclust;
 			actsize += bytesperclust;
@@ -753,7 +761,7 @@ getit:
 		if (CHECK_CLUST(curclust, mydata->fatsize)) {
 			debug("curclust: 0x%x\n", curclust);
 			debug("Invalid FAT entry\n");
-			return 0;
+			return -1;
 		}
 		actsize = bytesperclust;
 		curclust = endclust = newclust;
@@ -1001,8 +1009,9 @@ static __u32 find_files_curclust(const char *file_name)
 	int name_len;
 	char filename[FILENAME_LEN_BYTES] = {0};
 
+	memset(&datablock, 0, sizeof(fsdata));
 	if (read_fat_dbr(mydata))
-		return 0;
+		return -1;
 
 	cur = start = file_name;
 
@@ -1029,7 +1038,7 @@ static __u32 find_files_curclust(const char *file_name)
 			PREFETCH_BLOCKS, do_fat_read_at_block) < 0) {
 				debug("Error: reading rootdir block\n");
 				free(mydata->fatbuf);
-				return 0;
+				return -1;
 			}
 
 		dentptr = (dir_entry *) do_fat_read_at_block;
@@ -1045,7 +1054,7 @@ static __u32 find_files_curclust(const char *file_name)
 			else {
 				debugf("Error: pre-directory %s doesn't exist\n", filename);
 				free(mydata->fatbuf);
-				return 0;
+				return -1;
 			}
 		}
 
@@ -1077,6 +1086,7 @@ static int do_fat_write(const char *path_name, void *buffer, loff_t size,
 	const char *start, *end, *cur = path_name;
 	int ret = -1, name_len;
 
+	memset(&datablock, 0, sizeof(fsdata));
 	if (read_fat_dbr(mydata))
 		goto exit;
 	*actwrite = size;
@@ -1095,7 +1105,11 @@ static int do_fat_write(const char *path_name, void *buffer, loff_t size,
 	}
 
 	start_cluster = find_files_curclust(path_name);
-	if (start_cluster == 0)
+	if (start_cluster < 0) {
+		debug("Error: find_files_curclust\n");
+		goto exit;
+	}
+	else if (start_cluster == 0)
 		startsect = mydata->rootdir_sect;
 	else
 		startsect = mydata->data_begin + start_cluster * mydata->clust_size;
@@ -1261,6 +1275,7 @@ struct dir_entry* check_folder_flag(const char *path_name)
 	const char *start, *end, *cur;
 	int name_len = 0;
 
+	memset(&datablock, 0, sizeof(fsdata));
 	if(read_fat_dbr(mydata))
 		return NULL;
 
@@ -1328,6 +1343,7 @@ int do_new_folder(const char* path_name)
 	unsigned long size= 0;
 	const char *start, *end, *cur;
 
+	memset(&datablock, 0, sizeof(fsdata));
 	if(read_fat_dbr(mydata))
 		goto exit;
 
@@ -1460,6 +1476,7 @@ int rename_folder(const char *scr, const char *dest)
 	cur = start = dest;
 	retdent = check_folder_flag(scr);
 
+	memset(&datablock, 0, sizeof(fsdata));
 	if(read_fat_dbr(mydata))
 		goto exit;
 
@@ -1504,6 +1521,7 @@ int delete_files(const char *filename)
 	fsdata datablock;
 	fsdata *mydata = &datablock;
 
+	memset(&datablock, 0, sizeof(fsdata));
 	if(read_fat_dbr(mydata))
 		goto exit;
 
@@ -1568,6 +1586,7 @@ int delete_folder(const char *path_name)
 	filename[name_len] = '/';
 	filename[name_len + 1] = '\0';
 
+	memset(&datablock, 0, sizeof(fsdata));
 	if(read_fat_dbr(mydata))
 		goto exit;
 	retdent = check_folder_flag(path_name);

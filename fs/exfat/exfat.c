@@ -873,17 +873,26 @@ int   exfat_mfree(void *ptr)
 
 int exfat_disk_read(__u32 block, __u32 nr_blocks, void *buf)
 {
+	int ret = 0;
 	if (!cur_dev || !cur_dev->block_read) {
 		debugf("Error: ex_disk_read(), dev or read not defined: %08x\n", cur_dev);
 		return -1;
 	}
 
-	return cur_dev->block_read(cur_dev->dev,
+	ret = cur_dev->block_read(cur_dev->dev,
 			cur_part_info.start + block, nr_blocks, buf);
+
+	if (ret == 0) {
+		debugf("mmc_bread Error!!!\n");
+		ret = -1;
+	}
+
+	return ret;
 }
 
 int exfat_disk_write(__u32 block, __u32 nr_blocks, void *buf)
 {
+	int ret = 0;
 	if (!cur_dev || !cur_dev->block_write){
 		debugf("Error: exfat_disk_write(), dev or write not defined: %08x\n", cur_dev);
 		return -1;
@@ -895,8 +904,15 @@ int exfat_disk_write(__u32 block, __u32 nr_blocks, void *buf)
 		return -1;
 	}
 
-	return cur_dev->block_write(cur_dev->dev,
+	ret = cur_dev->block_write(cur_dev->dev,
 			cur_part_info.start + block, nr_blocks,	buf);
+
+	if (ret == 0) {
+		debugf("mmc_bwrite Error!!!\n");
+		ret = -1;
+	}
+
+	return ret;
 }
 
 

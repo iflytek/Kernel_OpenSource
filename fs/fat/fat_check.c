@@ -494,8 +494,7 @@ checkRootDir(struct bootblock *boot, struct fatEntry *fat,
 					empty = p;
 					empcl = cl;
 				}
-				free(buf);
-				return mod;
+				break;
 			}
 
 			if (dir->fsckflags & DIREMPTY) {
@@ -506,7 +505,7 @@ checkRootDir(struct bootblock *boot, struct fatEntry *fat,
 				q = empcl == cl ? empty : buf;
 				for (; q < p; q += 32)
 					*q = SLOT_DELETED;
-				mod |= FSDIRMOD|FSERROR;
+				mod |= FSDIRMOD|FSERROR|THISMOD;
 			}
 
 			if (p[11] == ATTR_WIN95) {
@@ -562,7 +561,7 @@ checkRootDir(struct bootblock *boot, struct fatEntry *fat,
 					if (boot->ClustMask == CLUST32_MASK)
 						p[20] = p[21] = 0;
 					dirent.head = 0;
-					mod |= FSDIRMOD|FSFATMOD|FSFATAL;
+					mod |= FSDIRMOD|FSFATMOD|FSFATAL|THISMOD;
 				}
 			} else if (dirent.head == 0
 				   && !strcmp(dirent.name, "..")) {
@@ -575,7 +574,7 @@ checkRootDir(struct bootblock *boot, struct fatEntry *fat,
 				if (dirent.flags & ATTR_DIRECTORY) {
 					debug("Remove\n");
 					*p = SLOT_DELETED;
-					mod |= FSDIRMOD;
+					mod |= FSDIRMOD|THISMOD;
 					continue;
 				} else {
 					debug("Truncate\n");
@@ -584,7 +583,7 @@ checkRootDir(struct bootblock *boot, struct fatEntry *fat,
 					if (boot->ClustMask == CLUST32_MASK)
 						p[20] = p[21] = 0;
 					dirent.size = 0;
-					mod |= FSDIRMOD|FSFATAL;
+					mod |= FSDIRMOD|FSFATAL|THISMOD;
 				}
 			}
 		}
@@ -600,7 +599,7 @@ checkRootDir(struct bootblock *boot, struct fatEntry *fat,
 	} while (0);
 
 	free(buf);
-	return mod & ~THISMOD;
+	return mod & ~THISMOD & ~FSFATAL;
 }
 
 static int checkfree(struct bootblock *boot, __u64 ram_size)
