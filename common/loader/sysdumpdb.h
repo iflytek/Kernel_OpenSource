@@ -50,8 +50,7 @@
 #define SECTION_NUM_MAX 20		/* max dump section num in minidump */
 #define SECTION_NAME_MAX 10
 #define MINIDUMP_MEM_MAX 50
-#define PT_BUF_SIZE	2 * 1024 * 1024
-
+#define PT_BUF_SIZE	(2 * 1024 * 1024)
 
 enum minidump_info_type {
 	MINIDUMP_INFO_PADDR,
@@ -75,9 +74,11 @@ struct dumpdb_header{
 	/*	Bit[0] : first boot indicate . 0: first boot ,not init .  1: no first boot , has init
 		Bit[1] : sysdump status , 0: disable 1:enable
 		Bit[2] : minidump status, 0:disable 1:enable
+		Bit[3] : boot from  sysdump status , 0:not from sysdump 1:from sysdump; when undefined mode , do not check this status
 		others : reserved.
 	*/
 	int	dump_flag;
+	int	reset_mode;	/*record which reset mode  enter sysdump*/
 	struct info_desc minidump_info_desc;
 };
 

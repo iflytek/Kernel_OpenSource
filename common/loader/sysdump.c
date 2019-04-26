@@ -123,13 +123,13 @@ char *rstmode[] = {
 	"alarm",				//CMD_ALARM_MODE,
 	"charge",				//CMD_CHARGE_MODE,
 	"engtest",				//CMD_ENGTEST_MODE,
-	"watchdog timeout",			//CMD_WATCHDOG_REBOOT ,
-	"ap watchdog timeout",			//CMD_AP_WATCHDOG_REBOOT ,
+	"watchdog_timeout",			//CMD_WATCHDOG_REBOOT ,
+	"apwatchdog_timeout",			//CMD_AP_WATCHDOG_REBOOT ,
 	"framework crash",			//CMD_SPECIAL_MODE,
-	"manual dump",				//CMD_UNKNOW_REBOOT_MODE,
-	"kernel crash",				//CMD_PANIC_REBOOT,
-	"vmm panic",				//CMD_VMM_PANIC_MODE
-	"tos panic",				//CMD_TOS_PANIC_MODE
+	"manual_dump",				//CMD_UNKNOW_REBOOT_MODE,
+	"kernel_crash",				//CMD_PANIC_REBOOT,
+	"vmm_panic",				//CMD_VMM_PANIC_MODE
+	"tos_panic",				//CMD_TOS_PANIC_MODE
 	"ext rstn reboot",                      //CMD_EXT_RSTN_REBOOT_MODE,
 	"calibration",				//CMD_CALIBRATION_MODE,
 	"factory test",				//CMD_FACTORYTEST_MODE,
@@ -2234,7 +2234,7 @@ int check_dump_enable_status(void)
 		header_g.dump_flag |= AP_MINI_DUMP_ENABLE;
 		dump_logd("Always set ap mini dump enable default .  (0x%x) \n", header_g.dump_flag);
 		/*	set FIRST_BOOT as '1'  */
-		//header_g.dump_flag |= FIRST_BOOT;
+		header_g.dump_flag |= FIRST_BOOT;
 		/*	updadte dump flag data */
 		if (sysdumpdb_write(SYSDUMPDB_PARTITION_NAME, sizeof(struct dumpdb_header), sizeof(struct dumpdb_header), 0, (char*)&header_g)) {
 			dump_loge(" update dump flag  %s error.\n", SYSDUMPDB_PARTITION_NAME);
@@ -2643,6 +2643,56 @@ int save_etb_to_file(void)
 	return 0;
 }
 #endif
+int update_reset_mode_from_dump(void)
+{
+	struct dumpdb_header header_g;
+	dump_logd(" %s .\n", GET_RST_MODE(check_dump_status_result.reset_mode));
+	if (common_raw_read(SYSDUMPDB_PARTITION_NAME, (uint64_t)(sizeof(header_g)), (uint64_t)0,(char *)&header_g)){
+		dump_loge("%s: read header from %s error.do nothing \n", SYSDUMPDB_LOG_TAG, SYSDUMPDB_PARTITION_NAME);
+		is_partition_ok = 0;
+		return -1;
+	}
+
+	if(IS_BOOT_FROM_DUMP(header_g.dump_flag)) {
+		dump_logd(" ----   IS_BOOT_FROM_DUMP   TRUE-----  (0x%x)\n", header_g.dump_flag);
+		/*	clear BOOT_FROM_DUMP_STATUS flag bit */
+		header_g.dump_flag &= (~BOOT_FROM_DUMP_STATUS);
+		/*	set env for bootmode */
+		setenv("bootmode", GET_RST_MODE(header_g.reset_mode));
+
+		/*      updadte dump flag data */
+		if (sysdumpdb_write(SYSDUMPDB_PARTITION_NAME, sizeof(struct dumpdb_header), sizeof(struct dumpdb_header), 0, (char*)&header_g)) {
+			dump_loge("  %s error.\n", SYSDUMPDB_PARTITION_NAME);
+			return -1;
+		}
+
+	} else {
+		dump_logd(" ----   IS_BOOT_FROM_DUMP   FALSE-----  (0x%x)\n", header_g.dump_flag);
+	}
+	return 0;
+}
+int save_reset_mode_after_dump(void)
+{
+	struct dumpdb_header header_g;
+	if (common_raw_read(SYSDUMPDB_PARTITION_NAME, (uint64_t)(sizeof(header_g)), (uint64_t)0,(char *)&header_g)){
+		dump_loge("%s: read header from %s error.do nothing \n", SYSDUMPDB_LOG_TAG, SYSDUMPDB_PARTITION_NAME);
+		is_partition_ok = 0;
+		return -1;
+	}
+	/*	set BOOT_FROM_DUMP_STATUS flag bit */
+	header_g.dump_flag |= BOOT_FROM_DUMP_STATUS;
+	dump_logd(" set BOOT_FROM_DUMP_STATUS flag bit \n");
+	header_g.reset_mode = check_dump_status_result.reset_mode;
+	dump_logd(" save reset mode for dump update -----  (%s)\n", GET_RST_MODE(check_dump_status_result.reset_mode));
+
+	/*      updadte dump flag data */
+	if (sysdumpdb_write(SYSDUMPDB_PARTITION_NAME, sizeof(struct dumpdb_header), sizeof(struct dumpdb_header), 0, (char*)&header_g)) {
+		dump_loge("  %s error.\n", SYSDUMPDB_PARTITION_NAME);
+		return -1;
+	}
+
+	return 0;
+}
 void write_sysdump_before_boot(int rst_mode)
 {
 	struct sysdump_info *infop = NULL;
@@ -2683,6 +2733,9 @@ void write_sysdump_before_boot(int rst_mode)
 	show_check_enable_status_result();
 
 	/* To be compatible with no partition version, when partition exsit, update sysdump_flag ,use new status from partiton */
+	/*when is_partition_ok true and boot mode not CMD_UNDEFINED_MODE , we need update  boot mode if boot from dump */
+	if(is_partition_ok)
+		update_reset_mode_from_dump();
 	if(is_partition_ok)
 		sysdump_flag = check_dump_status_result.full_dump_enable;
 
@@ -2802,7 +2855,8 @@ FINISH:
 #endif
 	dump_logd ("sysdump  finish or happen abnormally , reboot (reset_cpu)!!!\n");
 	if(is_partition_ok) {
-		/*TODO:Need to indicate sysdump process in partition and record reset mode */
+		/* indicate sysdump process in partition and record reset mode */
+		save_reset_mode_after_dump();
 		reboot_devices(CMD_NORMAL_MODE);
 	}
 	return;
