@@ -448,6 +448,12 @@ config TARGET_UDX710_2H10
         help
           This is the Spreadtrum orca Board
 
+config TARGET_UDX710_3H10
+        bool "Spreadtrum orca"
+        select ARM64
+        help
+          This is the Spreadtrum orca Board
+
 config TARGET_SP9863A_1H10_32B
 	bool "Spreadtrum sharkl3"
 	select CPU_V7
@@ -579,6 +585,7 @@ source "board/spreadtrum/sp9650_haps/Kconfig"
 source "board/spreadtrum/udx710_haps/Kconfig"
 source "board/spreadtrum/udx710_1h10/Kconfig"
 source "board/spreadtrum/udx710_2h10/Kconfig"
+source "board/spreadtrum/udx710_3h10/Kconfig"
 source "board/spreadtrum/sp9863a_1h10_32b/Kconfig"
 source "board/spreadtrum/sp9863a_3h10_32b/Kconfig"
 source "board/spreadtrum/sp9863a_3c10_32b/Kconfig"
