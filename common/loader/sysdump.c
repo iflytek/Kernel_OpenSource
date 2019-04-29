@@ -297,7 +297,7 @@ void write_mem_to_mmc(char *path, char *filename, int fs_type,
 	else
 		ret = -1;
 
-	if (ret != 0) {
+	if (ret < 0) {
 		dump_logd("write file %s to SD Card error, and ret = %d !!!\n", filename, ret);
 		sysdump_lcd_printf("write file %s to SD Card error, and ret = %d !!!\n", filename, ret);
 		return;
@@ -769,6 +769,7 @@ static int sysdump_cyclic_storage(int fs_type, unsigned long long dump_size)
 				}
 				mod = fat_checksys(dump_size);
 				if (!(mod & FSNOSPACE)) {
+					dump_logd(" fat_checksys return 0x%x !!!\n", mod);
 					nospace_flag = false;
 					break;
 				}
@@ -776,18 +777,22 @@ static int sysdump_cyclic_storage(int fs_type, unsigned long long dump_size)
 		}
 
 		if (nospace_flag) {
-			sysdump_lcd_printf("\nHello Baby: SD Card have not enough space !!!");
+			sysdump_lcd_printf("\nSD Card have not enough space !!!");
 			sysdump_lcd_printf("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump !!!\n");
+			dump_logd("\nSD Card have not enough space !!!\n");
+			dump_logd("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump !!!\n");
 			do {
 				udelay(50 * 1000);
 				key_code = board_key_scan();
 				if (key_code == KEY_VOLUMEDOWN) {
 					if (fs_type == FS_FAT32) {
+						dump_logd("Key: KEY_VOLUMEDOWN , try to fat_format  !!!\n");
 						fat_format();
 						break;
 					}else
 						return -1;
 				} else if (key_code == KEY_VOLUMEUP) {
+					dump_logd("Key: KEY_VOLUMEUP , try to skip sysdump to sdcard  !!!\n");
 					return -1;
 				}
 			} while (1);
@@ -2027,7 +2032,7 @@ static int usb_sysdump_handler(void)
 		/* no cable insert , press key to abort it */
 		udelay(50 * 1000);
 		key_code = board_key_scan();
-		if (key_code == KEY_VOLUMEDOWN){
+		if (key_code == KEY_VOLUMEUP){
 			dump_logd("Key pressed detect ,Do not wait usb cable,abort sysdump ...\n");
 			sysdump_lcd_printf("Do not wait usb cable,abort sysdump ...\n");
 			return -1;
@@ -2314,17 +2319,22 @@ int prepare_sd_env(void)
 			dump_logd("FileSystem is FAT32 !!!\n");
 			mod = fat_checksys(max_size);
 			if (mod & FSFATAL) {
-				sysdump_lcd_printf("\nHello Baby: SD Card is demaged !!!");
+				sysdump_lcd_printf("\n SD Card is demaged !!!");
 				sysdump_lcd_printf("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump to sdcard!!!\n");
+				dump_logd("\n SD Card is demaged !!!i\n");
+				dump_logd("\npress volumedown to format SD Card !!!\notherwise press volumeup to skip sysdump to sdcard!!!\n");
 				do {
 					udelay(50 * 1000);
 					key_code = board_key_scan();
 					if (key_code == KEY_VOLUMEDOWN) {
+						dump_logd("Key: KEY_VOLUMEDOWN , try to fat_format  !!!\n");
 						fat_format();
 						break;
-					} else if(key_code == KEY_VOLUMEUP)
+					} else if(key_code == KEY_VOLUMEUP) {
+						dump_logd("Key: KEY_VOLUMEUP , try to skip sysdump to sdcard  !!!\n");
 						check_dump_status_result.dump_to_sd_fail = 1;
-					return ERROR_FNISH;
+						return ERROR_FNISH;
+					}
 				} while (1);
 			}
 			ret = sysdump_cyclic_storage(fs_type,max_size);
@@ -2781,7 +2791,7 @@ retry_dump_to_pc:
 			sysdump_lcd_printf("\ninit usb driver or serial failed !! abort dump to pc.\n");
 			goto FINISH;
 		}
-		sysdump_lcd_printf("\nDump to PC start..\ncheck usb cable's status or check key volumn down pressed to abort\n",GET_RST_MODE(rst_mode));
+		sysdump_lcd_printf("\nDump to PC start..\ncheck usb cable's status or check key volumn up pressed to abort\n",GET_RST_MODE(rst_mode));
 		do {
 			dump_logd("check usb cable's status  !!!\n");
 			ret = usb_sysdump_handler();
