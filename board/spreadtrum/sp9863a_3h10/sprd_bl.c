@@ -98,7 +98,7 @@ void set_backlight(uint32_t brightness)
 	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG7, 0x73);
 
 	/* set SEL_POC_LIMIT to 1.5A for WLED boost current limit */
-	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_BOOST_CONTROL1, 0x01);
+	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_BOOST_CONTROL1, 0x19);
 
 	set_backlight_pwms(brightness);
 
