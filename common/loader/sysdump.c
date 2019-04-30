@@ -152,7 +152,7 @@ void display_writing_sysdump(void)
 	sysdump_lcd_printf("   -------------------------------  \n"
 			"   Sysdumpping now, keep power on.  \n"
 			"   -------------------------------  \n");
-	set_backlight(255);
+	set_backlight(BACKLIGHT_ON);
 	set_vibrator(0);
 #endif
 }
@@ -165,7 +165,7 @@ void display_special_mode(void)
 	sysdump_lcd_printf("   -------------------------------  \n"
 			"   Restart now, keep power on.  \n"
 			"   -------------------------------  \n");
-	set_backlight(255);
+	set_backlight(BACKLIGHT_ON);
 	set_vibrator(0);
 #endif
 }
@@ -176,7 +176,7 @@ void display_sysdump(ivoid)
 #ifdef CONFIG_SPLASH_SCREEN
 	vibrator_hw_init();
 	set_vibrator(1);
-	set_backlight(255);
+	set_backlight(BACKLIGHT_ON);
 	set_vibrator(0);
 #endif
 }

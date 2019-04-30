@@ -179,7 +179,7 @@ extern int drv_lcd_init (void);
 
 	extern void set_backlight(uint32_t value);
 	fastboot_lcd_printf();
-	set_backlight(255);
+	set_backlight(BACKLIGHT_ON);
 	mdelay(400);
 	set_vibrator(0);
 #endif
