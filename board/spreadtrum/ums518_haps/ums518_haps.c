@@ -60,6 +60,8 @@ int board_init(void)
 	sprd_pmu_lowpower_init();
 	TDPllRefConfig(1);
 	enable_global_clocks();
+#else
+	sci_glb_set(REG_AON_APB_APB_EB1, BIT_AON_APB_ANA_EB);
 #endif
 	return 0;
 }
