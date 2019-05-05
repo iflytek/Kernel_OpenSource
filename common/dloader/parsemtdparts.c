@@ -347,7 +347,7 @@ int parse_mtd_part_info(char *name,struct mtd_partition *part)
 		return 0;
 	}
 
-	for(i=MTDPARTITION_MAX;i>0;i--){
+	for(i=(MTDPARTITION_MAX-1);i>0;i--){
 		if(0==strcmp(name, realpart[i].name)){
 			part->offset = realpart[i].offset;
 			part->size = realpart[i].size;
