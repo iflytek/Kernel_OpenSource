@@ -418,6 +418,12 @@ config TARGET_ums312_20c10
         help
           This is the Spreadtrum sharkl5 Board
 
+config TARGET_UMS312_3H10_4PRO
+        bool "Spreadtrum sharkl5"
+        select ARM64
+        help
+          This is the Spreadtrum sharkl5 Board
+
 config TARGET_UMS518_ZEBU
         bool "Spreadtrum sharkl5pro"
         select ARM64
@@ -581,6 +587,7 @@ source "board/spreadtrum/ums312_1h10_32b/Kconfig"
 source "board/spreadtrum/ums312_2h10/Kconfig"
 source "board/spreadtrum/ums312_2h10_32b/Kconfig"
 source "board/spreadtrum/ums312_20c10/Kconfig"
+source "board/spreadtrum/ums312_3h10_4pro/Kconfig"
 source "board/spreadtrum/sp9650_haps/Kconfig"
 source "board/spreadtrum/udx710_haps/Kconfig"
 source "board/spreadtrum/udx710_1h10/Kconfig"
