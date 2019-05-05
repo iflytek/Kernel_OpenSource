@@ -20,6 +20,8 @@
 #include <sprd_sdhci_r11.h>
 #include <asm/arch/common.h>
 
+uint32_t (*sdhci_get_delay)(uint32_t device_type) = NULL;
+
 #if defined(CONFIG_FIXED_SDHCI_ALIGNED_BUFFER)
 void *aligned_buffer = (void *)CONFIG_FIXED_SDHCI_ALIGNED_BUFFER;
 #else
@@ -637,6 +639,7 @@ static void sdhci_set_ios(struct mmc *mmc)
 #ifdef CONFIG_EMMC_HAS_DDR_MODE
 	u32 timing_mode = 0;
 #endif
+	uint32_t delay;
 
 	/*
 	 * Someone remove this callback, which may be fix some bugs.
@@ -644,10 +647,14 @@ static void sdhci_set_ios(struct mmc *mmc)
 	 */
 	if (host->set_control_reg)
 		host->set_control_reg(host);
-
-	if (mmc->clock != host->clock)
+	if (mmc->clock != host->clock) {
 		sdhci_set_clock(mmc, mmc->clock);
-
+		if(sdhci_get_delay &&  (mmc->clock == mmc->tran_speed) &&
+		   (mmc->block_dev.dev == SD)) {
+			delay = sdhci_get_delay(SD);
+			sdhci_writel(host, delay, SDHCI_DLL_DLY);
+		}
+	}
 	/* Set bus width */
 	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL_REG1);
 	if (mmc->bus_width == 8) {

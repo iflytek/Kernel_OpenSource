@@ -10,6 +10,7 @@
 #ifndef __SDHCI_HW_H
 #define __SDHCI_HW_H
 
+#include <asm/arch/sdio_cfg.h>
 #include <asm/io.h>
 #include <mmc.h>
 

@@ -12,6 +12,27 @@
 #define EMMC	0
 #define SD	1
 
+/*
+ * sd_dly = (wr_dly) | ((cmd_dly) << 8) | ((posrd_dly) << 16) |
+ * ((negrd_dly) << 24)
+ */
+struct sd_delay {
+	uint32_t sdhs_dly;
+};
+
+/*
+ * mmc_delay = (wr_dly) | ((cmd_dly) << 8) | ((posrd_dly) << 16) |
+ * ((negrd_dly) << 24)
+ */
+struct mmc_delay {
+	uint32_t mmchs_dly;
+};
+
+union sdio_delay {
+	struct sd_delay sd_dly;
+	struct mmc_delay mmc_dly;
+};
+
 struct sdio_base_info {
 	uint32_t  dev_type;
 	uint32_t  regbase;
@@ -30,8 +51,9 @@ struct sdio_base_info {
 
 	const char *ldo_io;
 	const char *ldo_core;
+	union sdio_delay sdio_dly;
 };
 
 struct sdio_base_info *get_sdcontrol_info(uint32_t device_type);
-
+uint32_t get_delay_value(uint32_t device_type);
 #endif
