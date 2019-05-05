@@ -224,10 +224,11 @@ static int sprd_wait_for_ack(void *i2c_base)
 		printf("Timed out in wait_for_ack: status=%04x\n",
 			status);
 		sprd_i2c_dump_reg(i2c_base);
+		sprd_i2c_clear_ack(i2c_base);
+		sprd_i2c_clear_start(i2c_base);
 		return -1;
 	}
 
-	sprd_i2c_clear_ack(i2c_base);
 	sprd_i2c_clear_start(i2c_base);
 	return status;
 }
