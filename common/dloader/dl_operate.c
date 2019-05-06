@@ -818,7 +818,7 @@ int32_t _read_repair_nv_img(uchar * partition_name, uchar * buf)
 	int status = ORIGIN_BACKUP_NV_OK;
 	int ret = 0;
 
-	backup_nv_buf = buf + SZ_8M;
+	backup_nv_buf = buf + SZ_16M;
 
 	do {
 		/*read origin image header */
