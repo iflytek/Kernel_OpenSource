@@ -90,15 +90,26 @@ void lcd_use_sc2703l_to_power_on(void)
 
 void set_backlight(uint32_t brightness)
 {
+	u8 value;
+	i2c_set_bus_num(SC2703_LCD_I2C_BUS);
+
+	value = SC2703_IDAC_LINEAR_MASK
+		| SC2703_WLED_IDAC_EN_MASK
+		| 0x2 << SC2703_WLED_MODE_SHIFT
+		| 0x1 << SC2703_WLED_MODE_SHIFT;
 
 	/* set WLED_MODE to duty-detect-analog-mode */
-	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG1, 0x1b);
+	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG1, value);
 
 	/* disable IDAC RAMP to avoid backlight flash when power on */
-	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG7, 0x73);
+	value = i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG7);
+	value |= SC2703_IDAC_RAMP_DIS_MASK;
+	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_CONFIG7, value);
 
 	/* set SEL_POC_LIMIT to 1.5A for WLED boost current limit */
-	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_BOOST_CONTROL1, 0x19);
+	value = i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_BOOST_CONTROL1);
+	value |= 1 << SC2703_SEL_POC_LIMIT_SHIFT;
+	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_WLED_BOOST_CONTROL1, value);
 
 	set_backlight_pwms(brightness);
 
