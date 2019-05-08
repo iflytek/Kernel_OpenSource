@@ -5,6 +5,14 @@
 
 #include "sc2703l_bllcd.h"
 
+/*       SC2703L I2C Register Address Space                     */
+/* Reg_Addr_Range    Device_ID    Reg_Block                     */
+/*  0x0000 ~ 0x00FF    0x48        Display Virtual/OTP Register */
+/*  0x0100 ~ 0x01FF    0x49        CoreBuck                     */
+/*  0x0200 ~ 0x02FF    0x4A        Flash Driver                 */
+/*  0x0300 ~ 0x03FF    0x4B        Display/Wled/...             */
+/*  0x0400 ~ 0x04FF    0x4C        Charger                      */
+#define SC2703L_OTP_I2C_ADDRESS	 0x48
 #define SC2703L_LCD_I2C_ADDRESS  0x4b
 #define SC2703L_LCD_I2C_BUS  5
 
@@ -60,6 +68,29 @@ void set_backlight_pwms(uint32_t brightness)
 		pwm_write(index, 1, PWM_ENABLE);
 		printf("sprd backlight power on. pwm_index=%d  brightness=%d\n", index, brightness);
 	}
+}
+
+/* sc2703l power on */
+void lcd_use_sc2703l_to_power_on(void)
+{
+	int loop = 100;
+	uint8_t scval = 0;
+
+	i2c_set_bus_num(SC2703L_LCD_I2C_BUS);
+
+	/* Workaround as the clamp is still in place */
+	i2c_reg_write(SC2703L_OTP_I2C_ADDRESS, SC2703L_OTP_HIDE_0069, 0x30);
+	i2c_reg_write(SC2703L_OTP_I2C_ADDRESS, SC2703L_OTP_HIDE_0069, 0x70);
+	i2c_reg_write(SC2703L_OTP_I2C_ADDRESS, SC2703L_OTP_HIDE_0069, 0x35);
+	i2c_reg_write(SC2703L_OTP_I2C_ADDRESS, SC2703L_OTP_HIDE_0069, 0x34);
+	scval = i2c_reg_read(SC2703L_LCD_I2C_ADDRESS, SC2703L_DISPLAY_HIDE_035A);
+	i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_DISPLAY_HIDE_035A, (scval & 0xEF));
+	i2c_reg_write(SC2703L_OTP_I2C_ADDRESS, SC2703L_OTP_HIDE_0069, 0x00);
+
+	i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_SYSCTRL_DISPLAY_ACTIVE, SC2703L_DISPLAY_EN_MASK);
+	printf("SC2703L status is %d\n", \
+			i2c_reg_read(SC2703L_LCD_I2C_ADDRESS, SC2703L_SYSCTRL_DISPLAY_STATUS));
+	while(loop --);
 }
 
 void set_backlight(uint32_t brightness)

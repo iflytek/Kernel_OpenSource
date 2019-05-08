@@ -29,6 +29,7 @@
 #define SC2703L_DISPLAY_BOOST_VOLTAGE           0x50
 #define SC2703L_DISPLAY_BOOST_SLEW_RATE         0x51
 #define SC2703L_DISPLAY_BOOST_CONFIG1           0x52
+#define SC2703L_DISPLAY_HIDE_035A               0x5a
 #define SC2703L_DISPLAY_CP_VOLTAGE              0x60
 #define SC2703L_DISPLAY_CP_SLEW_RATE            0x61
 #define SC2703L_DISPLAY_CP_CONFIG8              0x69
@@ -48,6 +49,9 @@
 #define SC2703L_WLED_CONFIG9                    0x8B
 #define SC2703L_WLED_BOOST_CONTROL1             0x90
 #define SC2703L_WLED_BOOST_CONTROL2             0x91
+
+/* SC2703L OTP Register, Device_ID = 0x48 */
+#define SC2703L_OTP_HIDE_0069                   0x69
 
 /* SC2703L_SYSCTRL_EVENT = 0x00 */
 #define SC2703L_EVT_VSYS_UV_OT_VREF_FLT_SHIFT         1
