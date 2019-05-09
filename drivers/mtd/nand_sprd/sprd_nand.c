@@ -122,7 +122,9 @@ typedef struct {
 STATIC_FUNC NAND_CTL controller;
 STATIC_FUNC NFC_BASE_T nfc_base;
 
+#ifndef SPRD_NAND_CLOCK
 #define SPRD_NAND_CLOCK	(195)
+#endif
 static struct sprd_nand_timing default_timing = {10, 25, 15};
 
 static uint32_t mMcInsNum;
@@ -481,16 +483,16 @@ STATIC_FUNC void nand_set_timing_config(NAND_CTL * this,struct sprd_nand_timing 
 		/* get rwe value : 0 ns */
 		reg_val |= ((2 & 0x1F) << NFC_RWE_OFFSET);
 
-		/* get rwh value */
+		/* get rwh value,if the remainder bigger than 500, then plus 1 for more accurate*/
 		temp_val = timing->rwh_ns * nfc_clk_MHz / 1000 -1;
-		if (((timing->rwh_ns * nfc_clk_MHz) % 1000)  != 0) {
+		if (((timing->rwh_ns * nfc_clk_MHz) % 1000)  >= 500) {
 			temp_val++;
 		}
 		reg_val |= ((temp_val & 0x1F) << NFC_RWH_OFFSET);
 
-		/* get rwl value, 6 is read delay time*/
+		/* get rwl value,if the remainder bigger than 500, then plus 1 for more accurate*/
 		temp_val = timing->rwl_ns * nfc_clk_MHz / 1000 - 1;
-		if (((timing->rwl_ns * nfc_clk_MHz) % 1000)  != 0) {
+		if (((timing->rwh_ns * nfc_clk_MHz) % 1000)  >= 500) {
 			temp_val++;
 		}
 		reg_val |= (temp_val & 0x3F);
@@ -1503,6 +1505,7 @@ void NandReadSector(uint32_t pageID)
 /*
  * spare info data is don't used at the romcode, so the fdl only set the s_info size to 1, and the data value 0xff
  */
+#define HEADER_RESV_OFFSET 40
 void set_header_info(u8 *bl_data, struct mtd_info *nand, int ecc_pos)
 {
 	struct bootloader_header *header;
@@ -1515,10 +1518,10 @@ void set_header_info(u8 *bl_data, struct mtd_info *nand, int ecc_pos)
 	ecc = memalign(ARCH_DMA_MINALIGN, 108);
 	header = (struct bootloader_header *)(bl_data);
 	image_size_save = header->image_size;
-	memset(header, 0, sizeof(struct bootloader_header));
+	memset(((u8 *)header + HEADER_RESV_OFFSET), 0, (sizeof(struct bootloader_header) - HEADER_RESV_OFFSET));
 	memset(ecc, 0xff, 108);
 	header->image_size = image_size_save;
-	header->version = NAND_BOOT_HEADER_VER;
+	//header->version = NAND_BOOT_HEADER_VER;
 	header->sct_size = (1<<chip->sectShift);
 	if (chip->param.nBusWidth == BW_16)	{
 		header->bus_width = 1;
@@ -1542,7 +1545,7 @@ void set_header_info(u8 *bl_data, struct mtd_info *nand, int ecc_pos)
 		}
 	}
 
-	header->magic_num = NAND_BOOT_MAGIC_DATA;
+	//header->magic_num = NAND_BOOT_MAGIC_DATA;
 	header->spare_size = chip->param.nSpareSize; //(nand->oobsize);
 	header->ecc_mode = ecc_mode_convert(nand_control->ecc_mode);
 	header->ecc_pos = header->spare_size - chip->param.ecc_size;
@@ -1754,15 +1757,18 @@ STATIC_FUNC int callback_writePageInBlk(NFC_BASE_T * nfcBase, uint32_t page,
 		__32reg_write(NFC_CFG0_REG, this->NFC_cfg0);
 	}
 	if (ret) {
-		*retNum = 0;
+		if(retNum != NULL)
+			*retNum = 0;
 		_deSelectCS(this, -EIO);
 		return -EIO;
 	}
-	*retNum = num;
+	if(retNum != NULL)
+		*retNum = num;
 	_deSelectCS(this, 0);
 	return 0;
 }
 
+#define MAX_SPL_OFFSET    0x20000
 int nand_write_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
 {
 	uint32_t ifHasMBuf = 1;
@@ -1781,7 +1787,7 @@ int nand_write_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
 	__32reg_write(NFC_CFG2_REG, (uint32_t)this->NFC_cfg2);
 	__32reg_write(NFC_CFG4_REG, cfg4);
 
-	GenPageSeed(page);
+	GenPageSeed(page % (MAX_SPL_OFFSET/mtd->writesize));
 	NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
 	flush_cache((unsigned int)seedBuf,sizeof(seedBuf));
 	ret = callback_writePageInBlk(nfcBase, page,
@@ -1799,7 +1805,7 @@ int nand_read_spl_page(u8 *buf, struct mtd_info *mtd, u32 page, u32 ecc_pos)
 	NFC_BASE_T *nfcBase = (NFC_BASE_T * )mtd->priv ;
 	NAND_CTL *this = (NAND_CTL *) nfcBase->priv;
 
-	GenPageSeed(page);
+	GenPageSeed(page % (MAX_SPL_OFFSET/mtd->writesize));
 	NandSetRandomizer(this,(uint32_t)(seedBuf+((page & 0xf)<<2)));
 	flush_cache((unsigned int)seedBuf,sizeof(seedBuf));
 	ret = callback_readPageInBlk(nfcBase, page,
@@ -1891,7 +1897,7 @@ STATIC_FUNC int _getGlobeResource(NAND_CTL * this)
 #ifdef SPRDNAND_KERNEL
 	this->irq = IRQ_NFC_INT;
 #endif
-	this->ioaddr = (void __iomem *)SPRD_NANDC_PHYS;
+	this->ioaddr = (void __iomem *)SPRD_NANDC_CTRL_PHYS;
 	this->frequence = SPRD_NAND_CLOCK;
 
 	printk(KERN_ERR "sprd nand ioaddr = 0x%x ,freq = %d\n", (uint32_t) this->ioaddr, this->frequence);
@@ -1910,21 +1916,19 @@ STATIC_FUNC void sprd_dolphin_reg_and(uint32_t addr, uint32_t mask)
 
 STATIC_FUNC int _initGlobeResource(NAND_CTL * this)
 {
-
-
 	sprd_dolphin_reg_or(REG_AP_AHB_AHB_EB, BIT_AP_AHB_NANDC_EB);
-	//printf("the eb0 before write nandc is %x",sprd_dolphin_reg_read(REG_AON_APB_CLK_EB0));
-	//sprd_dolphin_reg_or(REG_AON_APB_CLK_EB0,BIT_AON_APB_NANDC_2X_EB);
-	//printf("the eb0 after write nandc is %x",sprd_dolphin_reg_read(REG_AON_APB_CLK_EB0));
-	sprd_dolphin_reg_write(REG_AP_CLK_CORE_CGM_NANDC_2X_CFG, BIT(3)); //clk = 390M
-	sprd_dolphin_reg_write(REG_AP_CLK_CORE_CGM_NANDC_ECC_CFG, BIT(1));//ecc = 256M
+	sprd_dolphin_reg_or(REG_AP_AHB_AHB_EB, BIT_AP_AHB_NANDC_ECC_EB);
+	sprd_dolphin_reg_or(REG_AP_AHB_AHB_EB, BIT_AP_AHB_NANDC_26M_EB);
 
+	sprd_dolphin_reg_or(REG_AON_APB_CGM_CLK_TOP_REG1,
+			    BIT_AON_APB_CGM_NANDC_2X_EN | BIT_AON_APB_CGM_NANDC_1X_EN);
+
+	sprd_dolphin_reg_write(REG_AON_CLK_CORE_CGM_NANDC_2X_CFG,0x3);//195
+
+	sprd_dolphin_reg_write(REG_AP_CLK_CORE_CGM_NANDC_ECC_CFG,0x1);//256
 	sprd_dolphin_reg_or(REG_AP_AHB_AHB_RST,BIT_AP_AHB_NANDC_SOFT_RST );
 	udelay(1000);
 	sprd_dolphin_reg_and(REG_AP_AHB_AHB_RST, ~(BIT_AP_AHB_NANDC_SOFT_RST ));
-
-
-
 	return 0;
 
 }

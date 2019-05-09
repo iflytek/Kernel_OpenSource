@@ -691,7 +691,7 @@ static int part_parse(const char *const partdef, const char **ret, struct part_i
 	part->name[name_len - 1] = '\0';
 	INIT_LIST_HEAD(&part->link);
 
-	debug("+ partition: name %-22s size 0x%08x offset 0x%08x mask flags %d\n",
+	debug("+ partition: name %-22s size 0x%llx offset 0x%llx mask flags %d\n",
 			part->name, part->size,
 			part->offset, part->mask_flags);
 

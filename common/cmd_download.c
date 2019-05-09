@@ -165,9 +165,11 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		Da_Info.dwVersion = 2;
 		Da_Info.bDisableHDLC = 1;
 
+#ifndef CONFIG_NAND_BOOT
 	if (gd->boot_device == BOOT_DEVICE_EMMC)
 		Da_Info.bIsOldMemory = emmc_2ndhand_detect();
 	else
+#endif
 		Da_Info.bIsOldMemory = 0;
 
 		ack_packet.body.type = BSL_INCOMPATIBLE_PARTITION;

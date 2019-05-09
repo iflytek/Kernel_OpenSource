@@ -1491,6 +1491,7 @@ int fdt_fixup_system_mount_part_num(void *fdt)
 {
 	int ret = 0;
 
+#ifndef CONFIG_NAND_BOOT
 	if (gd->boot_device == BOOT_DEVICE_EMMC) {
 		unsigned int num;
 		int nodeoffset;
@@ -1550,6 +1551,7 @@ int fdt_fixup_system_mount_part_num(void *fdt)
 		}
 		free(path_copy);
 	}
+#endif
 	return ret;
 }
 

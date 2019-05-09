@@ -71,7 +71,7 @@ int set_buf_base_size()
 
 	fdl_buf = (unsigned char *)ALIGN(buf_base , 8);
 
-	debugf("download buffer base %lx, size %llx\n",fdl_buf, fdl_buf_size);
+	debugf("download buffer base 0x%lx, size 0x%llx\n",fdl_buf, fdl_buf_size);
 
 	return 0;
 }
@@ -536,7 +536,7 @@ int _dl_mtd_part_erase(nand_info_t * nand, char *name)
 		opts.offset = mtd_part.offset;
 		opts.length = mtd_part.size;
 		opts.quiet = 0;
-		debugf("erase offset %x ,size %x\n", opts.offset, opts.length);
+		debugf("erase offset 0x%x ,size 0x%x\n", opts.offset, opts.length);
 		ret = nand_erase_opts(nand, &opts);
 		debugf("erase OK~~~~~\n");
 		if (!ret)

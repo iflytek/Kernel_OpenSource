@@ -326,7 +326,7 @@ int parse_cmdline_partitions(unsigned long long mastersize)
 				offset += realpart[i].size;
 
 
-				printf("id : %02d, name : %20s, offset : 0x%08x, size : 0x%08x\n",
+				printf("id : %02d, name : %20s, offset : 0x%08lx, size : 0x%08lx\n",
 	     			(i - real_current_part),
 				realpart[i].name,
 	     			realpart[i].offset,

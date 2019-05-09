@@ -6,12 +6,12 @@
 
 #define BOOTLOADER_HEADER_OFFSET    32
 #define CONFIG_SYS_SPL_ECC_POS    8
-#define MAX_SPL_SIZE    0x8000
+#define MAX_SPL_SIZE    0x12000
 #if 0
 struct bootloader_header
 {
 	uint32_t version; //version
-	uint32_t magic_num; //0xaa55a5a5	
+	uint32_t magic_num; //0xaa55a5a5
 	uint32_t check_sum;
 	uint32_t hash_len; //word length, only used when secure boot enable
 	uint32_t sct_size; //
@@ -105,6 +105,8 @@ static int nand_write_spl_page(u8 *buf, struct mtd_info *mtd, u32 pg, u32 ecc_po
 }
 #endif
 
+#define MAX_SPL_OFFSET    0x20000
+
 int sprd_nand_write_spl(u8 *buf, struct mtd_info *mtd)
 {
 	u32 i = 0;
@@ -120,14 +122,21 @@ int sprd_nand_write_spl(u8 *buf, struct mtd_info *mtd)
 	/* write spl to flash*/
 	for (i = 0; i < 2; i++)
 	{
-		pg_start = i * MAX_SPL_SIZE / mtd->writesize;
-		pg_end = (i + 1) * MAX_SPL_SIZE / mtd->writesize;
-		data = buf;
-		for(pg  = pg_start; pg < pg_end; pg += 1) {
+		pg_start = i * MAX_SPL_OFFSET / mtd->writesize;
+		pg_end = (i * MAX_SPL_OFFSET + MAX_SPL_SIZE) / mtd->writesize;
+		data = buf + mtd->writesize;
+		for(pg  = pg_start + 1; pg < pg_end; pg += 1) {
 			ret = nand_write_spl_page(data, mtd, pg, CONFIG_SYS_SPL_ECC_POS);
 			data += mtd->writesize;
+			//mdelay(1000);
 		}
 	}
+
+	data = buf;
+	pg = 0;
+	ret = nand_write_spl_page(data, mtd, pg, CONFIG_SYS_SPL_ECC_POS);
+	pg = MAX_SPL_OFFSET / mtd->writesize;
+	ret = nand_write_spl_page(data, mtd, pg, CONFIG_SYS_SPL_ECC_POS);
 	return ret;
 }
 

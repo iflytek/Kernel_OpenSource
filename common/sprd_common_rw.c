@@ -237,6 +237,7 @@ fail:
 	return -1;
 }
 
+#ifndef CONFIG_NAND_BOOT
 int common_raw_read(char *part_name, uint64_t size, uint64_t offset, char *buf)
 {
 	int dev_id = 0;
@@ -785,6 +786,7 @@ int common_query_backstage(char *part_name, uint32_t size, char *buf)
 
 	return 0;
 }
+#endif
 
 #ifdef CONFIG_NAND_BOOT
 extern int ubifs_init(void);

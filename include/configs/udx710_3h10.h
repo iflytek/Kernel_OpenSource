@@ -233,6 +233,7 @@
 
 /*eMMC boot*/
 #define CONFIG_EMMC_BOOT
+#undef CONFIG_EMMC_BOOT
 #define CONFIG_GENERIC_MMC
 #define CONFIG_EMMC_RST_N_FUNCTION
 #define EMMC_SECTOR_SIZE 512
@@ -250,6 +251,30 @@
 /*file system config*/
 #define CONFIG_FAT_WRITE
 #define CONFIG_FS_EXT4
+#undef CONFIG_FS_EXT4
+#define CONFIG_NAND_BOOT
+
+#ifdef CONFIG_NAND_BOOT
+#define SPRD_NAND_CLOCK	(110)
+
+#define CONFIG_SYS_NAND_BASE           (0x20C00000)
+#define CONFIG_SYS_NAND_U_BOOT_OFFS    0x40000
+#define CONFIG_BOOTINFO_LENGTH  (0x200)        /* 512 Bytes */
+#define CONFIG_CMD_NAND
+#define CONFIG_CMD_UBI
+#define UBIPAC_PART  "ubipac"
+#define MTDIDS_DEFAULT "nand0=sprd-nand"
+#define MTDPARTS_DEFAULT "mtdparts=sprd-nand:256k(splloader),1280k(uboot),768k(sml),1024k(trustos),-(ubipac)"
+
+/* NAND */
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_MTD_DEVICE
+#define CONFIG_RBTREE
+#define CONFIG_CMD_UBIFS
+#define CONFIG_LZO
+#endif
 
 /*uart after download*/
 #define CONFIG_USB_ENUM_IN_UBOOT

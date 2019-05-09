@@ -1497,7 +1497,7 @@ int sysdumpdb_write(char *part_name, uint32_t size, uint32_t updsize, uint32_t o
 
 #ifdef CONFIG_NAND_BOOT
 	/*	int do_raw_data_write(char *part, u32 updsz, u32 size, u32 off, char *buf)	*/
-	return do_raw_data_write(part_name, upsize,  size,  offset, buf);
+	return do_raw_data_write(part_name, updsize,  size,  offset, buf);
 #else
 	/*	int common_raw_write(char *part_name, uint64_t size, uint64_t updsize, uint64_t offset, char *buf)	*/
 	return common_raw_write(part_name, (uint64_t)size, (uint64_t)updsize, (uint64_t)offset, buf);
