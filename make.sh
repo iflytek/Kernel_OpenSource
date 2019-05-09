@@ -1,3 +1,9 @@
+if [ "$1" = "bsp" ]
+then
+	make -f BspUBoot.mk
+	exit
+fi
+
 if [ "$1" = "" ] || [ "$2" = "" ]
 then
 	echo "Pleast input command : make 'arch_name' 'board_name'"
