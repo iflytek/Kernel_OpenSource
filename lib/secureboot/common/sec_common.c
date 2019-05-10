@@ -43,6 +43,7 @@ static uchar *const s_force_secure_check[] = {
     "splloader",
 	"sml",
 	"trustos",
+	"teecfg",
 #ifdef CONFIG_X86
 	"mobilevisor",
 	"mvconfig",
@@ -262,6 +263,7 @@ VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
 	}
 #ifdef CONFIG_SECBOOT
 	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))
+				||(SEC_TRUE == strcmp("teecfg",part_name))
 				||(SEC_TRUE == strcmp("mobilevisor",part_name))
 				||(SEC_TRUE == strcmp("mvconfig",part_name))
 				||(SEC_TRUE == strcmp("secvm",part_name))){
@@ -293,6 +295,7 @@ VERIFY_RESULT dl_secure_process_flow(ulong * strip, unsigned char * part_name,
 		if((0 == strcmp("splloader", part_name)) ||\
 			(0 == strcmp("uboot", part_name)) ||\
 			(0 == strcmp("sml", part_name)) ||\
+			(0 == strcmp("teecfg", part_name)) ||\
 			(0 == strcmp("trustos", part_name))) {
 			dl_secure_verify("fdl2","",buf,0);
 		} else {
@@ -343,6 +346,7 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 	}
 #ifdef CONFIG_SECBOOT
 	else if ((SEC_TRUE == strcmp("sml",part_name))||(SEC_TRUE == strcmp("trustos",part_name))
+				||(SEC_TRUE == strcmp("teecfg",part_name))
 				||(SEC_TRUE == strcmp("mobilevisor",part_name))
 				||(SEC_TRUE == strcmp("mvconfig",part_name))
 				||(SEC_TRUE == strcmp("secvm",part_name))) {
@@ -374,6 +378,7 @@ VERIFY_RESULT fb_secure_process_flow(ulong * strip, unsigned char * part_name,
 		if((0 == strcmp("splloader", part_name)) ||\
 			(0 == strcmp("uboot", part_name)) ||\
 			(0 == strcmp("sml", part_name)) ||\
+			(0 == strcmp("teecfg", part_name)) ||\
 			(0 == strcmp("trustos", part_name))) {
 			fb_secure_verify("uboot","",buf,0);
 		} else {
