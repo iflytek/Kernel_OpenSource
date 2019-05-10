@@ -490,6 +490,12 @@ config TARGET_UMS518_HAPS_BKD
         help
           This is the Spreadtrum sharkl5pro Board
 
+config TARGET_UMS512_1H10
+        bool "Spreadtrum sharkl5pro"
+        select ARM64
+        help
+          This is the Spreadtrum sharkl5pro Board
+
 config ZEBU
 	bool "zebu board"
 	default n
@@ -599,4 +605,5 @@ source "board/spreadtrum/sp9863a_3c10_32b/Kconfig"
 source "board/spreadtrum/ums518_haps/Kconfig"
 source "board/spreadtrum/ums518_haps_bkd/Kconfig"
 source "board/spreadtrum/ums518_zebu/Kconfig"
+source "board/spreadtrum/ums512_1h10/Kconfig"
 endif
