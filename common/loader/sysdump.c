@@ -2500,6 +2500,8 @@ int save_allmem_to_file(void)
 		}
 	}
 
+	/*	update	chk_length */
+	dump_input_contents_info.chk_length = chk_length;
 	return 0;
 }
 
