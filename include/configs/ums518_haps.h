@@ -350,5 +350,5 @@
 #endif
 
 /* direct access prot configuration  */
-#define CONFIG_DIRECT_ACC_PROT
+//#define CONFIG_DIRECT_ACC_PROT
 #endif /* __CONFIG_H  */
