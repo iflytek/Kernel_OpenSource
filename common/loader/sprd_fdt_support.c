@@ -742,6 +742,61 @@ int fdt_fixup_cp_boot(void *fdt)
 	return 0;
 }
 
+#ifdef CONFIG_TEECFG_CUSTOM
+int fdt_fixup_tee_reserved_mem(void *fdt)
+{
+	int i;
+	int offset, lenp;
+	int ret = 0;
+	uint32_t value[16];
+	char *mode;
+	fdt_addr_t  s_addr;
+	fdt_addr_t  s_size;
+	const fdt_addr_t *cell;
+
+	offset = fdt_path_offset(fdt, "/reserved-memory");
+	if (offset < 0) {
+		errorf("cann't find reserved-memory node\n");
+		return -1;
+	}
+
+	offset = fdt_subnode_offset(fdt, offset, "tos-mem");
+	if (offset == -FDT_ERR_NOTFOUND) {
+		errorf("cann't find tos-mem@xxxx node\n");
+		return -1;
+	}
+
+	if(fdtdec_decode_region(fdt, offset, "reg", &s_addr, &s_size) < 0)
+	{
+		errorf("cannot find reg prop in tos-mem@xxxx node\n");
+		return -1;
+	}
+	debugf("s_addr = %p, s_size = %p\n", s_addr, s_size);
+
+	ret = tee_smc_get_tee_size();
+	if(ret < 0)
+	{
+		errorf("smc get sec size failed! (%d)\n", ret);
+		return -1;
+	}
+
+	s_size = ret;
+#ifdef CONFIG_PHYS_64BIT
+	s_addr = __cpu_to_be64(s_addr);
+	s_size = __cpu_to_be64(s_size);
+#else
+	s_addr = __cpu_to_be32(s_addr);
+	s_size = __cpu_to_be32(s_size);
+#endif
+	memcpy((char *)value, &s_addr, sizeof(fdt_addr_t));
+	memcpy((char *)value + sizeof(fdt_addr_t), &s_size, sizeof(fdt_addr_t));
+
+	ret = fdt_setprop(fdt, offset, "reg", value, 2 * sizeof(fdt_addr_t));
+
+	return ret;
+}
+#endif
+
 
 #ifdef CONFIG_NAND_BOOT
 int fdt_fixup_mtd(void *fdt)

@@ -62,6 +62,11 @@ ifeq ($(strip $(BOARD_TEE_CONFIG)),trusty)
 UBOOT_TOS_TRUSTY_FLAG := -DTOS_TRUSTY
 endif
 
+ifeq ($(strip $(BOARD_TEECFG_CUSTOM)),true)
+UBOOT_TEECFG_CUSTOM_FLAG := -DCONFIG_TEECFG_CUSTOM
+endif
+
+
 ifeq ($(strip $(CONFIG_CHIP_UID)),true)
 UBOOT_CHIP_UID_FLAG += -DCONFIG_CHIP_UID
 endif
@@ -97,6 +102,7 @@ $(uboot-envsh):
 	@echo 'export UBOOT_SECURE_BOOT_FLAG="$(UBOOT_SECURE_BOOT_FLAG)"' >>$@
 	@echo 'export UBOOT_ROC1_CACHE_WA_FLAG="$(UBOOT_ROC1_CACHE_WA_FLAG)"' >>$@
 	@echo 'export UBOOT_TOS_TRUSTY_FLAG="$(UBOOT_TOS_TRUSTY_FLAG)"' >>$@
+	@echo 'export UBOOT_TEECFG_CUSTOM_FLAG="$(UBOOT_TEECFG_CUSTOM_FLAG)"' >>$@
 	@echo 'export UBOOT_CHIP_UID_FLAG="$(UBOOT_CHIP_UID_FLAG)"' >>$@
 	@echo 'export UBOOT_FIREWALL_FLAG="$(UBOOT_FIREWALL_FLAG)"' >>$@
 	@echo 'export UBOOT_ARMV7_LPAE_FLAG="$(UBOOT_ARMV7_LPAE_FLAG)"' >>$@

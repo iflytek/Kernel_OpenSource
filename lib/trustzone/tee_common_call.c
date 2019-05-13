@@ -17,3 +17,18 @@ smc_param *tee_common_call(uint32_t funcid, uint32_t start_addr, uint32_t lenth)
 	tee_smc_call(&param);
 	return &param;
 }
+
+
+#ifdef CONFIG_TEECFG_CUSTOM
+int tee_smc_get_tee_size(void)
+{
+	int size;
+	smc_param params;
+
+	memset(&param, 0x00, sizeof(smc_param));
+	params.a0 = TEESMC_FC_GET_TEESIZE;
+	tee_smc_call(&params);
+
+	return params.a0;
+}
+#endif

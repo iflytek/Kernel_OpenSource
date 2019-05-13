@@ -65,7 +65,16 @@
 #define TEESMC_OWNER_SPRDSEC 52
 
 #define TEESMC_OWNER_TRUSTED_OS_API 63
-//
+
+
+#ifdef CONFIG_TEECFG_CUSTOM
+#define TEESMC_OWNER_SECURE_MONITOR 60
+#define TEESMC_FUNCID_GET_TEESIZE 19
+#define TEESMC_FC_GET_TEESIZE \
+	TEESMC_CALL_VAL(TEESMC_32, TEESMC_FAST_CALL, TEESMC_OWNER_SECURE_MONITOR, \
+	TEESMC_FUNCID_GET_TEESIZE)
+#endif
+
 #define TEESMC_FUNCID_SIPCALL_WITH_ARG 0x20
 
 #define TEESMC_SIPCALL_WITH_ARG \
@@ -158,6 +167,11 @@ int uboot_sansa_set_rma(uint32_t *p_rmaret);
 int uboot_kce_program(uint64_t start_addr, uint64_t lenth);
 
 smc_param *tee_common_call(uint32_t funcid, uint32_t start_addr, uint32_t lenth);
+
+#ifdef CONFIG_TEECFG_CUSTOM
+int tee_smc_get_tee_size(void);
+#endif
+
 void tee_smc_call   (struct smc_param *param);
 
 void tee_call_request(unsigned int **mem_ptr);

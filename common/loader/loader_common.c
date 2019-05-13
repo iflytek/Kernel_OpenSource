@@ -180,6 +180,10 @@ void fdt_fixup_all(u8 *fdt_blob)
 #ifdef CONFIG_VBOOT_V2
     fdt_fixup_vboot(fdt_blob);
 #endif
+
+#ifdef CONFIG_TEECFG_CUSTOM
+	fdt_fixup_tee_reserved_mem(fdt_blob);
+#endif
 	return;
 }
 
