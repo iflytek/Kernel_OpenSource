@@ -213,3 +213,6 @@ TIMER_OF_DECLARE(sharkl5_persistent_timer, "sprd,sharkl5-suspend-timer",
 TIMER_OF_DECLARE(roc1_timer, "sprd,roc1-timer", sprd_timer_init);
 TIMER_OF_DECLARE(roc1_persistent_timer, "sprd,roc1-suspend-timer",
 		 sprd_suspend_timer_init);
+TIMER_OF_DECLARE(orca_timer, "sprd,orca-timer", sprd_timer_init);
+TIMER_OF_DECLARE(orca_persistent_timer, "sprd,orca-suspend-timer",
+		 sprd_suspend_timer_init);
