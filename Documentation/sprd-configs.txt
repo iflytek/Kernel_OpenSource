@@ -9892,13 +9892,6 @@ CONFIG_SPRD_CPU_COOLING
 	[subsys] thermal
 	[must] user
 	[function] sprd thermal policy
-CONFIG_SPRD_CPU_COOLING_CPUIDLE
-	[arch] arm64
-	[plat] roc1
-	[field] make
-	[subsys] thermal
-	[must] user
-	[function] sprd thermal policy
 CONFIG_SPRD_CPU_COOLING_DEVICE
 	[arch] arm64
 	[plat] roc1,sharkl5
@@ -10026,13 +10019,6 @@ CONFIG_SPRD_IOMMU
 	[must] home
 	[function] This macro is to support Sprd iommu.
 CONFIG_SPRD_IPA_PCIE_WORKROUND
-	[arch] arm64
-	[plat] roc1
-	[field]
-	[subsys]
-	[must]
-	[function]
-CONFIG_SPRD_IPA_SYS
 	[arch] arm64
 	[plat] roc1
 	[field]
