@@ -3,11 +3,6 @@
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
 
-#include "sc2703l_bllcd.h"
-
-#define SC2703L_LCD_I2C_ADDRESS  0x4b
-#define SC2703L_LCD_I2C_BUS  5
-
 #define PWM_INDEX  2
 
 /*r3p0*/
@@ -40,8 +35,9 @@ static void __raw_bits_or(unsigned int v, unsigned int a)
 	__raw_writel((__raw_readl(a) | v), a);
 }
 
-void set_backlight_pwms(uint32_t brightness)
+void set_backlight(uint32_t brightness)
 {
+#ifndef CONFIG_FPGA
 	int index = PWM_INDEX;
 
 	__raw_bits_or((0x1 << 0), REG_AON_CLK_CORE_CGM_PWM0_CFG + index * 4);//ext_26m select
@@ -60,29 +56,6 @@ void set_backlight_pwms(uint32_t brightness)
 		pwm_write(index, 1, PWM_ENABLE);
 		printf("sprd backlight power on. pwm_index=%d  brightness=%d\n", index, brightness);
 	}
-}
-
-void set_backlight(uint32_t brightness)
-{
-	u8 value;
-
-	i2c_set_bus_num(SC2703L_LCD_I2C_BUS);
-
-	value = SC2703L_IDAC_LINEAR_MASK
-		| SC2703L_WLED_IDAC_EN_MASK
-		| 0x2 << SC2703L_WLED_MODE_SHIFT
-		| 0x1 << SC2703L_WLED_MODE_SHIFT;
-
-	/* set WLED_MODE to duty-detect-analog-mode */
-	i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_CONFIG1, value);
-
-	/* disable IDAC RAMP to avoid backlight flash when power on */
-	value = i2c_reg_read(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_CONFIG7);
-	i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_CONFIG7, value | SC2703L_IDAC_RAMP_DIS_MASK);
-
-	/* set SEL_POC_LIMIT to 1.5A for WLED boost current limit */
-	value = 1 << SC2703L_SEL_POC_LIMIT_SHIFT;
-	i2c_reg_write(SC2703L_LCD_I2C_ADDRESS, SC2703L_WLED_BOOST_CONTROL1, value);
-
-	set_backlight_pwms(brightness);
+#endif
+	return;
 }

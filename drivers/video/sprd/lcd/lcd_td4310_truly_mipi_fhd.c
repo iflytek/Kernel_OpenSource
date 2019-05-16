@@ -130,6 +130,16 @@ static int td4310_readid(void)
 static int td4310_power(int on)
 {
 	if (on) {
+#ifdef CONFIG_LCM_GPIO_AVDDEN
+                sprd_gpio_request(NULL, CONFIG_LCM_GPIO_AVDDEN);
+                sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVDDEN, 1);
+                mdelay(10);
+#endif
+#ifdef CONFIG_LCM_GPIO_AVEEEN
+                sprd_gpio_request(NULL, CONFIG_LCM_GPIO_AVEEEN);
+                sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVEEEN, 1);
+                mdelay(20);
+#endif
 		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_RSTN);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 1);
 		mdelay(5);
