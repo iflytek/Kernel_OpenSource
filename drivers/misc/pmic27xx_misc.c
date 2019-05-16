@@ -175,6 +175,8 @@ void pmic_misc_init(void)
 
 #if defined(CONFIG_ADIE_SC2721) || defined(CONFIG_ADIE_SC2720) || defined(CONFIG_ADIE_SC2730)
 	printf("last shutdown flag ANA_REG_GLB_POR_OFF_FLAG:0x%x\n",ANA_REG_GET(ANA_REG_GLB_POR_OFF_FLAG));
+	sci_adi_set(ANA_REG_GLB_POR_OFF_FLAG, 0xffff);	//clear power off flag
+
 #endif
 	regulator_pmic_init();
 }
