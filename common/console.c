@@ -549,8 +549,25 @@ int printf(const char *fmt, ...)
 #ifdef CONFIG_DTS_MEM_LAYOUT
 	if (log_buffer_enabled_flag == 1) {
 #endif
+		/*
+		 * simplly add timestamp on the head of each line,
+		 *   magic number 11 is strlen("[%08d] ")
+		 */
+		if(i > 0 && (p_log_buffer->spare - 1) >= (i + 11)) {
+			static int lastn = 1;
+			char tmp[12];
 
-		if(i > 0 && (p_log_buffer->spare - 1) >= i) {
+			if (lastn) {
+				sprintf(tmp, "[%08d] ", SCI_GetTickCount() & 0x52FFFFFF);
+				memcpy(p_log_buffer->pointer, tmp, 11);
+				p_log_buffer->used += 11;
+				p_log_buffer->pointer += 11;
+				p_log_buffer->spare = p_log_buffer->size - p_log_buffer->used;
+				lastn = 0;
+			}
+			if (printbuffer[i - 1] == '\n')
+				lastn = 1;
+
 			memcpy(p_log_buffer->pointer, printbuffer, i);
 			p_log_buffer->used += i;
 			p_log_buffer->pointer += i;

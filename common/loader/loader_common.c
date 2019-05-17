@@ -358,9 +358,16 @@ static int start_linux_armv8(uchar *dt_addr)
 	return 0;
 }
 
-
+extern uint32_t uboot_start_time;
 void vlx_entry(uchar *dt_addr)
 {
+	char *bootmode = getenv("bootmode");
+	uint32_t consume_time;
+
+	consume_time = SCI_GetTickCount() - uboot_start_time;
+	printf("enter mode %s, consume time: %dms\n",
+		!bootmode ? "normal" : bootmode, consume_time);
+
 	/* the last time to write log */
 	write_log_last();
 

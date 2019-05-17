@@ -60,7 +60,7 @@ typedef struct _LOG_BODY {
 typedef struct _LOG_PARTITION_HEADER {
 	uint32_t magic;
 	uint32_t len;
-	uint32_t version;
+	uint32_t boot_count;
 	uint32_t body_num;
 	uint32_t type;
 	uint32_t next_body;

@@ -280,8 +280,9 @@ int do_cboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 
 	board_boot_mode_regist(boot_mode_array);
 
+	printf("enter boot mode %d\n", bootmode);
+
 	if ((bootmode > CMD_POWER_DOWN_DEVICE) &&(bootmode < CMD_MAX_MODE)&& (0 != boot_mode_array[bootmode])) {
-		debugf("enter boot mode %d\n", bootmode);
 		write_log();
 
 		boot_mode_array[bootmode]();

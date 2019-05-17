@@ -265,7 +265,7 @@ int init_log_partition_hdr()
 		debugf("reset log partition header\n");
 		p_hdr->magic = LOG_HEAD_MAGIC;
 		p_hdr->len = LOG_HEADER_SIZE;
-		p_hdr->version = LOG_VERSION;
+		p_hdr->boot_count = 1;
 		p_hdr->body_num = LOG_BODY_NUM;
 		p_hdr->type = log_type;
 		p_hdr->next_body = 1;
@@ -290,6 +290,7 @@ int init_log_partition_hdr()
 		/* reset the body offset  */
 		p_hdr->body[p_hdr->next_body].b_offset = 0;
 
+		p_hdr->boot_count += 1;
 		p_hdr->next_body += 1;
 		if(p_hdr->next_body == LOG_BODY_NUM)
 		p_hdr->next_body = 0;
@@ -309,7 +310,7 @@ int init_log_partition_hdr()
 
 	memcpy((void *)&log_st.log_par_hdr, (void *)p_hdr, sizeof(LOG_PARTITION_HEADER));
 	log_st.flag = SUCESS; /* set sucess flag */
-	printf("%s(): init log partition header sucess!\n",__func__);
+	printf("init log partition header success on %d times bootup\n", p_hdr->boot_count);
 
 	return 0;
 }
