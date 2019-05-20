@@ -19,6 +19,14 @@
 #define REFOUT4_ON				BIT(4)
 
 
+#define LPDDR_TYPE_REG				0x3008
+#define LPDDR_TYPE_MASK				0x0F
+#define LPDDR_TYPE_OFFSET			0x00
+
+#define LPDDR_LPDDR3				3
+#define LPDDR_LPDDR4X				5
+
+
 void dcdc_ldo_power_on(uint32_t ddie_id, uint32_t adie_id)
 {
 #if defined(CONFIG_ADIE_SC2730)
@@ -70,27 +78,56 @@ void pmic_lowpower_config(uint32_t ddie_id, uint32_t adie_id)
 #if defined(CONFIG_DEEP_DROP_EN)
 	uint32_t drop_val;
 #endif
+	uint32_t lpddr_type;
+
+	lpddr_type = (CHIP_REG_GET(LPDDR_TYPE_REG) >> LPDDR_TYPE_OFFSET) & LPDDR_TYPE_MASK;
 
 	/* DCDC and LDO power globle control */
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE, 0x6E7F);
 	while((ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & 0x8000) != 0x8000);
-	ANA_REG_SET(ANA_REG_GLB_POWER_PD_SW,
-		//BIT_DCDC_SRAM_PD |
-		BIT_DCDC_MEMQ_PD |
-		//BIT_DCDC_MODEM_PD |
-		//BIT_LDO_VDD18_DCXO_PD |
-		//BIT_LDO_EMM_PD |
-		//BIT_DCDC_GEN0_PD |
-		//BIT_DCDC_GEN1_PD |
-		//BIT_DCDC_MEM_PD |
-		//BIT_DCDC_CORE_PD |
-		//BIT_DCDC_CPU_PD |
-		//BIT_DCDC_GPU_PD |
-		//BIT_LDO_AVDD18_PD |
-		//BIT_LDO_VDD28_PD |
-		//BIT_BG_PD |
-		0
-	);
+	switch (lpddr_type) {
+	case LPDDR_LPDDR3:
+		ANA_REG_SET(ANA_REG_GLB_POWER_PD_SW,
+			//BIT_DCDC_SRAM_PD |
+			BIT_DCDC_MEMQ_PD |
+			//BIT_DCDC_MODEM_PD |
+			//BIT_LDO_VDD18_DCXO_PD |
+			//BIT_LDO_EMM_PD |
+			//BIT_DCDC_GEN0_PD |
+			//BIT_DCDC_GEN1_PD |
+			//BIT_DCDC_MEM_PD |
+			//BIT_DCDC_CORE_PD |
+			//BIT_DCDC_CPU_PD |
+			//BIT_DCDC_GPU_PD |
+			//BIT_LDO_AVDD18_PD |
+			//BIT_LDO_VDD28_PD |
+			//BIT_BG_PD |
+			0
+		);
+		break;
+	case LPDDR_LPDDR4X:
+		ANA_REG_SET(ANA_REG_GLB_POWER_PD_SW,
+			//BIT_DCDC_SRAM_PD |
+			//BIT_DCDC_MEMQ_PD |
+			//BIT_DCDC_MODEM_PD |
+			//BIT_LDO_VDD18_DCXO_PD |
+			//BIT_LDO_EMM_PD |
+			//BIT_DCDC_GEN0_PD |
+			//BIT_DCDC_GEN1_PD |
+			//BIT_DCDC_MEM_PD |
+			//BIT_DCDC_CORE_PD |
+			//BIT_DCDC_CPU_PD |
+			//BIT_DCDC_GPU_PD |
+			//BIT_LDO_AVDD18_PD |
+			//BIT_LDO_VDD28_PD |
+			//BIT_BG_PD |
+			0
+		);
+		break;
+	default:
+		printf("The DDR type(%u) is not support !!!\n", lpddr_type);
+		while(1);
+	}
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE, 0x0000);
 
 	//ADIE sleep globle control
