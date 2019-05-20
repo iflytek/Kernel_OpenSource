@@ -127,6 +127,7 @@ int mipi_dsi_init(struct sprd_dsi *dsi)
 {
 	int div;
 	struct dsi_context *ctx = &dsi->ctx;
+	u16 max_rd_time;
 
 	if (!dsi_hal_check_version(dsi)) {
 		pr_err("error: dsi version check failed\n");
@@ -145,7 +146,9 @@ int mipi_dsi_init(struct sprd_dsi *dsi)
 	dsi_hal_video_vcid(dsi, 0);
 	dsi_hal_rx_vcid(dsi, 0);
 	dsi_hal_nc_clk_en(dsi, ctx->nc_clk_en);
-	dsi_hal_max_read_time(dsi, ctx->max_rd_time);
+
+	max_rd_time = ((ctx->max_rd_time * (ctx->freq / 8)) + 999999) / 1000000;
+	dsi_hal_max_read_time(dsi, max_rd_time);
 
 	div = ((ctx->freq >> 4) + 9999) / 10000;
 	dsi_hal_tx_escape_division(dsi, div);
