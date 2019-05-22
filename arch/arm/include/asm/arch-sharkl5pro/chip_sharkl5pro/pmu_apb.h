@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
+ * Copyright (C) 2019 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-12-06 15:47:51
+ * updated at 2019-05-20 15:56:25
  *
  */
 
@@ -2971,7 +2971,6 @@
 
 /* REG_PMU_APB_EPPLL_DELAY_CTRL_CFG0 */
 
-#define BIT_PMU_APB_RESET_BAR                                       BIT(31)
 #define BIT_PMU_APB_DORMANT                                         BIT(30)
 #define BIT_PMU_APB_ETC_DEEP_SLEEP_REG                              BIT(29)
 #define BIT_PMU_APB_ETC_POWER_CTRL_SEL                              BIT(28)
@@ -2989,6 +2988,8 @@
 #define BIT_PMU_APB_PD_ETC_DEEP_SLEEP                               BIT(24)
 #define BIT_PMU_APB_ETC_DEEP_SLEEP                                  BIT(23)
 #define BIT_PMU_APB_PD_ETC_STATE(x)                                 (((x) & 0x1F) << 18)
+#define BIT_PMU_APB_ETC_READY                                       BIT(17)
+#define BIT_PMU_APB_PD_ETC_CGM_EN                                   BIT(16)
 #define BIT_PMU_APB_ETC_ISO_DLY(x)                                  (((x) & 0xFF) << 8)
 #define BIT_PMU_APB_ETC_SHUTDOWN_WAIT_DLY(x)                        (((x) & 0xFF))
 
@@ -3001,26 +3002,26 @@
 
 /* REG_PMU_APB_EPPLL_DELAY_CTRL_CFG3 */
 
-#define BIT_PMU_APB_PD_ETC_CGM_EN                                   BIT(29)
 #define BIT_PMU_APB_ETC_CGM_EN_REG                                  BIT(28)
 #define BIT_PMU_APB_RESET_BAR_REG                                   BIT(27)
 #define BIT_PMU_APB_DORMANT_REG                                     BIT(26)
 #define BIT_PMU_APB_AVDD_ISOB_AON_REG                               BIT(23)
 #define BIT_PMU_APB_DVDD_ISOB_AON_REG                               BIT(22)
+#define BIT_PMU_APB_ETC_CGM_26M_EN_REG                              BIT(21)
 #define BIT_PMU_APB_DVDD_OFFB_AON_REG                               BIT(20)
 #define BIT_PMU_APB_PVDD_OFFB_AON_REG                               BIT(19)
 #define BIT_PMU_APB_AVDD_OFFB_AON_REG                               BIT(18)
 #define BIT_PMU_APB_ETC_PIN_SEL_CGM_EN                              BIT(17)
-#define BIT_PMU_APB_ETC_PIN_SEL_RESET                               BIT(16)
+#define BIT_PMU_APB_ETC_PIN_SEL_CGM_26M_EN                          BIT(16)
 #define BIT_PMU_APB_ETC_PIN_SEL_DORMANT                             BIT(15)
 #define BIT_PMU_APB_ETC_PIN_SEL_AVDDISOB                            BIT(14)
-#define BIT_PMU_APB_ETC_PIN_SEL_DVDDISOB                            BIT(13)
-#define BIT_PMU_APB_ETC_PIN_SEL_AVDDOFFB                            BIT(12)
-#define BIT_PMU_APB_ETC_PIN_SEL_DVDDOFFB                            BIT(11)
+#define BIT_PMU_APB_ETC_PIN_SEL_AVDDOFFB                            BIT(11)
 #define BIT_PMU_APB_ETC_PIN_SEL_PVDDOFFB                            BIT(10)
+#define BIT_PMU_APB_ETC_READY_DLY(x)                                (((x) & 0x3FF))
 
 /* REG_PMU_APB_EPPLL_PLL_SEL_CFG */
 
+#define BIT_PMU_APB_EPLL_CLKOUT_26M_EN_SEL                          BIT(27)
 #define BIT_PMU_APB_ETC_PWR_PD_EN                                   BIT(26)
 #define BIT_PMU_APB_EPLL_DIV32_CLKOUT_EN_SEL                        BIT(25)
 #define BIT_PMU_APB_EPLL_DIV32_CLKOUT_EN_REG                        BIT(24)

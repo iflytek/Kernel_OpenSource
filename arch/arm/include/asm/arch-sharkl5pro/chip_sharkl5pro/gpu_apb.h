@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
+ * Copyright (C) 2019 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-12-06 15:47:51
+ * updated at 2019-05-20 15:56:25
  *
  */
 
@@ -54,7 +54,6 @@
 
 /* REG_GPU_APB_CLK_GPU_SYS */
 
-#define BIT_GPU_APB_CGM_GPU_26M_EN              BIT(31)
 #define BIT_GPU_APB_CGM_GPU_SYS_DIV(x)          (((x) & 0x7) << 4)
 #define BIT_GPU_APB_CGM_GPU_SYS_EB              BIT(0)
 
@@ -126,6 +125,7 @@
 
 /* REG_GPU_APB_GONDUL_MISCS */
 
+#define BIT_GPU_APB_CGM_GPU_26M_EN              BIT(31)
 #define BIT_GPU_APB_NIDEN                       BIT(5)
 #define BIT_GPU_APB_DBGEN                       BIT(4)
 #define BIT_GPU_APB_STRIPING_GONDUL(x)          (((x) & 0x7))

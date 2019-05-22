@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2018 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
+ * Copyright (C) 2019 Unigroup Spreadtrum & RDA Technologies Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
  * licensing only applies to this file, and not this project as a
  * whole.
  *
- * updated at 2018-12-06 15:47:51
+ * updated at 2019-05-20 15:56:25
  *
  */
 
@@ -54,6 +54,8 @@
 #define REG_AON_APB_AUTO_GATE_CTRL3                        ( CTL_BASE_AON_APB + 0x0118 )
 #define REG_AON_APB_APCPU_CLK_CTRL0                        ( CTL_BASE_AON_APB + 0x011C )
 #define REG_AON_APB_SP_CFG_BUS                             ( CTL_BASE_AON_APB + 0x0124 )
+#define REG_AON_APB_ETC_CTRL0                              ( CTL_BASE_AON_APB + 0x0128 )
+#define REG_AON_APB_ETC_CTRL1                              ( CTL_BASE_AON_APB + 0x012C )
 #define REG_AON_APB_APB_RST3                               ( CTL_BASE_AON_APB + 0x0130 )
 #define REG_AON_APB_RC100M_CFG                             ( CTL_BASE_AON_APB + 0x0134 )
 #define REG_AON_APB_CGM_REG1                               ( CTL_BASE_AON_APB + 0x0138 )
@@ -594,6 +596,36 @@
 #define BIT_AON_APB_MMTX_SLEEP_CM4_PUB_RD                       BIT(2)
 #define BIT_AON_APB_INT_REQ_CM4_SOFT                            BIT(1)
 #define BIT_AON_APB_SP_CFG_BUS_SLEEP                            BIT(0)
+
+/* REG_AON_APB_ETC_CTRL0 */
+
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_RESET_BAR            BIT(13)
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_DORMANT              BIT(12)
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_SEC_BIST_STRT        BIT(11)
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_PVDDOFFB_AON         BIT(10)
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_AVDDOFFB_AON         BIT(9)
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_AVDDISOB_AON         BIT(8)
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_DVDDOFFB_AON         BIT(7)
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_DVDDISOB_AON         BIT(6)
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_POR_ISOB_AON         BIT(5)
+#define BIT_AON_APB_R2G_ANALOG_ETEK_ET8212_POR_ISO_AON          BIT(4)
+#define BIT_AON_APB_G2R_ANALOG_ETEK_ET8212_ALARM_TOGGLE_INT     BIT(3)
+#define BIT_AON_APB_G2R_ANALOG_ETEK_ET8212_ATCLIM_TOGGLE_INT    BIT(2)
+#define BIT_AON_APB_G2R_ANALOG_ETEK_ET8212_SEC_BIST_DONE        BIT(1)
+#define BIT_AON_APB_G2R_ANALOG_ETEK_ET8212_SEC_BIST_PASS        BIT(0)
+
+/* REG_AON_APB_ETC_CTRL1 */
+
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_RESET_BAR        BIT(9)
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_DORMANT          BIT(8)
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_SEC_BIST_STRT    BIT(7)
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_PVDDOFFB_AON     BIT(6)
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_AVDDOFFB_AON     BIT(5)
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_AVDDISOB_AON     BIT(4)
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_DVDDOFFB_AON     BIT(3)
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_DVDDISOB_AON     BIT(2)
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_POR_ISOB_AON     BIT(1)
+#define BIT_AON_APB_DBG_SEL_ANALOG_ETEK_ET8212_POR_ISO_AON      BIT(0)
 
 /* REG_AON_APB_APB_RST3 */
 

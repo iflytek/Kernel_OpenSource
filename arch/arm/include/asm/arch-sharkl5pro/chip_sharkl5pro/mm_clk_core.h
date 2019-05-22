@@ -69,7 +69,7 @@
 
 /* REG_MM_CLK_CORE_CGM_DCAM_IF_CFG */
 
-#define BIT_MM_CLK_CORE_CGM_DCAM_IF_CFG_CGM_DCAM_IF_SEL(x)                   (((x) & 0x7))
+#define BIT_MM_CLK_CORE_CGM_DCAM_IF_CFG_CGM_DCAM_IF_SEL(x)                   (((x) & 0x3))
 
 /* REG_MM_CLK_CORE_CGM_DCAM_AXI_CFG */
 
@@ -77,22 +77,22 @@
 
 /* REG_MM_CLK_CORE_CGM_ISP_CFG */
 
-#define BIT_MM_CLK_CORE_CGM_ISP_CFG_CGM_ISP_SEL(x)                           (((x) & 0x7))
+#define BIT_MM_CLK_CORE_CGM_ISP_CFG_CGM_ISP_SEL(x)                           (((x) & 0x3))
 
 /* REG_MM_CLK_CORE_CGM_MIPI_CSI0_CFG */
 
 #define BIT_MM_CLK_CORE_CGM_MIPI_CSI0_CFG_CGM_MIPI_CSI0_PAD_SEL              BIT(16)
-#define BIT_MM_CLK_CORE_CGM_MIPI_CSI0_CFG_CGM_MIPI_CSI0_SEL(x)               (((x) & 0x7))
+#define BIT_MM_CLK_CORE_CGM_MIPI_CSI0_CFG_CGM_MIPI_CSI0_SEL(x)               (((x) & 0x3))
 
 /* REG_MM_CLK_CORE_CGM_MIPI_CSI1_CFG */
 
 #define BIT_MM_CLK_CORE_CGM_MIPI_CSI1_CFG_CGM_MIPI_CSI1_PAD_SEL              BIT(16)
-#define BIT_MM_CLK_CORE_CGM_MIPI_CSI1_CFG_CGM_MIPI_CSI1_SEL(x)               (((x) & 0x7))
+#define BIT_MM_CLK_CORE_CGM_MIPI_CSI1_CFG_CGM_MIPI_CSI1_SEL(x)               (((x) & 0x3))
 
 /* REG_MM_CLK_CORE_CGM_MIPI_CSI2_CFG */
 
 #define BIT_MM_CLK_CORE_CGM_MIPI_CSI2_CFG_CGM_MIPI_CSI2_PAD_SEL              BIT(16)
-#define BIT_MM_CLK_CORE_CGM_MIPI_CSI2_CFG_CGM_MIPI_CSI2_SEL(x)               (((x) & 0x7))
+#define BIT_MM_CLK_CORE_CGM_MIPI_CSI2_CFG_CGM_MIPI_CSI2_SEL(x)               (((x) & 0x3))
 
 /* REG_MM_CLK_CORE_CGM_CPHY_CFG_CFG */
 
