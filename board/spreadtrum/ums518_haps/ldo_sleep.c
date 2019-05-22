@@ -114,7 +114,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_SLP_DCDCWPA_PD_EN |
 		BIT_SLP_DCDCGPU_PD_EN |
 		//BIT_SLP_DCDCCPU_PD_EN |
-		BIT_SLP_DCDCGEN1_PD_EN |
+		//BIT_SLP_DCDCGEN1_PD_EN |
 		0
 	);
 	if(adie_id < 0xB000) {
@@ -206,7 +206,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_SLP_LDO_VDDRF1V25_LP_EN |
 		//BIT_SLP_LDO_VDDEMMCCORE_LP_EN |
 		BIT_SLP_LDO_VDD18_DCXO_LP_EN |
-		//BIT_SLP_LDO_VDDWIFIPA_LP_EN |
+		BIT_SLP_LDO_VDDWIFIPA_LP_EN |
 		BIT_SLP_LDO_VDD28_LP_EN |
 		//BIT_SLP_LDO_VDDSDCORE_LP_EN |
 		//BIT_SLP_LDO_VDDSDIO_LP_EN |
@@ -291,7 +291,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_DCDC_GEN1_EXT_XTL0_EN |
 		//BIT_DCDC_GEN1_EXT_XTL1_EN |
 		//BIT_DCDC_GEN1_EXT_XTL2_EN |
-		BIT_DCDC_GEN1_EXT_XTL3_EN |
+		//BIT_DCDC_GEN1_EXT_XTL3_EN |
 		//BIT_DCDC_GEN1_EXT_XTL4_EN |
 		//BIT_DCDC_GEN1_EXT_XTL5_EN |
 		0
@@ -477,7 +477,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_LDO_VDDWCN_EXT_XTL0_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL1_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL2_EN |
-		BIT_LDO_VDDWCN_EXT_XTL3_EN |
+		//BIT_LDO_VDDWCN_EXT_XTL3_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL4_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL5_EN |
 		BIT_LDO_AVDD18_EXT_XTL0_EN |
@@ -499,7 +499,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_LDO_VDDWIFIPA_EXT_XTL0_EN |
 		//BIT_LDO_VDDWIFIPA_EXT_XTL1_EN |
 		//BIT_LDO_VDDWIFIPA_EXT_XTL2_EN |
-		BIT_LDO_VDDWIFIPA_EXT_XTL3_EN |
+		//BIT_LDO_VDDWIFIPA_EXT_XTL3_EN |
 		//BIT_LDO_VDDWIFIPA_EXT_XTL4_EN |
 		//BIT_LDO_VDDWIFIPA_EXT_XTL5_EN |
 		0
