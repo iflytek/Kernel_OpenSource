@@ -1533,7 +1533,7 @@ int fdt_fixup_system_mount_part_num(void *fdt)
 			}
 
 			k = strsep(&v, "=");
-			if (!k) {
+			if (!k || v == NULL) {
 				free(v_copy);
 				continue;
 			}
