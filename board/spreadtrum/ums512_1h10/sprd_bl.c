@@ -3,7 +3,7 @@
 #include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
 
-#define PWM_INDEX  1
+#define PWM_INDEX  2
 
 /*r3p0*/
 
@@ -16,7 +16,7 @@
 #define PWM_ENABLE 	(0x0018)
 #define PWM_VERSION	(0x001c)
 
-#define PWM2_SCALE		0x0
+#define PWM2_SCALE		0x3
 #define PWM_MOD_MAX 0xff
 #define PWM_REG_MSK 0xffff
 
@@ -41,8 +41,7 @@ void set_backlight(uint32_t brightness)
 	int index = PWM_INDEX;
 
 	__raw_bits_or((0x1 << 0), REG_AON_CLK_CORE_CGM_PWM0_CFG + index * 4);//ext_26m select
-	__raw_bits_or(((PWM_INDEX << 1) << 4), REG_AON_APB_APB_EB0); //PWMx EN
-
+	__raw_bits_or(((1 << PWM_INDEX) << 25), REG_AON_APB_APB_EB2); //PWMx EN
 
 	if (0 == brightness) {
 		pwm_write(index, 0, PWM_ENABLE);

@@ -65,9 +65,12 @@
 			reg = <0x0 0x99800000 0x0 0x3000000>;
 		};
 
-		/* (1088x1920x4Bytes) x 4Buffers + AFBC header*/
-		fb_reserved: framebuffer@bc000000{
-			reg = <0x0 0xbc000000 0x0 0x2000000>;
+		bmp_reserved: bmp-mem@fd708000 {
+			reg = <0x0 0xfd708000 0x0 0x1e5a000>;
+		};
+
+		wb_reserved: writeback@ff562000 {
+			reg = <0x0 0xff562000 0x0 0x00a1e000>;
 		};
 	};
 
@@ -78,9 +81,9 @@
 
 		heap@3 {
 			reg = <3>;
-			label = "carveout_fb";
+			label = "carveout_logo";
 			type = <2>;
-			memory-region = <&fb_reserved>;
+			memory-region = <&wb_reserved>;
 		};
 
 		heap@4 {
@@ -116,6 +119,13 @@
 			label = "carveout_log";
 			type = <2>;
 			memory-region = <&log_reserved>;
+		};
+
+		heap@9 {
+			reg = <9>;
+			label = "carveout_bmp";
+			type = <2>;
+			memory-region = <&bmp_reserved>;
 		};
 	};
 
