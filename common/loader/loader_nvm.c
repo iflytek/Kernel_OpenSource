@@ -274,6 +274,24 @@ static boot_image_required_t *const s_boot_image_table[] = {
 uint8_t header_buf[SEC_HEADER_MAX_SIZE];
 #endif
 
+/* Note: return NULL if kernel offset was not found */
+struct boot_img_hdr *get_boot_img_hdr(void)
+{
+	return !boot_img_offset.kernel_offset ? NULL : (boot_img_hdr *)raw_header;
+}
+
+struct boot_img_hdr_v1 *get_boot_img_hdr_v1(struct boot_img_hdr *hdr)
+{
+	return (struct boot_img_hdr_v1 *)(hdr + 1);
+}
+
+struct boot_img_hdr_v2 *get_boot_img_hdr_v2(struct boot_img_hdr *hdr)
+{
+	struct boot_img_hdr_v1 *hdr_v1 = get_boot_img_hdr_v1(hdr);
+
+	return (struct boot_img_hdr_v2 *)(hdr_v1 + 1);
+}
+
 #ifdef CONFIG_SECURE_BOOT
 
 int get_spl_hash(void *hash_data)
@@ -644,8 +662,8 @@ static uint64_t boot_img_offset_v01(boot_img_hdr *hdr, uint64_t offset)
 
 static uint64_t boot_img_offset_v2(boot_img_hdr *hdr, uint64_t offset)
 {
-	struct boot_img_hdr_v1 *hdr_v1 = (struct boot_img_hdr_v1 *)(hdr + 1);
-	struct boot_img_hdr_v2 *hdr_v2 = (struct boot_img_hdr_v2 *)(hdr_v1 + 1);
+	struct boot_img_hdr_v1 *hdr_v1 = get_boot_img_hdr_v1(hdr);
+	struct boot_img_hdr_v2 *hdr_v2 = get_boot_img_hdr_v2(hdr);
 	uint64_t size;
 
 	/* kernel image */
@@ -944,46 +962,65 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 	struct dt_entry *dt_entry_ptr;
 	uint64_t size = 0;
 	uint64_t fdt_size = 0;
+	uint64_t fdt_offset = 0;
 	int ret = -1;
 	uchar *dt_end_addr;
 	uchar *ramdisk_adr;
 	uint32_t auto_mem_num = 0;
+	struct boot_img_hdr *hdr;
+	struct boot_img_hdr_v2 *hdr_v2 = NULL;
 
-	size = sizeof(struct dt_table);
-	if (0 != common_raw_read(partition, size, (uint64_t)(boot_img_offset.dt_offset), &table)) {
-		errorf("read dt image table header fail\n");
-		goto error;
+	hdr = get_boot_img_hdr();
+	if (hdr) {
+		hdr_v2 = get_boot_img_hdr_v2(hdr);
 	}
 
-	/* Validate the device tree table header */
-	if((table.magic != DEV_TREE_MAGIC) || (table.version != DEV_TREE_VERSION)) {
-		errorf("Cannot validate Device Tree Table \n");
-		goto error;
-	}
+	/* if Android V2, read fdt directly */
+	if (!hdr_v2 || !((BOOT_HEADER_VERSION_TWO == hdr->header_version)
+			&& (hdr_v2->dtb_addr && hdr_v2->dtb_size))) {
+		size = sizeof(struct dt_table);
+		if (0 != common_raw_read(partition, size, (uint64_t)(boot_img_offset.dt_offset), &table)) {
+			errorf("read dt image table header fail\n");
+			goto error;
+		}
 
-	size = sizeof(struct dt_table) + sizeof(struct dt_entry) * table.num_entries;
-	header = (char *)malloc(size);
-	if (NULL == header) {
-		errorf("malloc size %d for dt header fail\n", size);
-		goto error;
-	}
-	if (0 != common_raw_read(partition, size,  (uint64_t)(boot_img_offset.dt_offset), header)) {
-		errorf("read dt image table and entries header fail\n");
-		goto error;
-	}
+		/* Validate the device tree table header */
+		if((table.magic != DEV_TREE_MAGIC) || (table.version != DEV_TREE_VERSION)) {
+			errorf("Cannot validate Device Tree Table \n");
+			goto error;
+		}
 
-	/* Calculate the offset of device tree within device tree table */
-	dt_entry_ptr = dev_tree_get_entry_ptr((struct dt_table *)header);
-	if(NULL == dt_entry_ptr) {
-		errorf("Getting device tree address failed\n");
-		goto error;
-	}
+		size = sizeof(struct dt_table) + sizeof(struct dt_entry) * table.num_entries;
+		header = (char *)malloc(size);
+		if (NULL == header) {
+			errorf("malloc size %d for dt header fail\n", size);
+			goto error;
+		}
+		if (0 != common_raw_read(partition, size,  (uint64_t)(boot_img_offset.dt_offset), header)) {
+			errorf("read dt image table and entries header fail\n");
+			goto error;
+		}
 
-	size = dt_entry_ptr->size;
+		/* Calculate the offset of device tree within device tree table */
+		dt_entry_ptr = dev_tree_get_entry_ptr((struct dt_table *)header);
+		if(NULL == dt_entry_ptr) {
+			errorf("Getting device tree address failed\n");
+			goto error;
+		}
+
+		size = dt_entry_ptr->size;
+		fdt_offset = boot_img_offset.dt_offset + dt_entry_ptr->offset;
+	} else {
+		fdt_offset = boot_img_offset.dt_offset;
+		size = hdr_v2->dtb_size;
+		if (fdt_offset != hdr_v2->dtb_addr)
+			debugf("Warning: dtb addr 0x%llx on boot img hdr\n", hdr_v2->dtb_addr);
+		debugf("v2 header fdt_offset:0x%llx size:0x%llx\n", fdt_offset, size);
+	}
 	/* malloc reserve FDT_ADD_SIZE for fdt fixup */
 	fdt_blob = malloc(size + FDT_ADD_SIZE);
 	debugf("malloc size for fdt: 0x%lx\n", size + FDT_ADD_SIZE);
-	if (0 != common_raw_read(partition, (uint64_t)size, (uint64_t)(boot_img_offset.dt_offset + dt_entry_ptr->offset), (char *)fdt_blob)) {
+	if (0 != common_raw_read(partition, (uint64_t)size, (uint64_t)fdt_offset, (char *)fdt_blob)) {
 		errorf("dt entry size read error!\n");
 		goto error;
 	}
@@ -1082,10 +1119,16 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		errorf("libfdt fdt_open_into(): %s\n", fdt_strerror(ret));
 	fdt_fixup_all((uchar *)DT_ADR);
 #else
-	if ((BOOT_HEADER_VERSION_ONE == hdr->header_version)
-			&& (0 == common_raw_read("dtb", 10, 0, (char *)DT_ADR))) {
-		dtb_partname = "dtb";
-		boot_img_offset.dt_offset = 0;
+	if (BOOT_HEADER_VERSION_ONE == hdr->header_version) {
+		/* fixbug1007672 */
+		struct boot_img_hdr_v2 *hdr_v2 = get_boot_img_hdr_v2(hdr);
+		if (hdr_v2->dtb_size && hdr_v2->dtb_addr) {
+			dtb_partname = partition;
+			boot_img_offset.dt_offset = hdr_v2->dtb_addr;
+		} else if (0 == common_raw_read("dtb", 10, 0, (char *)DT_ADR)) {
+			dtb_partname = "dtb";
+			boot_img_offset.dt_offset = 0;
+		}
 	} else {
 		dtb_partname = partition;
 	}
