@@ -506,8 +506,12 @@ void secboot_terminal(void)
 
 void secboot_secure_process_flow(char *partition_name, uint64_t size, uint64_t offset, char *ram_addr)
 {
-	uint32_t ret = 1;
-	static bool system_vendor_product_done = false;
+    uint32_t ret = 1;
+#ifdef PRODUCT_USE_DYNAMIC_PARTITIONS
+    static bool system_vendor_product_done = true;
+#else
+    static bool system_vendor_product_done = false;
+#endif
     static bool dtb_dtbo_done = false;
 #ifdef CONFIG_VBOOT_V2
 	vboot_secure_process_flow(partition_name);
