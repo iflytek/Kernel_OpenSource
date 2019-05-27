@@ -337,9 +337,14 @@
 
 
 #define CONFIG_SYS_I2C
+#define CONFIG_SPRD_HW_I2C
 #define CONFIG_SPRD_I2C_V3
 #define CONFIG_SPRDCHG_I2C_BUS 4
 #define CONFIG_FAN54015_CHARGE_IC
+
+#define CONFIG_DVFS_ADDR		0x60
+#define CINFIG_DVFS_TX_5_REG_ADDR	0x02
+#define CINFIG_DVFS_TX_7_REG_ADDR	0x00
 
 /*-----------------------------------------------------------------------
  * Cache Configuration
