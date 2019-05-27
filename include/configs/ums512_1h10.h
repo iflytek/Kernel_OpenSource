@@ -252,6 +252,9 @@
 #define CONFIG_RAMDUMP_NO_SPLIT /* Don't split sysdump file */
 #define REAL_SDRAM_SIZE 0x40000000  /*dump 1G*/
 #define CONFIG_SHA1
+#define CONFIG_SPRD_MINI_SYSDUMP
+#define CONFIG_GZIP_COMPRESSED
+#define CONFIG_GZIP_COMPRESS_DEF_SZ     0x200
 
 #define PWR_KEY_DETECT_CNT  2
 #define ALARM_LEAD_SET_MS 0 /* time set for alarm boot in advancd */
