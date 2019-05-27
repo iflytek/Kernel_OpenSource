@@ -4,13 +4,6 @@
 #include <asm/arch/sprd_reg.h>
 
 
-#define WARNING_MESSAGE 					\
-	"***********************************************\n"	\
-	"*                                             *\n"	\
-	"*  This version does not support AA chip !!!  *\n"	\
-	"*                                             *\n"	\
-	"***********************************************\n"
-
 
 #define REFOUT0_ON				BIT(0)
 #define REFOUT1_ON				BIT(1)
@@ -64,7 +57,7 @@ void dcdc_ldo_power_on(void)
 #endif
 }
 
-void pmic_lowpower_config(void)
+void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 {
 #if defined(CONFIG_ADIE_SC2730)
 #if defined(CONFIG_DEEP_DROP_EN)
@@ -103,9 +96,9 @@ void pmic_lowpower_config(void)
 
 	//DCDC pd an drop config in sleep mode
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		//BIT_SLP_DCDCMODEM_PD_EN |
+		BIT_SLP_DCDCMODEM_PD_EN |
 		//BIT_SLP_DCDCMEMQ_PD_EN |
-		//BIT_SLP_DCDCSRAM_PD_EN |
+		BIT_SLP_DCDCSRAM_PD_EN |
 #if CONFIG_DCDCSRAM_DEEP_DROP_EN
 		BIT_SLP_DCDCSRAM_DROP_EN |
 #endif
@@ -119,25 +112,41 @@ void pmic_lowpower_config(void)
 		BIT_SLP_DCDCCORE_DROP_EN |
 #endif
 		//BIT_SLP_DCDCWPA_PD_EN |
-		//BIT_SLP_DCDCGPU_PD_EN |
+		BIT_SLP_DCDCGPU_PD_EN |
 		//BIT_SLP_DCDCCPU_PD_EN |
 		BIT_SLP_DCDCGEN1_PD_EN |
 		0
 	);
+	if(adie_id < 0xB000) {
+		ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
+			BIT_SLP_DCDCSRAM_LP_EN |
+			BIT_SLP_DCDCMODEM_LP_EN |
+			BIT_SLP_DCDCMEMQ_LP_EN |
+			BIT_SLP_DCDCMEM_LP_EN |
+			//BIT_SLP_DCDCGPU_LP_EN |
+			//BIT_SLP_DCDCCORE_LP_EN |
+			BIT_SLP_DCDCCPU_LP_EN |
+			BIT_SLP_DCDCGEN1_LP_EN |
+			BIT_SLP_DCDCGEN0_LP_EN |
+			BIT_SLP_DCDCWPA_LP_EN |
+			0
+		);
+	} else {
+		ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
+			BIT_SLP_DCDCSRAM_LP_EN |
+			BIT_SLP_DCDCMODEM_LP_EN |
+			BIT_SLP_DCDCMEMQ_LP_EN |
+			BIT_SLP_DCDCMEM_LP_EN |
+			BIT_SLP_DCDCGPU_LP_EN |
+			BIT_SLP_DCDCCORE_LP_EN |
+			BIT_SLP_DCDCCPU_LP_EN |
+			BIT_SLP_DCDCGEN1_LP_EN |
+			BIT_SLP_DCDCGEN0_LP_EN |
+			BIT_SLP_DCDCWPA_LP_EN |
+			0
+		);
 
-	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-		BIT_SLP_DCDCSRAM_LP_EN |
-		BIT_SLP_DCDCMODEM_LP_EN |
-		BIT_SLP_DCDCMEMQ_LP_EN |
-		BIT_SLP_DCDCMEM_LP_EN |
-		//BIT_SLP_DCDCGPU_LP_EN |
-		//BIT_SLP_DCDCCORE_LP_EN |
-		BIT_SLP_DCDCCPU_LP_EN |
-		BIT_SLP_DCDCGEN1_LP_EN |
-		BIT_SLP_DCDCGEN0_LP_EN |
-		BIT_SLP_DCDCWPA_LP_EN |
-		0
-	);
+	}
 
 #if CONFIG_DCDCSRAM_DEEP_DROP_EN
 	drop_val = (CONFIG_DCDCSRAM_DEEP_DROP_VOL * 1000U) / 3125U;
@@ -213,7 +222,7 @@ void pmic_lowpower_config(void)
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL1,
 		BIT_SLP_LDO_VDDLDO2_LP_EN |
 		//BIT_SLP_LDO_AVDD12_LP_EN |
-		//BIT_SLP_LDO_VDDWCN_LP_EN |
+		BIT_SLP_LDO_VDDWCN_LP_EN |
 		//BIT_SLP_LDO_VDDCAMD1_LP_EN |
 		//BIT_SLP_LDO_VDDCAMA1_LP_EN |
 		//BIT_SLP_LDO_VDDLDO0_LP_EN |
@@ -592,6 +601,20 @@ void pmic_lowpower_config(void)
 		BITS_DCXO_26M_REF_OUT_EN(REFOUT0_ON | REFOUT3_ON) |
 		0
 	);
+
+	//Pin exit slp config
+	ANA_REG_SET(ANA_REG_GLB_XTL_WAIT_CTRL0,
+		//BIT_EXT_XTL5_FOR_26M_EN |
+		//BIT_EXT_XTL4_FOR_26M_EN |
+		BIT_EXT_XTL3_FOR_26M_EN |
+		BIT_EXT_XTL2_FOR_26M_EN |
+		BIT_EXT_XTL1_FOR_26M_EN |
+		BIT_EXT_XTL0_FOR_26M_EN |
+		BIT_SLP_XTLBUF_PD_EN |
+		BIT_XTL_EN |
+		BITS_XTL_WAIT(0x32) |
+		0
+	);
 #endif
 }
 
@@ -599,14 +622,15 @@ void sprd_pmu_lowpower_init(void)
 {
 #ifndef CONFIG_FPGA
 	//Get Chip version
-	uint32_t chipid = CHIP_REG_GET(REG_AON_APB_AON_VER_ID);
-	if (!chipid) {
-		printf("\n\n%s\n", WARNING_MESSAGE);
-		while(1);
-	}
+	uint32_t ddie_id;
+	uint32_t adie_id;
+
+	ddie_id = CHIP_REG_GET(REG_AON_APB_AON_VER_ID);
+	adie_id = ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW);
+
 #if defined(CONFIG_SUPPORT_LOWPOWER)
 	//Config the ADIE lowpower
-	pmic_lowpower_config();
+	pmic_lowpower_config(ddie_id,adie_id);
 	//Config pmu paratmers
 	CSP_Init(0);
 #endif
