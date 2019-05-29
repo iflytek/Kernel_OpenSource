@@ -264,6 +264,9 @@
 #define SPRD_SYSDUMP_MAGIC		RAMDISK_ADR
 #define CONFIG_SHA1
 #define REAL_SDRAM_SIZE 0x40000000	/*dump 1G */
+#define CONFIG_SPRD_MINI_SYSDUMP
+#define CONFIG_GZIP_COMPRESSED
+#define CONFIG_GZIP_COMPRESS_DEF_SZ     0x200
 
 
 //#define LOW_BAT_ADC_LEVEL 782 /*phone battery adc value low than this value will not boot up*/
