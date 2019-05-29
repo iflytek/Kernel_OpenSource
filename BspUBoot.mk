@@ -75,7 +75,7 @@ endif
 
 export UBOOT_ROC1_CACHE_WA_FLAG
 
-ifeq ($(strip $(BOARD_TEE_CONFIG)),trusty)
+ifeq ($(strip $(BSP_BOARD_TEE_CONFIG)),trusty)
 UBOOT_TOS_TRUSTY_FLAG := -DTOS_TRUSTY
 endif
 
@@ -94,7 +94,7 @@ endif
 export UBOOT_FIREWALL_FLAG
 
 ifeq ($(TARGET_ARCH), arm)
-ifeq ($(strip $(BOARD_ATF_CONFIG)),true)
+ifeq ($(strip $(BSP_BOARD_ATF_CONFIG)),true)
 UBOOT_ARMV7_LPAE_FLAG := -DCONFIG_ARMV7_LPAE
 endif
 endif
