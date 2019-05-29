@@ -265,6 +265,7 @@ unsigned int sprd_get_version(sw_version_id_t counterId, unsigned int* swVersion
     }
 
     /* Read the SW version from the OTP, and accumulate number of ones */
+    reg_value = 0;
     cntr_sw_version = 0;
     for(i = 0; i < cntr_width; i++) {
         ret = sec_efuse_read(cntr_offset + i, &reg_value);
