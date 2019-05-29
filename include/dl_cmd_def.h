@@ -38,6 +38,7 @@ typedef enum dl_cmd_type {
     BSL_SET_BAUDRATE,                           /* 0x9 */
     BSL_ERASE_FLASH,                            /* 0xA */
     BSL_REPARTITION,                            /* 0xB */
+    BSL_CMD_READ_FLASH_TYPE=0XC,                /* 0xC, just for special customer */
     BSL_CMD_READ_MCP_TYPE=0xD,                 /* 0xD */
     BSL_CMD_READ_FLASH_START =0x10,/*0x10*/
     BSL_CMD_READ_FLASH_MIDST,		/*0x11*/
@@ -101,6 +102,7 @@ typedef enum dl_cmd_type {
     BSL_ILLEGAL_SDRAM,                      /* 0x99 */
     BSL_WRONG_SDRAM_PARAMETER,              /* 0x9a */
     BSL_REP_READ_MCP_TYPE,                  /* 0x9b*/
+    BSL_REP_READ_FLASH_TYPE=0x9D,           /* 0x9d */
     BSL_EEROR_CHECKSUM = 0xA0,
     BSL_CHECKSUM_DIFF,
     BSL_WRITE_ERROR,

@@ -62,6 +62,9 @@ int dl_cmd_read_ref_info(dl_packet_t *packet, void *arg);
 int dl_cmd_disable_hdlc(dl_packet_t *packet, void *arg);
 int dl_cmd_write_datetime(dl_packet_t *packet, void *arg);
 int dl_cmd_set_debuginfo(dl_packet_t *packet, void *arg);
+#ifdef CONFIG_EMMC_DDR_CHECK_TYPE
+int dl_cmd_read_flashtype(dl_packet_t *pakcet, void *arg);
+#endif
 #ifdef CONFIG_PCTOOL_CHECK_MULTI_FIXNV
 int dl_cmd_check_NV_type(dl_packet_t *pakcet, void *arg);
 #endif

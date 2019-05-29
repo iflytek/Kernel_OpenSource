@@ -599,3 +599,19 @@ int dl_cmd_check_NV_type(dl_packet_t *packet, void *arg)
 	return 1;
 }
 #endif
+
+#ifdef CONFIG_EMMC_DDR_CHECK_TYPE
+/* just for special customer */
+int dl_cmd_read_flashtype(dl_packet_t *packet, void *arg)
+{
+        uint16_t size ;
+
+        dl_get_flashtype(packet->body.content, &size);
+        packet->body.type= BSL_REP_READ_FLASH_TYPE;
+        packet->body.size = size;
+        dl_send_packet (packet);
+
+        return 1;
+}
+#endif
+

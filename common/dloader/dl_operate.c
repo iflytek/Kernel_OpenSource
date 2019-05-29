@@ -1149,3 +1149,64 @@ OPERATE_STATUS dl_record_pacdatetime(uchar * buf, uint64_t size)
 	}
 	return OPERATE_SUCCESS;
 }
+
+#ifdef CONFIG_EMMC_DDR_CHECK_TYPE
+static uint32_t flash_ddr_size_tab[] = {128, 256, 512, 1*1024, 2*1024, 3*1024, 4*1024, \
+                6*1024, 8*1024, 16*1024, 32*1024, 64*1024, 128*1024, 256*1024, 512*1024};
+
+uint32_t get_correct_size(uint32_t size)
+{
+	uint32_t i = 0;
+	uint32_t diff_size = 50;
+	uint32_t read_size = size;
+
+	for(i = 0; i < sizeof(flash_ddr_size_tab)/sizeof(uint32_t); i++) {
+		if(i < 3)
+			diff_size = 50;
+		else diff_size = 100;
+		if(flash_ddr_size_tab[i]) {
+			if(abs(flash_ddr_size_tab[i] - size) < diff_size) {
+				read_size = flash_ddr_size_tab[i];
+				break;
+			}
+
+		}
+	}
+	printf("correct size:%u\r\n", read_size);
+	return read_size;
+}
+
+OPERATE_STATUS dl_get_flashtype(uchar * content, uint16_t * size)
+{
+	struct FLASH_TYPE flash_type;
+	char temp[sizeof(struct FLASH_TYPE)];
+	int i = 0;
+	int j = 0;
+
+	memset(&flash_type, 0, sizeof(struct FLASH_TYPE));
+
+	/* dram size */
+	int dram_size_inMB = 0;
+	printf("get real ram size: 0x%x\n", get_real_ram_size());
+	dram_size_inMB = ((get_real_ram_size()/1024/1024)+5);
+	printf("dram_size_inMB:%u\n", dram_size_inMB);
+	flash_type.mid = get_correct_size(dram_size_inMB);
+
+	/* calculate emmc size in GB */
+	int emmc_size = 0, emmc_size_inMB = 0;
+	emmc_size = emmc_get_capacity(PARTITION_USER)/1000/1000;
+	emmc_size_inMB = (emmc_size+500)/1000*1024;
+
+	/* did field is used for emmc size */
+	flash_type.did = get_correct_size(emmc_size_inMB);
+	printf("emmc_size:%llu,emmc_size_inMB:%d\n", emmc_get_capacity(PARTITION_USER), emmc_size_inMB);
+	*size = sizeof(struct FLASH_TYPE);
+	memcpy(temp, &flash_type, *size);
+	for (i = 0; i < *size; i++) {
+		if ((i % 4) == 0)
+			j = i + 4;
+		content[i] = temp[--j];
+	}
+	return 1;
+}
+#endif

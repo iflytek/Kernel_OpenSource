@@ -82,6 +82,13 @@ typedef enum _ALTERNATIVE_BUFFER_STATUS {
 	BUFFER_DIRTY
 } ALTERNATIVE_BUFFER_STATUS;
 
+typedef struct FLASH_TYPE {
+	int mid;/* as ddr size */
+	int did;/* as emmc size */
+	int eid;/* reserved */
+	int flag;
+} FLASH_T;
+
 OPERATE_STATUS dl_download_start(uchar * partition_name, uint64_t size, uint32_t nv_checksum);
 OPERATE_STATUS dl_download_midst(uint16_t size, char *buf);
 OPERATE_STATUS dl_download_end(void);
@@ -95,7 +102,9 @@ OPERATE_STATUS dl_read_ref_info(char *part_name, uint16_t size, uint64_t offset,
 	uchar *receive_buf, uchar  *transmit_buf);
 
 OPERATE_STATUS dl_record_pacdatetime(uchar * buf, uint64_t size);
-
+#ifdef CONFIG_EMMC_DDR_CHECK_TYPE
+OPERATE_STATUS dl_get_flashtype(uchar * content, uint16_t * size);
+#endif
 #ifdef CONFIG_DTS_MEM_LAYOUT
 int set_buf_base_size();
 #endif
