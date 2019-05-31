@@ -48,10 +48,11 @@ int board_init(void)
 	ADI_init();
 	/*FPGA forbiden*/
 	misc_init();
-	regulator_init();
+
 	pmic_adc_Init();
 	/*FPGA forbiden*/
 	pin_init();
+	regulator_init();
 	sprd_eic_init();
 	sprd_gpio_init();
 	sprd_led_init();
