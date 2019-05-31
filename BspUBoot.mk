@@ -25,7 +25,7 @@ BSP_UBOOT_CONFIG := $(BSP_UBOOT_OUT)/include/config.h
 BSP_UBOOT_DTB_BUILT_BIN := $(BSP_UBOOT_OUT)/u-boot-dtb.bin
 BSP_UBOOT_BUILT_BIN := $(BSP_UBOOT_OUT)/u-boot.bin
 BSP_FDL2_BUILT_BIN := $(BSP_UBOOT_OUT)/fdl2.bin
-BSP_UBOOT_DTB_BUILT_ELF := $(BSP_UBOOT_OUT)/u-boot.elf
+BSP_UBOOT_DTB_BUILT := $(BSP_UBOOT_OUT)/u-boot
 BSP_UBOOT_DTB_SYSTEM_MAP := $(BSP_UBOOT_OUT)/System.map
 BSP_UBOOT_DTB_CFG := $(BSP_UBOOT_OUT)/u-boot.cfg
 
@@ -121,7 +121,7 @@ all: $(BSP_UBOOT_CONFIG)
 	-cp $(BSP_UBOOT_DTB_BUILT_BIN) $(BSP_UBOOT_BUILT_BIN)
 	@mkdir -p $(BSP_UBOOT_OUT)/.out
 	@cp $(BSP_UBOOT_BUILT_BIN) $(BSP_UBOOT_OUT)/.out/u-boot_autopoweron.bin
-	@cp $(BSP_UBOOT_DTB_BUILT_ELF) $(BSP_UBOOT_OUT)/.out/u-boot_autopoweron.elf
+	@cp $(BSP_UBOOT_DTB_BUILT) $(BSP_UBOOT_OUT)/.out/u-boot_autopoweron
 	@cp $(BSP_UBOOT_DTB_SYSTEM_MAP) $(BSP_UBOOT_OUT)/.out/System_autopoweron.map
 	@cp $(BSP_UBOOT_DTB_CFG) $(BSP_UBOOT_OUT)/.out/u-boot_autopoweron.cfg
 	$(MAKE) ARCH=$(SRCARCH) DEVICE_TREE=$(BSP_UBOOT_TARGET_DTB) CROSS_COMPILE=$(UBOOT_TOOLCHAIN) O=$(BSP_UBOOT_OUT) clean
