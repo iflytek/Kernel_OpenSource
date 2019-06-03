@@ -376,8 +376,6 @@
  */
 #define CONFIG_SYS_CACHELINE_SIZE	64
 
-/* coresight dump ETB data */
-#define CONFIG_ETB_DUMP
 
 #define CONFIG_RTC_START_YEAR           1970
 
