@@ -19,12 +19,15 @@
 
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
-
+#define CONFIG_SPRD_UID
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
 #define CONFIG_BOARD_LATE_INIT         /* call board_late_init() */
 //#define CONFIG_SUPPORT_RAW_INITRD
+
+/*the SPL is erased, the romcode will enter the download process.*/
+#define CONFIG_ERASE_SPL_AUTO_DOWNLOAD
 
 /* Cache Definitions */
 //#define CONFIG_SYS_DCACHE_OFF
@@ -42,7 +45,8 @@
 /* SMP Spin Table Definitions */
 #define CPU_RELEASE_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x7fff0)
 
-
+/* get soc serial number */
+#define CONFIG_GET_CPU_SERIAL_NUMBER
 
 /* Generic Timer Definitions */
 #define COUNTER_FREQUENCY		(0x1800000)	/* 24MHz */
@@ -107,6 +111,12 @@
 /* Default baud rate */
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+
+/*
+ * log config
+ */
+#define CONFIG_SPRD_LOG
+#define CONFIG_LOG_2_EMMC
 
 /*sprd watchdog*/
 #define CONFIG_HW_WATCHDOG
@@ -177,7 +187,12 @@
 #define CONFIG_SYS_SDRAM_END2 (CONFIG_SYS_SDRAM_BASE2 + CONFIG_SYS_SDRAM_SIZE2)
 #endif
 
-
+#ifdef DEBUG
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+#define CONFIG_AUTOBOOT_KEYED 1
+#define CONFIG_AUTOBOOT_PROMPT "Press q to abort autoboot in %d seconds"
+#define CONFIG_AUTOBOOT_STOP_STR "q"
+#endif
 
 /* Initial environment variables */
 #define CONFIG_BOOTCOMMAND			"cboot normal"
@@ -326,6 +341,8 @@
 #define CONFIG_LCM_GPIO_RSTN    50
 #define CONFIG_SYS_WHITE_ON_BLACK
 #define LCD_BPP LCD_COLOR16
+/*pmic chipid */
+#define CONFIG_PMIC_CHIP_ID
 
 /*fastboot*/
 #define SCRATCH_ADDR    (CONFIG_SYS_SDRAM_BASE + 0x100000)
