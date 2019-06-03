@@ -1287,6 +1287,34 @@ int fdt_fixup_ddr_size(void *fdt)
 #endif
 }
 
+int fdt_fixup_ro_boot_ramsize(void *fdt)
+{
+#ifdef CONFIG_DDR_AUTO_DETECT
+	char buf[32];
+
+	phys_size_t ddr_size;
+	uint64_t ro_boot_ddrsize = 0;
+	int str_len;
+	int ret;
+
+	ddr_size = get_real_ram_size();
+	ddr_size = ALIGN(ddr_size, 0x100000);
+	ro_boot_ddrsize = ddr_size >> 20;
+
+	memset(buf, 0, 32);
+
+	sprintf(buf, "androidboot.ddrsize=%ldM", ro_boot_ddrsize);
+	str_len = strlen(buf);
+	buf[str_len] = '\0';
+
+	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
+
+	return ret;
+#else
+	return 0;
+#endif
+}
+
 #ifdef CONFIG_SANSA_SECBOOT
 int fdt_fixup_socid(void *fdt)
 {

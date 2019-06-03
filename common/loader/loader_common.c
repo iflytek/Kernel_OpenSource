@@ -120,6 +120,7 @@ void fdt_fixup_all(u8 *fdt_blob)
 #endif
 	//fdt_fixup_dram_training(fdt_blob);
 	fdt_fixup_ddr_size(fdt_blob);
+	fdt_fixup_ro_boot_ramsize(fdt_blob);
 	fdt_fixup_sysdump_uboot(fdt_blob);
 	fdt_fixup_sysdump_magic(fdt_blob);
 #ifdef CONFIG_SECURE_BOOT
