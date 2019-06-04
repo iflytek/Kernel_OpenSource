@@ -33,6 +33,13 @@ void enable_global_clocks(void)
 	sci_glb_set(REG_MM_AHB_AHB_EB, BIT_MM_AHB_CKG_EB);
 }
 
+static void thm_overheate_en(void)
+{
+	sci_glb_set(REG_AON_APB_OVERHEAT_CTRL, BIT_AON_APB_THM0_OVERHEAT_ALARM_ADIE_EN |
+					BIT_AON_APB_THM1_OVERHEAT_ALARM_ADIE_EN |
+					BIT_AON_APB_THM2_OVERHEAT_ALARM_ADIE_EN );
+}
+
 extern void setup_chipram_env(void);
 int board_init(void)
 {
@@ -56,6 +63,7 @@ int board_init(void)
 	sprd_pmu_lowpower_init();
 	TDPllRefConfig(1);
 	enable_global_clocks();
+	thm_overheate_en();
 #else
 	sci_glb_set(REG_AON_APB_APB_EB1, BIT_AON_APB_ANA_EB);
 #endif
