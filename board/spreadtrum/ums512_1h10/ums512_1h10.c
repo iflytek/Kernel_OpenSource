@@ -5,6 +5,7 @@
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
+#include <asm/io.h>
 #include <asm/arch/sprd_reg.h>
 #include <common.h>
 #include <malloc.h>
@@ -15,6 +16,7 @@
 #include <sprd_led.h>
 #include <sprd_battery.h>
 #include <sprd_direct_acc_prot.h>
+#include <otp_helper.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x40000000;
