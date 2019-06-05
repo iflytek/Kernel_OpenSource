@@ -722,7 +722,21 @@ void fb_cmd_flashing(const char *arg, void *data, uint64_t sz)
 	if (!strcmp(subcmd, "unlock")) {
 		fastboot_fail("Not implemet.");
 	} else if (!strcmp(subcmd, "lock")) {
-		fastboot_fail("Not implement.");
+		if (get_lock_status() == VBOOT_STATUS_LOCK) {
+			fastboot_fail("Bootloader can not been locked repeatly.");
+			return;
+		}
+
+		if (set_lock_status(VBOOT_STATUS_LOCK)) {
+			debugf("execute <fastboot flashing lock_bootloader> command fail.\n");
+			fastboot_fail("Lock bootloader fail.");
+			return;
+		}
+
+		debugf("execute <fastboot flashing lock_bootloader> command successfully.\n");
+		lcd_printf("   Info:Lock bootloader success!\n");
+		fastboot_okay("Lock bootloader successfully!   ");
+
 	} else if (!strcmp(subcmd, "unlock_critical")) {
 		fastboot_fail("Not implement.");
 	} else if (!strcmp(subcmd, "lock_critical")) {
@@ -808,7 +822,71 @@ void fb_cmd_flashing(const char *arg, void *data, uint64_t sz)
 		fastboot_fail("unknown cmd.");
 	}
 }
-#endif
+
+static void fastboot_lcs_init(void)
+{
+    int ret = -1;
+    char lcs[8] = {0};
+    int p = 0, i = 0;
+
+    unsigned int t_lcs __attribute__((aligned(4096)));
+    ret = get_lcs(&t_lcs);
+    if(ret == 0){
+        sprintf(lcs, "%d", t_lcs);
+        fastboot_publish("lcs", strdup(lcs));
+    }else{
+        debugf("get lcs fail\n");
+    }
+}
+
+static void fastboot_token_init(void)
+{
+    int ret = -1;
+    char token_value[64] = {0};
+    char tokenname[16] = {0};
+    int p = 0, i = 0;
+
+    strcpy(product_sn_token, get_product_sn());
+    for(p=0;p<4;p++){
+        if('\0' == product_sn_token[p*16])
+            break;
+        memset(token_value, 0, 64);
+        memset(tokenname, 0, 16);
+        for(i=p*16;i<((p+1)*16);i++){
+            if('\0' == product_sn_token[p*16])
+                break;
+            sprintf(token_value+(i%16)*2, "%02x", product_sn_token[i]);
+        }
+        sprintf(tokenname, "tokenp%d", p+1);
+        fastboot_publish(strdup(tokenname), strdup(token_value));
+    }
+}
+
+
+static void fastboot_socid_init(void)
+{
+    int ret = -1;
+    uint8_t socIdBuff[32] __attribute__((aligned(4096)));
+    char socid_buf[64] = {0};
+    char socid_name[16] = {0};
+    int p = 0, i = 0;
+
+    ret = get_socid(socIdBuff, sizeof(socIdBuff));
+    if(ret == 0){
+        for(p=0; p<2; p++){
+            memset(socid_buf, 0, 64);
+            memset(socid_name, 0, 16);
+            for(i=p*16;i<((p+1)*16);i++){
+                sprintf(socid_buf+(i%16)*2, "%02x", socIdBuff[i]);
+            }
+            sprintf(socid_name, "socidp%d", p+1);
+            fastboot_publish(strdup(socid_name), strdup(socid_buf));
+        }
+    }else{
+        debugf("get socid fail\n");
+    }
+}
+#endif //CONFIG_SECBOOT
 
 extern unsigned char raw_header[8192];
 void fb_cmd_boot(const char *arg, void *data, uint64_t sz)
@@ -1116,6 +1194,9 @@ int do_fastboot(void)
 	fastboot_register("getlcs", fb_cmd_getlcs);
 	fastboot_register("setrma", fb_cmd_setrma);
 	fastboot_register("getsocid", fb_cmd_getsocid);
+        fastboot_lcs_init();
+        fastboot_token_init();
+        fastboot_socid_init();
 #endif
 
 	fastboot_handler(0);
