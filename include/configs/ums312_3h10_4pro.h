@@ -62,6 +62,8 @@
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 5 * 1024 * 1024)
 
+/* eMMC and DDR check type*/
+#define CONFIG_EMMC_DDR_CHECK_TYPE
 
 /*timer*/
 #define CONFIG_SYS_HZ			1000
