@@ -2423,6 +2423,11 @@ int sprd_host_init(int sdio_type)
 	uint32_t ret;
 	struct sdio_base_info *sprd_host_info;
 
+#ifdef CONFIG_SPRD_NO_SD
+	if(sdio_type==1)
+		return NULL;
+#endif
+
 	sprd_host_info = get_sdcontrol_info(sdio_type);
 	if (sprd_host_info->ldo_core != 0)
 		regulator_enable(sprd_host_info->ldo_core);

@@ -57,24 +57,24 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 },
 {
 	SD,
-	SPRD_SDIO0_BASE,
+	0,
 #ifdef CONFIG_FPGA
 	NULL,
 	NULL,
 	36000000,
 	100000,
 #else
-	1,// TODO REG_AP_CLK_CORE_CGM_SDIO0_2X_CFG,
-	BIT_0|BIT_1,
+	0,// TODO REG_AP_CLK_CORE_CGM_SDIO0_2X_CFG,
+	0,
 	/* selsect 2x clock source, baseclk = freq / 2 */
-	195000000,
-	400000,
+	0,
+	0,
 #endif
 
-	REG_AP_AHB_AHB_EB,
-	BIT_8,
-	REG_AP_AHB_AHB_RST,
-	BIT_11,
+	0,
+	0,
+	0,
+	0,
 
 	0,//"vddsdio",
 	0,//"vddsdcore",
