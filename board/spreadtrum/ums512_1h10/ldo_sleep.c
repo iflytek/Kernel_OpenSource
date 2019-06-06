@@ -2,6 +2,8 @@
 #include <adi_hal_internal.h>
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_reg.h>
+#include "asm/arch-sharkl5pro/sprd_reg.h"
+#include "asm/arch-sharkl5pro/common.h"
 
 
 
@@ -96,9 +98,9 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 
 	//DCDC pd an drop config in sleep mode
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		BIT_SLP_DCDCMODEM_PD_EN |
+		//BIT_SLP_DCDCMODEM_PD_EN |
 		//BIT_SLP_DCDCMEMQ_PD_EN |
-		BIT_SLP_DCDCSRAM_PD_EN |
+		//BIT_SLP_DCDCSRAM_PD_EN |
 #if CONFIG_DCDCSRAM_DEEP_DROP_EN
 		BIT_SLP_DCDCSRAM_DROP_EN |
 #endif
@@ -112,7 +114,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		BIT_SLP_DCDCCORE_DROP_EN |
 #endif
 		//BIT_SLP_DCDCWPA_PD_EN |
-		BIT_SLP_DCDCGPU_PD_EN |
+		//BIT_SLP_DCDCGPU_PD_EN |
 		//BIT_SLP_DCDCCPU_PD_EN |
 		BIT_SLP_DCDCGEN1_PD_EN |
 		0
@@ -206,7 +208,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_SLP_LDO_VDDRF1V25_LP_EN |
 		//BIT_SLP_LDO_VDDEMMCCORE_LP_EN |
 		BIT_SLP_LDO_VDD18_DCXO_LP_EN |
-		//BIT_SLP_LDO_VDDWIFIPA_LP_EN |
+		BIT_SLP_LDO_VDDWIFIPA_LP_EN |
 		BIT_SLP_LDO_VDD28_LP_EN |
 		//BIT_SLP_LDO_VDDSDCORE_LP_EN |
 		//BIT_SLP_LDO_VDDSDIO_LP_EN |
@@ -291,7 +293,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_DCDC_GEN1_EXT_XTL0_EN |
 		//BIT_DCDC_GEN1_EXT_XTL1_EN |
 		//BIT_DCDC_GEN1_EXT_XTL2_EN |
-		BIT_DCDC_GEN1_EXT_XTL3_EN |
+		//BIT_DCDC_GEN1_EXT_XTL3_EN |
 		//BIT_DCDC_GEN1_EXT_XTL4_EN |
 		//BIT_DCDC_GEN1_EXT_XTL5_EN |
 		0
@@ -477,7 +479,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_LDO_VDDWCN_EXT_XTL0_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL1_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL2_EN |
-		BIT_LDO_VDDWCN_EXT_XTL3_EN |
+		//BIT_LDO_VDDWCN_EXT_XTL3_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL4_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL5_EN |
 		BIT_LDO_AVDD18_EXT_XTL0_EN |
@@ -499,7 +501,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_LDO_VDDWIFIPA_EXT_XTL0_EN |
 		//BIT_LDO_VDDWIFIPA_EXT_XTL1_EN |
 		//BIT_LDO_VDDWIFIPA_EXT_XTL2_EN |
-		BIT_LDO_VDDWIFIPA_EXT_XTL3_EN |
+		//BIT_LDO_VDDWIFIPA_EXT_XTL3_EN |
 		//BIT_LDO_VDDWIFIPA_EXT_XTL4_EN |
 		//BIT_LDO_VDDWIFIPA_EXT_XTL5_EN |
 		0
@@ -558,7 +560,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		//BIT_DCXO_26M_REF_OUT3_EXT_XTL2_EN |
 		//BIT_DCXO_26M_REF_OUT4_EXT_XTL2_EN |
 		//BIT_DCXO_26M_REF_OUT0_EXT_XTL3_EN |
-		//BIT_DCXO_26M_REF_OUT1_EXT_XTL3_EN |
+		BIT_DCXO_26M_REF_OUT1_EXT_XTL3_EN |
 		//BIT_DCXO_26M_REF_OUT2_EXT_XTL3_EN |
 		//BIT_DCXO_26M_REF_OUT3_EXT_XTL3_EN |
 		//BIT_DCXO_26M_REF_OUT4_EXT_XTL3_EN |
@@ -598,7 +600,7 @@ void pmic_lowpower_config(uint32_t ddie_id,uint32_t adie_id)
 		BIT_SLP_DCXO_26M_REF_OUT2_EN |
 		BIT_SLP_DCXO_26M_REF_OUT3_EN |
 		BIT_SLP_DCXO_26M_REF_OUT4_EN |
-		BITS_DCXO_26M_REF_OUT_EN(REFOUT0_ON | REFOUT3_ON) |
+		BITS_DCXO_26M_REF_OUT_EN(REFOUT0_ON | REFOUT1_ON | REFOUT3_ON) |
 		0
 	);
 
@@ -634,6 +636,27 @@ void sprd_pmu_lowpower_init(void)
 	//Config pmu paratmers
 	CSP_Init(0);
 #endif
+	//for bring up mm&gpu power domian should auto on
+	CHIP_REG_OR(REG_PMU_APB_PD_MM_TOP_CFG,
+		//BIT_PMU_APB_PD_MM_TOP_FORCE_SHUTDOWN |
+		BIT_PMU_APB_PD_MM_TOP_AUTO_SHUTDOWN_EN |
+		0
+	);
+	CHIP_REG_AND(REG_PMU_APB_PD_MM_TOP_CFG,
+		~(BIT_PMU_APB_PD_MM_TOP_FORCE_SHUTDOWN) |
+		//BIT_PMU_APB_PD_MM_TOP_AUTO_SHUTDOWN_EN |
+		0
+	);
+	CHIP_REG_OR(REG_PMU_APB_PD_GPU_TOP_CFG0,
+		//BIT_PMU_APB_PD_GPU_TOP_FORCE_SHUTDOWN |
+		BIT_PMU_APB_PD_GPU_TOP_AUTO_SHUTDOWN_EN |
+		0
+	);
+	CHIP_REG_SET(REG_PMU_APB_PD_GPU_TOP_CFG0,
+		~(BIT_PMU_APB_PD_GPU_TOP_FORCE_SHUTDOWN) |
+		//BIT_PMU_APB_PD_GPU_TOP_AUTO_SHUTDOWN_EN |
+		0
+	);
 	//Power on dcdc/ldo
 	dcdc_ldo_power_on();
 #endif
