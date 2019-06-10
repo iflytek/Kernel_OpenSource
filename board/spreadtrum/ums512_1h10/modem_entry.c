@@ -27,15 +27,17 @@ void memset_dsp_share_memory()
 
 void modem_entry()
 {
-
+#if 0
 	memset_dsp_share_memory();
 	audcp_boot(CONFIG_AUDCP_BOOT_VECTOR);
 	debugf("audio cp boot ok\n");
-
+#endif
 #ifndef CONFIG_KERNEL_BOOT_CP
+#if 0 //modify for bringup
 	sp_boot();
 	pubcp_boot();
 	debugf("boot CP1 OK\n");
+#endif
 #else
 	extern unsigned int g_charger_mode;
 	if(g_charger_mode) {
