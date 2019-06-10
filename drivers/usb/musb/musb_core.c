@@ -101,6 +101,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/usb.h>
 #include <linux/usb/of.h>
+#include <linux/usb/phy.h>
 
 #include "musb_core.h"
 #include "musb_trace.h"
@@ -278,7 +279,14 @@ static u32 musb_default_busctl_offset(u8 epnum, u16 offset)
 
 static u8 musb_default_readb(const void __iomem *addr, unsigned offset)
 {
-	u8 data =  __raw_readb(addr + offset);
+	int ret = 0;
+	u8 data = 0;
+
+	ret = usb_phy_reset_get(x_phy);
+	if (ret)
+		panic("%s reset is error\n", __func__);
+
+	data =	__raw_readb(addr + offset);
 
 	trace_musb_readb(__builtin_return_address(0), addr, offset, data);
 	return data;

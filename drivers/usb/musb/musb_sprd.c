@@ -86,10 +86,7 @@ static int boot_charging;
 
 static u64 sprd_device_dma_mask = DMA_BIT_MASK(BITS_PER_LONG);
 
-static inline struct musb *dev_to_musb_sprd(struct device *dev)
-{
-	return dev_get_drvdata(dev);
-}
+struct usb_phy *x_phy;
 
 static void sprd_musb_enable(struct musb *musb)
 {
@@ -931,6 +928,7 @@ static int musb_sprd_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Error getting usb-phy %d\n", ret);
 		goto err_core_clk;
 	}
+	x_phy = glue->xceiv;
 
 	if (pdata.mode == MUSB_PORT_MODE_HOST ||
 		pdata.mode == MUSB_PORT_MODE_DUAL_ROLE) {
@@ -1058,9 +1056,8 @@ err_core_clk:
 
 static int musb_sprd_remove(struct platform_device *pdev)
 {
-	struct device *dev = &pdev->dev;
-	struct musb *musb = dev_to_musb_sprd(dev);
 	struct sprd_glue *glue = platform_get_drvdata(pdev);
+	struct musb *musb = platform_get_drvdata(glue->musb);
 
 	/* this gets called on rmmod.
 	 *  - Host mode: host may still be active

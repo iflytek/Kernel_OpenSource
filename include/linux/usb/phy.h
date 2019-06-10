@@ -161,6 +161,7 @@ struct usb_phy {
 
 	/* reset the PHY */
 	int	(*reset_phy)(struct usb_phy *x);
+	int	(*reset_get)(struct usb_phy *x);
 
 	void	(*set_emphasis)(struct usb_phy *x, bool enabled);
 };
@@ -185,6 +186,7 @@ struct usb_phy_bind {
 extern int usb_add_phy(struct usb_phy *, enum usb_phy_type type);
 extern int usb_add_phy_dev(struct usb_phy *);
 extern void usb_remove_phy(struct usb_phy *);
+extern struct usb_phy *x_phy;
 
 /* helpers for direct access thru low-level io interface */
 static inline int usb_phy_io_read(struct usb_phy *x, u32 reg)
@@ -253,6 +255,14 @@ static inline int usb_phy_reset(struct usb_phy *x)
 		return 0;
 
 	return x->reset_phy(x);
+}
+
+static inline int usb_phy_reset_get(struct usb_phy *x)
+{
+	if (!x || !x->reset_get)
+		return 0;
+
+	return x->reset_get(x);
 }
 
 static inline void usb_phy_emphasis_set(struct usb_phy *x, bool enabled)
