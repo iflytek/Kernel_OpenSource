@@ -43,20 +43,6 @@ struct sprd_hsphy {
 #define TFREGRES_TUNE_VALUE	(0x14 << 19)
 #define TFREGRES_TUNESQ		(0xd << 3)
 
-static int sprd_hsphy_reset_get(struct usb_phy *x)
-{
-	struct sprd_hsphy *phy = container_of(x, struct sprd_hsphy, phy);
-	u32 reg, msk;
-
-	msk = MASK_AON_APB_OTG_PHY_SOFT_RST |
-					MASK_AON_APB_OTG_UTMI_SOFT_RST;
-	regmap_read(phy->hsphy_glb, REG_AON_APB_APB_RST1, &reg);
-	if (reg & msk)
-		return 1;
-
-	return 0;
-}
-
 static inline void sprd_hsphy_reset_core(struct sprd_hsphy *phy)
 {
 	u32 reg, msk;
@@ -68,7 +54,7 @@ static inline void sprd_hsphy_reset_core(struct sprd_hsphy *phy)
 	regmap_update_bits(phy->hsphy_glb, REG_AON_APB_APB_RST1,
 		msk, reg);
 	/* USB PHY reset need to delay 20ms~30ms */
-	usleep_range(2000, 3000);
+	usleep_range(20000, 30000);
 	regmap_update_bits(phy->hsphy_glb, REG_AON_APB_APB_RST1,
 		msk, 0);
 }
@@ -439,7 +425,6 @@ static int sprd_hsphy_probe(struct platform_device *pdev)
 	phy->phy.type = USB_PHY_TYPE_USB2;
 	phy->phy.vbus_nb.notifier_call = sprd_hsphy_vbus_notify;
 	phy->phy.charger_detect = sprd_hsphy_charger_detect;
-	phy->phy.reset_get = sprd_hsphy_reset_get;
 	otg->usb_phy = &phy->phy;
 
 	platform_set_drvdata(pdev, phy);
@@ -478,7 +463,7 @@ static const struct of_device_id sprd_hsphy_match[] = {
 	{},
 };
 
-MODULE_DEVICE_TABLE(of, sprd_hsphy_match);
+MODULE_DEVICE_TABLE(of, sprd_ssphy_match);
 
 static struct platform_driver sprd_hsphy_driver = {
 	.probe = sprd_hsphy_probe,
