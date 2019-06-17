@@ -209,7 +209,7 @@ void pmic_lowpower_config(void)
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
 		//BIT_SLP_LDO_VDDLDO2_PD_EN |  //type c use.should shutdown by user self
-		//BIT_SLP_LDO_AVDD12_PD_EN |   //csi/dsi/ufs/pcie need check by pcie
+		BIT_SLP_LDO_AVDD12_PD_EN |     //csi/dsi/ufs/pcie
 		//BIT_SLP_LDO_VDDWCN_PD_EN |   //wcn use.should shutdown by user self
 		//BIT_SLP_LDO_VDDLDO0_PD_EN |  //marlin use.should shutdown by user self
 		//BIT_SLP_LDO_VDDCAMD1_PD_EN | //camera use.should shutdown by user self
