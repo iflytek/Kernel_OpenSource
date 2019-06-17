@@ -20,12 +20,12 @@ void dcdc_ldo_power_on()
 #if defined(CONFIG_ADIE_SC2730)
 	/* In SC2730, this DCDC/LDO is power on default */
 	//regulator_enable("vddsram");
-	//regulator_enable("vddmenq");
+	//regulator_enable("vddmemq");
 	//regulator_enable("vddmodem");
 	//regulator_enable("vdddcxo");
 	//regulator_enable("vddgen0");
 	//regulator_enable("vddgen1");
-	//regulator_enable("vddmen");
+	//regulator_enable("vddmem");
 	//regulator_enable("vddcore");
 	//regulator_enable("vddcpu");
 	//regulator_enable("vddgpu");
