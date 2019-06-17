@@ -86,11 +86,6 @@ static int boot_charging;
 
 static u64 sprd_device_dma_mask = DMA_BIT_MASK(BITS_PER_LONG);
 
-static inline struct musb *dev_to_musb_sprd(struct device *dev)
-{
-	return dev_get_drvdata(dev);
-}
-
 static void sprd_musb_enable(struct musb *musb)
 {
 	struct sprd_glue *glue = dev_get_drvdata(musb->controller->parent);
@@ -133,6 +128,17 @@ static void sprd_musb_disable(struct musb *musb)
 	/*for test mode plug out/plug in*/
 	musb_writeb(musb->mregs, MUSB_TESTMODE, 0x0);
 	glue->bus_active = false;
+}
+
+static bool sprd_musb_reset_phy_done(struct musb *musb)
+{
+	struct sprd_glue *glue = dev_get_drvdata(musb->controller->parent);
+	bool done;
+
+	/*invoke phy callback to check if reset done*/
+	done = usb_phy_reset_done(glue->xceiv);
+
+	return done;
 }
 
 static irqreturn_t sprd_musb_interrupt(int irq, void *__hci)
@@ -333,6 +339,7 @@ static const struct musb_platform_ops sprd_musb_ops = {
 	.try_idle = sprd_musb_try_idle,
 	.recover = sprd_musb_recover,
 	.phy_set_emphasis = sprd_musb_set_emphasis,
+	.reset_phy_done = sprd_musb_reset_phy_done,
 };
 
 #define SPRD_MUSB_MAX_EP_NUM	16
@@ -1058,9 +1065,8 @@ err_core_clk:
 
 static int musb_sprd_remove(struct platform_device *pdev)
 {
-	struct device *dev = &pdev->dev;
-	struct musb *musb = dev_to_musb_sprd(dev);
 	struct sprd_glue *glue = platform_get_drvdata(pdev);
+	struct musb *musb = platform_get_drvdata(glue->musb);
 
 	/* this gets called on rmmod.
 	 *  - Host mode: host may still be active

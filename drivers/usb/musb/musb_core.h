@@ -169,6 +169,7 @@ struct musb_io;
  * @pre_root_reset_end: called before the root usb port reset flag gets cleared
  * @post_root_reset_end: called after the root usb port reset flag gets cleared
  * @phy_callback: optional callback function for the phy to call
+ * @reset_phy_done: optional callback to check if PHY reset operation finished.
  */
 struct musb_platform_ops {
 #define MUSB_DMA_SPRD		BIT(10)
@@ -221,6 +222,7 @@ struct musb_platform_ops {
 	int	(*phy_callback)(enum musb_vbus_id_status status);
 	void	(*clear_ep_rxintr)(struct musb *musb, int epnum);
 	void	(*phy_set_emphasis)(struct musb *musb, bool enabled);
+	bool	(*reset_phy_done)(struct musb *musb);
 };
 
 /*
@@ -679,6 +681,14 @@ static inline void musb_platform_emphasis_set(struct musb *musb, bool enabled)
 {
 	if (musb->ops->phy_set_emphasis)
 		musb->ops->phy_set_emphasis(musb, enabled);
+}
+
+static inline bool musb_platform_reset_phy_done(struct musb *musb)
+{
+	if (!musb->ops->reset_phy_done)
+		return true;
+
+	return musb->ops->reset_phy_done(musb);
 }
 
 /*

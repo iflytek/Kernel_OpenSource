@@ -123,7 +123,7 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:" MUSB_DRIVER_NAME);
 
-
+static struct musb *s_musb;
 /*-------------------------------------------------------------------------*/
 
 static inline struct musb *dev_to_musb(struct device *dev)
@@ -278,7 +278,14 @@ static u32 musb_default_busctl_offset(u8 epnum, u16 offset)
 
 static u8 musb_default_readb(const void __iomem *addr, unsigned offset)
 {
-	u8 data =  __raw_readb(addr + offset);
+	bool done;
+	u8 data;
+
+	done = musb_platform_reset_phy_done(s_musb);
+	if (!done)
+		panic("%s usb phye is being resetted\n", __func__);
+
+	data =	__raw_readb(addr + offset);
 
 	trace_musb_readb(__builtin_return_address(0), addr, offset, data);
 	return data;
@@ -286,6 +293,12 @@ static u8 musb_default_readb(const void __iomem *addr, unsigned offset)
 
 static void musb_default_writeb(void __iomem *addr, unsigned offset, u8 data)
 {
+	bool done;
+
+	done = musb_platform_reset_phy_done(s_musb);
+	if (!done)
+		panic("%s usb phye is being resetted\n", __func__);
+
 	trace_musb_writeb(__builtin_return_address(0), addr, offset, data);
 	__raw_writeb(data, addr + offset);
 }
@@ -2135,6 +2148,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
 		goto fail0;
 	}
 
+	s_musb = musb;
 	/*
 	 * FIXME: we should set the dma operations firstly when calling
 	 * the dma function in arm64, otherwise dma_alloc_coherent will failed.
