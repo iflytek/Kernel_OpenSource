@@ -88,9 +88,12 @@ void dcdccore_deep_drop_config(void)
 void pmic_lowpower_config(void)
 {
 #if defined(CONFIG_ADIE_SC2730)
+	uint32_t adie_id;
 	#ifdef ROC1_CACHE_MODIFICATION
 	uint32_t drop_val;
 	#endif
+
+	adie_id = ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW);
 
 	/* DCDC and LDO power globle control */
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE, 0x6E7F);
@@ -173,19 +176,40 @@ void pmic_lowpower_config(void)
 	ANA_REG_SET(ANA_REG_GLB_DCDC_GPU_SLP_CTRL1, BITS_DCDC_GPU_CTRL_DS_SW(drop_val));
 	#endif
 
-	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-		BIT_SLP_DCDCSRAM_LP_EN |
-		BIT_SLP_DCDCMODEM_LP_EN |
-		BIT_SLP_DCDCMEMQ_LP_EN |
-		BIT_SLP_DCDCMEM_LP_EN |
-		//BIT_SLP_DCDCGPU_LP_EN |      //cannot config slp_lp
-		//BIT_SLP_DCDCCORE_LP_EN |     //cannot config slp_lp
-		BIT_SLP_DCDCCPU_LP_EN |        //AI use
-		BIT_SLP_DCDCGEN1_LP_EN |
-		BIT_SLP_DCDCGEN0_LP_EN |
-		BIT_SLP_DCDCWPA_LP_EN |
-		0
-	);
+	/*
+	 * CHIP_ID BA:0xB000 AB:A-0001 AA 0xA-0000
+	 * only BA CHIP can config DCDCGPU & DCDCCORE SLP_LP
+	 * adie_id is the ADIE CHIP_ID low 16 bits
+	 */
+	if (adie_id < 0xB000) {
+		ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
+			BIT_SLP_DCDCSRAM_LP_EN |
+			BIT_SLP_DCDCMODEM_LP_EN |
+			BIT_SLP_DCDCMEMQ_LP_EN |
+			BIT_SLP_DCDCMEM_LP_EN |
+			//BIT_SLP_DCDCGPU_LP_EN |      //cannot config slp_lp
+			//BIT_SLP_DCDCCORE_LP_EN |     //cannot config slp_lp
+			BIT_SLP_DCDCCPU_LP_EN |        //AI use
+			BIT_SLP_DCDCGEN1_LP_EN |
+			BIT_SLP_DCDCGEN0_LP_EN |
+			BIT_SLP_DCDCWPA_LP_EN |
+			0
+		);
+	} else {
+		ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
+			BIT_SLP_DCDCSRAM_LP_EN |
+			BIT_SLP_DCDCMODEM_LP_EN |
+			BIT_SLP_DCDCMEMQ_LP_EN |
+			BIT_SLP_DCDCMEM_LP_EN |
+			BIT_SLP_DCDCGPU_LP_EN |
+			BIT_SLP_DCDCCORE_LP_EN |
+			BIT_SLP_DCDCCPU_LP_EN |        //AI use
+			BIT_SLP_DCDCGEN1_LP_EN |
+			BIT_SLP_DCDCGEN0_LP_EN |
+			BIT_SLP_DCDCWPA_LP_EN |
+			0
+		);
+	}
 
 	//32k less
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
