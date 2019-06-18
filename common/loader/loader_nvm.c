@@ -1128,6 +1128,8 @@ int _boot_load_kernel_ramdisk_image(char *bootmode, boot_img_hdr * hdr, uchar **
 		} else if (0 == common_raw_read("dtb", 10, 0, (char *)DT_ADR)) {
 			dtb_partname = "dtb";
 			boot_img_offset.dt_offset = 0;
+		} else {
+			dtb_partname = partition;
 		}
 	} else {
 		dtb_partname = partition;
