@@ -641,6 +641,17 @@ void cache_workaround()
 }
 #endif
 
+// Clock auto gate
+void clock_auto_gate(void)
+{
+	uint32_t value = 0U;
+
+	value = CHIP_REG_GET(REG_AON_APB_RC100M_CFG) &
+			~BIT_AON_APB_RC100M_FORCE_EN |
+			BIT_AON_APB_RC100M_AUTO_GATE_EN;
+	CHIP_REG_SET(REG_AON_APB_RC100M_CFG, value);
+}
+
 void CSP_Init(uint32_t gen_para)
 {
 	//uint32_t reg_val;
@@ -660,6 +671,8 @@ void CSP_Init(uint32_t gen_para)
 #ifdef ROC1_CACHE_MODIFICATION
 	cache_workaround();
 #endif
+
+	clock_auto_gate();
 }
 #endif
 
