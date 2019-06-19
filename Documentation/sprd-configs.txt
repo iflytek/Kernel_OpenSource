@@ -826,14 +826,14 @@ CONFIG_ARM_PSCI_FW
 	   enable it to support hotplug
 CONFIG_ARM_SPRD_HW_CPUFREQ
 	[arch] all
-	[plat] all
+	[plat] sharkl3,sharkl5,sharkl5_32
 	[field] make
 	[subsys] cpufreq
 	[must] user
 	[function] Enable apcpu hardware dvfs function.
 CONFIG_ARM_SPRD_HW_CPUFREQ_NORMAL
 	[arch] all
-	[plat] roc1,sharkl5,sharkl5_32
+	[plat] sharkl5,sharkl5_32
 	[field] make
 	[subsys] cpufreq
 	[must] user
@@ -10032,6 +10032,13 @@ CONFIG_SPRD_IPA_PCIE_WORKROUND
 	[subsys]
 	[must]
 	[function]
+CONFIG_SPRD_IPA_SUPPORT
+	[arch] arm64
+	[plat] roc1
+	[field]
+	[subsys]
+	[must]
+	[function]
 CONFIG_SPRD_IPA_SYS
 	[arch] arm64
 	[plat] roc1
@@ -10215,6 +10222,20 @@ CONFIG_SPRD_SENSOR_HUB
 	[subsys] iio
 	[must] user
 	[function] enable sensor hub driver built in kernel
+CONFIG_SPRD_SFP_SUPPORT
+	[arch] arm64
+	[plat] roc1
+	[field]
+	[subsys]
+	[must]
+	[function]
+CONFIG_SPRD_SFP_TEST
+	[arch] arm64
+	[plat] roc1
+	[field]
+	[subsys]
+	[must]
+	[function]
 CONFIG_SPRD_SHARKL3_USB2_PHY
 	[arch] arm64
 	[plat] sharkl3
