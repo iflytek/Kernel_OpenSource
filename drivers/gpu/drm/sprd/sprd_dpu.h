@@ -174,6 +174,9 @@ struct dpu_context {
 	struct work_struct wb_work;
 	struct work_struct dvfs_work;
 	u32 wb_addr_p;
+	wait_queue_head_t te_wq;
+	bool te_check_en;
+	bool evt_te;
 };
 
 struct sprd_dpu {
