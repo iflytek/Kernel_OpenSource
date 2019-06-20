@@ -5984,13 +5984,6 @@ CONFIG_KEYS_COMPAT
 	[subsys] core
 	[must] console
 	[function] Support for Key compat.
-CONFIG_KSM
-	[arch] all
-	[plat] sharkl3,sharkl5,sharkl5_32
-	[field] make,code
-	[subsys] mm
-	[must] busybox_console
-	[function] Enable KSM for page merging.
 CONFIG_KUSER_HELPERS
 	[arch] arm
 	[plat] sharkl5_32
