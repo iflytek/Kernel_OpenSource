@@ -239,7 +239,7 @@ void pmic_lowpower_config(void)
 		//BIT_SLP_LDO_VDDCAMD1_PD_EN | //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDCAMA1_PD_EN | //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDSIM0_PD_EN |  //smi use.should shutdown by user self
-		//BIT_SLP_LDO_AVDD18_PD_EN |   //pcie/ufs/dsi/usb/marlin...marlin config
+		BIT_SLP_LDO_AVDD18_PD_EN |   //pcie/ufs/dsi/usb/marlin...marlin config later--temp configure here
 		BIT_SLP_LDO_VDDLDO1_PD_EN |    //not use
 		0
 	);
