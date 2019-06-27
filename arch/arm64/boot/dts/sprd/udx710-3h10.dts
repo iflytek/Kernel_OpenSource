@@ -159,6 +159,10 @@
 	regulator-always-on;
 };
 
+&vddsdcore {
+	regulator-always-on;
+};
+
 &vddcamd0 {
 	status = "disabled";
 };
