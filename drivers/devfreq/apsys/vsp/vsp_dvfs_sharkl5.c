@@ -14,7 +14,7 @@
 #include "sprd_dvfs_vsp.h"
 #include "apsys_dvfs_sharkl5.h"
 
-struct ip_dvfs_map_cfg vsp_dvfs_config_table[] = {
+static struct ip_dvfs_map_cfg vsp_dvfs_config_table[] = {
 	{0, VOLT70, VSP_CLK_INDEX_256, VSP_CLK256, "0.7v " },
 	{1, VOLT70, VSP_CLK_INDEX_307, VSP_CLK307, "0.7v " },
 	{2, VOLT75, VSP_CLK_INDEX_384, VSP_CLK384, "0.75v" },
@@ -339,7 +339,7 @@ static void updata_vsp_target_freq(u32 freq, set_freq_type freq_type)
 	pr_debug("dvfs ops: %s\n", __func__);
 }
 
-struct ip_dvfs_ops vsp_dvfs_ops  =  {
+static struct ip_dvfs_ops vsp_dvfs_ops  =  {
 	.parse_dt = vsp_dvfs_parse_dt,
 	.dvfs_init = vsp_dvfs_init,
 	.hw_dvfs_en = vsp_hw_dvfs_en,
