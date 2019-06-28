@@ -751,7 +751,8 @@ uint64_t _get_kernel_ramdisk_dt_offset( boot_img_hdr * hdr, uchar *partition)
 	}
 
 	debug("boot_img_hdr header_version: %d\n", hdr->header_version);
-	hdr->header_version %= sizeof(boot_img_offset_hdl_tbl) / sizeof(boot_img_offset_hdl_tbl[0]);
+	if (hdr->header_version >= ARRAY_SIZE(boot_img_offset_hdl_tbl))
+		hdr->header_version = BOOT_HEADER_VERSION_ONE;
 	if (!boot_img_offset_hdl_tbl[hdr->header_version](hdr, offset)) {
 		return 0;
 	}
@@ -986,7 +987,8 @@ int load_fixup_dt_img(uchar *partition, uchar **dt_start_addr) {
 
 		/* Validate the device tree table header */
 		if((table.magic != DEV_TREE_MAGIC) || (table.version != DEV_TREE_VERSION)) {
-			errorf("Cannot validate Device Tree Table \n");
+			errorf("Cannot validate Device Tree Table(magic%x,version%d) on %s\n",
+				table.magic, table.version, partition);
 			goto error;
 		}
 
