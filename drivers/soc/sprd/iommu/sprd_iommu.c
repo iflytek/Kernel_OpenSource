@@ -259,6 +259,11 @@ static void sprd_iommu_set_list(struct sprd_iommu_dev *iommu_dev)
 		sprd_iommu_list[SPRD_IOMMU_FD].iommu_dev = iommu_dev;
 		iommu_dev->id = SPRD_IOMMU_FD;
 		break;
+	case IOMMU_EX_AI:
+		sprd_iommu_list[SPRD_IOMMU_AI].enabled = true;
+		sprd_iommu_list[SPRD_IOMMU_AI].iommu_dev = iommu_dev;
+		iommu_dev->id = SPRD_IOMMU_AI;
+		break;
 	default:
 		pr_err("%s, no iommu id: %d\n", __func__,
 			iommu_dev->init_data->id);
