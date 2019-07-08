@@ -826,14 +826,14 @@ CONFIG_ARM_PSCI_FW
 	   enable it to support hotplug
 CONFIG_ARM_SPRD_HW_CPUFREQ
 	[arch] all
-	[plat] sharkl3,sharkl5,sharkl5_32
+	[plat] all
 	[field] make
 	[subsys] cpufreq
 	[must] user
 	[function] Enable apcpu hardware dvfs function.
 CONFIG_ARM_SPRD_HW_CPUFREQ_NORMAL
 	[arch] all
-	[plat] sharkl5,sharkl5_32
+	[plat] roc1,sharkl5,sharkl5_32
 	[field] make
 	[subsys] cpufreq
 	[must] user
@@ -9174,7 +9174,7 @@ CONFIG_SDCARD_FS
 	[function] This function is used to open sdcardfs feature
 CONFIG_SDIOHAL
 	[arch] all
-	[plat] sharkl3,sharkl5,sharkl5_32
+	[plat] all
 	[field]
 	[subsys]
 	[must]
@@ -11732,7 +11732,7 @@ CONFIG_WCN_SIPC
 	[function] WCN integration chip 2342 sipc Support
 CONFIG_WCN_SLP
 	[arch] all
-	[plat] sharkl3,sharkl5,sharkl5_32
+	[plat] all
 	[field] make
 	[subsys] wcn
 	[must] user
