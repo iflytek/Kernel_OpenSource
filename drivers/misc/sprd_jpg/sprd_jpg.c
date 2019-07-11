@@ -478,6 +478,9 @@ static int jpg_release(struct inode *inode, struct file *filp)
 		pr_err("error occurred and close clock\n");
 		jpg_clk_disable(&jpg_hw_dev);
 		jpg_fp->is_clock_enabled = 0;
+#if IS_ENABLED(CONFIG_SPRD_MM_PW_DOMAIN_R6P0)
+		sprd_cam_domain_disable();
+#endif
 	}
 
 	if (jpg_fp->is_jpg_acquired) {
