@@ -7,6 +7,15 @@
 #define M26_DCXO_32KLESS 0x8018
 #define M26_TCXO_32K 0x8
 #define M26_TSX_32KLESS 0x8010
+#define M52_TCXO_32K 0xc
+#define NO_USE_32KLESS 0x10
+#define M52_DCXO_32KLESS 0x801c
+#define M52_TSX_32KLESS 0X8014
+
+#define option3_check  BIT(2)
+#define option4_check  BIT(3)
+#define option5_check  BIT(15)
+#define option6_check  BIT(4)
 
 typedef enum k_less {
 	K32 = 0,
@@ -19,11 +28,12 @@ typedef enum crystal_type {
 	TSX,
 	TCXO,
 	M26_TCXO,
-	M52_TXCO,
+	M52_TCXO,
 	M26_TSX,
 	M52_TSX,
 	M26_DCXO,
-	M52_DXCO,
+	M52_DCXO,
+	NO_USE
 }crystal_type_t;
 
 struct clock_table {
@@ -35,6 +45,10 @@ static const struct clock_table clock_table[] = {
 	{K32, M26_TCXO},
 	{K_LESS, M26_TSX},
 	{K_LESS, M26_DCXO},
+	{K32, M52_TCXO},
+	{K_LESS, NO_USE},
+	{K_LESS, M52_DCXO},
+	{K_LESS, M52_TSX}
 };
 
 static int get_clockid(void)
@@ -46,60 +60,79 @@ static int get_clockid(void)
 	return reg_val;
 }
 
-/* Return crystal type */
-int sprd_get_crystal(void)
+static int clk_crystal_data(void)
 {
-	int id,data1,data2,data3;
-	int value = get_clockid();
+	unsigned int clk_crystal = 0;
+	int option3, option4, option5, option6;
+	int data = get_clockid();
 
-	data1 = value & M26_TCXO_32K;
-	data2 = value & M26_TSX_32KLESS;
-	data3 = value & M26_DCXO_32KLESS;
+	option3 = data & option3_check;
+	option4 = data & option4_check;
+	option5 = data & option5_check;
+	option6 = data & option6_check;
 
-	if(data1 != M26_TCXO_32K && data2 != M26_TSX_32KLESS && data3 != M26_DCXO_32KLESS){
+	clk_crystal = option3 + option4 + option5 + option6;
+
+	return clk_crystal;
+}
+
+static int get_id(void)
+{
+
+	int id;
+	int value = clk_crystal_data();
+
+	if(value != M26_TCXO_32K && value != M26_TSX_32KLESS && \
+	   value != M26_DCXO_32KLESS && value != M52_TCXO_32K && \
+	   value != NO_USE_32KLESS && value != M52_DCXO_32KLESS && \
+	   value != M52_TSX_32KLESS){
 		errorf("option value is error\n");
 		return -1;
 	}
 
-	if(data1 == M26_TCXO_32K)
+	if(value == M26_TCXO_32K)
 		id = 0;
-	else if (data2 == M26_TSX_32KLESS)
+	else if(value == M26_TSX_32KLESS)
 		id = 1;
-	else if(data3 == M26_DCXO_32KLESS)
+	else if(value == M26_DCXO_32KLESS)
 		id = 2;
+	else if(value == M52_TCXO_32K)
+		id = 3;
+	else if(value == NO_USE_32KLESS)
+		id = 4;
+	else if(value == M52_DCXO_32KLESS)
+		id = 5;
+	else if(value == M52_TSX_32KLESS)
+		id = 6;
 
-	return clock_table[id].crystal_data;
+	return id;
+
+}
+
+/* Return crystal type */
+int sprd_get_crystal(void)
+{
+	int value = get_id();
+
+	return clock_table[value].crystal_data;
 }
 
 /* Return 32k less or not */
 int sprd_get_32k(void)
 {
 /* sw auto-adaption */
-	int id,data1,data2,data3;
-	int value = get_clockid();
 
-	data1 = value & M26_TCXO_32K;
-	data2 = value & M26_TSX_32KLESS;
-	data3 = value & M26_DCXO_32KLESS;
+	int value = get_id();
 
-	if(data1 != M26_TCXO_32K && data2 != M26_TSX_32KLESS && data3 != M26_DCXO_32KLESS){
-		errorf("option value is error\n");
-		return -1;
-	}
-
-	if(data1 == M26_TCXO_32K)
-		id = 0;
-	else if (data2 == M26_TSX_32KLESS)
-		id = 1;
-	else if(data3 == M26_DCXO_32KLESS)
-		id = 2;
-
-	return clock_table[id].k32_less_data;
+	return clock_table[value].k32_less_data;
 }
 
 /* Return board id */
 int sprd_get_boardid(void)
 {
+	#ifdef CONFIG_SOC_ORCA
+		return sprd_get_versionid();
+	#endif
+
 	return get_clockid();
 }
-

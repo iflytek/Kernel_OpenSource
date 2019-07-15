@@ -91,7 +91,7 @@ include/autoconf.mk include/autoconf.mk.dep \
 AUTO_ADAPTIVE_BOARD_LIST := "sp9850ka_2c30" "sp9850ka_2c10" "sp9863a_1h10_32b" "sp9850kh_1h10" \
 "sp9820e_1h10" "sp9850e_1h10" "sp9863a_1h10" "sp9850kh_2c20" "sp9820e_64b" "sp7731e_1h20" "sp9863a_3h10_32b" \
 "sp7731e_1h10" "sp9850ka_2c20" "sp9850ka_1h10" "sp9863a_3h10" "sp9853i_1h10" "sp9832e_1h10_32b" \
-"sp9820e_2h10" "sp9863a_tsg" "sp9832e_1h10"
+"sp9820e_2h10" "sp9863a_tsg" "sp9832e_1h10" "sp9863a_3c10"
 
 NEED_AUTO_ADAPTIVE := $(filter $(CONFIG_SYS_CONFIG_NAME), $(AUTO_ADAPTIVE_BOARD_LIST))
 export NEED_AUTO_ADAPTIVE
@@ -99,7 +99,7 @@ export NEED_AUTO_ADAPTIVE
 #DO NOT MODIFY RF_ADAPTIVE_BOARD_LIST if you don't know what it is
 #Add rf band auto adaptive only to specified board in RF_ADAPTIVE_BOARD_LIST
 
-RF_ADAPTIVE_BOARD_LIST := "ums312_1h10" "ums312_1h10_32b" "ums312_2h10_32b"
+RF_ADAPTIVE_BOARD_LIST := "ums312_1h10" "ums312_1h10_32b" "ums312_2h10_32b" "udx710_3h10" "ums512_1h10" "ud710_2h10"
 
 NEED_RF_ADAPTIVE := $(filter $(CONFIG_SYS_CONFIG_NAME), $(RF_ADAPTIVE_BOARD_LIST))
 export NEED_RF_ADAPTIVE
