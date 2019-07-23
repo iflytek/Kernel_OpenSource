@@ -27,6 +27,7 @@ extern struct panel_driver nt35597_boe_driver;
 extern struct panel_driver nt35597_fpga_driver;
 extern struct panel_driver jd9161_xxx_driver;
 extern struct panel_driver jd9366d_truly_driver;
+extern struct panel_driver lt9611_driver;
 extern struct panel_driver rm67191_edo_driver;
 extern struct panel_driver r61350_truly_driver;
 extern struct panel_driver td4310_truly_driver;
@@ -108,6 +109,12 @@ static struct panel_cfg supported_panel[] = {
 	{
 		.lcd_id = 0x9366,
 		.drv = &jd9366d_truly_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_LT9611_MIPI_FHD
+	{
+		.lcd_id = 0x9611,
+		.drv = &lt9611_driver,
 	},
 #endif
 #ifdef CONFIG_LCD_RM67191_EDO_MIPI_FHD
