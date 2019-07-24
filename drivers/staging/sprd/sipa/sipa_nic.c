@@ -122,7 +122,7 @@ int sipa_nic_open(enum sipa_term_type src, int netid,
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
 	if (!ctrl) {
-		pr_err("sipa driver may not register\n");
+		dev_err(ctrl->ctx->pdev, "sipa driver may not register\n");
 		return -EINVAL;
 	}
 	for (i = 0; i < SIPA_NIC_MAX; i++) {
@@ -132,7 +132,7 @@ int sipa_nic_open(enum sipa_term_type src, int netid,
 			break;
 		}
 	}
-	pr_info("%s nic_id = %d\n", __func__, nic_id);
+	dev_info(ctrl->ctx->pdev, "%s nic_id = %d\n", __func__, nic_id);
 	if (nic_id == SIPA_NIC_MAX)
 		return -EINVAL;
 
@@ -184,7 +184,7 @@ void sipa_nic_close(enum sipa_nic_id nic_id)
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
 	if (!ctrl) {
-		pr_err("sipa driver may not register\n");
+		dev_err(ctrl->ctx->pdev, "sipa driver may not register\n");
 		return;
 	}
 	if (nic_id == SIPA_NIC_MAX || !ctrl->nic[nic_id])
@@ -243,7 +243,7 @@ int sipa_nic_tx(enum sipa_nic_id nic_id, enum sipa_term_type dst,
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
 	if (!ctrl) {
-		pr_err("sipa driver may not register\n");
+		dev_err(ctrl->ctx->pdev, "sipa driver may not register\n");
 		return -EINVAL;
 	}
 	sender = ctrl->sender[s_spia_nic_statics[nic_id].pkt_type];
@@ -265,7 +265,7 @@ int sipa_nic_rx(enum sipa_nic_id nic_id, struct sk_buff **out_skb)
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
 	if (!ctrl) {
-		pr_err("sipa driver may not register\n");
+		dev_err(ctrl->ctx->pdev, "sipa driver may not register\n");
 		return -EINVAL;
 	}
 	if (!ctrl->nic[nic_id] ||
@@ -287,7 +287,7 @@ int sipa_nic_rx_has_data(enum sipa_nic_id nic_id)
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
 	if (!ctrl) {
-		pr_err("sipa driver may not register\n");
+		dev_err(ctrl->ctx->pdev, "sipa driver may not register\n");
 		return -EINVAL;
 	}
 	if (!ctrl->nic[nic_id] ||
@@ -306,7 +306,7 @@ int sipa_nic_trigger_flow_ctrl_work(enum sipa_nic_id nic_id, int err)
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
 	if (!ctrl) {
-		pr_err("sipa driver may not register\n");
+		dev_err(ctrl->ctx->pdev, "sipa driver may not register\n");
 		return -EINVAL;
 	}
 	sender = ctrl->sender[s_spia_nic_statics[nic_id].pkt_type];
@@ -319,7 +319,8 @@ int sipa_nic_trigger_flow_ctrl_work(enum sipa_nic_id nic_id, int err)
 		schedule_work(&ctrl->flow_ctrl_work);
 		break;
 	default:
-		pr_warn("don't have this err type\n");
+		dev_warn(ctrl->ctx->pdev,
+			 "don't have this flow ctrl err type\n");
 		break;
 	}
 
