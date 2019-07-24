@@ -14,5 +14,7 @@ typedef enum {
 void sprd_led_init(void);
 void sprd_led_set_brightness(LedType type, uint32_t brightness);
 void sprd_led_disable(LedType type);
+void sprd_led_pattern_clear(LedType type);
+void sprd_led_pattern_set(LedType type, uint32_t brightness);
 
 #endif
