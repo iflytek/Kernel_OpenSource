@@ -51,7 +51,7 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vddsim0");
 	//regulator_enable("vddsim1");
 	regulator_enable("vddsim2");
-	regulator_enable("vddwifipa");
+	//regulator_enable("vddwifipa");
 	regulator_enable("vddldo0");
 	regulator_enable("vddldo1");
 	regulator_enable("vddldo2");
