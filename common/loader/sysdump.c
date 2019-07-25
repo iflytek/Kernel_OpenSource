@@ -39,6 +39,7 @@
 #include "crashlog.h"
 #endif
 
+#include <sprd_led.h>
 
 
 
@@ -191,6 +192,9 @@ void display_sysdump_header(void)
 	lcd_splash(LOGO_PART);
 	lcd_enable();
 #endif
+
+	sprd_led_init();
+	sprd_led_pattern_set(Red, BRIGHTNESS_MAX);
 
 	/* display on screen */
 	display_writing_sysdump();
@@ -2859,6 +2863,8 @@ retry_dump_to_pc:
 	}
 	dump_logd("\nwriting done.\nPress any key to continue...\n");
 	sysdump_lcd_printf("\nWriting done.\nPress any key (Exp power key) to continue...");
+	sprd_led_pattern_clear(Red);
+	sprd_led_set_brightness(Red, BRIGHTNESS_MAX);
 	wait_for_keypress();
 FINISH:
 	if(check_dump_status_result.dump_to_sd_fail == 1){
