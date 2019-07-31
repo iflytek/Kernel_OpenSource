@@ -32,6 +32,7 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vddrf1v8");
 	//regulator_enable("avdd12");
 	regulator_enable("vddrf1v25");
+	regulator_enable("vddwpa");
 
 	/* In SC2730, this LDO is power off default */
 #if defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)

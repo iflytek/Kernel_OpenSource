@@ -296,6 +296,10 @@
 #define CONFIG_SYS_WHITE_ON_BLACK
 #define LCD_BPP LCD_COLOR32
 
+/* hub config */
+#define USBHUB_VDD1V2_EN 159
+#define USBHUB_DPDM_EN 63
+
 /*pmic chipid */
 #define CONFIG_PMIC_CHIP_ID
 
