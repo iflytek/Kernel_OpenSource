@@ -212,9 +212,17 @@ static long vsp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			&& vsp_hw_dev.iommu_exist_flag)
 			sprd_iommu_restore(vsp_hw_dev.vsp_dev);
 
-		if (vsp_hw_dev.vsp_qos_exist_flag)
-			writel_relaxed((qos_cfg.awqos << 8) | qos_cfg.arqos_high,
-				(vsp_glb_reg_base + qos_cfg.reg_offset));
+		if (vsp_hw_dev.vsp_qos_exist_flag) {
+			if (vsp_hw_dev.version == ROC1) {
+				writel_relaxed(((qos_cfg.awqos & 0x7) << 29) |
+				((qos_cfg.arqos_low & 0x7) << 23),
+				vsp_glb_reg_base + qos_cfg.reg_offset);
+			} else {
+				writel_relaxed(((qos_cfg.awqos & 0x7) << 8) |
+				(qos_cfg.arqos_low & 0x7),
+				vsp_glb_reg_base + qos_cfg.reg_offset);
+			}
+		}
 
 		break;
 
@@ -364,7 +372,7 @@ static const struct sprd_vsp_cfg_data sharkl5_vsp_data = {
 static const struct sprd_vsp_cfg_data roc1_vsp_data = {
 	.version = ROC1,
 	.max_freq_level = 4,
-	.qos_reg_offset = 0x1fc,
+	.qos_reg_offset = 0x0194,
 };
 
 static const struct of_device_id of_match_table_vsp[] = {
