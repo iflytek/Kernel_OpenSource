@@ -15,7 +15,7 @@
 #include <sprd_adc.h>
 #include <sprd_led.h>
 #include <sprd_battery.h>
-
+#define BOOT_PART "boot"
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x40000000;
 
@@ -166,10 +166,17 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 };
 
 
+static void ud710_5h10_normal_mode(void)
+{
+	sprd_led_pattern_set(Green,255);
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_ON, LCD_ON);
+	return;
+}
+
 
 void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 {
-	MODE_REGIST(CMD_NORMAL_MODE, normal_mode);
+	MODE_REGIST(CMD_NORMAL_MODE, ud710_5h10_normal_mode);
 	MODE_REGIST(CMD_RECOVERY_MODE, recovery_mode);
 	MODE_REGIST(CMD_FASTBOOT_MODE, fastboot_mode);
 	MODE_REGIST(CMD_WATCHDOG_REBOOT, watchdog_mode);
@@ -182,7 +189,7 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 	MODE_REGIST(CMD_ENGTEST_MODE,engtest_mode);
 	MODE_REGIST(CMD_FACTORYTEST_MODE, factorytest_mode);
 	MODE_REGIST(CMD_CALIBRATION_MODE, calibration_mode);
-	MODE_REGIST(CMD_EXT_RSTN_REBOOT_MODE, normal_mode);
+	MODE_REGIST(CMD_EXT_RSTN_REBOOT_MODE, ud710_5h10_normal_mode);
 	MODE_REGIST(CMD_IQ_REBOOT_MODE, iq_mode);
 	MODE_REGIST(CMD_ALARM_MODE, alarm_mode);
 	MODE_REGIST(CMD_SPRDISK_MODE, sprdisk_mode);
