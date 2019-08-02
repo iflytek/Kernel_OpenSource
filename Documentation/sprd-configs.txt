@@ -1678,8 +1678,8 @@ CONFIG_CACHE_L2X0
 	[function]
 CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE
 	[arch] arm64
-	[plat] orca
-	[missing plat] roc1,sharkl3,sharkl5
+	[plat] orca,sharkl5
+	[missing plat]
 	[field]
 	[subsys]
 	[must]
@@ -1687,8 +1687,8 @@ CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE
 	[function]
 CONFIG_CC_OPTIMIZE_FOR_SIZE
 	[arch] all
-	[plat] roc1,sharkl3,sharkl5,sharkl5_32
-	[missing plat] orca
+	[plat] roc1,sharkl3,sharkl5_32
+	[missing plat]
 	[field] make
 	[subsys] soc
 	[must] user
