@@ -16,6 +16,11 @@
 #define ANA_BLTC_B_CURVE0 SCI_ADDR(ANA_BLTC_BASE, 0x002c)
 #define ANA_BLTC_B_CURVE1 SCI_ADDR(ANA_BLTC_BASE, 0x0030)
 
+#define SPRD_LED_RISING   1
+#define SPRD_LED_FALLING  1
+#define SPRD_LED_HIGH     2
+#define SPRD_LED_LOW      3
+
 #define ANA_BLTC_STS      SCI_ADDR(ANA_BLTC_BASE, 0x0034)
 
 
@@ -203,11 +208,12 @@ void sprd_led_pattern_set(LedType type, uint32_t brightness)
 		break;
 	}
 	sprd_led_pattern_clear(type);
-	ANA_REG_OR(curve0_reg, (2 << 8) | 2);
-	ANA_REG_OR(curve1_reg, (12 << 8) | 8);
+	ANA_REG_OR(curve0_reg, (SPRD_LED_FALLING << 8) | SPRD_LED_RISING);
+	ANA_REG_OR(curve1_reg, (SPRD_LED_LOW << 8) | SPRD_LED_HIGH);
 	ANA_REG_OR(reg, (brightness << 8) | 0xFF);
 	ANA_REG_OR(ANA_BLTC_CTRL, bits);
-	printf("[LED] pattern set, type=%d, brightness=%d, rising=2, high=8, falling=2, low=12\n", type, brightness);
+	printf("[LED] pattern set, type=%d, brightness=%d, rising=%d, high=%d, falling=%d, low=%d\n",
+	       type, brightness,SPRD_LED_RISING,SPRD_LED_HIGH,SPRD_LED_FALLING,SPRD_LED_LOW);
 
 }
 
