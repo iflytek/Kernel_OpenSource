@@ -2855,6 +2855,13 @@ CONFIG_DRM_SPRD_GSP
 	[subsys]
 	[must]
 	[function]
+CONFIG_DRM_SPRD_HDMI
+	[arch] arm64
+	[plat] roc1
+	[field]
+	[subsys]
+	[must]
+	[function]
 CONFIG_DST_CACHE
 	[arch] all
 	[plat] all
