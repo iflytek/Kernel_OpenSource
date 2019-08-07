@@ -141,6 +141,15 @@ int board_late_init(void)
 	return 0;
 }
 
+static boot_mode_enum_type  get_mode_from_plug_in_charger_to_normal_boot(void)
+{
+	if (charger_connected()) {
+		debugf("get mode from charger\n");
+		return CMD_NORMAL_MODE;
+	} else {
+		return CMD_UNDEFINED_MODE;
+	}
+}
 
 CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 	get_mode_from_bat_low,
@@ -154,7 +163,7 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 	/*0 get mode from calibration detect*/
 	get_mode_from_pctool,
 	/*4 get mode from charger*/
-	get_mode_from_charger,
+	get_mode_from_plug_in_charger_to_normal_boot,
 	/*5 get mode from keypad*/
 	get_mode_from_keypad,
 	/*6 get mode from gpio*/
