@@ -16,7 +16,13 @@ usb_f_serial-y			:= f_serial.o
 obj-$(CONFIG_USB_F_SERIAL)	+= usb_f_serial.o
 usb_f_obex-y			:= f_obex.o
 obj-$(CONFIG_USB_F_OBEX)	+= usb_f_obex.o
+
+ifeq ($(CONFIG_SPRD_SIPA),y)
+obj-$(CONFIG_USB_U_ETHER)	+= sipa_u_ether.o
+else
 obj-$(CONFIG_USB_U_ETHER)	+= u_ether.o
+endif
+
 usb_f_ncm-y			:= f_ncm.o
 obj-$(CONFIG_USB_F_NCM)		+= usb_f_ncm.o
 usb_f_ecm-y			:= f_ecm.o
