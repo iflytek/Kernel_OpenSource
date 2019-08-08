@@ -31,8 +31,8 @@ int handle_vsp_interrupt(struct vsp_dev_t *vsp_hw_dev, int *status,
 	int int_status;
 	int mmu_status;
 
-	int_status = readl_relaxed(vsp_glb_reg_base + VSP_INT_STS_OFF);
-	mmu_status = readl_relaxed(sprd_vsp_base + VSP_MMU_INT_STS_OFF);
+	int_status = readl_relaxed(vsp_glb_reg_base + VSP_INT_RAW_OFF);
+	mmu_status = readl_relaxed(sprd_vsp_base + VSP_MMU_INT_RAW_OFF);
 
 	if (((int_status & 0x1fff) == 0) &&
 		((mmu_status & 0xff) == 0)) {
