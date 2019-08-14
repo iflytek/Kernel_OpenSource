@@ -39,6 +39,24 @@ static void thm_overheate_en(void)
 					BIT_AON_APB_THM3_OVERHEAT_ALARM_ADIE_EN);
 }
 
+int usb_hub_init(void)
+{
+	/* ud710_5h10 need to work as host mode within CMD_NORMAL_MODE,
+	 * or else usb work with device mode in any other boot modes.
+	 */
+	printf("usb dpdm switch to host within CMD_NORMAL_MODE\n");
+
+	sprd_gpio_request(NULL, USBHUB_VDD1V2_EN);
+	sprd_gpio_direction_output(NULL, USBHUB_VDD1V2_EN, 1);
+	mdelay(5);
+
+	sprd_gpio_request(NULL, USBHUB_DPDM_EN);
+	sprd_gpio_direction_output(NULL, USBHUB_DPDM_EN, 1);
+	mdelay(5);
+
+	return 0;
+}
+
 extern void setup_chipram_env(void);
 int board_init(void)
 {
@@ -177,6 +195,7 @@ CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 
 static void ud710_5h10_normal_mode(void)
 {
+	usb_hub_init();
 	sprd_led_pattern_set(Green,255);
 	vlx_nand_boot(BOOT_PART, BACKLIGHT_ON, LCD_ON);
 	return;
