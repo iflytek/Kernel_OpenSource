@@ -64,9 +64,11 @@ static uchar *const s_force_secure_check[] = {
 	"tl_ldsp",
 	"tl_tgdsp",
 	"tl_modem",
+#ifndef NOT_VERIFY_MODEM
 	"l_modem",
 	"l_ldsp",
 	"l_gdsp",
+#endif
 	"l_warm",
 	"l_tgdsp",
 	"l_agdsp",
