@@ -113,6 +113,21 @@ extern void lcd_enable(void);
 #define dump_logd(fmt, args...)  do { printf("(%s): ", DUMP_LOG_TAG); debugf(fmt, ##args); } while (0)
 #define dump_loge(fmt, args...)  do { printf("(%s): ", DUMP_LOG_TAG); errorf(fmt, ##args); } while (0)
 
+#ifdef CONFIG_SYSDUMP_LED
+
+#define sysdump_led_init()				sprd_led_init()
+#define sysdump_led_disable(type)			sprd_led_disable(type)
+#define sysdump_led_set_brightness(type, brightness)	sprd_led_set_brightness(type, brightness)
+#define sysdump_led_pattern_clear(type)			sprd_led_pattern_clear(type)
+#define sysdump_led_pattern_set(type, brightness)	sprd_led_pattern_set(type, brightness)
+#else
+
+#define sysdump_led_init()
+#define sysdump_led_disable(type)
+#define sysdump_led_set_brightness(type, brightness)
+#define sysdump_led_pattern_clear(type)
+#define sysdump_led_pattern_set(type, brightness)
+#endif
 char *sd_fs[] = {
 	"FAT32",
 	"EXFAT",
@@ -193,9 +208,8 @@ void display_sysdump_header(void)
 	lcd_enable();
 #endif
 
-	sprd_led_init();
-	sprd_led_pattern_set(Red, BRIGHTNESS_MAX);
-
+	sysdump_led_init();
+	sysdump_led_pattern_set(Red, BRIGHTNESS_MAX);
 	/* display on screen */
 	display_writing_sysdump();
 #define CONSOLE_COLOR_RED (0x1f<<11)
@@ -2007,6 +2021,8 @@ static int usb_sysdump_handler(void)
 	if(usb_status_old == 0 && usb_status_new == 1) {
 		dump_logd("sysdump: usb cable is inserted\n");
 		sysdump_lcd_printf("usb cable is inserted...\n");
+		sysdump_led_pattern_clear(Blue);
+		sysdump_led_set_brightness(Blue, BRIGHTNESS_MAX);
 		dcache_disable();
 
 		if(sysdump_initusb()) {
@@ -2860,11 +2876,12 @@ retry_dump_to_pc:
 #endif
 	if(check_dump_status_result.dump_to_pc_flag == 1){
 		send_to_pc_finish(dumpbuf_pc,&pkt_header);
+		sysdump_led_pattern_clear(Blue);
 	}
 	dump_logd("\nwriting done.\nPress any key to continue...\n");
 	sysdump_lcd_printf("\nWriting done.\nPress any key (Exp power key) to continue...");
-	sprd_led_pattern_clear(Red);
-	sprd_led_set_brightness(Red, BRIGHTNESS_MAX);
+	sysdump_led_pattern_clear(Red);
+	sysdump_led_set_brightness(Red, BRIGHTNESS_MAX);
 	wait_for_keypress();
 FINISH:
 	if(check_dump_status_result.dump_to_sd_fail == 1){
@@ -2876,6 +2893,7 @@ FINISH:
 		dump_logd ("sysdump to sdcard fail ,  save minidump first, and we try to do dump to pc now  !!!\n");
 		sysdump_lcd_printf("sysdump to sdcard fail , save minidump first, and we try to do dump to pc now  !!");
 		check_dump_status_result.dump_to_pc_flag = 1;
+		sysdump_led_pattern_set(Blue, BRIGHTNESS_MAX);
 		goto retry_dump_to_pc;
 	}
 #if (defined CONFIG_X86) && (defined CONFIG_MOBILEVISOR)

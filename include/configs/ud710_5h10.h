@@ -252,6 +252,7 @@
 #define CONFIG_SPRD_MINI_SYSDUMP
 #define CONFIG_GZIP_COMPRESSED
 #define CONFIG_GZIP_COMPRESS_DEF_SZ     0x200
+#define CONFIG_SYSDUMP_LED
 
 #define PWR_KEY_DETECT_CNT  2
 #define ALARM_LEAD_SET_MS 0 /* time set for alarm boot in advancd */
