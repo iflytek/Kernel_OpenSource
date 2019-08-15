@@ -42,6 +42,11 @@
 		cp_reserved: cp-modem@88000000 {
 			reg = <0x0 0x88000000 0x0 0x15000000>;
 		};
+
+		uboot_reserved: sysdump-uboot@9f000000 {
+			compatible = "detour-mem";
+			reg = <0x0 0x9f000000 0x0 0x00fc0000>;
+		};
 	};
 
 	ddr_dfs: scene-frequency {
