@@ -555,16 +555,14 @@ static bool is_full_charged(struct charger_manager *cm)
 					is_full = true;
 				} else {
 					is_full = false;
-					cm->desc->force_set_full = true;
 					adjust_fuel_cap(cm, CM_FORCE_SET_FUEL_CAP_FULL);
 				}
+				cm->desc->force_set_full = true;
 			} else {
 				is_full = false;
-				cm->desc->force_set_full = false;
 			}
 			goto out;
 		} else {
-			cm->desc->force_set_full = false;
 			is_full = false;
 			desc->trigger_cnt = 0;
 			goto out;
@@ -802,7 +800,7 @@ static void fullbatt_vchk(struct work_struct *work)
 	dev_info(cm->dev, "VBATT dropped %duV after full-batt\n", diff);
 
 	if (diff >= desc->fullbatt_vchkdrop_uV) {
-		cm->desc->force_set_full = false;
+
 		try_charger_restart(cm);
 		uevent_notify(cm, "Recharging");
 	}
@@ -1545,11 +1543,13 @@ static void misc_event_handler(struct charger_manager *cm,
 	if (cm_suspended)
 		device_set_wakeup_capable(cm->dev, true);
 
-	if (is_ext_pwr_online(cm))
+	if (is_ext_pwr_online(cm)) {
 		try_charger_enable(cm, true);
-	else
+		cm->desc->charger_status = POWER_SUPPLY_STATUS_CHARGING;
+	} else {
 		try_charger_enable(cm, false);
-
+		cm->desc->charger_status = POWER_SUPPLY_STATUS_DISCHARGING;
+	}
 	if (is_polling_required(cm) && cm->desc->polling_interval_ms)
 		schedule_work(&setup_polling);
 	uevent_notify(cm, default_event_names[type]);
@@ -1566,12 +1566,7 @@ static int charger_get_property(struct power_supply *psy,
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_STATUS:
-		if (is_charging(cm))
-			val->intval = POWER_SUPPLY_STATUS_CHARGING;
-		else if (is_ext_pwr_online(cm))
-			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
-		else
-			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+		val->intval = cm->desc->charger_status;
 		break;
 	case POWER_SUPPLY_PROP_HEALTH:
 		if (cm->emergency_stop > 0)
@@ -2619,7 +2614,7 @@ static void cm_batt_works(struct work_struct *work)
 	period_time = cur_time.tv_sec - cm->desc->last_query_time;
 	cm->desc->last_query_time = cur_time.tv_sec;
 
-	if (cm->desc->force_set_full)
+	if (cm->desc->force_set_full && is_ext_pwr_online(cm))
 		cm->desc->charger_status = POWER_SUPPLY_STATUS_FULL;
 	else
 		cm->desc->charger_status = chg_sts;
