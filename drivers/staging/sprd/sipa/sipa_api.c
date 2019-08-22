@@ -719,21 +719,25 @@ int sipa_pam_connect(const struct sipa_connect_params *in)
 	}
 
 	sipa_set_enabled(true);
+	ep->connected = true;
+	ep->suspended = false;
+
+	if (ctrl->suspend_stage)
+		sipa_resume_for_pamu3(ctrl);
+
+	if (ep->inited)
+		goto set_recv;
+
 	memset(&fifo_item, 0, sizeof(fifo_item));
 	ep->send_notify = in->send_notify;
 	ep->recv_notify = in->recv_notify;
 	ep->send_priv = in->send_priv;
 	ep->recv_priv = in->recv_priv;
-	ep->connected = true;
-	ep->suspended = false;
+	ep->inited = true;
 	memcpy(&ep->send_fifo_param, &in->send_param,
 	       sizeof(struct sipa_comm_fifo_params));
 	memcpy(&ep->recv_fifo_param, &in->recv_param,
 	       sizeof(struct sipa_comm_fifo_params));
-
-	if (ctrl->suspend_stage)
-		sipa_resume_for_pamu3(ctrl);
-
 	sipa_open_common_fifo(ep->sipa_ctx->hdl, ep->send_fifo.idx,
 			      &ep->send_fifo_param, NULL, false,
 			      (sipa_hal_notify_cb)ep->send_notify, ep);
@@ -762,6 +766,7 @@ int sipa_pam_connect(const struct sipa_connect_params *in)
 		}
 	}
 
+set_recv:
 	sipa_hal_cmn_fifo_set_receive(ep->sipa_ctx->hdl,
 				      ep->recv_fifo.idx, false);
 

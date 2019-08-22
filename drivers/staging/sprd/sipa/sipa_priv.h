@@ -183,6 +183,7 @@ struct sipa_endpoint {
 	void *send_priv; /* private data for sipa_notify_cb */
 	void *recv_priv;
 
+	bool inited;
 	bool connected;
 	bool suspended;
 };
