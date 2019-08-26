@@ -77,12 +77,14 @@ struct pam_ipa_cfg_tag {
 	dma_addr_t ul_dma_addr;
 	dma_addr_t dma_addr_buf[PAM_FREE_FIFO_SIZE];
 
+	struct regulator *vpower;
 	struct pam_ipa_hal_proc_tag hal_ops;
 };
 
 u32 pam_ipa_init_api(struct pam_ipa_hal_proc_tag *ops);
 u32 pam_ipa_init(struct pam_ipa_cfg_tag *cfg);
 int pam_ipa_set_enabled(struct pam_ipa_cfg_tag *cfg, bool enable);
+int pam_ipa_force_wakeup(struct pam_ipa_cfg_tag *cfg, bool enable);
 int pam_ipa_on_miniap_ready(struct sipa_to_pam_info *remote_cfg);
 
 #endif

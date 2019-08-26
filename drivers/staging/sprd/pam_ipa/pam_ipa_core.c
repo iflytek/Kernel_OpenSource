@@ -13,6 +13,7 @@
 #include <linux/regmap.h>
 #include <linux/sipc.h>
 #include <linux/mfd/syscon.h>
+#include <linux/regulator/consumer.h>
 #include "pam_ipa_core.h"
 #include "../sipa_delegate/sipa_delegate.h"
 
@@ -80,6 +81,13 @@ static int pam_ipa_parse_dts_configuration(struct platform_device *pdev,
 							  "enable");
 	if (IS_ERR(cfg->enable_regmap))
 		pr_warn("%s :get enable regmap fail!\n", __func__);
+
+	cfg->vpower = devm_regulator_get(&pdev->dev, "vpower");
+	if (IS_ERR(cfg->vpower)) {
+		ret = PTR_ERR(cfg->vpower);
+		dev_err(&pdev->dev, "unable to get vpower supply %d\n", ret);
+		return ret;
+	}
 
 	ret = syscon_get_args_by_name(pdev->dev.of_node,
 				      "enable", 2,
