@@ -306,18 +306,26 @@ u32 pam_ipa_init_api(struct pam_ipa_hal_proc_tag *ops)
 	return TRUE;
 }
 
-int pam_ipa_set_enabled(struct pam_ipa_cfg_tag *cfg)
+int pam_ipa_set_enabled(struct pam_ipa_cfg_tag *cfg, bool enable)
 {
 	int ret = 0;
 
-	if (cfg->enable_regmap) {
+	if (!cfg->enable_regmap)
+		return -EINVAL;
+
+	if (enable)
 		ret = regmap_update_bits(cfg->enable_regmap,
 					 cfg->enable_reg,
 					 cfg->enable_mask,
 					 cfg->enable_mask);
-		if (ret < 0)
-			pr_warn("%s: regmap update bits failed", __func__);
-	}
+	else
+		ret = regmap_update_bits(cfg->enable_regmap,
+					 cfg->enable_reg,
+					 cfg->enable_mask,
+					 ~cfg->enable_mask);
+	if (ret < 0)
+		pr_err("%s: regmap update bits failed", __func__);
+
 	return ret;
 }
 EXPORT_SYMBOL(pam_ipa_set_enabled);
@@ -326,7 +334,7 @@ u32 pam_ipa_init(struct pam_ipa_cfg_tag *cfg)
 {
 	u32 ret;
 
-	pam_ipa_set_enabled(cfg);
+	pam_ipa_set_enabled(cfg, true);
 
 	pam_ipa_hal_init_pcie_dl_fifo_base(
 		cfg->reg_base,
