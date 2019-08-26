@@ -433,6 +433,14 @@ static inline u32 pam_ipa_phy_stop(void __iomem *reg_base)
 	return TRUE;
 }
 
+static inline bool pam_ipa_phy_get_start_status(void __iomem *reg_base)
+{
+	if (__raw_readl(reg_base + PAM_IPA_CFG_START) & BIT(0))
+		return true;
+
+	return false;
+}
+
 static inline u32 pam_ipa_phy_resume(void __iomem *reg_base, u32 flag)
 {
 	u32 tmp = 0;

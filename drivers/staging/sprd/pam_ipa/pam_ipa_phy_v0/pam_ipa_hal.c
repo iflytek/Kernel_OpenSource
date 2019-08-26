@@ -197,6 +197,11 @@ static u32 pam_ipa_hal_start(void __iomem *reg_base)
 	return ret;
 }
 
+static bool pam_ipa_hal_get_start_status(void __iomem *reg_base)
+{
+	return pam_ipa_phy_get_start_status(reg_base);
+}
+
 static u32 pam_ipa_hal_stop(void __iomem *reg_base)
 {
 	u32 ret = 0;
@@ -296,6 +301,7 @@ u32 pam_ipa_init_api(struct pam_ipa_hal_proc_tag *ops)
 	ops->start = pam_ipa_hal_start;
 	ops->stop = pam_ipa_hal_stop;
 	ops->resume = pam_ipa_hal_resume;
+	ops->get_start_status = pam_ipa_hal_get_start_status;
 
 	return TRUE;
 }

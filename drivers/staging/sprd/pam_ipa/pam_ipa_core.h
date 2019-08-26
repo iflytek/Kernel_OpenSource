@@ -49,6 +49,7 @@ struct pam_ipa_hal_proc_tag {
 	u32 (*start)(void __iomem *reg_base);
 	u32 (*stop)(void __iomem *reg_base);
 	u32 (*resume)(void __iomem *reg_base, u32 flag);
+	bool (*get_start_status)(void __iomem *reg_base);
 
 };
 
