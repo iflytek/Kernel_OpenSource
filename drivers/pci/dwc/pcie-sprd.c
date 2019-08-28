@@ -79,6 +79,54 @@ static const struct dw_pcie_host_ops sprd_pcie_host_ops = {
 	.host_init = sprd_pcie_host_init,
 };
 
+int sprd_pcie_register_event(struct sprd_pcie_register_event *reg)
+{
+	struct sprd_pcie *ctrl = platform_get_drvdata(reg->pdev);
+
+	if (!ctrl) {
+		pr_err("sprd_pcie: cannot find RC for pci endpoint device.\n");
+		return -ENODEV;
+	}
+
+	ctrl->event_reg = reg;
+	pr_info("sprd_pcie: event is registered for RC\n");
+
+	return 0;
+}
+EXPORT_SYMBOL(sprd_pcie_register_event);
+
+int sprd_pcie_deregister_event(struct sprd_pcie_register_event *reg)
+{
+	struct sprd_pcie *ctrl = platform_get_drvdata(reg->pdev);
+
+	if (!ctrl) {
+		pr_err("sprd_pcie: cannot find RC for pci endpoint device.\n");
+		return -ENODEV;
+	}
+
+	ctrl->event_reg = NULL;
+	pr_info("sprd_pcie:event is deregistered for RC\n");
+
+	return 0;
+}
+EXPORT_SYMBOL(sprd_pcie_deregister_event);
+
+static void sprd_pcie_notify_client(struct sprd_pcie *ctrl,
+					enum sprd_pcie_event event)
+{
+	struct dw_pcie *pci = ctrl->pci;
+
+	if (ctrl->event_reg && ctrl->event_reg->callback &&
+		(ctrl->event_reg->events & event)) {
+		dev_dbg(pci->dev, "callback RC for event %d\n", event);
+		ctrl->event_reg->callback(event, ctrl->event_reg->data);
+	} else {
+		dev_dbg(pci->dev,
+			"client of RC doesn't have registration for event %d\n",
+			event);
+	}
+}
+
 /*
  * WAKE# (low active)from endpoint to wake up AP.
  *
@@ -89,6 +137,7 @@ static const struct dw_pcie_host_ops sprd_pcie_host_ops = {
 static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 {
 	struct sprd_pcie *ctrl = data;
+	struct dw_pcie *pci = ctrl->pci;
 	int value = gpiod_get_value(ctrl->gpiod_wakeup);
 	u32 irq_flags = irq_get_trigger_type(irq);
 
@@ -101,6 +150,12 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 	}
 
 	irq_set_irq_type(irq, irq_flags);
+
+	if (!ctrl->is_powered)
+		sprd_pcie_notify_client(ctrl, SPRD_PCIE_EVENT_WAKEUP);
+	else
+		dev_dbg(pci->dev,
+			"the pci has already been enumrated\n");
 
 	return IRQ_HANDLED;
 }

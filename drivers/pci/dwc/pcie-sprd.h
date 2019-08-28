@@ -1,4 +1,5 @@
 #include <linux/regmap.h>
+#include <linux/pcie-rc-sprd.h>
 
 #include "pcie-designware.h"
 
@@ -43,6 +44,8 @@ struct sprd_pcie {
 	/* keep track of pcie rc state */
 	unsigned int is_powered:1;
 	unsigned int is_suspended:1;
+
+	struct sprd_pcie_register_event *event_reg;
 
 	size_t label_len; /* pcie controller device length + 10 */
 	char wakeup_label[0];
