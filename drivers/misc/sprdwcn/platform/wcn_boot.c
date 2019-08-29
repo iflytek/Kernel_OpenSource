@@ -51,6 +51,7 @@
 #include "mdbg_type.h"
 #include "../include/wcn_dbg.h"
 #include "../include/wcn_glb_reg.h"
+#include "sysfs.h"
 
 #ifndef REG_PMU_APB_XTL_WAIT_CNT0
 #define REG_PMU_APB_XTL_WAIT_CNT0 0xe42b00ac
@@ -236,6 +237,16 @@ const char *strno(int subsys)
 	}
 /* #undef E2S */
 }
+
+int notify_at_cmd_finish(void *buf, unsigned char len)
+{
+	marlin_dev->sysfs_info.p = buf;
+	marlin_dev->sysfs_info.len = len;
+	sysfs_at_cmd_cb(marlin_dev);
+
+	return 0;
+}
+
 
 /* tsx/dac init */
 int marlin_tsx_cali_data_read(struct tsx_data *p_tsx_data)
@@ -2371,6 +2382,9 @@ static int marlin_probe(struct platform_device *pdev)
 			sizeof(struct marlin_device), GFP_KERNEL);
 	if (!marlin_dev)
 		return -ENOMEM;
+	marlin_dev->pdev = pdev;
+	marlin_dev->dev = &pdev->dev;
+	dev_set_drvdata(marlin_dev->dev, marlin_dev);
 	marlin_dev->write_buffer = devm_kzalloc(&pdev->dev,
 			PACKET_SIZE, GFP_KERNEL);
 	if (marlin_dev->write_buffer == NULL) {
@@ -2414,6 +2428,7 @@ static int marlin_probe(struct platform_device *pdev)
 	proc_fs_init();
 	log_dev_init();
 	wcn_op_init();
+	wcn_sysfs_init(marlin_dev);
 	flag_reset = 0;
 	INIT_WORK(&marlin_dev->download_wq, pre_btwifi_download_sdio);
 	INIT_WORK(&marlin_dev->gnss_dl_wq, pre_gnss_download_firmware);
