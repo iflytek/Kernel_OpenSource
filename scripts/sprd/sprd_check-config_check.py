@@ -4,24 +4,25 @@ import os
 import sys
 import csv
 
-tmp_path_def="./tmp_config_check/"
-d_sprdconfig={}
-d_defconfig={}
-d_diffconfig={}
-d_corrected_config={}
-not_defined=0
-config_path="Documentation/sprd-configs.txt"
-list_configs=[]
-tool_name=sys.argv[0][2:-3]
-kernel_version=''
+tmp_path_def = "./tmp_config_check/"
+d_sprdconfig = {}
+d_defconfig = {}
+d_diffconfig = {}
+d_corrected_config = {}
+d_all_plat = {}
+not_defined = 0
+config_path = "Documentation/sprd-configs.txt"
+list_configs = []
+tool_name = sys.argv[0][2:-3]
+kernel_version = ''
 
-all_arch=[]
-all_plat=[]
-l_sprdconfig=[]
-l_defproject=[]
-l_diffconfig=[]
+all_arch = []
+all_plat = []
+l_sprdconfig = []
+l_defproject = []
+l_diffconfig = []
 
-d_defconfig_path={
+d_defconfig_path = {
         'kernel4.4':{
             'pike2':{'defconfig':'arch/arm/configs/sprd_pike2_defconfig', 'diffconfig':'sprd-diffconfig/pike2', 'arch':'arm'},
             'sharkle32':{'defconfig':'arch/arm/configs/sprd_sharkle_defconfig', 'diffconfig':'sprd-diffconfig/sharkle', 'arch':'arm'},
@@ -32,14 +33,14 @@ d_defconfig_path={
         },
         'kernel4.14':{
             'roc1':{'defconfig':'arch/arm64/configs/sprd_roc1_defconfig', 'diffconfig':'sprd-diffconfig/roc1','arch':'arm64'},
-            'sharkl3':{'defconfig':'arch/arm64/configs/NA_sprd_sharkl3_defconfig', 'diffconfig':'sprd-diffconfig/sharkl3', 'arch':'arm64'},
+            'sharkl3':{'defconfig':'arch/arm64/configs/NA_sprd_sharkl3_defconfig', 'diffconfig':'sprd-diffconfig/sharkl3','arch':'arm64'},
             'sharkl5':{'defconfig':'arch/arm64/configs/sprd_sharkl5_defconfig', 'diffconfig':'sprd-diffconfig/sharkl5','arch':'arm64'},
             'sharkl5_32':{'defconfig':'arch/arm/configs/sprd_sharkl5_defconfig', 'diffconfig':'sprd-diffconfig/sharkl5','arch':'arm'},
         },
 }
 
 def create_diffconfigs_dict():
-    result=[]
+    result = []
 
     for key in d_defconfig_path[kernel_version]:
         for maindir,subdir,file_name_list in os.walk(d_defconfig_path[kernel_version][key]['diffconfig']):
@@ -52,7 +53,7 @@ def create_diffconfigs_dict():
                 apath = os.path.join(maindir, filename)
                 result.append(apath)
 
-                f=open(apath,'r')
+                f = open(apath,'r')
                 lines = f.readlines()
                 for j in range(len(lines)):
                     if 'ADD:' == lines[j][:4] or 'MOD:' == lines[j][:4]:
@@ -73,20 +74,20 @@ def create_diffconfigs_dict():
                             tmp_plat = 'sharkl5_32'
                         elif tmp_arch == 'common' and tmp_plat == 'sharkle':
                             if kernel_version == 'kernel4.4':
-                                tmp_arch= 'arm,arm64'
-                                tmp_plat= 'sharkle,sharkle32'
+                                tmp_arch = 'arm,arm64'
+                                tmp_plat = 'sharkle,sharkle32'
                             elif kernel_version == 'kernel4.14':
-                                tmp_arch='arm'
-                                tmp_plat='sharkle32'
+                                tmp_arch = 'arm'
+                                tmp_plat = 'sharkle32'
                         elif tmp_arch == 'common' and tmp_plat == 'sharkl3':
                             if kernel_version == 'kernel4.14':
                                 tmp_arch = 'arm64'
                             else:
-                                tmp_arch='arm,arm64'
-                                tmp_plat='sharkl3,sharkl3_32'
+                                tmp_arch = 'arm,arm64'
+                                tmp_plat = 'sharkl3,sharkl3_32'
                         elif tmp_arch == 'common' and tmp_plat == 'sharkl5':
-                            tmp_arch='arm,arm64'
-                            tmp_plat='sharkl5,sharkl5_32'
+                            tmp_arch = 'arm,arm64'
+                            tmp_plat = 'sharkl5,sharkl5_32'
                         elif tmp_arch == 'common' and tmp_plat == 'roc1':
                             tmp_arch = 'arm64'
 
@@ -96,7 +97,7 @@ def create_diffconfigs_dict():
                             if tmp_plat not in d_diffconfig[lines[j][4:-1]]['plat'].split(','):
                                 d_diffconfig[lines[j][4:-1]]['plat'] = d_diffconfig[lines[j][4:-1]]['plat'] + tmp_plat + ','
                         else:
-                            d_diffconfig[lines[j][4:-1]]={
+                            d_diffconfig[lines[j][4:-1]] = {
                                 'arch': tmp_arch + ',',
                                 'plat': tmp_plat + ',',
                                 'field':'',
@@ -112,48 +113,54 @@ def create_sprdconfigs_dict():
 
     f_sprdconfig = open(config_path,'r')
     lines = f_sprdconfig.readlines()
+    values_of_config = ['[arch]','[plat]','[missing plat]','[field]','[subsys]','[must]','[missing plat description]','[function]']
     for i in range(len(lines)):
         if lines[i][:7] == "CONFIG_":
-            config_name=lines[i][:-1]
-            d_sprdconfig[config_name]={'arch':'','plat':'','field':'','subsys':'','must':'','function':''}
-            if i+6 < len(lines):
-                if "[arch]" in lines[i+1]:
-                    if lines[i+1][-7:-1] == '[arch]':
-                        d_sprdconfig[config_name]['arch']=''
-                    else:
-                        d_sprdconfig[config_name]['arch']=lines[i+1].split('[arch] ').pop()[:-1]
-                if "[plat]" in lines[i+2]:
-                    if lines[i+2][-7:-1] == '[plat]':
-                        d_sprdconfig[config_name]['plat']=''
-                    else:
-                        d_sprdconfig[config_name]['plat']=lines[i+2].split('[plat] ').pop()[:-1]
-                if "[field]" in lines[i+3]:
-                    if lines[i+3][-8:-1] == '[field]':
-                        d_sprdconfig[config_name]['field']=''
-                    else:
-                        d_sprdconfig[config_name]['field']=lines[i+3].split('[field] ').pop()[:-1]
-                if "[subsys]" in lines[i+4]:
-                    if lines[i+4][-9:-1] == '[subsys]':
-                        d_sprdconfig[config_name]['subsys']=''
-                    else:
-                        d_sprdconfig[config_name]['subsys']=lines[i+4].split('[subsys] ').pop()[:-1]
-                if "[must]" in lines[i+5]:
-                    if lines[i+5][-7:-1] == '[must]':
-                        d_sprdconfig[config_name]['must']=''
-                    else:
-                        d_sprdconfig[config_name]['must']=lines[i+5].split('[must] ').pop()[:-1]
-                if "[function]" in lines[i+6]:
-                    if lines[i+6][-11:-1] == '[function]':
-                        d_sprdconfig[config_name]['function']=''
-                    else:
-                        d_sprdconfig[config_name]['function']=lines[i+6].split('[function] ').pop()[:-1]
+            config_name = lines[i][:-1]
+            d_sprdconfig[config_name] = {'arch':'','plat':'','missing plat':'','field':'','subsys':'','must':'','missing plat description':'','function':''}
+            num_lines_in_config = 0
+            values_exist = []
+            for n in range(i+1,len(lines)):
+                num_lines_in_config += 1
+                if lines[n][:7] == "CONFIG_":
+                    break
+                if n == len(lines)-1:
+                    num_lines_in_config += 1
+                    break
 
-                    for j in range(15):
-                        if i+7+j >= len(lines):
+            for j in range(1,num_lines_in_config):
+                for value in values_of_config:
+                    if value in lines[i+j]:
+                        if value not in values_exist:
+                            values_exist.append(value)
+                            value_sprd = value.split('[').pop().split(']').pop(0)
+                            d_sprdconfig[config_name][value_sprd] = lines[i+j].split(value).pop().strip(' \n')
+                            for m in range(j+1,num_lines_in_config):
+                                if '[arch]' in lines[i+m]:
+                                    break
+                                if '[plat]' in lines[i+m]:
+                                    break
+                                if '[missing plat]' in lines[i+m]:
+                                    break
+                                if '[field]' in lines[i+m]:
+                                    break
+                                if '[subsys]' in lines[i+m]:
+                                    break
+                                if '[must]' in lines[i+m]:
+                                    break
+                                if '[missing plat description]' in lines[i+m]:
+                                    break
+                                if '[function]' in lines[i+m]:
+                                    break
+                                if lines[i+m].strip() == '':
+                                    continue
+                                if value == '[function]' or value == '[missing plat description]':
+                                    d_sprdconfig[config_name][value_sprd] += '\n'+lines[i+m][:-1]
+                                else:
+                                    d_sprdconfig[config_name][value_sprd] += lines[i+m][:-1].strip(' \n\t')
+                            j = m
                             break
-                        if lines[i+7+j][:7] == "CONFIG_":
-                            break
-                        d_sprdconfig[config_name]['function']+='\n'+lines[i+7+j][:-1]
+            i = i + num_lines_in_config
     f_sprdconfig.close()
 
     # create the d_sprdconfig by Documentation/sprdconfigs.txt
@@ -169,7 +176,7 @@ def incomplete_item():
     file_name = os.path.join(tmp_path,'need_completed.txt')
     if os.path.exists(file_name):
         os.remove(file_name)
-    f_need_completed=open(file_name, 'a+')
+    f_need_completed = open(file_name, 'a+')
     tmp_list = list(d_sprdconfig)
     tmp_list.sort()
     for key in tmp_list:
@@ -182,7 +189,7 @@ def incomplete_item():
     print_incomplete_info(file_name)
 
 def configs_resort():
-    list_configs=list(d_sprdconfig)
+    list_configs = list(d_sprdconfig)
     list_configs.sort()
     os.remove(config_path)
     f=open(config_path,'a')
@@ -190,7 +197,7 @@ def configs_resort():
         # if plat = '', It should be deleted.
         if d_sprdconfig[line]['plat'] == '':
             continue
-        f.write(line+'\n')
+        f.write(line + '\n')
         if d_sprdconfig[line]['arch'] == '':
             f.write("\t[arch]\n")
         else:
@@ -200,6 +207,11 @@ def configs_resort():
             f.write("\t[plat]\n")
         else:
             f.write("\t[plat] {}\n".format(d_sprdconfig[line]['plat']))
+
+        if d_sprdconfig[line]['missing plat'] == 'none':
+            f.write("\t[missing plat] none\n")
+        else:
+            f.write("\t[missing plat] {}".format(d_sprdconfig[line]['missing plat']).strip(' ') + '\n')
 
         if d_sprdconfig[line]['field'] == '':
             f.write("\t[field]\n")
@@ -216,6 +228,11 @@ def configs_resort():
         else:
             f.write("\t[must] {}\n".format(d_sprdconfig[line]['must']))
 
+        if d_sprdconfig[line]['missing plat description'] == 'none':
+            f.write("\t[missing plat description] none\n")
+        else:
+            f.write("\t[missing plat description]{}".format(d_sprdconfig[line]['missing plat description']).strip(' ') + '\n')
+
         if d_sprdconfig[line]['function'] == '':
             f.write("\t[function]\n")
         else:
@@ -231,29 +248,29 @@ def create_defconfig_dict():
     sys.argv[1] is check
     """
     for key in d_defconfig_path[kernel_version]:
-        d_defconfig[key]={}
-        path=d_defconfig_path[kernel_version][key]['defconfig']
+        d_defconfig[key] = {}
+        path = d_defconfig_path[kernel_version][key]['defconfig']
         f_defconfig = open(path)
         lines = f_defconfig.readlines()
 
         for j in range(len(lines)):
             if '=' in lines[j]:
-                config_name=lines[j].split('=')[0]
-                d_defconfig[key][config_name]='y'
+                config_name = lines[j].split('=')[0]
+                d_defconfig[key][config_name] = 'y'
             elif 'is not set' in lines[j]:
-                config_name=lines[j].split(' ')[1]
-                d_defconfig[key][config_name]='n'
+                config_name = lines[j].split(' ')[1]
+                d_defconfig[key][config_name] = 'n'
         f_defconfig.close()
 
 #print all config defined in Documentation/sprd-configs.txt
 def output_allconfigs():
-    file_name=os.path.join(tmp_path,'all_sprdconfigs_status.txt')
+    file_name = os.path.join(tmp_path,'all_sprdconfigs_status.txt')
     if os.path.exists(file_name):
         os.remove(file_name)
-    f=open(file_name,'a')
+    f = open(file_name,'a')
 
     for key_config in l_corrected_config:
-        f.write(key_config+' :\t'+d_corrected_config[key_config]['plat']+"\n")
+        f.write(key_config + ' :\t' + d_corrected_config[key_config]['plat'] + "\n")
     f.close()
 
 def help_info():
@@ -282,7 +299,7 @@ def help_info():
                 support       : Print all archs and plats supported.
 
                 scan          : Scan all configs to export a statistical file named 'config_plat_scan.csv', which include Config_name, Enable_archs,
-                                Enable_plats, ARM_lack_plats and ARM64_lack_plats.
+                                Enable_plats, ARM_missing_plats and ARM64_missing_plats.
 
                 help          : Print the help information.
         """
@@ -291,25 +308,25 @@ def help_info():
 def create_corrected_dict():
     global d_corrected_config
     for key_defproject in l_defproject:
-        l_defconfig=list(d_defconfig[key_defproject])
+        l_defconfig = list(d_defconfig[key_defproject])
         l_defconfig.sort()
         for key_defconfig in l_defconfig:
             if key_defconfig not in d_corrected_config:
                 if d_defconfig[key_defproject][key_defconfig] == 'y':
-                    d_corrected_config[key_defconfig]={'arch':'','plat':''}
+                    d_corrected_config[key_defconfig] = {'arch':'','plat':''}
 
     for key_diffconfig in l_diffconfig:
         if key_diffconfig in d_corrected_config:
             continue
-        d_corrected_config[key_diffconfig]={'arch':'','plat':''}
+        d_corrected_config[key_diffconfig] = {'arch':'','plat':''}
 
     global l_corrected_config
-    l_corrected_config=list(d_corrected_config)
+    l_corrected_config = list(d_corrected_config)
     l_corrected_config.sort()
 
     for key in l_corrected_config:
-        tmp_arch=''
-        tmp_plat=''
+        tmp_arch = ''
+        tmp_plat = ''
         for project in l_defproject:
             if key in d_defconfig[project]:
                 if d_defconfig[project][key] == 'y':
@@ -328,13 +345,13 @@ def create_corrected_dict():
             if d_diffconfig[key]['plat'] not in tmp_plat:
                 tmp_plat = tmp_plat + d_diffconfig[key]['plat'] + ","
 
-        l_tmp_arch=tmp_arch[:-1].split(",")
+        l_tmp_arch = tmp_arch[:-1].split(",")
         l_tmp_arch.sort()
-        tmp_arch_sort=''
+        tmp_arch_sort = ''
         for i in range(len(l_tmp_arch)):
             if l_tmp_arch[i] not in tmp_arch_sort.split(","):
-                tmp_arch_sort=tmp_arch_sort+l_tmp_arch[i]+','
-        tmp_plat_sort=''
+                tmp_arch_sort = tmp_arch_sort + l_tmp_arch[i] + ','
+        tmp_plat_sort = ''
         l_tmp_plat = tmp_plat[:-1].split(",")
         l_tmp_plat.sort()
         for i in range(len(l_tmp_plat)):
@@ -344,7 +361,7 @@ def create_corrected_dict():
         tmp_arch = tmp_arch_sort
         tmp_plat = tmp_plat_sort
 
-        d_corrected_config[key]={ 'arch':'','plat':''}
+        d_corrected_config[key] = { 'arch':'','plat':''}
         #write current status to dict d_sprdconfig
         if len(tmp_arch[:-1].split(",")) == len(all_arch):
             d_corrected_config[key]['arch'] = 'all'
@@ -358,27 +375,27 @@ def create_corrected_dict():
 
 def aiaiai_check():
     print("========BEGIN========")
-    file_name=tmp_path_def+"lastest.diff"
+    file_name = tmp_path_def+"lastest.diff"
     os.system("git show HEAD -1 > " + file_name)
 
     f_diff = open(file_name, 'r')
-    f_diff_lines=f_diff.readlines()
-    flag =0
+    f_diff_lines = f_diff.readlines()
+    ai_check_flag = 0
     for i in range(len(f_diff_lines)):
         if "diff --git" in f_diff_lines[i]:
             if "sprd-diffconfig"  or "sprd-configs.txt" or "defconfig" in f_diff_lines[i]:
-                flag=1
+                ai_check_flag = 1
 
-    if flag ==1:
+    if ai_check_flag == 1:
         for key in d_sprdconfig:
             if key in d_corrected_config:
                 continue
             else:
-                print("ERROR: del: Need delete " + key+" from Documentation/sprd-configs.txt. " )
+                print("ERROR: del: Need delete " + key + " from Documentation/sprd-configs.txt. " )
 
         for key in d_corrected_config:
             if key not in d_sprdconfig:
-                print("ERROR: add: Need create new item: "+key+" to Documentation/sprd-configs.txt. ")
+                print("ERROR: add: Need create new item: " + key + " to Documentation/sprd-configs.txt. ")
             else:
                 if d_corrected_config[key]['arch'] != d_sprdconfig[key]['arch']:
                     print("ERROR: doc: Value is different between code and sprd-configs.txt. " + \
@@ -406,29 +423,94 @@ def update_sprd_configs():
     print_support_arch_plat()
 
     # write current status to dict d_sprdconfig
-    d_del_sprdconfig={}
+    d_del_sprdconfig = {}
     for key in d_corrected_config:
         if key not in d_sprdconfig:
-            d_sprdconfig[key]={'arch':'','plat':'','field':'','subsys':'','must':'','function':''}
+            d_sprdconfig[key] = {'arch':'','plat':'','missing plat':'','field':'','subsys':'','must':'','missing plat description':'','function':''}
     for key in d_sprdconfig:
         if key not in d_corrected_config:
-            d_del_sprdconfig[key]=d_sprdconfig[key]
+            d_del_sprdconfig[key] = d_sprdconfig[key]
         else:
-            d_sprdconfig[key]['arch']=d_corrected_config[key]['arch']
-            d_sprdconfig[key]['plat']=d_corrected_config[key]['plat']
+            d_sprdconfig[key]['arch'] = d_corrected_config[key]['arch']
+            d_sprdconfig[key]['plat'] = d_corrected_config[key]['plat']
     for key in d_del_sprdconfig:
         del d_sprdconfig[key]
+
+    update_missing_plat()
 
     # regenerate sprd-configs.txt with dict d_sprdconfig
     configs_resort()
     print("\n\tsprd-configs.txt has been updated now")
 
+def update_missing_plat():
+    update_missing_plat_flag = 0
+    if update_missing_plat_flag == 1:
+        for key in d_sprdconfig:
+            missing_plat = ''
+            if d_sprdconfig[key]['arch'] == 'all':
+                if d_sprdconfig[key]['plat'] == 'all':
+                    missing_plat = ''
+                else:
+                    for plat in all_plat:
+                        if plat not in d_sprdconfig[key]['plat'].split(","):
+                            missing_plat = missing_plat + plat + ","
+
+            elif d_sprdconfig[key]['plat'] != d_all_plat[d_sprdconfig[key]['arch']][:-1]:
+                for plat in d_all_plat[d_sprdconfig[key]['arch']].split(',')[:-1]:
+                    if plat not in d_sprdconfig[key]['plat'].split(','):
+                        missing_plat = missing_plat + plat + ','
+            d_sprdconfig[key]['missing plat'] = missing_plat[:-1]
+
+    for key in d_sprdconfig:
+        if d_sprdconfig[key]['arch'] == 'all':
+            if d_sprdconfig[key]['plat'] == 'all':
+                d_sprdconfig[key]['missing plat'] = 'none'
+                d_sprdconfig[key]['missing plat description'] = 'none'
+        elif d_sprdconfig[key]['plat'] == d_all_plat[d_sprdconfig[key]['arch']][:-1]:
+            d_sprdconfig[key]['missing plat'] = 'none'
+            d_sprdconfig[key]['missing plat description'] = 'none'
+
+def special_scan():
+    csv_filename = os.path.join(tmp_path,"unreasonable_missing_scan.csv")
+    if os.path.exists(csv_filename):
+        os.remove(csv_filename)
+    csv_fd = open(csv_filename, 'a+')
+    csv_writer = csv.writer(csv_fd)
+    csv_writer.writerow(["Config name", "Enalbe arch", "Current enable plats","Current_missing_plat","Reasonable_missing_plat","Missing_plat_description"])
+    for key in l_sprdconfig:
+        l_write = []
+        missing_plat = ''
+        if d_sprdconfig[key]['arch'] == 'all':
+            if d_sprdconfig[key]['plat'] == 'all':
+                missing_plat = ''
+            else:
+                for plat in all_plat:
+                    if plat not in d_sprdconfig[key]['plat'].split(","):
+                        missing_plat = missing_plat + plat + ","
+
+        elif d_sprdconfig[key]['plat'] != d_all_plat[d_sprdconfig[key]['arch']][:-1]:
+            for plat in d_all_plat[d_sprdconfig[key]['arch']].split(',')[:-1]:
+                if plat not in d_sprdconfig[key]['plat'].split(','):
+                    missing_plat = missing_plat + plat + ','
+
+        if missing_plat != '':
+            l_write_flag = 0
+            if d_sprdconfig[key]['missing plat'] != missing_plat[:-1]:
+                l_write_flag = 1
+            elif d_sprdconfig[key]['missing plat description'] =='' or d_sprdconfig[key]['missing plat description'] == 'none':
+                l_write_flag = 1
+            if l_write_flag == 1:
+                l_write = [key, d_sprdconfig[key]['arch'], d_sprdconfig[key]['plat'], missing_plat[:-1], d_sprdconfig[key]['missing plat'], \
+                            d_sprdconfig[key]['missing plat description']]
+                csv_writer.writerow(l_write)
+    csv_fd.close()
+
 def scan():
     l_corrected_config = list(d_corrected_config)
     l_corrected_config.sort()
 
-    str_all_arm_plat=''
-    str_all_arm64_plat=''
+    str_all_arm_plat = ''
+    str_all_arm64_plat = ''
 
     for key_project in l_defproject:
         if d_defconfig_path[kernel_version][key_project]['arch'] == 'arm':
@@ -439,46 +521,46 @@ def scan():
     str_all_arm_plat = str_all_arm_plat[:-1]
     str_all_arm64_plat = str_all_arm64_plat[:-1]
 
-    csv_filename=os.path.join(tmp_path,"config_plat_scan.csv")
+    csv_filename=os.path.join(tmp_path,"all_missing_plat_scan.csv")
     if os.path.exists(csv_filename):
         os.remove(csv_filename)
     csv_fd = open(csv_filename, 'a+')
-    csv_writer=csv.writer(csv_fd)
-    csv_writer.writerow(["Config name", "Enalbe arch", "Current enable plats", "ARM lack plat", "ARM64 lack plat"])
+    csv_writer = csv.writer(csv_fd)
+    csv_writer.writerow(["Config name", "Enalbe arch", "Current enable plats", "ARM missing plat", "ARM64 missing plat"])
     for key_config in l_corrected_config:
         for key_arch in range(len(d_corrected_config[key_config]['arch'].split(","))):
-            str_lack_arm=""
-            str_lack_arm64=""
-            l_write=[]
+            str_missing_arm = ""
+            str_missing_arm64 = ""
+            l_write = []
             if d_corrected_config[key_config]['arch'] == 'all':
                 if d_corrected_config[key_config]['plat'] == 'all':
                     continue
                 for i in range(len(str_all_arm_plat.split(","))):
                     if str_all_arm_plat.split(",").pop(i) not in d_corrected_config[key_config]['plat'].split(","):
-                        str_lack_arm = str_lack_arm + str_all_arm_plat.split(",").pop(i) + ","
+                        str_missing_arm = str_missing_arm + str_all_arm_plat.split(",").pop(i) + ","
                         continue
                 for i in range(len(str_all_arm64_plat.split(","))):
                     if str_all_arm64_plat.split(",").pop(i) not in d_corrected_config[key_config]['plat'].split(","):
-                        str_lack_arm64 = str_lack_arm64 + str_all_arm64_plat.split(",").pop(i) + ","
+                        str_missing_arm64 = str_missing_arm64 + str_all_arm64_plat.split(",").pop(i) + ","
                         continue
-                if str_lack_arm != "" and str_lack_arm64 != "":
-                    l_write = [key_config, d_corrected_config[key_config]['arch'], d_corrected_config[key_config]['plat'], str_lack_arm[:-1], str_lack_arm64[:-1]]
+                if str_missing_arm != "" or str_missing_arm64 != "":
+                    l_write = [key_config, d_corrected_config[key_config]['arch'], d_corrected_config[key_config]['plat'], str_missing_arm[:-1], str_missing_arm64[:-1]]
                     csv_writer.writerow(l_write)
             elif d_corrected_config[key_config]['arch'] == 'arm':
                 for i in range(len(str_all_arm_plat.split(","))):
                     if str_all_arm_plat.split(",").pop(i) not in d_corrected_config[key_config]['plat'].split(","):
-                        str_lack_arm = str_lack_arm + str_all_arm_plat.split(",").pop(i) + ","
+                        str_missing_arm = str_missing_arm + str_all_arm_plat.split(",").pop(i) + ","
                         continue
-                if str_lack_arm != "":
-                    l_write = [key_config, d_corrected_config[key_config]['arch'], d_corrected_config[key_config]['plat'], str_lack_arm[:-1], ""]
+                if str_missing_arm != "":
+                    l_write = [key_config, d_corrected_config[key_config]['arch'], d_corrected_config[key_config]['plat'], str_missing_arm[:-1], ""]
                     csv_writer.writerow(l_write)
             elif d_corrected_config[key_config]['arch'] == 'arm64':
                 for i in range(len(str_all_arm64_plat.split(","))):
                     if str_all_arm64_plat.split(",").pop(i) not in d_corrected_config[key_config]['plat'].split(","):
-                        str_lack_arm64 = str_lack_arm64 + str_all_arm64_plat.split(",").pop(i) + ","
+                        str_missing_arm64 = str_missing_arm64 + str_all_arm64_plat.split(",").pop(i) + ","
                         continue
-                if str_lack_arm64 != "":
-                    l_write = [key_config, d_corrected_config[key_config]['arch'], d_corrected_config[key_config]['plat'], "", str_lack_arm64[:-1]]
+                if str_missing_arm64 != "":
+                    l_write = [key_config, d_corrected_config[key_config]['arch'], d_corrected_config[key_config]['plat'], "", str_missing_arm64[:-1]]
                     csv_writer.writerow(l_write)
     csv_fd.close()
 
@@ -487,9 +569,9 @@ def prepare_info_first():
     lines = f.readlines()
     for j in range(3):
         if 'VERSION' in lines[j]:
-            version=lines[j].split(" ").pop(2)
+            version = lines[j].split(" ").pop(2)
         if 'PATCHLEVEL' in lines[j]:
-            patchlevel=lines[j].split(" ").pop(2)
+            patchlevel = lines[j].split(" ").pop(2)
     f.close
     global kernel_version
     kernel_version = 'kernel' + version[:-1] + '.' + patchlevel[:-1]
@@ -501,6 +583,12 @@ def prepare_info_first():
 
         if d_defconfig_path[kernel_version][key]['arch'] not in all_arch:
             all_arch.append(d_defconfig_path[kernel_version][key]['arch'])
+
+    for arch in all_arch:
+        d_all_plat.setdefault(arch,'')
+    for key in l_defconfig_path:
+         if key not in d_all_plat[d_defconfig_path[kernel_version][key]['arch']]:
+             d_all_plat[d_defconfig_path[kernel_version][key]['arch']] = d_all_plat[d_defconfig_path[kernel_version][key]['arch']] + key + ","
 
 def print_script_info():
     print(
@@ -517,21 +605,21 @@ def print_script_info():
 
 def prepare_info_second():
     global l_sprdconfig
-    l_sprdconfig=list(d_sprdconfig)
+    l_sprdconfig = list(d_sprdconfig)
     l_sprdconfig.sort()
 
     global l_defproject
-    l_defproject=list(d_defconfig)
+    l_defproject = list(d_defconfig)
     l_defproject.sort()
 
     global l_diffconfig
-    l_diffconfig=list(d_diffconfig)
+    l_diffconfig = list(d_diffconfig)
     l_diffconfig.sort()
 
 def main():
     global tmp_path
 
-    tmp_path=tmp_path_def
+    tmp_path = tmp_path_def
     folder = os.path.exists(tmp_path)
     if not folder:
         os.makedirs(tmp_path)
@@ -543,7 +631,7 @@ def main():
     prepare_info_second()
     create_corrected_dict()
 
-    if len(sys.argv) ==2:
+    if len(sys.argv) == 2:
         if sys.argv[1] == 'sort':
             configs_resort()
             print("The sprd-configs.txt has been resorted.")
@@ -564,10 +652,11 @@ def main():
             incomplete_item()
         elif sys.argv[1] == 'scan':
             scan()
+            special_scan()
         else:
             print("PARAMETERS ERROR:")
             help_info()
-    elif len(sys.argv)  ==3:
+    elif len(sys.argv)  == 3:
         tmp_path=sys.argv[2]
         folder = os.path.exists(tmp_path)
         if not folder:
@@ -579,6 +668,7 @@ def main():
             incomplete_item()
         elif sys.argv[1] == 'scan':
             scan()
+            special_scan()
         else:
             print("PARAMETERS ERROR:")
             help_info()
