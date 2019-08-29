@@ -69,8 +69,8 @@ static int wcn_send_atcmd(struct marlin_device *mdev,
 	if (at_buf_flag == 0) {
 		ret = dmalloc(pcie_dev, &dma_buf, 128);
 		if (ret != 0) {
-			return -1;
 			mutex_unlock(&mdev->sysfs_info.mutex);
+			return -1;
 		}
 		at_buf_flag = 1;
 	}
@@ -103,6 +103,10 @@ static int wcn_send_atcmd(struct marlin_device *mdev,
 		mutex_unlock(&mdev->sysfs_info.mutex);
 		return -ETIMEDOUT;
 	}
+	if (!response) {
+		mutex_unlock(&mdev->sysfs_info.mutex);
+		return 0;
+	}
 
 	*response_len = mdev->sysfs_info.len;
 	scnprintf(response, (size_t)mdev->sysfs_info.len, "%s\n",
@@ -113,28 +117,52 @@ static int wcn_send_atcmd(struct marlin_device *mdev,
 	return 0;
 }
 
-static ssize_t wcn_sysfs_show_bt_coex_state(struct device *dev,
-					    struct device_attribute *attr,
-					    char *buf)
+static ssize_t wcn_sysfs_show_sleep_state(struct device *dev,
+					  struct device_attribute *attr,
+					  char *buf)
 {
-	return scnprintf(buf, PAGE_SIZE, "%s\n", "this is test");
+	return scnprintf(buf, PAGE_SIZE, "%s\n", "not support to read");
 }
 
-static ssize_t wcn_sysfs_store_bt_coex_state(struct device *dev,
+static ssize_t wcn_sysfs_store_sleep_state(struct device *dev,
 					     struct device_attribute *attr,
 					     const char *buf, size_t count)
 {
+	struct marlin_device *mdev = dev_get_drvdata(dev);
+	unsigned long res;
+	int ret;
+	char a[64];
+
+	ret = kstrtoul(buf, 10, &res);
+	if (ret < 0) {
+		WCN_ERR("incorrect value written to sleep\n");
+		return -EINVAL;
+	}
+
+	if (res == 1) {
+		/* close CP2 sleep function */
+		scnprintf(a, (size_t)sizeof(a), "%s\n", "at+debug=1\r\n");
+		wcn_send_atcmd(mdev, a, sizeof(a), NULL, NULL);
+	} else if (res == 0) {
+		/* open CP2 sleep function */
+		scnprintf(a, (size_t)sizeof(a), "%s\n", "at+debug=0\r\n");
+		wcn_send_atcmd(mdev, a, sizeof(a), NULL, NULL);
+	} else {
+		WCN_ERR("incorrect value written to sleep\n");
+		return -EINVAL;
+	}
+
 	return count;
 }
 
 /* S_IRUGO | S_IWUSR */
-static DEVICE_ATTR(bt_coex_state, 0644,
-		   wcn_sysfs_show_bt_coex_state,
-		   wcn_sysfs_store_bt_coex_state);
+static DEVICE_ATTR(sleep_state, 0644,
+		   wcn_sysfs_show_sleep_state,
+		   wcn_sysfs_store_sleep_state);
 
-static ssize_t wcn_sysfs_show_cp2_ver(struct device *dev,
-				      struct device_attribute *attr,
-				      char *buf)
+static ssize_t wcn_sysfs_show_sw_ver(struct device *dev,
+				     struct device_attribute *attr,
+				     char *buf)
 {
 	ssize_t len = 0;
 	struct marlin_device *mdev = dev_get_drvdata(dev);
@@ -147,6 +175,7 @@ static ssize_t wcn_sysfs_show_cp2_ver(struct device *dev,
 	wcn_send_atcmd(mdev, a, sizeof(a), buf, (unsigned int *)&len);
 
 	WCN_INFO("show:len=%zd, buf=%s\n", len, buf);
+	/* because cp2 pass wrong len */
 	len = strlen(buf);
 	WCN_INFO("show:len=%zd\n", len);
 
@@ -154,8 +183,8 @@ static ssize_t wcn_sysfs_show_cp2_ver(struct device *dev,
 }
 
 /* S_IRUGO */
-static DEVICE_ATTR(cp2_ver, 0444,
-		   wcn_sysfs_show_cp2_ver, NULL);
+static DEVICE_ATTR(sw_ver, 0444,
+		   wcn_sysfs_show_sw_ver, NULL);
 
 static ssize_t wcn_sysfs_read_fwlog(struct file *filp, struct kobject *kobj,
 				    struct bin_attribute *bin_attr,
@@ -179,8 +208,11 @@ static ssize_t wcn_sysfs_show_hw_ver(struct device *dev,
 
 	len = PAGE_SIZE;
 	mutex_lock(&mdev->sysfs_info.mutex);
-	/* len:4 */
-	len = snprintf(buf, len, "n/a\n");
+	if (!wcn_get_chip_name())
+		len = snprintf(buf, len, "%s\n", wcn_get_chip_name());
+	else
+		/* len:4 */
+		len = snprintf(buf, len, "n/a\n");
 	mutex_unlock(&mdev->sysfs_info.mutex);
 
 	return len;
@@ -201,13 +233,43 @@ static ssize_t wcn_sysfs_show_watchdog_state(struct device *dev,
 					     struct device_attribute *attr,
 					     char *buf)
 {
-	return 0;
+	struct marlin_device *mdev  = dev_get_drvdata(dev);
+	ssize_t len;
+
+	len = PAGE_SIZE;
+	mutex_lock(&mdev->sysfs_info.mutex);
+
+	/* len:4 */
+	len = snprintf(buf, len, "not support\n");
+	mutex_unlock(&mdev->sysfs_info.mutex);
+
+	return len;
 }
 
 static ssize_t wcn_sysfs_store_watchdog_state(struct device *dev,
 					      struct device_attribute *attr,
 					      const char *buf, size_t count)
 {
+	ssize_t len = 0;
+	struct marlin_device *mdev = dev_get_drvdata(dev);
+	char a[] = "at+cp2_enter_user=?\r\n";
+
+	WCN_INFO("%s: buf=%s\n", __func__, buf);
+
+	if (strncmp(buf, "1", 1) == 0) {
+		scnprintf(a, (size_t)sizeof(a), "%s\n",
+			  "at+cp2_enter_user=1\r\n");
+		wcn_send_atcmd(mdev, a, sizeof(a), NULL, NULL);
+	} else if (strncmp(buf, "0", 1) == 0) {
+		scnprintf(a, (size_t)sizeof(a), "%s\n",
+			  "at+cp2_enter_user=0\r\n");
+		wcn_send_atcmd(mdev, a, sizeof(a), NULL, NULL);
+	} else
+		return -EINVAL;
+
+	len = strlen(buf);
+	WCN_INFO("show:len=%zd, count=%zd\n", len, count);
+
 	return count;
 }
 
@@ -219,13 +281,47 @@ static ssize_t wcn_sysfs_show_armlog_status(struct device *dev,
 					    struct device_attribute *attr,
 					    char *buf)
 {
-	return 0;
+	ssize_t len = 0;
+	struct marlin_device *mdev = dev_get_drvdata(dev);
+	char a[] = "at+armlog?\r\n";
+
+	wcn_send_atcmd(mdev, a, sizeof(a), buf, (unsigned int *)&len);
+
+	WCN_INFO("%s:len=%zd, buf=%s\n", __func__, len, buf);
+	len = strlen(buf);
+	WCN_INFO("show:len=%zd\n", len);
+
+	return len;
 }
 
 static ssize_t wcn_sysfs_store_armlog_status(struct device *dev,
 					     struct device_attribute *attr,
 					     const char *buf, size_t count)
 {
+	struct marlin_device *mdev = dev_get_drvdata(dev);
+	unsigned long res;
+	int ret;
+	char a[64];
+
+	ret = kstrtoul(buf, 10, &res);
+	if (ret < 0) {
+		WCN_ERR("incorrect value written to sleep\n");
+		return -EINVAL;
+	}
+
+	if (res == 1) {
+		/* close CP2 sleep function */
+		scnprintf(a, (size_t)sizeof(a), "%s\n", "at+armlog=1\r\n");
+		wcn_send_atcmd(mdev, a, sizeof(a), NULL, NULL);
+	} else if (res == 0) {
+		/* open CP2 sleep function */
+		scnprintf(a, (size_t)sizeof(a), "%s\n", "at+armlog=1\r\n");
+		wcn_send_atcmd(mdev, a, sizeof(a), NULL, NULL);
+	} else {
+		WCN_ERR("incorrect value written to sleep\n");
+		return -EINVAL;
+	}
+
 	return count;
 }
 
@@ -237,13 +333,45 @@ static ssize_t wcn_sysfs_show_loglevel(struct device *dev,
 				       struct device_attribute *attr,
 				       char *buf)
 {
-	return 0;
+	ssize_t len = 0;
+	struct marlin_device *mdev = dev_get_drvdata(dev);
+	char a[] = "at+loglevel?\r\n";
+
+	wcn_send_atcmd(mdev, a, sizeof(a), buf, (unsigned int *)&len);
+
+	WCN_INFO("%s:len=%zd, buf=%s\n", __func__, len, buf);
+	len = strlen(buf);
+	WCN_INFO("show:len=%zd\n", len);
+
+	return len;
 }
 
 static ssize_t wcn_sysfs_store_loglevel(struct device *dev,
 					struct device_attribute *attr,
 					const char *buf, size_t count)
 {
+	struct marlin_device *mdev = dev_get_drvdata(dev);
+	unsigned long res;
+	int ret;
+	char a[64];
+
+	ret = kstrtoul(buf, 10, &res);
+	if (ret < 0) {
+		WCN_ERR("incorrect value written to sleep\n");
+		return -EINVAL;
+	}
+
+	if (res < 6) {
+		/* close CP2 sleep function */
+		scnprintf(a, (size_t)sizeof(a), "%s%ld%s\n", "at+armlog=",
+			  res, "\r\n");
+		WCN_INFO("%s:buf=%s\n", __func__, a);
+		wcn_send_atcmd(mdev, a, sizeof(a), NULL, NULL);
+	} else {
+		WCN_ERR("incorrect value written to sleep\n");
+		return -EINVAL;
+	}
+
 	return count;
 }
 
@@ -255,13 +383,32 @@ static ssize_t wcn_sysfs_show_reset_dump(struct device *dev,
 					 struct device_attribute *attr,
 					 char *buf)
 {
-	return 0;
+	ssize_t len = PAGE_SIZE;
+
+#ifdef CONFIG_WCN_USER
+	len = snprintf(buf, len, "reset\n");
+#else
+	len = snprintf(buf, len, "dump\n");
+#endif
+
+	return len;
 }
 
 static ssize_t wcn_sysfs_store_reset_dump(struct device *dev,
 					  struct device_attribute *attr,
 					  const char *buf, size_t count)
 {
+	WCN_INFO("%s: buf=%s\n", __func__, buf);
+
+	if (strncmp(buf, "reset", 5) == 0) {
+		//TODO: define for next
+		;
+	} else if (strncmp(buf, "dump", 4) == 0) {
+		//TODO: define for next
+		;
+	} else
+		return -EINVAL;
+
 	return count;
 }
 
@@ -272,7 +419,7 @@ static DEVICE_ATTR(reset_dump, 0644,
 
 /*
  * ud710_3h10:/sys/devices/platform/sprd-marlin3 # ls
- * bt_coex_state driver driver_override fwlog hw_pg_ver modalias of_node power
+ * sleep_state driver driver_override fwlog hw_pg_ver modalias of_node power
  * subsystem uevent
  */
 int wcn_sysfs_init(struct marlin_device *mdev)
@@ -280,45 +427,45 @@ int wcn_sysfs_init(struct marlin_device *mdev)
 	int ret;
 
 	/* Create sysfs file to control bt coex state */
-	ret = device_create_file(&mdev->pdev->dev, &dev_attr_bt_coex_state);
+	ret = device_create_file(&mdev->pdev->dev, &dev_attr_sleep_state);
 	if (ret < 0) {
-		WCN_ERR("failed to create sysfs file bt_coex_state\n");
+		WCN_ERR("failed to create sysfs file sleep_state\n");
 		goto out;
 	}
 
 	/* Create sysfs file to get SW version */
-	ret = device_create_file(&mdev->pdev->dev, &dev_attr_cp2_ver);
+	ret = device_create_file(&mdev->pdev->dev, &dev_attr_sw_ver);
 	if (ret < 0) {
-		WCN_ERR("failed to create sysfs file cp2_verr\n");
-		goto out_bt_coex_state;
+		WCN_ERR("failed to create sysfs file sw_ver\n");
+		goto out_sleep_state;
 	}
 
 	/* Create sysfs file to get HW version(chipid) */
 	ret = device_create_file(&mdev->pdev->dev, &dev_attr_hw_ver);
 	if (ret < 0) {
 		WCN_ERR("failed to create sysfs file hw_ver\n");
-		goto out_cp2_ver;
+		goto out_sw_ver;
 	}
 
 	/* Create sysfs file to get watchdog status */
 	ret = device_create_file(&mdev->pdev->dev, &dev_attr_watchdog_state);
 	if (ret < 0) {
 		WCN_ERR("failed to create sysfs file watchdog_state\n");
-		goto out_cp2_ver;
+		goto out_hw_ver;
 	}
 
 	/* Create sysfs file to get/change armlog status */
 	ret = device_create_file(&mdev->pdev->dev, &dev_attr_armlog_status);
 	if (ret < 0) {
 		WCN_ERR("failed to create sysfs file armlog_status\n");
-		goto out_cp2_ver;
+		goto out_watchdog_state;
 	}
 
 	/* Create sysfs file to get/set loglevel */
 	ret = device_create_file(&mdev->pdev->dev, &dev_attr_loglevel);
 	if (ret < 0) {
 		WCN_ERR("failed to create sysfs file armlog_status\n");
-		goto out_cp2_ver;
+		goto out_armlog_status;
 	}
 
 	/*
@@ -329,14 +476,14 @@ int wcn_sysfs_init(struct marlin_device *mdev)
 	ret = device_create_file(&mdev->pdev->dev, &dev_attr_reset_dump);
 	if (ret < 0) {
 		WCN_ERR("failed to create sysfs file userdebug\n");
-		goto out_cp2_ver;
+		goto out_loglevel;
 	}
 
 	/* Create sysfs file for the FW log */
 	ret = device_create_bin_file(&mdev->pdev->dev, &fwlog_attr);
 	if (ret < 0) {
 		WCN_ERR("failed to create sysfs file fwlog\n");
-		goto out_cp2_ver;
+		goto out_reset_dump;
 	}
 
 	init_completion(&mdev->sysfs_info.cmd_completion);
@@ -344,11 +491,26 @@ int wcn_sysfs_init(struct marlin_device *mdev)
 
 	goto out;
 
-out_cp2_ver:
-	device_remove_file(&mdev->pdev->dev, &dev_attr_cp2_ver);
+out_reset_dump:
+	device_remove_file(&mdev->pdev->dev, &dev_attr_reset_dump);
 
-out_bt_coex_state:
-	device_remove_file(&mdev->pdev->dev, &dev_attr_bt_coex_state);
+out_loglevel:
+	device_remove_file(&mdev->pdev->dev, &dev_attr_loglevel);
+
+out_armlog_status:
+	device_remove_file(&mdev->pdev->dev, &dev_attr_armlog_status);
+
+out_watchdog_state:
+	device_remove_file(&mdev->pdev->dev, &dev_attr_watchdog_state);
+
+out_hw_ver:
+	device_remove_file(&mdev->pdev->dev, &dev_attr_hw_ver);
+
+out_sw_ver:
+	device_remove_file(&mdev->pdev->dev, &dev_attr_sw_ver);
+
+out_sleep_state:
+	device_remove_file(&mdev->pdev->dev, &dev_attr_sleep_state);
 
 out:
 	return ret;
@@ -358,7 +520,17 @@ void wcn_sysfs_free(struct marlin_device *mdev)
 {
 	device_remove_bin_file(&mdev->pdev->dev, &fwlog_attr);
 
-	device_remove_file(&mdev->pdev->dev, &dev_attr_cp2_ver);
+	device_remove_file(&mdev->pdev->dev, &dev_attr_reset_dump);
 
-	device_remove_file(&mdev->pdev->dev, &dev_attr_bt_coex_state);
+	device_remove_file(&mdev->pdev->dev, &dev_attr_loglevel);
+
+	device_remove_file(&mdev->pdev->dev, &dev_attr_armlog_status);
+
+	device_remove_file(&mdev->pdev->dev, &dev_attr_watchdog_state);
+
+	device_remove_file(&mdev->pdev->dev, &dev_attr_hw_ver);
+
+	device_remove_file(&mdev->pdev->dev, &dev_attr_sw_ver);
+
+	device_remove_file(&mdev->pdev->dev, &dev_attr_sleep_state);
 }
