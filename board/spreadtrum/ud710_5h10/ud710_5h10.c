@@ -15,6 +15,8 @@
 #include <sprd_adc.h>
 #include <sprd_led.h>
 #include <sprd_battery.h>
+#include "loader_common.h"
+
 #define BOOT_PART "boot"
 DECLARE_GLOBAL_DATA_PTR;
 phys_size_t real_ram_size = 0x40000000;
@@ -201,6 +203,14 @@ static void ud710_5h10_normal_mode(void)
 	return;
 }
 
+void ud710_5h10_factorytest_mode(void)
+{
+	debugf("factorytest enter\n");
+	setenv("bootmode", "factorytest");
+	usb_hub_init();
+	vlx_nand_boot(RECOVERY_PART, BACKLIGHT_ON, LCD_ON);
+	return;
+}
 
 void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 {
@@ -215,7 +225,7 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 	MODE_REGIST(CMD_SPECIAL_MODE, special_mode);
 	MODE_REGIST(CMD_CHARGE_MODE, charge_mode);
 	MODE_REGIST(CMD_ENGTEST_MODE,engtest_mode);
-	MODE_REGIST(CMD_FACTORYTEST_MODE, factorytest_mode);
+	MODE_REGIST(CMD_FACTORYTEST_MODE, ud710_5h10_factorytest_mode);
 	MODE_REGIST(CMD_CALIBRATION_MODE, calibration_mode);
 	MODE_REGIST(CMD_EXT_RSTN_REBOOT_MODE, ud710_5h10_normal_mode);
 	MODE_REGIST(CMD_IQ_REBOOT_MODE, iq_mode);
