@@ -13,13 +13,7 @@ Example:
 aliases {
 	eth0 = &sipa_eth0;
 	...
-	eth8 = &sipa_eth8;
-};
-
-sipa_eth8:  sipa-wifi {
-	compatible = "sprd,sipa_eth";
-	sprd,netid = <0>;
-	sprd,term-type = <0x2>;
+	eth7 = &sipa_eth7;
 };
 
 On Roc1+Orca platform:

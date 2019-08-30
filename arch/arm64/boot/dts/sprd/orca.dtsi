@@ -34,7 +34,6 @@
 		eth5 = &sipa_eth5;
 		eth6 = &sipa_eth6;
 		eth7 = &sipa_eth7;
-		eth8 = &sipa_eth8;
 		serdes0 = &serdes0;
 		serdes1 = &serdes1;
 		serdes2 = &serdes2;
@@ -1367,10 +1366,5 @@
 		sprd,mac-header;
 	};
 
-	sipa_eth8:  sipa-wifi {
-		compatible = "sprd,sipa_eth";
-		sprd,netid = <0>;
-		sprd,term-type = <0x2>;
-	};
 };
 
