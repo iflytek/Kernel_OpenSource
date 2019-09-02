@@ -1258,8 +1258,5 @@ void sipa_resume_glb_reg_cfg(struct sipa_plat_drv_cfg *cfg)
 	hal_cfg->glb_ops.enable_def_flowctrl_to_src_blk(glb_base);
 
 	hal_cfg->glb_ops.set_mode(glb_base, cfg->is_bypass);
-
-	if (cfg->is_bypass)
-		hal_cfg->glb_ops.enable_pcie_intr_write_reg_mode(glb_base, 1);
 }
 EXPORT_SYMBOL(sipa_resume_glb_reg_cfg);
