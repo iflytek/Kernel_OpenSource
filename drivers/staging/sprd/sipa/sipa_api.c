@@ -882,8 +882,9 @@ int sipa_disconnect(enum sipa_ep_id ep_id, enum sipa_disconnect_id stage)
 		break;
 	case SIPA_DISCONNECT_END:
 		ep->suspended = true;
-		sipa_hal_reclaim_unuse_node(ctrl->ctx->hdl,
-					    ep->recv_fifo.idx);
+		if (ep->id == SIPA_EP_USB)
+			sipa_hal_reclaim_unuse_node(ctrl->ctx->hdl,
+						    ep->recv_fifo.idx);
 		sipa_set_enabled(false);
 		break;
 	default:
