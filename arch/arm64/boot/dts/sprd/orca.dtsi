@@ -1105,6 +1105,7 @@
 					snps,overlap_check_quirk;
 					snps,ep_out_aligned_size_quirk;
 					snps,disconnect_event_quirk;
+					snps,dis-del-phy-power-chg-quirk;
 				};
 			};
 
@@ -1135,6 +1136,7 @@
 					snps,overlap_check_quirk;
 					snps,ep_out_aligned_size_quirk;
 					snps,disconnect_event_quirk;
+					snps,dis-del-phy-power-chg-quirk;
 				};
 			};
 
