@@ -638,11 +638,6 @@ static int sipa_prepare_suspend(struct device *dev)
 	if (sipa_fifo_prepare_suspend(dev))
 		return -EAGAIN;
 
-	if (!(ctrl->suspend_stage & SIPA_ACTION_SUSPEND)) {
-		sipa_hal_ctrl_action(false);
-		ctrl->suspend_stage |= SIPA_ACTION_SUSPEND;
-	}
-
 	if (!(ctrl->suspend_stage & SIPA_EB_SUSPEND) &&
 	    !sipa_set_enabled(false))
 		ctrl->suspend_stage |= SIPA_EB_SUSPEND;
