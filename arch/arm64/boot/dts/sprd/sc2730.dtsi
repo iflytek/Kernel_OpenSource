@@ -419,6 +419,11 @@
 			};
 		};
 
+		led-controller@1b88 {
+			compatible = "sprd,sc27xx-keypad-led", "sprd,sc2730-keypad-led";
+			reg = <0x1b88>, <0x1b8c>;
+		};
+
 		vibrator@1b90 {
 			compatible = "sprd,sc27xx-vibrator", "sprd,sc2730-vibrator";
 			reg = <0x1b90>;
