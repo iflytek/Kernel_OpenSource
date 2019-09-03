@@ -1,0 +1,19 @@
+Spreadtrum SC27XX PMIC keypad led
+
+The SC27xx keypad led can work at LDO mode or current mode.
+
+Required properties:
+- compatible: Should be one of follow:
+	"sprd,sc2731-keypad-led",
+	"sprd,sc2723-keypad-led",
+	"sprd,sc2721-keypad-led",
+	"sprd,sc2730-keypad-led".
+
+- reg: address of keypad led control register.
+
+Examples:
+
+led-controller@1b88 {
+	compatible = "sprd,sc27xx-keypad-led", "sprd,sc2730-keypad-led";
+	reg = <0x1b88>, <0x1b8c>;
+};
