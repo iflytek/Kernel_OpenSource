@@ -1031,6 +1031,7 @@
 					snps,disconnect_event_quirk;
 					snps,usb3_slow_suspend;
 					snps,host_suspend_capable;
+					snps,dis-del-phy-power-chg-quirk;
 				};
 			};
 
