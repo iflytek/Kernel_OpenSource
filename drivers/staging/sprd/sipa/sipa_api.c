@@ -478,12 +478,8 @@ early_resume:
  * ipa will work normally.
  *
  */
-static void sipa_resume_work(struct work_struct *work)
+static void sipa_resume_work(struct sipa_control *ctrl)
 {
-	struct sipa_control *ctrl = container_of((struct delayed_work *)work,
-						 struct sipa_control,
-						 resume_work);
-
 	if (!ctrl)
 		return;
 
@@ -664,8 +660,8 @@ static int sipa_rm_prepare_release(void *priv)
 
 	ctrl->params_cfg.suspend_cnt++;
 	ctrl->power_flag = false;
-	cancel_delayed_work(&ctrl->resume_work);
-	queue_delayed_work(ctrl->power_wq, &ctrl->suspend_work, 0);
+	cancel_delayed_work(&ctrl->power_work);
+	queue_delayed_work(ctrl->power_wq, &ctrl->power_work, 0);
 
 	return 0;
 }
@@ -677,8 +673,8 @@ static int sipa_rm_prepare_resume(void *priv)
 
 	ctrl->params_cfg.resume_cnt++;
 	ctrl->power_flag = true;
-	cancel_delayed_work(&ctrl->suspend_work);
-	queue_delayed_work(ctrl->power_wq, &ctrl->resume_work, 0);
+	cancel_delayed_work(&ctrl->power_work);
+	queue_delayed_work(ctrl->power_wq, &ctrl->power_work, 0);
 
 	/* TODO: will remove the error code in future */
 	return -EINPROGRESS;
@@ -1488,19 +1484,28 @@ static void sipa_notify_sender_flow_ctrl(struct work_struct *work)
 			wake_up(&sipa_ctrl->sender[i]->free_waitq);
 }
 
-static void sipa_prepare_suspend_work(struct work_struct *work)
+static void sipa_prepare_suspend_work(struct sipa_control *ctrl)
 {
-	struct sipa_control *ctrl = container_of((struct delayed_work *)work,
-						 struct sipa_control,
-						 suspend_work);
-
 	if (sipa_prepare_suspend(ctrl->ctx->pdev) && !ctrl->power_flag) {
 		/* 200ms can ensure that the skb data has been recycled */
-		queue_delayed_work(ctrl->power_wq, &ctrl->suspend_work,
+		queue_delayed_work(ctrl->power_wq, &ctrl->power_work,
 				   msecs_to_jiffies(200));
 		dev_info(ctrl->ctx->pdev,
 			 "sipa schedule_delayed_work\n");
 	}
+}
+
+static void sipa_power_work(struct work_struct *work)
+{
+	struct delayed_work *power_delay_work = to_delayed_work(work);
+	struct sipa_control *ctrl = container_of(power_delay_work,
+						 struct sipa_control,
+						 power_work);
+
+	if (ctrl->power_flag)
+		sipa_resume_work(ctrl);
+	else
+		sipa_prepare_suspend_work(ctrl);
 }
 
 static int sipa_plat_drv_probe(struct platform_device *pdev_p)
@@ -1537,8 +1542,7 @@ static int sipa_plat_drv_probe(struct platform_device *pdev_p)
 
 	mutex_init(&ctrl->resume_lock);
 	INIT_WORK(&ctrl->flow_ctrl_work, sipa_notify_sender_flow_ctrl);
-	INIT_DELAYED_WORK(&ctrl->resume_work, sipa_resume_work);
-	INIT_DELAYED_WORK(&ctrl->suspend_work, sipa_prepare_suspend_work);
+	INIT_DELAYED_WORK(&ctrl->power_work, sipa_power_work);
 	ctrl->power_wq = create_workqueue("sipa_power_wq");
 	if (!ctrl->power_wq) {
 		dev_err(dev, "sipa power wq create failed\n");

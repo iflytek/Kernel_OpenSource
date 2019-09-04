@@ -325,8 +325,7 @@ struct sipa_control {
 
 	/* ipa low power*/
 	bool power_flag;
-	struct delayed_work suspend_work;
-	struct delayed_work resume_work;
+	struct delayed_work power_work;
 	struct workqueue_struct *power_wq;
 
 	/* IPA NIC interface */
