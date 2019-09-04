@@ -93,7 +93,7 @@
 	thm_zone: thermal-zones {
 
 		soc_thmzone: soc-thmzone {
-			polling-delay-passive = <50>;
+			polling-delay-passive = <100>;
 			polling-delay = <1000>;
 			sustainable-power = <4800>;
 			thermal-sensors = <&soc_sensor  17>;
@@ -272,9 +272,9 @@
 			/* e*10^2   f*10^2     g*10^2  h*10^2*/
 			<  791     (-1867)      1581      (-405)>;
 			sprd,efuse-switch = <0>;
-			sprd,hotplug-period = <0>;
-			sprd,min-cpufreq = <768000>;
-			sprd,min-cpunum = <3>;
+			sprd,hotplug-period = <10>;
+			sprd,min-cpufreq = <614400>;
+			sprd,min-cpunum = <4>;
 			sprd,core-base = <2778>;
 			sprd,cluster-base = <3920>;
 			sprd,dynamic-core =
@@ -319,7 +319,7 @@
 			/* e*10^2   f*10^2     g*10^2  h*10^2*/
 			<  791     (-1867)      1581      (-405)>;
 			sprd,efuse-switch = <0>;
-			sprd,hotplug-period = <0>;
+			sprd,hotplug-period = <10>;
 			sprd,min-cpufreq = <1228800>;
 			sprd,min-cpunum = <0>;
 			sprd,core-base = <9430>;
