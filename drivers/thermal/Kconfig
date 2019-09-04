@@ -510,6 +510,7 @@ config SPRD_CPU_COOLING_CPUIDLE
 	bool "sprd cpu idle cooling policy"
 	depends on SPRD_CPU_COOLING
 	depends on CPU_IDLE
+	depends on SPRD_CORE_CTL
 	help
 	  This implements the generic CPU cooling mechanism through
 	  idle injection.this will throttle the CPU by injecting
