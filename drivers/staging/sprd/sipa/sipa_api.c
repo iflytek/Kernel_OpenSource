@@ -449,6 +449,11 @@ early_resume:
 		sipa_hal_cmn_fifo_set_receive(hdl, ep->recv_fifo.idx,
 					      false);
 
+	ep = ctrl->eps[SIPA_EP_PCIE];
+	if (ep && ep->connected)
+		sipa_hal_cmn_fifo_set_receive(hdl, ep->recv_fifo.idx,
+					      false);
+
 	ctrl->suspend_stage &= ~SIPA_EP_SUSPEND;
 
 	if (!cfg->is_bypass && (ctrl->suspend_stage & SIPA_THREAD_SUSPEND)) {
@@ -559,6 +564,7 @@ static int sipa_ep_prepare_suspend(struct device *dev)
 
 	if (sipa_check_ep_suspend(dev, SIPA_EP_USB) ||
 	    sipa_check_ep_suspend(dev, SIPA_EP_WIFI) ||
+	    sipa_check_ep_suspend(dev, SIPA_EP_PCIE) ||
 	    sipa_check_ep_suspend(dev, SIPA_EP_VCP))
 		return -EAGAIN;
 
