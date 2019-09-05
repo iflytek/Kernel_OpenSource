@@ -34,4 +34,5 @@ extern int get_scene_info(char **name, unsigned int *freq,
 			unsigned int *count, unsigned int *magic, int index);
 extern int set_backdoor(void);
 extern int reset_backdoor(void);
+extern int dfs_vol_vote(unsigned int value);
 #endif
