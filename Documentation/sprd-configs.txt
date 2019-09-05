@@ -7688,6 +7688,15 @@ CONFIG_LEDS_SC27XX_BLTC
 	[must] user
 	[missing plat description] none
 	[function] LED support for the SC27xx breathing light controller
+CONFIG_LEDS_SC27XX_KEYPAD
+	[arch] arm64
+	[plat] roc1
+	[missing plat] none
+	[field] menu,make
+	[subsys] led
+	[must] user
+	[missing plat description] none
+	[function] LED support for the SC27xx keypad led controller
 CONFIG_LEDS_TRIGGERS
 	[arch] all
 	[plat] all
