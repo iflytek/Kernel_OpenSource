@@ -188,13 +188,15 @@ static void sprd_pm_print_intc_state(struct power_debug *pdebug_entry)
 	if (!pdebug_entry->pm_log_on)
 		return;
 
-	if (!pdebug_entry->ap_intc_num || !pdebug_entry->ap_intc)
+	if (!pdebug_entry->ap_intc_num)
+		return;
+
+	if(!pdebug_entry->pintc_info)
 		return;
 
 	for (i = 0; i < pdebug_entry->ap_intc_num; i++) {
 		pintc_info = &(pdebug_entry->pintc_info[i]);
-		if (!pintc_info)
-			continue;
+
 		ret = regmap_read(pdebug_entry->ap_intc[i],
 				pintc_info->addr_offset, &reg_value);
 		if (ret)
@@ -218,13 +220,15 @@ static void sprd_pm_print_wakeup_source(struct power_debug *pdebug_entry)
 	if (!pdebug_entry->pm_log_on)
 		return;
 
-	if (!pdebug_entry->ap_intc_num || !pdebug_entry->ap_intc)
+	if (!pdebug_entry->ap_intc_num)
+		return;
+
+	if(!pdebug_entry->pintc_info)
 		return;
 
 	for (i = 0; i < pdebug_entry->ap_intc_num; i++) {
 		pintc_info = &pdebug_entry->pintc_info[i];
-		if (!pintc_info)
-			continue;
+
 		ret = regmap_read(pdebug_entry->ap_intc[i],
 				pintc_info->addr_offset, &reg_value);
 		if (ret) {
