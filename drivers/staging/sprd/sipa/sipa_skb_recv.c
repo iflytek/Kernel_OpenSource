@@ -330,8 +330,6 @@ static int do_recv(struct sipa_skb_receiver *receiver)
 
 		skb_trim(recv_skb, item.len);
 
-		skb_reset_network_header(recv_skb);
-
 		dispath_to_nic(receiver, &item, recv_skb);
 	}
 
