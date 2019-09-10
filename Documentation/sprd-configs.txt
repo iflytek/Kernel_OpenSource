@@ -10733,6 +10733,13 @@ CONFIG_PCIE_SPRD_HOST
 	[must] user
 	[missing plat description]
 	[function] Support Spreadtrum PCIe host controller driver(only for RC).
+CONFIG_PCIE_SPRD_SPLIT_BAR
+	[arch] arm64
+	[plat] orca,roc1
+	[field] make,code
+	[subsys] pci
+	[must] user
+	[function] Support split 64bit bar to two 32bit bars.
 CONFIG_PCI_BUS_ADDR_T_64BIT
 	[arch] arm64
 	[plat] orca,roc1
