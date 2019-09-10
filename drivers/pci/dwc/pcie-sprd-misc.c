@@ -237,3 +237,19 @@ void sprd_pcie_alloc_irq_vectors(struct pci_dev *dev, int *irqs, int services)
 }
 EXPORT_SYMBOL(sprd_pcie_alloc_irq_vectors);
 #endif
+
+void sprd_pcie_dump_rc_regs(struct platform_device *pdev)
+{
+	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
+	struct dw_pcie *pci = ctrl->pci;
+
+	dev_emerg(&pdev->dev, "LTSSM [0xe64]: 0x%x, [0x728]: 0x%x\n",
+		  dw_pcie_readl_dbi(pci, SPRD_PCIE_PE0_PM_STS),
+		  dw_pcie_readl_dbi(pci, PCIE_PHY_DEBUG_R0));
+
+	print_hex_dump(KERN_ERR, "PCIe RC reg: ", DUMP_PREFIX_ADDRESS,
+		       16, 4, pci->dbi_base, 0xc0, 0);
+	print_hex_dump(KERN_ERR, "PCIe RC reg: ", DUMP_PREFIX_ADDRESS,
+		       16, 4, pci->dbi_base + 0x100, 0x80, 0);
+}
+EXPORT_SYMBOL(sprd_pcie_dump_rc_regs);
