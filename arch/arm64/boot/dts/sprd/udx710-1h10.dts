@@ -122,9 +122,26 @@
 
 &pcie1 {
 	sprd,pcie-startup-syscons =
+		<&ap_ipa_ahb_regs 0 0
+			REG_AP_IPA_AHB_RF_AHB_EB
+			MASK_AP_IPA_AHB_RF_PCIE_AUX_EB
+			0x40>,
+		<&ap_ipa_ahb_regs 0 0
+			REG_AP_IPA_AHB_RF_AHB_EB
+			MASK_AP_IPA_AHB_RF_PCIE_EB
+			0x20>,
 		<&aon_apb_regs 0 0
 			REG_AON_APB_RF_PCIE_SLV_ADDR_OFFSET
 			MASK_AON_APB_RF_PCIE_SLV_ADDR_OFFSET
 			0x1>;
+	sprd,pcie-shutdown-syscons =
+		<&ap_ipa_ahb_regs 0 0
+			REG_AP_IPA_AHB_RF_AHB_EB
+			MASK_AP_IPA_AHB_RF_PCIE_AUX_EB
+			0x0>,
+		<&ap_ipa_ahb_regs 0 0
+			REG_AP_IPA_AHB_RF_AHB_EB
+			MASK_AP_IPA_AHB_RF_PCIE_EB
+			0x0>;
 	status = "okay";
 };
