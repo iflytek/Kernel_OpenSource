@@ -14,6 +14,7 @@
  */
 
 #include <linux/clk.h>
+#include <linux/gpio/consumer.h>
 #include <linux/interrupt.h>
 #include <linux/mfd/syscon.h>
 #include <linux/module.h>
@@ -53,6 +54,169 @@ static struct dw_pcie_ep_ops pcie_ep_ops = {
 	.ep_init = sprd_pcie_ep_init,
 	.raise_irq = sprd_pcie_ep_raise_irq,
 };
+
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+static int sprd_pcie_split_bar(struct dw_pcie *pci)
+{
+	u32 val, bar_offset;
+	int i;
+
+	for (i = 0; i < PCI_BAR_NUM; i++) {
+		bar_offset = PCI_BASE_ADDRESS_0 + (i * 4);
+		val = dw_pcie_readl_dbi(pci, bar_offset);
+		if ((val & PCI_BASE_ADDRESS_MEM_TYPE_MASK) ==
+		    PCI_BASE_ADDRESS_MEM_TYPE_64) {
+			val &= ~PCI_BASE_ADDRESS_MEM_TYPE_MASK;
+			val |= PCI_BASE_ADDRESS_MEM_TYPE_32;
+			dw_pcie_dbi_ro_wr_en(pci);
+			dw_pcie_writel_dbi(pci, bar_offset, val);
+			dw_pcie_dbi_ro_wr_dis(pci);
+			dw_pcie_writel_dbi2(pci, bar_offset + 4, PCI_BAR_EN);
+		}
+		val = dw_pcie_readl_dbi(pci, bar_offset);
+		if ((val & PCI_BASE_ADDRESS_MEM_TYPE_MASK) ==
+		    PCI_BASE_ADDRESS_MEM_TYPE_64){
+			dev_err(pci->dev, "split bar fail\n");
+			return -EINVAL;
+		}
+	}
+	return 0;
+}
+#endif
+
+/*
+ * SPRD PCIe wakeup pin related registers cannot be operated after PCIe
+ * controller EB  is disabled. So this func set the PCIe controller EB before
+ * operate the wakeup pin.
+ */
+static int sprd_pcie_wakeup(struct dw_pcie *pci)
+{
+	u32 val;
+	int ret;
+	struct platform_device *pdev = to_platform_device(pci->dev);
+
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
+	if (ret < 0) {
+		dev_err(&pdev->dev,
+			"set pcie enable syscons fail, return %d\n", ret);
+		return ret;
+	}
+	val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
+	val ^= SPRD_SOFT_WAKE;
+	dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
+	if (ret < 0) {
+		dev_err(&pdev->dev,
+			"set pcie disable syscons fail, return %d\n", ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+static void sprd_ep_linkup_work_fn(struct work_struct *work)
+{
+	struct sprd_pcie *ep = container_of(work, struct sprd_pcie, work);
+	struct dw_pcie *pci = ep->pci;
+	int ret;
+
+	ret = dw_pcie_wait_for_link(pci);
+	if (ret < 0)
+		dev_err(pci->dev, "link fail after perst\n");
+	else
+		dw_pcie_ep_linkup(&pci->ep);
+}
+
+static int sprd_pcie_ep_shutdown(struct sprd_pcie *ep)
+{
+	int ret;
+	struct dw_pcie *pci = ep->pci;
+	struct platform_device *pdev = to_platform_device(pci->dev);
+
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
+	if (ret < 0)
+		dev_err(&pdev->dev,
+			"set pcie uninit syscons fail, return %d\n", ret);
+
+	return 0;
+}
+
+static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
+{
+	int ret;
+	struct dw_pcie *pci = ep->pci;
+	struct platform_device *pdev = to_platform_device(pci->dev);
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	int val;
+#endif
+
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
+	if (ret < 0) {
+		dev_err(&pdev->dev,
+			"set pcie reinit syscons fail, return %d\n", ret);
+		return ret;
+	}
+
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	val = dw_pcie_readl_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3);
+	dw_pcie_writel_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
+			   (val & ~LTSSM_EN));
+
+	ret = sprd_pcie_split_bar(ep->pci);
+	if (ret) {
+		dev_err(&pdev->dev, "failed to split bar\n");
+		return ret;
+	}
+
+	val = dw_pcie_readl_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3);
+	dw_pcie_writel_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
+			   (val | LTSSM_EN));
+#endif
+
+	schedule_work(&ep->work);
+	return 0;
+}
+
+/*
+ * PERST# (high active)from root complex to wake up CP.
+ *
+ * When CP is in deep state, an root complex can wakeup CP by pulling the perst
+ * signal.
+ */
+static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
+{
+	struct sprd_pcie *ep = data;
+	int val = gpiod_get_value(ep->gpiod_perst);
+	u32 irq_flags = irq_get_trigger_type(irq);
+	u32 expect = (irq_flags & IRQF_TRIGGER_HIGH) ? 1 : 0;
+
+	/* WORKAROUND: At present, if setting high-lever trigger, when intterupt
+	 * occurs the value read from gpio is low lever occasinally. When
+	 * setting low-level trigger has the similar problem. Temporarily read
+	 * multiple times gpio value to ensure the value is consistent with the
+	 * trigger level, and this workaround will be removed when the problem
+	 * fixed.
+	 */
+	while (val != expect)
+		val = gpiod_get_value(ep->gpiod_perst);
+
+	if (!val) {
+		irq_flags &= ~IRQF_TRIGGER_LOW;
+		irq_flags |= IRQF_TRIGGER_HIGH;
+	} else {
+		irq_flags &= ~IRQF_TRIGGER_HIGH;
+		irq_flags |= IRQF_TRIGGER_LOW;
+	}
+
+	irq_set_irq_type(irq, irq_flags);
+
+	if (!val)
+		sprd_pcie_ep_shutdown(ep);
+	else
+		sprd_pcie_ep_reinit(ep);
+
+	return IRQ_HANDLED;
+}
 
 static int sprd_add_pcie_ep(struct sprd_pcie *sprd_pcie,
 			    struct platform_device *pdev)
@@ -95,7 +259,7 @@ static int sprd_add_pcie_ep(struct sprd_pcie *sprd_pcie,
 
 static int sprd_pcie_establish_link(struct dw_pcie *pci)
 {
-	/* TODO */
+	sprd_pcie_wakeup(pci);
 	return 0;
 }
 
@@ -135,6 +299,31 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 	ep->pci = pci;
 
 	platform_set_drvdata(pdev, ep);
+
+	ep->gpiod_perst =
+		devm_gpiod_get_index(dev, "pcie-perst", 0, GPIOD_IN);
+	if (IS_ERR(ep->gpiod_perst)) {
+		dev_err(dev, "Please set pcie-perst gpio in DTS\n");
+		return PTR_ERR(ep->gpiod_perst);
+	}
+
+	ep->perst_irq = gpiod_to_irq(ep->gpiod_perst);
+	if (ep->perst_irq < 0) {
+		dev_err(dev, "cannot get perst irq\n");
+		return ep->perst_irq;
+	}
+
+	ret = devm_request_threaded_irq(dev, ep->perst_irq,
+					sprd_pcie_perst_irq, NULL,
+					IRQF_TRIGGER_LOW,
+					"pcie_perst", ep);
+
+	if (ret < 0) {
+		dev_err(dev, "cannot request perst irq\n");
+		return ret;
+	}
+
+	INIT_WORK(&ep->work, sprd_ep_linkup_work_fn);
 
 	ret = sprd_add_pcie_ep(ep, pdev);
 	if (ret) {

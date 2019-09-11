@@ -20,6 +20,12 @@
 
 #define PCI_DEVICE_ID_SPRD_RC	0xabcd
 
+#define PCI_BAR_NUM	6
+#define PCI_BAR_EN	1
+
+#define SPRD_PCIE_RST_CTRL			0xe4c
+#define SPRD_SOFT_WAKE				(0x1 << 4)
+
 struct sprd_pcie {
 	const char *label;
 	struct dw_pcie *pci;
@@ -38,6 +44,9 @@ struct sprd_pcie {
 	int wakeup_irq;
 	struct gpio_desc *gpiod_wakeup;
 
+	int perst_irq;
+	struct gpio_desc *gpiod_perst;
+
 	/* Save sysnopsys-specific PCIe configuration registers  */
 	u32 save_msi_ctrls[MAX_MSI_CTRLS][3];
 
@@ -46,6 +55,7 @@ struct sprd_pcie {
 	unsigned int is_suspended:1;
 
 	struct sprd_pcie_register_event *event_reg;
+	struct work_struct work;
 
 	size_t label_len; /* pcie controller device length + 10 */
 	char wakeup_label[0];
