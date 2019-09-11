@@ -8,6 +8,7 @@
 /dts-v1/;
 
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/usb/pd.h>
 
 #include "ud710.dtsi"
 #include "sc2730.dtsi"
@@ -729,6 +730,20 @@
 
 &mmsys_dvfs {
 	status = "okay";
+};
+
+&pmic_pd {
+	status = "okay";
+	usb_con: connector {
+		compatible = "usb-c-connector";
+		label = "USB-C";
+		power-role = "dual";
+		try-power-role = "sink";
+		source-pdos = <PDO_FIXED(5000, 400, PDO_FIXED_USB_COMM)>;
+		sink-pdos = <PDO_FIXED(5000, 500, PDO_FIXED_USB_COMM)
+			     PDO_FIXED(9000, 2000, PDO_FIXED_USB_COMM)>;
+		op-sink-microwatt = <18000000>;
+	};
 };
 
 &pcie0 {
