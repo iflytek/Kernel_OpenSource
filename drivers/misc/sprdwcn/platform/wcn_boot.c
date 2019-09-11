@@ -164,6 +164,7 @@ EXPORT_SYMBOL_GPL(wcn_get_chip_type);
 #define WCN_STR(a) _WCN_STR(a)
 #define WCN_CON_STR(a, b, c) (a b WCN_STR(c))
 
+/* Marlin3_AD_0x23550003 */
 const char *wcn_get_chip_name(void)
 {
 	enum wcn_chip_id_type chip_type;

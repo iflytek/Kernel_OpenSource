@@ -208,7 +208,7 @@ static ssize_t wcn_sysfs_show_hw_ver(struct device *dev,
 
 	len = PAGE_SIZE;
 	mutex_lock(&mdev->sysfs_info.mutex);
-	if (!wcn_get_chip_name())
+	if (wcn_get_chip_name())
 		len = snprintf(buf, len, "%s\n", wcn_get_chip_name());
 	else
 		/* len:4 */

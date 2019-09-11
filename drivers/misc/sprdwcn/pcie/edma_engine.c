@@ -14,6 +14,8 @@
 #include <linux/timer.h>
 #include <misc/marlin_platform.h>
 #include <misc/wcn_bus.h>
+#include <linux/pci.h>
+#include <linux/pcie-rc-sprd.h>
 #include "edma_engine.h"
 #include "mchn.h"
 #include "pcie_dbg.h"
@@ -1218,6 +1220,7 @@ int msi_irq_handle(int irq)
 	union dma_chn_int_reg dma_int;
 	struct isr_msg_queue msg = { 0 };
 	struct edma_info *edma = edma_info();
+	struct wcn_pcie_info *priv;
 
 	WCN_INFO("irq msi handle=%d\n", irq);
 	if (!wcn_get_edma_status()) {
@@ -1256,6 +1259,16 @@ int msi_irq_handle(int irq)
 					WCN_ERR("i=%d, dma_int=0x%08x\n", i,
 						edma->dma_chn_reg[chn].dma_int
 						.reg);
+					priv = get_wcn_device_info();
+					if (!priv) {
+						WCN_ERR("%s:pcie ep is null\n",
+							__func__);
+						local_irq_restore(irq_flags);
+						return -1;
+					}
+					if (priv->rc_pd)
+						sprd_pcie_dump_rc_regs(
+								priv->rc_pd);
 					local_irq_restore(irq_flags);
 					return -1;
 				}
@@ -1675,6 +1688,9 @@ int edma_dump_glb_reg(void)
 	value = sprd_pcie_read_reg32(pdev, DMA_PCIE_MSIX_VALUE);
 	WCN_INFO("[msix_val   ] = 0x%08x\n",  value);
 
+	if (pdev->rc_pd)
+		sprd_pcie_dump_rc_regs(pdev->rc_pd);
+
 	return 0;
 }
 
@@ -1687,13 +1703,14 @@ static void edma_tx_timer_expire(unsigned long data)
 	if (!wcn_get_edma_status())
 		return;
 	wcn_set_tx_complete_status(1);
+
 	if (edma_dump_glb_reg() < 0)
 		return;
+
 	for (i = 0; i < 16; i++) {
 		if (test_bit(i, &edma->cur_chn_status))
 			edma_dump_chn_reg(i);
 	}
-
 }
 
 void edma_del_tx_timer(void)

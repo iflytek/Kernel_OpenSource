@@ -16,6 +16,7 @@
 
 #include <linux/pci.h>
 #include <misc/wcn_bus.h>
+#include  <linux/platform_device.h>
 
 #define DRVER_NAME      "wcn_pcie"
 
@@ -92,6 +93,7 @@ struct sub_sys_pm_state {
 	unsigned int rsvd:26;
 };
 struct wcn_pcie_info {
+	struct platform_device *rc_pd;
 	struct pci_dev *dev;
 	struct pci_saved_state *saved_state;
 	int legacy_en;

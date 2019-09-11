@@ -583,9 +583,12 @@ int sprd_pcie_set_aspm_policy(enum sub_sys subsys, enum wcn_bus_pm_state state)
 
 	if (state == BUS_PM_DISABLE) {
 		ret = wcn_pcie_wait_for_link(priv->dev);
-		if (ret)
+		if (ret) {
+			if (priv->rc_pd)
+				sprd_pcie_dump_rc_regs(priv->rc_pd);
 			WCN_ERR("%s: aspm_policy can't restore to L0\n",
 				__func__);
+		}
 	}
 	mutex_unlock(&priv->pm_lock);
 	return	ret;
@@ -637,6 +640,7 @@ int sprd_pcie_scan_card(void *wcn_dev)
 		return 0;
 	}
 	dev = &pdev->dev;
+	priv->rc_pd = pdev;
 	WCN_INFO("%s: rc node name: %s\n", __func__, dev->of_node->name);
 
 	if (priv->dev && priv->dev->is_added)
