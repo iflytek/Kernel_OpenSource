@@ -530,7 +530,7 @@ static int wcn_pcie_wait_for_link(struct pci_dev *pdev)
 	u32 val;
 
 	/* check if the link is up or not */
-	for (retries = 0; retries < 10; retries++) {
+	for (retries = 0; retries < 1000; retries++) {
 		pci_read_config_dword(pdev, WCN_PCIE_PHY_DEBUG_R0, &val);
 		if ((val & LTSSM_STATE_MASK) == LTSSM_STATE_L0) {
 			WCN_INFO("retry_cnt=%d\n", retries);
