@@ -151,6 +151,12 @@ void ufs_sprd_reset(struct ufs_sprd_host *host)
 	/* Exit hibernate after reset, and no need to care command's response. */
 	ufshcd_writel(host->hba, UIC_CMD_DME_HIBER_EXIT, REG_UIC_COMMAND);
 
+	/* reset mphy signal */
+	ufs_sprd_rmwl(host->analog_reg, 1 < 3, 0x0, 0x14);
+	udelay(100);
+	ufs_sprd_rmwl(host->analog_reg, 1 < 3, 0x1, 0x14);
+
+
 	/* Fix issue failing to change speed to fast gear3 mode. */
 	val = mask = TX_FIFOMODE;
 	ufs_sprd_rmwl(host->mphy_reg, mask, val, REG_DIG_CFG35);
@@ -244,6 +250,21 @@ static int ufs_sprd_init(struct ufs_hba *hba)
 		host->mphy_reg = NULL;
 		return -ENODEV;
 	}
+
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "analog_reg");
+	if (!res) {
+		dev_err(dev, "Missing analog_reg register resource\n");
+		return -ENODEV;
+	}
+	host->analog_reg = devm_ioremap_nocache(dev, res->start,
+						resource_size(res));
+	if (IS_ERR(host->analog_reg)) {
+		dev_err(dev, "%s: could not map analog_reg, err %ld\n",
+			__func__, PTR_ERR(host->analog_reg));
+		host->analog_reg = NULL;
+		return -ENODEV;
+	}
+
 
 	ret = ufs_sprd_get_syscon_reg(dev->of_node, &host->ap_apb_ufs_en,
 				      "ap_apb_ufs_en");
