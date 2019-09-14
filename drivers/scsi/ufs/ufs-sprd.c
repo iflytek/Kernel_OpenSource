@@ -133,6 +133,9 @@ void ufs_sprd_reset(struct ufs_sprd_host *host)
 	ufs_sprd_rmwl(host->ufsutp_reg, mask, 0, REG_UTP_MISC);
 	ufs_sprd_rmwl(host->ufsutp_reg, mask, val, REG_UTP_MISC);
 
+	/* set utp FIFO size to 512 Byte */
+	ufs_sprd_rmwl(host->ufsutp_reg, 0xff, 0x4, 0x104);
+
 	mask = HCI_RST | HCI_CLOD_RST;
 	ufshcd_rmwl(host->hba, mask, 0, REG_SW_RST);
 
