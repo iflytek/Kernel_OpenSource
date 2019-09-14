@@ -220,12 +220,14 @@
 		      <0 0x71a00000 0 0x10000>,
 		      <0 0x71800000 0 0x10000>,
 		      <0 0x32510000 0 0x10000>,
-		      <0 0x323b8000 0 0x4000>;
+		      <0 0x323b8000 0 0x4000>,
+		      <0 0x323b4000 0 0x4000>;
 		reg-names = "ufshci_reg",
 			    "ufsutp_reg",
 			    "unipro_reg",
 			    "ufs_ao_reg",
-			    "mphy_reg";
+			    "mphy_reg",
+			    "analog_reg";
 		syscons = <&ap_apb_regs REG_AP_APB_APB_EB1 (MASK_AP_APB_UFS_UTP_EB | MASK_AP_APB_UFS_HCI_EB | MASK_AP_APB_UFS_UNIPRO_EB | MASK_AP_APB_UFS_EB)>,
 			  <&ap_apb_regs REG_AP_APB_APB_RST (MASK_AP_APB_UFS_UTP_SOFT_RST | MASK_AP_APB_UFS_HCI_SOFT_RST | MASK_AP_APB_UFS_UNIPRO_SOFT_RST | MASK_AP_APB_UFS_SOFT_RST)>,
 			  <&anlg_phy_g1_regs REG_ANLG_PHY_G1_ANALOG_MIPI_MPHY_1T1R_MPHY_APB_REG MASK_ANLG_PHY_G1_ANALOG_MIPI_MPHY_1T1R_MPHY_APB_PRESETN>,
