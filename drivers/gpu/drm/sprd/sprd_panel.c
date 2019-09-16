@@ -12,6 +12,7 @@
  */
 
 #include <drm/drm_atomic_helper.h>
+#include <linux/component.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
@@ -633,6 +634,32 @@ static int sprd_panel_parse_dt(struct device_node *np, struct sprd_panel *panel)
 	return 0;
 }
 
+/*
+ * FIXME:
+ * Adding the following interfaces is just for fbdev emulation support.
+ * Put panel into component match lists. drm just bind after panel probe.
+ */
+static int sprd_panel_bind(struct device *dev,
+			struct device *master, void *data)
+{
+	/* do nothing */
+	DRM_INFO("%s()\n", __func__);
+	return 0;
+}
+
+static void sprd_panel_unbind(struct device *dev,
+			struct device *master, void *data)
+{
+	/* do nothing */
+	DRM_INFO("%s()\n", __func__);
+}
+
+static const struct component_ops panel_component_ops = {
+	.bind	= sprd_panel_bind,
+	.unbind	= sprd_panel_unbind,
+};
+
+
 static int sprd_panel_device_create(struct device *parent,
 				    struct sprd_panel *panel)
 {
@@ -742,7 +769,7 @@ static int sprd_panel_probe(struct mipi_dsi_device *slave)
 
 	DRM_INFO("panel driver probe success\n");
 
-	return 0;
+	return component_add(&slave->dev, &panel_component_ops);
 }
 
 static int sprd_panel_remove(struct mipi_dsi_device *slave)
@@ -751,6 +778,8 @@ static int sprd_panel_remove(struct mipi_dsi_device *slave)
 	int ret;
 
 	DRM_INFO("%s()\n", __func__);
+
+	component_del(&slave->dev, &panel_component_ops);
 
 	sprd_panel_disable(&panel->base);
 	sprd_panel_unprepare(&panel->base);

@@ -16,6 +16,7 @@
 #include <drm/drm_crtc_helper.h>
 #include <drm/drm_gem_cma_helper.h>
 #include <drm/drm_gem_framebuffer_helper.h>
+#include <drm/drm_fb_cma_helper.h>
 #include <linux/component.h>
 #include <linux/mutex.h>
 #include <linux/of_graph.h>
@@ -472,6 +473,9 @@ static int sprd_drm_bind(struct device *dev)
 	if (err < 0)
 		goto err_kms_helper_poll_fini;
 
+	drm_fbdev_cma_init(drm, 32,
+		drm->mode_config.num_connector);
+
 	return 0;
 
 err_kms_helper_poll_fini:
@@ -504,6 +508,17 @@ static int compare_of(struct device *dev, void *data)
 
 	return dev->of_node == np;
 }
+
+/*
+ * FIXME:
+ * We don't know what's the best binding to link the panel with the drm device.
+ * Fow now, we just hunt for all the possible panel that we support, and add them
+ * as components.
+ */
+static const struct of_device_id sprd_panel_match[] = {
+	{ .compatible = "sprd,generic-mipi-panel" },
+	{ },
+};
 
 static int sprd_drm_component_probe(struct device *dev,
 			   const struct component_master_ops *m_ops)
@@ -588,6 +603,22 @@ static int sprd_drm_component_probe(struct device *dev,
 			component_match_add(dev, &match, compare_of, port);
 			of_node_put(port);
 		}
+	}
+
+	/*
+	 * FIXME:
+	 * For bound connectors, hunt for all the possible panel that we support.
+	 */
+	remote = of_find_matching_node(NULL, sprd_panel_match);
+	if (!remote || !of_device_is_available(remote))
+		of_node_put(remote);
+	else if (!of_device_is_available(remote->parent)) {
+		dev_warn(dev, "parent device of %s is not available\n",
+			remote->full_name);
+		of_node_put(remote);
+	} else {
+		component_match_add(dev, &match, compare_of, remote);
+		of_node_put(remote);
 	}
 
 	return component_master_add_with_match(dev, m_ops, match);
