@@ -272,7 +272,8 @@ static int sipa_eth_start_xmit(struct sk_buff *skb, struct net_device *dev)
 			 * resume skb, otherwise
 			 * we may pull this skb ETH_HLEN-bytes twice
 			 */
-			skb_push(skb, ETH_HLEN);
+			if (!pdata->mac_h)
+				skb_push(skb, ETH_HLEN);
 			dt_stats->tx_fail++;
 			sipa_eth->stats.tx_errors++;
 			netif_stop_queue(dev);
