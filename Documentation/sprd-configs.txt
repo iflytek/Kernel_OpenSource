@@ -1984,6 +1984,15 @@ CONFIG_CONSOLE_LOGLEVEL_DEFAULT
 	[must]
 	[missing plat description] none
 	[function]
+CONFIG_CONSOLE_TRANSLATIONS
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
 CONFIG_CONTEXT_SWITCH_TRACER
 	[arch] all
 	[plat] roc1,sharkl3,sharkl5,sharkl5_32
@@ -3608,7 +3617,7 @@ CONFIG_DRM_BRIDGE
 	[function] Display Interface Bridges
 CONFIG_DRM_FBDEV_EMULATION
 	[arch] arm64
-	[plat] sharkl3
+	[plat] roc1,sharkl3
 	[missing plat] orca
 	[field]
 	[subsys]
@@ -3760,6 +3769,15 @@ CONFIG_DUMMY
 	[missing plat description] none
 	[function] Dummy net driver support:This is essentially a bit-bucket device (i.e. traffic you send to
 	this device is consigned into oblivion) with a configurable IP address.
+CONFIG_DUMMY_CONSOLE
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
 CONFIG_DYNAMIC_DEBUG
 	[arch] all
 	[plat] roc1,sharkl3,sharkl5,sharkl5_32
@@ -4378,6 +4396,33 @@ CONFIG_FLAT_NODE_MEM_MAP
 	[must] busybox_console
 	[missing plat description] none
 	[function] Flat memory.
+CONFIG_FONT_8x16
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
+CONFIG_FONT_8x8
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
+CONFIG_FONT_SUPPORT
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
 CONFIG_FORCE_MAX_ZONEORDER
 	[arch] all
 	[plat] all
@@ -4387,6 +4432,24 @@ CONFIG_FORCE_MAX_ZONEORDER
 	[must] home
 	[missing plat description] none
 	[function] Enable to allocate large continuous physical pages.
+CONFIG_FRAMEBUFFER_CONSOLE
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
+CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
 CONFIG_FRAME_POINTER
 	[arch] all
 	[plat] all
@@ -6241,6 +6304,15 @@ CONFIG_HWSPINLOCK_SPRD
 	[must] home
 	[missing plat description] none
 	[function] support the Spreadtrum Hardware Spinlock device.
+CONFIG_HW_CONSOLE
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
 CONFIG_HW_PERF_EVENTS
 	[arch] all
 	[plat] all
@@ -15731,6 +15803,42 @@ CONFIG_VM_EVENT_COUNTERS
 	[must] busybox_console
 	[missing plat description] none
 	[function] Enable VM event counters for /proc/vmstat.
+CONFIG_VT
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
+CONFIG_VT_CONSOLE
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
+CONFIG_VT_CONSOLE_SLEEP
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
+CONFIG_VT_HW_CONSOLE_BINDING
+	[arch] arm64
+	[plat] roc1
+	[missing plat]
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
 CONFIG_WATCHDOG
 	[arch] all
 	[plat] roc1,sharkl3,sharkl5,sharkl5_32
