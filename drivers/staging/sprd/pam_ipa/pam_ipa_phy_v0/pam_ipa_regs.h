@@ -400,7 +400,7 @@ static inline u32 pam_ipa_phy_set_offset_present(void __iomem *reg_base,
 
 	tmp = __raw_readl(reg_base + PAM_IPA_CFG_START);
 	tmp &= 0x0000FFFF;
-	tmp |= (PAM_IPA_CFG_START << 16);
+	tmp |= (offset << 16);
 	__raw_writel(tmp, reg_base + PAM_IPA_CFG_START);
 
 	tmp = __raw_readl(reg_base + PAM_IPA_CFG_START);
