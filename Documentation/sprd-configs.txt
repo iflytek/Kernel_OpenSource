@@ -3607,8 +3607,8 @@ CONFIG_DRM_BRIDGE
 	[missing plat description] none
 	[function] Display Interface Bridges
 CONFIG_DRM_FBDEV_EMULATION
-	[arch] all
-	[plat] roc1,sharkl3,sharkl5,sharkl5_32
+	[arch] arm64
+	[plat] sharkl3
 	[missing plat] orca
 	[field]
 	[subsys]
@@ -3616,8 +3616,8 @@ CONFIG_DRM_FBDEV_EMULATION
 	[missing plat description] none
 	[function]
 CONFIG_DRM_FBDEV_OVERALLOC
-	[arch] all
-	[plat] roc1,sharkl3,sharkl5,sharkl5_32
+	[arch] arm64
+	[plat] sharkl3
 	[missing plat] orca
 	[field]
 	[subsys]
@@ -14702,16 +14702,20 @@ CONFIG_TYPEC
 CONFIG_TYPEC_TCPCI
 	[arch] arm64
 	[plat] roc1
+	[missing plat]
 	[field]
 	[subsys]
 	[must]
+	[missing plat description]
 	[function]
 CONFIG_TYPEC_TCPM
 	[arch] arm64
 	[plat] roc1
+	[missing plat]
 	[field]
 	[subsys]
 	[must]
+	[missing plat description]
 	[function]
 CONFIG_TYPEC_UCSI
 	[arch] all
@@ -15481,9 +15485,11 @@ CONFIG_USB_PHY
 CONFIG_USB_ROLE_SWITCH
 	[arch] arm64
 	[plat] roc1
+	[missing plat]
 	[field]
 	[subsys]
 	[must]
+	[missing plat description]
 	[function]
 CONFIG_USB_SC27XX_TYPEC
 	[arch] all
