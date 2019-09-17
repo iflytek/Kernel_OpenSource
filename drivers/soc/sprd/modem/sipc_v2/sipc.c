@@ -79,11 +79,11 @@ static void sipc_txirq_trigger(u8 dst, u64 msg)
 
 		if (ipc->type == SIPC_BASE_PCIE) {
 #ifdef CONFIG_SPRD_PCIE_EP_DEVICE
-			sprd_ep_dev_raise_irq(ipc->ep_dev, PCIE_EP_SIPC_IRQ);
+			sprd_ep_dev_raise_irq(ipc->ep_dev, PCIE_DBELL_SIPC_IRQ);
 #endif
 
 #ifdef CONFIG_PCIE_EPF_SPRD
-			sprd_pci_epf_raise_irq(ipc->ep_fun, SPRD_EPF_SIPC_IRQ);
+			sprd_pci_epf_raise_irq(ipc->ep_fun, PCIE_MSI_SIPC_IRQ);
 #endif
 			return;
 		}
@@ -156,7 +156,7 @@ static int sipc_parse_dt(struct smsg_ipc *ipc,
 
 #ifdef CONFIG_SPRD_PCIE_EP_DEVICE
 	if (ipc->type == SIPC_BASE_PCIE) {
-		ipc->irq = PCIE_EP_SIPC_IRQ;
+		ipc->irq = PCIE_DBELL_SIPC_IRQ;
 		ret = of_property_read_u32_array(np,
 						 "sprd,ep-dev",
 						 &ipc->ep_dev,

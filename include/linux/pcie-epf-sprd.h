@@ -27,10 +27,23 @@ enum {
 	SPRD_FUNCTION_MAX
 };
 
+/* ep send msi irq define. */
 enum {
-	SPRD_EPF_SIPC_IRQ = 0,
-	SPRD_EPF_IPA_IRQ,
-	SPRD_EPF_IRQ_MAX
+	PCIE_MSI_SIPC_IRQ = 0,
+	PCIE_MSI_REQUEST_RES,
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	PCIE_MSI_EP_READY_FOR_RESCAN,
+#endif
+	PCIE_MSI_RELEASE_RES,
+	PCIE_MSI_IRQ_MAX
+};
+
+/* ep receive doorbell irq define. */
+enum {
+	PCIE_DBELL_SIPC_IRQ = 0,
+	PCIE_DBEL_EP_SCANNED,
+	PCIE_DBEL_EP_REMOVED,
+	PCIE_DBEL_IRQ_MAX
 };
 
 enum {
@@ -47,11 +60,20 @@ int sprd_pci_epf_register_notify(int function,
 int sprd_pci_epf_unregister_notify(int function);
 int sprd_pci_epf_set_irq_number(int function, int irq_number);
 int sprd_pci_epf_raise_irq(int function, int irq);
+int sprd_pci_epf_start(int function);
 int sprd_pci_epf_register_irq_handler(int function,
 				      int irq,
 				      irq_handler_t handler,
 				      void *data);
+int sprd_pci_epf_register_irq_handler_ex(int function,
+					 int from_irq,
+					 int to_irq,
+					 irq_handler_t handler,
+					 void *data);
 int sprd_pci_epf_unregister_irq_handler(int function, int irq);
+int sprd_pci_epf_unregister_irq_handler_ex(int function,
+					   int from_irq,
+					   int to_irq);
 void __iomem *sprd_pci_epf_map_memory(int function,
 				      phys_addr_t rc_addr, size_t size);
 void sprd_pci_epf_unmap_memory(int function,

@@ -25,6 +25,7 @@
 #include <linux/sched.h>
 #include <uapi/linux/sched/types.h>
 #include <linux/soc/sprd/sprd_pcie_ep_device.h>
+#include <linux/workqueue.h>
 
 #define DRV_MODULE_NAME		"sprd-pcie-ep-device"
 
@@ -40,7 +41,7 @@ enum dev_pci_barno {
 
 #define MAX_SUPPORT_IRQ	32
 #define REQUEST_BASE_IRQ	16
-#define REQUEST_MAX_IRQ	(REQUEST_BASE_IRQ + PCIE_EP_MAX_IRQ)
+#define REQUEST_MAX_IRQ	(REQUEST_BASE_IRQ + PCIE_MSI_MAX_IRQ)
 #define IPA_HW_IRQ_CNT 4
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
@@ -99,6 +100,10 @@ enum dev_pci_barno {
 
 /* bar4 + 0x10000 has map to ep base + 0x18000 ((0x3 << 15)) */
 #define PCIE_ATU_IB_REGION(region) (((region) << 9) | (0x1 << 8))
+#define PCIE_ATU_OB_REGION(region) ((region) << 9)
+
+#define PCIE_SAVE_REGION_NUM	8
+#define PCIE_SAVE_REG_NUM	8
 
 struct sprd_ep_dev_notify {
 	void  (*notify)(int event, void *data);
@@ -114,10 +119,11 @@ struct sprd_pci_ep_dev {
 	spinlock_t	set_bar_lock;	/* set bar spinlock */
 	unsigned long	bar_res;
 
+	u32	bak_irq_status;
 	u8	iatu_unroll_enabled;
 	u8	ep;
 	u8	irq_cnt;
-	u8	can_notify;
+	bool	need_backup;
 
 	struct resource	*bar[BAR_CNT];
 	void __iomem	*bar_vir[BAR_MAX];
@@ -126,11 +132,25 @@ struct sprd_pci_ep_dev {
 	phys_addr_t		ipa_cpu_addr[BAR_MAX];
 #endif
 
+	int	event;
+	struct work_struct	notify_work;
 };
 
+struct sprd_pci_ep_dev_save {
+	bool		save_succ;
+	unsigned long	bar_res;
+	void __iomem	*bar_vir[BAR_MAX];
+	void __iomem	*cpu_vir[BAR_MAX];
+#ifdef CONFIG_SPRD_SIPA
+	phys_addr_t	ipa_cpu_addr[BAR_MAX];
+#endif
+	u32	save_reg[PCIE_SAVE_REGION_NUM][PCIE_SAVE_REG_NUM];
+};
+
+static struct sprd_pci_ep_dev_save g_ep_save[PCIE_EP_NR];
 static struct sprd_pci_ep_dev *g_ep_dev[PCIE_EP_NR];
-static irq_handler_t ep_dev_handler[PCIE_EP_NR][PCIE_EP_MAX_IRQ];
-static void *ep_dev_handler_data[PCIE_EP_NR][PCIE_EP_MAX_IRQ];
+static irq_handler_t ep_dev_handler[PCIE_EP_NR][PCIE_MSI_MAX_IRQ];
+static void *ep_dev_handler_data[PCIE_EP_NR][PCIE_MSI_MAX_IRQ];
 static struct sprd_ep_dev_notify g_ep_dev_notify[PCIE_EP_NR];
 
 static int sprd_ep_dev_get_bar(int ep);
@@ -145,6 +165,7 @@ static void __iomem *sprd_ep_dev_map_bar(int ep, int bar,
 					 dma_addr_t cpu_addr,
 					 size_t size);
 static int sprd_ep_dev_unmap_bar(int ep, int bar);
+static void sprd_pci_ep_dev_backup(struct sprd_pci_ep_dev *ep_dev);
 
 int sprd_ep_dev_register_notify(int ep,
 				void (*notify)(int event, void *data),
@@ -181,25 +202,69 @@ EXPORT_SYMBOL_GPL(sprd_ep_dev_unregister_notify);
 int sprd_ep_dev_register_irq_handler(int ep, int irq,
 				     irq_handler_t handler, void *data)
 {
-	if (ep < PCIE_EP_NR && irq < PCIE_EP_MAX_IRQ) {
-		ep_dev_handler[ep][irq] = handler;
-		ep_dev_handler_data[ep][irq] = data;
-		return 0;
+	struct sprd_pci_ep_dev *ep_dev;
+
+	if (ep >= PCIE_EP_NR || irq >= PCIE_MSI_MAX_IRQ)
+		return -EINVAL;
+
+	ep_dev_handler[ep][irq] = handler;
+	ep_dev_handler_data[ep][irq] = data;
+	ep_dev = g_ep_dev[ep];
+
+	if (handler && ep_dev &&
+	    (BIT(irq) & ep_dev->bak_irq_status)) {
+		ep_dev->bak_irq_status &= ~BIT(irq);
+		handler(irq, data);
 	}
-	return -EINVAL;
+
+	return 0;
 }
 EXPORT_SYMBOL_GPL(sprd_ep_dev_register_irq_handler);
 
 int sprd_ep_dev_unregister_irq_handler(int ep, int irq)
 {
-	if (ep < PCIE_EP_NR && irq < PCIE_EP_MAX_IRQ) {
+	if (ep < PCIE_EP_NR && irq < PCIE_MSI_MAX_IRQ) {
 		ep_dev_handler[ep][irq] = NULL;
 		ep_dev_handler_data[ep][irq] = NULL;
 		return 0;
 	}
+
 	return -EINVAL;
 }
 EXPORT_SYMBOL_GPL(sprd_ep_dev_unregister_irq_handler);
+
+int sprd_ep_dev_register_irq_handler_ex(int ep,
+					int from_irq,
+					int to_irq,
+					irq_handler_t handler,
+					void *data)
+{
+	int i, ret;
+
+	for (i = from_irq; i < to_irq + 1; i++) {
+		ret = sprd_ep_dev_register_irq_handler(ep,
+							i, handler, data);
+		if (ret)
+			return ret;
+	}
+
+	return 0;
+}
+
+int sprd_ep_dev_unregister_irq_handler_ex(int ep,
+					  int from_irq,
+					  int to_irq)
+{
+	int i, ret;
+
+	for (i = from_irq; i < to_irq + 1; i++) {
+		ret = sprd_ep_dev_unregister_irq_handler(ep, i);
+		if (ret)
+			return ret;
+	}
+
+	return 0;
+}
 
 void __iomem *sprd_ep_map_memory(int ep,
 				 phys_addr_t cpu_addr,
@@ -358,6 +423,66 @@ int sprd_ep_dev_raise_irq(int ep, int irq)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sprd_ep_dev_raise_irq);
+
+int sprd_ep_dev_clear_doolbell_irq(int ep, int irq)
+{
+	struct pci_dev *pdev;
+	struct device *dev;
+	struct sprd_pci_ep_dev *ep_dev;
+	void __iomem	*base;
+	u32 value;
+
+	if (ep >= PCIE_EP_NR || !g_ep_dev[ep])
+		return -ENODEV;
+
+	ep_dev = g_ep_dev[ep];
+	pdev = ep_dev->pdev;
+	dev = &pdev->dev;
+
+	dev_dbg(dev, "ep: clear doorbell, ep=%d, irq=%d\n", ep, irq);
+
+	if (irq >= DOOR_BELL_IRQ_CNT)
+		return -EINVAL;
+
+	spin_lock(&ep_dev->set_irq_lock);
+	base = ep_dev->cfg_base + DOOR_BELL_BASE;
+	value = readl_relaxed(base + DOOR_BELL_STATUS);
+	if (value & DOOR_BELL_IRQ_VALUE(irq))
+		writel_relaxed(value & (~DOOR_BELL_IRQ_VALUE(irq)),
+			       base + DOOR_BELL_STATUS);
+	spin_unlock(&ep_dev->set_irq_lock);
+
+	return 0;
+}
+
+int sprd_ep_dev_set_backup(int ep)
+{
+	struct sprd_pci_ep_dev *ep_dev;
+
+	if (ep >= PCIE_EP_NR || !g_ep_dev[ep])
+		return -ENODEV;
+
+	ep_dev = g_ep_dev[ep];
+	ep_dev->need_backup = true;
+
+	/* backup once immediately. */
+	sprd_pci_ep_dev_backup(ep_dev);
+
+	return 0;
+}
+
+int sprd_ep_dev_clear_backup(int ep)
+{
+	struct sprd_pci_ep_dev *ep_dev;
+
+	if (ep >= PCIE_EP_NR || !g_ep_dev[ep])
+		return -ENODEV;
+
+	ep_dev = g_ep_dev[ep];
+	ep_dev->need_backup = false;
+
+	return 0;
+}
 
 static inline u32 sprd_pci_ep_iatu_readl(struct sprd_pci_ep_dev *ep_dev,
 					 u32 offset)
@@ -701,16 +826,138 @@ static irqreturn_t sprd_pci_ep_dev_irqhandler(int irq, void *dev_ptr)
 	dev_dbg(dev, "ep: irq handler. irq = %d\n",  irq);
 
 	irq -= (pdev->irq + REQUEST_BASE_IRQ);
-	if (irq >= PCIE_EP_MAX_IRQ) {
+	if (irq >= PCIE_MSI_MAX_IRQ) {
 		dev_err(dev, "ep: error, irq = %d", irq);
 		return IRQ_HANDLED;
 	}
 
 	handler = ep_dev_handler[ep_dev->ep][irq];
-	if (handler && ep_dev->can_notify)
+	if (handler)
 		handler(irq, ep_dev_handler_data[ep_dev->ep][irq]);
+	else
+		ep_dev->bak_irq_status |= BIT(irq);
 
 	return IRQ_HANDLED;
+}
+
+static void sprd_pci_ep_save_reg(struct sprd_pci_ep_dev *ep_dev)
+{
+	int i, j;
+	u32 (*save_reg)[PCIE_SAVE_REG_NUM];
+
+	save_reg = g_ep_save[ep_dev->ep].save_reg;
+	spin_lock(&ep_dev->set_bar_lock);
+	for (i = 0; i < PCIE_SAVE_REGION_NUM; i += 2) {
+		for (j = 0; j < PCIE_SAVE_REG_NUM; j++) {
+			save_reg[i][j] =
+				sprd_pci_ep_iatu_readl(ep_dev,
+						       PCIE_ATU_OB_REGION(i) +
+						       j * sizeof(u32));
+			save_reg[i + 1][j] =
+				sprd_pci_ep_iatu_readl(ep_dev,
+						       PCIE_ATU_IB_REGION(i) +
+						       j * sizeof(u32));
+		}
+	}
+	spin_unlock(&ep_dev->set_bar_lock);
+}
+
+static void sprd_pci_ep_restore_reg(struct sprd_pci_ep_dev *ep_dev)
+{
+	int i, j;
+	u32 retries, val;
+	u32 (*save_reg)[PCIE_SAVE_REG_NUM];
+
+	save_reg = g_ep_save[ep_dev->ep].save_reg;
+	spin_lock(&ep_dev->set_bar_lock);
+	for (i = 0; i < PCIE_SAVE_REGION_NUM; i += 2) {
+		for (j = 0; j < PCIE_SAVE_REG_NUM; j++) {
+			sprd_pci_ep_iatu_writel(ep_dev,
+						PCIE_ATU_OB_REGION(i) +
+						j * sizeof(u32),
+						save_reg[i][j]);
+			sprd_pci_ep_iatu_writel(ep_dev,
+						PCIE_ATU_IB_REGION(i) +
+						j * sizeof(u32),
+						save_reg[i + 1][j]);
+		}
+	}
+	spin_unlock(&ep_dev->set_bar_lock);
+
+	/*
+	 * Make sure ATU enable takes effect
+	 * before any subsequent config  and I/O accesses.
+	 */
+	for (retries = 0;
+		 retries < LINK_WAIT_MAX_IATU_RETRIES;
+		 retries++) {
+		val = sprd_pci_ep_iatu_readl(ep_dev, PCIE_ATU_CR2);
+		if (val & PCIE_ATU_ENABLE)
+			break;
+
+		/* wait a moment for polling ep atu enable bit */
+		usleep_range(LINK_WAIT_IATU_MIN, LINK_WAIT_IATU_MAX);
+	}
+}
+
+static void sprd_pci_ep_dev_backup(struct sprd_pci_ep_dev *ep_dev)
+{
+	struct sprd_pci_ep_dev_save *ep_save;
+	int i;
+
+	ep_save = &g_ep_save[ep_dev->ep];
+
+	/* save some member */
+	ep_save->bar_res = ep_dev->bar_res;
+	for (i = 0; i < BAR_MAX; i++) {
+		ep_save->bar_vir[i] =  ep_dev->bar_vir[i];
+		ep_save->cpu_vir[i] =  ep_dev->cpu_vir[i];
+#ifdef CONFIG_SPRD_SIPA
+		ep_save->ipa_cpu_addr[i] =  ep_dev->ipa_cpu_addr[i];
+#endif
+	}
+
+	/* save ep reg */
+	sprd_pci_ep_save_reg(ep_dev);
+
+	ep_save->save_succ = true;
+}
+
+static void sprd_pci_ep_dev_restore(struct sprd_pci_ep_dev *ep_dev)
+{
+	struct sprd_pci_ep_dev_save *ep_save;
+	int i;
+
+	ep_save = &g_ep_save[ep_dev->ep];
+	if (!ep_save->save_succ)
+		return;
+
+	/* save some member */
+	ep_dev->bar_res = ep_save->bar_res;
+	for (i = 0; i < BAR_MAX; i++) {
+		ep_dev->bar_vir[i] =  ep_save->bar_vir[i];
+		ep_dev->cpu_vir[i] =  ep_save->cpu_vir[i];
+#ifdef CONFIG_SPRD_SIPA
+		ep_dev->ipa_cpu_addr[i] = ep_save->ipa_cpu_addr[i];
+#endif
+	}
+
+	/* save ep reg */
+	sprd_pci_ep_restore_reg(ep_dev);
+
+	ep_save->save_succ = false;
+}
+
+static void sprd_pci_ep_notify_fn(struct work_struct *work)
+{
+	struct sprd_ep_dev_notify *notify;
+	struct sprd_pci_ep_dev *ep_dev = container_of(work,
+						      struct sprd_pci_ep_dev,
+						      notify_work);
+
+	notify = &g_ep_dev_notify[ep_dev->ep];
+	if (notify->notify)
+		notify->notify(ep_dev->event, notify->data);
 }
 
 static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
@@ -722,7 +969,6 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	struct device *dev = &pdev->dev;
 	struct sprd_pci_ep_dev *ep_dev;
 	struct resource *res;
-	struct sprd_ep_dev_notify *notify;
 
 	if (pci_is_bridge(pdev))
 		return -ENODEV;
@@ -805,13 +1051,13 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 
 	ep_dev->cfg_base = pci_ioremap_bar(pdev, EP_CFG_BAR);
 	if (!ep_dev->cfg_base) {
-		dev_err(dev, "ep: failed to read cfg bar\n");
+		dev_err(dev, "ep: failed to map cfg bar.\n");
 		err = -ENOMEM;
 		goto err_free_irq;
 	}
 
-	/* enable all 32 bit door bell */
-	writel_relaxed(0xffffffff,
+	/* clear all 32 bit door bell */
+	writel_relaxed(0x0,
 		       ep_dev->cfg_base + DOOR_BELL_BASE + DOOR_BELL_STATUS);
 
 	pci_set_drvdata(pdev, ep_dev);
@@ -823,25 +1069,25 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	dev_info(dev, "ep: atu_view_port val = 0x%x", val);
 	ep_dev->iatu_unroll_enabled = val == 0xffffffff;
 
-	/* default , set can_notify to 1 */
-	ep_dev->can_notify = 1;
-
+	/* default , PCIE_EP_PROBE */
+	ep_dev->event = PCIE_EP_PROBE;
 	g_ep_dev[ep_dev->ep] = ep_dev;
 
-#ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
-	/*
-	 * IPA_REG_BAR is null, don't notify the sipc mudule,
-	 * wait the 2nd probe
-	 */
-	if (!ep_dev->bar[IPA_REG_BAR]) {
-		ep_dev->can_notify = 0;
-		dev_info(dev, "ep: wait the next probe!");
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	if (!ep_dev->bar[BAR_1] || !ep_dev->bar[BAR_3]) {
+		/* only 2 bar, set PCIE_EP_PROBE_BEFORE_SPLIT_BAR */
+		ep_dev->event = PCIE_EP_PROBE_BEFORE_SPLIT_BAR;
+		dev_info(dev, "ep:bar not ready, wait the next probe!");
 	}
 #endif
 
-	notify = &g_ep_dev_notify[ep_dev->ep];
-	if (notify->notify && ep_dev->can_notify)
-		notify->notify(PCIE_EP_PROBE, notify->data);
+	/* restore all the config */
+	if (ep_dev->event == PCIE_EP_PROBE)
+		sprd_pci_ep_dev_restore(ep_dev);
+
+	/* start notify work */
+	INIT_WORK(&ep_dev->notify_work, sprd_pci_ep_notify_fn);
+	schedule_work(&ep_dev->notify_work);
 
 	return 0;
 
@@ -867,19 +1113,22 @@ err_disable_pdev:
 static void sprd_pci_ep_dev_remove(struct pci_dev *pdev)
 {
 	u32 i;
-	enum dev_pci_barno bar;
 	struct sprd_ep_dev_notify *notify;
 	struct sprd_pci_ep_dev *ep_dev = pci_get_drvdata(pdev);
 
-	for (bar = 0; bar < BAR_MAX; bar++)
-		sprd_ep_dev_unmap_bar(ep_dev->ep, bar);
+	cancel_work_sync(&ep_dev->notify_work);
 
-#ifdef CONFIG_SPRD_SIPA
-	sprd_ep_dev_unmap_ipa_bar(ep_dev);
-#endif
+	/* first notify PCIE_EP_REMOVE */
+	notify = &g_ep_dev_notify[ep_dev->ep];
+	if (notify->notify)
+		notify->notify(PCIE_EP_REMOVE, notify->data);
+
+	/* back up some config before remove */
+	if (ep_dev->need_backup)
+		sprd_pci_ep_dev_backup(ep_dev);
 
 	if (ep_dev->cfg_base)
-		pci_iounmap(pdev, ep_dev->cfg_base);
+		iounmap(ep_dev->cfg_base);
 
 	for (i = REQUEST_BASE_IRQ; i < REQUEST_MAX_IRQ; i++)
 		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
@@ -892,10 +1141,6 @@ static void sprd_pci_ep_dev_remove(struct pci_dev *pdev)
 	pci_disable_msi(pdev);
 	pci_release_regions(pdev);
 	pci_disable_device(pdev);
-
-	notify = &g_ep_dev_notify[ep_dev->ep];
-	if (notify->notify && ep_dev->can_notify)
-		notify->notify(PCIE_EP_REMOVE, notify->data);
 
 	g_ep_dev[ep_dev->ep] = NULL;
 	ep_dev->bar_res = 0;

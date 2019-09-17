@@ -32,6 +32,7 @@
 #include <linux/pci-epf.h>
 #include <linux/pci_regs.h>
 #include <linux/pcie-epf-sprd.h>
+#include <linux/workqueue.h>
 
 #include "../../dwc/pcie-designware.h"
 
@@ -56,6 +57,8 @@ struct sprd_pci_epf {
 	struct list_head	res_list;
 	spinlock_t		lock;
 	int			irq_number;
+	u32			bak_irq_status;
+	struct work_struct linkup_work;
 };
 
 struct sprd_pci_epf_notify {
@@ -71,7 +74,7 @@ struct sprd_pci_epf_irq_handler {
 static struct sprd_pci_epf *g_epf_sprd[SPRD_FUNCTION_MAX];
 static struct sprd_pci_epf_notify g_epf_notify[SPRD_FUNCTION_MAX];
 static struct sprd_pci_epf_irq_handler
-		g_epf_handler[SPRD_FUNCTION_MAX][SPRD_EPF_IRQ_MAX];
+		g_epf_handler[SPRD_FUNCTION_MAX][PCIE_DBEL_IRQ_MAX];
 static int g_irq_number[SPRD_FUNCTION_MAX];
 static struct pci_epf_header sprd_header[SPRD_FUNCTION_MAX];
 
@@ -117,14 +120,22 @@ int sprd_pci_epf_register_irq_handler(int function,
 
 {
 	struct sprd_pci_epf_irq_handler *epf_handler;
+	struct sprd_pci_epf *epf_sprd;
 
-	if (function >= SPRD_FUNCTION_MAX || irq >= SPRD_EPF_IRQ_MAX)
+	if (function >= SPRD_FUNCTION_MAX || irq >= PCIE_DBEL_IRQ_MAX)
 		return -EINVAL;
 
 	epf_handler = &g_epf_handler[function][irq];
 	epf_handler->handler = handler;
 	epf_handler->data = data;
 
+	/* if have irq before register, handle it */
+	epf_sprd = g_epf_sprd[function];
+	if (handler && epf_sprd &&
+	    (BIT(irq) & epf_sprd->bak_irq_status)) {
+		epf_sprd->bak_irq_status &= ~BIT(irq);
+		handler(irq, data);
+	}
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sprd_pci_epf_register_irq_handler);
@@ -143,6 +154,39 @@ int sprd_pci_epf_unregister_irq_handler(int function, int irq)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sprd_pci_epf_unregister_irq_handler);
+
+int sprd_pci_epf_register_irq_handler_ex(int function,
+					 int from_irq,
+					 int to_irq,
+					 irq_handler_t handler,
+					 void *data)
+{
+	int i, ret;
+
+	for (i = from_irq; i < to_irq + 1; i++) {
+		ret = sprd_pci_epf_register_irq_handler(function,
+							i, handler, data);
+		if (ret)
+			return ret;
+	}
+
+	return 0;
+}
+
+int sprd_pci_epf_unregister_irq_handler_ex(int function,
+					   int from_irq,
+					   int to_irq)
+{
+	int i, ret;
+
+	for (i = from_irq; i < to_irq + 1; i++) {
+		ret = sprd_pci_epf_unregister_irq_handler(function, i);
+		if (ret)
+			return ret;
+	}
+
+	return 0;
+}
 
 int sprd_pci_epf_set_irq_number(int function, int irq_number)
 {
@@ -188,6 +232,31 @@ int sprd_pci_epf_raise_irq(int function, int irq)
 	return pci_epc_raise_irq(epc, PCI_EPC_IRQ_MSI, irq + 1);
 }
 EXPORT_SYMBOL_GPL(sprd_pci_epf_raise_irq);
+
+/*
+ * sprd_pci_epf_start
+ * will wakeup host to rescan ep
+ */
+int sprd_pci_epf_start(int function)
+{
+	struct pci_epc *epc;
+	struct sprd_pci_epf *epf_sprd;
+	struct device *dev;
+
+	if (function >= SPRD_FUNCTION_MAX)
+		return -EINVAL;
+
+	epf_sprd = g_epf_sprd[function];
+	if (!epf_sprd || IS_ERR(epf_sprd->epf->epc))
+		return -EINVAL;
+
+	epc = epf_sprd->epf->epc;
+	dev = &epf_sprd->epf->dev;
+
+	dev_dbg(dev, "pci_epc_start.\n");
+
+	return pci_epc_start(epc);
+}
 
 void __iomem *sprd_pci_epf_map_memory(int function,
 				      phys_addr_t rc_addr,
@@ -348,15 +417,43 @@ static irqreturn_t sprd_epf_irq_handler(int irq_number, void *private)
 		function, enable, status);
 	status &= enable;
 
-	for (irq = 0; irq < SPRD_EPF_IRQ_MAX; irq++) {
+	for (irq = 0; irq < PCIE_DBEL_IRQ_MAX; irq++) {
 		if (status & BIT(irq)) {
-			dev_dbg(dev, "func_no=%d, irq=%d\n", function, irq);
 			epf_handler = &g_epf_handler[function][irq];
 			if (epf_handler->handler)
 				epf_handler->handler(irq, epf_handler->data);
+			else
+				epf_sprd->bak_irq_status |= BIT(irq);
 		}
 	}
 	return IRQ_HANDLED;
+}
+
+static void sprd_epf_linkup_work_fn(struct work_struct *work)
+{
+	struct dw_pcie_ep *ep;
+	struct dw_pcie *pci;
+	struct sprd_pci_epf *epf_sprd = container_of(work, struct sprd_pci_epf,
+						     linkup_work);
+	struct pci_epf *epf = epf_sprd->epf;
+	struct device *dev = &epf->dev;
+	void (*notify)(int event, void *data);
+
+	if (epf->func_no < SPRD_FUNCTION_MAX) {
+		/* first, linkup notify */
+		notify = g_epf_notify[epf->func_no].notify;
+		if (notify)
+			notify(SPRD_EPF_LINK_UP,
+			       g_epf_notify[epf->func_no].data);
+
+		/* then, enable door bell irq */
+		dev_dbg(dev, "enable doorbell irq.");
+		ep = epc_get_drvdata(epf->epc);
+		pci = to_dw_pcie_from_ep(ep);
+		dw_pcie_writel_dbi(pci,
+				   DOOR_BELL_BASE + DOOR_BELL_ENABLE,
+				   BIT(PCIE_DBEL_IRQ_MAX) - 1);
+	}
 }
 
 static int sprd_epf_bind(struct pci_epf *epf)
@@ -367,8 +464,6 @@ static int sprd_epf_bind(struct pci_epf *epf)
 	void  (*notify)(int event, void *data);
 	struct pci_epc *epc = epf->epc;
 	struct device *dev = &epf->dev;
-	struct dw_pcie_ep *ep;
-	struct dw_pcie *pci;
 
 	if (WARN_ON_ONCE(!epc))
 		return -EINVAL;
@@ -399,13 +494,6 @@ static int sprd_epf_bind(struct pci_epf *epf)
 		notify = g_epf_notify[epf->func_no].notify;
 		if (notify)
 			notify(SPRD_EPF_BIND, g_epf_notify[epf->func_no].data);
-
-		/* enable door bell irq */
-		ep = epc_get_drvdata(epf->epc);
-		pci = to_dw_pcie_from_ep(ep);
-		dw_pcie_writel_dbi(pci,
-				   DOOR_BELL_BASE + DOOR_BELL_ENABLE,
-				   BIT(SPRD_FUNCTION_MAX) - 1);
 	}
 
 	return 0;
@@ -432,16 +520,11 @@ static void sprd_epf_unbind(struct pci_epf *epf)
 static void sprd_epf_linkup(struct pci_epf *epf)
 {
 	struct device *dev = &epf->dev;
-	void (*notify)(int event, void *data);
+	struct sprd_pci_epf *epf_sprd = epf_get_drvdata(epf);
 
 	dev_info(dev, "linkup: func_no = %d\n", epf->func_no);
 
-	if (epf->func_no < SPRD_FUNCTION_MAX) {
-		notify = g_epf_notify[epf->func_no].notify;
-		if (notify)
-			notify(SPRD_EPF_LINK_UP,
-			       g_epf_notify[epf->func_no].data);
-	}
+	schedule_work(&epf_sprd->linkup_work);
 }
 
 static void sprd_epf_unlink(struct pci_epf *epf)
@@ -483,6 +566,7 @@ static int sprd_epf_probe(struct pci_epf *epf)
 	epf_sprd->epf = epf;
 	spin_lock_init(&epf_sprd->lock);
 	INIT_LIST_HEAD(&epf_sprd->res_list);
+	INIT_WORK(&epf_sprd->linkup_work, sprd_epf_linkup_work_fn);
 
 	g_epf_sprd[epf->func_no] = epf_sprd;
 	notify = g_epf_notify[epf->func_no].notify;
@@ -516,6 +600,7 @@ static int sprd_epf_remove(struct pci_epf *epf)
 	struct pci_epc *epc = epf->epc;
 	struct sprd_pci_epf *epf_sprd = epf_get_drvdata(epf);
 
+	cancel_work_sync(&epf_sprd->linkup_work);
 	spin_lock_irqsave(&epf_sprd->lock, flags);
 	list_for_each_entry_safe(res, next, &epf_sprd->res_list, list) {
 		pci_epc_unmap_addr(epc, res->rc_addr);

@@ -378,7 +378,7 @@ static void smsg_ipc_init_irq_callback(struct smsg_ipc *ipc)
 
 	if (ipc->type == SIPC_BASE_PCIE) {
 #ifdef CONFIG_SPRD_PCIE_EP_DEVICE
-		ipc->irq = PCIE_EP_SIPC_IRQ;
+		ipc->irq = PCIE_DBELL_SIPC_IRQ;
 		ret1 = sprd_ep_dev_register_irq_handler(ipc->ep_dev,
 			ipc->irq, smsg_irq_handler, ipc);
 		ret2 = sprd_ep_dev_register_notify(ipc->ep_dev,
@@ -388,7 +388,7 @@ static void smsg_ipc_init_irq_callback(struct smsg_ipc *ipc)
 #ifdef CONFIG_PCIE_EPF_SPRD
 		sprd_pci_epf_set_irq_number(ipc->ep_fun, ipc->irq);
 		ret1 = sprd_pci_epf_register_irq_handler(ipc->ep_fun,
-				   SPRD_EPF_SIPC_IRQ,
+				   PCIE_MSI_SIPC_IRQ,
 				   smsg_irq_handler, ipc);
 		ret2 = sprd_pci_epf_register_notify(ipc->ep_fun,
 			smsg_pcie_epf_notify, ipc);
