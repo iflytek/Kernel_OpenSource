@@ -90,6 +90,11 @@ struct sblock_ring {
 	struct sblock_header	*header;
 	struct sblock_header_op header_op;
 
+	struct sprd_pms	*tx_pms;
+	struct sprd_pms	*rx_pms;
+	char	tx_pms_name[20];
+	char	rx_pms_name[20];
+
 	void	*txblk_virt; /* virt of header->txblk_addr */
 	void	*rxblk_virt; /* virt of header->rxblk_addr */
 

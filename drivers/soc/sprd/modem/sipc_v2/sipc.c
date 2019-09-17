@@ -32,6 +32,22 @@
 #define MBOX_BAMK	"mbox"
 #define PCIE_BAMK	"pcie"
 
+/*
+ * In charge mode, will only boot pm system,
+ * so just create pm systen sipc.
+ */
+static bool g_is_charge_mode;
+
+static int __init sipc_early_mode(char *str)
+{
+	if (!memcmp(str, "charger", 7))
+		g_is_charge_mode = true;
+
+	return 0;
+}
+
+early_param("androidboot.mode", sipc_early_mode);
+
 #if defined(CONFIG_DEBUG_FS)
 void sipc_debug_putline(struct seq_file *m, char c, int n)
 {
@@ -156,7 +172,8 @@ static int sipc_parse_dt(struct smsg_ipc *ipc,
 
 #ifdef CONFIG_SPRD_PCIE_EP_DEVICE
 	if (ipc->type == SIPC_BASE_PCIE) {
-		ipc->irq = PCIE_DBELL_SIPC_IRQ;
+		struct device_node *pdev_node;
+
 		ret = of_property_read_u32_array(np,
 						 "sprd,ep-dev",
 						 &ipc->ep_dev,
@@ -165,6 +182,20 @@ static int sipc_parse_dt(struct smsg_ipc *ipc,
 		if (ret || ipc->ep_dev >= PCIE_EP_NR) {
 			pr_err("sipc: ep_dev err, ret =%d.\n", ret);
 			return ret;
+		}
+
+		/* get pcie rc ctrl device */
+		pdev_node = of_parse_phandle(np, "sprd,rc-ctrl", 0);
+		if (!pdev_node) {
+			pr_err("sipc: sprd,rc-ctrl err.\n");
+			return -ENODEV;
+		}
+		ipc->pcie_dev = of_find_device_by_node(pdev_node);
+		of_node_put(pdev_node);
+
+		if (!ipc->pcie_dev) {
+			pr_err("sipc: find pcie_dev err.\n");
+			return -ENODEV;
 		}
 	}
 #endif
@@ -195,9 +226,11 @@ static int sipc_parse_dt(struct smsg_ipc *ipc,
 	/* get smem type */
 	ret = of_property_read_u32_array(np,
 					 "sprd,smem-type",
-					 &ipc->smem_type,
+					 &val[0],
 					 1);
-	if (ret)
+	if (!ret)
+		ipc->smem_type = (enum smem_type)val[0];
+	else
 		ipc->smem_type = SMEM_LOCAL;
 
 	pr_debug("sipc: smem_type = %d, ret =%d\n", ipc->smem_type, ret);
@@ -217,24 +250,26 @@ static int sipc_parse_dt(struct smsg_ipc *ipc,
 	pr_debug("sipc: smem_base=0x%x, dst_smem_base=0x%x, smem_size=0x%x\n",
 		ipc->smem_base, ipc->dst_smem_base, ipc->smem_size);
 
+#ifdef CONFIG_PHYS_ADDR_T_64BIT
 	/* try to get high_offset */
-	ret = of_property_read_u32_array(np,
+	ret = of_property_read_u32(np,
 					 "sprd,high-offset",
-					 val,
-					 2);
+					 val);
 	if (!ret) {
 		ipc->high_offset = val[0];
-		ipc->dst_high_offset = val[1];
+		pr_info("sipc: high_offset=0x%xn", ipc->high_offset);
 	}
-	pr_debug("sipc:  high_offset=0x%x, dst_high_offset=0x%x\n",
-		ipc->high_offset, ipc->dst_high_offset);
+#endif
 
 	if (ipc->type == SIPC_BASE_PCIE) {
-		/* need wait pcie linkup */
-		ipc->suspend = 1;
 		/* pcie sipc, the host must use loacal SMEM_LOCAL */
 		if (!ipc->client && ipc->smem_type != SMEM_LOCAL) {
 			pr_err("sipc: host must use local smem!");
+			return -EINVAL;
+		}
+
+		if (ipc->client && ipc->smem_type != SMEM_PCIE) {
+			pr_err("sipc: client must use pcie smem!");
 			return -EINVAL;
 		}
 	}
@@ -260,11 +295,16 @@ static int sipc_probe(struct platform_device *pdev)
 			return -ENODEV;
 		}
 
+		/*
+		 * In charge mode, will only boot pm system,
+		 * so just create pm systen sipc.
+		 */
+		if (g_is_charge_mode && ipc->dst != SIPC_ID_PM_SYS)
+			return -ENODEV;
+
 		ipc->rxirq_status = sipc_rxirq_status;
 		ipc->rxirq_clear = sipc_rxirq_clear;
 		ipc->txirq_trigger = sipc_txirq_trigger;
-		init_waitqueue_head(&ipc->suspend_wait);
-		spin_lock_init(&ipc->suspend_pinlock);
 		spin_lock_init(&ipc->txpinlock);
 
 		smsg_ipc_create(ipc);

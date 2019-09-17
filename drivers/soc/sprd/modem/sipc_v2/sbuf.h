@@ -89,14 +89,12 @@ struct sbuf_ring {
 	struct mutex	txlock;
 	struct mutex	rxlock;
 
-	struct wakeup_source	tx_wake_lock;
-	struct wakeup_source	rx_wake_lock;
-	char	tx_wakelock_name[20];
-	char	rx_wakelock_name[20];
+	struct sprd_pms	*tx_pms;
+	struct sprd_pms	*rx_pms;
+	char	tx_pms_name[20];
+	char	rx_pms_name[20];
 
-	u8	tx_wakelock_state;
-	u8	rx_wakelock_state;
-	u16	need_wake_lock;
+	bool	need_wake_lock;
 
 	void	(*handler)(int event, void *data);
 	void	*data;

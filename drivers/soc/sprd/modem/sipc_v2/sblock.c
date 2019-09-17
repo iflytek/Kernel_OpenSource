@@ -74,6 +74,9 @@ void sblock_put(u8 dst, u8 channel, struct sblock *blk)
 	ring->txrecord[index] = SBLOCK_BLK_STATE_DONE;
 
 	spin_unlock_irqrestore(&ring->p_txlock, flags);
+
+	/* request in sblock_get, release here */
+	sipc_smem_release_resource(ring->tx_pms, dst);
 }
 EXPORT_SYMBOL_GPL(sblock_put);
 
@@ -85,7 +88,7 @@ static int sblock_recover(u8 dst, u8 channel)
 	struct sblock_ring_header_op *poolhd_op;
 	struct sblock_ring_header_op *ringhd_op;
 	unsigned long pflags, qflags;
-	int i, j;
+	int i, j, rval;
 	u8 ch_index;
 
 	ch_index = sipc_channel2index(channel);
@@ -105,6 +108,11 @@ static int sblock_recover(u8 dst, u8 channel)
 	sblock->state = SBLOCK_STATE_IDLE;
 	wake_up_interruptible_all(&ring->getwait);
 	wake_up_interruptible_all(&ring->recvwait);
+
+	/* must request resource before read or write share memory */
+	rval = sipc_smem_request_resource(ring->rx_pms, dst, -1);
+	if (rval < 0)
+		return rval;
 
 	spin_lock_irqsave(&ring->r_txlock, pflags);
 	/* clean txblks ring */
@@ -144,6 +152,9 @@ static int sblock_recover(u8 dst, u8 channel)
 	spin_unlock_irqrestore(&ring->p_rxlock, qflags);
 	spin_unlock_irqrestore(&ring->r_rxlock, pflags);
 
+	/* release resource */
+	sipc_smem_release_resource(ring->rx_pms, dst);
+
 	return 0;
 }
 
@@ -157,7 +168,7 @@ static int sblock_host_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock,
 	struct sblock_ring_header_op *poolhd_op;
 
 	u32 hsize;
-	int i;
+	int i, rval = -ENOMEM;
 	phys_addr_t offset = 0;
 	u8 dst = sblock->dst;
 
@@ -235,6 +246,20 @@ static int sblock_host_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock,
 		goto sblock_host_smem_free;
 	}
 
+	/* alloc ring */
+	sblock->ring->txrecord = kcalloc(txblocknum, sizeof(int), GFP_KERNEL);
+	if (!sblock->ring->txrecord)
+		goto sblock_host_unmap;
+
+	sblock->ring->rxrecord = kcalloc(rxblocknum, sizeof(int), GFP_KERNEL);
+	if (!sblock->ring->rxrecord)
+		goto sblock_host_tx_free;
+
+	/* must request resource before read or write share memory */
+	rval = sipc_smem_request_resource(sipc->sipc_pms, sipc->dst, -1);
+	if (rval < 0)
+		goto sblock_host_rx_free;
+
 	/* initialize header */
 	ringhd = (volatile struct sblock_ring_header *)(sblock->smem_virt);
 	ringhd->txblk_addr = sblock->stored_smem_addr + hsize;
@@ -274,14 +299,6 @@ static int sblock_host_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock,
 		 sblock->channel);
 
 	/* initialize ring */
-	sblock->ring->txrecord = kcalloc(txblocknum, sizeof(int), GFP_KERNEL);
-	if (!sblock->ring->txrecord)
-		goto sblock_host_unmap;
-
-	sblock->ring->rxrecord = kcalloc(rxblocknum, sizeof(int), GFP_KERNEL);
-	if (!sblock->ring->rxrecord)
-		goto sblock_host_tx_free;
-
 	sblock->ring->header = sblock->smem_virt;
 	sblock->ring->txblk_virt = sblock->smem_virt +
 		(ringhd->txblk_addr - sblock->stored_smem_addr);
@@ -339,8 +356,13 @@ static int sblock_host_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock,
 	poolhd_op->rx_size  = poolhd->rxblk_size;
 	poolhd_op->rx_blks  = poolhd->rxblk_blks;
 
+	/* release resource */
+	sipc_smem_release_resource(sipc->sipc_pms, sipc->dst);
+
 	return 0;
 
+sblock_host_rx_free:
+	kfree(sblock->ring->rxrecord);
 sblock_host_tx_free:
 	kfree(sblock->ring->txrecord);
 sblock_host_unmap:
@@ -353,7 +375,7 @@ sblock_host_smem_free:
 	       sblock->dst,
 	       sblock->channel);
 
-	return -ENOMEM;
+	return rval;
 }
 
 static int sblock_client_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock)
@@ -366,6 +388,7 @@ static int sblock_client_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock)
 	u8 dst = sblock->dst;
 	phys_addr_t offset = 0;
 	u32 txblocknum, txblocksize, rxblocknum, rxblocksize;
+	int rval = -ENOMEM;
 
 #ifdef CONFIG_PHYS_ADDR_T_64BIT
 	offset = sipc->high_offset;
@@ -469,6 +492,11 @@ static int sblock_client_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock)
 	ringhd = (volatile struct sblock_ring_header *)(sblock->smem_virt);
 	poolhd = ringhd + 1;
 
+	/* must request resource before read or write share memory */
+	rval = sipc_smem_request_resource(sipc->sipc_pms, sipc->dst, -1);
+	if (rval < 0)
+		goto sblock_client_tx_free;
+
 	/* client mode, tx <==> rx */
 	sblock->ring->header = sblock->smem_virt;
 	sblock->ring->txblk_virt = sblock->smem_virt +
@@ -512,6 +540,9 @@ static int sblock_client_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock)
 	poolhd_op->rx_size  = poolhd->txblk_size;
 	poolhd_op->rx_blks  = poolhd->txblk_blks;
 
+	/* release resource */
+	sipc_smem_release_resource(sipc->sipc_pms, sipc->dst);
+
 	return 0;
 
 sblock_client_tx_free:
@@ -521,7 +552,7 @@ sblock_client_unmap:
 sblock_client_smem_free:
 	smem_free(dst, sblock->smem_addr_debug, sblock->smem_size);
 
-	return -ENOMEM;
+	return rval;
 }
 
 static int sblock_thread(void *data)
@@ -681,6 +712,27 @@ static int sblock_thread(void *data)
 	return rval;
 }
 
+static void sblock_pms_init(uint8_t dst, uint8_t ch, struct sblock_ring *ring)
+{
+	sprintf(ring->tx_pms_name, "sblock-%d-%d-tx", dst, ch);
+	ring->tx_pms = sprd_pms_create(dst, ring->tx_pms_name, true);
+	if (!ring->tx_pms)
+		pr_warn("create pms %s failed!\n", ring->tx_pms_name);
+
+	sprintf(ring->rx_pms_name, "sblock-%d-%d-rx", dst, ch);
+	ring->rx_pms = sprd_pms_create(dst, ring->rx_pms_name, true);
+	if (!ring->rx_pms)
+		pr_warn("create pms %s failed!\n", ring->rx_pms_name);
+}
+
+static void sblock_pms_destroy(struct sblock_ring *ring)
+{
+	sprd_pms_destroy(ring->tx_pms);
+	sprd_pms_destroy(ring->rx_pms);
+	ring->tx_pms = NULL;
+	ring->rx_pms = NULL;
+}
+
 static int sblock_mgr_create(uint8_t dst,
 			     uint8_t channel,
 			     int pre_cfg,
@@ -723,6 +775,7 @@ static int sblock_mgr_create(uint8_t dst,
 		}
 	}
 
+	sblock_pms_init(dst, channel, sblock->ring);
 	init_waitqueue_head(&sblock->ring->getwait);
 	init_waitqueue_head(&sblock->ring->recvwait);
 	spin_lock_init(&sblock->ring->r_txlock);
@@ -911,6 +964,7 @@ void sblock_destroy(u8 dst, u8 channel)
 	}
 
 	if (sblock->ring) {
+		sblock_pms_destroy(sblock->ring);
 		wake_up_interruptible_all(&sblock->ring->recvwait);
 		wake_up_interruptible_all(&sblock->ring->getwait);
 		/* kfree(NULL) is safe */
@@ -1059,12 +1113,12 @@ int sblock_get(u8 dst, u8 channel, struct sblock *blk, int timeout)
 	struct sblock_mgr *sblock;
 	struct sblock_ring *ring;
 	struct sblock_ring_header_op *poolhd_op;
-	struct sblock_ring_header_op *ringhd_op;
 
 	int txpos, index;
 	int rval = 0;
 	unsigned long flags;
 	u8 ch_index;
+	bool no_data;
 
 	ch_index = sipc_channel2index(channel);
 	if (ch_index == INVALID_CHANEL_INDEX) {
@@ -1081,9 +1135,17 @@ int sblock_get(u8 dst, u8 channel, struct sblock *blk, int timeout)
 
 	ring = sblock->ring;
 	poolhd_op = &(ring->header_op.poolhd_op);
-	ringhd_op = &(ring->header_op.ringhd_op);
 
-	if (*(poolhd_op->tx_rd_p) == *(poolhd_op->tx_wt_p)) {
+	/* must request resource before read or write share memory */
+	rval = sipc_smem_request_resource(ring->tx_pms, dst, timeout);
+	if (rval < 0)
+		return rval;
+
+	no_data = *(poolhd_op->tx_rd_p) == *(poolhd_op->tx_wt_p);
+	/* release resource */
+	sipc_smem_release_resource(ring->tx_pms, dst);
+
+	if (no_data) {
 		if (timeout == 0) {
 			/* no wait */
 			pr_err("%s: %d-%d is empty!\n", __func__, dst, channel);
@@ -1123,6 +1185,11 @@ int sblock_get(u8 dst, u8 channel, struct sblock *blk, int timeout)
 	if (rval < 0)
 		return rval;
 
+	/* must request resource before read or write share memory */
+	rval = sipc_smem_request_resource(ring->tx_pms, dst, timeout);
+	if (rval < 0)
+		return rval;
+
 	/* multi-gotter may cause got failure */
 	spin_lock_irqsave(&ring->p_txlock, flags);
 	if (*(poolhd_op->tx_rd_p) != *(poolhd_op->tx_wt_p) &&
@@ -1138,6 +1205,8 @@ int sblock_get(u8 dst, u8 channel, struct sblock *blk, int timeout)
 					 sblock->txblksz);
 		ring->txrecord[index] = SBLOCK_BLK_STATE_PENDING;
 	} else {
+		/* release resource */
+		sipc_smem_release_resource(ring->tx_pms, dst);
 		rval = sblock->state == SBLOCK_STATE_READY ? -EAGAIN : -EIO;
 	}
 	spin_unlock_irqrestore(&ring->p_txlock, flags);
@@ -1208,6 +1277,9 @@ static int sblock_send_ex(u8 dst, u8 channel,
 
 	spin_unlock_irqrestore(&ring->r_txlock, flags);
 
+	/* request in sblock_get, release here */
+	sipc_smem_release_resource(ring->tx_pms, dst);
+
 	return rval;
 }
 
@@ -1247,12 +1319,19 @@ int sblock_send_finish(u8 dst, u8 channel)
 	ring = sblock->ring;
 	ringhd_op = &(ring->header_op.ringhd_op);
 
+	/* must wait resource before read or write share memory */
+	rval = sipc_smem_request_resource(ring->tx_pms, dst, -1);
+	if (rval)
+		return rval;
+
 	if (*(ringhd_op->tx_wt_p) != *(ringhd_op->tx_rd_p)) {
 		smsg_set(&mevt, channel,
 			 SMSG_TYPE_EVENT,
 			 SMSG_EVENT_SBLOCK_SEND, 0);
 		rval = smsg_send(dst, &mevt, 0);
 	}
+	/* release resource */
+	sipc_smem_release_resource(ring->tx_pms, dst);
 
 	return rval;
 }
@@ -1267,6 +1346,7 @@ int sblock_receive(u8 dst, u8 channel,
 	int rxpos, index, rval = 0;
 	unsigned long flags;
 	u8 ch_index;
+	bool no_data;
 
 	ch_index = sipc_channel2index(channel);
 	if (ch_index == INVALID_CHANEL_INDEX) {
@@ -1281,17 +1361,27 @@ int sblock_receive(u8 dst, u8 channel,
 		return sblock ? -EIO : -ENODEV;
 	}
 
+	pr_debug("%s: dst=%d, channel=%d, timeout=%d\n",
+		 __func__, dst, channel, timeout);
+
 	ring = sblock->ring;
 	ringhd_op = &(ring->header_op.ringhd_op);
 
-	pr_debug("%s: dst=%d, channel=%d, timeout=%d\n",
-		 __func__, dst, channel, timeout);
+	/* must request resource before read or write share memory */
+	rval = sipc_smem_request_resource(ring->rx_pms, dst, timeout);
+	if (rval < 0)
+		return rval;
+
 	pr_debug("%s: channel=%d, wrptr=%d, rdptr=%d",
 		 __func__, channel,
 		 *(ringhd_op->rx_wt_p),
 		 *(ringhd_op->rx_rd_p));
 
-	if (*(ringhd_op->rx_wt_p) == *(ringhd_op->rx_rd_p)) {
+	no_data = *(ringhd_op->rx_wt_p) == *(ringhd_op->rx_rd_p);
+	/* release resource */
+	sipc_smem_release_resource(ring->rx_pms, dst);
+
+	if (no_data) {
 		if (timeout == 0) {
 			/* no wait */
 			pr_debug("%s: %d-%d is empty!\n",
@@ -1331,6 +1421,11 @@ int sblock_receive(u8 dst, u8 channel,
 	if (rval < 0)
 		return rval;
 
+	/* must request resource before read or write share memory */
+	rval = sipc_smem_request_resource(ring->rx_pms, dst, timeout);
+	if (rval < 0)
+		return rval;
+
 	/* multi-receiver may cause recv failure */
 	spin_lock_irqsave(&ring->r_rxlock, flags);
 
@@ -1349,6 +1444,8 @@ int sblock_receive(u8 dst, u8 channel,
 					 sblock->rxblksz);
 		ring->rxrecord[index] = SBLOCK_BLK_STATE_PENDING;
 	} else {
+		/* release resource */
+		sipc_smem_release_resource(ring->rx_pms, dst);
 		rval = sblock->state == SBLOCK_STATE_READY ? -EAGAIN : -EIO;
 	}
 	spin_unlock_irqrestore(&ring->r_rxlock, flags);
@@ -1365,6 +1462,7 @@ int sblock_get_arrived_count(u8 dst, u8 channel)
 	int blk_count = 0;
 	unsigned long flags;
 	u8 ch_index;
+	int rval;
 
 	ch_index = sipc_channel2index(channel);
 	if (ch_index == INVALID_CHANEL_INDEX) {
@@ -1381,9 +1479,16 @@ int sblock_get_arrived_count(u8 dst, u8 channel)
 	ring = sblock->ring;
 	ringhd_op = &(ring->header_op.ringhd_op);
 
+	/* must request resource before read or write share memory */
+	rval = sipc_smem_request_resource(ring->rx_pms, dst, -1);
+	if (rval < 0)
+		return rval;
+
 	spin_lock_irqsave(&ring->r_rxlock, flags);
 	blk_count = (int)(*(ringhd_op->rx_wt_p) - *(ringhd_op->rx_rd_p));
 	spin_unlock_irqrestore(&ring->r_rxlock, flags);
+	/* release resource */
+	sipc_smem_release_resource(ring->rx_pms, dst);
 
 	return blk_count;
 
@@ -1395,7 +1500,7 @@ int sblock_get_free_count(u8 dst, u8 channel)
 	struct sblock_mgr *sblock;
 	struct sblock_ring *ring;
 	struct sblock_ring_header_op *poolhd_op;
-	int blk_count = 0;
+	int blk_count = 0, rval;
 	unsigned long flags;
 	u8 ch_index;
 
@@ -1414,9 +1519,16 @@ int sblock_get_free_count(u8 dst, u8 channel)
 	ring = sblock->ring;
 	poolhd_op = &(ring->header_op.poolhd_op);
 
+	/* must request resource before read or write share memory */
+	rval = sipc_smem_request_resource(ring->tx_pms, dst, -1);
+	if (rval < 0)
+		return rval;
+
 	spin_lock_irqsave(&ring->p_txlock, flags);
 	blk_count = (int)(*(poolhd_op->tx_wt_p) - *(poolhd_op->tx_rd_p));
 	spin_unlock_irqrestore(&ring->p_txlock, flags);
+	/* release resource */
+	sipc_smem_release_resource(ring->tx_pms, dst);
 
 	return blk_count;
 }
@@ -1476,6 +1588,9 @@ int sblock_release(u8 dst, u8 channel, struct sblock *blk)
 
 	spin_unlock_irqrestore(&ring->p_rxlock, flags);
 
+	/* request in sblock_receive, release here */
+	sipc_smem_release_resource(ring->rx_pms, dst);
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sblock_release);
@@ -1510,10 +1625,19 @@ unsigned int sblock_poll_wait(u8 dst, u8 channel,
 	}
 	poll_wait(filp, &ring->recvwait, wait);
 	poll_wait(filp, &ring->getwait, wait);
+
+	/* must request resource before read or write share memory */
+	if (sipc_smem_request_resource(ring->rx_pms, dst, -1) < 0)
+		return mask;
+
 	if (*(ringhd_op->rx_wt_p) != *(ringhd_op->rx_rd_p))
 		mask |= POLLIN | POLLRDNORM;
 	if (*(poolhd_op->tx_rd_p) != *(poolhd_op->tx_wt_p))
 		mask |= POLLOUT | POLLWRNORM;
+
+	/* release resource */
+	sipc_smem_release_resource(ring->rx_pms, dst);
+
 	return mask;
 }
 EXPORT_SYMBOL_GPL(sblock_poll_wait);
@@ -1543,6 +1667,7 @@ EXPORT_SYMBOL_GPL(sblock_query);
 #if defined(CONFIG_DEBUG_FS)
 static int sblock_debug_show(struct seq_file *m, void *private)
 {
+	struct smsg_ipc *sipc = NULL;
 	struct sblock_mgr *sblock;
 	struct sblock_ring  *ring;
 	struct sblock_ring_header_op *poolhd_op;
@@ -1550,6 +1675,15 @@ static int sblock_debug_show(struct seq_file *m, void *private)
 	int i, j;
 
 	for (i = 0; i < SIPC_ID_NR; i++) {
+		sipc = smsg_ipcs[i];
+		if (!sipc)
+			continue;
+
+		/* must request resource before read or write share memory */
+		if (sipc_smem_request_resource(sipc->sipc_pms,
+					       sipc->dst, 1000) < 0)
+			continue;
+
 		for (j = 0;  j < SMSG_VALID_CH_NR; j++) {
 			sblock = sblocks[i][j];
 			if (!sblock)
@@ -1600,9 +1734,11 @@ static int sblock_debug_show(struct seq_file *m, void *private)
 				   *(poolhd_op->tx_wt_p), poolhd_op->tx_size,
 				   poolhd_op->tx_count, poolhd_op->tx_blks);
 		}
+		/* release resource */
+		sipc_smem_release_resource(sipc->sipc_pms, sipc->dst);
 	}
-	return 0;
 
+	return 0;
 }
 
 static int sblock_debug_open(struct inode *inode, struct file *file)
