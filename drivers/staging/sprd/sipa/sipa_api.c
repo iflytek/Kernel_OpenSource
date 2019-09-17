@@ -703,6 +703,18 @@ int sipa_get_ep_info(enum sipa_ep_id id,
 }
 EXPORT_SYMBOL(sipa_get_ep_info);
 
+bool sipa_check_cmn_fifo_complete(enum sipa_ep_id id)
+{
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+	struct sipa_endpoint *ep = ctrl->eps[id];
+
+	return sipa_hal_check_send_cmn_fifo_com(ep->sipa_ctx->hdl,
+						ep->send_fifo.idx) &&
+		sipa_hal_check_send_cmn_fifo_com(ep->sipa_ctx->hdl,
+						 ep->recv_fifo.idx);
+}
+EXPORT_SYMBOL(sipa_check_cmn_fifo_complete);
+
 int sipa_pam_connect(const struct sipa_connect_params *in)
 {
 	u32 i;

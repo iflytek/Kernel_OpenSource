@@ -1106,20 +1106,32 @@ bool sipa_hal_check_send_cmn_fifo_com(sipa_hal_hdl hdl,
 	struct sipa_hal_context *hal_cfg = (struct sipa_hal_context *)hdl;
 	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
 
-	depth = (fifo_cfg + fifo_id)->tx_fifo.depth;
 	ret = hal_cfg->fifo_ops.get_tx_empty_status(fifo_id, fifo_cfg);
 	hal_cfg->fifo_ops.get_tx_fifo_wr_rd_ptr(fifo_id, fifo_cfg,
 						&tx_wptr, &tx_rptr);
 	hal_cfg->fifo_ops.get_rx_fifo_wr_rd_ptr(fifo_id, fifo_cfg,
 						&rx_wptr, &rx_rptr);
-	if (fifo_id != SIPA_FIFO_CP_DL) {
-		status = (tx_wptr == tx_rptr) && (tx_rptr == rx_wptr) &&
-			(rx_wptr == rx_rptr);
-	} else {
+	fifo_cfg += fifo_id;
+	switch (fifo_id) {
+	case SIPA_FIFO_CP_DL:
+		depth = fifo_cfg->tx_fifo.depth;
 		status = (rx_wptr == rx_rptr) &&
 			(((depth | (depth - 1)) &
 			(rx_wptr + depth)) == tx_wptr);
 		ret = true;
+		break;
+	case SIPA_FIFO_CP_UL:
+	case SIPA_FIFO_AP_ETH_UL:
+	case SIPA_FIFO_AP_IP_DL:
+		depth = fifo_cfg->rx_fifo.depth;
+		status = (tx_wptr == tx_rptr) &&
+			(((depth | (depth - 1)) & (tx_wptr + depth)) ==
+			 rx_wptr);
+		break;
+	default:
+		status = tx_wptr == tx_rptr && tx_rptr == rx_wptr &&
+			rx_wptr == rx_rptr;
+		break;
 	}
 
 	if (status && ret)

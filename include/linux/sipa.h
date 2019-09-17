@@ -444,4 +444,6 @@ void sipa_rm_set_usb_eth_down(void);
 
 int sipa_rm_enable_usb_tether(void);
 
+bool sipa_check_cmn_fifo_complete(enum sipa_ep_id id);
+
 #endif /* _SIPA_H_ */
