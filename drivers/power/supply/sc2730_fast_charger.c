@@ -59,7 +59,7 @@
 #define FCHG_VOLTAGE_12V			12000000
 #define FCHG_VOLTAGE_20V			20000000
 
-#define SC2730_FCHG_TIMEOUT			msecs_to_jiffies(20)
+#define SC2730_FCHG_TIMEOUT			msecs_to_jiffies(5000)
 
 struct sc2730_fchg_info {
 	struct device *dev;
