@@ -27,6 +27,10 @@
 #include <linux/debugfs.h>
 #include <linux/gpio/consumer.h>
 
+#ifdef CONFIG_SPRD_PCIE_EP_DEVICE
+#include "../include/sprd_pcie_resource.h"
+#endif
+
 #include "sprd_modem_loader.h"
 
 /* modem io cmd */
@@ -53,11 +57,9 @@
 #define MODEM_STOP_CMD _IO(MODEM_MAGIC, 0xc)
 #define MODEM_START_CMD _IO(MODEM_MAGIC, 0xd)
 
-#ifdef CONFIG_SPRD_EXT_MODEM_POWER_CTRL
 #define MODEM_REBOOT_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0xe)
 #define MODEM_POWERON_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0xf)
 #define MODEM_POWEROFF_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0x10)
-#endif
 
 #define	MODEM_READ_ALL_MEM 0xff
 #define	MODEM_READ_MODEM_MEM 0xfe
@@ -77,11 +79,16 @@ enum {
 	SPRD_4G_MODEM_CNT,
 };
 
+struct modem_data {
+	char	*name;
+	u32	dst;
+};
+
 #ifdef CONFIG_SPRD_EXT_MODEM
 const struct ext_modem_operations *ext_modem_ops;
 #endif
 
-const char *modem_ctrl_args[MODEM_CTRL_NR] = {
+static const char *modem_ctrl_args[MODEM_CTRL_NR] = {
 	"shutdown",
 	"deepsleep",
 	"corereset",
@@ -89,16 +96,26 @@ const char *modem_ctrl_args[MODEM_CTRL_NR] = {
 	"getstatus"
 };
 
-const char *modem_5g_name[SPRD_5G_MODEM_CNT] = {
-	"dpsys",
-	"modem",
-	"nrphy",
-	"v3phy"
+#ifdef CONFIG_SPRD_EXT_MODEM
+/* the external modem, all comunacate with SIPC_ID_MINIAP */
+static const struct modem_data modem_5g[SPRD_5G_MODEM_CNT] = {
+	{"dpsys", SIPC_ID_MINIAP},
+	{"modem", SIPC_ID_MINIAP},
+	{"nrphy", SIPC_ID_MINIAP},
+	{"v3phy", SIPC_ID_MINIAP}
 };
+#else
+static const struct modem_data modem_5g[SPRD_5G_MODEM_CNT] = {
+	{"dpsys", SIPC_ID_PM_SYS},
+	{"modem", SIPC_ID_PSCP},
+	{"nrphy", SIPC_ID_NR_PHY},
+	{"v3phy", SIPC_ID_V3_PHY}
+};
+#endif
 
-const char *modem_4g_name[SPRD_4G_MODEM_CNT] = {
-	"pmsys",
-	"pubcp"
+static const struct modem_data modem_4g[SPRD_4G_MODEM_CNT] = {
+	{"pmsys", SIPC_ID_PM_SYS},
+	{"pubcp", SIPC_ID_PSCP}
 };
 
 typedef int (*MODEM_PARSE_FUN)(struct modem_device *modem,
@@ -309,11 +326,12 @@ static int modem_cmd_lock(struct file *filp,
 			  struct modem_device *modem, int b_rx)
 {
 	struct mutex *mut; /* mutex point to rd_mutex or wt_mutex*/
-	struct wakeup_source *ws;
+	struct sprd_pms *pms;
 	char *name;
+	int ret;
 
 	mut = b_rx ? &modem->rd_mutex : &modem->wt_mutex;
-	ws = b_rx ? &modem->rd_ws : &modem->wt_ws;
+	pms = b_rx ? modem->rd_pms : modem->wt_pms;
 	name = b_rx ? modem->rd_lock_name : modem->wt_lock_name;
 
 	if (filp->f_flags & O_NONBLOCK) {
@@ -328,8 +346,39 @@ static int modem_cmd_lock(struct file *filp,
 		mutex_lock(mut);
 	}
 
-	/* lock, get wake lock, cpy task to name */
-	__pm_stay_awake(ws);
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	/* In case of the open the feature CONFIG_PCIE_SPRD_SPLIT_BAR,
+	 * It has 2 times pcie scan action in host side boot process.
+	 * After the first scan, the ep only have 2 bar can be used for
+	 * memory map, the pcie resource is not completely ready.
+	 * The api sprd_pms_request_resource(pms, -1) will return until the
+	 * 2th scan action complete, and the ep will have 4 bar can be used
+	 * for memory map. but the ep bar can only be split by the modem, so
+	 * we can't used the commom api sprd_pms_wait_resource here.
+	 * For workaroud this issue, we add a special api
+	 * sprd_pcie_wait_load_resource, this api will return after
+	 * the first pcie scan action, and in here we use it.
+	 */
+	if (modem->modem_type == PCIE_MODEM) {
+		/* just request resource, no need wait resource ready. */
+		sprd_pms_request_resource(pms, 0);
+		ret = sprd_pcie_wait_load_resource(modem->modem_dst);
+		dev_info(modem->p_dev, "lock, wait load ret =%d\n", ret);
+	} else {
+		/* must request resource before read or write ep memory */
+		ret = sprd_pms_request_resource(pms, -1);
+	}
+#else
+	/* must request resource before read or write ep memory */
+	ret = sprd_pms_request_resource(pms, -1);
+#endif
+
+	if (ret < 0) {
+		mutex_unlock(mut);
+		return ret;
+	}
+
+	/* lock, cpy task to name */
 	strcpy(name, current->comm);
 	return 0;
 }
@@ -337,20 +386,22 @@ static int modem_cmd_lock(struct file *filp,
 static int modem_cmd_unlock(struct modem_device *modem, int b_rx)
 {
 	struct mutex *mut; /* mutex point to rd_mutex or wt_mutex*/
-	struct wakeup_source *ws;
+	struct sprd_pms *pms;
 	char *name;
 
 	mut = b_rx ? &modem->rd_mutex : &modem->wt_mutex;
-	ws = b_rx ? &modem->rd_ws : &modem->wt_ws;
+	pms = b_rx ? modem->rd_pms : modem->wt_pms;
 	name = b_rx ? modem->rd_lock_name : modem->wt_lock_name;
 
 	if (strlen(name) == 0)
 		/* means no lock, so don't unlock */
 		return 0;
 
-	/* unlock, release wake lock, set name[0] to 0 */
+	/* release resource */
+	sprd_pms_release_resource(pms);
+
+	/* unlock, set name[0] to 0 */
 	name[0] = 0;
-	__pm_relax(ws);
 	mutex_unlock(mut);
 
 	dev_dbg(modem->p_dev,
@@ -469,6 +520,20 @@ static int modem_run(struct modem_device *modem, u8 b_run)
 		return -EINVAL;
 
 	modem->run_state = b_run;
+	if (b_run) {
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+		if (modem->modem_type == PCIE_MODEM &&
+			modem->modem_name ==
+			modem_5g[SPRD_5G_MODEM_PS].name) {
+			/* Because the ep bar can only be split by ep itself,
+			 * After all modem images be loaded, notify pcie
+			 * resource can rescan ep now.
+			 */
+			sprd_pcie_resource_notify_load_done(modem->modem_dst);
+		}
+#endif
+	}
+
 	if (modem->modem_type == SOC_MODEM) {
 		if (b_run)
 			soc_modem_start(modem);
@@ -492,17 +557,28 @@ static void modem_set_remote_flag(struct modem_device *modem, u8 b_clear)
 	dev_info(modem->p_dev, "set remote flag = 0x%x, b_clear = %d!\n",
 		 modem->remote_flag, b_clear);
 }
+
+static int modem_reboot_ext_modem(struct modem_device *modem, u8 b_reset)
+{
+#ifdef CONFIG_SPRD_PCIE_EP_DEVICE
+	if (modem->modem_type == PCIE_MODEM)
+		sprd_pcie_resource_reboot_ep(modem->modem_dst);
 #endif
 
 #ifdef CONFIG_SPRD_EXT_MODEM_POWER_CTRL
-static int modem_reboot_ext_modem(struct modem_device *modem, u8 b_reset)
-{
 	return ext_modem_ops->reboot(modem, b_reset);
+#else
+	return 0;
+#endif
 }
 
 static int modem_poweroff_ext_modem(struct modem_device *modem)
 {
+#ifdef CONFIG_SPRD_EXT_MODEM_POWER_CTRL
 	return ext_modem_ops->poweroff(modem);
+#else
+	return 0;
+#endif
 }
 #endif
 
@@ -600,17 +676,7 @@ static long modem_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			modem_set_remote_flag(modem, b_clear);
 		}
 		break;
-#endif
 
-	case MODEM_STOP_CMD:
-		ret = modem_run(modem, 0);
-		break;
-
-	case MODEM_START_CMD:
-		ret = modem_run(modem, 1);
-		break;
-
-#ifdef CONFIG_SPRD_EXT_MODEM_POWER_CTRL
 	case MODEM_REBOOT_EXT_MODEM_CMD:
 		ret = modem_reboot_ext_modem(modem, 1);
 		break;
@@ -621,8 +687,16 @@ static long modem_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	case MODEM_POWEROFF_EXT_MODEM_CMD:
 		ret = modem_poweroff_ext_modem(modem);
-			break;
+		break;
 #endif
+
+	case MODEM_STOP_CMD:
+		ret = modem_run(modem, 0);
+		break;
+
+	case MODEM_START_CMD:
+		ret = modem_run(modem, 1);
+		break;
 
 	default:
 		ret = -EINVAL;
@@ -632,7 +706,7 @@ static long modem_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	return ret;
 }
 
-static int modem_get_device_name(struct modem_device *modem,
+static int modem_get_name_and_dst(struct modem_device *modem,
 			       struct device_node *np)
 {
 	int modem_id;
@@ -643,14 +717,16 @@ static int modem_get_device_name(struct modem_device *modem,
 			dev_err(modem->p_dev, "fail to get id\n");
 			return -ENODEV;
 		}
-		modem->modem_name = modem_5g_name[modem_id];
+		modem->modem_name = modem_5g[modem_id].name;
+		modem->modem_dst = modem_5g[modem_id].dst;
 	} else {
 		modem_id = of_alias_get_id(np, "lte-modem");
 		if (modem_id == -ENODEV || modem_id >= SPRD_4G_MODEM_CNT) {
 			dev_err(modem->p_dev, "fail to get id\n");
 			return -ENODEV;
 		}
-		modem->modem_name = modem_4g_name[modem_id];
+		modem->modem_name = modem_4g[modem_id].name;
+		modem->modem_dst = modem_4g[modem_id].dst;
 	}
 
 	return 0;
@@ -663,7 +739,7 @@ static int pcie_modem_parse_dt(struct modem_device *modem,
 
 	modem->modem_type = PCIE_MODEM;
 
-	ret = modem_get_device_name(modem, np);
+	ret = modem_get_name_and_dst(modem, np);
 	if (ret)
 		return ret;
 
@@ -698,7 +774,7 @@ static int soc_modem_parse_dt(struct modem_device *modem,
 
 	modem->modem_type = SOC_MODEM;
 
-	ret = modem_get_device_name(modem, np);
+	ret = modem_get_name_and_dst(modem, np);
 	if (ret)
 		return ret;
 
@@ -708,9 +784,7 @@ static int soc_modem_parse_dt(struct modem_device *modem,
 	if (!modem_ctl)
 		return -ENOMEM;
 
-	cr_num = 0;
-
-	do {
+	for (cr_num = 0; cr_num < MODEM_CTRL_NR; cr_num++) {
 		/* get apb & pmu reg handle */
 		modem_ctl->ctrl_map[cr_num] =
 			syscon_regmap_lookup_by_name(np,
@@ -737,9 +811,7 @@ static int soc_modem_parse_dt(struct modem_device *modem,
 			dev_err(modem->p_dev, "failed to map ctrl reg\n");
 			return -EINVAL;
 		}
-
-		cr_num++;
-	} while (modem_ctrl_args[cr_num] != NULL);
+	}
 
 	modem->modem_ctrl = modem_ctl;
 	return 0;
@@ -913,8 +985,19 @@ static int modem_probe(struct platform_device *pdev)
 
 	mutex_init(&modem->rd_mutex);
 	mutex_init(&modem->wt_mutex);
-	wakeup_source_init(&modem->rd_ws, "modem_read");
-	wakeup_source_init(&modem->wt_ws, "modem_write");
+	snprintf(modem->rd_pms_name,
+		 sizeof(modem->rd_pms_name), "%s-rd", modem->modem_name);
+	snprintf(modem->wt_pms_name,
+		 sizeof(modem->wt_pms_name), "%s-wt", modem->modem_name);
+	modem->rd_pms = sprd_pms_create(modem->modem_dst,
+					modem->rd_pms_name, false);
+	if (!modem->rd_pms)
+		pr_warn("create pms %s failed!\n", modem->rd_pms_name);
+
+	modem->wt_pms = sprd_pms_create(modem->modem_dst,
+					modem->wt_pms_name, false);
+	if (!modem->rd_pms)
+		pr_warn("create pms %s failed!\n", modem->wt_pms_name);
 
 	platform_set_drvdata(pdev, modem);
 
@@ -930,8 +1013,8 @@ static int  modem_remove(struct platform_device *pdev)
 	struct modem_device *modem = platform_get_drvdata(pdev);
 
 	if (modem) {
-		wakeup_source_trash(&modem->rd_ws);
-		wakeup_source_trash(&modem->wt_ws);
+		sprd_pms_destroy(modem->rd_pms);
+		sprd_pms_destroy(modem->wt_pms);
 		mutex_destroy(&modem->rd_mutex);
 		mutex_destroy(&modem->wt_mutex);
 		device_destroy(modem_class, modem->devid);
