@@ -3,6 +3,19 @@
 #include <asm/arch/common.h>
 #include <asm/arch/sprd_reg.h>
 
+#define REFOUT0_ON				BIT(0)
+#define REFOUT1_ON				BIT(1)
+#define REFOUT2_ON				BIT(2)
+#define REFOUT3_ON				BIT(3)
+#define REFOUT4_ON				BIT(4)
+
+#ifdef ROC1_CACHE_MODIFICATION
+#define CONFIG_DCDCSRAM_DEEP_DROP_VOL  600
+#define CONFIG_DCDCMODEM_DEEP_DROP_VOL 600
+#define CONFIG_DCDCGPU_DEEP_DROP_VOL   600
+#endif
+#define CONFIG_DCDCCORE_DEEP_DROP_VOL  600
+
 void dcdc_ldo_power_on()
 {
 #if defined(CONFIG_ADIE_SC2730)
@@ -23,14 +36,14 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vddsdcore");
 	//regulator_enable("vddsdio");
 	//regulator_enable("vddusb33");
-	//regulator_enable("vddrf1v8");
+	regulator_disable("vddrf1v8");  //used by ORCA default off then only refered by EXT_XTL_EN4
 	//regulator_enable("avdd12");
-	regulator_enable("vddrf1v25");
 
 	/* In SC2730, this LDO is power off default */
 #if defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
-	regulator_enable("vddwcn");
-	//regulator_enable("vddcamio"); //regulator not support in u-boot
+	//regulator_enable("vddrf1v25"); //used by ORCA not default on
+	//regulator_enable("vddwcn");    //used by ORCA not default on
+	//regulator_enable("vddcamio");  //regulator not support in u-boot
 	//regulator_enable("vddcamd1");
 	//regulator_enable("vddcamd0");
 	//regulator_enable("vddcama0");
@@ -38,8 +51,8 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vddcammot");
 	//regulator_enable("vddsim0");
 	//regulator_enable("vddsim1");
-	regulator_enable("vddsim2");
-	regulator_enable("vddwifipa");
+	//regulator_enable("vddsim2");
+	//regulator_enable("vddwifipa");
 	regulator_enable("vddldo0");
 	regulator_enable("vddldo1");
 	regulator_enable("vddldo2");
@@ -47,35 +60,24 @@ void dcdc_ldo_power_on()
 #endif
 }
 
-void dcdccore_deep_drop_config(void)
+static void dcdccore_deep_drop_config(u32 sleep_voltage)
 {
-#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
 	uint32_t drop_val;
-#if defined(CONFIG_DCDCCORE_DROP_STEP_EN)
-	uint32_t step_num;
-	uint32_t step_val;
-#endif
-#endif
 
-#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
-	drop_val = (CONFIG_DCDCCORE_DEEP_DROP_VOL * 1000U) / 3125U;
+	drop_val = (sleep_voltage * 1000U) / 3125U;
 	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL1, BITS_DCDC_CORE_CTRL_DS_SW(drop_val));
-#if defined(CONFIG_DCDCCORE_DROP_STEP_EN)
-	step_num = CONFIG_DCDCCORE_DEEP_DROP_VOL / CONFIG_DCDCCORE_DROP_STEP_VOL + 1;
-	step_val = (CONFIG_DCDCCORE_DROP_STEP_VOL * 1000U) / 3125U;
-	ANA_REG_SET(ANA_REG_GLB_DCDC_CORE_SLP_CTRL0,
-		BITS_DCDC_CORE_SLP_STEP_DELAY(CONFIG_DCDCCORE_DROP_STEP_DLY) |
-		BITS_DCDC_CORE_SLP_STEP_NUM(step_num) |
-		BITS_DCDC_CORE_SLP_STEP_VOL(step_val) |
-		BIT_DCDC_CORE_SLP_STEP_EN |
-		0);
-#endif
-#endif
 }
 
-void pmic_lowpower_config(void)
+static void pmic_lowpower_config(void)
 {
 #if defined(CONFIG_ADIE_SC2730)
+	uint32_t adie_id;
+	#ifdef ROC1_CACHE_MODIFICATION
+	uint32_t drop_val;
+	#endif
+
+	adie_id = ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW);
+
 	/* DCDC and LDO power globle control */
 	ANA_REG_SET(ANA_REG_GLB_PWR_WR_PROT_VALUE, 0x6E7F);
 	while((ANA_REG_GET(ANA_REG_GLB_PWR_WR_PROT_VALUE) & 0x8000) != 0x8000);
@@ -101,117 +103,104 @@ void pmic_lowpower_config(void)
 	//ADIE sleep globle control
 	ANA_REG_SET(ANA_REG_GLB_SLP_CTRL,
 		BIT_LDO_XTL_EN |			//DCDC and LDO can control by EXT_XTL pin
-	#if !defined(CONFIG_DEBUG_DCDCLDO_FORCE_ON)
 		BIT_SLP_IO_EN |				//ADIE io can into sleep mode when CHIP_SLEEP high
 		BIT_SLP_LDO_PD_EN |			//DCDC and LDO can pd in sleep mode
-	#endif
 		0
 	);
 
-	//DCDC pd an drop config in sleep mode
+	/*
+	 * DCDC pd an drop config in sleep mode
+	 * with cache workaround dcdc_sram/dcdc_gpu/dcdc_modem cannot shutdown when
+	 * sleep.if not use workaround, we need check whether can.
+	 */
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		BIT_SLP_DCDCMODEM_PD_EN |       //ap_sys/vsp/dpu/wtlcp/pubcp
+	#ifndef ROC1_CACHE_MODIFICATION
+		BIT_SLP_DCDCMODEM_PD_EN |
+	#else
+		//BIT_SLP_DCDCMODEM_PD_EN |     //ap_sys/vsp/dpu/wtlcp/pubcp
+	#endif
 		//BIT_SLP_DCDCMEMQ_PD_EN |      //for ddr keep on even sleep
-		BIT_SLP_DCDCSRAM_PD_EN |		//GPU/MM/AP/Ananke/corinth/cpu top
+	#ifndef ROC1_CACHE_MODIFICATION
+		BIT_SLP_DCDCSRAM_PD_EN |        //GPU/MM/AP/Ananke/corinth/cpu top
+	#else
+		//BIT_SLP_DCDCSRAM_PD_EN
+	#endif
+	#ifndef ROC1_CACHE_MODIFICATION
 		//BIT_SLP_DCDCSRAM_DROP_EN |
 		//BIT_SLP_DCDCMODEM_DROP_EN |
 		//BIT_SLP_DCDCGPU_DROP_EN |
-	#if defined(CONFIG_DCDCCORE_DEEP_DROP_EN)
+	#else
+		BIT_SLP_DCDCSRAM_DROP_EN |
+		BIT_SLP_DCDCMODEM_DROP_EN |
+		BIT_SLP_DCDCGPU_DROP_EN |
+	#endif
+	#ifndef ROC1_CACHE_MODIFICATION
+		BIT_SLP_DCDCCORE_DROP_EN |
+	#else
 		//BIT_SLP_DCDCCORE_DROP_EN |
 	#endif
-		//BIT_SLP_DCDCWPA_PD_EN |       //should shutdown by user self
-		BIT_SLP_DCDCGPU_PD_EN |       	//GPU/ISP/CPP/JPG/AUDCP
+		//BIT_SLP_DCDCWPA_PD_EN |       //2h10 board not used
+	#ifndef ROC1_CACHE_MODIFICATION
+		BIT_SLP_DCDCGPU_PD_EN |         //GPU/ISP/CPP/JPG/AUDCP...
+	#else
+		//BIT_SLP_DCDCGPU_PD_EN |
+	#endif
 		//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
-		BIT_SLP_DCDCGEN1_PD_EN |
+		//BIT_SLP_DCDCGEN1_PD_EN |      //Marlin will use,configure by Marlin
 		0
 	);
 
-	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
-		BIT_SLP_DCDCSRAM_LP_EN |
-		BIT_SLP_DCDCMODEM_LP_EN |
-		BIT_SLP_DCDCMEMQ_LP_EN |
-		BIT_SLP_DCDCMEM_LP_EN |
-		//BIT_SLP_DCDCGPU_LP_EN |      //cannot config slp_lp
-		//BIT_SLP_DCDCCORE_LP_EN |     //cannot config slp_lp
-		BIT_SLP_DCDCCPU_LP_EN |        //AI use
-		BIT_SLP_DCDCGEN1_LP_EN |
-		BIT_SLP_DCDCGEN0_LP_EN |
-		BIT_SLP_DCDCWPA_LP_EN |
-		0
-	);
+	#ifdef ROC1_CACHE_MODIFICATION
+	drop_val = (CONFIG_DCDCSRAM_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_SRAM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
 
-	//LDO sleep mode config
-#if 0
-	//32k
+	drop_val = (CONFIG_DCDCMODEM_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_MODEM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
+
+	drop_val = (CONFIG_DCDCGPU_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_GPU_SLP_CTRL1, BITS_DCDC_GPU_CTRL_DS_SW(drop_val));
+	#endif
+
+	/*
+	 * CHIP_ID BA:0xB000 AB:A-0001 AA 0xA-0000
+	 * only BA CHIP can config DCDCGPU & DCDCCORE SLP_LP
+	 * adie_id is the ADIE CHIP_ID low 16 bits
+	 */
+	if (adie_id < 0xB000) {
+		ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
+			BIT_SLP_DCDCSRAM_LP_EN |
+			BIT_SLP_DCDCMODEM_LP_EN |
+			BIT_SLP_DCDCMEMQ_LP_EN |
+			BIT_SLP_DCDCMEM_LP_EN |
+			//BIT_SLP_DCDCGPU_LP_EN |      //cannot config slp_lp
+			//BIT_SLP_DCDCCORE_LP_EN |     //cannot config slp_lp
+			BIT_SLP_DCDCCPU_LP_EN |        //AI use
+			BIT_SLP_DCDCGEN1_LP_EN |
+			BIT_SLP_DCDCGEN0_LP_EN |
+			BIT_SLP_DCDCWPA_LP_EN |
+			0
+		);
+	} else {
+		ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_LP_CTRL,
+			BIT_SLP_DCDCSRAM_LP_EN |
+			BIT_SLP_DCDCMODEM_LP_EN |
+			BIT_SLP_DCDCMEMQ_LP_EN |
+			BIT_SLP_DCDCMEM_LP_EN |
+			BIT_SLP_DCDCGPU_LP_EN |
+			BIT_SLP_DCDCCORE_LP_EN |
+			BIT_SLP_DCDCCPU_LP_EN |        //AI use
+			BIT_SLP_DCDCGEN1_LP_EN |
+			BIT_SLP_DCDCGEN0_LP_EN |
+			BIT_SLP_DCDCWPA_LP_EN |
+			0
+		);
+	}
+
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-		BIT_SLP_LDO_VDDRF1V8_PD_EN |
-		BIT_SLP_LDO_VDDRF1V25_PD_EN |
-		BIT_SLP_LDO_VDDEMMCCORE_PD_EN |
-		BIT_SLP_LDO_VDD18_DCXO_PD_EN |
-		BIT_SLP_LDO_VDDWIFIPA_PD_EN |
-		//BIT_SLP_LDO_VDD28_PD_EN |
-		BIT_SLP_LDO_VDDSDCORE_PD_EN |
-		BIT_SLP_LDO_VDDSDIO_PD_EN |
-		BIT_SLP_LDO_VDDUSB33_PD_EN |
-		BIT_SLP_LDO_VDDCAMMOT_PD_EN |
-		BIT_SLP_LDO_VDDCAMIO_PD_EN |
-		BIT_SLP_LDO_VDDCAMD0_PD_EN |
-		BIT_SLP_LDO_VDDCAMA0_PD_EN |
-		BIT_SLP_LDO_VDDSIM2_PD_EN |
-		BIT_SLP_LDO_VDDSIM1_PD_EN |
-		0
-	);
-
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
-		//BIT_SLP_LDO_VDDLDO2_PD_EN |
-		BIT_SLP_LDO_AVDD12_PD_EN |
-		BIT_SLP_LDO_VDDWCN_PD_EN |
-		BIT_SLP_LDO_VDDLDO0_PD_EN |
-		BIT_SLP_LDO_VDDCAMD1_PD_EN |
-		BIT_SLP_LDO_VDDCAMA1_PD_EN |
-		BIT_SLP_LDO_VDDSIM0_PD_EN | //?
-		BIT_SLP_LDO_AVDD18_PD_EN |
-		BIT_SLP_LDO_VDDLDO1_PD_EN |
-		0
-	);
-
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL0,
-		BIT_SLP_LDO_VDDRF1V8_LP_EN |
-		//BIT_SLP_LDO_VDDRF1V25_LP_EN |
-		//BIT_SLP_LDO_VDDEMMCCORE_LP_EN |
-		//BIT_SLP_LDO_VDD18_DCXO_LP_EN |
-		//BIT_SLP_LDO_VDDWIFIPA_LP_EN |
-		BIT_SLP_LDO_VDD28_LP_EN |
-		//BIT_SLP_LDO_VDDSDCORE_LP_EN |
-		//BIT_SLP_LDO_VDDSDIO_LP_EN |
-		//BIT_SLP_LDO_VDDUSB33_LP_EN |
-		//BIT_SLP_LDO_VDDCAMMOT_LP_EN |
-		//BIT_SLP_LDO_VDDCAMD0_LP_EN |
-		//BIT_SLP_LDO_VDDCAMA0_LP_EN |
-		//BIT_SLP_LDO_VDDSIM2_LP_EN |
-		//BIT_SLP_LDO_VDDSIM1_LP_EN |
-		0
-	);
-
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_LP_CTRL1,
-		BIT_SLP_LDO_VDDLDO2_LP_EN |
-		//BIT_SLP_LDO_AVDD12_LP_EN |
-		BIT_SLP_LDO_VDDWCN_LP_EN |
-		//BIT_SLP_LDO_VDDCAMD1_LP_EN |
-		//BIT_SLP_LDO_VDDCAMA1_LP_EN |
-		//BIT_SLP_LDO_VDDLDO0_LP_EN |
-		//BIT_SLP_LDO_VDDSIM0_LP_EN |
-		BIT_SLP_LDO_AVDD18_LP_EN |
-		//BIT_SLP_LDO_VDDLDO1_LP_EN |
-		0
-	);
-#endif
-	//32k less
-	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-		BIT_SLP_LDO_VDDRF1V8_PD_EN |    //transceiver
-		BIT_SLP_LDO_VDDRF1V25_PD_EN |   //transcevier
+		//BIT_SLP_LDO_VDDRF1V8_PD_EN |  //ORCA use, only refered by EXT_XTL_EN4
+		//BIT_SLP_LDO_VDDRF1V25_PD_EN |   //ORCA use, only refered by EXT_XTL_EN4
 		//BIT_SLP_LDO_VDDEMMCCORE_PD_EN | //EMMC use.should shutdown by user self
-		//BIT_SLP_LDO_VDD18_DCXO_PD_EN |  //for dcxo
+		BIT_SLP_LDO_VDD18_DCXO_PD_EN |  //has 32k dcxo need sleep_pd
 		//BIT_SLP_LDO_VDDWIFIPA_PD_EN | //Marlin use.should shutdown by user self
 		//BIT_SLP_LDO_VDD28_PD_EN |     //keep on
 		//BIT_SLP_LDO_VDDSDCORE_PD_EN | //sd use.should shutdown by user self
@@ -221,21 +210,21 @@ void pmic_lowpower_config(void)
 		//BIT_SLP_LDO_VDDCAMIO_PD_EN |  //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDCAMD0_PD_EN |  //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDCAMA0_PD_EN |  //camera use.should shutdown by user self
-		BIT_SLP_LDO_VDDSIM2_PD_EN |     //debug connector
-		//BIT_SLP_LDO_VDDSIM1_PD_EN |   //sim use.should shutdown by user self
+		//BIT_SLP_LDO_VDDSIM2_PD_EN |   //not use
+		//BIT_SLP_LDO_VDDSIM1_PD_EN |   //not use
 		0
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
 		//BIT_SLP_LDO_VDDLDO2_PD_EN |  //type c use.should shutdown by user self
-		BIT_SLP_LDO_AVDD12_PD_EN |     //csi/dsi/ufs/pcie
-		//BIT_SLP_LDO_VDDWCN_PD_EN |   //wcn use.should shutdown by user self
+		BIT_SLP_LDO_AVDD12_PD_EN |     //csi/dsi/ufs use
+		//BIT_SLP_LDO_VDDWCN_PD_EN |   //ORCA use, only referd by EXT_EN4
 		//BIT_SLP_LDO_VDDLDO0_PD_EN |  //marlin use.should shutdown by user self
 		//BIT_SLP_LDO_VDDCAMD1_PD_EN | //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDCAMA1_PD_EN | //camera use.should shutdown by user self
-		//BIT_SLP_LDO_VDDSIM0_PD_EN |  //smi use.should shutdown by user self
-		BIT_SLP_LDO_AVDD18_PD_EN |     //pcie/ufs/dsi/usb/marlin...
-		BIT_SLP_LDO_VDDLDO1_PD_EN |    //not use
+		//BIT_SLP_LDO_VDDSIM0_PD_EN |  //sim0 use.should shutdown by user self
+		BIT_SLP_LDO_AVDD18_PD_EN |     //pcie/ufs/dsi/usb/marlin...marlin config later--temp configure here
+		//BIT_SLP_LDO_VDDLDO1_PD_EN |  //marlin use
 		0
 	);
 
@@ -244,7 +233,7 @@ void pmic_lowpower_config(void)
 		BIT_SLP_LDO_VDDRF1V8_LP_EN |
 		//BIT_SLP_LDO_VDDRF1V25_LP_EN |
 		//BIT_SLP_LDO_VDDEMMCCORE_LP_EN |
-		BIT_SLP_LDO_VDD18_DCXO_LP_EN |
+		//BIT_SLP_LDO_VDD18_DCXO_LP_EN |
 		//BIT_SLP_LDO_VDDWIFIPA_LP_EN |
 		BIT_SLP_LDO_VDD28_LP_EN |
 		//BIT_SLP_LDO_VDDSDCORE_LP_EN |
@@ -270,10 +259,6 @@ void pmic_lowpower_config(void)
 		//BIT_SLP_LDO_VDDLDO1_LP_EN |
 		0
 	);
-
-	ANA_REG_OR(ANA_REG_GLB_TSX_CTRL3, BIT_SLP_DCXO_LP_EN);
-	ANA_REG_OR(ANA_REG_GLB_CLK32KLESS_CTRL0, BIT_SLP_XO_LOW_CUR_EN);
-
 
 	ANA_REG_SET(ANA_REG_GLB_DCDC_XTL_EN,
 		BIT_DCDC_CORE_EXT_XTL0_EN |
@@ -334,7 +319,7 @@ void pmic_lowpower_config(void)
 		//BIT_DCDC_GEN1_EXT_XTL1_EN |
 		//BIT_DCDC_GEN1_EXT_XTL2_EN |
 		BIT_DCDC_GEN1_EXT_XTL3_EN |
-		//BIT_DCDC_GEN1_EXT_XTL4_EN |
+		BIT_DCDC_GEN1_EXT_XTL4_EN | //because vddrf1v25 refered EXT_XTL_EN4
 		//BIT_DCDC_GEN1_EXT_XTL5_EN |
 		0
 	);
@@ -356,12 +341,12 @@ void pmic_lowpower_config(void)
 	);
 
 	ANA_REG_SET(ANA_REG_GLB_LDO_XTL_EN0,
-		//BIT_LDO_VDD18_DCXO_EXT_XTL0_EN |
+		BIT_LDO_VDD18_DCXO_EXT_XTL0_EN |
 		//BIT_LDO_VDD18_DCXO_EXT_XTL1_EN |
 		//BIT_LDO_VDD18_DCXO_EXT_XTL2_EN |
 		//BIT_LDO_VDD18_DCXO_EXT_XTL3_EN |
-		//BIT_LDO_VDD18_DCXO_EXT_XTL4_EN |
-		//BIT_LDO_VDD18_DCXO_EXT_XTL5_EN |
+		BIT_LDO_VDD18_DCXO_EXT_XTL4_EN |
+		BIT_LDO_VDD18_DCXO_EXT_XTL5_EN |
 		//BIT_LDO_VDD28_EXT_XTL0_EN |
 		//BIT_LDO_VDD28_EXT_XTL1_EN |
 		//BIT_LDO_VDD28_EXT_XTL2_EN |
@@ -376,13 +361,13 @@ void pmic_lowpower_config(void)
 		//BIT_LDO_VDDRF1V8_EXT_XTL1_EN |
 		//BIT_LDO_VDDRF1V8_EXT_XTL2_EN |
 		//BIT_LDO_VDDRF1V8_EXT_XTL3_EN |
-		//BIT_LDO_VDDRF1V8_EXT_XTL4_EN |
+		BIT_LDO_VDDRF1V8_EXT_XTL4_EN |   //ORCA use
 		//BIT_LDO_VDDRF1V8_EXT_XTL5_EN |
 		//BIT_LDO_VDDRF1V25_EXT_XTL0_EN |
 		//BIT_LDO_VDDRF1V25_EXT_XTL1_EN |
 		//BIT_LDO_VDDRF1V25_EXT_XTL2_EN |
 		//BIT_LDO_VDDRF1V25_EXT_XTL3_EN |
-		//BIT_LDO_VDDRF1V25_EXT_XTL4_EN |
+		BIT_LDO_VDDRF1V25_EXT_XTL4_EN |  //ORCA use
 		//BIT_LDO_VDDRF1V25_EXT_XTL5_EN |
 		0
 	);
@@ -520,12 +505,12 @@ void pmic_lowpower_config(void)
 		//BIT_LDO_VDDWCN_EXT_XTL1_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL2_EN |
 		//BIT_LDO_VDDWCN_EXT_XTL3_EN |
-		//BIT_LDO_VDDWCN_EXT_XTL4_EN |
+		BIT_LDO_VDDWCN_EXT_XTL4_EN |  //ORCA use
 		//BIT_LDO_VDDWCN_EXT_XTL5_EN |
-		BIT_LDO_AVDD18_EXT_XTL0_EN |
+		//BIT_LDO_AVDD18_EXT_XTL0_EN |
 		//BIT_LDO_AVDD18_EXT_XTL1_EN |
 		//BIT_LDO_AVDD18_EXT_XTL2_EN |
-		BIT_LDO_AVDD18_EXT_XTL3_EN |
+		//BIT_LDO_AVDD18_EXT_XTL3_EN |
 		//BIT_LDO_AVDD18_EXT_XTL4_EN |
 		//BIT_LDO_AVDD18_EXT_XTL5_EN |
 		0
@@ -578,6 +563,85 @@ void pmic_lowpower_config(void)
 		//BIT_XO_EXT_XTL5_EN |
 		0
 	);
+
+	ANA_REG_SET(ANA_REG_GLB_TSX_CTRL1,
+		BIT_DCXO_26M_REF_OUT0_EXT_XTL0_EN |
+		//BIT_DCXO_26M_REF_OUT1_EXT_XTL0_EN |
+		//BIT_DCXO_26M_REF_OUT2_EXT_XTL0_EN |
+		//BIT_DCXO_26M_REF_OUT3_EXT_XTL0_EN |
+		//BIT_DCXO_26M_REF_OUT4_EXT_XTL0_EN |
+		//BIT_DCXO_26M_REF_OUT0_EXT_XTL1_EN |
+		//BIT_DCXO_26M_REF_OUT1_EXT_XTL1_EN |
+		//BIT_DCXO_26M_REF_OUT2_EXT_XTL1_EN |
+		//BIT_DCXO_26M_REF_OUT3_EXT_XTL1_EN |
+		//BIT_DCXO_26M_REF_OUT4_EXT_XTL1_EN |
+		0
+	);
+
+	ANA_REG_SET(ANA_REG_GLB_TSX_CTRL2,
+		//BIT_DCXO_26M_REF_OUT0_EXT_XTL2_EN |
+		//BIT_DCXO_26M_REF_OUT1_EXT_XTL2_EN |
+		//BIT_DCXO_26M_REF_OUT2_EXT_XTL2_EN |
+		//BIT_DCXO_26M_REF_OUT3_EXT_XTL2_EN |
+		//BIT_DCXO_26M_REF_OUT4_EXT_XTL2_EN |
+		//BIT_DCXO_26M_REF_OUT0_EXT_XTL3_EN |
+		//BIT_DCXO_26M_REF_OUT1_EXT_XTL3_EN |
+		//BIT_DCXO_26M_REF_OUT2_EXT_XTL3_EN |
+		//BIT_DCXO_26M_REF_OUT3_EXT_XTL3_EN |
+		//BIT_DCXO_26M_REF_OUT4_EXT_XTL3_EN |
+		0
+	);
+
+	ANA_REG_SET(ANA_REG_GLB_TSX_CTRL3,
+		//BIT_DCXO_26M_REF_OUT0_EXT_XTL4_EN |
+		BIT_DCXO_26M_REF_OUT1_EXT_XTL4_EN |
+		//BIT_DCXO_26M_REF_OUT2_EXT_XTL4_EN |
+		//BIT_DCXO_26M_REF_OUT3_EXT_XTL4_EN |
+		//BIT_DCXO_26M_REF_OUT4_EXT_XTL4_EN |
+		//BIT_DCXO_26M_REF_OUT0_EXT_XTL5_EN |
+		//BIT_DCXO_26M_REF_OUT1_EXT_XTL5_EN |
+		BIT_DCXO_26M_REF_OUT2_EXT_XTL5_EN |
+		//BIT_DCXO_26M_REF_OUT3_EXT_XTL5_EN |
+		//BIT_DCXO_26M_REF_OUT4_EXT_XTL5_EN |
+		//BIT_SLP_DCXO_LP_EN |               //has 32k-crystal
+		//BIT_DCXO_CORE_AML_CAL_EN |
+		BITS_CLK_DCXO_SEL(0x00) |
+		0
+	);
+
+	//32K-less lp config but 2h10 has 32k-crystal
+	//ANA_REG_OR(ANA_REG_GLB_CLK32KLESS_CTRL0, BIT_SLP_XO_LOW_CUR_EN);
+
+	//Refout config
+	ANA_REG_SET(ANA_REG_GLB_TSX_CTRL0,
+		//BIT_DCXO_26M_REF_OUT4_PIN_EXT_XTL0_EN |
+		//BIT_DCXO_26M_REF_OUT4_PIN_EXT_XTL1_EN |
+		//BIT_DCXO_26M_REF_OUT4_PIN_EXT_XTL2_EN |
+		//BIT_DCXO_26M_REF_OUT4_PIN_EXT_XTL3_EN |
+		//BIT_DCXO_26M_REF_OUT4_PIN_EXT_XTL4_EN |
+		//BIT_DCXO_26M_REF_OUT4_PIN_EXT_XTL5_EN |
+		BIT_SLP_DCXO_26M_REF_OUT0_EN |
+		BIT_SLP_DCXO_26M_REF_OUT1_EN |
+		BIT_SLP_DCXO_26M_REF_OUT2_EN |
+		BIT_SLP_DCXO_26M_REF_OUT3_EN |
+		BIT_SLP_DCXO_26M_REF_OUT4_EN |
+		BITS_DCXO_26M_REF_OUT_EN(REFOUT0_ON | REFOUT1_ON | REFOUT2_ON | REFOUT3_ON) |
+		0
+	);
+
+	//Pin exit slp config
+	ANA_REG_SET(ANA_REG_GLB_XTL_WAIT_CTRL0,
+		//BIT_EXT_XTL5_FOR_26M_EN |
+		//BIT_EXT_XTL4_FOR_26M_EN |
+		BIT_EXT_XTL3_FOR_26M_EN |
+		BIT_EXT_XTL2_FOR_26M_EN |
+		BIT_EXT_XTL1_FOR_26M_EN |
+		BIT_EXT_XTL0_FOR_26M_EN |
+		BIT_SLP_XTLBUF_PD_EN |
+		BIT_XTL_EN |
+		BITS_XTL_WAIT(0x32) |
+		0
+	);
 #endif
 }
 
@@ -591,8 +655,8 @@ void sprd_pmu_lowpower_init(void)
 	//Config pmu paratmers
 	CSP_Init(0);
 
-	/* DCDCCORE drop config for bringup */
-	dcdccore_deep_drop_config();
+	//DCDCCORE drop config
+	dcdccore_deep_drop_config(CONFIG_DCDCCORE_DEEP_DROP_VOL);
 #endif
 
 	//Power on other dcdc/ldo
