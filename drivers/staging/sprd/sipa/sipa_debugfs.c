@@ -130,6 +130,19 @@ static int sipa_flow_ctrl_show(struct seq_file *s, void *unused)
 		ipa->receiver[SIPA_PKT_ETH];
 	struct sipa_skb_receiver *ip_recv =
 		ipa->receiver[SIPA_PKT_IP];
+	struct sipa_hal_context *hal_cfg =
+		(struct sipa_hal_context *)ipa->ctx->hdl;
+
+	if (ipa->params_cfg.is_bypass) {
+		int i;
+
+		for (i = 0; i < SIPA_FIFO_MAX; i++)
+			seq_printf(s, "fifo %d enter cnt = %u exit cnt = %u\n",
+				   i,
+				   hal_cfg->cmn_fifo_cfg[i].enter_flow_ctrl_cnt,
+				   hal_cfg->cmn_fifo_cfg[i].exit_flow_ctrl_cnt);
+		return 0;
+	}
 
 	seq_printf(s, "[SEND_ETH] no_mem_cnt = %d no_free_cnt = %d\n",
 		   eth_sender->no_mem_cnt, eth_sender->no_free_cnt);

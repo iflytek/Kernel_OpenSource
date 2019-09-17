@@ -80,6 +80,9 @@ struct sipa_common_fifo_cfg_tag {
 	struct sipa_cmn_fifo_tag rx_fifo;
 	struct sipa_cmn_fifo_tag tx_fifo;
 
+	u32 enter_flow_ctrl_cnt;
+	u32 exit_flow_ctrl_cnt;
+
 	sipa_hal_notify_cb fifo_irq_callback;
 };
 
