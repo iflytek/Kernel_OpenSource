@@ -91,12 +91,13 @@ enum {
 	SPRD_CODEC_PA_ORDER = 99,
 	SPRD_CODEC_DEPOP_ORDER = 100,
 	SPRD_CODEC_BUF_SWITCH_ORDER = 101,
-	SPRD_CODEC_SWITCH_ORDER = 102,
-	SPRD_CODEC_DA_EN_ORDER = 103,
-	SPRD_CODEC_DC_OS_SWITCH_ORDER = 104,
-	SPRD_CODEC_DC_OS_ORDER = 105,
-	SPRD_CODEC_RCV_DEPOP_ORDER = 106,
-	SPRD_CODEC_MIXER_ORDER = 110,/* Must be the last one */
+	SPRD_CODEC_SWITCH_ORDER = 105,
+	SPRD_CODEC_SWITCHR_ORDER = 106,
+	SPRD_CODEC_DA_EN_ORDER = 110,
+	SPRD_CODEC_DC_OS_SWITCH_ORDER = 120,
+	SPRD_CODEC_DC_OS_ORDER = 130,
+	SPRD_CODEC_RCV_DEPOP_ORDER = 140,
+	SPRD_CODEC_MIXER_ORDER = 150,/* Must be the last one */
 };
 
 enum {
@@ -1828,6 +1829,17 @@ static int hp_buf_event(struct snd_soc_dapm_widget *w,
 	return 0;
 }
 
+static int hpdrv_switch_event(struct snd_soc_dapm_widget *w,
+			    struct snd_kcontrol *kcontrol, int event)
+{
+	/*
+	 * To avoid FM chip temperature change fast,
+	 * here we should wait some time, this is the requirement
+	 * from HW.
+	 */
+	sprd_codec_wait(10);
+	return 0;
+}
 
 static int hp_path_event(struct snd_soc_dapm_widget *w,
 				struct snd_kcontrol *kcontrol, int event)
@@ -2526,10 +2538,10 @@ static const struct snd_soc_dapm_widget sprd_codec_dapm_widgets[] = {
 		hp_buf_event, SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_PGA_S("HPL Switch", SPRD_CODEC_SWITCH_ORDER,
 		SOC_REG(ANA_CDC10), HPL_EN_S, 0,
-		NULL, 0),
-	SND_SOC_DAPM_PGA_S("HPR Switch", SPRD_CODEC_SWITCH_ORDER,
+		hpdrv_switch_event, SND_SOC_DAPM_POST_PMU),
+	SND_SOC_DAPM_PGA_S("HPR Switch", SPRD_CODEC_SWITCHR_ORDER,
 		SOC_REG(ANA_CDC10), HPR_EN_S, 0,
-		NULL, 0),
+		hpdrv_switch_event, SND_SOC_DAPM_POST_PMU),
 	SND_SOC_DAPM_SUPPLY_S("CP AD Cali", 5, SND_SOC_NOPM,
 		0, 0, cp_ad_cmp_cali_event,
 		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
