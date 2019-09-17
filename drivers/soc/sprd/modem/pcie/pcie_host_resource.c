@@ -1,0 +1,522 @@
+/*
+ * Copyright (C) 2019 Spreadtrum Communications Inc.
+ *
+ * This software is licensed under the terms of the GNU General Public
+ * License version 2, as published by the Free Software Foundation, and
+ * may be copied, distributed, and modified under those terms.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+#include <linux/delay.h>
+#include <linux/interrupt.h>
+#include <linux/kernel.h>
+#include <linux/kthread.h>
+#include <linux/pci.h>
+#include <linux/pcie-rc-sprd.h>
+#include <linux/sched.h>
+#include <linux/sipc.h>
+#include <linux/slab.h>
+#include <linux/soc/sprd/sprd_pcie_ep_device.h>
+#include <linux/soc/sprd/sprd_mpm.h>
+#include <linux/types.h>
+#include <linux/wait.h>
+#include <linux/workqueue.h>
+#include <linux/mdm_ctrl.h>
+
+#include "../include/sprd_pcie_resource.h"
+
+#define PCIE_REMOVE_SCAN_GAP	msecs_to_jiffies(100)
+
+struct sprd_pcie_res {
+	u32	dst;
+	u32	ep_dev;
+	u32	state;
+	u32	scan_cnt;
+	unsigned long	removed_jiff;
+
+	struct sprd_pms	*pms;
+	char		pms_name[20];
+
+	wait_queue_head_t	wait_pcie_ready;
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	bool			ep_ready_for_rescan;
+	wait_queue_head_t	wait_load_ready;
+	wait_queue_head_t	wait_first_rescan;
+	struct task_struct	*thread;
+#endif
+
+	struct wakeup_source	ws;
+	struct work_struct	scan_work;
+	struct work_struct	remove_work;
+	struct workqueue_struct *wq;
+
+	struct platform_device		*pcie_dev;
+	struct sprd_pcie_register_event	reg_event;
+};
+
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+static int sprd_pcie_resource_rescan(struct sprd_pcie_res *res);
+#endif
+
+static struct sprd_pcie_res *g_pcie_res[SIPC_ID_NR];
+
+static void sprd_pcie_resource_host_first_rescan_do(struct sprd_pcie_res *res)
+{
+	int ret = sprd_pcie_register_event(&res->reg_event);
+
+	if (ret)
+		pr_err("pcie res: register pci ret=%d.\n", ret);
+}
+
+static void sprd_pcie_resource_host_ep_notify(int event, void *data)
+{
+	struct sprd_pcie_res *res = (struct sprd_pcie_res *)data;
+
+	switch (event) {
+	case PCIE_EP_PROBE:
+		/* set state to scanned */
+		res->state = SPRD_PCIE_SCANNED;
+		res->scan_cnt++;
+
+		pr_info("pcie res: ep_notify, probed cnt=%d.\n",
+			res->scan_cnt);
+
+		/*  firsrt scan do somtehing */
+		if (res->scan_cnt == 1)
+			sprd_pcie_resource_host_first_rescan_do(res);
+
+		/* clear removed irq and notify ep scanned */
+		sprd_ep_dev_clear_doolbell_irq(res->ep_dev,
+					       PCIE_DBEL_EP_REMOVED);
+		sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
+
+		/* wakeup all blocked thread */
+		wake_up_interruptible_all(&res->wait_pcie_ready);
+		break;
+
+	case PCIE_EP_REMOVE:
+		pr_info("pcie res: ep_notify, removed.\n");
+		res->state = SPRD_PCIE_REMOVED;
+		break;
+
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	case PCIE_EP_PROBE_BEFORE_SPLIT_BAR:
+		res->state = SPRD_PCIE_SCANNED_2BAR;
+		pr_info("pcie res: probed before split bar.\n");
+		if (!res->ep_ready_for_rescan) {
+			wake_up_interruptible_all(&res->wait_load_ready);
+		} else {
+			pr_info("pcie res: bar err, rescan.\n");
+			sprd_pcie_resource_rescan(res);
+		}
+		break;
+#endif
+
+	default:
+		break;
+	}
+}
+
+static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
+{
+	struct sprd_pcie_res *res = (struct sprd_pcie_res *)private;
+
+	if (irq == PCIE_MSI_REQUEST_RES) {
+		pr_debug("pcie res: ep request res.\n");
+		/*
+		 * client modem power up,
+		 * no need wake lock and no need wait resource.
+		 */
+		sprd_pms_power_up(res->pms);
+
+		/* only after received ep request can backup the ep configs. */
+		sprd_ep_dev_set_backup(res->ep_dev);
+	} else if (irq == PCIE_MSI_RELEASE_RES) {
+		pr_debug("pcie res: ep release res.\n");
+		/*
+		 * client modem power down,
+		 * no need wake lock.
+		 */
+		sprd_pms_power_down(res->pms, true);
+	}
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	else if (irq == PCIE_MSI_EP_READY_FOR_RESCAN) {
+		pr_debug("pcie res: ep ready for rescan.\n");
+		res->ep_ready_for_rescan = true;
+		wake_up_interruptible_all(&res->wait_first_rescan);
+	}
+#endif
+	return IRQ_HANDLED;
+}
+
+static void sprd_pcie_resource_scan_fn(struct work_struct *work)
+{
+	unsigned long diff;
+	unsigned int delay;
+	int ret;
+	struct sprd_pcie_res *res = container_of(work, struct sprd_pcie_res,
+						 scan_work);
+
+	diff = jiffies - res->removed_jiff;
+	if (diff < PCIE_REMOVE_SCAN_GAP) {
+		/* must ensure that the scan starts after a period of remove. */
+		delay = jiffies_to_msecs(PCIE_REMOVE_SCAN_GAP - diff);
+		msleep(delay);
+	}
+
+	ret = sprd_pcie_configure_device(res->pcie_dev);
+	if (ret)
+		pr_err("pcie res: scan error = %d!\n", ret);
+}
+
+static void sprd_pcie_resource_remove_fn(struct work_struct *work)
+{
+	int ret;
+	struct sprd_pcie_res *res = container_of(work, struct sprd_pcie_res,
+						 remove_work);
+
+	/* notify ep removed, must before removed */
+	sprd_ep_dev_clear_doolbell_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
+	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_REMOVED);
+
+	/* waiting for the doorbell irq to ep */
+	msleep(50);
+
+	/* start removed ep*/
+	ret = sprd_pcie_unconfigure_device(res->pcie_dev);
+	if (ret)
+		pr_err("pcie res: remove error = %d.\n!", ret);
+
+	/* record the last removed jiffies */
+	res->removed_jiff = jiffies;
+}
+
+static void sprd_pcie_resource_start_scan(struct sprd_pcie_res *res)
+{
+	if (res->state == SPRD_PCIE_SCANNED ||
+		res->state == SPRD_PCIE_WAIT_SCANNED) {
+		pr_debug("pcie res: scanned, do nothing!\n");
+	} else {
+		pr_info("pcie res: start scan!\n");
+		queue_work(res->wq, &res->scan_work);
+	}
+}
+
+static void sprd_pcie_resource_start_remove(struct sprd_pcie_res *res)
+{
+	if (res->state == SPRD_PCIE_SCANNED ||
+		res->state == SPRD_PCIE_WAIT_FIRST_READY
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+		|| (res->state == SPRD_PCIE_SCANNED_2BAR)
+#endif
+		) {
+		res->state = SPRD_PCIE_WAIT_REMOVED;
+		pr_info("pcie res: start remove.");
+		queue_work(res->wq, &res->remove_work);
+	} else {
+		pr_err("pcie res: start remove, err=%d.", res->state);
+	}
+}
+
+static void sprd_pcie_resource_event_process(enum sprd_pcie_event event,
+					    void *data)
+{
+	struct sprd_pcie_res *res = data;
+
+	if (event == SPRD_PCIE_EVENT_WAKEUP) {
+		pr_debug("pcie res: wakeup by ep, event=%d.\n", event);
+		sprd_pms_power_up(res->pms);
+	}
+}
+
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+/*
+ * sprd_pcie_resource_rescan
+ * Because the ep bar can only be split by ep itself,
+ * After all modem images be loaded at the first time,
+ * the ep will run and split 2 64bit bar to 4 32bit bar.
+ * host must rescan the pcie ep device agian by this api,
+ * after receive ep driver ready for rescan msg and all
+ * modem images load done.
+ */
+static int sprd_pcie_resource_rescan(struct sprd_pcie_res *res)
+{
+	pr_debug("pcie res: rescan.\n");
+
+	sprd_pcie_resource_start_remove(res);
+	sprd_pcie_resource_start_scan(res);
+
+	return 0;
+}
+
+static int sprd_pcie_resourc_check_first_rescan(void *data)
+{
+	struct sprd_pcie_res *res = data;
+	int ret;
+
+	pr_debug("pcie res: check first rescan.\n");
+
+	while (!kthread_should_stop()) {
+		ret = wait_event_interruptible(
+			res->wait_first_rescan,
+			res->ep_ready_for_rescan);
+		if (!ret) {
+			pr_info("pcie res:first resacn ready.\n");
+			sprd_pcie_resource_rescan(res);
+			break;
+		}
+	}
+
+	res->thread = NULL;
+	return 0;
+}
+
+/* Because the ep bar can only be split by ep itself,
+ * After all modem images be loaded, notify the pcie resource.
+ */
+void sprd_pcie_resource_notify_load_done(u32 dst)
+{
+	struct sprd_pcie_res *res;
+
+	pr_debug("pcie res: load done.\n");
+
+	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
+		return;
+
+	res = g_pcie_res[dst];
+
+	res->thread = kthread_create(sprd_pcie_resourc_check_first_rescan, res,
+		"first rescan");
+	if (IS_ERR(res->thread))
+		pr_err("pcie res: Failed to create rescan thread.\n");
+	else
+		wake_up_process(res->thread);
+}
+
+int sprd_pcie_wait_load_resource(u32 dst)
+{
+	struct sprd_pcie_res *res;
+
+	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
+		return -EINVAL;
+
+	res = g_pcie_res[dst];
+
+	/* can load image, return immediately */
+	if (res->state == SPRD_PCIE_SCANNED ||
+		res->state == SPRD_PCIE_SCANNED_2BAR)
+		return 0;
+
+	return wait_event_interruptible(
+		res->wait_load_ready,
+		(res->state == SPRD_PCIE_SCANNED ||
+		res->state == SPRD_PCIE_SCANNED_2BAR));
+}
+#endif
+
+void sprd_pcie_resource_reboot_ep(u32 dst)
+{
+	struct sprd_pcie_res *res;
+
+	pr_info("pcie res: reboot ep.\n");
+
+	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
+		return;
+
+	res = g_pcie_res[dst];
+	res->state = SPRD_PCIE_WAIT_FIRST_READY;
+
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	res->ep_ready_for_rescan = false;
+#endif
+
+	/* after ep reboot, can't backup ep configs*/
+	sprd_ep_dev_clear_backup(res->ep_dev);
+
+	sprd_pcie_resource_start_remove(res);
+	modem_ctrl_poweron_modem(MDM_CTRL_COLD_RESET);
+	sprd_pcie_resource_start_scan(res);
+}
+
+int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
+				 struct platform_device *pcie_dev)
+{
+	struct sprd_pcie_res *res;
+
+	if (dst >= SIPC_ID_NR)
+		return -EINVAL;
+
+	res = kzalloc(sizeof(*res), GFP_KERNEL);
+	if (!res)
+		return -ENOMEM;
+
+	res->wq = create_singlethread_workqueue("pcie_res");
+	if (!res->wq) {
+		pr_err("pcie res:create wq failed.\n");
+		kfree(res);
+		return -ENOMEM;
+	}
+
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	init_waitqueue_head(&res->wait_load_ready);
+	init_waitqueue_head(&res->wait_first_rescan);
+#endif
+
+	wakeup_source_init(&res->ws, "pcie_res");
+
+	res->dst = dst;
+	res->state = SPRD_PCIE_WAIT_FIRST_READY;
+	res->pcie_dev = pcie_dev;
+
+	init_waitqueue_head(&res->wait_pcie_ready);
+	INIT_WORK(&res->scan_work, sprd_pcie_resource_scan_fn);
+	INIT_WORK(&res->remove_work, sprd_pcie_resource_remove_fn);
+
+	sprintf(res->pms_name, "ep-request-%d", dst);
+	res->pms = sprd_pms_create(dst, res->pms_name, false);
+	if (!res->pms)
+		pr_err("pcie res:create pms failed.\n");
+
+	sprd_ep_dev_register_irq_handler_ex(res->ep_dev,
+			   PCIE_MSI_REQUEST_RES,
+			   PCIE_MSI_RELEASE_RES,
+			   sprd_pcie_resource_host_irq_handler, res);
+
+	sprd_ep_dev_register_notify(res->ep_dev,
+		sprd_pcie_resource_host_ep_notify, res);
+
+	/* init wake up event callback */
+	res->reg_event.events = SPRD_PCIE_EVENT_WAKEUP;
+	res->reg_event.pdev = pcie_dev;
+	res->reg_event.callback = sprd_pcie_resource_event_process;
+	res->reg_event.data = res;
+
+	g_pcie_res[dst] = res;
+
+	return 0;
+}
+
+int sprd_pcie_resource_trash(u32 dst)
+{
+	struct sprd_pcie_res *res;
+
+	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
+		return -EINVAL;
+
+	res = g_pcie_res[dst];
+
+#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
+	if (!IS_ERR_OR_NULL(res->thread))
+		kthread_stop(res->thread);
+#endif
+
+	cancel_work_sync(&res->scan_work);
+	cancel_work_sync(&res->remove_work);
+	destroy_workqueue(res->wq);
+
+	sprd_pcie_deregister_event(&res->reg_event);
+
+	sprd_ep_dev_unregister_irq_handler_ex(res->ep_dev,
+			   PCIE_MSI_REQUEST_RES,
+			   PCIE_MSI_RELEASE_RES);
+	sprd_ep_dev_unregister_notify(res->ep_dev);
+
+	sprd_pms_destroy(res->pms);
+
+	kfree(res);
+	g_pcie_res[dst] = NULL;
+
+	return 0;
+}
+
+int sprd_pcie_wait_resource(u32 dst, int timeout)
+{
+	struct sprd_pcie_res *res;
+	int ret, wait;
+	unsigned long delay;
+
+	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
+		return -EINVAL;
+
+	res = g_pcie_res[dst];
+
+	/* pcie ready, return succ immediately. */
+	if (res->state == SPRD_PCIE_SCANNED)
+		return 0;
+
+	if (timeout == 0)
+		return -ETIME;
+
+	if (timeout < 0) {
+		wait = wait_event_interruptible(
+						res->wait_pcie_ready,
+						res->state == SPRD_PCIE_SCANNED
+						);
+		ret = wait;
+	} else {
+		/*
+		 * timeout must add 1s,
+		 * because the pcie scan may took some time.
+		 */
+		delay = msecs_to_jiffies(timeout + 1000);
+		wait = wait_event_interruptible_timeout(res->wait_pcie_ready,
+							res->state ==
+							SPRD_PCIE_SCANNED,
+							delay);
+		if (wait == 0)
+			ret = -ETIME;
+		else if (wait > 0)
+			ret = 0;
+		else
+			ret = wait;
+	}
+
+	if (ret < 0 && ret != -ERESTARTSYS)
+		pr_err("pcie res: wait resource, val=%d.\n", ret);
+
+	return ret;
+}
+
+int sprd_pcie_request_resource(u32 dst)
+{
+	struct sprd_pcie_res *res;
+
+	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
+		return -EINVAL;
+
+	res = g_pcie_res[dst];
+
+	/* get a wakelock */
+	__pm_stay_awake(&res->ws);
+
+	pr_info("pcie res: request resource, state=%d.\n", res->state);
+
+	/* The first scan is start by pcie driver automatically. */
+	if (res->state != SPRD_PCIE_WAIT_FIRST_READY)
+		sprd_pcie_resource_start_scan(res);
+
+	return 0;
+}
+
+int sprd_pcie_release_resource(u32 dst)
+{
+	struct sprd_pcie_res *res;
+
+	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
+		return -EINVAL;
+
+	res = g_pcie_res[dst];
+
+	/* relax a wakelock */
+	__pm_relax(&res->ws);
+
+	pr_info("pcie res: release resource.\n");
+
+	sprd_pcie_resource_start_remove(res);
+
+	return 0;
+}
+
