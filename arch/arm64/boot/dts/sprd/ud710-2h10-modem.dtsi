@@ -52,6 +52,7 @@
 		sprd,type = "pcie";
 		sprd,dst = <1>;
 		sprd,ep-dev = <0>;
+		sprd,rc-ctrl = <&pcie1>;
 		sprd,smem-type = <0>;
 		sprd,smem-info = <0x89600000 0x89600000 0x3000000>;
 		sprd,high-offset = <0x00000000  0x00000000>;

@@ -1,0 +1,41 @@
+Spreadtrum sipc bindings
+
+Required properties:
+- compatible: "sprd,sipc"
+- sprd,name: Used to identify different SIPC instances.
+- sprd,type: Link types between AP and other systems,
+	such as mailbox, ipi, pcie, etc.
+	Optional, default is mailbox.
+- sprd,dst: Which sysetm will communicate with AP or MINIAP.
+	0--AP system
+	1--MINIAP system
+	2--wcdma system
+	3--wcn system
+	4--gnss system
+	5--pscp system
+	6--sp system
+	7--nrphy system
+	8--v3phy system
+- sprd,core: Which group of box will AP used.
+	Only sprd,type is mailbox need to config it.
+- sprd,ep-dev: EP(PCI Express endpoint device) device function number,
+	now only support 0, means modem function.
+	Only sprd,type is pcie need to config it.
+- sprd,rc-ctrl: which RC(RC(PCI Express root complex)) is modem ep device
+	connect ro. Only sprd,type is pcie need to config it.
+- sprd,smem-type: Share memory type.
+	0--Loacal RAM
+	1--Remote RAM connect with PCIE
+	Optional, default is loacal RAM.
+- sprd,smem-info: Share memory info, contains the address of AP,
+	the address of another system and the size of share memory.
+
+Example:
+    sipc_nrphy: sipc@2 {
+		compatible = "sprd,sipc";
+		sprd,name = "sipc-nr-phy";
+		sprd,type = "mbox";
+		sprd,dst = <7>;
+		sprd,core = <6>;
+		sprd,smem-info = <0x87c00000 0x87c00000 0x200000>;
+	};
