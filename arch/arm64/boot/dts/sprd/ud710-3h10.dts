@@ -895,5 +895,5 @@
 		<&pmu_apb_regs 1 0
 			REG_PMU_APB_RESERVED_REG
 			(0x1 << 16)     /* no corresponding macro */
-			(0x1 << 16)>;
+			0>;
 };
