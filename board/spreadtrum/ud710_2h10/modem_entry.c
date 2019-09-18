@@ -36,11 +36,11 @@ void memset_dsp_share_memory()
 }
 void modem_power_on()
 {
+	debugf("power on orca.\n");
 	sprd_gpio_request(NULL,15);
 	sprd_gpio_direction_output(NULL, 15, 1);
 	msleep(2000);
 	sprd_gpio_direction_output(NULL, 15, 0);
-	debugf("wait 2s for modem power on\n");
 }
 
 void modem_entry()
@@ -51,8 +51,6 @@ void modem_entry()
 
 #ifndef CONFIG_KERNEL_BOOT_CP
 	sp_boot();
-	pubcp_boot();
-	debugf("boot CP1 OK\n");
 #else
 	extern unsigned int g_charger_mode;
 	if(g_charger_mode) {
@@ -60,6 +58,8 @@ void modem_entry()
 		debugf("boot sp  OK\n");
 	}
 #endif
-	modem_power_on();
+	/* charger modem don't power on orca */
+	if (!g_charger_mode)
+		modem_power_on();
 }
 
