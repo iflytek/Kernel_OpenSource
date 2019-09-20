@@ -73,6 +73,7 @@ struct ucp1301_t {
 	bool hw_enabled;
 	bool class_ab;/* true class AB, false class D */
 	bool bypass;/* true bypass, false boost */
+	bool chip_exist;
 	enum ucp1301_ivsense_mode ivsense_mode;
 	u32 vosel;/* value of RG_BST_VOSEL */
 	u32 efs_data[4];/* 0 L, 1 M, 2 H, 3 T */
@@ -151,6 +152,7 @@ static void ucp1301_sw_reset(struct ucp1301_t *ucp1301)
 	ucp1301->init_flag = true;
 	ucp1301->class_mode = SPK_D;
 	ucp1301->agc_en = false;
+	ucp1301->chip_exist = false;
 	ucp1301->agc_gain0 = UCP_AGC_GAIN0;
 	/* set to 1600 KHz in default, corresponding reg value is 0xf */
 	ucp1301->clsd_trim = 0xf;
@@ -1250,6 +1252,16 @@ static ssize_t ucp1301_set_ivsense_mode(struct device *dev,
 	return len;
 }
 
+static ssize_t ucp1301_get_chip_exist(struct device *dev,
+				      struct device_attribute *attr,
+				      char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct ucp1301_t *ucp1301 = i2c_get_clientdata(client);
+
+	return sprintf(buf, "%d\n", ucp1301->chip_exist);
+}
+
 static DEVICE_ATTR(regs, 0660, ucp1301_get_reg, ucp1301_set_reg);
 static DEVICE_ATTR(hwenable, 0660, ucp1301_get_hw_state, ucp1301_set_hw_state);
 static DEVICE_ATTR(mode, 0660, ucp1301_get_mode, ucp1301_set_mode);
@@ -1260,6 +1272,8 @@ static DEVICE_ATTR(clsd_trim, 0660, ucp1301_get_clsd_trim,
 		   ucp1301_set_clsd_trim);
 static DEVICE_ATTR(ivsense_mode, 0660, ucp1301_get_ivsense_mode,
 		   ucp1301_set_ivsense_mode);
+static DEVICE_ATTR(ucp1301_exist, 0660, ucp1301_get_chip_exist,
+		   NULL);
 
 static struct attribute *ucp1301_attributes[] = {
 	&dev_attr_regs.attr,
@@ -1270,6 +1284,7 @@ static struct attribute *ucp1301_attributes[] = {
 	&dev_attr_vosel.attr,
 	&dev_attr_clsd_trim.attr,
 	&dev_attr_ivsense_mode.attr,
+	&dev_attr_ucp1301_exist.attr,
 	NULL
 };
 
@@ -1915,6 +1930,7 @@ static int ucp1301_read_chipid(struct ucp1301_t *ucp1301)
 
 		if (chip_id == UCP1301_CHIP_ID ||
 		    chip_id == UCP1301_NEW_CHIP_ID) {
+			ucp1301->chip_exist = true;
 			pr_info("read chipid successful 0x%x\n", chip_id);
 			return 0;
 		}
