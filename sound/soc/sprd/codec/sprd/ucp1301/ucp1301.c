@@ -1967,10 +1967,12 @@ static int ucp1301_i2c_probe(struct i2c_client *client,
 	ucp1301_hw_on(ucp1301, true);
 	ret = ucp1301_read_chipid(ucp1301);
 	if (ret < 0) {
-		dev_err(&client->dev, "ucp1301_read_chipid failed ret=%d\n",
-			ret);
-		return ret;
+		dev_warn(&client->dev, "ucp1301_read_chipid failed ret=%d\n",
+			 ret);
+		/* ignore error to compatible HW which not have UCP1301 */
+		ret = 0;
 	}
+
 	ucp1301_read_efuse(ucp1301);
 	ucp1301_debug_sysfs_init(ucp1301);
 	ucp1301_hw_on(ucp1301, false);
