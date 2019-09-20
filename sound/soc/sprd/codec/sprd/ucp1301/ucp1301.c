@@ -1980,6 +1980,7 @@ static int ucp1301_i2c_probe(struct i2c_client *client,
 	}
 	mutex_init(&ucp1301->ctrl_lock);
 
+	ucp1301_sw_reset(ucp1301);
 	ucp1301_hw_on(ucp1301, true);
 	ret = ucp1301_read_chipid(ucp1301);
 	if (ret < 0) {
@@ -1992,7 +1993,6 @@ static int ucp1301_i2c_probe(struct i2c_client *client,
 	ucp1301_read_efuse(ucp1301);
 	ucp1301_debug_sysfs_init(ucp1301);
 	ucp1301_hw_on(ucp1301, false);
-	ucp1301_sw_reset(ucp1301);
 
 	if (strcmp(client->name, ucp1301_type[0]) == 0) {
 		ret = snd_soc_register_codec(dev, &soc_codec_dev_ucp1301,
