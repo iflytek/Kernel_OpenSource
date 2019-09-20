@@ -12809,6 +12809,15 @@ CONFIG_SND_SOC_SPRD_CODEC_SC2730
 	[must] user
 	[missing plat description]
 	[function] snd codec dai
+CONFIG_SND_SOC_SPRD_PA_UCP1301
+	[arch] arm64
+	[plat] roc1
+	[missing plat] orca,sharkl3
+	[field] make, code
+	[subsys] sound
+	[must] user
+	[missing plat description] only roc1 using UCP1301 chip
+	[function] snd codec dai
 CONFIG_SND_SOC_SPRD_R1P0V3_SC2721
 	[arch] arm64
 	[plat] sharkl3
