@@ -30,6 +30,7 @@
 enum sprd_cpudvfs_pmic {
 	PMIC_SC2730,
 	PMIC_SC2703,
+	PMIC_DA9121,
 	MAX_PMIC_TYPE_NUM = 8,
 };
 

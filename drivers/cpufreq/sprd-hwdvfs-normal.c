@@ -47,6 +47,7 @@ static const struct of_device_id sprd_cpudvfs_of_match[] = {
 	},
 	{
 		.compatible = "sprd,roc1-cpudvfs",
+		.data = &ud710_dvfs_private_data,
 	},
 	{
 		.compatible = "sprd,sharkl5pro-cpudvfs",
