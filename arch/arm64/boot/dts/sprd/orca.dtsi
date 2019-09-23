@@ -1098,7 +1098,6 @@
 					interrupt-names = "irq";
 					usb-phy = <&ssphy0>, <&ssphy0>;
 					phy_type = "utmi_wide";
-					dr_mode = "peripheral";
 					snps,usb3-u1u2-disable;
 					snps,dis_u3_susphy_quirk;
 					snps,dis_u2_susphy_quirk;
@@ -1129,7 +1128,6 @@
 					usb-phy = <&ssphy1>, <&ssphy1>;
 					usb-pam = <&pamu3>;
 					phy_type = "utmi_wide";
-					dr_mode = "peripheral";
 					snps,usb3-u1u2-disable;
 					snps,dis_u3_susphy_quirk;
 					snps,dis_u2_susphy_quirk;
