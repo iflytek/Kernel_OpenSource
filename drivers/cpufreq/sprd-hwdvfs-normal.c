@@ -1370,7 +1370,7 @@ static int voltage_grade_value_update(struct dvfs_cluster *clu,
 		return -EINVAL;
 	}
 
-	count = pdev->priv->volt_manager->grade_tbl[clu->id].grade_count;
+	count = pdev->priv->volt_manager->grade_tbl[grade_index].grade_count;
 
 	grade_id = clu->tmp_vol_grade++;
 
