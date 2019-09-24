@@ -44,6 +44,9 @@ static int default_dcdc_volt_update(struct regmap *map, struct reg_info *regs,
 
 	val = (u_volt - pm->volt_base) / pm->per_step;
 
+	pr_debug("TOP_DVFS_VOL_GRADE_TBL[%d]: reg = 0x%x, off = %d, msk = 0x%x, val = 0x%x\n",
+		 index, reg, off, msk, val);
+
 	return regmap_update_bits(map, reg, msk << off, val << off);
 }
 
