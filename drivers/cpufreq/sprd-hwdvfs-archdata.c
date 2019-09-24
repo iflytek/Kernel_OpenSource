@@ -180,6 +180,8 @@ static struct reg_info ums312_freq_misc_cfg_array[] = {
 	GENREGVALSET(0x224, 0, 0xf, 1),
 	/* Set default work index 3 to twppll for scu */
 	GENREGVALSET(0x22c, 0, 0xf, 3),
+	/* The end of misc configurations */
+	GENREGVALSET(0, 0, 0, 0),
 };
 
 static struct mpll_index_tbl ums312_mpll_index_tbl[MAX_MPLL] = {
