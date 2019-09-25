@@ -251,6 +251,7 @@
 	};
 
 	dvfs_dcdc_cpu0_supply: dvfs-dcdc-cpu0-supply {
+		pmic-type-num = <1>;
 		supply-type-sel = <0x29C 0 1>;
 		top-dvfs-i2c-state = <0x88 4 0xF>;
 		voltage-grade-num = <7>;
@@ -263,10 +264,12 @@
 				<6 0x46 0x26C 0 0xFFFF>;
 		tuning-latency-us = <200>;
 		chnl-in-i2c = <1>;
+		slew-rate = <20000>; /* 20000uV/us */
 	};
 
 	dvfs_dcdc_cpu1_supply: dvfs-dcdc-cpu1-supply {
 		supply-type-sel = <0x2A0 0 1>;
+		pmic-type-num = <2>;
 		top-dvfs-i2c-state = <0x8C 4 0xF>;
 		voltage-grade-num = <6>;
 		voltage-grade = <0 0x4B 0x280 0 0xFFFF>,
@@ -292,6 +295,7 @@
 
 		tuning-latency-us = <200>;
 		chnl-in-i2c = <1>;
+		slew-rate = <10000>; /* 10000uV/us */
 	};
 
 	ddr_dfs: scene-frequency {
