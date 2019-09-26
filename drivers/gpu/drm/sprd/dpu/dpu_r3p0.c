@@ -11,6 +11,8 @@
  * GNU General Public License for more details.
  */
 
+#include <cabc/cabc_definition.h>
+#include <linux/backlight.h>
 #include <linux/delay.h>
 #include <linux/of_address.h>
 #include <linux/wait.h>
@@ -263,6 +265,12 @@ static struct dpu_cfg1 qos_cfg = {
 	.awqos_high = 0x7,
 };
 
+enum {
+	CABC_WORKING,
+	CABC_STOPPING,
+	CABC_DISABLED
+};
+
 static struct scale_cfg scale_copy;
 static struct cm_cfg cm_copy;
 static struct slp_cfg slp_copy;
@@ -277,22 +285,40 @@ static bool need_scale;
 static bool mode_changed;
 static bool evt_update;
 static bool evt_stop;
+static int frame_no;
+static bool cabc_bl_set;
+static int cabc_disable = CABC_DISABLED;
+static int cabc_step0 = 2;
+static int cabc_step1 = 5;
+static int cabc_step2 = 30;
+static int cabc_scene_change_thr = 80;
+static int cabc_bl_set_delay;
+static struct cabc_para cabc_para;
+static struct backlight_device *backlight;
 static int wb_en;
 static int wb_xfbc_en = 1;
 static int max_vsync_count;
 static int vsync_count;
 static struct sprd_dpu_layer wb_layer;
 static struct wb_region region[3];
+static struct device_node *g_np;
 static bool sprd_corner_support;
 static int sprd_corner_radius;
 module_param(wb_xfbc_en, int, 0644);
 module_param(max_vsync_count, int, 0644);
+module_param(cabc_disable, int, 0644);
+module_param(cabc_step0, int, 0644);
+module_param(cabc_step1, int, 0644);
+module_param(cabc_step2, int, 0644);
+module_param(cabc_scene_change_thr, int, 0644);
+module_param(cabc_bl_set_delay, int, 0644);
 
 static void dpu_sr_config(struct dpu_context *ctx);
 static void dpu_enhance_reload(struct dpu_context *ctx);
 static void dpu_clean_all(struct dpu_context *ctx);
 static void dpu_layer(struct dpu_context *ctx,
 		    struct sprd_dpu_layer *hwlayer);
+static int dpu_cabc_trigger(struct dpu_context *ctx);
 
 static u32 dpu_get_version(struct dpu_context *ctx)
 {
@@ -306,6 +332,8 @@ static int dpu_parse_dt(struct dpu_context *ctx,
 {
 	struct device_node *qos_np = NULL;
 	int ret = 0;
+
+	g_np = np;
 
 	ret = of_property_read_u32(np, "sprd,corner-radius",
 					&sprd_corner_radius);
@@ -436,6 +464,17 @@ static u32 dpu_isr(struct dpu_context *ctx)
 		/* write back feature */
 		if ((vsync_count == max_vsync_count) && wb_en)
 			work_now(&ctx->wb_work);
+
+		/* cabc work */
+		if ((cabc_disable != CABC_DISABLED) && (vsync_count >= 9) &&
+		    (vsync_count % 2 == 0) && (vsync_count < 151)) {
+			schedule_work(&ctx->cabc_work);
+		}
+
+		/* cabc update backlight */
+		if (cabc_bl_set)
+			schedule_work(&ctx->cabc_bl_update);
+
 		vsync_count++;
 	}
 
@@ -570,6 +609,52 @@ static void dpu_run(struct dpu_context *ctx)
 			panel_ready = true;
 		}
 	}
+}
+
+static void dpu_cabc_work_func(struct work_struct *data)
+{
+	struct dpu_context *ctx =
+		container_of(data, struct dpu_context, cabc_work);
+	struct dpu_reg *reg = (struct dpu_reg *)ctx->base;
+
+	down(&ctx->refresh_lock);
+	dpu_cabc_trigger(ctx);
+
+	reg->dpu_ctrl |= BIT(2);
+	dpu_wait_update_done(ctx);
+
+	up(&ctx->refresh_lock);
+}
+
+static void dpu_cabc_bl_update_func(struct work_struct *data)
+{
+	static int cur_brightness, last_brightness;
+
+	msleep(cabc_bl_set_delay);
+	if (cabc_disable == CABC_WORKING) {
+		if (backlight) {
+			if (last_brightness !=
+				backlight->props.brightness) {
+				cur_brightness =
+					backlight->props.brightness;
+				cabc_para.cur_bl = (u16)cur_brightness;
+			}
+
+			backlight->props.brightness =
+			  (int)cabc_para.bl_fix;
+			last_brightness = backlight->props.brightness;
+
+			backlight_update_status(backlight);
+		}
+	} else {
+		if (backlight &&
+		    last_brightness == backlight->props.brightness) {
+			backlight->props.brightness = cur_brightness;
+			backlight_update_status(backlight);
+		}
+	}
+
+	cabc_bl_set = false;
 }
 
 static void dpu_write_back(struct dpu_context *ctx,
@@ -839,6 +924,7 @@ static int dpu_init(struct dpu_context *ctx)
 	size = (ctx->vm.vactive << 16) | ctx->vm.hactive;
 	reg->panel_size = size;
 	reg->blend_size = size;
+	init_cabc(ctx->vm.vactive, ctx->vm.hactive);
 
 	reg->dpu_cfg0 = 0;
 	reg->dpu_cfg1 =
@@ -869,6 +955,11 @@ static int dpu_init(struct dpu_context *ctx)
 	dpu_corner_init(ctx);
 
 	dpu_dvfs_task_init(ctx);
+
+	INIT_WORK(&ctx->cabc_work, dpu_cabc_work_func);
+	INIT_WORK(&ctx->cabc_bl_update, dpu_cabc_bl_update_func);
+
+	frame_no = 0;
 
 	return 0;
 }
@@ -1223,6 +1314,8 @@ static void dpu_flip(struct dpu_context *ctx,
 	 */
 	if (ctx->if_type == SPRD_DISPC_IF_EDPI)
 		dpu_wait_stop_done(ctx);
+	if (cabc_disable != CABC_DISABLED)
+		dpu_cabc_trigger(ctx);
 
 	/* reset the bgcolor to black */
 	reg->bg_color = 0;
@@ -1365,6 +1458,15 @@ static void dpu_enhance_backup(u32 id, void *param)
 		break;
 	case ENHANCE_CFG_ID_DISABLE:
 		p = param;
+		if (!cabc_disable && (*p & BIT(4))) {
+			*p &= (~BIT(4));
+
+			memset(&slp_copy, 0, sizeof(slp_copy));
+			slp_copy.brightness = 16;
+			slp_copy.brightness_step = 1;
+			slp_copy.second_bright_factor = 16;
+			slp_copy.first_max_bright_th = 48;
+		}
 		enhance_en &= ~(*p);
 		pr_info("enhance module disable backup: 0x%x\n", *p);
 		break;
@@ -1412,7 +1514,7 @@ static void dpu_enhance_set(struct dpu_context *ctx, u32 id, void *param)
 {
 	struct dpu_reg *reg = (struct dpu_reg *)ctx->base;
 	struct scale_cfg *scale;
-	struct cm_cfg *cm;
+	struct cm_cfg cm;
 	struct slp_cfg *slp;
 	struct gamma_lut *gamma;
 	struct hsv_lut *hsv;
@@ -1436,6 +1538,24 @@ static void dpu_enhance_set(struct dpu_context *ctx, u32 id, void *param)
 		break;
 	case ENHANCE_CFG_ID_DISABLE:
 		p = param;
+		if (!cabc_disable && (*p & BIT(4))) {
+			*p &= (~BIT(4));
+
+			memset(&slp_copy, 0, sizeof(slp_copy));
+			slp_copy.brightness = 16;
+			slp_copy.brightness_step = 1;
+			slp_copy.second_bright_factor = 16;
+			slp_copy.first_max_bright_th = 48;
+			reg->slp_cfg0 = (slp_copy.second_bright_factor << 24) |
+					(slp_copy.brightness_step << 16) |
+					(slp_copy.conversion_matrix << 8) |
+					slp_copy.brightness;
+			reg->slp_cfg1 = (slp_copy.first_max_bright_th << 8) |
+					slp_copy.first_percent_th;
+			reg->slp_cfg2 = (slp_copy.step_clip << 24) |
+					(slp_copy.high_clip << 12) |
+					slp_copy.low_clip;
+		}
 		reg->dpu_enhance_cfg &= ~(*p);
 		pr_info("enhance module disable: 0x%x\n", *p);
 		break;
@@ -1460,13 +1580,19 @@ static void dpu_enhance_set(struct dpu_context *ctx, u32 id, void *param)
 		break;
 	case ENHANCE_CFG_ID_CM:
 		memcpy(&cm_copy, param, sizeof(cm_copy));
-		cm = &cm_copy;
-		reg->cm_coef01_00 = (cm->coef01 << 16) | cm->coef00;
-		reg->cm_coef03_02 = (cm->coef03 << 16) | cm->coef02;
-		reg->cm_coef11_10 = (cm->coef11 << 16) | cm->coef10;
-		reg->cm_coef13_12 = (cm->coef13 << 16) | cm->coef12;
-		reg->cm_coef21_20 = (cm->coef21 << 16) | cm->coef20;
-		reg->cm_coef23_22 = (cm->coef23 << 16) | cm->coef22;
+		memcpy(&cm, &cm_copy, sizeof(struct cm_cfg));
+		if (cabc_para.gain) {
+			cm.coef00 *= cabc_para.gain;
+			cm.coef11 *= cabc_para.gain;
+			cm.coef22 *= cabc_para.gain;
+		}
+
+		reg->cm_coef01_00 = (cm.coef01 << 16) | cm.coef00;
+		reg->cm_coef03_02 = (cm.coef03 << 16) | cm.coef02;
+		reg->cm_coef11_10 = (cm.coef11 << 16) | cm.coef10;
+		reg->cm_coef13_12 = (cm.coef13 << 16) | cm.coef12;
+		reg->cm_coef21_20 = (cm.coef21 << 16) | cm.coef20;
+		reg->cm_coef23_22 = (cm.coef23 << 16) | cm.coef22;
 		reg->dpu_enhance_cfg |= BIT(3);
 		pr_info("enhance cm set\n");
 		break;
@@ -1761,6 +1887,116 @@ static void dpu_sr_config(struct dpu_context *ctx)
 		enhance_en &= ~(BIT(0));
 		reg->dpu_enhance_cfg = enhance_en;
 	}
+}
+
+static int dpu_cabc_trigger(struct dpu_context *ctx)
+{
+	struct dpu_reg *reg = (struct dpu_reg *)ctx->base;
+	struct cm_cfg cm;
+	int i;
+	struct device_node *backlight_node;
+	static unsigned long vsp_pmu_addr;
+
+	if (cabc_disable) {
+		if (cabc_disable == CABC_STOPPING) {
+			memset(&cabc_para, 0, sizeof(cabc_para));
+			memcpy(&cm, &cm_copy, sizeof(struct cm_cfg));
+			reg->cm_coef01_00 = (cm.coef01 << 16) | cm.coef00;
+			reg->cm_coef03_02 = (cm.coef03 << 16) | cm.coef02;
+			reg->cm_coef11_10 = (cm.coef11 << 16) | cm.coef10;
+			reg->cm_coef13_12 = (cm.coef13 << 16) | cm.coef12;
+			reg->cm_coef21_20 = (cm.coef21 << 16) | cm.coef20;
+			reg->cm_coef23_22 = (cm.coef23 << 16) | cm.coef22;
+
+			cabc_bl_set = true;
+
+			cabc_disable = CABC_DISABLED;
+		}
+		return 0;
+	}
+
+	if (frame_no == 0) {
+		if (!backlight) {
+			backlight_node = of_parse_phandle(g_np,
+						 "sprd,backlight", 0);
+			if (backlight_node) {
+				backlight =
+				of_find_backlight_by_node(backlight_node);
+				of_node_put(backlight_node);
+			} else {
+				pr_warn("dpu backlight node not found\n");
+			}
+		}
+
+		vsp_pmu_addr = (unsigned long)ioremap_nocache(0x32280584, 4);
+
+		reg->dpu_enhance_cfg |= BIT(3);
+		reg->dpu_enhance_cfg |= BIT(8);
+		enhance_en |= BIT(3);
+		enhance_en |= BIT(8);
+
+		if ((enhance_en & BIT(4)) == 0) {
+			reg->dpu_enhance_cfg |= BIT(4);
+			enhance_en |= BIT(4);
+
+			slp_copy.brightness = 16;
+			slp_copy.brightness_step = 1;
+			slp_copy.second_bright_factor = 16;
+			slp_copy.first_max_bright_th = 48;
+			reg->slp_cfg0 = (slp_copy.second_bright_factor << 24) |
+					(slp_copy.brightness_step << 16) |
+					(slp_copy.conversion_matrix << 8) |
+					slp_copy.brightness;
+			reg->slp_cfg1 = (slp_copy.first_max_bright_th << 8) |
+					slp_copy.first_percent_th;
+			reg->slp_cfg2 = (slp_copy.step_clip << 24) |
+					(slp_copy.high_clip << 12) |
+					slp_copy.low_clip;
+			reg->slp_cfg3 = (slp_copy.dummy << 12) |
+					slp_copy.mask_height;
+		}
+
+		frame_no++;
+	} else {
+		for (i = 0; i < 16; i++) {
+			cabc_para.cabc_hist[i] = reg->cabc_hist[i];
+			udelay(1);
+		}
+
+		if (frame_no == 1)
+			 cabc_para.cur_bl = backlight->props.brightness;
+
+		if ((*(unsigned int *)vsp_pmu_addr) & 0x00ff0000)
+			cabc_para.is_VSP_working = false;
+		else
+			cabc_para.is_VSP_working = true;
+
+		step_set(cabc_step0, cabc_step1,
+			cabc_step2, cabc_scene_change_thr);
+		cabc_trigger(&cabc_para, frame_no);
+
+		memcpy(&cm, &cm_copy, sizeof(struct cm_cfg));
+		if (cm.coef00 == 0 && cm.coef11 == 0 &&
+			cm.coef22 == 0) {
+			cm.coef00 = cm.coef11 = cm.coef22 = cabc_para.gain;
+		} else {
+			cm.coef00 = (cm.coef00 * cabc_para.gain) / 0x400;
+			cm.coef11 = (cm.coef11 * cabc_para.gain) / 0x400;
+			cm.coef22 = (cm.coef22 * cabc_para.gain) / 0x400;
+		}
+		reg->cm_coef01_00 = (cm.coef01 << 16) | cm.coef00;
+		reg->cm_coef03_02 = (cm.coef03 << 16) | cm.coef02;
+		reg->cm_coef11_10 = (cm.coef11 << 16) | cm.coef10;
+		reg->cm_coef13_12 = (cm.coef13 << 16) | cm.coef12;
+		reg->cm_coef21_20 = (cm.coef21 << 16) | cm.coef20;
+		reg->cm_coef23_22 = (cm.coef23 << 16) | cm.coef22;
+
+		cabc_bl_set = true;
+
+		if (frame_no == 1)
+			frame_no++;
+	}
+	return 0;
 }
 
 static int dpu_modeset(struct dpu_context *ctx,
