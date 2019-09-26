@@ -500,6 +500,12 @@
 &sdio0 {
 	cd-gpios = <&eic_async 35 GPIO_ACTIVE_HIGH>;
 };
+
+&spi0 {
+	/*used for fingerprint sensor*/
+	status = "okay";
+};
+
 &vddsim2 {
 	status = "disabled";
 };
