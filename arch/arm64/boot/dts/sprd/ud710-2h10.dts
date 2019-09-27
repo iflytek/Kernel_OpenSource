@@ -273,6 +273,12 @@
 						114889 57
 						124872 43 >;
 	};
+
+	ddr_dfs: scene-frequency {
+		compatible = "sprd,dfs";
+		freq-num = <8>;
+		backdoor = <1866>;
+	};
 };
 
 &dpu {
