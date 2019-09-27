@@ -140,6 +140,18 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 	struct dw_pcie *pci = ctrl->pci;
 	int value = gpiod_get_value(ctrl->gpiod_wakeup);
 	u32 irq_flags = irq_get_trigger_type(irq);
+	u32 expect = (irq_flags & IRQF_TRIGGER_HIGH) ? 1 : 0;
+
+	/*
+	 * WORKAROUND: At present, if setting high-level trigger, when
+	 * interrupt occurs the value read from gpio is low level occasinally.
+	 * When setting low-level trigger has the similar problem. Temporarily
+	 * read multiple times gpio value to ensure the value is consistent
+	 * with the trigger level.
+	 */
+
+	while (value != expect)
+		value = gpiod_get_value(ctrl->gpiod_wakeup);
 
 	if (!value) {
 		irq_flags &= ~IRQF_TRIGGER_LOW;
@@ -151,11 +163,13 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 
 	irq_set_irq_type(irq, irq_flags);
 
-	if (!ctrl->is_powered)
-		sprd_pcie_notify_client(ctrl, SPRD_PCIE_EVENT_WAKEUP);
-	else
-		dev_dbg(pci->dev,
-			"the pci has already been enumrated\n");
+	if (!value) {
+		if (!ctrl->is_powered)
+			sprd_pcie_notify_client(ctrl, SPRD_PCIE_EVENT_WAKEUP);
+		else
+			dev_info(pci->dev,
+				"the pci has already been enumrated\n");
+	}
 
 	return IRQ_HANDLED;
 }
