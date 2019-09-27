@@ -42,7 +42,7 @@ static ssize_t read_wcn_reg(struct file *file, char __user *user_buf,
 	struct wcn_reg_ctl reg_rd;
 	int i;
 
-	WCN_INFO("wsh __read_wcn_reg\n");
+	WCN_INFO("__read_wcn_reg\n");
 
 	if (copy_from_user(&reg_rd, user_buf, sizeof(reg_rd))) {
 		WCN_ERR("reg value copy's ret value is -eFAULT\n");
@@ -82,7 +82,7 @@ static ssize_t write_wcn_reg(struct file *file, const char __user *user_buf,
 	struct wcn_reg_ctl reg_wr;
 	int i;
 
-	WCN_INFO("wsh _write_wcn_reg\n");
+	WCN_INFO("_write_wcn_reg\n");
 	if (copy_from_user(&reg_wr, user_buf, sizeof(reg_wr))) {
 		WCN_ERR("%s copy's ret value is -eFAULT\n", __func__);
 		return -EFAULT;
