@@ -89,26 +89,36 @@ static int sprd_pcie_split_bar(struct dw_pcie *pci)
  * controller EB  is disabled. So this func set the PCIe controller EB before
  * operate the wakeup pin.
  */
-static int sprd_pcie_wakeup(struct dw_pcie *pci)
+static int sprd_pcie_wakeup(struct dw_pcie *pci, bool enable)
 {
 	u32 val;
 	int ret;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 
-	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
-	if (ret < 0) {
-		dev_err(&pdev->dev,
-			"set pcie enable syscons fail, return %d\n", ret);
-		return ret;
-	}
-	val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
-	val ^= SPRD_SOFT_WAKE;
-	dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
-	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
-	if (ret < 0) {
-		dev_err(&pdev->dev,
-			"set pcie disable syscons fail, return %d\n", ret);
-		return ret;
+	if (enable) {
+		ret = sprd_pcie_syscon_setting(pdev,
+					       "sprd,pcie-startup-syscons");
+		if (ret < 0) {
+			dev_err(&pdev->dev,
+				"set pcie enable syscons fail, return %d\n",
+				ret);
+			return ret;
+		}
+		val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
+		val &= ~SPRD_SOFT_WAKE;
+		dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
+		ret = sprd_pcie_syscon_setting(pdev,
+					       "sprd,pcie-shutdown-syscons");
+		if (ret < 0) {
+			dev_err(&pdev->dev,
+				"set pcie disable syscons fail, return %d\n",
+				ret);
+			return ret;
+		}
+	} else {
+		val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
+		val |= SPRD_SOFT_WAKE;
+		dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
 	}
 
 	return 0;
@@ -123,8 +133,10 @@ static void sprd_ep_linkup_work_fn(struct work_struct *work)
 	ret = dw_pcie_wait_for_link(pci);
 	if (ret < 0)
 		dev_err(pci->dev, "link fail after perst\n");
-	else
+	else {
+		sprd_pcie_wakeup(pci, false);
 		dw_pcie_ep_linkup(&pci->ep);
+	}
 }
 
 static int sprd_pcie_ep_shutdown(struct sprd_pcie *ep)
@@ -259,7 +271,7 @@ static int sprd_add_pcie_ep(struct sprd_pcie *sprd_pcie,
 
 static int sprd_pcie_establish_link(struct dw_pcie *pci)
 {
-	sprd_pcie_wakeup(pci);
+	sprd_pcie_wakeup(pci, true);
 	return 0;
 }
 
