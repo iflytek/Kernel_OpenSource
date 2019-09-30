@@ -60,6 +60,7 @@ struct sc2703_charger_info {
 	struct regmap *pmic;
 	u32 charger_detect;
 	bool long_key_detect;
+	u32 charger_type;
 };
 
 /* sc2703 input limit current, Milliamp */
@@ -764,7 +765,7 @@ static bool sc2703_charger_is_support_fchg(struct sc2703_charger_info *info)
 	union power_supply_propval val;
 	struct power_supply *psy;
 	u32 ic_version;
-	int charger_type = POWER_SUPPLY_CHARGE_TYPE_UNKNOWN, ret, i;
+	int ret, i;
 
 	ret = regmap_read(info->regmap, SC2703_IC_VERSION_INFO, &ic_version);
 	if (ret) {
@@ -785,10 +786,10 @@ static bool sc2703_charger_is_support_fchg(struct sc2703_charger_info *info)
 		power_supply_put(psy);
 		if (ret)
 			return false;
-		charger_type = val.intval;
+		info->charger_type = val.intval;
 	}
 
-	return charger_type == POWER_SUPPLY_CHARGE_TYPE_FAST;
+	return info->charger_type == POWER_SUPPLY_CHARGE_TYPE_FAST;
 }
 
 static void sc2703_charger_work(struct work_struct *data)
@@ -842,6 +843,7 @@ static void sc2703_charger_work(struct work_struct *data)
 		/* Stop charging */
 		info->charging = false;
 		sc2703_charger_stop_charge(info, present);
+		info->charger_type = POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
 	}
 
 out:
@@ -950,6 +952,13 @@ static int sc2703_charger_usb_get_property(struct power_supply *psy,
 
 		break;
 
+	case POWER_SUPPLY_PROP_CHARGE_TYPE:
+		if (!info->charging)
+			val->intval = POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
+		else
+			val->intval = info->charger_type;
+		break;
+
 	default:
 		ret = -EINVAL;
 	}
@@ -1055,6 +1064,7 @@ static enum power_supply_property sc2703_usb_props[] = {
 	POWER_SUPPLY_PROP_FEED_WATCHDOG,
 	POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX,
 	POWER_SUPPLY_PROP_USB_TYPE,
+	POWER_SUPPLY_PROP_CHARGE_TYPE,
 };
 
 static const struct power_supply_desc sc2703_charger_desc = {
