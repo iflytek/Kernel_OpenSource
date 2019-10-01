@@ -21,10 +21,18 @@
 #include <linux/pci-epc.h>
 #include <linux/pci-epf.h>
 
-/* Parameters for the waiting for link up routine */
+/*
+ * Parameters for the waiting for link up routine
+ *
+ * Synopsys define LINK_WAIT_USLEEP_MIN as 90000 and
+ * define LINK_WAIT_USLEEP_MAX as 100000.
+ * When no PCIe device is connected to Unisoc PCIe RC, the software will take
+ * (10 * 100000us) 1s to wait for linking, which is too long in booting phase,
+ * so reduce polling time from 1s to 100ms.
+ */
 #define LINK_WAIT_MAX_RETRIES		10
-#define LINK_WAIT_USLEEP_MIN		90000
-#define LINK_WAIT_USLEEP_MAX		100000
+#define LINK_WAIT_USLEEP_MIN		9000
+#define LINK_WAIT_USLEEP_MAX		10000
 
 /* Parameters for the waiting for iATU enabled routine */
 #define LINK_WAIT_MAX_IATU_RETRIES	5
