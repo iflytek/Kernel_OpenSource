@@ -648,6 +648,8 @@ static int sipa_prepare_suspend(struct device *dev)
 	    !sipa_force_wakeup(&ctrl->params_cfg, false))
 		ctrl->suspend_stage |= SIPA_FORCE_SUSPEND;
 
+	ctrl->suspend_stage |= SIPA_ACTION_SUSPEND;
+
 	dev_info(dev, "sipa prepare suspend finish\n");
 
 	return 0;
