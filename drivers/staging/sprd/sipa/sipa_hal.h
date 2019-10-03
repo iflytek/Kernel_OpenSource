@@ -176,12 +176,14 @@ int sipa_hal_put_rx_fifo_item(sipa_hal_hdl hdl,
 			      enum sipa_cmn_fifo_index fifo,
 			      struct sipa_hal_fifo_item *item);
 
-int sipa_hal_put_rx_fifo_items(sipa_hal_hdl hdl,
-			       enum sipa_cmn_fifo_index fifo_id);
+int sipa_hal_update_rx_fifo_wptr(sipa_hal_hdl hdl,
+				 enum sipa_cmn_fifo_index fifo_id,
+				 u32 num);
 
 int sipa_hal_cache_rx_fifo_item(sipa_hal_hdl hdl,
 				enum sipa_cmn_fifo_index fifo_id,
-				struct sipa_hal_fifo_item *item);
+				struct sipa_hal_fifo_item *item,
+				u32 index);
 
 bool sipa_hal_is_rx_fifo_empty(sipa_hal_hdl hdl,
 			       enum sipa_cmn_fifo_index fifo);

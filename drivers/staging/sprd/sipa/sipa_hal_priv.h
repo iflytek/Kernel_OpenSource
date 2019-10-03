@@ -121,6 +121,10 @@ struct sipa_hal_fifo_ops {
 		(*get_tx_fifo_node)(enum sipa_cmn_fifo_index id,
 				    struct sipa_common_fifo_cfg_tag *cfg_base,
 				    u32 index);
+	struct sipa_node_description_tag *
+		(*get_rx_fifo_node)(enum sipa_cmn_fifo_index id,
+				    struct sipa_common_fifo_cfg_tag *cfg_base,
+				    u32 index);
 	u32 (*set_interrupt_error_code)(enum sipa_cmn_fifo_index id,
 					struct sipa_common_fifo_cfg_tag *cfg_base,
 					u32 enable, sipa_hal_notify_cb cb);
@@ -212,6 +216,10 @@ struct sipa_hal_fifo_ops {
 			    bool stop);
 	int (*reclaim_node_desc)(enum sipa_cmn_fifo_index id,
 				 struct sipa_common_fifo_cfg_tag *cfg_base);
+	int (*update_rx_fifo_wptr)(struct device *dev,
+				   enum sipa_cmn_fifo_index id,
+				   struct sipa_common_fifo_cfg_tag *cfg_base,
+				   u32 num);
 };
 
 struct sipa_hal_global_ops {

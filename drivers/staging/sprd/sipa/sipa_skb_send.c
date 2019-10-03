@@ -131,29 +131,6 @@ static void sipa_free_sent_items(struct sipa_skb_sender *sender)
 			num, success_cnt);
 }
 
-static int sipa_send_thread(void *data)
-{
-	int ret;
-	struct sipa_skb_sender *sender = data;
-	struct sched_param param = {.sched_priority = 90};
-
-	sched_setscheduler(current, SCHED_RR, &param);
-
-	while (!kthread_should_stop()) {
-		ret = wait_event_interruptible(sender->send_waitq,
-			!sipa_hal_check_rx_priv_fifo_is_empty(sender->ctx->hdl,
-					sender->ep->send_fifo.idx));
-		if (!ret)
-			sipa_hal_put_rx_fifo_items(sender->ctx->hdl,
-						   sender->ep->send_fifo.idx);
-
-		if (sender->free_notify_net)
-			wake_up(&sender->free_waitq);
-	}
-
-	return 0;
-}
-
 static int sipa_free_thread(void *data)
 {
 	int ret;
@@ -208,14 +185,6 @@ int sipa_sender_prepare_suspend(struct sipa_skb_sender *sender)
 		return -EAGAIN;
 	}
 
-	if (!sipa_hal_check_rx_priv_fifo_is_empty(sender->ctx->hdl,
-						  sender->ep->send_fifo.idx)) {
-		pr_err("pkt_type = %d rx priv fifo is not empty\n",
-		       sender->type);
-		wake_up(&sender->send_waitq);
-		return -EAGAIN;
-	}
-
 	if (!sipa_hal_check_send_cmn_fifo_com(sender->ctx->hdl,
 					      sender->ep->send_fifo.idx)) {
 		pr_err("pkt_type = %d sender have something to handle\n",
@@ -230,7 +199,6 @@ EXPORT_SYMBOL(sipa_sender_prepare_suspend);
 int sipa_sender_prepare_resume(struct sipa_skb_sender *sender)
 {
 	if (unlikely(sender->init_flag)) {
-		wake_up_process(sender->send_thread);
 		wake_up_process(sender->free_thread);
 		sender->init_flag = false;
 	}
@@ -282,22 +250,9 @@ int create_sipa_skb_sender(struct sipa_context *ipa,
 	init_waitqueue_head(&sender->send_waitq);
 	init_waitqueue_head(&sender->free_waitq);
 
-	/* create sender thread */
-	sender->send_thread = kthread_create(sipa_send_thread, sender,
-					     "sipa-send-%d", ep->id);
-	if (IS_ERR(sender->send_thread)) {
-		dev_err(ipa->pdev, "Failed to create kthread: ipa-send-%d\n",
-			ep->id);
-		ret = PTR_ERR(sender->send_thread);
-		kfree(sender->pair_cache);
-		kfree(sender);
-		return ret;
-	}
-
 	sender->free_thread = kthread_create(sipa_free_thread, sender,
 					     "sipa-free-%d", ep->id);
 	if (IS_ERR(sender->free_thread)) {
-		kthread_stop(sender->send_thread);
 		dev_err(ipa->pdev, "Failed to create kthread: ipa-free-%d\n",
 			ep->id);
 		ret = PTR_ERR(sender->free_thread);
@@ -345,6 +300,7 @@ int sipa_skb_sender_send_data(struct sipa_skb_sender *sender,
 			      enum sipa_term_type dst,
 			      u8 netid)
 {
+	int ret;
 	unsigned long flags;
 	dma_addr_t dma_addr;
 	struct sipa_skb_dma_addr_node *node;
@@ -361,6 +317,9 @@ int sipa_skb_sender_send_data(struct sipa_skb_sender *sender,
 				  skb->len + skb_headroom(skb),
 				  DMA_TO_DEVICE);
 
+	if (unlikely(dma_mapping_error(sender->ctx->pdev, dma_addr)))
+		return -ENOMEM;
+
 	memset(&item, 0, sizeof(item));
 	item.addr = dma_addr;
 	item.len = skb->len;
@@ -370,19 +329,25 @@ int sipa_skb_sender_send_data(struct sipa_skb_sender *sender,
 	item.src = sender->ep->send_fifo.src_id;
 
 	spin_lock_irqsave(&sender->send_lock, flags);
+
+	ret = sipa_hal_cache_rx_fifo_item(sender->ctx->hdl,
+					  sender->ep->send_fifo.idx,
+					  &item, 0);
+	if (ret) {
+		spin_unlock_irqrestore(&sender->send_lock, flags);
+		return ret;
+	}
+
 	node = list_first_entry(&sender->pair_free_list,
 				struct sipa_skb_dma_addr_node,
 				list);
-	list_del(&node->list);
 	node->skb = skb;
 	node->dma_addr = dma_addr;
+	list_del(&node->list);
 	list_add_tail(&node->list, &sender->sending_list);
-	sipa_hal_cache_rx_fifo_item(sender->ctx->hdl,
-				    sender->ep->send_fifo.idx,
-				    &item);
+	sipa_hal_update_rx_fifo_wptr(sender->ctx->hdl,
+				     sender->ep->send_fifo.idx, 1);
 	spin_unlock_irqrestore(&sender->send_lock, flags);
-
-	wake_up(&sender->send_waitq);
 
 	return 0;
 }

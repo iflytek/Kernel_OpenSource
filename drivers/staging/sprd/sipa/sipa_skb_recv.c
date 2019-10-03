@@ -143,7 +143,7 @@ static void sipa_prepare_free_node_init(struct sipa_skb_receiver *receiver,
 			item.err_code = 0;
 			sipa_hal_cache_rx_fifo_item(receiver->ctx->hdl,
 						    receiver->ep->recv_fifo.idx,
-						    &item);
+						    &item, i);
 			success_cnt++;
 		} else {
 			fail_cnt++;
@@ -176,37 +176,52 @@ void fill_free_fifo(struct sipa_skb_receiver *receiver, u32 cnt)
 
 	for (i = 0; i < cnt; i++) {
 		skb = alloc_recv_skb(SIPA_RECV_BUF_LEN, receiver->rsvd);
-		if (skb) {
-			skb_put(skb, SIPA_RECV_BUF_LEN);
-			dma_addr = dma_map_single(receiver->ctx->pdev,
-						  skb->head,
-						  SIPA_RECV_BUF_LEN +
-						  skb_headroom(skb),
-						  DMA_FROM_DEVICE);
-
-			put_recv_array_node(&receiver->recv_array,
-					    skb, dma_addr);
-
-			item.addr = dma_addr;
-			item.len = skb->len;
-			item.offset = skb_headroom(skb);
-			item.dst = receiver->ep->recv_fifo.dst_id;
-			item.src = receiver->ep->recv_fifo.src_id;
-			item.intr = 0;
-			item.netid = 0;
-			item.err_code = 0;
-			sipa_hal_cache_rx_fifo_item(receiver->ctx->hdl,
-						    receiver->ep->recv_fifo.idx,
-						    &item);
-			success_cnt++;
-		} else {
+		if (!skb) {
 			fail_cnt++;
 			break;
 		}
+
+		skb_put(skb, SIPA_RECV_BUF_LEN);
+		dma_addr = dma_map_single(receiver->ctx->pdev,
+					  skb->head,
+					  SIPA_RECV_BUF_LEN +
+					  skb_headroom(skb),
+					  DMA_FROM_DEVICE);
+		if (dma_mapping_error(receiver->ctx->pdev,
+				      dma_addr)) {
+			dev_err(receiver->ctx->pdev,
+				"prepare free node dma map err\n");
+			fail_cnt++;
+			break;
+		}
+
+		item.addr = dma_addr;
+		item.len = skb->len;
+		item.offset = skb_headroom(skb);
+		item.dst = receiver->ep->recv_fifo.dst_id;
+		item.src = receiver->ep->recv_fifo.src_id;
+		item.intr = 0;
+		item.netid = 0;
+		item.err_code = 0;
+		if (sipa_hal_cache_rx_fifo_item(receiver->ctx->hdl,
+						receiver->ep->recv_fifo.idx,
+						&item, i)) {
+			dma_unmap_single(receiver->ctx->pdev,
+					 dma_addr,
+					 SIPA_RECV_BUF_LEN + skb_headroom(skb),
+					 DMA_FROM_DEVICE);
+			dev_kfree_skb_any(skb);
+			break;
+		}
+		put_recv_array_node(&receiver->recv_array,
+				    skb, dma_addr);
+		success_cnt++;
 	}
+
 	if (success_cnt) {
-		sipa_hal_put_rx_fifo_items(receiver->ctx->hdl,
-					   receiver->ep->recv_fifo.idx);
+		sipa_hal_update_rx_fifo_wptr(receiver->ctx->hdl,
+					     receiver->ep->recv_fifo.idx,
+					     success_cnt);
 		if (atomic_read(&receiver->need_fill_cnt) > 0)
 			atomic_sub(success_cnt,
 				   &receiver->need_fill_cnt);
@@ -218,10 +233,14 @@ void fill_free_fifo(struct sipa_skb_receiver *receiver, u32 cnt)
 
 void sipa_fill_free_node(struct sipa_skb_receiver *receiver, u32 cnt)
 {
-	sipa_hal_put_rx_fifo_items(receiver->ctx->hdl,
-				   receiver->ep->recv_fifo.idx);
+	sipa_hal_update_rx_fifo_wptr(receiver->ctx->hdl,
+				     receiver->ep->recv_fifo.idx,
+				     cnt);
 	if (atomic_read(&receiver->need_fill_cnt) > 0)
-		atomic_sub(cnt, &receiver->need_fill_cnt);
+		dev_info(receiver->ctx->pdev,
+			 "a very serious problem, mem cover may appear\n");
+
+	atomic_set(&receiver->need_fill_cnt, 0);
 }
 EXPORT_SYMBOL(sipa_fill_free_node);
 

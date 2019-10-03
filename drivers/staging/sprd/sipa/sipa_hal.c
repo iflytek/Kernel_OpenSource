@@ -408,16 +408,18 @@ int sipa_open_common_fifo(sipa_hal_hdl hdl,
 	sipa_backup_open_fifo_params(hdl, fifo, attr, ext_attr, force_sw_intr,
 				     cb, priv);
 
-	if (!fifo_cfg[fifo].is_pam || (fifo_cfg[fifo].tx_fifo.in_iram &&
-				       fifo_cfg[fifo].rx_fifo.in_iram)) {
-		if (!kfifo_initialized(&fifo_cfg[fifo].tx_priv_fifo) &&
-		    !kfifo_initialized(&fifo_cfg[fifo].rx_priv_fifo)) {
+	if (fifo_cfg[fifo].tx_fifo.in_iram) {
+		if (!kfifo_initialized(&fifo_cfg[fifo].tx_priv_fifo)) {
 			ret = kfifo_alloc(&fifo_cfg[fifo].tx_priv_fifo,
 					  fifo_cfg[fifo].tx_fifo.depth *
 					  node_size, GFP_KERNEL);
 			if (ret)
 				return -ENOMEM;
+		}
+	}
 
+	if (fifo_cfg[fifo].rx_fifo.in_iram) {
+		if (!kfifo_initialized(&fifo_cfg[fifo].rx_priv_fifo)) {
 			ret = kfifo_alloc(&fifo_cfg[fifo].rx_priv_fifo,
 					  fifo_cfg[fifo].rx_fifo.depth *
 					  node_size, GFP_KERNEL);
@@ -528,17 +530,11 @@ static int sipa_resume_cmn_fifo_ptr(sipa_hal_hdl hdl,
 		break;
 	case SIPA_FIFO_AP_IP_DL:
 		depth = fifo_cfg[id].rx_fifo.depth;
-		if (sipa_hal_check_rx_priv_fifo_is_full(&sipa_hal_ctx, id))
-			sipa_fill_free_node(ctrl->receiver[SIPA_PKT_IP],
-					    depth);
-		hal_cfg->fifo_ops.set_rx_fifo_wptr(id, fifo_cfg, depth);
+		sipa_fill_free_node(ctrl->receiver[SIPA_PKT_IP], depth);
 		break;
 	case SIPA_FIFO_AP_ETH_UL:
 		depth = fifo_cfg[id].rx_fifo.depth;
-		if (sipa_hal_check_rx_priv_fifo_is_full(&sipa_hal_ctx, id))
-			sipa_fill_free_node(ctrl->receiver[SIPA_PKT_ETH],
-					    depth);
-		hal_cfg->fifo_ops.set_rx_fifo_wptr(id, fifo_cfg, depth);
+		sipa_fill_free_node(ctrl->receiver[SIPA_PKT_ETH], depth);
 		break;
 	default:
 		dev_info(ctrl->ctx->pdev,
@@ -894,60 +890,67 @@ int sipa_hal_put_rx_fifo_item(sipa_hal_hdl hdl,
 }
 EXPORT_SYMBOL(sipa_hal_put_rx_fifo_item);
 
-int sipa_hal_put_rx_fifo_items(sipa_hal_hdl hdl,
-			       enum sipa_cmn_fifo_index fifo_id)
+int sipa_hal_update_rx_fifo_wptr(sipa_hal_hdl hdl,
+				 enum sipa_cmn_fifo_index fifo_id,
+				 u32 num)
 {
-	u32 ret, num;
+	int ret;
 	struct sipa_hal_context *hal_cfg = (struct sipa_hal_context *)hdl;
 	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
 
-	num = kfifo_len(&((fifo_cfg + fifo_id)->rx_priv_fifo));
-	num /= sizeof(struct sipa_node_description_tag);
-	if (num) {
-		ret = hal_cfg->fifo_ops.put_node_to_rx_fifo(hal_cfg->dev,
-							    fifo_id, fifo_cfg,
-							    NULL, 0, num);
-		if (ret != num) {
-			dev_err(hal_cfg->dev,
-				"put node to rx fifo %d fail\n", fifo_id);
-			return -ENOSPC;
-		}
-	} else {
+	if (num > fifo_cfg[fifo_id].rx_fifo.depth) {
 		dev_err(hal_cfg->dev,
-			"fifo id %d rx priv fifo is empty", fifo_id);
+			"fifo id %d num is too big %d\n",
+			fifo_id, num);
+		return -EINVAL;
+	}
+
+	ret = hal_cfg->fifo_ops.update_rx_fifo_wptr(hal_cfg->dev, fifo_id,
+						    fifo_cfg, num);
+
+	if (ret < 0) {
+		dev_err(hal_cfg->dev,
+			"put node to rx fifo %d fail %d\n", fifo_id, ret);
+		return ret;
 	}
 
 	return 0;
 }
-EXPORT_SYMBOL(sipa_hal_put_rx_fifo_items);
+EXPORT_SYMBOL(sipa_hal_update_rx_fifo_wptr);
 
 int sipa_hal_cache_rx_fifo_item(sipa_hal_hdl hdl,
 				enum sipa_cmn_fifo_index fifo_id,
-				struct sipa_hal_fifo_item *item)
+				struct sipa_hal_fifo_item *item,
+				u32 index)
 {
-	u32 ret;
-	struct sipa_node_description_tag node;
 	struct sipa_hal_context *hal_cfg = (struct sipa_hal_context *)hdl;
-	struct sipa_common_fifo_cfg_tag *fifo_cfg =
-			&hal_cfg->cmn_fifo_cfg[fifo_id];
+	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
+	struct sipa_node_description_tag *node =
+		hal_cfg->fifo_ops.get_rx_fifo_node(fifo_id, fifo_cfg, index);
 
-	memset(&node, 0, sizeof(node));
-	node.address = item->addr;
-	node.length = item->len;
-	node.dst = item->dst;
-	node.offset = item->offset;
-	node.src = item->src;
-	node.err_code = item->err_code;
-	node.net_id = item->netid;
-	node.intr = item->intr;
-	node.reserved = item->reserved;
-
-	ret = kfifo_in(&fifo_cfg->rx_priv_fifo, &node, sizeof(node));
-	if (ret != sizeof(node)) {
+	if (unlikely(!node)) {
 		dev_err(hal_cfg->dev,
-			"fifo id %d rx priv fifo is full\n", fifo_id);
-		return -ENOMEM;
+			"node is null, cmn fifo %d may not inited\n",
+			fifo_id);
+		return -EINVAL;
 	}
+
+	if (index >= fifo_cfg[fifo_id].rx_fifo.depth) {
+		dev_err(hal_cfg->dev,
+			"fifo id %d index is too big %d\n",
+			fifo_id, index);
+		return -EINVAL;
+	}
+
+	node->address = item->addr;
+	node->length = item->len;
+	node->dst = item->dst;
+	node->offset = item->offset;
+	node->src = item->src;
+	node->err_code = item->err_code;
+	node->net_id = item->netid;
+	node->intr = item->intr;
+	node->reserved = item->reserved;
 
 	return 0;
 }
@@ -1010,23 +1013,30 @@ bool sipa_hal_bk_fifo_node(sipa_hal_hdl hdl,
 	struct sipa_common_fifo_cfg_tag *fifo_cfg =
 		&hal_cfg->cmn_fifo_cfg[fifo_id];
 
-	if (!fifo_cfg->state || !kfifo_initialized(&fifo_cfg->rx_priv_fifo) ||
-	    !kfifo_initialized(&fifo_cfg->tx_priv_fifo) || !fifo_cfg->is_pam)
+	if (!fifo_cfg->state || !fifo_cfg->is_pam)
 		return false;
 
-	kfifo_reset(&fifo_cfg->tx_priv_fifo);
-	kfifo_reset(&fifo_cfg->rx_priv_fifo);
-	ret = kfifo_in(&fifo_cfg->rx_priv_fifo,
-		       fifo_cfg->rx_fifo.virtual_addr,
-		       fifo_cfg->rx_fifo.depth * node_size);
-	if (ret != fifo_cfg->rx_fifo.depth * node_size)
-		pr_err("backup %d rx fifo failed ret = %d\n", fifo_id, ret);
+	if (kfifo_initialized(&fifo_cfg->rx_priv_fifo)) {
+		kfifo_reset(&fifo_cfg->rx_priv_fifo);
+		ret = kfifo_in(&fifo_cfg->rx_priv_fifo,
+			       fifo_cfg->rx_fifo.virtual_addr,
+			       fifo_cfg->rx_fifo.depth * node_size);
+		if (ret != fifo_cfg->rx_fifo.depth * node_size)
+			dev_err(hal_cfg->dev,
+				"backup %d rx fifo failed ret = %d\n",
+				fifo_id, ret);
+	}
 
-	ret = kfifo_in(&fifo_cfg->tx_priv_fifo,
-		       fifo_cfg->tx_fifo.virtual_addr,
-		       fifo_cfg->tx_fifo.depth * node_size);
-	if (ret != fifo_cfg->tx_fifo.depth * node_size)
-		pr_err("backup %d tx fifo failed ret = %d\n", fifo_id, ret);
+	if (kfifo_initialized(&fifo_cfg->tx_priv_fifo)) {
+		kfifo_reset(&fifo_cfg->tx_priv_fifo);
+		ret = kfifo_in(&fifo_cfg->tx_priv_fifo,
+			       fifo_cfg->tx_fifo.virtual_addr,
+			       fifo_cfg->tx_fifo.depth * node_size);
+		if (ret != fifo_cfg->tx_fifo.depth * node_size)
+			dev_err(hal_cfg->dev,
+				"backup %d tx fifo failed ret = %d\n",
+				fifo_id, ret);
+	}
 
 	return true;
 }
@@ -1041,8 +1051,7 @@ bool sipa_hal_resume_fifo_node(sipa_hal_hdl hdl,
 	struct sipa_common_fifo_cfg_tag *fifo_cfg =
 		&hal_cfg->cmn_fifo_cfg[fifo_id];
 
-	if (!kfifo_initialized(&fifo_cfg->rx_priv_fifo) ||
-	    !kfifo_initialized(&fifo_cfg->tx_priv_fifo) || !fifo_cfg->is_pam)
+	if (!fifo_cfg->is_pam)
 		return false;
 
 	if (!kfifo_is_full(&fifo_cfg->rx_priv_fifo) ||
@@ -1052,17 +1061,23 @@ bool sipa_hal_resume_fifo_node(sipa_hal_hdl hdl,
 	if (!hal_cfg->fifo_ops.get_tx_depth(fifo_id, hal_cfg->cmn_fifo_cfg))
 		return false;
 
-	ret = kfifo_out(&fifo_cfg->rx_priv_fifo,
-			fifo_cfg->rx_fifo.virtual_addr,
-			fifo_cfg->rx_fifo.depth * node_size);
-	if (ret != fifo_cfg->rx_fifo.depth * node_size)
-		pr_err("resume %d rx fifo node failed\n", fifo_id);
+	if (kfifo_initialized(&fifo_cfg->rx_priv_fifo)) {
+		ret = kfifo_out(&fifo_cfg->rx_priv_fifo,
+				fifo_cfg->rx_fifo.virtual_addr,
+				fifo_cfg->rx_fifo.depth * node_size);
+		if (ret != fifo_cfg->rx_fifo.depth * node_size)
+			dev_err(hal_cfg->dev,
+				"resume %d rx fifo node failed\n", fifo_id);
+	}
 
-	ret = kfifo_out(&fifo_cfg->tx_priv_fifo,
-			fifo_cfg->tx_fifo.virtual_addr,
-			fifo_cfg->tx_fifo.depth * node_size);
-	if (ret != fifo_cfg->tx_fifo.depth * node_size)
-		pr_err("resume %d tx fifo node failed\n", fifo_id);
+	if (kfifo_initialized(&fifo_cfg->tx_priv_fifo)) {
+		ret = kfifo_out(&fifo_cfg->tx_priv_fifo,
+				fifo_cfg->tx_fifo.virtual_addr,
+				fifo_cfg->tx_fifo.depth * node_size);
+		if (ret != fifo_cfg->tx_fifo.depth * node_size)
+			dev_err(hal_cfg->dev,
+				"resume %d tx fifo node failed\n", fifo_id);
+	}
 
 	return true;
 }
