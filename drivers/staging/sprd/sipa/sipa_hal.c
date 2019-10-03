@@ -863,7 +863,7 @@ int sipa_hal_put_rx_fifo_item(sipa_hal_hdl hdl,
 			      enum sipa_cmn_fifo_index fifo_id,
 			      struct sipa_hal_fifo_item *item)
 {
-	u32 ret;
+	int ret;
 	struct sipa_hal_context *hal_cfg;
 	struct sipa_node_description_tag node;
 	struct sipa_common_fifo_cfg_tag *fifo_cfg;
@@ -884,10 +884,10 @@ int sipa_hal_put_rx_fifo_item(sipa_hal_hdl hdl,
 	ret = hal_cfg->fifo_ops.put_node_to_rx_fifo(hal_cfg->dev,
 						    fifo_id, fifo_cfg,
 						    &node, 0, 1);
-	if (ret == 0) {
+	if (ret < 0) {
 		dev_err(hal_cfg->dev,
-			"put node to rx fifo %d fail\n", fifo_id);
-		return -1;
+			"put node to rx fifo %d fail ret = %d\n", fifo_id, ret);
+		return ret;
 	}
 
 	return 0;

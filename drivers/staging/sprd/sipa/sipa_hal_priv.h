@@ -184,7 +184,7 @@ struct sipa_hal_fifo_ops {
 				   struct sipa_common_fifo_cfg_tag *cfg_base,
 				   struct sipa_node_description_tag *node,
 				   u32 force_intr, u32 num);
-	u32 (*put_node_to_rx_fifo)(struct device *dev,
+	int (*put_node_to_rx_fifo)(struct device *dev,
 				   enum sipa_cmn_fifo_index id,
 				   struct sipa_common_fifo_cfg_tag *cfg_base,
 				   struct sipa_node_description_tag *node,

@@ -785,21 +785,21 @@ ipa_common_fifo_hal_set_interrupt_txfifo_full(enum sipa_cmn_fifo_index id,
  *   @The num that has be received from tx fifo successful.
  * Note:
  */
-static u32
+static int
 ipa_common_fifo_hal_put_node_to_rx_fifo(struct device *dev,
 					enum sipa_cmn_fifo_index id,
 					struct sipa_common_fifo_cfg_tag *cfg_base,
 					struct sipa_node_description_tag *node,
 					u32 force_intr, u32 num)
 {
-	u32 ret = 0;
+	int ret = 0;
 	struct sipa_common_fifo_cfg_tag *ipa_term_fifo;
 
 	if (likely(id < SIPA_FIFO_MAX)) {
 		ipa_term_fifo = cfg_base + id;
 	} else {
 		pr_err("don't have this id %d\n", id);
-		return FALSE;
+		return -EINVAL;
 	}
 
 	if (ipa_term_fifo->is_pam)
