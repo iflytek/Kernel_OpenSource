@@ -931,73 +931,6 @@ ipa_common_fifo_hal_recv_node_from_tx_fifo(struct device *dev,
 }
 
 static u32
-ipa_common_fifo_hal_tx_fill(enum sipa_cmn_fifo_index id,
-			    struct sipa_common_fifo_cfg_tag *cfg_base,
-			    struct sipa_node_description_tag *node, u32 num)
-{
-	int i;
-	struct sipa_node_description_tag *fifo_addr;
-	struct sipa_common_fifo_cfg_tag *ipa_term_fifo;
-
-	if (likely(id < SIPA_FIFO_MAX)) {
-		ipa_term_fifo = cfg_base + id;
-	} else {
-		pr_err("don't have this id %d\n", id);
-		return FALSE;
-	}
-
-	fifo_addr =
-		(struct sipa_node_description_tag *)
-		(((u64)ipa_term_fifo->tx_fifo.fifo_base_addr_l) |
-		 ((u64)ipa_term_fifo->tx_fifo.fifo_base_addr_h << 32));
-
-	if (node != NULL) {
-		for (i = 0; i < num; i++) {
-			memcpy(fifo_addr + i, node + i,
-			       sizeof(struct sipa_node_description_tag));
-		}
-	} else {
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-static u32
-ipa_common_fifo_hal_rx_fill(enum sipa_cmn_fifo_index id,
-			    struct sipa_common_fifo_cfg_tag *cfg_base,
-			    struct sipa_node_description_tag *node, u32 num)
-{
-	int i;
-	struct sipa_node_description_tag *fifo_addr;
-	struct sipa_common_fifo_cfg_tag *ipa_term_fifo;
-
-	if (likely(id < SIPA_FIFO_MAX)) {
-		ipa_term_fifo = cfg_base + id;
-	} else {
-		pr_err("don't have this id %d\n", id);
-		return FALSE;
-	}
-
-	fifo_addr =
-		(struct sipa_node_description_tag *)
-		(((u64)ipa_term_fifo->rx_fifo.fifo_base_addr_l) |
-		 ((u64)ipa_term_fifo->rx_fifo.fifo_base_addr_h << 32));
-
-	if (node != NULL) {
-		for (i = 0; i < num; i++) {
-			memcpy(fifo_addr + i, node + i,
-			       sizeof(struct sipa_node_description_tag));
-		}
-	} else {
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-
-static u32
 ipa_common_fifo_hal_get_rx_ptr(enum sipa_cmn_fifo_index id,
 			       struct sipa_common_fifo_cfg_tag *cfg_base,
 			       u32 *wr, u32 *rd)
@@ -1405,10 +1338,6 @@ u32 sipa_fifo_ops_init(struct sipa_hal_fifo_ops *ops)
 
 	ops->get_node_from_rx_fifo =
 		ipa_common_fifo_hal_get_node_from_rx_fifo;
-
-	ops->rx_fill = ipa_common_fifo_hal_rx_fill;
-
-	ops->tx_fill = ipa_common_fifo_hal_tx_fill;
 
 	ops->set_interrupt_drop_packet =
 		ipa_common_fifo_hal_set_interrupt_drop_packet;

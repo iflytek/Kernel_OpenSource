@@ -94,14 +94,6 @@ struct sipa_hal_fifo_ops {
 		     struct sipa_common_fifo_cfg_tag *cfg_base);
 	u32 (*reset)(enum sipa_cmn_fifo_index id,
 		     struct sipa_common_fifo_cfg_tag *cfg_base);
-	u32 (*rx_fill)(enum sipa_cmn_fifo_index id,
-		       struct sipa_common_fifo_cfg_tag *cfg_base,
-		       struct sipa_node_description_tag *node,
-		       u32 num);
-	u32 (*tx_fill)(enum sipa_cmn_fifo_index id,
-		       struct sipa_common_fifo_cfg_tag *cfg_base,
-		       struct sipa_node_description_tag *node,
-		       u32 num);
 	u32 (*set_rx_depth)(enum sipa_cmn_fifo_index id,
 			    struct sipa_common_fifo_cfg_tag *cfg_base,
 			    u32 depth);
