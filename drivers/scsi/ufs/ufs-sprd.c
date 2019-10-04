@@ -143,26 +143,35 @@ void ufs_sprd_reset(struct ufs_sprd_host *host)
 	ufs_sprd_rmwl(host->ufs_ao_reg, mask, val, REG_AO_SW_RST);
 	ufs_sprd_rmwl(host->ufs_ao_reg, mask, 0, REG_AO_SW_RST);
 
-	val = mask = RMMI_TX_L0_RST | RMMI_TX_L1_RST | RMMI_RX_L0_RST
-			    | RMMI_RX_L1_RST | RMMI_CB_RST | RMMI_RST;
-	ufs_sprd_rmwl(host->unipro_reg, mask, val, REG_PA_15);
-	ufs_sprd_rmwl(host->unipro_reg, mask, 0, REG_PA_15);
-
-	/* Exit hibernate after reset, and no need to care command's response. */
-	ufshcd_writel(host->hba, UIC_CMD_DME_HIBER_EXIT, REG_UIC_COMMAND);
-
 	/* reset mphy signal */
-	ufs_sprd_rmwl(host->analog_reg, 1 < 3, 0x0, 0x14);
+	ufs_sprd_rmwl(host->analog_reg, 1 << 3, 0x0 << 3, 0x14);
 	udelay(100);
-	ufs_sprd_rmwl(host->analog_reg, 1 < 3, 0x1, 0x14);
+	ufs_sprd_rmwl(host->analog_reg, 1 << 3, 0x1 << 3, 0x14);
 
+	ufs_sprd_rmwl(host->analog_reg, 0xff, 0xff, 0x8);
 
 	/* Fix issue failing to change speed to fast gear3 mode. */
 	val = mask = TX_FIFOMODE;
 	ufs_sprd_rmwl(host->mphy_reg, mask, val, REG_DIG_CFG35);
 
+	ufs_sprd_rmwl(host->mphy_reg, 0x1f << 16, 0x1 << 16, 0xD0);
+
 	val = mask = CDR_MONITOR_BYPASS;
 	ufs_sprd_rmwl(host->mphy_reg, mask, val, REG_DIG_CFG7);
+
+	ufs_sprd_rmwl(host->mphy_reg, 0x7 << 14, 0x4 << 14, REG_DIG_CFG7);
+
+	val = mask = RMMI_TX_L0_RST | RMMI_TX_L1_RST | RMMI_RX_L0_RST
+				| RMMI_RX_L1_RST | RMMI_CB_RST | RMMI_RST;
+	ufs_sprd_rmwl(host->unipro_reg, mask, val, REG_PA_15);
+	udelay(100);
+	ufs_sprd_rmwl(host->unipro_reg, mask, 0, REG_PA_15);
+
+	ufs_sprd_rmwl(host->unipro_reg, 0xf, 0xa, 0x18c);
+
+	/* Exit hibernate after reset, no need to care command's response. */
+	ufshcd_writel(host->hba, UIC_CMD_DME_HIBER_EXIT, REG_UIC_COMMAND);
+	udelay(100);
 
 	val = mask = RMMI_TX_DIRDY_SEL;
 	ufs_sprd_rmwl(host->unipro_reg, mask, val, REG_PA_27);
