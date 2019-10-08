@@ -22,6 +22,7 @@
 #include <linux/pcie-rc-sprd.h>
 #include <linux/platform_device.h>
 #include <linux/property.h>
+#include <linux/regulator/consumer.h>
 
 #include "pcie-designware.h"
 #include "pcie-sprd.h"
@@ -309,6 +310,10 @@ static int sprd_pcie_host_uninit(struct platform_device *pdev)
 		dev_err(&pdev->dev,
 			"set pcie uninit syscons fail, return %d\n", ret);
 
+	ret = regulator_disable(ctrl->vpower);
+	if (ret < 0)
+		dev_err(&pdev->dev, "disable vpower failed, return %d\n", ret);
+
 	return ret;
 }
 
@@ -381,6 +386,10 @@ static int sprd_pcie_host_shutdown(struct platform_device *pdev)
 		dev_err(&pdev->dev,
 			"set pcie shutdown syscons fail, return %d\n", ret);
 
+	ret = regulator_disable(ctrl->vpower);
+	if (ret < 0)
+		dev_err(&pdev->dev, "disable vpower failed, return %d\n", ret);
+
 	return ret;
 }
 
@@ -393,6 +402,10 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 	struct dw_pcie *pci = ctrl->pci;
 	struct pcie_port *pp = &pci->pp;
+
+	ret = regulator_enable(ctrl->vpower);
+	if (ret < 0)
+		dev_err(&pdev->dev, "enable vpower failed, return %d\n", ret);
 
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-resume-syscons");
 	if (ret < 0) {
@@ -482,6 +495,17 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 	ctrl = devm_kzalloc(dev, sizeof(*ctrl) + len, GFP_KERNEL);
 	if (!ctrl)
 		return -ENOMEM;
+
+	ctrl->vpower = devm_regulator_get(&pdev->dev, "vpower");
+	if (IS_ERR(ctrl->vpower)) {
+		ret = PTR_ERR(ctrl->vpower);
+		dev_err(dev, "unable to get vpower supply %d\n", ret);
+		return ret;
+	}
+
+	ret = regulator_enable(ctrl->vpower);
+	if (ret < 0)
+		dev_err(dev, "enable vpower failed, return %d\n", ret);
 
 	pci = devm_kzalloc(dev, sizeof(*pci), GFP_KERNEL);
 	if (!pci)

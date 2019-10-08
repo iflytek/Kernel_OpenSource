@@ -53,6 +53,7 @@ struct sprd_pcie {
 	/* keep track of pcie rc state */
 	unsigned int is_powered:1;
 	unsigned int is_suspended:1;
+	struct regulator *vpower;
 
 	struct sprd_pcie_register_event *event_reg;
 	struct work_struct reinit_work;
