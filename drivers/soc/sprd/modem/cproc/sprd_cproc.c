@@ -55,7 +55,7 @@ static void sprd_cproc_init_debugfs(void);
 #define CPROC_WDT_FLASE  false
 /*used for ioremap to limit vmalloc size, shi yunlong*/
 #define CPROC_VMALLOC_SIZE_LIMIT 4096
-#define MAX_CPROC_ENTRY_NUM		0x10
+#define MAX_CPROC_ENTRY_NUM		0x20
 
 enum {
 	CP_NORMAL_STATUS = 0,
