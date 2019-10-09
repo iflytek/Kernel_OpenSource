@@ -711,14 +711,18 @@ void sprd_pcie_remove_card(void *wcn_dev)
 	atomic_add(BUS_REMOVE_CARD_VAL, &priv->xmit_cnt);
 	/* prevent tx send */
 	atomic_set(&priv->edma_ready, 0x0);
-	/* if tx have send, waiting complete */
 
+	/* if tx have send, waiting complete */
 	while (!atomic_read(&priv->tx_complete) &&
 	       (wait_cnt < WAIT_AT_DONE_MAX_CNT)) {
 		usleep_range(100, 200);
 		wait_cnt++;
 		WCN_INFO("%s:wait cnt =%d\n", __func__, wait_cnt);
 	}
+
+	/* pause edma in order to not trigger msi irq */
+	if (edma_hw_pause() < 0)
+		WCN_ERR("edma_hw_pause fail\n");
 
 	edma_del_tx_timer();
 
@@ -733,8 +737,6 @@ void sprd_pcie_remove_card(void *wcn_dev)
 
 	wcn_bus_change_state(priv, WCN_BUS_DOWN);
 
-	if (edma_hw_pause() < 0)
-		WCN_ERR("edma_hw_pause fail\n");
 	init_completion(&priv->remove_done);
 	/* for proc_fs_exit, loopcheck/at/assert */
 	mdbg_fs_channel_destroy();
