@@ -13,7 +13,8 @@
 #define CONFIG_KERNEL_BOOT_CP
 //#define CONFIG_MEM_LAYOUT_DECOUPLING
 
-/*build aarch64 u-boot.elf*/
+#define CONFIG_CP_MAX_REGION_NUM	0xC
+
 #define CONFIG_REMAKE_ELF
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SPL_BAK
