@@ -241,11 +241,14 @@ static int sipa_nic_debug_show(struct seq_file *s, void *unused)
 		if (!ipa->nic[i])
 			continue;
 
-		seq_printf(s, "open = %d src_mask = %d netid = %d flow_ctrl_status = %d\n",
+		seq_printf(s, "open = %d src_mask = 0x%x netid = %d flow_ctrl_status = %d",
 			   atomic_read(&ipa->nic[i]->status),
 			   ipa->nic[i]->src_mask,
 			   ipa->nic[i]->netid,
 			   ipa->nic[i]->flow_ctrl_status);
+		seq_printf(s, " qlen = %d need_notify = %d\n",
+			   ipa->nic[i]->rx_skb_q.qlen,
+			   ipa->nic[i]->need_notify);
 	}
 
 	return 0;
