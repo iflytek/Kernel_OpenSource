@@ -45,6 +45,15 @@ enum cm_event_types {
 	CM_EVENT_OTHERS,
 };
 
+enum cm_jeita_types {
+	CM_JEITA_DCP = 0,
+	CM_JEITA_SDP,
+	CM_JEITA_CDP,
+	CM_JEITA_UNKNOWN,
+	CM_JEITA_FCHG,
+	CM_JEITA_MAX,
+};
+
 enum cm_charge_status {
 	CM_CHARGE_TEMP_ABNORMAL = BIT(0),
 	CM_CHARGE_VOLTAGE_ABNORMAL = BIT(1),
@@ -183,7 +192,16 @@ struct charger_jeita_table {
  *	Maximum possible duration for discharging with charger cable
  *	after full-batt. If discharging duration exceed 'discharging
  *	max_duration_ms', cm start charging.
+ * @normal_charge_voltage_max:
+ *	maximum normal charge voltage in microVolts
+ * @normal_charge_voltage_drop:
+ *	drop voltage in microVolts to allow restart normal charging
+ * @fast_charge_voltage_max:
+ *	maximum fast charge voltage in microVolts
+ * @fast_charge_voltage_drop:
+ *	drop voltage in microVolts to allow restart fast charging
  * @charger_status: Recording state of charge
+ * @charger_type: Recording type of charge
  * @trigger_cnt: The number of times the battery is fully charged
  * @cap_one_time: The percentage of electricity is not
  *	allowed to change by 1% in cm->desc->cap_one_time
@@ -201,6 +219,8 @@ struct charger_jeita_table {
  * @jeita_tab: Specify the jeita temperature table, which is used to
  *	adjust the charging current according to the battery temperature.
  * @jeita_tab_size: Specify the size of jeita temperature table.
+ * @jeita_tab_array: Specify the jeita temperature table array, which is used to
+ *	save the point of adjust the charging current according to the battery temperature.
  */
 struct charger_desc {
 	const char *psy_name;
@@ -238,10 +258,13 @@ struct charger_desc {
 
 	u32 charge_voltage_max;
 	u32 charge_voltage_drop;
+	u32 normal_charge_voltage_max;
+	u32 normal_charge_voltage_drop;
 	u32 fast_charge_voltage_max;
 	u32 fast_charge_voltage_drop;
 
 	int charger_status;
+	u32 charger_type;
 	int trigger_cnt;
 
 	u32 cap_one_time;
@@ -262,6 +285,7 @@ struct charger_desc {
 
 	struct charger_jeita_table *jeita_tab;
 	u32 jeita_tab_size;
+	struct charger_jeita_table *jeita_tab_array[CM_JEITA_MAX];
 };
 
 #define PSY_NAME_MAX	30
