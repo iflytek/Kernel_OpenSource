@@ -1189,6 +1189,10 @@
 				      <0 0x29100000 0 0x100000>;
 				reg-names = "pamu3_glb_regs",
 					    "dwc3_core_regs";
+				syscons = <&ap_ipa_ahb_regs
+					REG_AP_IPA_AHB_RF_AHB_RST
+					MASK_AP_IPA_AHB_RF_USB_PAM_SOFT_RST>;
+				syscon-names = "reset";
 			};
 
 			ssphy0: ssphy0@634d0000 {

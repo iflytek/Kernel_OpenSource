@@ -10,6 +10,8 @@ Required properties:
   - reg-names: "pam_glb_regs" for the pamu3 registers
 	"dwc3_core_regs" for dwc3 core registers
   - sprd,syscon-ipa-ahb: "ipa_ahb_regs" for ipa ahb syscon
+  - syscons: Should contain the base address, offset and bit for each entry in "syscon-names".
+  - syscon-names: global register bits name, order and name should the same as code.
 
 Example
 -------
@@ -23,4 +25,8 @@ Board specific DT entry:
 		reg-names = "pam_glb_regs",
 			"dwc3_core_regs";
 		sprd,syscon-ipa-ahb = <&ipa_ahb_regs>;
+		syscons = <&ap_ipa_ahb_regs
+			REG_AP_IPA_AHB_RF_AHB_RST
+			MASK_AP_IPA_AHB_RF_USB_PAM_SOFT_RST>;
+		syscon-names = "reset";
 	};
