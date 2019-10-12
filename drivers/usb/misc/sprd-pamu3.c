@@ -28,6 +28,7 @@
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 #include <linux/mfd/syscon.h>
+#include <linux/delay.h>
 
 #include <linux/usb/phy.h>
 #include <linux/usb/pam.h>
@@ -66,6 +67,9 @@ struct sprd_pamu3 {
 	void __iomem        *dwc3_dma;
 	void __iomem        *dwc3_base;
 	struct clk		*clk;
+	struct regmap           *sys_regmap;
+	u32 reset_reg;
+	u32 reset_mask;
 
 	struct pamu3_dwc3_trb		*tx_trb_pool;
 	struct pamu3_dwc3_trb		*rx_trb_pool;
@@ -319,6 +323,25 @@ void pamu3_memory_init(struct sprd_pamu3 *pamu3)
 	writel_relaxed(value, pamu3->base + PAM_U3_MBIM_NCM_NDP);
 }
 
+/* PAMU3 main reset */
+static int sprd_pamu3_reset(struct usb_phy *x)
+{
+	struct sprd_pamu3 *pamu3 = container_of(x, struct sprd_pamu3, pam);
+
+	regmap_update_bits(pamu3->sys_regmap, pamu3->reset_reg,
+			   pamu3->reset_mask, pamu3->reset_mask);
+
+	/*
+	 * Reset signal should hold on for a while
+	 * to insure resret process reliable.
+	 */
+	udelay(5);
+	regmap_update_bits(pamu3->sys_regmap, pamu3->reset_reg,
+			   pamu3->reset_mask, 0);
+
+	return 0;
+}
+
 /* pamu3_init will be called when controller initializes */
 static int sprd_pamu3_open(struct sprd_pamu3 *pamu3)
 {
@@ -330,6 +353,8 @@ static int sprd_pamu3_open(struct sprd_pamu3 *pamu3)
 	ret = clk_prepare_enable(pamu3->clk);
 	if (ret)
 		return ret;
+
+	sprd_pamu3_reset(&pamu3->pam);
 
 	/* Event buffer regs */
 	reg = readl_relaxed(pamu3->dwc3_base + REG_DWC3_GEVNTADRLO(1));
@@ -440,12 +465,6 @@ static int sprd_pamu3_init(struct usb_phy *x)
 
 	if (atomic_read(&pamu3->ref))
 		dev_warn(pamu3->dev, "is already opened\n");
-	return 0;
-}
-
-/* PAMU3 main reset */
-static int sprd_pamu3_reset(struct usb_phy *x)
-{
 	return 0;
 }
 
@@ -592,6 +611,7 @@ static int sprd_pamu3_probe(struct platform_device *pdev)
 	struct sprd_pamu3 *pamu3;
 	struct device *dev = &pdev->dev;
 	struct resource *res;
+	u32 reg_info[2];
 	int ret;
 
 	pamu3 = devm_kzalloc(dev, sizeof(*pamu3), GFP_KERNEL);
@@ -623,6 +643,25 @@ static int sprd_pamu3_probe(struct platform_device *pdev)
 		dev_err(dev, "failed to get ipa pamu3 clock\n");
 		ret = PTR_ERR(pamu3->clk);
 		pamu3->clk = NULL;
+		return ret;
+	}
+
+	/* get enable register information */
+	pamu3->sys_regmap = syscon_regmap_lookup_by_name(pdev->dev.of_node,
+							 "reset");
+	if (IS_ERR(pamu3->sys_regmap)) {
+		dev_err(&pdev->dev, "get sys regmap fail!\n");
+		ret = PTR_ERR(pamu3->sys_regmap);
+		return ret;
+	}
+
+	ret = syscon_get_args_by_name(pdev->dev.of_node,
+				      "reset", 2, reg_info);
+	if (ret == 2) {
+		pamu3->reset_reg = reg_info[0];
+		pamu3->reset_mask = reg_info[1];
+	} else {
+		dev_err(&pdev->dev, "get reset register info fail!\n");
 		return ret;
 	}
 
