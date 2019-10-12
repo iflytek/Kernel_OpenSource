@@ -131,7 +131,7 @@ static int sipa_eth_rx(struct SIPA_ETH *sipa_eth, int budget)
 	}
 
 	dev = sipa_eth->netdev;
-
+	atomic_set(&sipa_eth->rx_evt, 0);
 	while (skb_cnt < budget) {
 		ret = sipa_nic_rx(sipa_eth->nic_id, &skb);
 
@@ -143,7 +143,7 @@ static int sipa_eth_rx(struct SIPA_ETH *sipa_eth, int budget)
 				dt_stats->rx_fail++;
 				break;
 			case -ENODATA:
-				pr_debug("no more skb to recv");
+				atomic_set(&sipa_eth->rx_busy, 0);
 				break;
 			}
 			break;
@@ -174,9 +174,7 @@ static int sipa_eth_rx(struct SIPA_ETH *sipa_eth, int budget)
 static int sipa_eth_rx_poll_handler(struct napi_struct *napi, int budget)
 {
 	struct SIPA_ETH *sipa_eth = container_of(napi, struct SIPA_ETH, napi);
-	int pkts;
-
-	pkts = sipa_eth_rx(sipa_eth, budget);
+	int tmp = 0, pkts;
 
 	/* If the number of pkt is more than weight(64),
 	 * we cannot read them all with a single poll.
@@ -185,11 +183,46 @@ static int sipa_eth_rx_poll_handler(struct napi_struct *napi, int budget)
 	 * __raise_softirq_irqoff.(See napi_poll for details)
 	 * So do not do napi_complete in that case.
 	 */
-	if (pkts < budget) {
+READ_AGAIN:
+	/* For example:
+	 * pkts = 60, tmp = 60, budget = 4
+	 * if rx_evt is true, we goto READ_AGAIN,
+	 * pkts = 4, tmp = 64, budget = 0,
+	 * then we goto out, return 64 to napi,
+	 * In that case, we force napi to do polling again.
+	 */
+	pkts = sipa_eth_rx(sipa_eth, budget);
+	tmp += pkts;
+	budget -= pkts;
+	/*
+	 * If budget is 0 here, means we has not finished reading yet,
+	 * so we should return a weight-number(64) to napi to ask it
+	 * do another polling.
+	 */
+	if (!budget)
+		goto out;
+
+	/* Due to a cuncurrency issue, we have to do napi_complete
+	 * cautiously. If a socket is in the process of napi polling,
+	 * a SIPA_RECEIVE is arriving to trigger another socket to do receiving,
+	 * we must record it because it will be blocked by rx_busy
+	 * at the first beginning.
+	 * Since this SIPA_RECEIVE notification is a one-shot behaviour
+	 * in sipa_nic. if we chose to ignore this event, we may lose
+	 * the chance to receive forever.
+	 */
+	if (atomic_read(&sipa_eth->rx_evt))
+		goto READ_AGAIN;
+
+	/* If the number of budget is more than 0, it means the pkts
+	 * we received is smaller than napi weight(64).
+	 * Then we are okay to do napi_complete.
+	 */
+	if (budget)
 		napi_complete(napi);
-		atomic_dec(&sipa_eth->rx_busy);
-	}
-	return pkts;
+
+out:
+	return tmp;
 }
 
 static void sipa_eth_rx_handler (void *priv)
@@ -202,6 +235,7 @@ static void sipa_eth_rx_handler (void *priv)
 	}
 
 	if (!atomic_cmpxchg(&sipa_eth->rx_busy, 0, 1)) {
+		atomic_set(&sipa_eth->rx_evt, 0);
 		napi_schedule(&sipa_eth->napi);
 		/* Trigger a NET_RX_SOFTIRQ softirq directly,
 		 * or there will be a delay
@@ -225,8 +259,12 @@ static void sipa_eth_flowctrl_handler(void *priv, int flowctrl)
 static void sipa_eth_notify_cb(void *priv, enum sipa_evt_type evt,
 			       unsigned long data)
 {
+	struct SIPA_ETH *sipa_eth = (struct SIPA_ETH *)priv;
+
 	switch (evt) {
 	case SIPA_RECEIVE:
+		pr_debug("SIPA_RECEIVE evt received\n");
+		atomic_set(&sipa_eth->rx_evt, 1);
 		sipa_eth_rx_handler(priv);
 		break;
 	case SIPA_LEAVE_FLOWCTRL:
@@ -466,6 +504,7 @@ static int sipa_eth_probe(struct platform_device *pdev)
 	sipa_eth->netdev = netdev;
 	sipa_eth->pdata = pdata;
 	atomic_set(&sipa_eth->rx_busy, 0);
+	atomic_set(&sipa_eth->rx_evt, 0);
 	netdev->netdev_ops = &sipa_eth_ops;
 	netdev->watchdog_timeo = 1 * HZ;
 	netdev->irq = 0;
@@ -548,6 +587,8 @@ static int sipa_eth_debug_show(struct seq_file *m, void *v)
 		   stats->rx_fail);
 
 	seq_printf(m, "rx_busy=%d\n", atomic_read(&sipa_eth->rx_busy));
+	seq_printf(m, "rx_evt=%d\n", atomic_read(&sipa_eth->rx_evt));
+
 	seq_puts(m, "\nTX statistics:\n");
 	seq_printf(m, "tx_sum=%u, tx_cnt=%u\n",
 		   stats->tx_sum,
