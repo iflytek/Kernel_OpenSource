@@ -20,5 +20,6 @@ config ARCH_SPRD
 	select MFD_SYSCON
 	select CLKSRC_SPRD
 	select PINCTRL
+	select SPRD_TIMER
 	help
 	  Support Spreadtrum's arm based systems.

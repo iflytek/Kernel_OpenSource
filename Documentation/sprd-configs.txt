@@ -13652,8 +13652,8 @@ CONFIG_SPRD_ORCA1_USB3_PHY
 	[missing plat description]
 	[function]
 CONFIG_SPRD_ORCA_CLK
-	[arch] arm64
-	[plat] orca
+	[arch] all
+	[plat] orca,sharkl5_32
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
 	[subsys]
@@ -13980,8 +13980,8 @@ CONFIG_SPRD_THERMAL
 	[missing plat description]
 	[function] This function is used to config thermal moudle.
 CONFIG_SPRD_TIMER
-	[arch] arm64
-	[plat] orca,roc1,sharkl3,sharkl5
+	[arch] all
+	[plat] all
 	[missing plat] none
 	[field] make
 	[subsys] timer
