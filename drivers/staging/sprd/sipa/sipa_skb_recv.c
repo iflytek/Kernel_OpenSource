@@ -46,8 +46,8 @@
 #define SIPA_RECV_RSVD_LEN     64
 
 
-int put_recv_array_node(struct sipa_skb_array *p,
-			struct sk_buff *skb, dma_addr_t dma_addr)
+static int put_recv_array_node(struct sipa_skb_array *p,
+			       struct sk_buff *skb, dma_addr_t dma_addr)
 {
 	u32 pos;
 
@@ -62,8 +62,8 @@ int put_recv_array_node(struct sipa_skb_array *p,
 	}
 }
 
-int get_recv_array_node(struct sipa_skb_array *p,
-			struct sk_buff **skb, dma_addr_t *dma_addr)
+static int get_recv_array_node(struct sipa_skb_array *p,
+			       struct sk_buff **skb, dma_addr_t *dma_addr)
 {
 	u32 pos;
 
@@ -83,7 +83,7 @@ int get_recv_array_node(struct sipa_skb_array *p,
 	}
 }
 
-struct sk_buff *alloc_recv_skb(u32 req_len, u8 rsvd)
+static struct sk_buff *alloc_recv_skb(u32 req_len, u8 rsvd)
 {
 	struct sk_buff *skb;
 	u32 hr;
@@ -157,7 +157,7 @@ static void sipa_prepare_free_node_init(struct sipa_skb_receiver *receiver,
 			receiver->ep->id, fail_cnt, success_cnt);
 }
 
-void fill_free_fifo(struct sipa_skb_receiver *receiver, u32 cnt)
+static void fill_free_fifo(struct sipa_skb_receiver *receiver, u32 cnt)
 {
 	struct sk_buff *skb;
 	u32 fail_cnt = 0;
@@ -244,8 +244,8 @@ void sipa_fill_free_node(struct sipa_skb_receiver *receiver, u32 cnt)
 }
 EXPORT_SYMBOL(sipa_fill_free_node);
 
-void sipa_receiver_notify_cb(void *priv, enum sipa_hal_evt_type evt,
-			     unsigned long data)
+static void sipa_receiver_notify_cb(void *priv, enum sipa_hal_evt_type evt,
+				    unsigned long data)
 {
 	struct sipa_skb_receiver *receiver = (struct sipa_skb_receiver *)priv;
 
@@ -442,7 +442,7 @@ int sipa_receiver_prepare_resume(struct sipa_skb_receiver *receiver)
 }
 EXPORT_SYMBOL(sipa_receiver_prepare_resume);
 
-void sipa_receiver_init(struct sipa_skb_receiver *receiver, u32 rsvd)
+static void sipa_receiver_init(struct sipa_skb_receiver *receiver, u32 rsvd)
 {
 	u32 depth;
 	struct sipa_comm_fifo_params attr;
@@ -498,7 +498,7 @@ void sipa_receiver_add_nic(struct sipa_skb_receiver *receiver,
 }
 EXPORT_SYMBOL(sipa_receiver_add_nic);
 
-int create_recv_array(struct sipa_skb_array *p, u32 depth)
+static int create_recv_array(struct sipa_skb_array *p, u32 depth)
 {
 	p->array = kzalloc(sizeof(struct sipa_skb_dma_addr_pair) * depth,
 			   GFP_KERNEL);
@@ -511,7 +511,7 @@ int create_recv_array(struct sipa_skb_array *p, u32 depth)
 	return 0;
 }
 
-void destroy_recv_array(struct sipa_skb_array *p)
+static void destroy_recv_array(struct sipa_skb_array *p)
 {
 	if (p->array)
 		kfree(p->array);

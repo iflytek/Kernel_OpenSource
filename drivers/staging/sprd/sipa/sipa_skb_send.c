@@ -47,8 +47,8 @@ static void sipa_inform_evt_to_nics(struct sipa_skb_sender *sender,
 	spin_unlock_irqrestore(&sender->nic_lock, flags);
 }
 
-void sipa_sender_notify_cb(void *priv, enum sipa_hal_evt_type evt,
-			   unsigned long data)
+static void sipa_sender_notify_cb(void *priv, enum sipa_hal_evt_type evt,
+				  unsigned long data)
 {
 	struct sipa_skb_sender *sender = (struct sipa_skb_sender *)priv;
 
