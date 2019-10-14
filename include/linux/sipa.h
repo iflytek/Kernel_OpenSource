@@ -372,6 +372,8 @@ int sipa_nic_tx(enum sipa_nic_id nic_id, enum sipa_term_type dst,
 int sipa_nic_rx(enum sipa_nic_id nic_id, struct sk_buff **out_skb);
 
 int sipa_nic_trigger_flow_ctrl_work(enum sipa_nic_id, int err);
+
+int sipa_nic_rx_has_data(enum sipa_nic_id nic_id);
 /*
  * IPA hash table managment
  */
