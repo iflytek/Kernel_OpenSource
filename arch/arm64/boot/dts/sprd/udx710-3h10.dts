@@ -284,3 +284,536 @@
 
 	status = "okay";
 };
+
+/* for BBAT gpio test */
+&pin_controller {
+	pinctrl-names =
+	"gpio_46", "gpio_47", "gpio_44", "gpio_45","gpio_140",
+	"gpio_35", "gpio_34", "gpio_33", "gpio_36", "gpio_37",
+	"gpio_77", "gpio_78", "gpio_40", "gpio_41", "gpio_42",
+	"gpio_43", "gpio_26", "gpio_27", "gpio_28", "gpio_29",
+	"gpio_30", "gpio_31", "gpio_9", "gpio_10", "gpio_11",
+	"gpio_14", "gpio_69", "gpio_72", "gpio_70", "gpio_71",
+	"gpio_32", "gpio_154", "gpio_73", "gpio_76", "gpio_91",
+	"gpio_93", "gpio_95", "gpio_97", "gpio_101", "gpio_99",
+	"gpio_92", "gpio_94", "gpio_96", "gpio_98", "gpio_102",
+	"gpio_100",
+	"gpio_46_config", "gpio_47_config", "gpio_44_config", "gpio_45_config",
+	"gpio_140_config", "gpio_35_config", "gpio_34_config", "gpio_33_config",
+	"gpio_36_config", "gpio_37_config", "gpio_77_config", "gpio_78_config",
+	"gpio_40_config", "gpio_41_config", "gpio_42_config", "gpio_43_config",
+	"gpio_26_config", "gpio_27_config", "gpio_28_config", "gpio_29_config",
+	"gpio_30_config", "gpio_31_config", "gpio_9_config", "gpio_10_config",
+	"gpio_11_config", "gpio_14_config", "gpio_69_config", "gpio_72_config",
+	"gpio_70_config", "gpio_71_config", "gpio_32_config", "gpio_154_config",
+	"gpio_73_config", "gpio_76_config", "gpio_91_config", "gpio_93_config",
+	"gpio_95_config", "gpio_97_config", "gpio_101_config", "gpio_99_config",
+	"gpio_92_config", "gpio_94_config", "gpio_96_config", "gpio_98_config",
+	"gpio_102_config", "gpio_100_config";
+	pinctrl-0 = <&gpio_46>;
+	pinctrl-1 = <&gpio_47>;
+	pinctrl-2 = <&gpio_44>;
+	pinctrl-3 = <&gpio_45>;
+	pinctrl-4 = <&gpio_140>;
+	pinctrl-5 = <&gpio_35>;
+	pinctrl-6 = <&gpio_34>;
+	pinctrl-7 = <&gpio_33>;
+	pinctrl-8 = <&gpio_36>;
+	pinctrl-9 = <&gpio_37>;
+	pinctrl-10 = <&gpio_77>;
+	pinctrl-11 = <&gpio_78>;
+	pinctrl-12 = <&gpio_40>;
+	pinctrl-13 = <&gpio_41>;
+	pinctrl-14 = <&gpio_42>;
+	pinctrl-15 = <&gpio_43>;
+	pinctrl-16 = <&gpio_26>;
+	pinctrl-17 = <&gpio_27>;
+	pinctrl-18 = <&gpio_28>;
+	pinctrl-19 = <&gpio_29>;
+	pinctrl-20 = <&gpio_30>;
+	pinctrl-21 = <&gpio_31>;
+	pinctrl-22 = <&gpio_9>;
+	pinctrl-23 = <&gpio_10>;
+	pinctrl-24 = <&gpio_11>;
+	pinctrl-25 = <&gpio_14>;
+	pinctrl-26 = <&gpio_69>;
+	pinctrl-27 = <&gpio_72>;
+	pinctrl-28 = <&gpio_70>;
+	pinctrl-29 = <&gpio_71>;
+	pinctrl-30 = <&gpio_32>;
+	pinctrl-31 = <&gpio_154>;
+	pinctrl-32 = <&gpio_73>;
+	pinctrl-33 = <&gpio_76>;
+	pinctrl-34 = <&gpio_91>;
+	pinctrl-35 = <&gpio_93>;
+	pinctrl-36 = <&gpio_95>;
+	pinctrl-37 = <&gpio_97>;
+	pinctrl-38 = <&gpio_101>;
+	pinctrl-39 = <&gpio_99>;
+	pinctrl-40 = <&gpio_92>;
+	pinctrl-41 = <&gpio_94>;
+	pinctrl-42 = <&gpio_96>;
+	pinctrl-43 = <&gpio_98>;
+	pinctrl-44 = <&gpio_102>;
+	pinctrl-45 = <&gpio_100>;
+	pinctrl-46 = <&gpio_46_config>;
+	pinctrl-47 = <&gpio_47_config>;
+	pinctrl-48 = <&gpio_44_config>;
+	pinctrl-49 = <&gpio_45_config>;
+	pinctrl-50 = <&gpio_140_config>;
+	pinctrl-51 = <&gpio_35_config>;
+	pinctrl-52 = <&gpio_34_config>;
+	pinctrl-53 = <&gpio_33_config>;
+	pinctrl-54 = <&gpio_36_config>;
+	pinctrl-55 = <&gpio_37_config>;
+	pinctrl-56 = <&gpio_77_config>;
+	pinctrl-57 = <&gpio_78_config>;
+	pinctrl-58 = <&gpio_40_config>;
+	pinctrl-59 = <&gpio_41_config>;
+	pinctrl-60 = <&gpio_42_config>;
+	pinctrl-61 = <&gpio_43_config>;
+	pinctrl-62 = <&gpio_26_config>;
+	pinctrl-63 = <&gpio_27_config>;
+	pinctrl-64 = <&gpio_28_config>;
+	pinctrl-65 = <&gpio_29_config>;
+	pinctrl-66 = <&gpio_30_config>;
+	pinctrl-67 = <&gpio_31_config>;
+	pinctrl-68 = <&gpio_9_config>;
+	pinctrl-69 = <&gpio_10_config>;
+	pinctrl-70 = <&gpio_11_config>;
+	pinctrl-71 = <&gpio_14_config>;
+	pinctrl-72 = <&gpio_69_config>;
+	pinctrl-73 = <&gpio_72_config>;
+	pinctrl-74 = <&gpio_70_config>;
+	pinctrl-75 = <&gpio_71_config>;
+	pinctrl-76 = <&gpio_32_config>;
+	pinctrl-77 = <&gpio_154_config>;
+	pinctrl-78 = <&gpio_73_config>;
+	pinctrl-79 = <&gpio_76_config>;
+	pinctrl-80 = <&gpio_91_config>;
+	pinctrl-81 = <&gpio_93_config>;
+	pinctrl-82 = <&gpio_95_config>;
+	pinctrl-83 = <&gpio_97_config>;
+	pinctrl-84 = <&gpio_101_config>;
+	pinctrl-85 = <&gpio_99_config>;
+	pinctrl-86 = <&gpio_92_config>;
+	pinctrl-87 = <&gpio_94_config>;
+	pinctrl-88 = <&gpio_96_config>;
+	pinctrl-89 = <&gpio_98_config>;
+	pinctrl-90 = <&gpio_102_config>;
+	pinctrl-91 = <&gpio_100_config>;
+
+	gpio_46: iis0clk {
+		pins = "ORCA_IIS0CLK";
+		function = "func4";
+		gpio_46_config: iis0clk_config {
+			pins = "ORCA_IIS0CLK_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_47: iis0lrck {
+		pins = "ORCA_IIS0LRCK";
+		function = "func4";
+		gpio_47_config: iis0lrck_config {
+			pins = "ORCA_IIS0LRCK_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_44: iis0di {
+		pins = "ORCA_IIS0DI";
+		function = "func4";
+		gpio_44_config: iis0di_config {
+			pins = "ORCA_IIS0DI_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_45: iis0do {
+		pins = "ORCA_IIS0DO";
+		function = "func4";
+		gpio_45_config: iis0do_config {
+			pins = "ORCA_IIS0DO_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_140: rfctl15 {
+		pins = "ORCA_RFCTL15";
+		function = "func4";
+		gpio_140_config: rfctl15_config {
+			pins = "ORCA_RFCTL15_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_35: sd2_d1 {
+		pins = "ORCA_SD2_D1";
+		function = "func4";
+		gpio_35_config: sd2_d1_config {
+			pins = "ORCA_SD2_D1_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_34: sd2_d0 {
+		pins = "ORCA_SD2_D0";
+		function = "func4";
+		gpio_34_config: sd2_d0_config {
+			pins = "ORCA_SD2_D0_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_33: sd2_cmd {
+		pins = "ORCA_SD2_CMD";
+		function = "func4";
+		gpio_33_config: sd2_cmd_config {
+			pins = "ORCA_SD2_CMD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_36: sd2_d2 {
+		pins = "ORCA_SD2_D2";
+		function = "func4";
+		gpio_36_config: sd2_d2_config {
+			pins = "ORCA_SD2_D2_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_37: sd2_d3 {
+		pins = "ORCA_SD2_D3";
+		function = "func4";
+		gpio_37_config: sd2_d3_config {
+			pins = "ORCA_SD2_D3_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_77: mtck_arm {
+		pins = "ORCA_MTCK_ARM";
+		function = "func4";
+		gpio_77_config: mtck_arm_config {
+			pins = "ORCA_MTCK_ARM_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_78: mtms_arm {
+		pins = "ORCA_MTMS_ARM";
+		function = "func4";
+		gpio_78_config: mtms_arm_config {
+			pins = "ORCA_MTMS_ARM_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_40: scl1 {
+		pins = "ORCA_SCL1";
+		function = "func4";
+		gpio_40_config: scl1_config {
+			pins = "ORCA_SCL1_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_41: sda1 {
+		pins = "ORCA_SDA1";
+		function = "func4";
+		gpio_41_config: sda1_config {
+			pins = "ORCA_SDA1_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_42: scl2 {
+		pins = "ORCA_SCL2";
+		function = "func4";
+		gpio_42_config: scl2_config {
+			pins = "ORCA_SCL2_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_43: sda2 {
+		pins = "ORCA_SDA2";
+		function = "func4";
+		gpio_43_config: sda2_config {
+			pins = "ORCA_SDA2_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_26: sd1_clk {
+		pins = "ORCA_SD1_CLK";
+		function = "func4";
+		gpio_26_config: sd1_clk_config {
+			pins = "ORCA_SD1_CLK_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_27: sd1_cmd {
+		pins = "ORCA_SD1_CMD";
+		function = "func4";
+		gpio_27_config: sd1_cmd_config {
+			pins = "ORCA_SD1_CMD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_28: sd1_d0 {
+		pins = "ORCA_SD1_D0";
+		function = "func4";
+		gpio_28_config: sd1_d0_config {
+			pins = "ORCA_SD1_D0_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_29: sd1_d1 {
+		pins = "ORCA_SD1_D1";
+		function = "func4";
+		gpio_29_config: sd1_d1_config {
+			pins = "ORCA_SD1_D1_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_30: sd1_d2 {
+		pins = "ORCA_SD1_D2";
+		function = "func4";
+		gpio_30_config: sd1_d2_config {
+			pins = "ORCA_SD1_D2_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_31: sd1_d3 {
+		pins = "ORCA_SD1_D3";
+		function = "func4";
+		gpio_31_config: sd1_d3_config {
+			pins = "ORCA_SD1_D3_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_9: keyin0 {
+		pins = "ORCA_KEYIN0";
+		function = "func4";
+		gpio_9_config: keyin0_config {
+			pins = "ORCA_KEYIN0_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_10: keyin1 {
+		pins = "ORCA_KEYIN1";
+		function = "func4";
+		gpio_10_config: keyin1_config {
+			pins = "ORCA_KEYIN1_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_11: keyin2 {
+		pins = "ORCA_KEYIN2";
+		function = "func4";
+		gpio_11_config: keyin2_config {
+			pins = "ORCA_KEYIN2_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_14: keyout2 {
+		pins = "ORCA_KEYOUT2";
+		function = "func4";
+		gpio_14_config: keyout2_config {
+			pins = "ORCA_KEYOUT2_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_69: spi0_csn {
+		pins = "ORCA_SPI0_CSN";
+		function = "func4";
+		gpio_69_config: spi0_csn_config {
+			pins = "ORCA_SPI0_CSN_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_72: spi0_clk {
+		pins = "ORCA_SPI0_CLK";
+		function = "func4";
+		gpio_72_config: spi0_clk_config {
+			pins = "ORCA_SPI0_CLK_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_70: spi0_do {
+		pins = "ORCA_SPI0_DO";
+		function = "func4";
+		gpio_70_config: spi0_do_config {
+			pins = "ORCA_SPI0_DO_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_71: spi0_di {
+		pins = "ORCA_SPI0_DI";
+		function = "func4";
+		gpio_71_config: spi0_di_config {
+			pins = "ORCA_SPI0_DI_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_32: sd2_clk {
+		pins = "ORCA_SD2_CLK";
+		function = "func4";
+		gpio_32_config: sd2_clk_config {
+			pins = "ORCA_SD2_CLK_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_154: rfctl_nr13 {
+		pins = "ORCA_RFCTL_NR13";
+		function = "func4";
+		gpio_154_config: rfctl_nr13_config {
+			pins = "ORCA_RFCTL_NR13_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_73: spi2_csn {
+		pins = "ORCA_SPI2_CSN";
+		function = "func4";
+		gpio_73_config: spi2_csn_config {
+			pins = "ORCA_SPI2_CSN_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_76: spi2_clk {
+		pins = "ORCA_SPI2_CLK";
+		function = "func4";
+		gpio_76_config: spi2_clk_config {
+			pins = "ORCA_SPI2_CLK_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_91: u0txd {
+		pins = "ORCA_U0TXD";
+		function = "func4";
+		gpio_91_config: u0txd_config {
+			pins = "ORCA_U0TXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_93: u1txd {
+		pins = "ORCA_U1TXD";
+		function = "func4";
+		gpio_93_config: u1txd_config {
+			pins = "ORCA_U1TXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_95: u2txd {
+		pins = "ORCA_U2TXD";
+		function = "func4";
+		gpio_95_config: u2txd_config {
+			pins = "ORCA_U2TXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_97: u3txd {
+		pins = "ORCA_U3TXD";
+		function = "func4";
+		gpio_97_config: u3txd_config {
+			pins = "ORCA_U3TXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_101: u4txd {
+		pins = "ORCA_U4TXD";
+		function = "func4";
+		gpio_101_config: u4txd_config {
+			pins = "ORCA_U4TXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_99: u5txd {
+		pins = "ORCA_U5TXD";
+		function = "func4";
+		gpio_99_config: u5txd_config {
+			pins = "ORCA_U5TXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_92: u0rxd {
+		pins = "ORCA_U0RXD";
+		function = "func4";
+		gpio_92_config: u0rxd_config {
+			pins = "ORCA_U0RXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_94: u1rxd {
+		pins = "ORCA_U1RXD";
+		function = "func4";
+		gpio_94_config: u1rxd_config {
+			pins = "ORCA_U1RXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_96: u2rxd {
+		pins = "ORCA_U2RXD";
+		function = "func4";
+		gpio_96_config: u2rxd_config {
+			pins = "ORCA_U2RXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_98: u3rxd {
+		pins = "ORCA_U3RXD";
+		function = "func4";
+		gpio_98_config: u3rxd_config {
+			pins = "ORCA_U3RXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_102: u4rxd {
+		pins = "ORCA_U4RXD";
+		function = "func4";
+		gpio_102_config: u4rxd_config {
+			pins = "ORCA_U4RXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_100: u5rxd {
+		pins = "ORCA_U5RXD";
+		function = "func4";
+		gpio_100_config: u5rxd_config {
+			pins = "ORCA_U5RXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+};

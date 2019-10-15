@@ -411,6 +411,11 @@
 		};
 	};
 
+	autotest: autotest {
+		compatible = "sprd,autotest";
+		sprd,pinctrl = <&pin_controller>;
+	};
+
 	gic: interrupt-controller@12000000 {
 		compatible = "arm,gic-v3";
 		#interrupt-cells = <3>;

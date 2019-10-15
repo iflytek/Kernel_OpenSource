@@ -11,6 +11,7 @@
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 #include <dt-bindings/debug/busmonitor/busmonitor.h>
 #include <dt-bindings/debug/dmc_mpu/orca_dmc_mpu.h>
+#include <dt-bindings/pinctrl/pinctrl-sprd.h>
 / {
 	interrupt-parent = <&gic>;
 	#address-cells = <2>;
