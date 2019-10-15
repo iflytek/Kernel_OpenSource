@@ -132,12 +132,6 @@ int misc_init_r(void)
 	return 0;
 }
 
-static void battery_init(void)
-{
-	sprdchg_common_cfg();
-	sprdchg_2703_init();
-	sprdbat_init();
-}
 
 int board_late_init(void)
 {
@@ -147,14 +141,13 @@ int board_late_init(void)
 	boot_role = cr_env->mode;
 
 	boot_pwr_check();
-
+	sprdfgu_init();
 #if !defined(CONFIG_FPGA)
 #ifdef CONFIG_NAND_BOOT
 	//extern int nand_ubi_dev_init(void);
 	nand_ubi_dev_init();
 	debugf("nand ubi init OK!\n");
 #endif
-	battery_init();
 	debugf("CHG init OK!\n");
 #endif
 	board_keypad_init();
