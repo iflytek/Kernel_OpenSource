@@ -8,7 +8,8 @@ Required properties:
  the IRQs from PMIC 2730 are delivered to.
  - interrupts: IRQ line info for sc2730.
  - sprd,input-voltage-microvolt: Specifies the input voltage for fast charging.
-
+ - nvmem-cell-names: Should be "fchg_cur_calib"
+ - nvmem-cells: A phandle to the calibration cells provided by eFuse device.
 Example:
 
 	sc2730-fchg@400 {
@@ -18,4 +19,6 @@ Example:
 		interrupt-parent = <&sc2730_pmic>;
 		interrupts = <5 IRQ_TYPE_LEVEL_HIGH>;
 		sprd,input-voltage-microvolt = <9000000>;
+		nvmem-cell-names = "fchg_cur_calib";
+		nvmem-cells = <&headset_adc_fir>;
 	};
