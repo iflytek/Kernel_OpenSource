@@ -1072,7 +1072,8 @@ dtb-$(CONFIG_ARCH_ASPEED) += aspeed-bmc-opp-palmetto.dtb \
 
 dtb-$(CONFIG_ARCH_SPRD) += \
 	ums312-1h10-go.dtb \
-	ums312-2h10-go.dtb
+	ums312-2h10-go.dtb \
+	udx710-3h10-32b.dtb
 
 dtbo-$(CONFIG_ARCH_SPRD) += \
 	ums312-1h10-go-overlay.dtbo \
