@@ -15,6 +15,8 @@
 #include <linux/of_device.h>
 #include <linux/extcon.h>
 #include <linux/kernel.h>
+#include <linux/regulator/consumer.h>
+#include <linux/regulator/driver.h>
 #include <linux/nvmem-consumer.h>
 #include <linux/slab.h>
 
@@ -71,6 +73,13 @@
 
 #define SC2721_STATE_MASK		GENMASK(3, 0)
 #define SC2721_EVENT_MASK		GENMASK(6, 0)
+
+/* sc2730 registers definitions for controller REGS_TYPEC */
+#define SC2730_TYPEC_PD_CFG		0x08
+
+/* SC2730_TYPEC_PD_CFG */
+#define SC27XX_VCONN_LDO_EN		BIT(13)
+#define SC27XX_VCONN_LDO_RDY		BIT(12)
 
 enum sc27xx_typec_connection_state {
 	SC27XX_DETACHED_SNK,
@@ -140,6 +149,7 @@ struct sc27xx_typec {
 	struct typec_partner *partner;
 	struct typec_capability typec_cap;
 	const struct sprd_typec_variant_data *var_data;
+	struct regulator  *vddldo;
 };
 
 static int sc27xx_typec_connect(struct sc27xx_typec *sc, u32 status)
@@ -148,6 +158,7 @@ static int sc27xx_typec_connect(struct sc27xx_typec *sc, u32 status)
 	enum typec_role power_role = TYPEC_SOURCE;
 	enum typec_role vconn_role = TYPEC_SOURCE;
 	struct typec_partner_desc desc;
+	int ret;
 
 	if (sc->partner)
 		return 0;
@@ -160,6 +171,7 @@ static int sc27xx_typec_connect(struct sc27xx_typec *sc, u32 status)
 		vconn_role = TYPEC_SINK;
 		break;
 	case SC27XX_ATTACHED_SRC:
+	case SC27XX_POWERED_CABLE:
 	case SC27XX_AUDIO_CABLE:
 		power_role = TYPEC_SOURCE;
 		data_role = TYPEC_HOST;
@@ -192,6 +204,14 @@ static int sc27xx_typec_connect(struct sc27xx_typec *sc, u32 status)
 		sc->pre_state = SC27XX_ATTACHED_SRC;
 		extcon_set_state_sync(sc->edev, EXTCON_USB_HOST, true);
 		break;
+	case SC27XX_POWERED_CABLE:
+		sc->pre_state = SC27XX_POWERED_CABLE;
+		ret = regulator_enable(sc->vddldo);
+		if (ret) {
+			dev_err(sc->dev, "vconn cable failed to enable ldo.\n");
+			return ret;
+		}
+		break;
 	case SC27XX_AUDIO_CABLE:
 		sc->pre_state = SC27XX_AUDIO_CABLE;
 		extcon_set_state_sync(sc->edev, EXTCON_JACK_HEADPHONE, true);
@@ -219,6 +239,9 @@ static void sc27xx_typec_disconnect(struct sc27xx_typec *sc, u32 status)
 		break;
 	case SC27XX_ATTACHED_SRC:
 		extcon_set_state_sync(sc->edev, EXTCON_USB_HOST, false);
+		break;
+	case SC27XX_POWERED_CABLE:
+		regulator_disable(sc->vddldo);
 		break;
 	case SC27XX_AUDIO_CABLE:
 		extcon_set_state_sync(sc->edev, EXTCON_JACK_HEADPHONE, false);
@@ -374,6 +397,111 @@ static int typec_set_rtrim(struct sc27xx_typec *sc, unsigned long efuse_offset)
 	return regmap_write(sc->regmap, sc->base + SC27XX_RTRIM, rtrim);
 }
 
+#ifdef CONFIG_REGULATOR
+static int sc27xx_typec_vconn_is_enabled(struct regulator_dev *dev)
+{
+	struct sc27xx_typec *sc = rdev_get_drvdata(dev);
+	int ret;
+	u32 val;
+
+	ret = regmap_read(sc->regmap, sc->base + SC2730_TYPEC_PD_CFG, &val);
+	if (ret) {
+		dev_err(sc->dev, "failed to get sc2730 typec_pd_cfg status.\n");
+		return ret;
+	}
+
+	val &= SC27XX_VCONN_LDO_EN;
+	return val;
+}
+
+static int sc27xx_typec_vconn_enable(struct regulator_dev *dev)
+{
+	struct sc27xx_typec *sc = rdev_get_drvdata(dev);
+	int ret;
+
+	ret = regulator_enable(sc->vddldo);
+	if (ret) {
+		dev_err(sc->dev, "failed to enable ldo for typec vconn.\n");
+		return ret;
+	}
+
+	/* set vconn ldo enable */
+	ret = regmap_update_bits(sc->regmap, sc->base + SC2730_TYPEC_PD_CFG,
+				 SC27XX_VCONN_LDO_EN, SC27XX_VCONN_LDO_EN);
+	if (ret)
+		goto vconn_ldo_en_err;
+
+	/* vconn ldo is ready for typec controller switch vconn for analog */
+	ret = regmap_update_bits(sc->regmap, sc->base + SC2730_TYPEC_PD_CFG,
+				 SC27XX_VCONN_LDO_RDY, SC27XX_VCONN_LDO_RDY);
+	if (ret)
+		goto vconn_ldo_rdy_err;
+	return 0;
+
+vconn_ldo_rdy_err:
+	regmap_update_bits(sc->regmap, sc->base + SC2730_TYPEC_PD_CFG,
+			   SC27XX_VCONN_LDO_EN, 0);
+
+vconn_ldo_en_err:
+	regulator_disable(sc->vddldo);
+	return ret;
+}
+
+static int sc27xx_typec_vconn_disable(struct regulator_dev *dev)
+{
+	struct sc27xx_typec *sc = rdev_get_drvdata(dev);
+
+	regulator_disable(sc->vddldo);
+
+	/* set vconn ldo disable */
+	regmap_update_bits(sc->regmap, sc->base + SC2730_TYPEC_PD_CFG,
+			    SC27XX_VCONN_LDO_EN, 0);
+
+	/* vconn ldo is ready for typec controller switch vconn for analog */
+	regmap_update_bits(sc->regmap, sc->base + SC2730_TYPEC_PD_CFG,
+			   SC27XX_VCONN_LDO_RDY, 0);
+	return 0;
+}
+
+static const struct regulator_ops sc2730_vconn_ops = {
+	.enable = sc27xx_typec_vconn_enable,
+	.disable = sc27xx_typec_vconn_disable,
+	.is_enabled = sc27xx_typec_vconn_is_enabled,
+};
+
+static const struct regulator_desc sc27xx_vconn_desc = {
+	.name = "typec-vconn",
+	.of_match = "typec-vconn",
+	.type = REGULATOR_VOLTAGE,
+	.owner = THIS_MODULE,
+	.ops = &sc2730_vconn_ops,
+	.n_voltages = 1,
+};
+
+static int sc27xx_typec_vconn_register_regulator(struct sc27xx_typec *sc)
+{
+	struct regulator_config cfg = { };
+	struct regulator_dev *reg;
+	int ret = 0;
+
+	cfg.dev = sc->dev;
+	cfg.driver_data = sc;
+	reg = devm_regulator_register(sc->dev, &sc27xx_vconn_desc, &cfg);
+
+	if (IS_ERR(reg)) {
+		ret = PTR_ERR(reg);
+		dev_err(sc->dev, "Can't register regulator:%d\n", ret);
+	}
+
+	return ret;
+}
+#else
+static int sc27xx_typec_vconn_register_regulator(struct sc27xx_typec *sc)
+{
+	return 0;
+}
+#endif
+
 static int sc27xx_typec_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -415,6 +543,24 @@ static int sc27xx_typec_probe(struct platform_device *pdev)
 	if (!sc->regmap) {
 		dev_err(sc->dev, "failed to get regmap.\n");
 		return -ENODEV;
+	}
+
+	sc->vddldo = devm_regulator_get_optional(dev, "vddldo");
+	ret = PTR_ERR_OR_ZERO(sc->vddldo);
+	switch (ret) {
+	case 0:
+		ret = sc27xx_typec_vconn_register_regulator(sc);
+		if (ret) {
+			dev_err(sc->dev, "failed to register vconn regulator.\n");
+			return ret;
+		}
+		break;
+	case -ENODEV:
+		dev_warn(dev, "no vddldo regulator supply\n");
+		break;
+	default:
+		dev_err(dev, "failed to get vddldo supply\n");
+		return ret;
 	}
 
 	ret = of_property_read_u32(node, "reg", &sc->base);

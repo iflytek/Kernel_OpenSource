@@ -12,6 +12,10 @@ Required properties:
  - nvmem-cells: A phandle to the calibration data provided by a nvmem device.
  - nvmem-cell-names: Should be "cc_calib".
 
+Optional properties:
+ - vddldo-supply: Should be "vddldo2" which is provided by pmic
+ - vconn: Provide a handle to the pd module to operate vconn
+
 Example:
 -------
 Board specific DT entry:
@@ -24,4 +28,8 @@ Board specific DT entry:
 		mode = <2>;
 		nvmem-cells = <&cc_cal>;
 		nvmem-cell-names = "cc_calib";
+		vddldo-supply = <&vddldo2>;
+		vconn: typec-vconn {
+			regulator-name = "vconn";
+		};
 	};
