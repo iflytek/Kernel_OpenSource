@@ -146,6 +146,10 @@
 #include <linux/sctp.h>
 #include <net/udp_tunnel.h>
 
+#if defined(CONFIG_SPRD_SFP_SUPPORT)
+#include <net/sfp.h>
+#endif
+
 #include "net-sysfs.h"
 
 /* Instead of increasing this, you should create a hash table. */
@@ -195,6 +199,15 @@ static unsigned int napi_gen_id = NR_CPUS;
 static DEFINE_READ_MOSTLY_HASHTABLE(napi_hash, 8);
 
 static seqcount_t devnet_rename_seq;
+
+#if defined(CONFIG_SPRD_SFP_SUPPORT)
+static int dev_ops_start_xmit(struct sk_buff *skb, struct net_device *dev)
+{
+	const struct net_device_ops *ops = dev->netdev_ops;
+
+	return ops->ndo_start_xmit(skb, dev);
+}
+#endif
 
 static inline void dev_base_seq_inc(struct net *net)
 {
@@ -4607,6 +4620,25 @@ static int netif_receive_skb_internal(struct sk_buff *skb)
  */
 int netif_receive_skb(struct sk_buff *skb)
 {
+#if defined(CONFIG_SPRD_SFP_SUPPORT)
+	struct net_device *net;
+	int out_index = 0;
+	int ret;
+
+	ret = soft_fastpath_process(SFP_INTERFACE_LTE,
+				    (void *)skb,
+				    NULL, NULL, &out_index);
+	if (!ret) {
+		net = netdev_get_by_index(out_index);
+		if (!net || dev_ops_start_xmit(skb, net)) {
+			dev_kfree_skb_any(skb);
+			pr_err("fast xmit fail, netif recv!\n");
+		}
+		if (net)
+			dev_put(net);
+		return 0;
+	}
+#endif
 	trace_netif_receive_skb_entry(skb);
 
 	return netif_receive_skb_internal(skb);
