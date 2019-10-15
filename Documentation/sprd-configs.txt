@@ -141,7 +141,7 @@ CONFIG_ANON_INODES
 	[missing plat description] none
 	[function] Enable kernel support anonymous inodes.
 CONFIG_AQTION
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -8611,7 +8611,7 @@ CONFIG_MTD_CFI_I2
 	[missing plat description]
 	[function]
 CONFIG_MTD_CMDLINE_PARTS
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -8647,7 +8647,7 @@ CONFIG_MTD_MAP_BANK_WIDTH_4
 	[missing plat description]
 	[function]
 CONFIG_MTD_NAND
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -8656,7 +8656,7 @@ CONFIG_MTD_NAND
 	[missing plat description]
 	[function]
 CONFIG_MTD_NAND_ECC
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -8665,7 +8665,7 @@ CONFIG_MTD_NAND_ECC
 	[missing plat description]
 	[function]
 CONFIG_MTD_NAND_IDS
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -8674,7 +8674,7 @@ CONFIG_MTD_NAND_IDS
 	[missing plat description]
 	[function]
 CONFIG_MTD_NAND_SPRD
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -8692,7 +8692,7 @@ CONFIG_MTD_OF_PARTS
 	[missing plat description]
 	[function]
 CONFIG_MTD_UBI
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -9642,7 +9642,7 @@ CONFIG_NET_UDP_TUNNEL
 	[missing plat description] none
 	[function] Support for UDP Tunneling Protocol
 CONFIG_NET_VENDOR_AQUANTIA
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -13480,7 +13480,7 @@ CONFIG_SPRD_IPA_PCIE_WORKROUND
 	[missing plat description]
 	[function]
 CONFIG_SPRD_IPA_SUPPORT
-	[arch] arm64
+	[arch] all
 	[plat] orca,roc1
 	[missing plat] sharkl3,sharkl5
 	[field]
@@ -13771,7 +13771,7 @@ CONFIG_SPRD_SENSOR_HUB
 	[missing plat description]
 	[function] enable sensor hub driver built in kernel
 CONFIG_SPRD_SFP_SUPPORT
-	[arch] arm64
+	[arch] all
 	[plat] orca,roc1
 	[missing plat] sharkl3,sharkl5
 	[field]
@@ -13825,7 +13825,7 @@ CONFIG_SPRD_SIPA
 	[missing plat description]
 	[function]
 CONFIG_SPRD_SIPA_DELEGATE
-	[arch] arm64
+	[arch] all
 	[plat] orca,roc1
 	[missing plat] sharkl3,sharkl5
 	[field]
@@ -13843,7 +13843,7 @@ CONFIG_SPRD_SIPA_DELE_AP_IN_MINIAP
 	[missing plat description]
 	[function]
 CONFIG_SPRD_SIPA_DELE_CP_IN_MINIAP
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -14862,7 +14862,7 @@ CONFIG_TYPEC_UCSI
 	[missing plat description] none
 	[function]
 CONFIG_UBIFS_FS
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -14871,7 +14871,7 @@ CONFIG_UBIFS_FS
 	[missing plat description]
 	[function]
 CONFIG_UBIFS_FS_ADVANCED_COMPR
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -14880,7 +14880,7 @@ CONFIG_UBIFS_FS_ADVANCED_COMPR
 	[missing plat description]
 	[function]
 CONFIG_UBIFS_FS_LZO
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -14889,7 +14889,7 @@ CONFIG_UBIFS_FS_LZO
 	[missing plat description]
 	[function]
 CONFIG_UBIFS_FS_SECURITY
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -14898,7 +14898,7 @@ CONFIG_UBIFS_FS_SECURITY
 	[missing plat description]
 	[function]
 CONFIG_UBIFS_FS_ZLIB
-	[arch] arm64
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
