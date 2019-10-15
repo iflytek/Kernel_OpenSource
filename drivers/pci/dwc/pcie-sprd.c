@@ -324,7 +324,9 @@ static void sprd_pcie_rescan_bus(struct pci_bus *bus)
 	list_for_each_entry(child, &bus->children, node)
 		pcie_bus_configure_settings(child);
 
+	pci_lock_rescan_remove();
 	pci_bus_add_devices(bus);
+	pci_unlock_rescan_remove();
 }
 
 static void sprd_pcie_remove_bus(struct pci_bus *bus)
@@ -334,7 +336,9 @@ static void sprd_pcie_remove_bus(struct pci_bus *bus)
 	list_for_each_entry(pci_dev, &bus->devices, bus_list) {
 		struct pci_bus *child_bus = pci_dev->subordinate;
 
+		pci_lock_rescan_remove();
 		pci_stop_and_remove_bus_device(pci_dev);
+		pci_unlock_rescan_remove();
 
 		if (child_bus) {
 			dev_dbg(&bus->dev,
