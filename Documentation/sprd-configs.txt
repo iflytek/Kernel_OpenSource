@@ -141,7 +141,7 @@ CONFIG_ANON_INODES
 	[missing plat description] none
 	[function] Enable kernel support anonymous inodes.
 CONFIG_AQTION
-	[arch] all
+	[arch] arm64
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
 	[field]
@@ -13771,7 +13771,7 @@ CONFIG_SPRD_SENSOR_HUB
 	[missing plat description]
 	[function] enable sensor hub driver built in kernel
 CONFIG_SPRD_SFP_SUPPORT
-	[arch] all
+	[arch] arm64
 	[plat] orca,roc1
 	[missing plat] sharkl3,sharkl5
 	[field]
