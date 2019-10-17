@@ -10736,9 +10736,11 @@ CONFIG_PCIE_SPRD_HOST
 CONFIG_PCIE_SPRD_SPLIT_BAR
 	[arch] arm64
 	[plat] orca,roc1
+	[missing plat]
 	[field] make,code
 	[subsys] pci
 	[must] user
+	[missing plat description]
 	[function] Support split 64bit bar to two 32bit bars.
 CONFIG_PCI_BUS_ADDR_T_64BIT
 	[arch] arm64
@@ -12825,7 +12827,7 @@ CONFIG_SND_SOC_SPRD_PA_UCP1301
 	[field] make, code
 	[subsys] sound
 	[must] user
-	[missing plat description] only roc1 using UCP1301 chip
+	[missing plat description]only roc1 using UCP1301 chip
 	[function] snd codec dai
 CONFIG_SND_SOC_SPRD_R1P0V3_SC2721
 	[arch] arm64
@@ -13261,6 +13263,15 @@ CONFIG_SPRD_CPU_COOLING
 	[must] user
 	[missing plat description]
 	[function] sprd thermal policy
+CONFIG_SPRD_CPU_COOLING_CPUIDLE
+	[arch] arm64
+	[plat] roc1
+	[missing plat] none
+	[field] make
+	[subsys] thermal
+	[must] user
+	[missing plat description]
+	[function] sprd thermal policy
 CONFIG_SPRD_CPU_COOLING_DEVICE
 	[arch] arm64
 	[plat] orca,roc1,sharkl5
@@ -13433,14 +13444,14 @@ CONFIG_SPRD_IMS_BRIDGE_TEST
 	[missing plat description] none
 	[function] Add ims_bridged kernel test module to compile.
 CONFIG_SPRD_IMS_BRIDGE_TRANSIT
-        [arch] arm64
-        [plat] orca
-        [missing plat] none
-        [field] make
-        [subsys] net
-        [must] user
-        [missing plat description] none
-        [function] Add ims_bridged kernel transit module to compile.
+	[arch] arm64
+	[plat] orca
+	[missing plat] none
+	[field] make
+	[subsys] net
+	[must] user
+	[missing plat description] none
+	[function] Add ims_bridged kernel transit module to compile.
 CONFIG_SPRD_IOMMU
 	[arch] all
 	[plat] roc1,sharkl3,sharkl5,sharkl5_32
