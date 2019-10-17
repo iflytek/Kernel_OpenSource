@@ -13103,7 +13103,7 @@ CONFIG_SPRD_APDU
 	[function] Spreadtrum apdu driver.
 CONFIG_SPRD_APSYS_DVFS_DEVFREQ
 	[arch] arm64
-	[plat] sharkl5
+	[plat] roc1,sharkl5
 	[missing plat] orca,roc1,sharkl3
 	[field] make
 	[subsys] devfreq
