@@ -350,7 +350,7 @@ static int sprd_pamu3_open(struct sprd_pamu3 *pamu3)
 	int ret;
 
 	/* Enable ipa pamu3 */
-	ret = clk_prepare_enable(pamu3->clk);
+	ret = clk_enable(pamu3->clk);
 	if (ret)
 		return ret;
 
@@ -508,7 +508,7 @@ static int sprd_pamu3_set_suspend(struct usb_phy *x, int a)
 		value &= ~(PAMU3_CTL0_BIT_USB_EN | PAMU3_CTL0_BIT_PAM_EN |
 			   PAMU3_CTL0_BIT_RELEASE);
 		writel_relaxed(value, pamu3->base + PAM_U3_CTL0);
-		clk_disable_unprepare(pamu3->clk);
+		clk_disable(pamu3->clk);
 		atomic_set(&pamu3->inited, 0);
 		sipa_disconnect(SIPA_EP_USB, SIPA_DISCONNECT_END);
 	}
@@ -638,14 +638,6 @@ static int sprd_pamu3_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	pamu3->clk = devm_clk_get(dev, "pamu3_clk");
-	if (IS_ERR(pamu3->clk)) {
-		dev_err(dev, "failed to get ipa pamu3 clock\n");
-		ret = PTR_ERR(pamu3->clk);
-		pamu3->clk = NULL;
-		return ret;
-	}
-
 	/* get enable register information */
 	pamu3->sys_regmap = syscon_regmap_lookup_by_name(pdev->dev.of_node,
 							 "reset");
@@ -665,18 +657,34 @@ static int sprd_pamu3_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+	pamu3->clk = devm_clk_get(dev, "pamu3_clk");
+	if (IS_ERR(pamu3->clk)) {
+		dev_err(dev, "failed to get ipa pamu3 clock\n");
+		ret = PTR_ERR(pamu3->clk);
+		pamu3->clk = NULL;
+		return ret;
+	}
+
+	ret = clk_prepare(pamu3->clk);
+	if (ret)
+		return ret;
+
 	pamu3->dwc3_dma = (void __iomem *)res->start;
 	pamu3->dwc3_base = devm_ioremap_nocache(dev,
 			res->start, resource_size(res));
-	if (!pamu3->dwc3_base)
-		return -ENOMEM;
+	if (!pamu3->dwc3_base) {
+		ret = -ENOMEM;
+		goto err1;
+	}
 
 	pamu3->tx_trb_pool = (struct pamu3_dwc3_trb *)dma_alloc_coherent(
 			pamu3->dev, sizeof(struct pamu3_dwc3_trb) *
 			PAMU3_TX_TRB_NUM * 2,
 			&pamu3->tx_trb_pool_dma, GFP_KERNEL);
-	if (!pamu3->tx_trb_pool)
-		return -ENOMEM;
+	if (!pamu3->tx_trb_pool) {
+		ret = -ENOMEM;
+		goto err1;
+	}
 
 	pamu3->rx_trb_pool = (struct pamu3_dwc3_trb *)dma_alloc_coherent(
 			pamu3->dev, sizeof(struct pamu3_dwc3_trb) *
@@ -738,6 +746,8 @@ err:
 	if (pamu3->rndis_header_buf)
 		dma_free_coherent(pamu3->dev, PAMU3_RNDIS_HEADER_SIZE,
 			pamu3->rndis_header_buf, pamu3->rndis_header_buf_dma);
+err1:
+	clk_unprepare(pamu3->clk);
 
 	return ret;
 }
@@ -759,6 +769,8 @@ static int sprd_pamu3_remove(struct platform_device *pdev)
 			pamu3->rx_max_buf, pamu3->rx_max_buf_dma);
 
 	sysfs_remove_groups(&pdev->dev.kobj, usb_pamu3_groups);
+
+	clk_unprepare(pamu3->clk);
 
 	return 0;
 }
