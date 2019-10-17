@@ -20,4 +20,6 @@ enum {
 };
 
 void modem_ctrl_send_abnormal_to_ap(int status, u32 time_us);
+void modem_ctrl_poweron_modem(int on);
+
 #endif

@@ -43,7 +43,7 @@ static char *const mdm_stat[] = {
 };
 
 #define REBOOT_MODEM_DELAY    1000
-#define POWERREST_MODEM_DELAY 7000
+#define POWERREST_MODEM_DELAY 2000
 #define RESET_MODEM_DELAY    50
 
 char cdev_name[] = "mdm_ctrl";
@@ -318,7 +318,7 @@ static void modem_ctrl_notify_abnormal_status(int status)
 	modem_ctrl_send_abnormal_to_ap(status, 20);
 }
 
-static void modem_ctrl_poweron_modem(int on)
+void modem_ctrl_poweron_modem(int on)
 {
 	if (!mcd_dev || !mcd_dev->init)
 		return;
@@ -360,7 +360,7 @@ static void modem_ctrl_poweron_modem(int on)
 			dev_info(mcd_dev->dev, "modem_power reset: %d\n", on);
 			gpiod_set_value_cansleep(mcd_dev->init->gpio_poweron,
 						 1);
-			/* Base the spec modem boot flow that need to wait 7s */
+			/* Base the spec modem boot flow that need to wait 2s */
 			msleep(POWERREST_MODEM_DELAY);
 			mcd_dev->init->modem_status = MDM_CTRL_COLD_RESET;
 			gpiod_set_value_cansleep(mcd_dev->init->gpio_poweron,
