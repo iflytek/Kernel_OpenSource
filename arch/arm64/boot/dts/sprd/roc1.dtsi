@@ -1043,6 +1043,10 @@
 				      <0 0x20f00000 0 0x100000>;
 				reg-names = "pamu3_glb_regs",
 					    "dwc3_core_regs";
+				syscons = <&ipa_ahb_regs
+					REG_IPA_AHB_IPA_RST
+					MASK_IPA_AHB_PAM_U3_SOFT_RST>;
+				syscon-names = "reset";
 			};
 
 			ssphy: ssphy@40400000 {
