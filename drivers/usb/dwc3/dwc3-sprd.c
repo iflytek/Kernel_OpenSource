@@ -486,8 +486,8 @@ static void dwc3_sprd_hot_plug(struct dwc3_sprd *sdwc)
 			return;
 		}
 
-		if (!charging_only)
-			__pm_stay_awake(&sdwc->wake_lock);
+		if (charging_only)
+			__pm_relax(&sdwc->wake_lock);
 
 		dev_info(sdwc->dev, "is running as %s\n",
 			 mode == USB_DR_MODE_HOST ? "HOST" : "DEVICE");
@@ -560,6 +560,7 @@ static int dwc3_sprd_vbus_notifier(struct notifier_block *nb,
 			dev_info(sdwc->dev, "missed disconnect event when GPIO device connect.\n");
 			return 0;
 		}
+		__pm_stay_awake(&sdwc->wake_lock);
 
 		sdwc->vbus_active = true;
 		sdwc->dr_mode = USB_DR_MODE_PERIPHERAL;
@@ -602,6 +603,8 @@ static int dwc3_sprd_id_notifier(struct notifier_block *nb,
 			return 0;
 		}
 
+		__pm_stay_awake(&sdwc->wake_lock);
+
 		sdwc->vbus_active = true;
 		sdwc->dr_mode = USB_DR_MODE_HOST;
 		queue_work(system_unbound_wq, &sdwc->work);
@@ -640,6 +643,8 @@ static void dwc3_sprd_detect_cable(struct dwc3_sprd *sdwc)
 			return;
 		}
 
+		__pm_stay_awake(&sdwc->wake_lock);
+
 		sdwc->vbus_active = true;
 		sdwc->dr_mode = USB_DR_MODE_PERIPHERAL;
 		mode = sdwc->dr_mode;
@@ -651,6 +656,8 @@ static void dwc3_sprd_detect_cable(struct dwc3_sprd *sdwc)
 				"ignore host connection detected from ID GPIO.\n");
 			return;
 		}
+
+		__pm_stay_awake(&sdwc->wake_lock);
 
 		sdwc->vbus_active = true;
 		sdwc->dr_mode = USB_DR_MODE_HOST;
