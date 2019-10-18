@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2019 Unisoc Communications Inc.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -32,16 +32,12 @@ static void vsp_hw_dvfs_en(u32 dvfs_eb)
 	else
 		reg->ap_dfs_en_ctrl &= ~BIT(1);
 	mutex_unlock(&apsys_glb_reg_lock);
-
-	pr_info("dvfs ops: %s, dvfs_eb=%d\n", __func__, dvfs_eb);
 }
 
 /* work-idle dvfs map ops */
 static void get_vsp_dvfs_table(struct ip_dvfs_map_cfg *dvfs_table)
 {
 	int i = 0;
-
-	pr_info("dvfs ops: %s\n", __func__);
 
 	for (i = 0; i < ARRAY_SIZE(vsp_dvfs_config_table); i++) {
 		dvfs_table[i].map_index = vsp_dvfs_config_table[i].map_index;
@@ -58,17 +54,13 @@ static void get_vsp_index_from_table(u32 work_freq, u32 *index)
 	u32 i;
 
 	*index = 0;
-	pr_debug("dvfs ops: %s,work_freq=%u\n", __func__, work_freq);
 	for (i = 0; i < ARRAY_SIZE(vsp_dvfs_config_table); i++) {
 		set_clk = vsp_dvfs_config_table[i].clk_rate;
-
 		if (work_freq == set_clk) {
 			*index = i;
 			break;
 		}
 	}
-
-	pr_debug("dvfs ops: %s,index=%d\n", __func__, *index);
 }
 
 static void set_vsp_work_freq(u32 work_freq)
@@ -183,13 +175,11 @@ static void get_vsp_dvfs_status(struct ip_dvfs_status *ip_status)
 	ip_status->vdsp_vote_volt = "N/A";
 
 	ip_status->vsp_cur_freq =
-		sharkl5_vsp_val_to_freq(reg->ap_dvfs_cgm_cfg_dbg >> 3);
+		sharkl5_vsp_val_to_freq(reg->ap_dvfs_cgm_cfg_dbg >> 3 & 0x3);
 	ip_status->dpu_cur_freq =
 		sharkl5_dpu_val_to_freq(reg->ap_dvfs_cgm_cfg_dbg & 0x7);
 	ip_status->vdsp_cur_freq = "N/A";
 	mutex_unlock(&apsys_glb_reg_lock);
-
-	pr_info("dvfs ops: %s\n", __func__);
 }
 
 /* coffe setting ops */
@@ -201,8 +191,6 @@ static void set_vsp_gfree_wait_delay(u32 wind_para)
 	mutex_lock(&apsys_glb_reg_lock);
 	reg->ap_gfree_wait_delay_cfg |= (wind_para & 0x3ff);
 	mutex_unlock(&apsys_glb_reg_lock);
-
-	pr_info("dvfs ops: %s\n", __func__);
 }
 
 static void set_vsp_freq_upd_en_byp(u32 on)
@@ -216,8 +204,6 @@ static void set_vsp_freq_upd_en_byp(u32 on)
 	else
 		reg->ap_freq_update_bypass &= ~BIT(1);
 	mutex_unlock(&apsys_glb_reg_lock);
-
-	pr_info("dvfs ops: %s\n", __func__);
 }
 
 static void set_vsp_freq_upd_delay_en(u32 on)
@@ -231,8 +217,6 @@ static void set_vsp_freq_upd_delay_en(u32 on)
 	else
 		reg->ap_freq_upd_type_cfg &= ~BIT(3);
 	mutex_unlock(&apsys_glb_reg_lock);
-
-	pr_info("dvfs ops: %s\n", __func__);
 }
 
 static void set_vsp_freq_upd_hdsk_en(u32 on)
@@ -246,8 +230,6 @@ static void set_vsp_freq_upd_hdsk_en(u32 on)
 	else
 		reg->ap_freq_upd_type_cfg &= ~BIT(2);
 	mutex_unlock(&apsys_glb_reg_lock);
-
-	pr_info("dvfs ops: %s\n", __func__);
 }
 
 static void set_vsp_dvfs_swtrig_en(u32 en)
@@ -261,8 +243,6 @@ static void set_vsp_dvfs_swtrig_en(u32 en)
 	else
 		reg->ap_sw_trig_ctrl &= ~BIT(1);
 	mutex_unlock(&apsys_glb_reg_lock);
-
-	pr_info("dvfs ops: %s\n", __func__);
 }
 
 static void vsp_dvfs_map_cfg(void)
@@ -277,45 +257,32 @@ static void vsp_dvfs_map_cfg(void)
 	reg->vsp_index2_map = vsp_dvfs_config_table[2].clk_level |
 		vsp_dvfs_config_table[2].volt_level << 2;
 }
-static int vsp_dvfs_parse_dt(struct vsp_dvfs *vsp,
+static void vsp_dvfs_parse_dt(struct vsp_dvfs *vsp,
 				struct device_node *np)
 {
-	int ret;
-
-	pr_info("%s()\n", __func__);
-
-	ret = of_property_read_u32(np, "sprd,gfree-wait-delay",
-			&vsp->ip_coeff.gfree_wait_delay);
-	if (ret)
+	if (of_property_read_u32(np, "sprd,gfree-wait-delay",
+			&vsp->ip_coeff.gfree_wait_delay))
 		vsp->ip_coeff.gfree_wait_delay = 0x100;
 
-	ret = of_property_read_u32(np, "sprd,freq-upd-hdsk-en",
-			&vsp->ip_coeff.freq_upd_hdsk_en);
-	if (ret)
+	if (of_property_read_u32(np, "sprd,freq-upd-hdsk-en",
+			&vsp->ip_coeff.freq_upd_hdsk_en))
 		vsp->ip_coeff.freq_upd_hdsk_en = 1;
 
-	ret = of_property_read_u32(np, "sprd,freq-upd-delay-en",
-			&vsp->ip_coeff.freq_upd_delay_en);
-	if (ret)
+	if (of_property_read_u32(np, "sprd,freq-upd-delay-en",
+			&vsp->ip_coeff.freq_upd_delay_en))
 		vsp->ip_coeff.freq_upd_delay_en = 1;
 
-	ret = of_property_read_u32(np, "sprd,freq-upd-en-byp",
-			&vsp->ip_coeff.freq_upd_en_byp);
-	if (ret)
+	if (of_property_read_u32(np, "sprd,freq-upd-en-byp",
+			&vsp->ip_coeff.freq_upd_en_byp))
 		vsp->ip_coeff.freq_upd_en_byp = 0;
 
-	ret = of_property_read_u32(np, "sprd,sw-trig-en",
-			&vsp->ip_coeff.sw_trig_en);
-	if (ret)
+	if (of_property_read_u32(np, "sprd,sw-trig-en",
+			&vsp->ip_coeff.sw_trig_en))
 		vsp->ip_coeff.sw_trig_en = 0;
-
-	return ret;
 }
 
 static int vsp_dvfs_init(struct vsp_dvfs *vsp)
 {
-	pr_info("%s()\n", __func__);
-
 	vsp_dvfs_map_cfg();
 	set_vsp_gfree_wait_delay(vsp->ip_coeff.gfree_wait_delay);
 	set_vsp_freq_upd_hdsk_en(vsp->ip_coeff.freq_upd_hdsk_en);
@@ -335,8 +302,6 @@ static void updata_vsp_target_freq(u32 freq, set_freq_type freq_type)
 		set_vsp_work_freq(freq);
 	else
 		set_vsp_idle_freq(freq);
-
-	pr_debug("dvfs ops: %s\n", __func__);
 }
 
 static struct ip_dvfs_ops vsp_dvfs_ops  =  {
