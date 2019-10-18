@@ -357,7 +357,10 @@ bool sipa_skb_sender_check_send_complete(struct sipa_skb_sender *sender)
 {
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
-	if (!ctrl && !ctrl->power_flag)
+	if (!ctrl)
+		return true;
+
+	if (!ctrl->params_cfg.enable_cnt || !ctrl->power_flag)
 		return true;
 
 	return sipa_hal_check_send_cmn_fifo_com(sender->ctx->hdl,
