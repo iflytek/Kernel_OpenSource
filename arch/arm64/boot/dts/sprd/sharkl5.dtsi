@@ -2037,6 +2037,11 @@
 					pins = "SHARKL5_VBC_IIS_INF_SYS_SEL";
 					sprd,control = <0x1>;
 				};
+
+				vbc_iism0_1: iis-matrix-cfg-inf1@f {
+					pins = "SHARKL5_IIS_INF1_SYS_SEL";
+					sprd,control = <0xf>;
+				};
 			};
 
 			djtag: djtag@324e0000 {
@@ -2146,11 +2151,12 @@
 				pinctrl-names =
 				/* iis interface 0 */
 				"vbc_iis3_0", "vbc_iism0_0",
-				"vbc_iis_to_pad", "vbc_iis_to_aon_usb";
+				"vbc_iis_to_pad", "vbc_iis_to_aon_usb", "vbc_iism0_1";
 				pinctrl-0 = <&vbc_iis3_0>;
 				pinctrl-1 = <&vbc_iism0_0>;
 				pinctrl-2 = <&vbc_iis_to_pad>;
 				pinctrl-3 = <&vbc_iis_to_aon_usb>;
+				pinctrl-4 = <&vbc_iism0_1>;
 			};
 
 			mcdt@33490000{
