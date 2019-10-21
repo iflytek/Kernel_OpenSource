@@ -944,7 +944,6 @@ static irqreturn_t sc27xx_pd_irq(int irq, void *dev_id)
 		if (ret < 0)
 			goto done;
 
-		dev_warn(pd->dev, "IRQ: SC27XX_PD_PKG_RV_FLAG\n");
 		ret = sc27xx_pd_read_message(pd, &pd_msg);
 		if (ret < 0) {
 			dev_err(pd->dev, "not read PD msg, ret=%d\n", ret);
@@ -973,7 +972,7 @@ static irqreturn_t sc27xx_pd_irq(int irq, void *dev_id)
 	}
 
 	if (status & SC27XX_PD_TX_COLLSION_FLAG) {
-		dev_warn(pd->dev, "IRQ: PD collision\n");
+		dev_err(pd->dev, "IRQ: PD collision\n");
 		ret = regmap_update_bits(pd->regmap, pd->base + SC27XX_INT_CLR,
 					 SC27XX_PD_TX_COLLSION_CLR,
 					 SC27XX_PD_TX_COLLSION_CLR);
