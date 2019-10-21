@@ -304,7 +304,6 @@ static int sipa_eth_start_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	ret = sipa_nic_tx(sipa_eth->nic_id, pdata->term_type, netid, skb);
 	if (unlikely(ret != 0)) {
-		pr_err("fail to send skb, ret %d\n", ret);
 		if (ret == -EAGAIN || ret == -EINPROGRESS) {
 			/*
 			 * resume skb, otherwise
@@ -318,6 +317,8 @@ static int sipa_eth_start_xmit(struct sk_buff *skb, struct net_device *dev)
 			sipa_nic_trigger_flow_ctrl_work(sipa_eth->nic_id, ret);
 			return NETDEV_TX_BUSY;
 		}
+		pr_err("fail to send skb, dev 0x%p eth 0x%p nic_id %d, ret %d\n",
+		       dev, sipa_eth, sipa_eth->nic_id, ret);
 		goto err;
 	}
 
@@ -341,8 +342,9 @@ static int sipa_eth_open(struct net_device *dev)
 	struct sipa_eth_init_data *pdata = sipa_eth->pdata;
 	int ret = 0;
 
-	pr_info("open %s netid %d term_type %d mac_h %d\n",
-		dev->name, pdata->netid, pdata->term_type, pdata->mac_h);
+	pr_info("dev 0x%p eth 0x%p open %s netid %d term %d mac_h %d\n",
+		dev, sipa_eth, dev->name, pdata->netid, pdata->term_type,
+		pdata->mac_h);
 	ret = sipa_nic_open(
 		pdata->term_type,
 		pdata->netid,
