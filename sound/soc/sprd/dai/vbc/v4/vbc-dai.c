@@ -135,6 +135,17 @@ static const char *dai_id_to_str(int dai_id)
 		[BE_DAI_ID_FAST_P_BTSCO] = TO_STRING(BE_DAI_ID_FAST_P_BTSCO),
 		[BE_DAI_ID_NORMAL_AP01_P_BTSCO] =
 			TO_STRING(BE_DAI_ID_NORMAL_AP01_P_BTSCO),
+		[BE_DAI_ID_NORMAL_AP01_P_SMTPA] =
+			TO_STRING(BE_DAI_ID_NORMAL_AP01_P_SMTPA),
+		[BE_DAI_ID_NORMAL_AP23_SMTPA] =
+			TO_STRING(BE_DAI_ID_NORMAL_AP23_SMTPA),
+		[BE_DAI_ID_FAST_P_SMTPA] = TO_STRING(BE_DAI_ID_FAST_P_SMTPA),
+		[BE_DAI_ID_OFFLOAD_SMTPA] = TO_STRING(BE_DAI_ID_OFFLOAD_SMTPA),
+		[BE_DAI_ID_VOICE_SMTPA] = TO_STRING(BE_DAI_ID_VOICE_SMTPA),
+		[BE_DAI_ID_VOIP_SMTPA] = TO_STRING(BE_DAI_ID_VOIP_SMTPA),
+		[BE_DAI_ID_FM_SMTPA] = TO_STRING(BE_DAI_ID_FM_SMTPA),
+		[BE_DAI_ID_LOOP_SMTPA] = TO_STRING(BE_DAI_ID_LOOP_SMTPA),
+		[BE_DAI_ID_FM_DSP_SMTPA] = TO_STRING(BE_DAI_ID_FM_DSP_SMTPA),
 	};
 
 	if (dai_id >= BE_DAI_ID_MAX) {
@@ -259,11 +270,13 @@ static int check_be_dai_id(int be_dai_id)
 	case BE_DAI_ID_NORMAL_AP01_CODEC:
 	case BE_DAI_ID_NORMAL_AP01_USB:
 	case BE_DAI_ID_NORMAL_AP01_P_BTSCO:
+	case BE_DAI_ID_NORMAL_AP01_P_SMTPA:
 	case BE_DAI_ID_DUMP:
 		scene_id = VBC_DAI_ID_NORMAL_AP01;
 		break;
 	case BE_DAI_ID_NORMAL_AP23_CODEC:
 	case BE_DAI_ID_NORMAL_AP23_USB:
+	case BE_DAI_ID_NORMAL_AP23_SMTPA:
 		scene_id = VBC_DAI_ID_NORMAL_AP23;
 		break;
 	case BE_DAI_ID_CAPTURE_DSP_CODEC:
@@ -273,29 +286,35 @@ static int check_be_dai_id(int be_dai_id)
 	case BE_DAI_ID_FAST_P_CODEC:
 	case BE_DAI_ID_FAST_P_USB:
 	case BE_DAI_ID_FAST_P_BTSCO:
+	case BE_DAI_ID_FAST_P_SMTPA:
 		scene_id = VBC_DAI_ID_FAST_P;
 		break;
 	case BE_DAI_ID_OFFLOAD_CODEC:
 	case BE_DAI_ID_OFFLOAD_USB:
+	case BE_DAI_ID_OFFLOAD_SMTPA:
 		scene_id = VBC_DAI_ID_OFFLOAD;
 		break;
 	case BE_DAI_ID_VOICE_CODEC:
 	case BE_DAI_ID_VOICE_USB:
 	case BE_DAI_ID_VOICE_BT:
+	case BE_DAI_ID_VOICE_SMTPA:
 		scene_id = VBC_DAI_ID_VOICE;
 		break;
 	case BE_DAI_ID_VOIP_CODEC:
 	case BE_DAI_ID_VOIP_USB:
 	case BE_DAI_ID_VOIP_BT:
+	case BE_DAI_ID_VOIP_SMTPA:
 		scene_id = VBC_DAI_ID_VOIP;
 		break;
 	case BE_DAI_ID_FM_CODEC:
 	case BE_DAI_ID_FM_USB:
+	case BE_DAI_ID_FM_SMTPA:
 		scene_id = VBC_DAI_ID_FM;
 		break;
 	case BE_DAI_ID_LOOP_CODEC:
 	case BE_DAI_ID_LOOP_USB:
 	case BE_DAI_ID_LOOP_BT:
+	case BE_DAI_ID_LOOP_SMTPA:
 		scene_id = VBC_DAI_ID_LOOP;
 		break;
 	case BE_DAI_ID_PCM_A2DP:
@@ -321,6 +340,7 @@ static int check_be_dai_id(int be_dai_id)
 		break;
 	case BE_DAI_ID_FM_DSP_CODEC:
 	case BE_DAI_ID_FM_DSP_USB:
+	case BE_DAI_ID_FM_DSP_SMTPA:
 		scene_id = VBC_DAI_ID_FM_DSP;
 		break;
 	default:
@@ -5699,6 +5719,150 @@ static struct snd_soc_dai_driver vbc_dais[BE_DAI_ID_MAX] = {
 		},
 		.probe = sprd_dai_vbc_probe,
 		.ops = &normal_ops,
+	},
+	/* 34: BE_DAI_ID_NORMAL_AP01_P_SMTPA */
+	{
+		.name = TO_STRING(BE_DAI_ID_NORMAL_AP01_P_SMTPA),
+		.id = BE_DAI_ID_NORMAL_AP01_P_SMTPA,
+		.playback = {
+			.stream_name = "BE_DAI_NORMAL_AP01_SMTPA_P",
+			.aif_name = "BE_IF_NORMAL_AP01_SMTPA_P",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_CONTINUOUS,
+			.rate_max = 192000,
+			.formats = SPRD_VBC_DAI_PCM_FORMATS,
+		},
+		.probe = sprd_dai_vbc_probe,
+		.ops = &normal_ops,
+	},
+	/* 35: BE_DAI_ID_NORMAL_AP23_SMTPA */
+	{
+		.name = TO_STRING(BE_DAI_ID_NORMAL_AP23_SMTPA),
+		.id = BE_DAI_ID_NORMAL_AP23_SMTPA,
+		.playback = {
+			.stream_name = "BE_DAI_ID_NORMAL_AP23_SMTPA",
+			.aif_name = "BE_IF_ID_NORMAL_AP23_SMTPA",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_CONTINUOUS,
+			.rate_max = 192000,
+			.formats = SPRD_VBC_DAI_PCM_FORMATS,
+		},
+		.probe = sprd_dai_vbc_probe,
+		.ops = &normal_ap23_ops,
+	},
+	/* 36: BE_DAI_ID_FAST_P_SMTPA */
+	{
+		.name = TO_STRING(BE_DAI_ID_FAST_P_SMTPA),
+		.id = BE_DAI_ID_FAST_P_SMTPA,
+		.playback = {
+			.stream_name = "BE_DAI_ID_FAST_P_SMTPA",
+			.aif_name = "BE_IF_ID_FAST_P_SMTPA",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_CONTINUOUS,
+			.rate_max = 192000,
+			.formats = SPRD_VBC_DAI_PCM_FORMATS,
+		},
+		.probe = sprd_dai_vbc_probe,
+		.ops = &fast_ops,
+	},
+	/* 37: BE_DAI_ID_OFFLOAD_SMTPA */
+	{
+		.name = TO_STRING(BE_DAI_ID_OFFLOAD_SMTPA),
+		.id = BE_DAI_ID_OFFLOAD_SMTPA,
+		.playback = {
+			.stream_name = "BE_DAI_ID_OFFLOAD_SMTPA",
+			.aif_name = "BE_IF_ID_OFFLOAD_SMTPA",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_CONTINUOUS,
+			.rate_max = 192000,
+			.formats = SPRD_VBC_DAI_PCM_FORMATS,
+		},
+		.probe = sprd_dai_vbc_probe,
+		.ops = &offload_ops,
+	},
+	/* 38: BE_DAI_ID_VOICE_SMTPA */
+	{
+		.name = TO_STRING(BE_DAI_ID_VOICE_SMTPA),
+		.id = BE_DAI_ID_VOICE_SMTPA,
+		.playback = {
+			.stream_name = "BE_DAI_ID_VOICE_SMTPA",
+			.aif_name = "BE_IF_ID_VOICE_SMTPA",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_CONTINUOUS,
+			.rate_max = 192000,
+			.formats = SPRD_VBC_DAI_PCM_FORMATS,
+		},
+		.probe = sprd_dai_vbc_probe,
+		.ops = &voice_ops,
+	},
+	/* 39: BE_DAI_ID_VOIP_SMTPA */
+	{
+		.name = TO_STRING(BE_DAI_ID_VOIP_SMTPA),
+		.id = BE_DAI_ID_VOIP_SMTPA,
+		.playback = {
+			.stream_name = "BE_DAI_ID_VOIP_SMTPA",
+			.aif_name = "BE_IF_ID_VOIP_SMTPA",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_CONTINUOUS,
+			.rate_max = 192000,
+			.formats = SPRD_VBC_DAI_PCM_FORMATS,
+		},
+		.probe = sprd_dai_vbc_probe,
+		.ops = &voip_ops,
+	},
+	/* 40: BE_DAI_ID_FM_SMTPA */
+	{
+		.name = TO_STRING(BE_DAI_ID_FM_SMTPA),
+		.id = BE_DAI_ID_FM_SMTPA,
+		.playback = {
+			.stream_name = "BE_DAI_ID_FM_SMTPA",
+			.aif_name = "BE_IF_ID_FM_SMTPA",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_CONTINUOUS,
+			.rate_max = 192000,
+			.formats = SPRD_VBC_DAI_PCM_FORMATS,
+		},
+		.probe = sprd_dai_vbc_probe,
+		.ops = &fm_ops,
+	},
+	/* 41: BE_DAI_ID_LOOP_SMTPA */
+	{
+		.name = TO_STRING(BE_DAI_ID_LOOP_SMTPA),
+		.id = BE_DAI_ID_LOOP_SMTPA,
+		.playback = {
+			.stream_name = "BE_DAI_ID_LOOP_SMTPA",
+			.aif_name = "BE_IF_ID_LOOP_SMTPA",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_CONTINUOUS,
+			.rate_max = 192000,
+			.formats = SPRD_VBC_DAI_PCM_FORMATS,
+		},
+		.probe = sprd_dai_vbc_probe,
+		.ops = &loop_ops,
+	},
+	/* 42: BE_DAI_ID_FM_DSP_SMTPA */
+	{
+		.name = TO_STRING(BE_DAI_ID_FM_DSP_SMTPA),
+		.id = BE_DAI_ID_FM_DSP_SMTPA,
+		.playback = {
+			.stream_name = "BE_DAI_ID_FM_DSP_SMTPA",
+			.aif_name = "BE_IF_ID_FM_DSP_SMTPA",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = SNDRV_PCM_RATE_CONTINUOUS,
+			.rate_max = 192000,
+			.formats = SPRD_VBC_DAI_PCM_FORMATS,
+		},
+		.probe = sprd_dai_vbc_probe,
+		.ops = &fm_dsp_ops,
 	},
 };
 
