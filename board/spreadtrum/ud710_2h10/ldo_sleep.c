@@ -36,7 +36,7 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vddsdcore");
 	//regulator_enable("vddsdio");
 	//regulator_enable("vddusb33");
-	regulator_disable("vddrf1v8");  //used by ORCA default off then only refered by EXT_XTL_EN4
+	//regulator_disable("vddrf1v8");  //used by ORCA refered by EXT_XTL_EN4 and ROC1 NTC
 	//regulator_enable("avdd12");
 
 	/* In SC2730, this LDO is power off default */
@@ -146,7 +146,7 @@ static void pmic_lowpower_config(void)
 		//BIT_SLP_DCDCGPU_PD_EN |
 	#endif
 		//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
-		//BIT_SLP_DCDCGEN1_PD_EN |      //Marlin will use,configure by Marlin
+		BIT_SLP_DCDCGEN1_PD_EN |
 		0
 	);
 
@@ -197,7 +197,7 @@ static void pmic_lowpower_config(void)
 	}
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
-		//BIT_SLP_LDO_VDDRF1V8_PD_EN |  //ORCA use, only refered by EXT_XTL_EN4
+		BIT_SLP_LDO_VDDRF1V8_PD_EN |  //ORCA refered by EXT_XTL_EN4 and ROC NTC use
 		//BIT_SLP_LDO_VDDRF1V25_PD_EN |   //ORCA use, only refered by EXT_XTL_EN4
 		//BIT_SLP_LDO_VDDEMMCCORE_PD_EN | //EMMC use.should shutdown by user self
 		BIT_SLP_LDO_VDD18_DCXO_PD_EN |  //has 32k dcxo need sleep_pd
@@ -318,7 +318,7 @@ static void pmic_lowpower_config(void)
 		//BIT_DCDC_GEN1_EXT_XTL0_EN |
 		//BIT_DCDC_GEN1_EXT_XTL1_EN |
 		//BIT_DCDC_GEN1_EXT_XTL2_EN |
-		BIT_DCDC_GEN1_EXT_XTL3_EN |
+		BIT_DCDC_GEN1_EXT_XTL3_EN | //WB_CLK_REQ
 		BIT_DCDC_GEN1_EXT_XTL4_EN | //because vddrf1v25 refered EXT_XTL_EN4
 		//BIT_DCDC_GEN1_EXT_XTL5_EN |
 		0
