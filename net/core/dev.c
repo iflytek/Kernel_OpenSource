@@ -3616,6 +3616,8 @@ EXPORT_SYMBOL(rps_needed);
 struct static_key rfs_needed __read_mostly;
 EXPORT_SYMBOL(rfs_needed);
 
+int sysctl_rps_force_map __read_mostly;
+
 static struct rps_dev_flow *
 set_rps_cpu(struct net_device *dev, struct sk_buff *skb,
 	    struct rps_dev_flow *rflow, u16 next_cpu)
@@ -3709,8 +3711,12 @@ static int get_rps_cpu(struct net_device *dev, struct sk_buff *skb,
 		u32 ident;
 
 		/* First check into global flow table if there is a match */
+		/*
+		 * Add sysctl_rps_force_map to force to check map which is
+		 * setted by rps_cpus.
+		 */
 		ident = sock_flow_table->ents[hash & sock_flow_table->mask];
-		if ((ident ^ hash) & ~rps_cpu_mask)
+		if (((ident ^ hash) & ~rps_cpu_mask) || sysctl_rps_force_map)
 			goto try_rps;
 
 		next_cpu = ident & rps_cpu_mask;
