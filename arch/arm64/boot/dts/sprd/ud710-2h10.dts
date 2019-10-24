@@ -521,8 +521,8 @@
 	status = "disabled";
 };
 
-&vddwcn {
-	regulator-always-on;
+&vddrf1v25 {
+	status = "disabled";
 };
 
 &dcam {
