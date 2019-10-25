@@ -253,6 +253,8 @@ void aq_ring_queue_stop(struct aq_ring_s *ring)
 		netif_stop_subqueue(ndev, ring->idx);
 }
 
+static int sipa_aq_buff_err_cnt;
+
 bool aq_ring_tx_clean(struct aq_ring_s *self)
 {
 	struct device *dev = aq_nic_get_dev(self->aq_nic);
@@ -261,6 +263,14 @@ bool aq_ring_tx_clean(struct aq_ring_s *self)
 	for (budget = AQ_CFG_TX_CLEAN_BUDGET;
 	     budget && self->sw_head != self->hw_head; budget--) {
 		struct aq_ring_buff_s *buff = &self->buff_ring[self->sw_head];
+
+		if (!buff->pa && buff->eop_index == 0xffffU) {
+			sipa_aq_buff_err_cnt++;
+			pr_err("sipa aq have err buff, cnt = %d\n",
+			       sipa_aq_buff_err_cnt);
+			self->sw_head = aq_ring_next_dx(self, self->sw_head);
+			continue;
+		}
 
 		if (likely(buff->is_mapped)) {
 			if (unlikely(buff->is_sop)) {
