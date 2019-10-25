@@ -200,15 +200,6 @@ static DEFINE_READ_MOSTLY_HASHTABLE(napi_hash, 8);
 
 static seqcount_t devnet_rename_seq;
 
-#if defined(CONFIG_SPRD_SFP_SUPPORT)
-static int dev_ops_start_xmit(struct sk_buff *skb, struct net_device *dev)
-{
-	const struct net_device_ops *ops = dev->netdev_ops;
-
-	return ops->ndo_start_xmit(skb, dev);
-}
-#endif
-
 static inline void dev_base_seq_inc(struct net *net)
 {
 	while (++net->dev_base_seq == 0)
@@ -4627,21 +4618,28 @@ static int netif_receive_skb_internal(struct sk_buff *skb)
 int netif_receive_skb(struct sk_buff *skb)
 {
 #if defined(CONFIG_SPRD_SFP_SUPPORT)
-	struct net_device *net;
 	int out_index = 0;
-	int ret;
+	int ret, err;
+	struct net_device *dev;
 
 	ret = soft_fastpath_process(SFP_INTERFACE_LTE,
 				    (void *)skb,
 				    NULL, NULL, &out_index);
 	if (!ret) {
-		net = netdev_get_by_index(out_index);
-		if (!net || dev_ops_start_xmit(skb, net)) {
+		dev = netdev_get_by_index(out_index);
+		if (!dev) {
+			pr_err("fail to get dev, out idx %d\n", out_index);
 			dev_kfree_skb_any(skb);
-			pr_err("fast xmit fail, netif recv!\n");
+			return 0;
 		}
-		if (net)
-			dev_put(net);
+
+		/* update skb dev */
+		skb->dev = dev;
+
+		err = dev_queue_xmit(skb);
+		if (err)
+			pr_warn("fast xmit fail, out idx %d, err %x\n", out_index, err);
+		dev_put(dev);
 		return 0;
 	}
 #endif
