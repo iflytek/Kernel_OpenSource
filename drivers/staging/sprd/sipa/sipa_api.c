@@ -1569,6 +1569,7 @@ static int sipa_plat_drv_probe(struct platform_device *pdev_p)
 		return ret;
 	}
 
+	atomic_set(&ctrl->recv_cnt, 0);
 	device_init_wakeup(dev, true);
 	sipa_init_debugfs(&ctrl->params_cfg, ctrl);
 	return ret;

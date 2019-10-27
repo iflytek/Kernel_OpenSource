@@ -272,10 +272,12 @@ static int dispath_to_nic(struct sipa_skb_receiver *receiver,
 			  struct sipa_hal_fifo_item *item,
 			  struct sk_buff *skb)
 {
-	u32 i;
+	u32 i, depth;
 	struct sipa_nic *nic;
 	struct sipa_nic *dst_nic = NULL;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
+	depth = receiver->ep->recv_fifo.rx_fifo.fifo_depth;
 	for (i = 0; i < receiver->nic_cnt; i++) {
 		nic = receiver->nic_array[i];
 		if (atomic_read(&nic->status) != NIC_OPEN)
@@ -285,6 +287,11 @@ static int dispath_to_nic(struct sipa_skb_receiver *receiver,
 			dst_nic = nic;
 			break;
 		}
+	}
+
+	if (atomic_read(&ctrl->recv_cnt) > (depth >> 1)) {
+		receiver->need_sched_cnt++;
+		atomic_set(&receiver->need_sched, 1);
 	}
 
 	if (dst_nic) {
@@ -302,7 +309,7 @@ static int dispath_to_nic(struct sipa_skb_receiver *receiver,
 static int do_recv(struct sipa_skb_receiver *receiver)
 {
 	int i, ret;
-	u32 num = 0, depth = 0;
+	u32 num = 0, real_num = 0,  depth = 0, budget = 64;
 	dma_addr_t addr;
 	struct sk_buff *recv_skb = NULL;
 	struct sipa_hal_fifo_item item;
@@ -319,7 +326,15 @@ static int do_recv(struct sipa_skb_receiver *receiver)
 		receiver->tx_danger_cnt++;
 	}
 
-	for (i = 0; i < num; i++) {
+read_again:
+	if (num > budget) {
+		num -= budget;
+	} else {
+		budget = num;
+		num = 0;
+	}
+
+	for (i = 0; i < budget; i++) {
 		sipa_hal_recv_conversion_node_to_item(receiver->ctx->hdl, id,
 						      &item, i);
 
@@ -350,11 +365,20 @@ static int do_recv(struct sipa_skb_receiver *receiver)
 		skb_trim(recv_skb, item.len);
 
 		dispath_to_nic(receiver, &item, recv_skb);
+
+		if (atomic_read(&receiver->need_sched)) {
+			++i;
+			break;
+		}
 	}
 
-	sipa_hal_set_tx_fifo_rptr(receiver->ctx->hdl, id, num);
+	real_num += i;
+	sipa_hal_set_tx_fifo_rptr(receiver->ctx->hdl, id, i);
 
-	return num;
+	if (num > 0 && i == budget && !atomic_read(&receiver->need_sched))
+		goto read_again;
+
+	return real_num;
 }
 
 static int fill_recv_thread(void *data)
@@ -388,8 +412,9 @@ static int recv_thread(void *data)
 		u32 recv_cnt = 0;
 
 		wait_event_interruptible(receiver->recv_waitq,
-					 !sipa_hal_is_tx_fifo_empty(receiver->ctx->hdl,
-								    receiver->ep->recv_fifo.idx));
+			!sipa_hal_is_tx_fifo_empty(receiver->ctx->hdl,
+					receiver->ep->recv_fifo.idx) &&
+					!atomic_read(&receiver->need_sched));
 
 		recv_cnt = do_recv(receiver);
 		atomic_add(recv_cnt, &receiver->need_fill_cnt);
@@ -401,6 +426,49 @@ static int recv_thread(void *data)
 
 	return 0;
 }
+
+bool sipa_receiver_has_stop_recv(void)
+{
+	int i;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+
+	if (!ctrl)
+		return false;
+
+	for (i = 0; i < SIPA_PKT_TYPE_MAX; i++) {
+		if (ctrl->receiver[i] &&
+		    atomic_read(&ctrl->receiver[i]->need_sched))
+			return true;
+	}
+
+	return false;
+}
+EXPORT_SYMBOL(sipa_receiver_has_stop_recv);
+
+void sipa_receiver_clean_stop_recv(void)
+{
+	int i;
+	u32 depth;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+	struct sipa_skb_receiver *recv;
+
+	if (!ctrl)
+		return;
+
+	for (i = 0; i < SIPA_PKT_TYPE_MAX; i++) {
+		recv = ctrl->receiver[i];
+		if (!recv)
+			continue;
+
+		depth = recv->ep->recv_fifo.tx_fifo.fifo_depth;
+		if (atomic_read(&recv->need_sched) &&
+		    atomic_read(&ctrl->recv_cnt) < (depth / 4)) {
+			atomic_set(&recv->need_sched, 0);
+			wake_up(&recv->recv_waitq);
+		}
+	}
+}
+EXPORT_SYMBOL(sipa_receiver_clean_stop_recv);
 
 int sipa_receiver_prepare_suspend(struct sipa_skb_receiver *receiver)
 {
@@ -477,6 +545,7 @@ static void sipa_receiver_init(struct sipa_skb_receiver *receiver, u32 rsvd)
 	/* reserve space for dma flushing cache issue */
 	receiver->rsvd = rsvd;
 	receiver->init_flag = true;
+	atomic_set(&receiver->need_sched, 0);
 	depth = receiver->ep->recv_fifo.rx_fifo.fifo_depth;
 
 	sipa_prepare_free_node_init(receiver, depth);

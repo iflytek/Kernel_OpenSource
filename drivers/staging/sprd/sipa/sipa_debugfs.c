@@ -168,11 +168,18 @@ static int sipa_flow_ctrl_show(struct seq_file *s, void *unused)
 	seq_printf(s, "[RECV_ETH] need_fill_cnt = %d\n",
 		   atomic_read(&eth_recv->need_fill_cnt));
 
+	seq_printf(s, "[RECV_ETH] need_sched = %d need_sched_cnt = %d\n",
+		   atomic_read(&eth_recv->need_sched),
+		   eth_recv->need_sched_cnt);
+
 	seq_printf(s, "[RECV_IP] tx_danger_cnt = %d rx_danger_cnt = %d\n",
 		   ip_recv->tx_danger_cnt, ip_recv->rx_danger_cnt);
 
 	seq_printf(s, "[RECV_IP] need_fill_cnt = %d\n",
 		   atomic_read(&ip_recv->need_fill_cnt));
+
+	seq_printf(s, "[RECV_IP] need_sched = %d need_sched_cnt = %d\n",
+		   atomic_read(&ip_recv->need_sched), ip_recv->need_sched_cnt);
 
 	return 0;
 }

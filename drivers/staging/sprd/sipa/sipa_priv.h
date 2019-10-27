@@ -307,7 +307,9 @@ struct sipa_skb_receiver {
 	struct task_struct *fill_thread;
 	struct task_struct *thread;
 
+	atomic_t need_sched;
 	bool init_flag;
+	u32 need_sched_cnt;
 	u32 tx_danger_cnt;
 	u32 rx_danger_cnt;
 };
@@ -339,6 +341,7 @@ struct sipa_control {
 	struct completion usb_rm_comp;
 	struct sipa_rm_create_params ipa_rm;
 
+	atomic_t recv_cnt;
 	u32 suspend_stage;
 };
 

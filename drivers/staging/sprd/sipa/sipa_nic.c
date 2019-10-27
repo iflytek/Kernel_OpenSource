@@ -404,6 +404,9 @@ EXPORT_SYMBOL(sipa_nic_try_notify_recv);
 
 void sipa_nic_push_skb(struct sipa_nic *nic, struct sk_buff *skb)
 {
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+
+	atomic_inc(&ctrl->recv_cnt);
 	skb_queue_tail(&nic->rx_skb_q, skb);
 	if (nic->rx_skb_q.qlen == 1)
 		nic->need_notify = 1;
@@ -453,10 +456,15 @@ int sipa_nic_rx(enum sipa_nic_id nic_id, struct sk_buff **out_skb)
 	    atomic_read(&ctrl->nic[nic_id]->status) == NIC_CLOSE)
 		return -ENODEV;
 
+	if (sipa_receiver_has_stop_recv())
+		sipa_receiver_clean_stop_recv();
+
 	nic = ctrl->nic[nic_id];
 	skb = skb_dequeue(&nic->rx_skb_q);
 
 	*out_skb = skb;
+	if (skb)
+		atomic_dec(&ctrl->recv_cnt);
 
 	return (skb) ? 0 : -ENODATA;
 }

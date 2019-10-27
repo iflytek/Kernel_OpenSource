@@ -448,4 +448,8 @@ int sipa_rm_enable_usb_tether(void);
 
 bool sipa_check_cmn_fifo_complete(enum sipa_ep_id id);
 
+bool sipa_receiver_has_stop_recv(void);
+
+void sipa_receiver_clean_stop_recv(void);
+
 #endif /* _SIPA_H_ */
