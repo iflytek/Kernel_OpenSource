@@ -55,6 +55,11 @@ static int put_recv_array_node(struct sipa_skb_array *p,
 		pos = p->wp & (p->depth -1);
 		p->array[pos].skb = skb;
 		p->array[pos].dma_addr = dma_addr;
+		/*
+		 * Ensure that we put the item to the fifo before
+		 * we update the fifo wp.
+		 */
+		smp_wmb();
 		p->wp++;
 		return 0;
 	} else {
