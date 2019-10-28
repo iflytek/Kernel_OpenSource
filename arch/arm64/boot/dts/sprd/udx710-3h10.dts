@@ -217,7 +217,7 @@
 };
 
 &vddwcn {
-	regulator-always-on;
+	status = "disabled";
 };
 
 &vddsdcore {
@@ -236,8 +236,12 @@
 	status = "disabled";
 };
 
+&vddrf1v25 {
+	status = "disabled";
+};
+
 &vddldo0 {
-	regulator-always-on;
+	status = "disabled";
 };
 
 &vddldo2 {

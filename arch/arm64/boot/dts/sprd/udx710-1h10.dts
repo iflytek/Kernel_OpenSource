@@ -109,15 +109,19 @@
 };
 
 &vddcamd0 {
-	regulator-always-on;
+	status = "disabled";
 };
 
 &vddwcn {
-	regulator-always-on;
+	status = "disabled";
 };
 
 &vddldo0 {
-	regulator-always-on;
+	stauts = "disabled";
+};
+
+&vddrf1v25 {
+	status = "disabled";
 };
 
 &pcie1 {
