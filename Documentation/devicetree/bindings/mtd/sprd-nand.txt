@@ -11,6 +11,7 @@ Required properties:
 - reg: Registers location and length
 - interrupts: exactly one interrupt specifier
 - sprd,random-mode: if set, nandc will enable randomizer on IO data trans;
+- sprd,multi-cs: support multi cs select option;
 - clocks: Freq of source clk of nand controller ECC and ahb enable or disable
 Example:
 
@@ -19,6 +20,7 @@ nandc: nand-controller@21300000 {
 	reg = reg = <0 0x21300000 0 0x1000>;
 	interrupts = <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>;
 	sprd,random-mode;
+	sprd,multi-cs;
 	clock-names = "nandc_clk","nandc_ecc_clk","nandc_parent_sdr",
 		"nandc_parent_ddr","nandc_ahb_enable","nandc_ecc_enable",
 		"nandc_26m_enable","nandc_1x_enable","nandc_2x_enable";
