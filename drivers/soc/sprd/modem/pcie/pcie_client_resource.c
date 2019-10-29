@@ -23,6 +23,9 @@
 #include <linux/wait.h>
 
 #include "../include/sprd_pcie_resource.h"
+#ifdef CONFIG_SPRD_SIPA
+#include "pcie_sipa_res.h"
+#endif
 
 struct sprd_pci_res_notify {
 	void	(*notify)(void *p);
@@ -34,6 +37,11 @@ struct sprd_pcie_res {
 	u32	state;
 	u32	ep_fun;
 	bool	request_wait;
+
+#ifdef CONFIG_SPRD_SIPA
+	void *sipa_res;
+#endif
+
 	/*
 	 * in client(Orca), The PCIE module wll blocks the chip Deep,
 	 * so we must get a wake lock when pcie work to avoid this situation:
@@ -51,6 +59,18 @@ static void sprd_pcie_resource_first_ready_notify(struct sprd_pcie_res *res)
 	void (*notify)(void *p);
 
 	pr_info("pcie res: first ready.\n");
+
+#ifdef CONFIG_SPRD_SIPA
+	/*
+	 * in client side, producer res id is SIPA_RM_RES_PROD_PCIE_EP,
+	 * consumer res id is SIPA_RM_RES_CONS_WWAN_DL.
+	 */
+	res->sipa_res = pcie_sipa_res_create(res->dst,
+					     SIPA_RM_RES_PROD_PCIE_EP,
+					     SIPA_RM_RES_CONS_WWAN_DL);
+	if (!res->sipa_res)
+		pr_err("pcie res:create ipa res failed.\n");
+#endif
 
 	notify = res->first_ready_notify.notify;
 	if (notify)
@@ -159,6 +179,11 @@ int sprd_pcie_resource_trash(u32 dst)
 		return -EINVAL;
 
 	res = g_pcie_res[dst];
+
+#ifdef CONFIG_SPRD_SIPA
+	if (res->sipa_res)
+		pcie_sipa_res_destroy(res->sipa_res);
+#endif
 
 	sprd_pci_epf_unregister_irq_handler_ex(res->ep_fun,
 		PCIE_DBEL_EP_SCANNED,

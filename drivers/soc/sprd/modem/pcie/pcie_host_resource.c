@@ -26,6 +26,10 @@
 #include <linux/workqueue.h>
 #include <linux/mdm_ctrl.h>
 
+#ifdef CONFIG_SPRD_SIPA
+#include "pcie_sipa_res.h"
+#endif
+
 #include "../include/sprd_pcie_resource.h"
 
 #define PCIE_REMOVE_SCAN_GAP	msecs_to_jiffies(100)
@@ -46,6 +50,10 @@ struct sprd_pcie_res {
 	wait_queue_head_t	wait_load_ready;
 	wait_queue_head_t	wait_first_rescan;
 	struct task_struct	*thread;
+#endif
+
+#ifdef CONFIG_SPRD_SIPA
+	void *sipa_res;
 #endif
 
 	struct wakeup_source	ws;
@@ -69,6 +77,19 @@ static void sprd_pcie_resource_host_first_rescan_do(struct sprd_pcie_res *res)
 
 	if (ret)
 		pr_err("pcie res: register pci ret=%d.\n", ret);
+
+#ifdef CONFIG_SPRD_SIPA
+	/*
+	 * in host side, producer res id is SIPA_RM_RES_PROD_PCIE3,
+	 * consumer res id is SIPA_RM_RES_CONS_WWAN_UL.
+	 */
+	res->sipa_res = pcie_sipa_res_create(res->dst,
+					     SIPA_RM_RES_PROD_PCIE3,
+					     SIPA_RM_RES_CONS_WWAN_UL);
+	if (!res->sipa_res)
+		pr_err("pcie res:create ipa res failed.\n");
+#endif
+
 }
 
 static void sprd_pcie_resource_host_ep_notify(int event, void *data)
@@ -411,6 +432,11 @@ int sprd_pcie_resource_trash(u32 dst)
 #ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	if (!IS_ERR_OR_NULL(res->thread))
 		kthread_stop(res->thread);
+#endif
+
+#ifdef CONFIG_SPRD_SIPA
+	if (res->sipa_res)
+		pcie_sipa_res_destroy(res->sipa_res);
 #endif
 
 	cancel_work_sync(&res->scan_work);
