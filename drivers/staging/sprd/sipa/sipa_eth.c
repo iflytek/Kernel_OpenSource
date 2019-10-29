@@ -41,7 +41,7 @@
 
 static struct dentry *root;
 static int sipa_eth_debugfs_mknod(void *root, void *data);
-
+static void sipa_eth_rx_handler (void *priv);
 static u64 gro_enable;
 
 static inline void sipa_eth_dt_stats_init(struct sipa_eth_dtrans_stats *stats)
@@ -218,8 +218,21 @@ READ_AGAIN:
 	 * we received is smaller than napi weight(64).
 	 * Then we are okay to do napi_complete.
 	 */
-	if (budget)
+	if (budget) {
 		napi_complete(napi);
+		/* Test in a lab,  ten threads of TCP streams,
+		 * TPUT reaches to 1Gbps, another edge case occurs,
+		 * rx_busy might be 0, and rx_evt might be 1,
+		 * after we do napi_complete.
+		 * So do rx_handler manually to prevent
+		 * sipa_eth from stopping receiving pkts.
+		 */
+		if (atomic_read(&sipa_eth->rx_evt)) {
+			pr_debug("rx evt recv after napi complete");
+			atomic_set(&sipa_eth->rx_evt, 0);
+			sipa_eth_rx_handler((void *)sipa_eth);
+		}
+	}
 
 out:
 	return tmp;
