@@ -723,8 +723,8 @@ typedef struct smp_header{
 
 /* sysdump2.0 start*/
 #define BIT(x)                          (1 << x)
-#define IS_FIRST_BOOT(x)	x & BIT(0) ? 0: 1   /* x & BIT(0) = 1  means not first boot . first boot the value must be 0 .*/
-#define IS_BOOT_FROM_DUMP(x)	x & BIT(3) ? 1: 0   /* x & BIT(3) = 1  means boot from dump. Not boot from the value must be 0 .*/
+#define IS_FIRST_BOOT(x)	(x & BIT(0) ? 0: 1)   /* x & BIT(0) = 1  means not first boot . first boot the value must be 0 .*/
+#define IS_BOOT_FROM_DUMP(x)	(x & BIT(3) ? 1: 0)   /* x & BIT(3) = 1  means boot from dump. Not boot from the value must be 0 .*/
 #define FIRST_BOOT		BIT(0)
 #define AP_FULL_DUMP_ENABLE	BIT(1)
 #define AP_MINI_DUMP_ENABLE	BIT(2)

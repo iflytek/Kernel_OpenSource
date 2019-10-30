@@ -2256,15 +2256,15 @@ int check_dump_enable_status(void)
 		is_partition_ok = 0;
 		return -1;
 	}
-	if(IS_FIRST_BOOT(header_g.dump_flag)) {
+	if(IS_FIRST_BOOT(header_g.dump_flag) || (check_dump_status_result.reset_mode == CMD_RECOVERY_MODE)) {
 		header_g.dump_flag = 0;
-		dump_logd("First power on device (0x%x)\n", header_g.dump_flag);
+		dump_logd("dump status is orig:  (0x%x)\n", header_g.dump_flag);
 #ifdef DEBUG
 		header_g.dump_flag |= AP_FULL_DUMP_ENABLE;
 		dump_logd("Debug mode , set ap full dump enable default . (0x%x) \n", header_g.dump_flag);
 #else
 		header_g.dump_flag &= (~AP_FULL_DUMP_ENABLE);
-		dump_logd("Debug mode , set ap full dump disenable default .  (0x%x)\n", header_g.dump_flag);
+		dump_logd("user mode , set ap full dump disenable default .  (0x%x)\n", header_g.dump_flag);
 #endif
 		header_g.dump_flag |= AP_MINI_DUMP_ENABLE;
 		dump_logd("Always set ap mini dump enable default .  (0x%x) \n", header_g.dump_flag);
@@ -2279,7 +2279,7 @@ int check_dump_enable_status(void)
 		check_dump_status_result.mini_dump_enable = !!(header_g.dump_flag & AP_MINI_DUMP_ENABLE);
 
 	} else {
-		dump_logd("...NOT... First power on device, read old status (0x%x)\n", header_g.dump_flag);
+		dump_logd("...Status Changed... , read saved status (0x%x)\n", header_g.dump_flag);
 		check_dump_status_result.full_dump_enable = !!(header_g.dump_flag & AP_FULL_DUMP_ENABLE);
 		check_dump_status_result.mini_dump_enable = !!(header_g.dump_flag & AP_MINI_DUMP_ENABLE);
 
