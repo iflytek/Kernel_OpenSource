@@ -41,7 +41,9 @@ static ssize_t reg_read_store(struct device *dev,
 	if (!regmap)
 		return -ENODEV;
 
-	if (pm_runtime_suspended(dev->parent)) {
+	mutex_lock(&dphy->ctx.lock);
+	if (!dphy->ctx.is_enabled) {
+		mutex_unlock(&dphy->ctx.lock);
 		pr_err("dphy is not initialized\n");
 		return -ENXIO;
 	}
@@ -54,6 +56,7 @@ static ssize_t reg_read_store(struct device *dev,
 		reg = input_param[0] + i * reg_stride;
 		regmap_read(regmap, reg, &read_buf[i]);
 	}
+	mutex_unlock(&dphy->ctx.lock);
 
 	return count;
 }
@@ -115,7 +118,9 @@ static ssize_t reg_write_store(struct device *dev,
 	if (!regmap)
 		return -ENODEV;
 
-	if (pm_runtime_suspended(dev->parent)) {
+	mutex_lock(&dphy->ctx.lock);
+	if (!dphy->ctx.is_enabled) {
+		mutex_unlock(&dphy->ctx.lock);
 		pr_err("dphy is not initialized\n");
 		return -ENXIO;
 	}
@@ -129,6 +134,7 @@ static ssize_t reg_write_store(struct device *dev,
 		val = input_param[1 + i];
 		regmap_write(regmap, reg, val);
 	}
+	mutex_unlock(&dphy->ctx.lock);
 
 	return count;
 }
@@ -151,18 +157,22 @@ static ssize_t ssc_store(struct device *dev,
 	int ret;
 	struct sprd_dphy *dphy = dev_get_drvdata(dev);
 
-	if (pm_runtime_suspended(dev->parent)) {
+	mutex_lock(&dphy->ctx.lock);
+	if (!dphy->ctx.is_enabled) {
+		mutex_unlock(&dphy->ctx.lock);
 		pr_err("dphy is not initialized\n");
 		return -ENXIO;
 	}
 
 	ret = kstrtoint(buf, 10, &ssc_en);
 	if (ret) {
+		mutex_unlock(&dphy->ctx.lock);
 		pr_err("Invalid input value\n");
 		return -EINVAL;
 	}
 
 	sprd_dphy_ssc_en(dphy, ssc_en);
+	mutex_unlock(&dphy->ctx.lock);
 
 	return count;
 }
@@ -187,13 +197,16 @@ static ssize_t hop_store(struct device *dev,
 	struct sprd_dphy *dphy = dev_get_drvdata(dev);
 	struct dphy_context *ctx = &dphy->ctx;
 
-	if (pm_runtime_suspended(dev->parent)) {
+	mutex_lock(&dphy->ctx.lock);
+	if (!dphy->ctx.is_enabled) {
+		mutex_unlock(&dphy->ctx.lock);
 		pr_err("dphy is not initialized\n");
 		return -ENXIO;
 	}
 
 	ret = kstrtoint(buf, 10, &hop_freq);
 	if (ret) {
+		mutex_unlock(&dphy->ctx.lock);
 		pr_err("Invalid input freq\n");
 		return -EINVAL;
 	}
@@ -212,6 +225,7 @@ static ssize_t hop_store(struct device *dev,
 
 	delta = hop_freq - ctx->freq;
 	sprd_dphy_hop_config(dphy, delta, 200);
+	mutex_unlock(&dphy->ctx.lock);
 
 	return count;
 }
@@ -234,13 +248,16 @@ static ssize_t ulps_store(struct device *dev,
 	int ret;
 	struct sprd_dphy *dphy = dev_get_drvdata(dev);
 
-	if (pm_runtime_suspended(dev->parent)) {
+	mutex_lock(&dphy->ctx.lock);
+	if (!dphy->ctx.is_enabled) {
+		mutex_unlock(&dphy->ctx.lock);
 		pr_err("dphy is not initialized\n");
 		return -ENXIO;
 	}
 
 	ret = kstrtoint(buf, 10, &ulps_en);
 	if (ret) {
+		mutex_unlock(&dphy->ctx.lock);
 		pr_err("Invalid input freq\n");
 		return -EINVAL;
 	}
@@ -249,6 +266,7 @@ static ssize_t ulps_store(struct device *dev,
 		sprd_dphy_ulps_enter(dphy);
 	else
 		sprd_dphy_ulps_exit(dphy);
+	mutex_unlock(&dphy->ctx.lock);
 
 	return count;
 }
@@ -318,12 +336,15 @@ static ssize_t reset_store(struct device *dev,
 {
 	struct sprd_dphy *dphy = dev_get_drvdata(dev);
 
-	if (pm_runtime_suspended(dev->parent)) {
-		pr_err("dphy is suspended\n");
+	mutex_lock(&dphy->ctx.lock);
+	if (!dphy->ctx.is_enabled) {
+		mutex_unlock(&dphy->ctx.lock);
+		pr_err("dphy is not initialized\n");
 		return -ENXIO;
 	}
 
 	sprd_dphy_reset(dphy);
+	mutex_unlock(&dphy->ctx.lock);
 
 	return count;
 }
@@ -335,12 +356,15 @@ static ssize_t shutdown_store(struct device *dev,
 {
 	struct sprd_dphy *dphy = dev_get_drvdata(dev);
 
-	if (pm_runtime_suspended(dev->parent)) {
-		pr_err("dphy is suspended\n");
+	mutex_lock(&dphy->ctx.lock);
+	if (!dphy->ctx.is_enabled) {
+		mutex_unlock(&dphy->ctx.lock);
+		pr_err("dphy is not initialized\n");
 		return -ENXIO;
 	}
 
 	sprd_dphy_shutdown(dphy);
+	mutex_unlock(&dphy->ctx.lock);
 
 	return count;
 }

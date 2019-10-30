@@ -121,6 +121,7 @@ int sprd_dphy_resume(struct sprd_dphy *dphy)
 {
 	int ret;
 
+	mutex_lock(&dphy->ctx.lock);
 	if (dphy->glb && dphy->glb->power)
 		dphy->glb->power(&dphy->ctx, true);
 	if (dphy->glb && dphy->glb->enable)
@@ -128,9 +129,13 @@ int sprd_dphy_resume(struct sprd_dphy *dphy)
 
 	ret = sprd_dphy_configure(dphy);
 	if (ret) {
+		mutex_unlock(&dphy->ctx.lock);
 		DRM_ERROR("sprd dphy init failed\n");
 		return -EINVAL;
 	}
+
+	dphy->ctx.is_enabled = true;
+	mutex_unlock(&dphy->ctx.lock);
 
 	DRM_INFO("dphy resume OK\n");
 	return ret;
@@ -140,6 +145,7 @@ int sprd_dphy_suspend(struct sprd_dphy *dphy)
 {
 	int ret;
 
+	mutex_lock(&dphy->ctx.lock);
 	ret = sprd_dphy_close(dphy);
 	if (ret)
 		DRM_ERROR("sprd dphy close failed\n");
@@ -148,6 +154,9 @@ int sprd_dphy_suspend(struct sprd_dphy *dphy)
 		dphy->glb->disable(&dphy->ctx);
 	if (dphy->glb && dphy->glb->power)
 		dphy->glb->power(&dphy->ctx, false);
+
+	dphy->ctx.is_enabled = false;
+	mutex_unlock(&dphy->ctx.lock);
 
 	DRM_INFO("dphy suspend OK\n");
 	return ret;
@@ -177,6 +186,7 @@ static int sprd_dphy_context_init(struct sprd_dphy *dphy,
 	struct resource r;
 	u32 tmp;
 
+	dphy->ctx.is_enabled = true;
 	if (dphy->glb && dphy->glb->parse_dt)
 		dphy->glb->parse_dt(&dphy->ctx, np);
 
@@ -205,7 +215,7 @@ static int sprd_dphy_context_init(struct sprd_dphy *dphy,
 	if (!of_property_read_u32(np, "dev-id", &tmp))
 		dphy->ctx.id = tmp;
 
-	mutex_init(&dphy->ctx.hop_lock);
+	mutex_init(&dphy->ctx.lock);
 
 	return 0;
 }
@@ -249,10 +259,6 @@ static int sprd_dphy_probe(struct platform_device *pdev)
 	sprd_dphy_sysfs_init(&dphy->dev);
 	sprd_dphy_regmap_init(dphy);
 	platform_set_drvdata(pdev, dphy);
-
-//	pm_runtime_set_active(&pdev->dev);
-//	pm_runtime_get_noresume(&pdev->dev);
-//	pm_runtime_enable(&pdev->dev);
 
 	DRM_INFO("dphy driver probe success\n");
 

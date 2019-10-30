@@ -14,10 +14,11 @@ struct dphy_context {
 	struct regmap *regmap;
 	unsigned long ctrlbase;
 	unsigned long apbbase;
-	struct mutex hop_lock;
+	struct mutex lock;
 	u32 freq;
 	u8 lanes;
 	u8 id;
+	bool is_enabled;
 };
 
 struct dphy_pll_ops {
