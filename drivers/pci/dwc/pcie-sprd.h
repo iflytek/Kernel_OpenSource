@@ -55,7 +55,9 @@ struct sprd_pcie {
 	unsigned int is_suspended:1;
 
 	struct sprd_pcie_register_event *event_reg;
-	struct work_struct work;
+	struct work_struct reinit_work;
+	struct work_struct shutdown_work;
+	struct workqueue_struct *wq;
 
 	size_t label_len; /* pcie controller device length + 10 */
 	char wakeup_label[0];

@@ -124,40 +124,13 @@ static int sprd_pcie_wakeup(struct dw_pcie *pci, bool enable)
 	return 0;
 }
 
-static void sprd_ep_linkup_work_fn(struct work_struct *work)
+static void sprd_pcie_ep_reinit(struct work_struct *work)
 {
-	struct sprd_pcie *ep = container_of(work, struct sprd_pcie, work);
-	struct dw_pcie *pci = ep->pci;
-	int ret;
-
-	ret = dw_pcie_wait_for_link(pci);
-	if (ret < 0)
-		dev_err(pci->dev, "link fail after perst\n");
-	else {
-		sprd_pcie_wakeup(pci, false);
-		dw_pcie_ep_linkup(&pci->ep);
-	}
-}
-
-static int sprd_pcie_ep_shutdown(struct sprd_pcie *ep)
-{
-	int ret;
+	struct sprd_pcie *ep = container_of(work, struct sprd_pcie,
+					    reinit_work);
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
-
-	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
-	if (ret < 0)
-		dev_err(&pdev->dev,
-			"set pcie uninit syscons fail, return %d\n", ret);
-
-	return 0;
-}
-
-static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
-{
 	int ret;
-	struct dw_pcie *pci = ep->pci;
-	struct platform_device *pdev = to_platform_device(pci->dev);
 #ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	int val;
 #endif
@@ -166,7 +139,7 @@ static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 	if (ret < 0) {
 		dev_err(&pdev->dev,
 			"set pcie reinit syscons fail, return %d\n", ret);
-		return ret;
+		return;
 	}
 
 #ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
@@ -177,7 +150,7 @@ static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 	ret = sprd_pcie_split_bar(ep->pci);
 	if (ret) {
 		dev_err(&pdev->dev, "failed to split bar\n");
-		return ret;
+		return;
 	}
 
 	val = dw_pcie_readl_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3);
@@ -185,8 +158,30 @@ static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 			   (val | LTSSM_EN));
 #endif
 
-	schedule_work(&ep->work);
-	return 0;
+	ret = dw_pcie_wait_for_link(pci);
+	if (ret < 0)
+		dev_err(pci->dev, "link fail after perst\n");
+	else {
+		sprd_pcie_wakeup(pci, false);
+		dw_pcie_ep_linkup(&pci->ep);
+	}
+}
+
+static void sprd_pcie_ep_shutdown(struct work_struct *work)
+{
+	int ret;
+	struct sprd_pcie *ep = container_of(work, struct sprd_pcie,
+					    shutdown_work);
+	struct dw_pcie *pci = ep->pci;
+	struct platform_device *pdev = to_platform_device(pci->dev);
+	struct device *dev = &pdev->dev;
+
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
+	if (ret < 0)
+		dev_err(&pdev->dev,
+			"set pcie uninit syscons fail, return %d\n", ret);
+
+	pm_relax(dev);
 }
 
 /*
@@ -201,6 +196,9 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 	int val = gpiod_get_value(ep->gpiod_perst);
 	u32 irq_flags = irq_get_trigger_type(irq);
 	u32 expect = (irq_flags & IRQF_TRIGGER_HIGH) ? 1 : 0;
+	struct dw_pcie *pci = ep->pci;
+	struct platform_device *pdev = to_platform_device(pci->dev);
+	struct device *dev = &pdev->dev;
 
 	/* WORKAROUND: At present, if setting high-lever trigger, when intterupt
 	 * occurs the value read from gpio is low lever occasinally. When
@@ -223,9 +221,11 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 	irq_set_irq_type(irq, irq_flags);
 
 	if (!val)
-		sprd_pcie_ep_shutdown(ep);
-	else
-		sprd_pcie_ep_reinit(ep);
+		queue_work(ep->wq, &ep->shutdown_work);
+	else {
+		pm_stay_awake(dev);
+		queue_work(ep->wq, &ep->reinit_work);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -335,13 +335,32 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	INIT_WORK(&ep->work, sprd_ep_linkup_work_fn);
+	ep->wq = create_singlethread_workqueue("perst_irq");
+	if (!ep->wq)
+		return -ENOMEM;
+
+	INIT_WORK(&ep->reinit_work, sprd_pcie_ep_reinit);
+	INIT_WORK(&ep->shutdown_work, sprd_pcie_ep_shutdown);
+
+	device_init_wakeup(dev, true);
 
 	ret = sprd_add_pcie_ep(ep, pdev);
 	if (ret) {
 		dev_err(dev, "cannot initialize ep host\n");
+		destroy_workqueue(ep->wq);
 		return ret;
 	}
+
+	return 0;
+}
+
+static int sprd_pcie_ep_remove(struct platform_device *pdev)
+{
+	struct sprd_pcie *ep = platform_get_drvdata(pdev);
+	struct device *dev = &pdev->dev;
+
+	destroy_workqueue(ep->wq);
+	device_init_wakeup(dev, false);
 
 	return 0;
 }
@@ -356,6 +375,7 @@ MODULE_DEVICE_TABLE(of, sprd_pcie_ep_of_match);
 
 static struct platform_driver sprd_pcie_ep_driver = {
 	.probe = sprd_pcie_ep_probe,
+	.remove = sprd_pcie_ep_remove,
 	.driver = {
 		.name = "sprd-pcie-ep",
 		.suppress_bind_attrs = true,
