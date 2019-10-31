@@ -68,11 +68,13 @@ void clip(int *input, u8 bottom, u8 top)
 		*input = bottom;
 }
 
-void step_set(int step0, int step1, int step2, int scene_change_thr)
+void step_set(int step0, int step1, int step2,
+	int scene_change_thr, int min_backlight)
 {
 	g_step0 = (u8)step0;
 	g_step1 = (u8)step1;
 	g_step2 = (u8)step2;
+	g_min_backlight = (u8)min_backlight;
 }
 
 int max_hist(int *hist_diff)
