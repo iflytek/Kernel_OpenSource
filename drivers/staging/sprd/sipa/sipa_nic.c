@@ -27,7 +27,7 @@
 		(1 << SIPA_TERM_VAP2) | (1 << SIPA_TERM_CP0) | \
 		(1 << SIPA_TERM_CP1) | (1 << SIPA_TERM_VCP))
 
-#define SIPA_NIC_RM_INACTIVE_TIMER	1000
+#define SIPA_NIC_RM_INACTIVE_TIMER	3000
 
 struct sipa_nic_statics_info {
 	enum sipa_ep_id send_ep;
@@ -112,14 +112,21 @@ static struct sipa_nic_statics_info s_spia_nic_statics[SIPA_NIC_MAX] = {
 
 static void sipa_nic_rm_res_release(struct sipa_nic *nic);
 
-static void sipa_nic_rm_res_granted(struct sipa_nic *nic)
+static bool sipa_nic_rm_res_granted(struct sipa_nic *nic)
 {
+	bool ret;
 	unsigned long flags;
 	struct sipa_nic_cons_res *res = &nic->rm_res;
 
 	spin_lock_irqsave(&res->lock, flags);
 	res->request_in_progress = false;
+	ret = (atomic_read(&nic->status) == NIC_OPEN) &&
+		 nic->rm_res.rm_flow_ctrl;
+	if (ret)
+		nic->rm_res.rm_flow_ctrl = 0;
 	spin_unlock_irqrestore(&res->lock, flags);
+
+	return ret;
 }
 
 static void sipa_nic_rm_notify_cb(void *user_data,
@@ -131,11 +138,8 @@ static void sipa_nic_rm_notify_cb(void *user_data,
 	pr_debug("%s: event %d\n", __func__, event);
 	switch (event) {
 	case SIPA_RM_EVT_GRANTED:
-		sipa_nic_rm_res_granted(nic);
-		if (atomic_read(&nic->status) == NIC_OPEN)
+		if (sipa_nic_rm_res_granted(nic))
 			nic->cb(nic->cb_priv, SIPA_LEAVE_FLOWCTRL, 0);
-
-		sipa_nic_rm_res_release(nic);
 		break;
 	case SIPA_RM_EVT_RELEASED:
 		break;
@@ -224,6 +228,7 @@ static int sipa_nic_rm_init(struct sipa_nic_cons_res *res,
 	res->release_in_progress = false;
 	res->need_request = true;
 	res->request_in_progress = false;
+	res->rm_flow_ctrl = 0;
 
 	INIT_DELAYED_WORK(&res->work,
 			  sipa_nic_rm_timer_func);
@@ -249,6 +254,9 @@ static int sipa_nic_rm_res_request(struct sipa_nic *nic)
 	} else {
 		ret = res->request_in_progress ? -EINPROGRESS : 0;
 	}
+
+	if (ret == -EINPROGRESS)
+		res->rm_flow_ctrl = 1;
 	spin_unlock_irqrestore(&res->lock, flags);
 
 	return ret;
@@ -429,8 +437,10 @@ int sipa_nic_tx(enum sipa_nic_id nic_id, enum sipa_term_type dst,
 		return -ENODEV;
 
 	ret = sipa_nic_rm_res_request(ctrl->nic[nic_id]);
-	if (ret)
+	if (ret) {
+		sipa_nic_rm_res_release(ctrl->nic[nic_id]);
 		return ret;
+	}
 
 	ret = sipa_skb_sender_send_data(sender, skb, dst, netid);
 	if (ret == -EAGAIN)

@@ -274,6 +274,7 @@ struct sipa_nic_cons_res {
 	bool release_in_progress;
 	bool need_request;
 	bool request_in_progress;
+	bool rm_flow_ctrl;
 	unsigned long jiffies;
 };
 
