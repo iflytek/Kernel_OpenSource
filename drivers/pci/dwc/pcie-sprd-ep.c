@@ -180,6 +180,8 @@ static void sprd_pcie_ep_shutdown(struct work_struct *work)
 	if (ret < 0)
 		dev_err(&pdev->dev,
 			"set pcie uninit syscons fail, return %d\n", ret);
+	else
+		dw_pcie_ep_unlink(&pci->ep);
 
 	pm_relax(dev);
 }

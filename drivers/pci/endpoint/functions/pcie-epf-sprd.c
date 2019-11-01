@@ -444,6 +444,13 @@ static void sprd_epf_linkup(struct pci_epf *epf)
 	}
 }
 
+static void sprd_epf_unlink(struct pci_epf *epf)
+{
+	struct device *dev = &epf->dev;
+
+	dev_info(dev, "unlink: func_no = %d\n", epf->func_no);
+}
+
 static const struct pci_epf_device_id sprd_epf_ids[] = {
 	{
 		.name = SPRD_EPF_NAME,
@@ -539,6 +546,7 @@ static struct pci_epf_ops ops = {
 	.unbind	= sprd_epf_unbind,
 	.bind	= sprd_epf_bind,
 	.linkup = sprd_epf_linkup,
+	.unlink = sprd_epf_unlink,
 };
 
 static struct pci_epf_driver sprd_epf_driver = {
