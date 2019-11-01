@@ -48,15 +48,19 @@ int usb_hub_init(void)
 	 */
 	printf("usb dpdm switch to host within CMD_NORMAL_MODE\n");
 
-	sprd_gpio_request(NULL, USBHUB_VDD1V2_EN);
-	sprd_gpio_direction_output(NULL, USBHUB_VDD1V2_EN, 1);
-	mdelay(5);
-
 	sprd_gpio_request(NULL, USBHUB_DPDM_EN);
 	sprd_gpio_direction_output(NULL, USBHUB_DPDM_EN, 1);
 	mdelay(5);
 
 	return 0;
+}
+
+static void usb_hub_vdd1v2_en(void)
+{
+	sprd_gpio_request(NULL, USBHUB_VDD1V2_EN);
+	sprd_gpio_direction_output(NULL, USBHUB_VDD1V2_EN, 1);
+	mdelay(30);
+
 }
 
 extern void setup_chipram_env(void);
@@ -75,6 +79,7 @@ int board_init(void)
 	sprd_eic_init();
 	sprd_gpio_init();
 	sprd_led_init();
+	usb_hub_vdd1v2_en();
 	/*FPGA forbiden*/
 	sprd_pmu_lowpower_init();
 	TDPllRefConfig(1);
