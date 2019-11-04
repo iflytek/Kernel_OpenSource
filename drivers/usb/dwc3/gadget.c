@@ -1874,6 +1874,39 @@ static void dwc3_gadget_setup_nump(struct dwc3 *dwc)
 	dwc3_writel(dwc->regs, DWC3_DCFG, reg);
 }
 
+static int __dwc3_gadget_reset(struct dwc3 *dwc)
+{
+	struct dwc3_ep		*dep;
+	int			ret;
+
+	__dwc3_gadget_ep_disable(dwc->eps[0]);
+	__dwc3_gadget_ep_disable(dwc->eps[1]);
+
+	dep = dwc->eps[0];
+	ret = __dwc3_gadget_ep_enable(dep, false, false);
+	if (ret) {
+		dev_err(dwc->dev, "failed to enable %s\n", dep->name);
+		return ret;
+	}
+
+	dep = dwc->eps[1];
+	ret = __dwc3_gadget_ep_enable(dep, false, false);
+	if (ret) {
+		dev_err(dwc->dev, "failed to enable %s\n", dep->name);
+		goto error;
+	}
+
+	/* begin to receive SETUP packets */
+	dwc->ep0state = EP0_SETUP_PHASE;
+	dwc3_ep0_out_start(dwc);
+
+	return 0;
+
+error:
+	__dwc3_gadget_ep_disable(dwc->eps[0]);
+	return ret;
+}
+
 static int __dwc3_gadget_start(struct dwc3 *dwc)
 {
 	struct dwc3_ep		*dep;
@@ -2587,6 +2620,8 @@ static void dwc3_reset_gadget(struct dwc3 *dwc)
 {
 	if (!dwc->gadget_driver)
 		return;
+
+	__dwc3_gadget_reset(dwc);
 
 	if (dwc->gadget.speed != USB_SPEED_UNKNOWN) {
 		spin_unlock(&dwc->lock);
