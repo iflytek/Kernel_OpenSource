@@ -26,9 +26,23 @@
 #include "pcie-designware.h"
 #include "pcie-sprd.h"
 
+/*
+ * WORKAROUND: set CX_FLT_MASK_UR_POIS bit to fix pam ipa pcie access error
+ * problem.
+ */
+static void sprd_pcie_setup_ep(struct dw_pcie_ep *ep)
+{
+	u32 val;
+	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+
+	val = dw_pcie_readl_dbi(pci, PCIE_SYMBOL_TIMER_FILTER_1_OFF);
+	val |= CX_FLT_MASK_UR_POIS;
+	dw_pcie_writel_dbi(pci, PCIE_SYMBOL_TIMER_FILTER_1_OFF, val);
+}
+
 static void sprd_pcie_ep_init(struct dw_pcie_ep *ep)
 {
-	dw_pcie_setup_ep(ep);
+	sprd_pcie_setup_ep(ep);
 }
 
 static int sprd_pcie_ep_raise_irq(struct dw_pcie_ep *ep,
@@ -141,6 +155,11 @@ static void sprd_pcie_ep_reinit(struct work_struct *work)
 			"set pcie reinit syscons fail, return %d\n", ret);
 		return;
 	}
+
+	dev_info(pci->dev, "%s.\n", __func__);
+
+	sprd_pcie_setup_ep(&pci->ep);
+	dw_pcie_setup(pci);
 
 #ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	val = dw_pcie_readl_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3);
