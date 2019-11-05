@@ -68,6 +68,12 @@ static int sprd_pcie_host_init(struct pcie_port *pp)
 	if (IS_ENABLED(CONFIG_PCI_MSI))
 		dw_pcie_msi_init(pp);
 
+	if (device_property_read_bool(pci->dev, "ep-poweron-late")) {
+		dev_info(pci->dev,
+			 "The ep doesn't power on, no need to wait link\n");
+		return 0;
+	}
+
 	if (dw_pcie_wait_for_link(pci))
 		dev_warn(pci->dev,
 			 "pcie ep may has not been powered yet, ignore it\n");
