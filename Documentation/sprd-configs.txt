@@ -95,8 +95,8 @@ CONFIG_ANDROID_BINDER_IPC
 	[function] vts require. Binder is used in Android for both communication
 		between processes, and remote method invocation.
 CONFIG_ANDROID_LOW_MEMORY_KILLER
-	[arch] arm
-	[plat] sharkl5_32
+	[arch] all
+	[plat] sharkl5,sharkl5_32
 	[missing plat] none
 	[field] make,code
 	[subsys] mm
@@ -105,8 +105,8 @@ CONFIG_ANDROID_LOW_MEMORY_KILLER
 	[function] Registers processes to be killed when low memory conditions,
 	    this is useful in android-go.
 CONFIG_ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES
-	[arch] arm
-	[plat] sharkl5_32
+	[arch] all
+	[plat] sharkl5,sharkl5_32
 	[missing plat] none
 	[field] code
 	[subsys] mm
