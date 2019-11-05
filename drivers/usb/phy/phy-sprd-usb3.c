@@ -216,6 +216,11 @@ static int sprd_ssphy_init(struct usb_phy *x)
 	}
 
 	/* USB2/USB3 PHY power on */
+	reg = msk = MASK_PMU_APB_USB2_PHY_PWRON_REG |
+		MASK_PMU_APB_USB3_PHY_PWRON_REG;
+	ret |= regmap_update_bits(phy->pmu_apb,
+				  REG_PMU_APB_ANALOG_PHY_PWRON_CFG, msk, reg);
+
 	reg = msk = MASK_PMU_APB_USB3_PHY_PD_REG | MASK_PMU_APB_USB2_PHY_PD_REG;
 	ret |= regmap_update_bits(phy->pmu_apb, REG_PMU_APB_ANALOG_PHY_PD_CFG,
 			 msk, 0);
@@ -310,6 +315,10 @@ static void sprd_ssphy_shutdown(struct usb_phy *x)
 	regmap_update_bits(phy->ipa_ahb, REG_IPA_AHB_USB_CTL0, msk, reg);
 
 	/* USB2/USB3 PHY power off */
+	reg = msk = MASK_PMU_APB_USB2_PHY_PWRON_REG |
+		MASK_PMU_APB_USB3_PHY_PWRON_REG;
+	regmap_update_bits(phy->pmu_apb, REG_PMU_APB_ANALOG_PHY_PWRON_CFG,
+			   msk, 0);
 	reg = msk = MASK_PMU_APB_USB3_PHY_PD_REG | MASK_PMU_APB_USB2_PHY_PD_REG;
 	regmap_update_bits(phy->pmu_apb, REG_PMU_APB_ANALOG_PHY_PD_CFG,
 			 msk, reg);
