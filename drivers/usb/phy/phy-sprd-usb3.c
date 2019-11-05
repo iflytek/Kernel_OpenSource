@@ -32,6 +32,9 @@
 #include <dt-bindings/soc/sprd,roc1-mask.h>
 #include <dt-bindings/soc/sprd,roc1-regs.h>
 
+#define TUNEHSAMP_3_9MA		(GENMASK(26, 25))
+#define TFREGRES_TUNE_VALUE	(0xe << 19)
+
 #define PHY_REG_BASE			(phy->base)
 
 /* PHY registers offset */
@@ -279,6 +282,22 @@ static int sprd_ssphy_init(struct usb_phy *x)
 	ret |= regmap_update_bits(phy->ana_g3,
 			 REG_ANLG_PHY_G3_ANALOG_USB20_USB20_UTMI_CTL1,
 			 msk, reg);
+
+	msk = MASK_ANLG_PHY_G3_ANALOG_USB20_USB20_TUNEHSAMP;
+	ret |= regmap_read(phy->ana_g3,
+			   REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, &reg);
+	reg &= ~msk;
+	reg |= TUNEHSAMP_3_9MA;
+	ret |= regmap_write(phy->ana_g3,
+			    REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, reg);
+
+	msk = MASK_ANLG_PHY_G3_ANALOG_USB20_USB20_TFREGRES;
+	ret |= regmap_read(phy->ana_g3,
+			   REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, &reg);
+	reg &= ~msk;
+	reg |= TFREGRES_TUNE_VALUE;
+	ret |= regmap_write(phy->ana_g3,
+			    REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, reg);
 
 	/* Reset PHY */
 	sprd_ssphy_reset_core(phy);
