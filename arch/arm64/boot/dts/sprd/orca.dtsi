@@ -1197,6 +1197,8 @@
 
 			ssphy0: ssphy0@634d0000 {
 				compatible = "sprd,orca1-ssphy0";
+				reg = <0 0x634d0000 0 0x10000>;
+				reg-names = "ssphy_glb_regs";
 				sprd,syscon-aon-apb = <&aon_apb_regs>;
 				sprd,syscon-ap-ahb = <&ap_ahb_regs>;
 				sprd,syscon-ipa-ahb = <&ap_ipa_ahb_regs>;
@@ -1206,6 +1208,8 @@
 
 			ssphy1: ssphy@634e0000 {
 				compatible = "sprd,orca1-ssphy1";
+				reg = <0 0x634e0000 0 0x10000>;
+				reg-names = "ssphy_glb_regs";
 				sprd,syscon-aon-apb = <&aon_apb_regs>;
 				sprd,syscon-ap-ahb = <&ap_ahb_regs>;
 				sprd,syscon-ipa-ahb = <&ap_ipa_ahb_regs>;
