@@ -200,7 +200,7 @@ static int sprd_ssphy_set_vbus(struct usb_phy *x, int on)
 static int sprd_ssphy_init(struct usb_phy *x)
 {
 	struct sprd_ssphy *phy = container_of(x, struct sprd_ssphy, phy);
-	u32	reg, msk;
+	u32	reg, msk, value;
 	int	ret;
 
 	if (atomic_read(&phy->inited)) {
@@ -298,6 +298,11 @@ static int sprd_ssphy_init(struct usb_phy *x)
 	reg |= TFREGRES_TUNE_VALUE;
 	ret |= regmap_write(phy->ana_g3,
 			    REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, reg);
+
+	/* Configure USB30 PHY register */
+	value = readl_relaxed(phy->base + REG_ANALOG_USB30_CFGA_ANA_CFG7);
+	value &= ~MASK_ANALOG_USB30_CFGA_ANA_CFG7_CFG_DFE_ANA_EN;
+	writel_relaxed(value, phy->base + REG_ANALOG_USB30_CFGA_ANA_CFG7);
 
 	/* Reset PHY */
 	sprd_ssphy_reset_core(phy);
