@@ -551,6 +551,7 @@
 };
 
 &pcie0 {
+	ep-poweron-late;
 	status = "okay";
 };
 

@@ -521,6 +521,7 @@
 };
 
 &pcie0 {
+	ep-powron-late;
 	status = "okay";
 };
 
