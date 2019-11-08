@@ -304,6 +304,11 @@ static int sprd_ssphy_init(struct usb_phy *x)
 	value &= ~MASK_ANALOG_USB30_CFGA_ANA_CFG7_CFG_DFE_ANA_EN;
 	writel_relaxed(value, phy->base + REG_ANALOG_USB30_CFGA_ANA_CFG7);
 
+	/* Prevent the suspend current from exceeding 2.5mA */
+	value = readl_relaxed(phy->base + REG_ANALOG_USB30_CFGA_ANA_CFG13);
+	value &= ~MASK_ANALOG_USB30_CFGA_ANA_CFG13_CFG_TX_LDO_IDC;
+	writel_relaxed(value, phy->base + REG_ANALOG_USB30_CFGA_ANA_CFG13);
+
 	/* Reset PHY */
 	sprd_ssphy_reset_core(phy);
 
