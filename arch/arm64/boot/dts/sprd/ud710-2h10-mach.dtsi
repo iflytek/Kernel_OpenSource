@@ -470,6 +470,11 @@
 			memory-region = <&fd_reserved>;
 		};
 	};
+
+	autotest:autotest{
+		compatible = "sprd,autotest";
+		sprd,pinctrl = <&pin_controller>;
+	};
 };
 
 &sdio0 {
