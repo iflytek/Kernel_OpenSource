@@ -1848,14 +1848,14 @@ static inline u32 ipa_phy_set_force_to_ap_flag(void __iomem *reg_base,
  *   @src: send fifo.
  */
 static inline u32 ipa_phy_set_flow_ctrl_to_src_blk(void __iomem *reg_base,
-						   u32 *dst, u32 src)
+						   u32 dst, u32 src)
 {
 	u32 tmp;
 
-	tmp = readl_relaxed(reg_base + (u64)dst);
+	tmp = readl_relaxed(reg_base + dst);
 	tmp &= src;
-	writel_relaxed(tmp, reg_base + (u64)dst);
-	tmp = readl_relaxed(reg_base + (u64)dst);
+	writel_relaxed(tmp, reg_base + dst);
+	tmp = readl_relaxed(reg_base + dst);
 
 	if ((tmp & src) == src)
 		return TRUE;

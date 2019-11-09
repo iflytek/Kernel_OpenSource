@@ -109,14 +109,7 @@ static u32 sipa_hal_clear_internal_fifo(void __iomem *reg_base, u32 clr_bit)
 static u32 sipa_hal_set_flow_ctrl_to_src_blk(void __iomem *reg_base, u32 dst,
 					     u32 src)
 {
-	u32 ret = 0;
-	u32 *dst_ptr = NULL;
-
-	dst_ptr = (u32 *)((u64 *)(u64)dst);
-
-	ret = ipa_phy_set_flow_ctrl_to_src_blk(reg_base, dst_ptr, src);
-
-	return ret;
+	return ipa_phy_set_flow_ctrl_to_src_blk(reg_base, dst, src);
 }
 
 static u32 sipa_hal_enable_def_flowctrl_to_src_blk(void __iomem *reg_base)
