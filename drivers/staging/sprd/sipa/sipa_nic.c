@@ -134,6 +134,7 @@ static void sipa_nic_rm_notify_cb(void *user_data,
 				  unsigned long data)
 {
 	struct sipa_nic *nic = user_data;
+	struct sipa_nic_cons_res *res = &nic->rm_res;
 
 	pr_debug("%s: event %d\n", __func__, event);
 	switch (event) {
@@ -142,6 +143,13 @@ static void sipa_nic_rm_notify_cb(void *user_data,
 			nic->cb(nic->cb_priv, SIPA_LEAVE_FLOWCTRL, 0);
 		break;
 	case SIPA_RM_EVT_RELEASED:
+		res->need_request = true;
+		res->release_in_progress = false;
+		res->resource_requested = false;
+		res->reschedule_work = false;
+		res->release_in_progress = false;
+		if (sipa_nic_rm_res_granted(nic))
+			nic->cb(nic->cb_priv, SIPA_LEAVE_FLOWCTRL, 0);
 		break;
 	default:
 		pr_err("%s: unknown event %d\n", __func__, event);
@@ -213,8 +221,15 @@ static int sipa_nic_rm_init(struct sipa_nic_cons_res *res,
 			    enum sipa_rm_res_id cons,
 			    unsigned long msecs)
 {
-	if (res->initied)
+	if (res->initied) {
+		res->resource_requested = false;
+		res->reschedule_work = false;
+		res->release_in_progress = false;
+		res->need_request = true;
+		res->request_in_progress = false;
+		res->rm_flow_ctrl = 0;
 		return -EEXIST;
+	}
 
 	res->initied = true;
 	res->cons = cons;
