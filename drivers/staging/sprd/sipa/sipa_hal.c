@@ -855,6 +855,17 @@ int sipa_hal_reclaim_unuse_node(sipa_hal_hdl hdl,
 }
 EXPORT_SYMBOL(sipa_hal_reclaim_unuse_node);
 
+void sipa_reclaim_wiap_ul_cmn_fifo(void)
+{
+	struct sipa_hal_context *hal_cfg = &sipa_hal_ctx;
+	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+
+	if (ctrl->params_cfg.enable_cnt && ctrl->power_flag)
+		hal_cfg->fifo_ops.reclaim_wiap_ul_cmn_fifo(fifo_cfg);
+}
+EXPORT_SYMBOL(sipa_reclaim_wiap_ul_cmn_fifo);
+
 int sipa_hal_put_rx_fifo_item(sipa_hal_hdl hdl,
 			      enum sipa_cmn_fifo_index fifo_id,
 			      struct sipa_hal_fifo_item *item)

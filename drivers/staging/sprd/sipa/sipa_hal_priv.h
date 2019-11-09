@@ -214,6 +214,8 @@ struct sipa_hal_fifo_ops {
 			    bool stop);
 	int (*reclaim_node_desc)(enum sipa_cmn_fifo_index id,
 				 struct sipa_common_fifo_cfg_tag *cfg_base);
+	void (*reclaim_wiap_ul_cmn_fifo)(struct sipa_common_fifo_cfg_tag
+					 *cfg_base);
 	int (*update_rx_fifo_wptr)(struct device *dev,
 				   enum sipa_cmn_fifo_index id,
 				   struct sipa_common_fifo_cfg_tag *cfg_base,

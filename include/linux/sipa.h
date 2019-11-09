@@ -356,6 +356,7 @@ int sipa_disconnect(enum sipa_ep_id ep, enum sipa_disconnect_id stage);
 
 int sipa_enable_receive(enum sipa_ep_id ep_id, bool enabled);
 
+void sipa_reclaim_wiap_ul_cmn_fifo(void);
 
 /*
  * SIPA NIC interface

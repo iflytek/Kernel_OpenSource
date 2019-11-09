@@ -1311,6 +1311,34 @@ static int ipa_reclaim_cmn_fifo(enum sipa_cmn_fifo_index id,
 	return ret;
 }
 
+static void ipa_reclaim_wiap_ul_cmn_fifo(struct sipa_common_fifo_cfg_tag
+					 *cfg_base)
+{
+	struct sipa_common_fifo_cfg_tag *fifo_cfg;
+	u32 tx_rptr, tx_wptr, rx_wptr, rx_rptr, depth;
+
+	fifo_cfg = cfg_base + SIPA_FIFO_CP_UL;
+
+	depth = fifo_cfg->tx_fifo.depth;
+	rx_rptr = ipa_phy_get_rx_fifo_rptr(fifo_cfg->fifo_reg_base);
+	rx_wptr = ipa_phy_get_rx_fifo_wptr(fifo_cfg->fifo_reg_base);
+	tx_rptr = ipa_phy_get_tx_fifo_rptr(fifo_cfg->fifo_reg_base);
+	tx_wptr = ipa_phy_get_tx_fifo_wptr(fifo_cfg->fifo_reg_base);
+
+	if (tx_wptr != tx_rptr) {
+		pr_err("wiap ul fifo reclaim err, tx_wp = 0x%x tx_rd = 0x%x\n",
+		       tx_wptr, tx_rptr);
+		ipa_phy_update_tx_fifo_rptr(fifo_cfg->fifo_reg_base, tx_wptr);
+	}
+
+	tx_wptr = (tx_wptr + depth) & PTR_MASK(depth);
+	if (tx_wptr != rx_wptr) {
+		pr_err("wiap ul fifo reclaim err, tx_wp = 0x%x rx_wp = 0x%x\n",
+		       tx_wptr, rx_wptr);
+		ipa_phy_update_rx_fifo_wptr(fifo_cfg->fifo_reg_base, tx_wptr);
+	}
+}
+
 static int ipa_set_tx_fifo_rptr(enum sipa_cmn_fifo_index id,
 				struct sipa_common_fifo_cfg_tag *cfg_base,
 				u32 tx_rd)
@@ -1495,6 +1523,7 @@ u32 sipa_fifo_ops_init(struct sipa_hal_fifo_ops *ops)
 	ops->reclaim_node_desc = ipa_reclaim_cmn_fifo;
 	ops->get_rx_fifo_node = ipa_get_rx_fifo_wptr;
 	ops->update_rx_fifo_wptr = ipa_update_rx_fifo_wptr;
+	ops->reclaim_wiap_ul_cmn_fifo = ipa_reclaim_wiap_ul_cmn_fifo;
 
 	return TRUE;
 }
