@@ -43,6 +43,7 @@ enum sipa_dele_state {
 	SIPA_DELE_REQUESTING,
 	SIPA_DELE_RELEASING,
 	SIPA_DELE_RELEASED,
+	SIPA_DELE_POWER_OFF
 };
 
 struct sipa_delegator;
@@ -66,9 +67,11 @@ struct sipa_delegator {
 	u32 dst;
 	u32 chan;
 	bool connected;
+	bool is_powered;
 	atomic_t requesting_cons;
 	spinlock_t lock;
 	struct task_struct *thread;
+	struct work_struct notify_work;
 	struct workqueue_struct *smsg_wq;
 	struct sipa_dele_smsg_work_type req_work;
 	struct sipa_dele_smsg_work_type rls_work;
@@ -136,5 +139,6 @@ int sipa_dele_local_req_r_prod(void *user_data);
 int sipa_dele_local_rls_r_prod(void *user_data);
 void sipa_dele_start_done_work(struct sipa_delegator *delegator,
 			       u16 flag, u32 val);
+void sipa_dele_start_req_work(struct sipa_delegator *delegator);
 
 #endif /* !_SIPA_DELE_PRIV_H_ */

@@ -22,6 +22,7 @@
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
+#include <linux/mdm_ctrl.h>
 #include <linux/soc/sprd/sprd_pcie_ep_device.h>
 #include "sipa_dele_priv.h"
 #include "../sipa/sipa_hal_priv.h"
@@ -62,6 +63,15 @@ int notify_pam_ipa_miniap_ready(void)
 
 void miniap_dele_on_event(void *priv, u16 flag, u32 data)
 {
+	struct sipa_delegator *delegator = &s_miniap_delegator->delegator;
+
+	if (!delegator->is_powered) {
+		pr_debug("sipa dele start power on\n");
+		sipa_prepare_modem_power_on();
+		delegator->stat = SIPA_DELE_RELEASED;
+		delegator->is_powered = true;
+	}
+
 	switch (flag) {
 	case SMSG_FLG_DELE_ADDR_DL_TX:
 		s_miniap_delegator->dl_filled_fifo_phy =
@@ -99,6 +109,33 @@ void miniap_dele_on_close(void *priv, u16 flag, u32 data)
 	s_miniap_delegator->ready = false;
 }
 
+static void miniap_dele_power_off(void)
+{
+	struct sipa_delegator *dele = &s_miniap_delegator->delegator;
+
+	dele->is_powered = false;
+	dele->cons_ref_cnt = 0;
+	dele->stat = SIPA_DELE_POWER_OFF;
+
+	sipa_prepare_modem_power_off();
+	sipa_rm_release_resource(dele->cons_user);
+	queue_work(dele->smsg_wq, &dele->notify_work);
+}
+
+static int miniap_dele_restart_handle(struct notifier_block *this,
+				      unsigned long mode, void *cmd)
+{
+	if (mode == MDM_CTRL_COLD_RESET)
+		miniap_dele_power_off();
+
+	return NOTIFY_DONE;
+}
+
+static struct notifier_block miniap_dele_restart_handler = {
+	.notifier_call = miniap_dele_restart_handle,
+	.priority = 149,
+};
+
 int miniap_delegator_init(struct sipa_delegator_create_params *params)
 {
 	int ret;
@@ -119,6 +156,8 @@ int miniap_delegator_init(struct sipa_delegator_create_params *params)
 	s_miniap_delegator->ready = false;
 
 	sipa_delegator_start(&s_miniap_delegator->delegator);
+
+	modem_ctrl_register_notifier(&miniap_dele_restart_handler);
 
 	return 0;
 }
