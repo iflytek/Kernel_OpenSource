@@ -1262,6 +1262,7 @@ static int sd_change_freq(struct mmc *mmc)
 	int timeout;
 
 	mmc->card_caps = 0;
+	udelay(100);
 
 	if (mmc_host_is_spi(mmc))
 		return 0;
