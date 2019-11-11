@@ -23,6 +23,7 @@ config SPRD_IMS_BRIDGE_TEST
 
 config SPRD_IMS_BRIDGE_TRANSIT
 	tristate "Spreadtrum ims stack bridge config for orca board"
+	depends on INET && NETFILTER && SPRD_SIPC
 	default y
 	help
 	  This option add only on orca board, so the imsbr on orca on play
