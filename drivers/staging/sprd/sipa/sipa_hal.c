@@ -1089,9 +1089,12 @@ bool sipa_hal_is_tx_fifo_empty(sipa_hal_hdl hdl,
 	u32 ret;
 	struct sipa_hal_context *hal_cfg;
 	struct sipa_common_fifo_cfg_tag *fifo_cfg;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
 	hal_cfg = (struct sipa_hal_context *)hdl;
 	fifo_cfg = hal_cfg->cmn_fifo_cfg;
+	if (!ctrl->params_cfg.enable_cnt)
+		return true;
 
 	ret = hal_cfg->fifo_ops.get_tx_empty_status(fifo_id, fifo_cfg);
 

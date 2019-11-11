@@ -232,6 +232,9 @@ struct sipa_skb_sender {
 	struct task_struct *free_thread;
 	struct task_struct *send_thread;
 
+	atomic_t check_suspend;
+	atomic_t check_flag;
+
 	bool init_flag;
 	u32 no_mem_cnt;
 	u32 no_free_cnt;
@@ -309,6 +312,8 @@ struct sipa_skb_receiver {
 	struct task_struct *thread;
 
 	atomic_t need_sched;
+	atomic_t check_suspend;
+	atomic_t check_flag;
 	bool init_flag;
 	u32 need_sched_cnt;
 	u32 tx_danger_cnt;

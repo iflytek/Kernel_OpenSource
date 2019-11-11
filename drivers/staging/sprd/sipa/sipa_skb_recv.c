@@ -405,6 +405,25 @@ static int fill_recv_thread(void *data)
 	return 0;
 }
 
+static bool sipa_receiver_ck_unread(struct sipa_skb_receiver *receiver)
+{
+	bool ret;
+
+	atomic_set(&receiver->check_flag, 1);
+	if (atomic_read(&receiver->check_suspend)) {
+		atomic_set(&receiver->check_flag, 0);
+		pr_err("sipa recv ep_id = %d check_suspend = %d\n",
+		       receiver->ep->id, atomic_read(&receiver->check_suspend));
+		return true;
+	}
+
+	ret = sipa_hal_is_tx_fifo_empty(receiver->ctx->hdl,
+					receiver->ep->recv_fifo.idx);
+	atomic_set(&receiver->check_flag, 0);
+
+	return ret;
+}
+
 static int recv_thread(void *data)
 {
 	struct sipa_skb_receiver *receiver = (struct sipa_skb_receiver *)data;
@@ -417,9 +436,8 @@ static int recv_thread(void *data)
 		u32 recv_cnt = 0;
 
 		wait_event_interruptible(receiver->recv_waitq,
-			!sipa_hal_is_tx_fifo_empty(receiver->ctx->hdl,
-					receiver->ep->recv_fifo.idx) &&
-					!atomic_read(&receiver->need_sched));
+					 !sipa_receiver_ck_unread(receiver) &&
+					 !atomic_read(&receiver->need_sched));
 
 		recv_cnt = do_recv(receiver);
 		atomic_add(recv_cnt, &receiver->need_fill_cnt);
@@ -477,10 +495,21 @@ EXPORT_SYMBOL(sipa_receiver_clean_stop_recv);
 
 int sipa_receiver_prepare_suspend(struct sipa_skb_receiver *receiver)
 {
+	atomic_set(&receiver->check_suspend, 1);
+
+	if (atomic_read(&receiver->check_flag)) {
+		dev_err(receiver->ctx->pdev,
+			"task recv %d is running\n", receiver->ep->id);
+		atomic_set(&receiver->check_suspend, 0);
+		wake_up(&receiver->recv_waitq);
+		return -EAGAIN;
+	}
+
 	if (!sipa_hal_is_tx_fifo_empty(receiver->ctx->hdl,
 				       receiver->ep->recv_fifo.idx)) {
 		pr_err("sipa recv fifo %d tx fifo is not empty\n",
 		       receiver->ep->recv_fifo.idx);
+		atomic_set(&receiver->check_suspend, 0);
 		wake_up(&receiver->recv_waitq);
 		return -EAGAIN;
 	}
@@ -489,6 +518,7 @@ int sipa_receiver_prepare_suspend(struct sipa_skb_receiver *receiver)
 		pr_err("sipa recv fifo %d need_fill_cnt = %d\n",
 		       receiver->ep->recv_fifo.idx,
 		       atomic_read(&receiver->need_fill_cnt));
+		atomic_set(&receiver->check_suspend, 0);
 		wake_up(&receiver->fill_recv_waitq);
 		return -EAGAIN;
 	}
@@ -501,12 +531,22 @@ EXPORT_SYMBOL(sipa_receiver_prepare_suspend);
 
 int sipa_receiver_prepare_resume(struct sipa_skb_receiver *receiver)
 {
+	atomic_set(&receiver->check_suspend, 0);
+
 	if (unlikely(receiver->init_flag)) {
 		dev_info(receiver->ctx->pdev, "receiver %d wake up thread\n",
 			 receiver->ep->id);
 		wake_up_process(receiver->thread);
 		wake_up_process(receiver->fill_thread);
 		receiver->init_flag = false;
+	}
+
+	if (!sipa_hal_is_tx_fifo_empty(receiver->ctx->hdl,
+				       receiver->ep->recv_fifo.idx)) {
+		pr_err("sipa recv fifo %d tx fifo is not empty\n",
+		       receiver->ep->recv_fifo.idx);
+		wake_up(&receiver->recv_waitq);
+		return 0;
 	}
 
 	return sipa_hal_cmn_fifo_set_receive(receiver->ctx->hdl,
@@ -551,6 +591,8 @@ static void sipa_receiver_init(struct sipa_skb_receiver *receiver, u32 rsvd)
 	receiver->rsvd = rsvd;
 	receiver->init_flag = true;
 	atomic_set(&receiver->need_sched, 0);
+	atomic_set(&receiver->check_suspend, 0);
+	atomic_set(&receiver->check_flag, 0);
 	depth = receiver->ep->recv_fifo.rx_fifo.fifo_depth;
 
 	sipa_prepare_free_node_init(receiver, depth);

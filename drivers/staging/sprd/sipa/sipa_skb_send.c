@@ -131,6 +131,25 @@ static void sipa_free_sent_items(struct sipa_skb_sender *sender)
 			num, success_cnt);
 }
 
+static bool sipa_sender_ck_unfree(struct sipa_skb_sender *sender)
+{
+	bool ret;
+
+	atomic_set(&sender->check_flag, 1);
+	if (atomic_read(&sender->check_suspend)) {
+		atomic_set(&sender->check_flag, 0);
+		pr_err("sipa send ep id = %d, check_suspend = %d\n",
+		       sender->ep->id, atomic_read(&sender->check_suspend));
+		return true;
+	}
+
+	ret = sipa_hal_is_tx_fifo_empty(sender->ctx->hdl,
+					sender->ep->send_fifo.idx);
+	atomic_set(&sender->check_flag, 0);
+
+	return ret;
+}
+
 static int sipa_free_thread(void *data)
 {
 	int ret;
@@ -141,9 +160,8 @@ static int sipa_free_thread(void *data)
 
 	while (!kthread_should_stop()) {
 		ret = wait_event_interruptible(sender->free_waitq,
-				(!sipa_hal_is_tx_fifo_empty(sender->ctx->hdl,
-					sender->ep->send_fifo.idx) ||
-					sender->free_notify_net));
+					       !sipa_sender_ck_unfree(sender) ||
+					       sender->free_notify_net);
 		if (!ret)
 			sipa_free_sent_items(sender);
 	}
@@ -173,14 +191,28 @@ static int sipa_skb_sender_init(struct sipa_skb_sender *sender)
 			      sipa_sender_notify_cb, sender);
 	sender->init_flag = true;
 
+	atomic_set(&sender->check_suspend, 0);
+	atomic_set(&sender->check_flag, 0);
+
 	return 0;
 }
 
 int sipa_sender_prepare_suspend(struct sipa_skb_sender *sender)
 {
+	atomic_set(&sender->check_suspend, 1);
+
+	if (atomic_read(&sender->check_flag)) {
+		dev_err(sender->ctx->pdev,
+			"task send %d is running\n", sender->ep->id);
+		atomic_set(&sender->check_suspend, 0);
+		wake_up(&sender->free_waitq);
+		return -EAGAIN;
+	}
+
 	if (!list_empty(&sender->sending_list)) {
 		pr_err("pkt_type = %d sending list have unsend node\n",
 		       sender->type);
+		atomic_set(&sender->check_suspend, 0);
 		wake_up(&sender->free_waitq);
 		return -EAGAIN;
 	}
@@ -189,6 +221,7 @@ int sipa_sender_prepare_suspend(struct sipa_skb_sender *sender)
 					      sender->ep->send_fifo.idx)) {
 		pr_err("pkt_type = %d sender have something to handle\n",
 		       sender->type);
+		atomic_set(&sender->check_suspend, 0);
 		return -EAGAIN;
 	}
 
@@ -198,9 +231,17 @@ EXPORT_SYMBOL(sipa_sender_prepare_suspend);
 
 int sipa_sender_prepare_resume(struct sipa_skb_sender *sender)
 {
+	atomic_set(&sender->check_suspend, 0);
 	if (unlikely(sender->init_flag)) {
 		wake_up_process(sender->free_thread);
 		sender->init_flag = false;
+	}
+
+	if (!sipa_hal_is_tx_fifo_empty(sender->ctx->hdl,
+				       sender->ep->send_fifo.idx)) {
+		dev_err(sender->ctx->pdev, "type = %d, tx fifo is not empty\n",
+			sender->type);
+		wake_up(&sender->free_waitq);
 	}
 
 	return 0;
