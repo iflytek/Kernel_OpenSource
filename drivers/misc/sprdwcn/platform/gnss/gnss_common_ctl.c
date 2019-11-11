@@ -90,7 +90,9 @@ struct gnss_cali {
 };
 static struct gnss_cali gnss_cali_data;
 static u32 *gnss_efuse_data;
-
+#ifdef CONFIG_UMW2652
+static u32 gnss_uart_cfg;
+#endif
 
 #ifdef GNSSDEBUG
 static void gnss_cali_done_isr(void)
@@ -143,13 +145,39 @@ static int gnss_write_efuse_data(void)
 	return 0;
 }
 
+#ifdef CONFIG_UMW2652
+static int gnss_write_uart_cfg(void)
+{
+	int ret;
+	u32 *set_val;
+
+	GNSSCOMM_INFO("%s, flag %d, rate = %x\n",
+		__func__, gnss_cali_data.cali_done, gnss_uart_cfg);
+	if (gnss_cali_data.cali_done) {
+		set_val = kzalloc(GNSS_UART_CFG_SIZE, GFP_KERNEL);
+		if (set_val == NULL) {
+			GNSSCOMM_ERR("%s malloc uart data fail.\n", __func__);
+			return -ENOMEM;
+		}
+		*set_val = gnss_uart_cfg;
+		ret = sprdwcn_bus_direct_write(GNSS_UART_CFG_ADDR,
+					    set_val, GNSS_UART_CFG_SIZE);
+		kfree(set_val);
+	}
+
+	return 0;
+}
+#endif
+
 int gnss_write_data(void)
 {
 	int ret = 0;
 
 	gnss_write_cali_data();
 	ret = gnss_write_efuse_data();
-
+#ifdef CONFIG_UMW2652
+	gnss_write_uart_cfg();
+#endif
 	return ret;
 }
 
@@ -584,6 +612,24 @@ static ssize_t gnss_status_show(struct device *dev,
 	return i;
 }
 static DEVICE_ATTR_RO(gnss_status);
+
+#ifdef CONFIG_UMW2652
+static ssize_t gnss_uart_cfg_store(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf, size_t count)
+{
+	u32 rate;
+
+	if (kstrtou32(buf, GNSS_MAX_STRING_LEN, &rate))
+		return -EINVAL;
+	gnss_uart_cfg = ((0x7e << 24) | rate);
+	GNSSCOMM_INFO("%s, rate %d\n", __func__, rate);
+
+	return count;
+}
+static DEVICE_ATTR_WO(gnss_uart_cfg);
+#endif
+
 #ifndef CONFIG_SC2342_INTEG
 static uint gnss_op_reg;
 static uint gnss_indirect_reg_offset;
@@ -675,6 +721,9 @@ static struct attribute *gnss_common_ctl_attrs[] = {
 	&dev_attr_gnss_dump.attr,
 	&dev_attr_gnss_status.attr,
 	&dev_attr_gnss_subsys.attr,
+#ifdef CONFIG_UMW2652
+	&dev_attr_gnss_uart_cfg.attr,
+#endif
 #ifndef CONFIG_SC2342_INTEG
 	&dev_attr_gnss_regr.attr,
 	&dev_attr_gnss_regaddr.attr,

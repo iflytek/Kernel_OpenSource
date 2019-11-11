@@ -53,6 +53,11 @@
 
 #define GNSS_EFUSE_DATA_SIZE 0xc
 
+#ifdef CONFIG_UMW2652
+#define GNSS_UART_CFG_ADDR 0x40aabf70
+#endif
+#define GNSS_UART_CFG_SIZE 0x4
+
 /*  GNSS assert workaround */
 #ifdef CONFIG_UMW2652
 #define GNSS_BOOTSTATUS_ADDRESS  0x40aabf6c
