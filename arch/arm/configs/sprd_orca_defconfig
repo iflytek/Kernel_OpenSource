@@ -1138,7 +1138,6 @@ CONFIG_FIB_RULES=y
 # CONFIG_CAIF is not set
 # CONFIG_CEPH_LIB is not set
 # CONFIG_NFC is not set
-CONFIG_SPRD_IMS_BRIDGE_TRANSIT=y
 # CONFIG_PSAMPLE is not set
 # CONFIG_NET_IFE is not set
 # CONFIG_LWTUNNEL is not set
