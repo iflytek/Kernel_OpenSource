@@ -140,15 +140,16 @@ CONFIG_ANON_INODES
 	[must] console
 	[missing plat description] none
 	[function] Enable kernel support anonymous inodes.
-CONFIG_AQTION
-	[arch] arm64
+CONFIG_AQFWD
+	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
-	[field]
-	[subsys]
-	[must]
-	[missing plat description]
-	[function]
+	[field] make
+	[subsys] net
+	[must] user
+	[missing plat description] none
+	[function] Enables the support for forwarding driver
+		for the aQuantia AQtion(tm) Ethernet card.
 CONFIG_ARCH_CLOCKSOURCE_DATA
 	[arch] all
 	[plat] all
@@ -1166,6 +1167,24 @@ CONFIG_ATAGS
 	[must]
 	[missing plat description] none
 	[function]
+CONFIG_ATLFWD_FWD
+	[arch] all
+	[plat] orca
+	[missing plat] roc1,sharkl3,sharkl5
+	[field] make
+	[subsys] net
+	[must] user
+	[missing plat description] none
+	[function] Enable forwarding-engine API
+CONFIG_ATLFWD_FWD_NETLINK
+	[arch] all
+	[plat] orca
+	[missing plat] roc1,sharkl3,sharkl5
+	[field] make
+	[subsys] net
+	[must] user
+	[missing plat description] none
+	[function] Expose forwarding engine APIs over the netlink socket.
 CONFIG_AUDIT
 	[arch] all
 	[plat] all
@@ -9672,11 +9691,12 @@ CONFIG_NET_VENDOR_AQUANTIA
 	[arch] all
 	[plat] orca
 	[missing plat] roc1,sharkl3,sharkl5
-	[field]
-	[subsys]
-	[must]
-	[missing plat description]
-	[function]
+	[field] make
+	[subsys] net
+	[must] user
+	[missing plat description] none
+	[function] This option does not build any drivers; it casues the aQuantia
+		drivers that can be built to appear in the list of Ethernet drivers.
 CONFIG_NEW_LEDS
 	[arch] all
 	[plat] all
