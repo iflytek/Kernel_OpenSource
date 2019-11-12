@@ -179,7 +179,8 @@ static void uether_debugfs_exit(struct eth_dev *dev);
 
 static u64 gro_enable;
 static struct dentry *root;
-
+static struct dentry *sipa_usb_stats_dfile;
+static struct dentry *sipa_usb_gro_dfile;
 #endif
 
 /*
@@ -1647,6 +1648,9 @@ static int sipa_usb_debug_show(struct seq_file *m, void *v)
 	pdata = dev->pdata;
 	stats = &dev->dt_stats;
 
+	if (!pdata || !stats)
+		return -EINVAL;
+
 	seq_puts(m, "*************************************************\n");
 	seq_printf(m, "DEVICE: %s, term_type %d, netid %d, state %s\n",
 		   pdata->name, pdata->term_type, pdata->netid,
@@ -1701,31 +1705,44 @@ DEFINE_SIMPLE_ATTRIBUTE(fops_gro_enable,
 			debugfs_gro_enable_set,
 			"%llu\n");
 
-static int sipa_usb_debugfs_mknod(void *root, void *data)
+static void sipa_usb_debugfs_exit(struct eth_dev *dev)
 {
-	struct eth_dev *dev = (struct eth_dev *)data;
+	debugfs_remove(sipa_usb_gro_dfile);
+	debugfs_remove(sipa_usb_stats_dfile);
+	sipa_usb_gro_dfile = NULL;
+	sipa_usb_stats_dfile = NULL;
+}
 
+static int sipa_usb_debugfs_mknod(struct eth_dev *dev)
+{
 	if (!dev)
 		return -ENODEV;
 
 	if (!root)
 		return -ENXIO;
 
-	debugfs_create_file("sipa_usb",
-			    0444,
-			    (struct dentry *)root,
-			    data,
-			    &sipa_usb_debug_fops);
+	debugfs_remove(sipa_usb_stats_dfile);
+	sipa_usb_stats_dfile = debugfs_create_file(
+			"sipa_usb_stats",
+			0444,
+			root,
+			dev,
+			&sipa_usb_debug_fops);
+	if (!sipa_usb_stats_dfile)
+		ERROR(dev, "fail to create stats dfile");
 
-	debugfs_create_file("gro_enable",
-			    0600,
-			    (struct dentry *)root,
-			    &gro_enable,
-			    &fops_gro_enable);
+	debugfs_remove(sipa_usb_gro_dfile);
+	sipa_usb_gro_dfile = debugfs_create_file(
+			"gro_enable",
+			0600,
+			root,
+			&gro_enable,
+			&fops_gro_enable);
+	if (!sipa_usb_gro_dfile)
+		ERROR(dev, "sipa_usb fail to create gro dfile");
 
 	return 0;
 }
-
 #endif
 
 /**
@@ -1850,6 +1867,7 @@ struct net_device *gether_setup_name_default(const char *netname)
 	netif_napi_add(net, &dev->napi,
 		       sipa_usb_rx_poll_handler,
 		       SIPA_USB_NAPI_WEIGHT);
+	sipa_usb_debugfs_mknod(dev);
 #endif
 	spin_lock_init(&dev->lock);
 	spin_lock_init(&dev->req_lock);
@@ -1909,7 +1927,6 @@ int gether_register_netdev(struct net_device *net)
 
 	netif_carrier_off(net);
 	dev->state = DEV_OFF;
-	sipa_usb_debugfs_mknod(root, (void *)dev);
 #else
 	if (status < 0) {
 		dev_dbg(&g->dev, "register_netdev failed, %d\n", status);
@@ -2072,6 +2089,7 @@ void gether_cleanup(struct eth_dev *dev)
 #ifdef CONFIG_SPRD_SIPA
 	netif_napi_del(&dev->napi);
 	kfree(dev->pdata);
+	sipa_usb_debugfs_exit(dev);
 #endif
 
 	uether_debugfs_exit(dev);
