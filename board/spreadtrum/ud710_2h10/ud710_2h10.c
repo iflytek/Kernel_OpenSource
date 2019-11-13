@@ -199,9 +199,9 @@ static const int adc2deltanv_table[] = {
 	-1, /* reserved */
 	-1, /* reserved */
 	-1, /* reserved */
-	-1, /* reserved  */
-	-1, /* reserved  */
-	0 /* hw_ver00.nv */
+	1, /* hw_ver01.nv  */
+	0, /* hw_ver00.nv  */
+	-1 /* reserved */
 };
 
 static int get_adc_value_board(int channel)
