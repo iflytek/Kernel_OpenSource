@@ -484,6 +484,18 @@ int sipa_rm_resource_create(struct sipa_rm_create_params *create_params,
 		return result;
 	}
 
+	result = kfifo_alloc(&(*resource)->work_type_fifo,
+			     sizeof(struct sipa_rm_wq_work_type) * 16,
+			     GFP_KERNEL);
+	if (result) {
+		pr_err("sipa_rm_res %s alloc kfifo fail\n",
+		       sipa_rm_res_str((*resource)->name));
+		if ((*resource)->type == SIPA_RM_CONSUMER)
+			sipa_rm_resource_consumer_delete(consumer);
+		kfree(*resource);
+		return result;
+	}
+
 	(*resource)->name = create_params->name;
 	(*resource)->ref_count = 0;
 	(*resource)->floor_voltage = create_params->floor_voltage;
