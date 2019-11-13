@@ -30,7 +30,6 @@ static struct ip_dvfs_map_cfg map_table[] = {
 	{2, VOLT70, DPU_CLK_INDEX_256M, DPU_CLK256M},
 	{3, VOLT70, DPU_CLK_INDEX_307M2, DPU_CLK307M2},
 	{4, VOLT75, DPU_CLK_INDEX_384M, DPU_CLK384M},
-	{5, VOLT75, DPU_CLK_INDEX_468M, DPU_CLK468M},
 };
 
 static void dpu_hw_dfs_en(bool dfs_en)
@@ -61,8 +60,6 @@ static void dpu_dvfs_map_cfg(void)
 		map_table[3].volt_level << 3;
 	reg->dispc_index4_map = map_table[4].clk_level |
 		map_table[4].volt_level << 3;
-	reg->dispc_index5_map = map_table[5].clk_level |
-		map_table[5].volt_level << 3;
 }
 
 static void set_dpu_work_freq(u32 freq)
