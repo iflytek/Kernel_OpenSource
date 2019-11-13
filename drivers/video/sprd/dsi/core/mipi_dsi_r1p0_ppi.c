@@ -172,7 +172,6 @@ static void dsi_phy_clk_hs_rqst(struct dphy_context *ctx, int enable)
 	union _0x74 phy_clk_lane_lp_ctrl;
 
 	phy_clk_lane_lp_ctrl.val = read32(&reg->PHY_CLK_LANE_LP_CTRL);
-	phy_clk_lane_lp_ctrl.bits.auto_clklane_ctrl_en = 0;
 	phy_clk_lane_lp_ctrl.bits.phy_clklane_tx_req_hs = enable;
 
 	write32(phy_clk_lane_lp_ctrl.val, &reg->PHY_CLK_LANE_LP_CTRL);

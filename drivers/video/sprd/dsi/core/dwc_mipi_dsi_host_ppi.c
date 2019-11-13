@@ -180,8 +180,6 @@ static void dsi_phy_clk_hs_rqst(struct dphy_context *ctx, int enable)
 	union _0x94 lpclk_ctrl;
 
 	lpclk_ctrl.val = read32(&reg->LPCLK_CTRL);
-
-	lpclk_ctrl.bits.auto_clklane_ctrl = 0;
 	lpclk_ctrl.bits.phy_txrequestclkhs = enable;
 
 	write32(lpclk_ctrl.val, &reg->LPCLK_CTRL);
