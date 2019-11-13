@@ -563,106 +563,24 @@ static int init_pm_qos_request(struct cpufreq_cooling_device *cpufreq_dev)
 	return 0;
 }
 
-#if defined(CONFIG_SPRD_CPU_COOLING_CPUIDLE) && !defined(CONFIG_SPRD_SOC_THERMAL)
-static int get_max_load_cid(struct cpufreq_cooling_device *cpufreq_device)
-{
-	int i = 0, cpu, cid;
-	u32 max_load;
-	u32 *load_cpu = NULL, ncpus;
-
-	cpu = cpumask_any(&cpufreq_device->allowed_cpus);
-	ncpus = cpumask_weight(&cpufreq_device->allowed_cpus);
-	load_cpu = kcalloc(ncpus, sizeof(*load_cpu), GFP_KERNEL);
-
-	for_each_cpu(cpu, &cpufreq_device->allowed_cpus) {
-		u32 load;
-
-		if (cpu_online(cpu))
-			load = get_load(cpufreq_device, cpu, i);
-		else
-			load = 0;
-
-		load_cpu[i] = load;
-		i++;
-	}
-
-	cpu = cpumask_any(&cpufreq_device->allowed_cpus);
-	max_load = load_cpu[0];
-	cid = cpu;
-	for (i = 0; i < ncpus; i++) {
-		if (load_cpu[i] >= max_load) {
-			max_load = load_cpu[i];
-			cid = i + cpu;
-		}
-	}
-
-	if (load_cpu)
-		kfree(load_cpu);
-
-	return cid;
-}
-
-static int get_min_load_cid(struct cpufreq_cooling_device *cpufreq_device)
-{
-	int i = 0, cpu, cid;
-	u32 min_load;
-	u32 *load_cpu = NULL, ncpus;
-
-	cpu = cpumask_any(&cpufreq_device->allowed_cpus);
-	ncpus = cpumask_weight(&cpufreq_device->allowed_cpus);
-	load_cpu = kcalloc(ncpus, sizeof(*load_cpu), GFP_KERNEL);
-
-	for_each_cpu(cpu, &cpufreq_device->allowed_cpus) {
-		u32 load;
-
-		if (cpu_online(cpu))
-			load = get_load(cpufreq_device, cpu, i);
-		else
-			load = 0;
-
-		load_cpu[i] = load;
-		i++;
-	}
-
-	cpu = cpumask_any(&cpufreq_device->allowed_cpus);
-	min_load = load_cpu[0];
-	cid = cpu;
-	for (i = 0; i < ncpus; i++) {
-		if (load_cpu[i] < min_load) {
-			min_load = load_cpu[i];
-			cid = i + cpu;
-		}
-	}
-
-	if (load_cpu)
-		kfree(load_cpu);
-
-	return cid;
-}
-#endif
-
-#ifdef CONFIG_SPRD_CPU_COOLING_CPUIDLE
+#if defined(CONFIG_SPRD_CPU_COOLING_CPUIDLE) && defined(CONFIG_SPRD_CORE_CTL)
 static void corectl_do_cpuidle(struct cpufreq_cooling_device *cpufreq_device)
 {
-	int cpu;
+	int cpu, min_temp;
 	struct cpumask cpus;
-#ifdef CONFIG_SPRD_SOC_THERMAL
-	int max_temp;
-#endif
 
 	cpu = cpumask_any(&cpufreq_device->allowed_cpus);
-#ifdef CONFIG_SPRD_SOC_THERMAL
-	cpu = cpufreq_device->power_model->cab->get_max_temp_core_p(
+	cpu = cpufreq_device->power_model->cab->get_min_temp_unisolated_core_p(
 			cpufreq_device->power_model->cluster_id,
-			cpu, &max_temp);
-#else
-	cpu = get_max_load_cid(cpufreq_device);
-#endif
+			cpu, &min_temp);
+
+	if (cpu < 0)
+		return;
 
 	cpumask_clear(&cpus);
 	if (cpu_online(cpu) && !cpu_isolated(cpu)) {
 
-		pr_info("cpu%d do cpuidle\n", cpu);
+		pr_info("cpu%d min_temp:%d do cpuidle\n", cpu, min_temp);
 		cpumask_set_cpu(cpu, &cpus);
 		if (ctrl_core_api(&cpus, 0)) {
 
@@ -679,25 +597,21 @@ static void corectl_do_cpuidle(struct cpufreq_cooling_device *cpufreq_device)
 
 static void corectl_exit_cpuidle(struct cpufreq_cooling_device *cpufreq_device)
 {
-	int cpu;
+	int cpu, min_temp;
 	struct cpumask cpus;
-#ifdef CONFIG_SPRD_SOC_THERMAL
-	int min_temp;
-#endif
 
 	cpu = cpumask_any(&cpufreq_device->allowed_cpus);
-#ifdef CONFIG_SPRD_SOC_THERMAL
-	cpu = cpufreq_device->power_model->cab->get_min_temp_core_p(
+	cpu = cpufreq_device->power_model->cab->get_min_temp_isolated_core_p(
 			cpufreq_device->power_model->cluster_id,
 			cpu, &min_temp);
-#else
-	cpu = get_min_load_cid(cpufreq_device);
-#endif
+
+	if (cpu < 0)
+		return;
 
 	cpumask_clear(&cpus);
 	if (cpu_online(cpu) && cpu_isolated(cpu)) {
 
-		pr_info("cpu%d exit cpuidle\n", cpu);
+		pr_info("cpu%d min_temp:%d exit cpuidle\n", cpu, min_temp);
 		cpumask_set_cpu(cpu, &cpus);
 		if (ctrl_core_api(&cpus, 1))
 			return;
@@ -837,7 +751,7 @@ static void set_online_cpus(struct cpufreq_cooling_device *cpufreq_dev,
 		pm_qos_update_request(&cpufreq_dev->max_cpu_request,
 			cpufreq_dev->qos_cur_cpu);
 
-		pr_info("cpu%d trigger hotplug... pm_qos_max_online:%d\n", cpu,
+		pr_debug("cpu%d trigger hotplug... pm_qos_max_online:%d\n", cpu,
 			cpufreq_dev->qos_cur_cpu);
 #endif
 	}
@@ -1361,7 +1275,7 @@ static int cpufreq_power2state(struct thermal_cooling_device *cdev,
 
 	num_our_online_cpus = cpumask_weight(&our_online_cpus);
 	cpu = cpumask_any(&cpufreq_device->allowed_cpus);
-	if (count == 5) {
+	if (count == 49) {
 		if (tz->temperature != last_temperature)
 		pr_info("cpu%u temp:%u target_freq:%u online:%u qos_cpu:%u power:%u\n",
 			cpu, tz->temperature, target_freq, num_our_online_cpus,
