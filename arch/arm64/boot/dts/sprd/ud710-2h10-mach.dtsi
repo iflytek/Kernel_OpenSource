@@ -25,14 +25,14 @@
 
 			fstab {
 				compatible = "android,fstab";
-				vendor {
+				fs_vendor: vendor {
 					compatible = "android,vendor";
 					dev = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/vendor";
 					type = "ext4";
 					mnt_flags = "ro,barrier=1";
 					fsmgr_flags = "wait";
 				};
-				product {
+				fs_product: product {
 					compatible = "android,product";
 					dev = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/product";
 					type = "ext4";
