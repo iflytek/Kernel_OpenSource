@@ -129,14 +129,7 @@ static u32 sipa_hal_enable_def_flowctrl_to_src_blk(void __iomem *reg_base)
 static u32 sipa_hal_get_flow_ctrl_to_src_sts(void __iomem *reg_base,
 					     u32 dst, u32 src)
 {
-	u32 ret = 0;
-	u32 *dst_ptr = NULL;
-
-	dst_ptr = (u32 *)((u64 *)(u64)dst);
-
-	ret = ipa_phy_get_flow_ctrl_to_src_sts(reg_base, dst_ptr, src);
-
-	return ret;
+	return ipa_phy_get_flow_ctrl_to_src_sts(reg_base, dst, src);
 }
 
 static u32 sipa_hal_set_axi_mst_chn_priority(void __iomem *reg_base,

@@ -347,18 +347,18 @@ read_again:
 					  &recv_skb, &addr);
 		if (!item.addr) {
 			dev_err(receiver->ctx->pdev,
-				"phy addr is null = %llx\n", item.addr);
+				"phy addr is null = %llx\n", (u64)item.addr);
 			continue;
 		}
 		if (ret) {
 			dev_err(receiver->ctx->pdev,
 				"recv addr:0x%llx, butrecv_array is empty\n",
-				item.addr);
+				(u64)item.addr);
 			continue;
 		} else if (addr != item.addr) {
 			dev_err(receiver->ctx->pdev,
 				"recv addr:0x%llx, but recv_array addr:0x%llx not equal\n",
-				item.addr, addr);
+				(u64)item.addr, (u64)addr);
 			continue;
 		}
 

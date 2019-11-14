@@ -1,4 +1,3 @@
-#include <asm/irq.h>
 #include <linux/sipa.h>
 #include <linux/pm_wakeup.h>
 

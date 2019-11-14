@@ -14,8 +14,6 @@
 #define IPA_PASTE1(x, y) x ## y
 #define IPA_PASTE(x, y) IPA_PASTE1(x, y)
 
-#define IPA_GET_LOW32(val) ((u32)(val & 0x00000000FFFFFFFF))
-#define IPA_GET_HIGH32(val) ((u32)((val >> 32) & 0x00000000FFFFFFFF))
 #define IPA_STI_64BIT(l_val, h_val) ((u64)(l_val | ((u64)h_val << 32)))
 
 #define SIPA_FIFO_REG_SIZE	0x80

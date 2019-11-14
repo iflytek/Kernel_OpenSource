@@ -70,8 +70,8 @@ static int alloc_tx_fifo_ram(struct device *dev,
 		}
 	}
 	fifo_cfg->tx_fifo.size = size;
-	fifo_cfg->tx_fifo.fifo_base_addr_l = IPA_GET_LOW32(phy_addr);
-	fifo_cfg->tx_fifo.fifo_base_addr_h = IPA_GET_HIGH32(phy_addr);
+	fifo_cfg->tx_fifo.fifo_base_addr_l = lower_32_bits(phy_addr);
+	fifo_cfg->tx_fifo.fifo_base_addr_h = upper_32_bits(phy_addr);
 
 	return 0;
 }
@@ -124,8 +124,8 @@ static int alloc_rx_fifo_ram(struct device *dev,
 		}
 	}
 	fifo_cfg->rx_fifo.size = size;
-	fifo_cfg->rx_fifo.fifo_base_addr_l = IPA_GET_LOW32(phy_addr);
-	fifo_cfg->rx_fifo.fifo_base_addr_h = IPA_GET_HIGH32(phy_addr);
+	fifo_cfg->rx_fifo.fifo_base_addr_l = lower_32_bits(phy_addr);
+	fifo_cfg->rx_fifo.fifo_base_addr_h = upper_32_bits(phy_addr);
 
 	return 0;
 }
@@ -1222,8 +1222,8 @@ int sipa_swap_hash_table(struct sipa_hash_table *new_tbl,
 	}
 
 	if (new_tbl) {
-		addrl = IPA_GET_LOW32(new_tbl->tbl_phy_addr);
-		addrh = IPA_GET_HIGH32(new_tbl->tbl_phy_addr);
+		addrl = lower_32_bits(new_tbl->tbl_phy_addr);
+		addrh = upper_32_bits(new_tbl->tbl_phy_addr);
 		hal_cfg->glb_ops.hash_table_switch(
 			hal_cfg->phy_virt_res.glb_base,
 			addrl, addrh, new_tbl->depth);
