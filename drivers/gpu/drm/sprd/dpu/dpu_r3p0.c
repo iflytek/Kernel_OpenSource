@@ -895,10 +895,8 @@ static void dpu_dvfs_task_func(unsigned long data)
 		dvfs_freq = 256000000;
 	else if (max == 3)
 		dvfs_freq = 307200000;
-	else if (max == 4)
-		dvfs_freq = 384000000;
 	else
-		dvfs_freq = 468000000;
+		dvfs_freq = 384000000;
 
 	dpu_dvfs_notifier_call_chain(&dvfs_freq);
 }
