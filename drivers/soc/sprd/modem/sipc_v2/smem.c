@@ -221,13 +221,15 @@ static void *shmem_ram_vmap(u8 dst, phys_addr_t start,
 	if (spool->mem_type == SMEM_PCIE) {
 		if (start < spool->addr
 		    || start + size > spool->addr + spool->size) {
-			pr_info("%s: error, start = 0x%llx, size = 0x%lx.\n",
-				__func__, start, size);
+			pr_info("%s: error, start = 0x%lx, size = 0x%lx.\n",
+				__func__,
+				(unsigned long)start,
+				(unsigned long)size);
 			return NULL;
 		}
 
-		pr_info("%s: succ, start = 0x%llx, size = 0x%lx.\n",
-			__func__, start, size);
+		pr_info("%s: succ, start = 0x%lx, size = 0x%lx.\n",
+			__func__, (unsigned long)start, (unsigned long)size);
 		return (spool->pcie_base + start - spool->addr);
 	}
 

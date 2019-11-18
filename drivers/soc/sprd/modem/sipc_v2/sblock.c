@@ -213,11 +213,11 @@ static int sblock_host_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock,
 		return -ENOMEM;
 	}
 
-	pr_debug("%s: channel %d-%d, smem_addr=%#llx, smem_size=%#x!\n",
+	pr_debug("%s: channel %d-%d, smem_addr=%#lx, smem_size=%#x!\n",
 		 __func__,
 		 sblock->dst,
 		 sblock->channel,
-		 sblock->smem_addr + offset,
+		 (unsigned long)(sblock->smem_addr + offset),
 		 sblock->smem_size);
 
 	sblock->dst_smem_addr = sblock->smem_addr -
@@ -230,11 +230,11 @@ static int sblock_host_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock,
 	offset = sipc->high_offset;
 	offset = offset << 32;
 #endif
-	pr_debug("%s: channel %d-%d, offset = 0x%llx!\n",
+	pr_debug("%s: channel %d-%d, offset = 0x%lx!\n",
 		 __func__,
 		 sblock->dst,
 		 sblock->channel,
-		 offset);
+		 (unsigned long)offset);
 	sblock->smem_virt = shmem_ram_vmap_nocache(dst,
 						   sblock->smem_addr + offset,
 						   sblock->smem_size);
@@ -458,11 +458,11 @@ static int sblock_client_init(struct smsg_ipc *sipc, struct sblock_mgr *sblock)
 		return -ENOMEM;
 	}
 
-	pr_debug("%s: channel %d-%d, smem_addr=%#llx, smem_size=%#x!\n",
+	pr_debug("%s: channel %d-%d, smem_addr=%#lx, smem_size=%#x!\n",
 		 __func__,
 		 sblock->dst,
 		 sblock->channel,
-		 sblock->smem_addr + offset,
+		 (unsigned long)(sblock->smem_addr + offset),
 		 sblock->smem_size);
 
 	/* in client mode,  it is own physial address. */

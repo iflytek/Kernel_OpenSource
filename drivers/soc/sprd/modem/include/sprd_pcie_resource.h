@@ -30,6 +30,7 @@ enum {
 #endif
 };
 
+#if defined(CONFIG_SPRD_PCIE_EP_DEVICE) || defined(CONFIG_PCIE_EPF_SPRD)
 /*
  * sprd_pcie_wait_resource
  * Returns:
@@ -42,6 +43,15 @@ int sprd_pcie_wait_resource(u32 dst, int timeout);
 int sprd_pcie_request_resource(u32 dst);
 int sprd_pcie_release_resource(u32 dst);
 int sprd_pcie_resource_trash(u32 dst);
+
+#else
+/* dummy functions */
+static inline int sprd_pcie_wait_resource(u32 dst, int timeout) {return 0; }
+
+static inline int sprd_pcie_request_resource(u32 dst) {return 0; }
+static inline int sprd_pcie_release_resource(u32 dst) {return 0; }
+static inline int sprd_pcie_resource_trash(u32 dst) {return 0; }
+#endif
 
 #ifdef CONFIG_PCIE_EPF_SPRD
 int sprd_pcie_resource_client_init(u32 dst, u32 ep_fun);

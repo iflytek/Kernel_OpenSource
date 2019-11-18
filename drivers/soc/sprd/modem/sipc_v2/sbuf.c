@@ -17,6 +17,7 @@
 #include <linux/interrupt.h>
 #include <linux/io.h>
 #include <linux/kthread.h>
+#include <linux/mm.h>
 #include <linux/module.h>
 #include <linux/sched.h>
 #include <linux/seq_file.h>
@@ -287,8 +288,8 @@ static int sbuf_host_init(struct smsg_ipc *sipc, struct sbuf_mgr *sbuf,
 	offset = offset << 32;
 #endif
 
-	pr_info("%s: channel %d-%d, offset = 0x%llx!\n",
-		__func__, sbuf->dst, sbuf->channel, offset);
+	pr_info("%s: channel %d-%d, offset = 0x%lx!\n",
+		__func__, sbuf->dst, sbuf->channel, (unsigned long)offset);
 	sbuf->smem_virt = shmem_ram_vmap_nocache(dst,
 						sbuf->smem_addr + offset,
 						sbuf->smem_size);
