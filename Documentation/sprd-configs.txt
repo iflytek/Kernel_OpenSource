@@ -14623,6 +14623,24 @@ CONFIG_TOUCHSCREEN_ADAPTIVE_VENDOR_FOCALTECH
 	[must] unknown
 	[missing plat description]
 	[function] This macro is to control the TP driver compilation.
+CONFIG_TOUCHSCREEN_FTS
+	[arch] arm64
+	[plat] roc1
+	[missing plat] none
+	[field] make
+	[subsys] input
+	[must] unknown
+	[missing plat description] none
+	[function] for touchscreen driver
+CONFIG_TOUCHSCREEN_FTS_DIRECTORY
+	[arch] arm64
+	[plat] roc1
+	[missing plat] none
+	[field] make
+	[subsys] input
+	[must] unknown
+	[missing plat description] none
+	[function] for touchscreen driver
 CONFIG_TOUCHSCREEN_PROPERTIES
 	[arch] all
 	[plat] roc1,sharkl3,sharkl5,sharkl5_32
