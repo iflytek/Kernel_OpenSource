@@ -491,7 +491,6 @@
 	sprd,sdio-adma;
 	no-sdio;
 	no-mmc;
-	status = "okay";
 };
 
 &sdio1 {
