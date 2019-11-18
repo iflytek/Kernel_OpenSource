@@ -290,6 +290,11 @@
 		freq-num = <8>;
 		backdoor = <1866>;
 	};
+
+	extcon_gpio: extcon-gpio {
+		compatible = "linux,extcon-usb-gpio";
+		vbus-gpio = <&pmic_eic 0 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &dpu {
@@ -638,13 +643,17 @@
 
 &ssphy {
 	vdd-supply = <&vddusb33>;
-	extcon = <&pmic_typec>;
+	extcon = <&extcon_gpio>;
 	status = "okay";
 };
 
 &usb3 {
-	extcon = <&pmic_typec>;
+	extcon = <&extcon_gpio>, <&pmic_typec>;
 	vbus-supply = <&vddvbus>;
+	status = "okay";
+};
+
+&pmic_typec {
 	status = "okay";
 };
 
