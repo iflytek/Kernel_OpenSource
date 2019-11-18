@@ -53,14 +53,17 @@
 	};
 };
 
-&i2c3 {
+&spi1 {
 	status = "okay";
+	spi-max-frequency = <6000000>;
 
-	synaptics-touch@20 {
-		compatible = "synaptics,dsx";
-		reg = <0x20>;
-		gpios = <&ap_gpio 145 GPIO_ACTIVE_HIGH
-			&ap_gpio 144 GPIO_ACTIVE_HIGH>;
+	focaltech@0 {
+		compatible = "focaltech,fts";
+		reg = <0x0>;
+		focaltech,reset-gpio = <&ap_gpio 145 GPIO_ACTIVE_HIGH>;
+		focaltech,irq-gpio = <&ap_gpio 144 GPIO_ACTIVE_HIGH>;
+		focaltech,max-touch-number = <5>;
+		focaltech,display-coords =  <0 0 720 1600>;
 	};
 
 	ktd3137_backlight: backlight@36 {
