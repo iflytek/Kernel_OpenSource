@@ -80,6 +80,21 @@ struct modem_ctrl_device {
 static struct class *modem_ctrl_class;
 static struct modem_ctrl_device *mcd_dev;
 
+/* modem control evnet notify  */
+static ATOMIC_NOTIFIER_HEAD(modem_ctrl_chain);
+
+int modem_ctrl_register_notifier(struct notifier_block *nb)
+{
+	return atomic_notifier_chain_register(&modem_ctrl_chain, nb);
+}
+EXPORT_SYMBOL(modem_ctrl_register_notifier);
+
+void modem_ctrl_unregister_notifier(struct notifier_block *nb)
+{
+	atomic_notifier_chain_unregister(&modem_ctrl_chain, nb);
+}
+EXPORT_SYMBOL(modem_ctrl_unregister_notifier);
+
 static void send_event_msg(struct kobject *kobj)
 {
 	char *msg[3];
@@ -107,6 +122,7 @@ static irqreturn_t cpwatchdogtriger_handler(int irq, void *dev_id)
 		return IRQ_NONE;
 
 	mcd_dev->init->modem_status = MDM_WATCHDOG_RESET;
+	atomic_notifier_call_chain(&modem_ctrl_chain, MDM_WATCHDOG_RESET, NULL);
 	send_event_msg(&mcd_dev->dev->kobj);
 	return IRQ_HANDLED;
 }
@@ -117,6 +133,7 @@ static irqreturn_t cpasserttriger_handler(int irq, void *dev_id)
 		return IRQ_NONE;
 
 	mcd_dev->init->modem_status = MDM_ASSERT;
+	atomic_notifier_call_chain(&modem_ctrl_chain, MDM_ASSERT, NULL);
 	send_event_msg(&mcd_dev->dev->kobj);
 	return IRQ_HANDLED;
 }
@@ -127,6 +144,7 @@ static irqreturn_t cppanictriger_handler(int irq, void *dev_id)
 		return IRQ_NONE;
 
 	mcd_dev->init->modem_status = MDM_PANIC;
+	atomic_notifier_call_chain(&modem_ctrl_chain, MDM_PANIC, NULL);
 	send_event_msg(&mcd_dev->dev->kobj);
 	return IRQ_HANDLED;
 }
@@ -325,6 +343,8 @@ void modem_ctrl_poweron_modem(int on)
 	switch (on) {
 	case MDM_CTRL_POWER_ON:
 		if (!IS_ERR(mcd_dev->init->gpio_poweron)) {
+			atomic_notifier_call_chain(&modem_ctrl_chain,
+						   MDM_CTRL_POWER_ON, NULL);
 			dev_info(mcd_dev->dev, "set modem_poweron: %d\n", on);
 			gpiod_set_value_cansleep(mcd_dev->init->gpio_poweron,
 						 1);
@@ -347,6 +367,8 @@ void modem_ctrl_poweron_modem(int on)
 		break;
 	case MDM_CTRL_WARM_RESET:
 		if (!IS_ERR(mcd_dev->init->gpio_reset)) {
+			atomic_notifier_call_chain(&modem_ctrl_chain,
+						   MDM_CTRL_WARM_RESET, NULL);
 			dev_dbg(mcd_dev->dev, "set warm reset: %d\n", on);
 			gpiod_set_value_cansleep(mcd_dev->init->gpio_reset, 1);
 			/* Base the spec modem that need to wait 50ms */
@@ -357,6 +379,8 @@ void modem_ctrl_poweron_modem(int on)
 		break;
 	case MDM_CTRL_COLD_RESET:
 		if (!IS_ERR(mcd_dev->init->gpio_poweron)) {
+			atomic_notifier_call_chain(&modem_ctrl_chain,
+						   MDM_CTRL_COLD_RESET, NULL);
 			dev_info(mcd_dev->dev, "modem_power reset: %d\n", on);
 			gpiod_set_value_cansleep(mcd_dev->init->gpio_poweron,
 						 1);
