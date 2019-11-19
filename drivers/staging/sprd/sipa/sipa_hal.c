@@ -866,6 +866,30 @@ void sipa_reclaim_wiap_ul_cmn_fifo(void)
 }
 EXPORT_SYMBOL(sipa_reclaim_wiap_ul_cmn_fifo);
 
+void sipa_prepare_modem_power_off(void)
+{
+	struct sipa_hal_context *hal_cfg = &sipa_hal_ctx;
+	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+
+	if (ctrl->params_cfg.enable_cnt && ctrl->power_flag)
+		hal_cfg->fifo_ops.ctrl_receive(fifo_cfg->fifo_id,
+					       fifo_cfg, true);
+}
+EXPORT_SYMBOL(sipa_prepare_modem_power_off);
+
+void sipa_prepare_modem_power_on(void)
+{
+	struct sipa_hal_context *hal_cfg = &sipa_hal_ctx;
+	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+
+	if (ctrl->params_cfg.enable_cnt && ctrl->power_flag)
+		hal_cfg->fifo_ops.ctrl_receive(fifo_cfg->fifo_id,
+					       fifo_cfg, false);
+}
+EXPORT_SYMBOL(sipa_prepare_modem_power_on);
+
 int sipa_hal_put_rx_fifo_item(sipa_hal_hdl hdl,
 			      enum sipa_cmn_fifo_index fifo_id,
 			      struct sipa_hal_fifo_item *item)

@@ -453,4 +453,8 @@ bool sipa_receiver_has_stop_recv(void);
 
 void sipa_receiver_clean_stop_recv(void);
 
+void sipa_prepare_modem_power_on(void);
+
+void sipa_prepare_modem_power_off(void);
+
 #endif /* _SIPA_H_ */
