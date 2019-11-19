@@ -536,9 +536,9 @@ static int cproc_proc_copy_iram(struct cproc_device *cproc)
 		return 0;
 
 	ctrl->iram_loaded = 1;
-	pr_debug("%s: addr =0x%p, size =%d\n",
+	pr_debug("%s: addr =0x%lx, size =%d\n",
 		__func__,
-		(void *)ctrl->iram_addr,
+		(unsigned long)ctrl->iram_addr,
 		ctrl->iram_size);
 
 	vmem = modem_ram_vmap_nocache(SOC_MODEM,
@@ -1573,9 +1573,9 @@ static int sprd_cproc_parse_dt(struct cproc_init_data **init,
 			goto error;
 		}
 		ctrl->iram_addr = res.start;
-		pr_debug("%s: iram_addr=0x%p\n",
+		pr_debug("%s: iram_addr=0x%lx\n",
 			__func__,
-			(void *)ctrl->iram_addr);
+			(unsigned long)ctrl->iram_addr);
 		index++;
 	}
 
@@ -1588,9 +1588,9 @@ static int sprd_cproc_parse_dt(struct cproc_init_data **init,
 
 	pdata->base = res.start;
 	pdata->maxsz = res.end - res.start + 1;
-	pr_debug("%s: cp base = 0x%p, size = 0x%x\n",
+	pr_debug("%s: cp base = 0x%lx, size = 0x%x\n",
 		__func__,
-		(void *)pdata->base,
+		(unsigned long)pdata->base,
 		pdata->maxsz);
 	index++;
 
@@ -1727,9 +1727,9 @@ static int sprd_cproc_probe(struct platform_device *pdev)
 				return -ENOMEM;
 			}
 
-			pr_debug("%s: 0x%p 0x%x\n",
+			pr_debug("%s: 0x%lx 0x%x\n",
 				 __func__,
-				 (void *)pdata->base,
+				 (unsigned long)pdata->base,
 				 pdata->maxsz);
 
 			cproc->initdata = pdata;
