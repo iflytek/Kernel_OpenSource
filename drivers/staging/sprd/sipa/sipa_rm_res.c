@@ -958,8 +958,12 @@ static void sipa_rm_resource_consumer_handle_cb(struct sipa_rm_res_cons *cons,
 		 event);
 
 	/* all released events are ignored */
-	if (event == SIPA_RM_EVT_RELEASED)
+	if (event == SIPA_RM_EVT_RELEASED) {
 		return;
+	} else if (event == SIPA_RM_EVT_FAIL) {
+		sipa_rm_resource_consumer_do_release(cons);
+		return;
+	}
 
 	prev_state = cons->resource.state;
 	switch (cons->resource.state) {
@@ -1014,8 +1018,13 @@ void sipa_rm_resource_producer_handle_cb(struct sipa_rm_res_prod *prod,
 
 	save_state = prod->resource.state;
 	/* all released events are ignored */
-	if (event == SIPA_RM_EVT_RELEASED)
+	if (event == SIPA_RM_EVT_RELEASED) {
 		return;
+	} else if (event == SIPA_RM_EVT_FAIL) {
+		prod->resource.state = SIPA_RM_RELEASED;
+		complete_all(&prod->request_prod_in_progress);
+		goto cons;
+	}
 
 	switch (prod->resource.state) {
 	case SIPA_RM_REQUEST_IN_PROGRESS:
@@ -1039,6 +1048,7 @@ void sipa_rm_resource_producer_handle_cb(struct sipa_rm_res_prod *prod,
 		goto bail;
 	}
 
+cons:
 	for (peers_index = 0;
 	     peers_index < sipa_rm_peers_list_get_size(
 		     prod->resource.peers_list);

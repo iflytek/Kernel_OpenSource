@@ -139,7 +139,8 @@ enum sipa_rm_res_id {
  */
 enum sipa_rm_event {
 	SIPA_RM_EVT_GRANTED,
-	SIPA_RM_EVT_RELEASED
+	SIPA_RM_EVT_RELEASED,
+	SIPA_RM_EVT_FAIL
 };
 
 
