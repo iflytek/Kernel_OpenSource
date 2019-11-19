@@ -2905,7 +2905,10 @@ CONFIG_SPRD_MAILBOX_R2P0=y
 #
 # SIPA modules
 #
-# CONFIG_SPRD_SIPA is not set
+CONFIG_SPRD_SIPA=y
+# CONFIG_SPRD_SIPA_WCN is not set
+# CONFIG_SIPA_TEST is not set
+# CONFIG_SPRD_IPA_PCIE_WORKROUND is not set
 
 #
 # PAM IPA modules
@@ -2920,6 +2923,7 @@ CONFIG_SPRD_MAILBOX_R2P0=y
 #
 # SIPA delegate modules
 #
+# CONFIG_SPRD_SIPA_DELEGATE is not set
 # CONFIG_SPRD_DATA_TRANSPORTER is not set
 
 #
