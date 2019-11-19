@@ -109,6 +109,11 @@ const char *sipa_rm_res_str(enum sipa_rm_res_id resource_name)
 	return resource_name_to_str[resource_name];
 };
 
+struct sipa_rm_resource **sipa_rm_get_all_resource(void)
+{
+	return sipa_rm_ctx->dep_graph->resource_table;
+}
+
 static void sipa_rm_inactivity_timer_func(struct work_struct *work)
 {
 	struct sipa_rm_it_private *me = container_of(to_delayed_work(work),

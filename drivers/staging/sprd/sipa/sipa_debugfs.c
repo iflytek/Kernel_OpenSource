@@ -23,6 +23,7 @@
 #include<linux/pm_runtime.h>
 #include<linux/regmap.h>
 #include <linux/sipa.h>
+#include "sipa_rm_res.h"
 #include "sipa_debug.h"
 #include "sipa_priv.h"
 
@@ -253,9 +254,10 @@ static int sipa_nic_debug_show(struct seq_file *s, void *unused)
 			   ipa->nic[i]->src_mask,
 			   ipa->nic[i]->netid,
 			   ipa->nic[i]->flow_ctrl_status);
-		seq_printf(s, " qlen = %d need_notify = %d\n",
+		seq_printf(s, " qlen = %d need_notify = %d rm_flow_ctrl = %d\n",
 			   ipa->nic[i]->rx_skb_q.qlen,
-			   ipa->nic[i]->need_notify);
+			   ipa->nic[i]->need_notify,
+			   ipa->nic[i]->rm_res.rm_flow_ctrl);
 	}
 
 	return 0;
@@ -268,6 +270,41 @@ static int sipa_nic_debug_open(struct inode *inode, struct file *file)
 
 static const struct file_operations sipa_nic_debug_fops = {
 	.open = sipa_nic_debug_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static int sipa_rm_res_debug_show(struct seq_file *s, void *unused)
+{
+	int i;
+	struct sipa_rm_resource **res = sipa_rm_get_all_resource();
+
+	seq_puts(s, "/********************************************\n");
+	seq_puts(s, "type: 0 -> producer  1 -> consumer\n");
+	seq_puts(s, "state: 0 -> released 1 -> request_in_progress\n");
+	seq_puts(s, "state: 2 -> granted 3 -> release_in_progress\n");
+	seq_puts(s, "*********************************************/\n");
+
+	for (i = 0; i < SIPA_RM_RES_MAX; i++) {
+		if (!res[i])
+			continue;
+
+		seq_printf(s, "[res] name = %s type = %d ref_count = %d state = %d\n",
+			   sipa_rm_res_str(res[i]->name), res[i]->type,
+			   res[i]->ref_count, res[i]->state);
+	}
+
+	return 0;
+}
+
+static int sipa_rm_res_debug_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, sipa_rm_res_debug_show, inode->i_private);
+}
+
+static const struct file_operations sipa_rm_res_debug_fops = {
+	.open = sipa_rm_res_debug_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release,
@@ -314,6 +351,13 @@ int sipa_init_debugfs(struct sipa_plat_drv_cfg *sipa,
 
 	file = debugfs_create_file("no_recycled", 0444, root, ctrl,
 				   &sipa_no_recycled_fops);
+	if (!file) {
+		ret = -ENOMEM;
+		goto err1;
+	}
+
+	file = debugfs_create_file("rm_res", 0444, root, NULL,
+				   &sipa_rm_res_debug_fops);
 	if (!file) {
 		ret = -ENOMEM;
 		goto err1;
