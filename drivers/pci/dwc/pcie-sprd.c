@@ -271,10 +271,12 @@ static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
 		 "%s wakeup", dev_name(dev));
 	ret = devm_request_threaded_irq(dev, ctrl->wakeup_irq,
 					sprd_pcie_wakeup_irq, NULL,
-					IRQF_TRIGGER_LOW,
+					IRQF_TRIGGER_LOW | IRQF_NO_SUSPEND,
 					ctrl->wakeup_label, ctrl);
 	if (ret < 0)
 		dev_warn(dev, "cannot request wakeup irq\n");
+
+	enable_irq_wake(ctrl->wakeup_irq);
 
 no_wakeup:
 
