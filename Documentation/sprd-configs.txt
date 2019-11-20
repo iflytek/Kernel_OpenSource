@@ -3554,7 +3554,7 @@ CONFIG_DM_VERITY_AVB
 	[field] make
 	[subsys] md
 	[must] none
-	[missing plat description] disable this feature for DDR stability issue
+	[missing plat description]disable this feature for DDR stability issue
 	[function] Depends on DM_VERITY, Enables Android Verified Boot platform-specific error behavior.
 CONFIG_DM_VERITY_FEC
 	[arch] all
@@ -4089,8 +4089,8 @@ CONFIG_EXTRA_FIRMWARE
 	[missing plat description] none
 	[function] External firmware blobs to build into the kernel binary, Set to "".
 CONFIG_E_SHOW_MEM
-	[arch] arm64
-	[plat] orca,roc1,sharkl3,sharkl5
+	[arch] all
+	[plat] all
 	[missing plat] none
 	[field] make,code
 	[subsys] lib,mm
@@ -12556,8 +12556,8 @@ CONFIG_SIGNALFD
 	[function] Enable the signalfd() system call that allows to receive signals
 	on a file descriptor.
 CONFIG_SLABINFO
-	[arch] all
-	[plat] all
+	[arch] arm64
+	[plat] orca,roc1,sharkl3,sharkl5
 	[missing plat] none
 	[field] code
 	[subsys] mm
@@ -12603,8 +12603,8 @@ CONFIG_SLUB_CPU_PARTIAL
 	[missing plat description] none
 	[function] SLUB per cpu partial cache.
 CONFIG_SLUB_DEBUG
-	[arch] all
-	[plat] all
+	[arch] arm64
+	[plat] orca,roc1,sharkl3,sharkl5
 	[missing plat] none
 	[field] code
 	[subsys] mm
@@ -12612,8 +12612,8 @@ CONFIG_SLUB_DEBUG
 	[missing plat description] none
 	[function] Increase debug efficiency for memory covered issue
 CONFIG_SLUB_DEBUG_ON
-	[arch] all
-	[plat] roc1,sharkl3,sharkl5,sharkl5_32
+	[arch] arm64
+	[plat] roc1,sharkl3,sharkl5
 	[missing plat] orca
 	[field] code
 	[subsys] mm
