@@ -15,7 +15,7 @@
 #include "ud710-20c10-mach.dtsi"
 #include "ud710-20c10-modem.dtsi"
 #include "sprd-sound-fe-be.dtsi"
-#include "lcd/lcd_td4310_truly_mipi_fhd.dtsi"
+#include "lcd/lcd_ft8006s_huaxian_mipi_hdp.dtsi"
 
 / {
 	model = "Spreadtrum UD710 20c10 Board";
