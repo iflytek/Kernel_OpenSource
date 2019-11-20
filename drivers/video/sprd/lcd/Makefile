@@ -1,4 +1,5 @@
 obj-y += lcd_dummy_mipi_hd.o
+obj-$(CONFIG_LCD_FT8006S_HUAXIAN_MIPI_HDP) += lcd_ft8006s_huaxian_mipi_hdp.o
 obj-$(CONFIG_LCD_ICNL9911_TXD_MIPI_HDP) += lcd_icnl9911_txd_mipi_hdp.o
 obj-$(CONFIG_LCD_ILI9881C_TRULY_MIPI_HD) += lcd_ili9881c_truly_mipi_hd.o
 obj-$(CONFIG_LCD_ILI9881C_3LANE_MIPI_HD) += lcd_ili9881c_3lane_mipi_hd.o

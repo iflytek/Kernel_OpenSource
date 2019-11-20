@@ -13,6 +13,7 @@
 
 #include "sprd_panel.h"
 
+extern struct panel_driver ft8006s_huaxian_driver;
 extern struct panel_driver dummy_mipi_driver;
 extern struct panel_driver icnl9911_txd_driver;
 extern struct panel_driver ili9881c_truly_driver;
@@ -33,6 +34,12 @@ extern struct panel_driver r61350_truly_driver;
 extern struct panel_driver td4310_truly_driver;
 
 static struct panel_cfg supported_panel[] = {
+#ifdef CONFIG_LCD_FT8006S_HUAXIAN_MIPI_HDP
+	{
+		.lcd_id = 0x8006,
+		.drv = &ft8006s_huaxian_driver,
+	},
+#endif
 #ifdef CONFIG_LCD_ICNL9911_TXD_MIPI_HDP
         {
                 .lcd_id = 0x9911,
