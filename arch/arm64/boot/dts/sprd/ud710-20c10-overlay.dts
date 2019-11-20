@@ -62,6 +62,27 @@
 		gpios = <&ap_gpio 145 GPIO_ACTIVE_HIGH
 			&ap_gpio 144 GPIO_ACTIVE_HIGH>;
 	};
+
+	ktd3137_backlight: backlight@36 {
+		status = "okay";
+		compatible = "sprd,ktd3137";
+		reg = <0x36>;
+		hwen-gpio = <&ap_gpio 133 GPIO_ACTIVE_HIGH>;
+		ktd,using-lsb;
+		ktd,using-linear;
+		ktd,bl-fscal-led = <0x99>;/*default 20.2mA*/
+		ktd,turn-on-ramp = <0>; /* Should add ms value, please check datasheet*/
+		ktd,turn-off-ramp = <0>;  /* Should add ms value, please check datasheet*/
+		ktd,i2c-trans-dim = <0>;  /* Should add ms value, please check datasheet*/
+		ktd,bl-channel = <2>;
+		ktd,ovp-level = <32>; /*default 32v*/
+		ktd,inductor-current = <1800>; /*dfault 2600mA*/
+		ktd,switching-frequency = <1000>;/*dfault 1000KHz*/
+	};
+};
+
+&panel {
+	sprd,backlight = <&ktd3137_backlight>;
 };
 
 &ddr_dfs {
