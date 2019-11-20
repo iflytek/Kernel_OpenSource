@@ -66,10 +66,6 @@ struct modem_ctrl_init_data {
 
 struct modem_ctrl_device {
 	struct modem_ctrl_init_data *init;
-	/* To triger cpwatchdog,cpassert,cppanic */
-	struct work_struct work;
-	/* To triger cpwatchdog,cpassert,cppanic */
-	struct task_struct *triger_work;
 	int major;
 	int minor;
 	struct cdev cdev;
