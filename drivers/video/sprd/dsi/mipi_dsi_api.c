@@ -251,9 +251,22 @@ int mipi_dsi_dpi_video(struct sprd_dsi *dsi, struct dpi_video_param *param)
 		/* bytes to be sent - first as one chunk */
 		bytes_per_chunk = param->hact * Bpp_x100 / 100 + pkt_header;
 
-		/* hline total bytes from the DPI interface */
+		/*
+                * FIXME:
+                * dpu transfer time per hline :
+                *       (param->hline - param->hsync - param->hbp) / param->pixel_clk
+                * dsi transfer time per hline :
+                *       total_bytes / param->lanes * param->byte_clk
+                * Dsi transfer time should be less than dpu time.
+                * So total_bytes limit = (param->hline - param->hsync - param->hbp) *
+                *                       ratio_x1000 * param->lanes / 1000
+                * However, dphy may enter LP11 state after per line.
+                * We should consider some margin, now is 1.2.
+                */
+
+		/* total bytes limit through the DPI interface per hline*/
 		total_bytes = (param->hline - param->hsync - param->hbp) *
-					ratio_x1000 / param->lanes / 1000;
+					ratio_x1000 * param->lanes / 1000 * 100 / 120;
 
 		/* check if the pixels actually fit on the DSI link */
 		if (total_bytes < bytes_per_chunk) {
