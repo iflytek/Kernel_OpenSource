@@ -43,7 +43,7 @@
 #include "sipa_hal.h"
 
 #define SIPA_RECV_BUF_LEN     1600
-#define SIPA_RECV_RSVD_LEN     64
+#define SIPA_RECV_RSVD_LEN     128
 
 
 static int put_recv_array_node(struct sipa_skb_array *p,
