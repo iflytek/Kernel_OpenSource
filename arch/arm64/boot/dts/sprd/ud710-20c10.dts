@@ -771,6 +771,10 @@
 			REG_ANLG_PHY_G13_ANALOG_PCIEPLL_H_PCIEPLL_H_CTRL0
 			MASK_ANLG_PHY_G6_ANALOG_PCIEPLL_V_DIFF_OR_SING_SEL
 			0>,
+		<&ipa_ahb_regs 0 0
+			REG_IPA_AHB_IPA_EB
+			MASK_IPA_AHB_PCIE2_EB
+			0>,
 		<&pmu_apb_regs 0 0
 			REG_PMU_APB_ANALOG_PHY_PWRON_CFG
 			MASK_PMU_APB_PCIE2_PWRON_REG
@@ -831,6 +835,10 @@
 			REG_ANLG_PHY_G13_ANALOG_PCIEPLL_H_PCIEPLL_H_CTRL0
 			MASK_ANLG_PHY_G6_ANALOG_PCIEPLL_V_DIFF_OR_SING_SEL
 			0>,
+		<&ipa_ahb_regs 0 0
+			REG_IPA_AHB_IPA_EB
+			MASK_IPA_AHB_PCIE2_EB
+			0>,
 		<&pmu_apb_regs 0 0
 			REG_PMU_APB_ANALOG_PHY_PWRON_CFG
 			MASK_PMU_APB_PCIE2_PWRON_REG
@@ -852,7 +860,7 @@
 		<&pmu_apb_regs 1 0
 			REG_PMU_APB_RESERVED_REG
 			(0x1 << 16)     /* no corresponding macro */
-			(0x1 << 16)>;
+			0>;
 };
 
 &pcie1 {
