@@ -367,8 +367,6 @@ read_again:
 				 SIPA_RECV_BUF_LEN + skb_headroom(recv_skb),
 				 DMA_FROM_DEVICE);
 
-		skb_trim(recv_skb, item.len);
-
 		dispath_to_nic(receiver, &item, recv_skb);
 
 		if (atomic_read(&receiver->need_sched)) {
