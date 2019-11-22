@@ -13780,14 +13780,14 @@ CONFIG_SPRD_SENSOR_HUB
 	[missing plat description]
 	[function] enable sensor hub driver built in kernel
 CONFIG_SPRD_SFP_SUPPORT
-	[arch] arm64
+	[arch] all
 	[plat] orca,roc1
 	[missing plat] sharkl3,sharkl5
-	[field]
-	[subsys]
-	[must]
+	[field] make, code
+	[subsys] net
+	[must] user
 	[missing plat description]
-	[function]
+	[function] enable fast path rule from conntrack.
 CONFIG_SPRD_SFP_TEST
 	[arch] arm64
 	[plat] roc1
