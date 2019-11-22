@@ -21,6 +21,7 @@
 #include <linux/etherdevice.h>
 #include <linux/skbuff.h>
 #include <linux/ip.h>
+#include <linux/ipv6.h>
 #include <linux/udp.h>
 #include <linux/if_arp.h>
 #include <linux/platform_device.h>
@@ -66,9 +67,12 @@ static inline void sipa_eth_tx_stats_update(
 static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
 {
 	struct iphdr *iph;
+	struct ipv6hdr *ipv6h;
 	struct ethhdr *peth;
 	struct net_device *dev;
 	struct sipa_eth_init_data *pdata = sipa_eth->pdata;
+	unsigned int real_len = 0;
+	bool v4v6 = false;
 
 	dev = sipa_eth->netdev;
 
@@ -102,13 +106,30 @@ static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
 
 	skb_set_network_header(skb, ETH_HLEN);
 	iph = ip_hdr(skb);
-	if (iph->version == 4)
+	if (iph->version == 4) {
 		skb->protocol = htons(ETH_P_IP);
-	else
-		skb->protocol = htons(ETH_P_IPV6);
+		real_len = ntohs(iph->tot_len);
+		v4v6 = true;
+	} else {
+		ipv6h = ipv6_hdr(skb);
+		if (ipv6h->version == 6) {
+			unsigned int payload_len;
+
+			skb->protocol = htons(ETH_P_IPV6);
+			payload_len = ntohs(ipv6h->payload_len);
+			real_len = payload_len + sizeof(struct ipv6hdr);
+			v4v6 = true;
+		} else {
+			pr_warn("skb %p is neither v4 nor v6\n", skb);
+		}
+	}
 
 	peth->h_proto = skb->protocol;
 	skb_pull_inline(skb, ETH_HLEN);
+
+	/* resize the skb->len to a real one */
+	if (v4v6)
+		skb_trim(skb, real_len);
 
 	/* TODO chechsum ... */
 	skb->ip_summed = CHECKSUM_NONE;
