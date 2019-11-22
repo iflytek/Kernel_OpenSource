@@ -1070,7 +1070,7 @@ void sfp_ipa_dev_init(void)
 {
 	if (CHK_FWD_ENTRY_SIZE || CHK_HASH_TBL_SIZE) {
 		FP_PRT_DBG(FP_PRT_ERR,
-			   "warning: ipa entry align error %lu %lu!\n",
+			   "warning: ipa entry align error %zu %zu!\n",
 			   sizeof(struct fwd_entry),
 			   sizeof(struct hd_hash_tbl));
 	}
