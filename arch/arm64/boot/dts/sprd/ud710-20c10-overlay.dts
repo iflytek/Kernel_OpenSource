@@ -65,12 +65,15 @@
 		focaltech,max-touch-number = <5>;
 		focaltech,display-coords =  <0 0 720 1600>;
 	};
+};
 
+&i2c3 {
+	status = "okay";
 	ktd3137_backlight: backlight@36 {
 		status = "okay";
 		compatible = "sprd,ktd3137";
 		reg = <0x36>;
-		hwen-gpio = <&ap_gpio 133 GPIO_ACTIVE_HIGH>;
+		hwen-gpio = <&ap_gpio 31 GPIO_ACTIVE_HIGH>;
 		ktd,using-lsb;
 		ktd,using-linear;
 		ktd,bl-fscal-led = <0x99>;/*default 20.2mA*/
@@ -82,10 +85,6 @@
 		ktd,inductor-current = <1800>; /*dfault 2600mA*/
 		ktd,switching-frequency = <1000>;/*dfault 1000KHz*/
 	};
-};
-
-&panel {
-	sprd,backlight = <&ktd3137_backlight>;
 };
 
 &ddr_dfs {
