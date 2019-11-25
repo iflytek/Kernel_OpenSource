@@ -7,6 +7,7 @@ Required properties:
  - focaltech,irq-gpio:          The interrupt pin for touchscreen
  - focaltech,max-touch-number:  The max number of points that the touchscreen support.
  - focaltech,display-coords:    The resoluton of the touchscreen
+ - spi-max-frequency:		The max fruquency that the slave device support.
 Example nodes:
 
 &spi2 {
@@ -18,6 +19,7 @@ Example nodes:
 		focaltech,irq-gpio = <&ap_gpio 144 GPIO_ACTIVE_HIGH>;
 		focaltech,max-touch-number = <5>;
 		focaltech,display-coords =  <0 0 720 1600>;
+		spi-max-frequency = <6000000>;
 	};
 	/* ... */
 };
