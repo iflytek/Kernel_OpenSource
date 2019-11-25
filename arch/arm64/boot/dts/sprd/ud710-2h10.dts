@@ -998,65 +998,19 @@
 
 &pin_controller {
 	pinctrl-names =
-	/* simclk1, simda1, simrst1 */
-	"gpio_3", "gpio_4", "gpio_5",
-	/* emmcd0, emmcd3, lvds_addac1_on */
-	"gpio_52", "gpio_55", "gpio_124",
-	/* rfctl0, rfctl10, rfctl11*/
-	"gpio_125", "gpio_135", "gpio_136";
+	/* spi2-csn, keyin0 */
+	"gpio_52", "gpio_124";
 
-	pinctrl-0 = <&gpio_3>;
-	pinctrl-1 = <&gpio_4>;
-	pinctrl-2 = <&gpio_5>;
-	pinctrl-3 = <&gpio_52>;
-	pinctrl-4 = <&gpio_55>;
-	pinctrl-5 = <&gpio_124>;
-	pinctrl-6 = <&gpio_125>;
-	pinctrl-7 = <&gpio_135>;
-	pinctrl-8 = <&gpio_136>;
+	pinctrl-0 = <&gpio_52>;
+	pinctrl-1 = <&gpio_124>;
 
-	gpio_3: simclk1 {
-		pins = "ORCA_SIMCLK1";
+	gpio_52: spi2-csn {
+		pins = "ROC1_SPI2_CSN";
 		function = "func4";
 	};
 
-	gpio_4: simda1 {
-		pins = "ORCA_SIMDA1";
-		function = "func4";
-	};
-
-	gpio_5: simrst1 {
-		pins = "ORCA_SIMRST1";
-		function = "func4";
-	};
-
-	gpio_52: emmc_d0 {
-		pins = "ORCA_EMMC_D0";
-		function = "func4";
-	};
-
-	gpio_55: emmc_d3 {
-		pins = "ORCA_EMMC_D3";
-		function = "func4";
-	};
-
-	gpio_124: lvdsrf0_addacon1 {
-		pins = "ORCA_RF_LVDS_ADDAC1_ON";
-		function = "func4";
-	};
-
-	gpio_125: rfctl0 {
-		pins = "ORCA_RFCTL0";
-		function = "func4";
-	};
-
-	gpio_135: rfctl10 {
-		pins = "ORCA_RFCTL10";
-		function = "func4";
-	};
-
-	gpio_136: rfctl11 {
-		pins = "ORCA_RFCTL11";
+	gpio_124: keyin0 {
+		pins = "ROC1_KEYIN0";
 		function = "func4";
 	};
 };
