@@ -309,6 +309,10 @@ static int sprd_ssphy_init(struct usb_phy *x)
 	value &= ~MASK_ANALOG_USB30_CFGA_ANA_CFG13_CFG_TX_LDO_IDC;
 	writel_relaxed(value, phy->base + REG_ANALOG_USB30_CFGA_ANA_CFG13);
 
+	value = readl_relaxed(phy->base + REG_ANALOG_USB30_CFGA_DIG_CFG3);
+	value |= MASK_ANALOG_USB30_CFGA_DIG_CFG3_CFG_PIPE_TXDEEMPH_OVRD;
+	writel_relaxed(value, phy->base + REG_ANALOG_USB30_CFGA_DIG_CFG3);
+
 	/* Reset PHY */
 	sprd_ssphy_reset_core(phy);
 
