@@ -55,8 +55,7 @@
 #define FTS_HID_SUPPORTTED	((FTS_CHIP_TYPE & FLAGBIT(FLAG_HID_BIT)) == \
 				 FLAGBIT(FLAG_HID_BIT))
 
-#define FTS_CHIP_TYPE_MAPPING {{0x11, 0x86, 0x22, 0x86, 0x22, 0x86, \
-0xA2, 0x00, 0x00} }
+#define FTS_CHIP_TYPE_MAPPING {{0x19, 0x86, 0x32, 0x86, 0x32, 0x86, 0xC2, 0x00, 0x00} }
 
 #define FILE_NAME_LENGTH                    128
 #define ENABLE                              1
@@ -141,13 +140,13 @@ struct ts_ic_info {
  ********************************************************/
 #if FTS_DEBUG_EN
 #define FTS_DEBUG(fmt, args...) \
-	printk(KERN_DEBUG "[FTS_TS]%s:"fmt"\n", __func__, ##args);
+	printk("[FTS_TS]%s:"fmt"\n", __func__, ##args);
 
 #define FTS_FUNC_ENTER() \
-	printk(KERN_DEBUG "[FTS_TS]%s: Enter\n", __func__);
+	printk("[FTS_TS]%s: Enter\n", __func__);
 
 #define FTS_FUNC_EXIT() \
-	printk(KERN_DEBUG "[FTS_TS]%s: Exit(%d)\n", __func__, __LINE__);
+	printk("[FTS_TS]%s: Exit(%d)\n", __func__, __LINE__);
 
 #else /* #if FTS_DEBUG_EN */
 #define FTS_DEBUG(fmt, args...)

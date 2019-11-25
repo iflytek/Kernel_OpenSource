@@ -126,7 +126,7 @@
 /*
  * choose your ic chip type of focaltech
  */
-#define FTS_CHIP_TYPE   _FT8006P
+#define FTS_CHIP_TYPE   _FT8006S_AA
 
 /******************* Enables *********************/
 /*********** 1 to enable, 0 to disable ***********/
@@ -190,7 +190,7 @@
 /*
  * Numbers of modules support
  */
-#define FTS_GET_MODULE_NUM                      3
+#define FTS_GET_MODULE_NUM                      0
 
 /*
  * module_id: mean vendor_id generally, also maybe gpio or lcm_id...
@@ -199,9 +199,9 @@
  * FTS_GET_MODULE_NUM >= 2, compatible with FTS_MODULE2_ID
  * FTS_GET_MODULE_NUM >= 3, compatible with FTS_MODULE3_ID
  */
-#define FTS_MODULE_ID                          0xF0
-#define FTS_MODULE2_ID                         0xE0
-#define FTS_MODULE3_ID                         1028
+#define FTS_MODULE_ID                          0x0000
+#define FTS_MODULE2_ID                         0x0000
+#define FTS_MODULE3_ID                         0X0000
 
 /*
  * Need set the following when get firmware via firmware_request()
@@ -211,28 +211,28 @@
  * You should rename fw to "focaltech_ts_fw_tianma", and push it into
  * etc/firmware or by customers
  */
-#define FTS_MODULE_NAME                        "hlt"
-#define FTS_MODULE2_NAME                       "hx"
-#define FTS_MODULE3_NAME                       "hlt"
+#define FTS_MODULE_NAME                        ""
+#define FTS_MODULE2_NAME                       ""
+#define FTS_MODULE3_NAME                       ""
 
 /*
  * FW.i file for auto upgrade, you must replace it with your own
  * define your own fw_file, the sample one to be replaced is invalid
  * NOTE: if FTS_GET_MODULE_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  */
-#define FTS_UPGRADE_FW_FILE                      "include/firmware/fw_ft8006p_hlt.h"
+#define FTS_UPGRADE_FW_FILE                      "include/firmware/fw_sample.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW2_FILE                     "include/firmware/fw_ft8006p_hx.h"
+#define FTS_UPGRADE_FW2_FILE                     "include/firmware/fw_sample.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 3, fw corrsponding with FTS_VENDOR_ID3
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW3_FILE                     "include/firmware/fw_ft8006p_hlt.h"
+#define FTS_UPGRADE_FW3_FILE                     "include/firmware/fw_sample.i"
 
 /*********************************************************/
 

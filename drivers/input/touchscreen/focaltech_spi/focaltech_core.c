@@ -1680,7 +1680,7 @@ static int fts_ts_probe(struct spi_device *spi)
 
 	FTS_INFO("Touch Screen(SPI BUS) driver prboe...");
 
-	spi->mode = SPI_MODE_1;
+	spi->mode = SPI_MODE_0;
 	spi->bits_per_word = 8;
 	//ret = spi_setup(spi);
 	if (ret) {
