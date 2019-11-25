@@ -87,6 +87,10 @@
 	};
 };
 
+&panel {
+	sprd,backlight = <&ktd3137_backlight>;
+};
+
 &ddr_dfs {
 	sprd-scene = "boost", "lcdon", "lcdoff", "camlow",
 		"camhigh", "camveryhigh";
