@@ -516,6 +516,7 @@ static int sipa_resume_cmn_fifo_ptr(sipa_hal_hdl hdl,
 	struct sipa_hal_context *hal_cfg = hdl;
 	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+	struct sipa_skb_receiver **receiver = ctrl->receiver;
 
 	switch (id) {
 	case SIPA_FIFO_CP_UL:
@@ -531,10 +532,14 @@ static int sipa_resume_cmn_fifo_ptr(sipa_hal_hdl hdl,
 	case SIPA_FIFO_AP_IP_DL:
 		depth = fifo_cfg[id].rx_fifo.depth;
 		sipa_fill_free_node(ctrl->receiver[SIPA_PKT_IP], depth);
+		if (receiver)
+			sipa_reinit_recv_array(receiver[SIPA_PKT_IP]);
 		break;
 	case SIPA_FIFO_AP_ETH_UL:
 		depth = fifo_cfg[id].rx_fifo.depth;
 		sipa_fill_free_node(ctrl->receiver[SIPA_PKT_ETH], depth);
+		if (receiver)
+			sipa_reinit_recv_array(receiver[SIPA_PKT_ETH]);
 		break;
 	default:
 		dev_info(ctrl->ctx->pdev,

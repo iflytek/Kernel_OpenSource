@@ -400,4 +400,7 @@ int sipa_receiver_prepare_suspend(struct sipa_skb_receiver *receiver);
 int sipa_receiver_prepare_resume(struct sipa_skb_receiver *receiver);
 
 void sipa_fill_free_node(struct sipa_skb_receiver *receiver, u32 cnt);
+
+void sipa_reinit_recv_array(struct sipa_skb_receiver *receiver);
+
 #endif /* _SIPA_PRIV_H_ */

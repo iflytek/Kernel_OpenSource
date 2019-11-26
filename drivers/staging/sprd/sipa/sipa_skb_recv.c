@@ -638,6 +638,22 @@ static void destroy_recv_array(struct sipa_skb_array *p)
 	p->depth = 0;
 }
 
+void sipa_reinit_recv_array(struct sipa_skb_receiver *receiver)
+{
+	if (!receiver) {
+		pr_err("sipa receiver is null\n");
+		return;
+	}
+
+	if (!receiver->recv_array.array) {
+		pr_err("sipa p->array is null\n");
+		return;
+	}
+
+	receiver->recv_array.rp = 0;
+	receiver->recv_array.wp = receiver->recv_array.depth;
+}
+
 int create_sipa_skb_receiver(struct sipa_context *ipa,
 			     struct sipa_endpoint *ep,
 			     struct sipa_skb_receiver **receiver_pp)
