@@ -1662,8 +1662,11 @@ int edma_dump_glb_reg(void)
 
 	if ((value > 0) && (value < 31))
 		set_bit((value - 1), &edma->cur_chn_status);
-	else if (value == 0xffffffff)
+	else if (value == 0xffffffff) {
+		if (pdev->rc_pd)
+			sprd_pcie_dump_rc_regs(pdev->rc_pd);
 		return -1;
+	}
 
 	WCN_INFO("[arb_sel_sts] = 0x%08x\n",  value);
 	value = sprd_pcie_read_reg32(pdev, DMA_CHN_ARPROT);
