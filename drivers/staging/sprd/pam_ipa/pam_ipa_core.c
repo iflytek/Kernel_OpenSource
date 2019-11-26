@@ -387,6 +387,7 @@ static int pam_ipa_create_prod(struct device *dev)
 
 static int pam_ipa_plat_drv_probe(struct platform_device *pdev_p)
 {
+	int ret;
 	struct pam_ipa_cfg_tag *cfg;
 
 	cfg = devm_kzalloc(&pdev_p->dev, sizeof(*cfg),
@@ -396,7 +397,10 @@ static int pam_ipa_plat_drv_probe(struct platform_device *pdev_p)
 
 	pam_ipa_cfg = cfg;
 	cfg->pdev = pdev_p;
-	pam_ipa_parse_dts_configuration(pdev_p, cfg);
+	ret = pam_ipa_parse_dts_configuration(pdev_p, cfg);
+	if (ret)
+		return ret;
+
 	cfg->ready = false;
 	cfg->pcie_offset = PAM_IPA_STI_64BIT(PAM_IPA_DDR_MAP_OFFSET_L,
 					     PAM_IPA_DDR_MAP_OFFSET_H);
@@ -406,7 +410,10 @@ static int pam_ipa_plat_drv_probe(struct platform_device *pdev_p)
 
 	pam_ipa_init_api(&cfg->hal_ops);
 	dev_set_drvdata(&pdev_p->dev, cfg);
-	pam_ipa_create_prod(&pdev_p->dev);
+	ret = pam_ipa_create_prod(&pdev_p->dev);
+	if (ret)
+		return ret;
+
 	INIT_DELAYED_WORK(&cfg->power_work, pam_ipa_power_work);
 
 	cfg->power_wq = create_workqueue("pam_ipa_power_wq");
