@@ -177,7 +177,7 @@ int sipa_rm_create_resource(struct sipa_rm_create_params *create_params)
 
 	if (unlikely(!sipa_rm_ctx)) {
 		pr_err("SIPA RM was not initialized\n");
-		return -EINVAL;
+		return -EPROBE_DEFER;
 	}
 
 	if (!create_params) {
@@ -330,7 +330,7 @@ int sipa_rm_add_dependency(enum sipa_rm_res_id cons,
 
 	if (unlikely(!sipa_rm_ctx)) {
 		pr_err("SIPA RM was not initialized\n");
-		return -EINVAL;
+		return -EPROBE_DEFER;
 	}
 
 	pr_debug("%s -> %s\n", sipa_rm_res_str(cons),
