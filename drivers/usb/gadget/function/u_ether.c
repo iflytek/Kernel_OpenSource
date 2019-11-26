@@ -27,6 +27,10 @@
 #ifdef CONFIG_SPRD_SIPA
 #include <linux/interrupt.h>
 #include <linux/sipa.h>
+#include <linux/ip.h>
+#include <linux/ipv6.h>
+#include <linux/if_arp.h>
+#include <linux/if_ether.h>
 #endif
 
 #include "rndis.h"
@@ -1329,10 +1333,42 @@ static inline void sipa_usb_tx_stats_update(
 
 static void sipa_usb_prepare_skb(struct eth_dev *dev, struct sk_buff *skb)
 {
+	struct iphdr *iph;
+	struct ipv6hdr *ipv6h;
+	struct ethhdr *ethh;
 	struct net_device *net = dev->net;
+	unsigned int real_len = 0;
+	unsigned int payload_len = 0;
+	bool ip_arp = true;
+
+	skb_reset_mac_header(skb);
+	ethh = eth_hdr(skb);
 
 	skb->protocol = eth_type_trans(skb, net);
-	skb_set_network_header(skb, ETH_HLEN);
+	skb_reset_network_header(skb);
+
+	switch (ntohs(ethh->h_proto)) {
+	case ETH_P_IP:
+		iph = ip_hdr(skb);
+		real_len = ntohs(iph->tot_len);
+		break;
+	case ETH_P_IPV6:
+		ipv6h = ipv6_hdr(skb);
+		payload_len = ntohs(ipv6h->payload_len);
+		real_len = payload_len + sizeof(struct ipv6hdr);
+		break;
+	case ETH_P_ARP:
+		real_len = arp_hdr_len(net);
+		break;
+	default:
+		ip_arp = false;
+		pr_debug("skb %p is neither v4 nor v6 nor arp\n", skb);
+		break;
+	}
+
+	/* resize the skb->len to a real one */
+	if (ip_arp)
+		skb_trim(skb, real_len);
 
 	/* TODO chechsum ... */
 	skb->ip_summed = CHECKSUM_NONE;
