@@ -75,6 +75,7 @@ static uchar *const s_force_secure_check[] = {
 #ifdef SHARKL5_CDSP
 	"l_cdsp",
 #endif
+	"l_pmsys",
 	"wdsp",
 	"w_modem",
 	"w_gdsp",
