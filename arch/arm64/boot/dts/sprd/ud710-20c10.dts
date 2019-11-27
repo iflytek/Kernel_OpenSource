@@ -431,7 +431,7 @@
 		clock-names = "clk_src","sensor_eb",
 			"clk_96m","clk_76m8",
 			"clk_48m","clk_26m";
-		clocks = <&mm_clk CLK_SENSOR1>,<&mm_gate CLK_MM_SENSOR1_EB>,
+		clocks = <&mm_clk CLK_SENSOR0>,<&mm_gate CLK_MM_SENSOR0_EB>,
 			<&g12_pll CLK_TWPLL_96M>,<&g12_pll CLK_TWPLL_76M8>,
 			<&g12_pll CLK_TWPLL_48M>,<&ext_26m>;
 		vddio-supply = <&vddcamio>;
@@ -440,9 +440,32 @@
 		vddcammot-supply = <&vddcammot>;
 		sprd,phyid = <0>;
 		csi = <&csi0>;
-		reset-gpios = <&ap_gpio 45 0>;
-		power-down-gpios = <&ap_gpio 47 0>;
-		/*avdd-gpios = <&ap_gpio 140 0>;*/
+		reset-gpios = <&ap_gpio 44 0>;
+		power-down-gpios = <&ap_gpio 46 0>;
+		avdd-gpios = <&ap_gpio 140 0>;
+
+		status = "okay";
+	};
+
+	sensor_sub2: sensor-sub2@20 {
+		compatible = "sprd,sensor-sub2";
+		reg = <0x20>;
+
+		clock-names = "clk_src","sensor_eb",
+			"clk_96m","clk_76m8",
+			"clk_48m","clk_26m";
+		clocks = <&mm_clk CLK_SENSOR2>,<&mm_gate CLK_MM_SENSOR2_EB>,
+			<&g12_pll CLK_TWPLL_96M>,<&g12_pll CLK_TWPLL_76M8>,
+			<&g12_pll CLK_TWPLL_48M>,<&ext_26m>;
+		vddio-supply = <&vddcamio>;
+		vddcama-supply = <&vddcama1>;
+		vddcamd-supply = <&vddcamd1>;
+		vddcammot-supply = <&vddcammot>;
+		sprd,phyid = <4>;
+		csi = <&csi1>;
+		reset-gpios = <&ap_gpio 162 0>;
+		power-down-gpios = <&ap_gpio 87 0>;
+		avdd-gpios = <&ap_gpio 140 0>;
 
 		status = "okay";
 	};
@@ -458,18 +481,20 @@
 		clock-names = "clk_src","sensor_eb",
 			"clk_96m","clk_76m8",
 			"clk_48m","clk_26m";
-		clocks = <&mm_clk CLK_SENSOR0>,<&mm_gate CLK_MM_SENSOR0_EB>,
+		clocks = <&mm_clk CLK_SENSOR1>,<&mm_gate CLK_MM_SENSOR1_EB>,
 			<&g12_pll CLK_TWPLL_96M>,<&g12_pll CLK_TWPLL_76M8>,
 			<&g12_pll CLK_TWPLL_48M>,<&ext_26m>;
 		vddio-supply = <&vddcamio>;
-		vddcama-supply = <&vddcama1>;
-		vddcamd-supply = <&vddcamd1>;
+		vddcama-supply = <&vddcama0>;
+		vddcamd-supply = <&vddcamd0>;
 		vddcammot-supply = <&vddcammot>;
-		sprd,phyid = <1>;
+		sprd,phyid = <5>;
 		csi = <&csi0>;
-		reset-gpios = <&ap_gpio 44 0>;
-		power-down-gpios = <&ap_gpio 46 0>;
-		/*avdd-gpios = <&ap_gpio 140 0>;*/
+		reset-gpios = <&ap_gpio 45 0>;
+		power-down-gpios = <&ap_gpio 47 0>;
+		avdd-gpios = <&ap_gpio 140 0>;
+		mipi-switch-en-gpios = <&ap_gpio 97 0>;
+		mipi-switch-mode-gpios = <&ap_gpio 95 0>;
 
 		status = "okay";
 	};
@@ -481,7 +506,30 @@
 		clock-names = "clk_src","sensor_eb",
 			"clk_96m","clk_76m8",
 			"clk_48m","clk_26m";
-		clocks = <&mm_clk CLK_SENSOR0>,<&mm_gate CLK_MM_SENSOR0_EB>,
+		clocks = <&mm_clk CLK_SENSOR2>,<&mm_gate CLK_MM_SENSOR2_EB>,
+			<&g12_pll CLK_TWPLL_96M>,<&g12_pll CLK_TWPLL_76M8>,
+			<&g12_pll CLK_TWPLL_48M>,<&ext_26m>;
+		vddio-supply = <&vddcamio>;
+		vddcama-supply = <&vddcama1>;
+		vddcamd-supply = <&vddcamd1>;
+		vddcammot-supply = <&vddcammot>;
+		sprd,phyid = <3>;
+		csi = <&csi1>;
+		reset-gpios = <&ap_gpio 41 0>;
+		power-down-gpios = <&ap_gpio 40 0>;
+		avdd-gpios = <&ap_gpio 140 0>;
+
+		status = "okay";
+	};
+
+	sensor_main3: sensor-main3@6a {
+		compatible = "sprd,sensor-main3";
+		reg = <0x6a>;
+
+		clock-names = "clk_src","sensor_eb",
+			"clk_96m","clk_76m8",
+			"clk_48m","clk_26m";
+		clocks = <&mm_clk CLK_SENSOR1>,<&mm_gate CLK_MM_SENSOR1_EB>,
 			<&g12_pll CLK_TWPLL_96M>,<&g12_pll CLK_TWPLL_76M8>,
 			<&g12_pll CLK_TWPLL_48M>,<&ext_26m>;
 		vddio-supply = <&vddcamio>;
@@ -490,11 +538,15 @@
 		vddcammot-supply = <&vddcammot>;
 		sprd,phyid = <5>;
 		csi = <&csi1>;
-		reset-gpios = <&ap_gpio 41 0>;
-		power-down-gpios = <&ap_gpio 40 0>;
+		reset-gpios = <&ap_gpio 160 0>;
+/*		power-down-gpios = <&ap_gpio 47 0>;*/
+		avdd-gpios = <&ap_gpio 140 0>;
+		mipi-switch-en-gpios = <&ap_gpio 97 0>;
+		mipi-switch-mode-gpios = <&ap_gpio 95 0>;
 
 		status = "okay";
 	};
+
 };
 
 &dmc_mpu {
