@@ -6,6 +6,26 @@
 #include <otp_helper.h>
 #include <sprd_pmic_misc.h>
 #include <chipram_env.h>
+#include <hwfeature.h>
+
+static unsigned int get_chip_id(struct hwfeature *phwf)
+{
+	int reg_val;
+
+	typedef enum {
+		ROC1_AA = 1,
+		ROC1_AB = 3
+	};
+
+	phwf = phwf;
+
+	reg_val = __raw_readl(REG_AON_APB_AON_VER_ID);
+
+	if (1 == reg_val)
+		return ROC1_AA;
+	else
+		return ROC1_AB;
+}
 
 /*
 	REG_AON_APB_BOND_OPT0  ==> romcode set
@@ -180,6 +200,8 @@ void misc_init()
 	pmic_misc_init();
 
 	sprd_get_chipid(NULL, NULL);
+
+	hwfeature_hook_get_chipid(get_chip_id);
 
 #if defined CONFIG_SMT
 	set_smt();

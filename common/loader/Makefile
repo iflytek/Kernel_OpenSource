@@ -18,3 +18,4 @@ obj-y += sprd_cpcmdline.o
 obj-y += sprdisk.o
 obj-y += sprd_fdt_memory.o
 obj-$(CONFIG_MEM_LAYOUT_DECOUPLING) += process_cp_coupling_info.o
+obj-y += hwfeature.o
