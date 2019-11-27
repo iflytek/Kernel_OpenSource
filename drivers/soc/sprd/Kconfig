@@ -1,6 +1,12 @@
 #
 # SPRD Soc drivers
 #
+config SPRD_HWFEATURE
+	bool "Spreadtrum hwfeature driver"
+	depends on ARCH_SPRD
+	help
+	  Select this to enable hwfeature property function for all platform board
+
 config SPRD_MEMDISK
 	tristate "SPRD memdisk driver"
 	depends on ARCH_SPRD
