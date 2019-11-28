@@ -45,6 +45,29 @@
 #error Unsupported LCD BPP.
 #endif
 
+#define RGB565_TO_INT16(rgb)  (rgb.blue >> 3 | rgb.green >> 2 << 5 | rgb.red >> 3 << 11)
+#define PIXEL8_TO_INT16(index, table) 	(table[*index])
+#define PIXEL16_TO_INT16(index, table)  (RGB565_TO_INT16(PIXEL8_TO_INT16(index, table)))
+#define RGB16_TO_INT16(rgb)   (*rgb)
+#define RGB24_TO_INT32(rgb)   (rgb->b | rgb->g << 8 | rgb->r << 16 | 0xff << 24)
+#define RGB32_TO_INT32(rgb)   (rgb->b | rgb->g << 8 | rgb->r << 16 | rgb->a << 24)
+
+#define BMP_TO_FB(dst, bits0, from, bits1, format, ...) \
+do { \
+	int i, j; \
+	dst = (bits0 *)fb; \
+	from = (bits1 *)bmap; \
+	for (i = 0; i < height; ++i) { \
+		for (j = 0; j < width; j++) { \
+			*dst = format(from, ##__VA_ARGS__); \
+			from++; \
+			dst++; \
+		} \
+		from += bmp_width; \
+		dst -= fb_width; \
+	} \
+} while(0)
+
 #ifdef CONFIG_SC2703_LCD_POWERON
 extern void lcd_use_sc2703l_to_power_on();
 #endif
@@ -584,16 +607,15 @@ __weak void lcd_set_cmap(struct bmp_image *bmp, unsigned colors)
 
 int lcd_display_bitmap(ulong bmp_image, int x, int y)
 {
-	ushort *cmap_base = NULL;
-	ushort i, j;
-	uchar *fb;
+	u8 bmp_bpix;
+	u16 width, height, bmp_width, fb_width, hdr_size;
+	u32 colors;
+	u8 *fb, *bmap, *bmap8;
+	u16 *fb16, *bmap16, *cmap_base = NULL;
+	u32 *fb32;
+	rgb24_t *bmap24;
+	rgb32_t *bmap32;
 	struct bmp_image *bmp = (struct bmp_image *)map_sysmem(bmp_image, 0);
-	uchar *bmap;
-	ushort padded_width;
-	unsigned long width, height, bmp_width, fb_width;
-	unsigned long pwidth = panel_info.vl_col;
-	unsigned colors, bpix, bmp_bpix;
-	int hdr_size;
 	struct bmp_color_table_entry *palette = bmp->color_table;
 
 	if (!bmp || !(bmp->header.signature[0] == 'B' &&
@@ -609,152 +631,65 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 	hdr_size = get_unaligned_le16(&bmp->header.size);
 	debug("hdr_size=%d, bmp_bpix=%d\n", hdr_size, bmp_bpix);
 
-	colors = 1 << bmp_bpix;
-
-	switch(bmp_bpix) {
-		case 8:
-		case 16:
-			bpix = 16;
-			break;
-		case 24:
-		case 32:
-			bpix = bmp_bpix;
-			break;
-		default:
-			bpix = 0;
-			break;
-	}
-
 	/*
 	 * We support displaying 8bpp BMPs on 16bpp LCDs
 	 * and displaying 24bpp BMPs on 32bpp LCDs
 	 * */
-	if (!bpix) {
-		printf ("Error: %d bit/pixel mode, but BMP has %d bit/pixel\n",
-			bpix, bmp_bpix);
+	if (bmp_bpix != 8 && bmp_bpix != 16 && bmp_bpix != 24 && bmp_bpix != 32) {
+		printf ("Error: BMP %d bit/pixel mode not support!\n", bmp_bpix);
 
 		return 1;
 	}
 
-	debug("Display-bmp: %d x %d  with %d colors, display %d\n",
-	      (int)width, (int)height, (int)colors, 1 << bpix);
+	colors = 1 << bmp_bpix;
+	debug("Display-bmp: %d x %d  with %d colors, bpix: %d\n",
+	      width, height, colors, bmp_bpix);
 
 	if (bmp_bpix == 8)
 		lcd_set_cmap(bmp, colors);
 
-	padded_width = (width & 0x3 ? (width & ~0x3) + 4 : width);
-
 #ifdef CONFIG_SPLASH_SCREEN_ALIGN
-	splash_align_axis(&x, pwidth, width);
+	splash_align_axis(&x, panel_info.vl_col, width);
 	splash_align_axis(&y, panel_info.vl_row, height);
 #endif /* CONFIG_SPLASH_SCREEN_ALIGN */
 
-	if ((x + width) > pwidth)
-		width = pwidth - x;
+	if ((x + width) > panel_info.vl_col)
+		width = panel_info.vl_col - x;
 	if ((y + height) > panel_info.vl_row)
 		height = panel_info.vl_row - y;
 
 	bmap = (uchar *)bmp + get_unaligned_le32(&bmp->header.data_offset);
-	fb   = (uchar *)(lcd_base +
-		(y + height - 1) * lcd_line_length +
-		x * (lcd_line_length / panel_info.vl_col));
+	fb   = (uchar *)(lcd_base + (y + height - 1) * lcd_line_length +
+			x * (lcd_line_length / panel_info.vl_col));
+
+	bmp_width = (width & 0x3 ? (width & ~0x3) + 4 : width) - width;
+	fb_width = lcd_line_length / (bmp_bpix > 16 ? 4 : 2) + width;
 
 	switch (bmp_bpix) {
 	case 1:
-	case 8: {
+	case 8:
 		cmap_base = configuration_get_cmap();
 #ifdef CONFIG_LCD_BMP_RLE8
 		u32 compression = get_unaligned_le32(&bmp->header.compression);
 		debug("compressed %d %d\n", compression, BMP_BI_RLE8);
 		if (compression == BMP_BI_RLE8) {
-			if (bpix != 16) {
-				/* TODO implement render code for bpix != 16 */
-				printf("Error: only support 16 bpix");
-				return 1;
-			}
 			lcd_display_rle8_bitmap(bmp, cmap_base, fb, x, y);
 			break;
 		}
 #endif
-
-		struct bmp_color_table_entry *entry;
-		uint val;
-
-		bmp_width = padded_width - width;
-		fb_width = width * 2 + lcd_line_length;
-
-		for (i = 0; i < height; ++i) {
-			WATCHDOG_RESET();
-			for (j = 0; j < width; j++) {
-#ifdef CONFIG_BMP_OPTIMIZE_CONVERT_16BPIX
-				*(uint16_t *)fb = cmap_base[*bmap];
-				bmap++;
-				fb += 2;
-#else
-				if (bpix != 16) {
-					fb_put_byte(&fb, &bmap);
-				} else {
-					if (cmap_base) {
-						val = cmap_base[*bmap];
-					} else {
-						entry = &palette[*bmap];
-						val = entry->blue >> 3 |
-							entry->green >> 2 << 5 |
-							entry->red >> 3 << 11;
-					}
-					*(uint16_t *)fb = val;
-					bmap++;
-					fb += 2;
-				}
-#endif
-			}
-			bmap += bmp_width;
-			fb -= fb_width;
-		}
+		if (cmap_base)
+			BMP_TO_FB(fb16, u16, bmap8, u8, PIXEL8_TO_INT16, cmap_base);
+		else
+			BMP_TO_FB(fb16, u16, bmap8, u8, PIXEL16_TO_INT16, palette);
 		break;
-	}
 	case 16:
-		bmp_width = (padded_width - width) * 2;
-		fb_width = width * 2 + lcd_line_length;
-
-		for (i = 0; i < height; ++i) {
-			WATCHDOG_RESET();
-			for (j = 0; j < width; j++)
-				fb_put_word(&fb, &bmap);
-
-			bmap += bmp_width;
-			fb -= fb_width;
-		}
+		BMP_TO_FB(fb16, u16, bmap16, u16, RGB16_TO_INT16);
 		break;
 	case 24:
-		bmp_width = (padded_width - width) * 3;
-		fb_width = width * 4 + lcd_line_length;
-
-		for (i = 0; i < height; ++i) {
-			for (j = 0; j < width; j++) {
-				*(fb++) = *(bmap++);
-				*(fb++) = *(bmap++);
-				*(fb++) = *(bmap++);
-				*(fb++) = 0xFF;
-			}
-			bmap += bmp_width;
-			fb -= fb_width;
-		}
+		BMP_TO_FB(fb32, u32, bmap24, rgb24_t, RGB24_TO_INT32);
 		break;
 	case 32:
-		bmp_width = (padded_width - width) * 4;
-		fb_width = width * 4 + lcd_line_length;
-
-		for (i = 0; i < height; ++i) {
-			for (j = 0; j < width; j++) {
-				*(fb++) = *(bmap++);
-				*(fb++) = *(bmap++);
-				*(fb++) = *(bmap++);
-				*(fb++) = *(bmap++);
-			}
-			bmap += bmp_width;
-			fb -= fb_width;
-		}
+		BMP_TO_FB(fb32, u32, bmap32, rgb32_t, RGB32_TO_INT32);
 		break;
 	default:
 		break;

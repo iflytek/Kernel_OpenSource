@@ -57,6 +57,19 @@ typedef struct vidinfo {
 	void	*priv;		/* Pointer to driver-specific data */
 } vidinfo_t;
 
+typedef struct rgb24{
+    u8 b;
+    u8 g;
+    u8 r;
+} rgb24_t;
+
+typedef struct argb32 {
+    u8 b;
+    u8 g;
+    u8 r;
+    u8 a;
+} rgb32_t;
+
 static __maybe_unused ushort *configuration_get_cmap(void)
 {
 	return panel_info.cmap;
