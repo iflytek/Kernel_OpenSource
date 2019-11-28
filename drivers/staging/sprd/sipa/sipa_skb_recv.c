@@ -112,7 +112,7 @@ static void sipa_prepare_free_node_init(struct sipa_skb_receiver *receiver,
 					u32 cnt)
 {
 	struct sk_buff *skb;
-	u32 fail_cnt = 0;
+	u32 tmp, fail_cnt = 0;
 	int i;
 	u32 success_cnt = 0;
 	struct sipa_hal_fifo_item item;
@@ -121,7 +121,15 @@ static void sipa_prepare_free_node_init(struct sipa_skb_receiver *receiver,
 	for (i = 0; i < cnt; i++) {
 		skb = alloc_recv_skb(SIPA_RECV_BUF_LEN, receiver->rsvd);
 		if (skb) {
-			skb_put(skb, SIPA_RECV_BUF_LEN);
+			tmp = skb_headroom(skb);
+			if (unlikely(tmp > SIPA_RECV_RSVD_LEN)) {
+				tmp -= SIPA_RECV_RSVD_LEN;
+				skb_put(skb, SIPA_RECV_BUF_LEN - tmp);
+				skb_push(skb, tmp);
+			} else {
+				skb_put(skb, SIPA_RECV_BUF_LEN);
+			}
+
 			dma_addr = dma_map_single(receiver->ctx->pdev,
 						  skb->head,
 						  SIPA_RECV_BUF_LEN +
@@ -165,7 +173,7 @@ static void sipa_prepare_free_node_init(struct sipa_skb_receiver *receiver,
 static void fill_free_fifo(struct sipa_skb_receiver *receiver, u32 cnt)
 {
 	struct sk_buff *skb;
-	u32 fail_cnt = 0;
+	u32 tmp, fail_cnt = 0;
 	int i;
 	u32 success_cnt = 0, depth;
 	struct sipa_hal_fifo_item item;
@@ -186,7 +194,15 @@ static void fill_free_fifo(struct sipa_skb_receiver *receiver, u32 cnt)
 			break;
 		}
 
-		skb_put(skb, SIPA_RECV_BUF_LEN);
+		tmp = skb_headroom(skb);
+		if (unlikely(tmp > SIPA_RECV_RSVD_LEN)) {
+			tmp -= SIPA_RECV_RSVD_LEN;
+			skb_put(skb, SIPA_RECV_BUF_LEN - tmp);
+			skb_push(skb, tmp);
+		} else {
+			skb_put(skb, SIPA_RECV_BUF_LEN);
+		}
+
 		dma_addr = dma_map_single(receiver->ctx->pdev,
 					  skb->head,
 					  SIPA_RECV_BUF_LEN +
