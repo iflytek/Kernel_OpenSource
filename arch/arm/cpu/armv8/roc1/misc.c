@@ -8,14 +8,14 @@
 #include <chipram_env.h>
 #include <hwfeature.h>
 
+typedef enum {
+	ROC1_AA = 1,
+	ROC1_AB = 3
+};
+
 static unsigned int get_chip_id(struct hwfeature *phwf)
 {
 	int reg_val;
-
-	typedef enum {
-		ROC1_AA = 1,
-		ROC1_AB = 3
-	};
 
 	phwf = phwf;
 
@@ -25,6 +25,50 @@ static unsigned int get_chip_id(struct hwfeature *phwf)
 		return ROC1_AA;
 	else
 		return ROC1_AB;
+}
+
+static void fdt_fixup_idle_states_dts(struct hwfeature *phwf)
+{
+	int err;
+	unsigned int value[] = {1000, 500, 2500};
+	char *lit_core_member[] = {"entry-latency-us", "exit-latency-us", "min-residency-us"};
+	int offset,v_index;
+	void *fdt = phwf->fdt;
+
+	typedef enum {
+		LIT_ENTRY_LATENCY_US = 0,
+		LIT_EXIT_LATENCY_US,
+		LIT_MIN_RESIDENCY_US,
+		IDLE_STATES_MAX
+	} idle_states_type;
+
+	if (get_chip_id(phwf) == ROC1_AA)
+		return;
+
+	offset = fdt_path_offset(fdt, "/idle-states");
+	if (offset < 0) {
+		errorf("cann't find idle-states node\n");
+		return;
+	}
+
+	offset = fdt_subnode_offset(fdt, offset, "lit_core_pd");
+	if (offset == -FDT_ERR_NOTFOUND) {
+		errorf("cann't find lit_core_pd node\n");
+		return;
+	}
+
+	for (v_index = LIT_ENTRY_LATENCY_US; v_index <= LIT_MIN_RESIDENCY_US; v_index++) {
+		err = fdt_setprop_u32(fdt, offset, lit_core_member[v_index], value[v_index]);
+		if (err < 0) {
+			errorf("ERROR: cannot set idle-states node's %s value!\n", lit_core_member[v_index]);
+			return;
+		}
+	}
+}
+
+static void late_initcall(struct hwfeature *phwf, void *fdt)
+{
+	fdt_fixup_idle_states_dts(phwf);
 }
 
 /*
@@ -206,6 +250,7 @@ void misc_init()
 #if defined CONFIG_SMT
 	set_smt();
 #endif
+	hwfeature_hook_late_initcall(late_initcall);
 }
 
 typedef struct mem_cs_info
