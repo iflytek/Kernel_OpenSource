@@ -45,9 +45,11 @@
 				};
 			};
 
-			fingerprint@0 {
-				compatible = "microarray,afs121";
-				fpint-gpios = <&eic_async 29 0>;
+			sunwave-fp {
+				compatible = "hisense,finger";
+				sunwave,gpio_reset = <&ap_gpio 159 0>;
+				sunwave,gpio_irq = <&eic_async 20 0>;
+				sunwave,gpio_pwr = <&ap_gpio 88 0>;
 			};
 		};
 	};
