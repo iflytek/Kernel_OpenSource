@@ -1805,33 +1805,33 @@ static int mmc_startup(struct mmc *mmc)
 			* ext_csd[EXT_CSD_HC_WP_GRP_SIZE];
 
 		mmc->wr_rel_set = ext_csd[EXT_CSD_WR_REL_SET];
-	}
-	debugf("mmc->part_num = %x, erase_grp_size = 0x%x\n",
-	       mmc->part_num, mmc->erase_grp_size);
+		debugf("mmc->part_num = %x, erase_grp_size = 0x%x\n",
+		       mmc->part_num, mmc->erase_grp_size);
 
 #ifdef CONFIG_EMMC_RST_N_FUNCTION
-	if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 0) {
-		debugf("RST_n signal is will be permanently enabled\n");
-		mmc_set_rst_n_function(mmc, 0x1);
-	} else if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 1) {
-		debugf("RST_n signal(0x%x) has already be permanently enabled\n",
-		       ext_csd[EXT_CSD_RST_N_FUNCTION]);
-	} else if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 2) {
-		debugf("The eMMC RST_n signal is permanently disnabled\n");
-	}
+		if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 0) {
+			debugf("RST_n signal is will be permanently enabled\n");
+			mmc_set_rst_n_function(mmc, 0x1);
+		} else if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 1) {
+			debugf("RST_n signal(0x%x) has already be permanently enabled\n",
+			       ext_csd[EXT_CSD_RST_N_FUNCTION]);
+		} else if (ext_csd[EXT_CSD_RST_N_FUNCTION] == 2) {
+			debugf("The eMMC RST_n signal is permanently disnabled\n");
+		}
 #endif
 
 #ifdef CONFIG_EMMC_WP
-	err = mmc_enable_pwr_wp(mmc);
-	if (err)
-		printf("%s: emmc power-up protection can't be eanbled\n",
-		       __func__);
-	mmc->wp_enable = !err;
+		err = mmc_enable_pwr_wp(mmc);
+		if (err)
+			printf("%s: emmc power-up protection can't be eanbled\n",
+			       __func__);
+		mmc->wp_enable = !err;
 #endif
 
 #ifdef CONFIG_MMC_TEST
-	mmc->erase_mem_cont = ext_csd[EXT_CSD_ERASE_MEM_CONT];
+		mmc->erase_mem_cont = ext_csd[EXT_CSD_ERASE_MEM_CONT];
 #endif
+	}
 
 	err = mmc_set_capacity(mmc, mmc->part_num);
 	if (err) {
