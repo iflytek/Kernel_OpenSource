@@ -129,12 +129,32 @@ static bool sipa_nic_rm_res_granted(struct sipa_nic *nic)
 	return ret;
 }
 
+static bool sipa_nic_rm_res_reinit(struct sipa_nic *nic)
+{
+	bool ret;
+	unsigned long flags;
+	struct sipa_nic_cons_res *res = &nic->rm_res;
+
+	spin_lock_irqsave(&res->lock, flags);
+	res->need_request = true;
+	res->release_in_progress = false;
+	res->resource_requested = false;
+	res->reschedule_work = false;
+	res->release_in_progress = false;
+	ret = (atomic_read(&nic->status) == NIC_OPEN) &&
+		 nic->rm_res.rm_flow_ctrl;
+	if (ret)
+		nic->rm_res.rm_flow_ctrl = 0;
+	spin_unlock_irqrestore(&res->lock, flags);
+
+	return ret;
+}
+
 static void sipa_nic_rm_notify_cb(void *user_data,
 				  enum sipa_rm_event event,
 				  unsigned long data)
 {
 	struct sipa_nic *nic = user_data;
-	struct sipa_nic_cons_res *res = &nic->rm_res;
 
 	pr_debug("%s: event %d\n", __func__, event);
 	switch (event) {
@@ -143,12 +163,7 @@ static void sipa_nic_rm_notify_cb(void *user_data,
 			nic->cb(nic->cb_priv, SIPA_LEAVE_FLOWCTRL, 0);
 		break;
 	case SIPA_RM_EVT_RELEASED:
-		res->need_request = true;
-		res->release_in_progress = false;
-		res->resource_requested = false;
-		res->reschedule_work = false;
-		res->release_in_progress = false;
-		if (sipa_nic_rm_res_granted(nic))
+		if (sipa_nic_rm_res_reinit(nic))
 			nic->cb(nic->cb_priv, SIPA_LEAVE_FLOWCTRL, 0);
 		break;
 	default:
@@ -191,6 +206,7 @@ static void sipa_nic_rm_timer_func(struct work_struct *work)
 						     struct sipa_nic_cons_res,
 						     work);
 	unsigned long flags;
+	bool release_flag = false;
 
 	pr_debug("timer expired for resource %d!\n",
 		 res->cons);
@@ -209,11 +225,14 @@ static void sipa_nic_rm_timer_func(struct work_struct *work)
 	} else {
 		pr_debug("calling release_resource on resource %d!\n",
 			 res->cons);
-		sipa_rm_release_resource(res->cons);
+		release_flag = true;
 		res->need_request = true;
 		res->release_in_progress = false;
 	}
 	spin_unlock_irqrestore(&res->lock, flags);
+
+	if (release_flag)
+		sipa_rm_release_resource(res->cons);
 }
 
 static int sipa_nic_rm_init(struct sipa_nic_cons_res *res,
@@ -253,6 +272,7 @@ static int sipa_nic_rm_init(struct sipa_nic_cons_res *res,
 
 static int sipa_nic_rm_res_request(struct sipa_nic *nic)
 {
+	bool need_flag = false;
 	int ret = 0;
 	unsigned long flags;
 	struct sipa_nic_cons_res *res = &nic->rm_res;
@@ -260,12 +280,8 @@ static int sipa_nic_rm_res_request(struct sipa_nic *nic)
 	spin_lock_irqsave(&res->lock, flags);
 	res->resource_requested = true;
 	if (res->need_request) {
+		need_flag = true;
 		res->need_request = false;
-		ret = sipa_rm_request_resource(nic->rm_res.cons);
-		if (ret == -EINPROGRESS)
-			res->request_in_progress = true;
-		else
-			res->request_in_progress = false;
 	} else {
 		ret = res->request_in_progress ? -EINPROGRESS : 0;
 	}
@@ -273,6 +289,19 @@ static int sipa_nic_rm_res_request(struct sipa_nic *nic)
 	if (ret == -EINPROGRESS)
 		res->rm_flow_ctrl = 1;
 	spin_unlock_irqrestore(&res->lock, flags);
+
+	if (need_flag) {
+		ret = sipa_rm_request_resource(nic->rm_res.cons);
+		spin_lock_irqsave(&res->lock, flags);
+		res->need_request = false;
+		if (ret == -EINPROGRESS) {
+			res->request_in_progress = true;
+			res->rm_flow_ctrl = 1;
+		} else {
+			res->request_in_progress = false;
+		}
+		spin_unlock_irqrestore(&res->lock, flags);
+	}
 
 	return ret;
 }
