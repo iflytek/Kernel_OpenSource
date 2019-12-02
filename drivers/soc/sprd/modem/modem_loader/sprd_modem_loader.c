@@ -346,32 +346,29 @@ static int modem_cmd_lock(struct file *filp,
 		mutex_lock(mut);
 	}
 
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
-	/* In case of the open the feature CONFIG_PCIE_SPRD_SPLIT_BAR,
-	 * It has 2 times pcie scan action in host side boot process.
-	 * After the first scan, the ep only have 2 bar can be used for
-	 * memory map, the pcie resource is not completely ready.
-	 * The api sprd_pms_request_resource(pms, -1) will return until the
-	 * 2th scan action complete, and the ep will have 4 bar can be used
-	 * for memory map. but the ep bar can only be split by the modem, so
-	 * we can't used the commom api sprd_pms_wait_resource here.
-	 * For workaroud this issue, we add a special api
-	 * sprd_pcie_wait_load_resource, this api will return after
-	 * the first pcie scan action, and in here we use it.
-	 */
-	if (modem->modem_type == PCIE_MODEM) {
-		/* just request resource, no need wait resource ready. */
+	if (modem->modem_type == PCIE_MODEM &&
+	    sprd_pcie_is_defective_chip()) {
+		/* In this case, pcie need split bar,
+		 * It has 2 times pcie scan action in host side boot process.
+		 * After the first scan, the ep only have 2 bar can be used
+		 * for memory map, the pcie resource is not completely ready.
+		 * The api sprd_pms_request_resource(pms, -1) will return
+		 * until the 2th scan action complete, and the ep will have
+		 * 4 bar can be used for memory map. but the ep bar can only
+		 * be split by the modem, so we can't used the commom api
+		 * sprd_pms_wait_resource here.
+		 * For workaroud this issue, we add a special api
+		 * sprd_pcie_wait_load_resource, this api will return after
+		 * the first pcie scan action, and in here we use it.
+		 */
 		sprd_pms_request_resource(pms, 0);
 		ret = sprd_pcie_wait_load_resource(modem->modem_dst);
-		dev_info(modem->p_dev, "lock, wait load ret =%d\n", ret);
+		dev_info(modem->p_dev,
+			 "lock, wait load ret =%d\n", ret);
 	} else {
 		/* must request resource before read or write ep memory */
 		ret = sprd_pms_request_resource(pms, -1);
 	}
-#else
-	/* must request resource before read or write ep memory */
-	ret = sprd_pms_request_resource(pms, -1);
-#endif
 
 	if (ret < 0) {
 		mutex_unlock(mut);
@@ -521,8 +518,8 @@ static int modem_run(struct modem_device *modem, u8 b_run)
 
 	modem->run_state = b_run;
 	if (b_run) {
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 		if (modem->modem_type == PCIE_MODEM &&
+			sprd_pcie_is_defective_chip() &&
 			modem->modem_name ==
 			modem_5g[SPRD_5G_MODEM_PS].name) {
 			/* Because the ep bar can only be split by ep itself,
@@ -531,7 +528,6 @@ static int modem_run(struct modem_device *modem, u8 b_run)
 			 */
 			sprd_pcie_resource_notify_load_done(modem->modem_dst);
 		}
-#endif
 	}
 
 	if (modem->modem_type == SOC_MODEM) {

@@ -45,12 +45,10 @@ struct sprd_pcie_res {
 	char		pms_name[20];
 
 	wait_queue_head_t	wait_pcie_ready;
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	bool			ep_ready_for_rescan;
 	wait_queue_head_t	wait_load_ready;
 	wait_queue_head_t	wait_first_rescan;
 	struct task_struct	*thread;
-#endif
 
 #ifdef CONFIG_SPRD_SIPA
 	void *sipa_res;
@@ -65,9 +63,7 @@ struct sprd_pcie_res {
 	struct sprd_pcie_register_event	reg_event;
 };
 
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 static int sprd_pcie_resource_rescan(struct sprd_pcie_res *res);
-#endif
 
 static struct sprd_pcie_res *g_pcie_res[SIPC_ID_NR];
 
@@ -123,7 +119,6 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 		res->state = SPRD_PCIE_REMOVED;
 		break;
 
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	case PCIE_EP_PROBE_BEFORE_SPLIT_BAR:
 		res->state = SPRD_PCIE_SCANNED_2BAR;
 		pr_info("pcie res: probed before split bar.\n");
@@ -134,7 +129,6 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 			sprd_pcie_resource_rescan(res);
 		}
 		break;
-#endif
 
 	default:
 		break;
@@ -162,14 +156,12 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 		 * no need wake lock.
 		 */
 		sprd_pms_power_down(res->pms, true);
-	}
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
-	else if (irq == PCIE_MSI_EP_READY_FOR_RESCAN) {
+	} else if (irq == PCIE_MSI_EP_READY_FOR_RESCAN) {
 		pr_debug("pcie res: ep ready for rescan.\n");
 		res->ep_ready_for_rescan = true;
 		wake_up_interruptible_all(&res->wait_first_rescan);
 	}
-#endif
+
 	return IRQ_HANDLED;
 }
 
@@ -230,9 +222,7 @@ static void sprd_pcie_resource_start_remove(struct sprd_pcie_res *res)
 {
 	if (res->state == SPRD_PCIE_SCANNED ||
 		res->state == SPRD_PCIE_WAIT_FIRST_READY
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 		|| (res->state == SPRD_PCIE_SCANNED_2BAR)
-#endif
 		) {
 		res->state = SPRD_PCIE_WAIT_REMOVED;
 		pr_info("pcie res: start remove.");
@@ -253,7 +243,6 @@ static void sprd_pcie_resource_event_process(enum sprd_pcie_event event,
 	}
 }
 
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 /*
  * sprd_pcie_resource_rescan
  * Because the ep bar can only be split by ep itself,
@@ -336,7 +325,6 @@ int sprd_pcie_wait_load_resource(u32 dst)
 		(res->state == SPRD_PCIE_SCANNED ||
 		res->state == SPRD_PCIE_SCANNED_2BAR));
 }
-#endif
 
 void sprd_pcie_resource_reboot_ep(u32 dst)
 {
@@ -350,9 +338,7 @@ void sprd_pcie_resource_reboot_ep(u32 dst)
 	res = g_pcie_res[dst];
 	res->state = SPRD_PCIE_WAIT_FIRST_READY;
 
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	res->ep_ready_for_rescan = false;
-#endif
 
 	/* after ep reboot, can't backup ep configs*/
 	sprd_ep_dev_clear_backup(res->ep_dev);
@@ -381,10 +367,8 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
 		return -ENOMEM;
 	}
 
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	init_waitqueue_head(&res->wait_load_ready);
 	init_waitqueue_head(&res->wait_first_rescan);
-#endif
 
 	wakeup_source_init(&res->ws, "pcie_res");
 
@@ -429,10 +413,8 @@ int sprd_pcie_resource_trash(u32 dst)
 
 	res = g_pcie_res[dst];
 
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	if (!IS_ERR_OR_NULL(res->thread))
 		kthread_stop(res->thread);
-#endif
 
 #ifdef CONFIG_SPRD_SIPA
 	if (res->sipa_res)
@@ -546,3 +528,14 @@ int sprd_pcie_release_resource(u32 dst)
 	return 0;
 }
 
+bool sprd_pcie_is_defective_chip(void)
+{
+	static bool first_read = true, defective;
+
+	if (first_read) {
+		first_read = false;
+		defective = sprd_kproperty_chipid("UD710-AB") == 0;
+	}
+
+	return defective;
+}

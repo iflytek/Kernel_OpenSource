@@ -32,6 +32,7 @@
 #include <linux/pci-epf.h>
 #include <linux/pci_regs.h>
 #include <linux/pcie-epf-sprd.h>
+#include <linux/soc/sprd/hwfeature.h>
 #include <linux/workqueue.h>
 
 #include "../../dwc/pcie-designware.h"
@@ -42,7 +43,12 @@
 #define DOOR_BELL_BASE		0x10000
 #define DOOR_BELL_ENABLE	0x10
 #define DOOR_BELL_STATUS	0x14
-#define REQUEST_BASE_IRQ	16
+
+#define IPA_HW_IRQ_CNT		4
+#define IPA_HW_IRQ_BASE		16
+
+#define REQUEST_BASE_IRQ	(IPA_HW_IRQ_BASE + IPA_HW_IRQ_CNT)
+#define REQUEST_BASE_IRQ_DEFECT	16
 
 struct sprd_ep_res {
 	struct list_head	list;
@@ -79,6 +85,18 @@ static int g_irq_number[SPRD_FUNCTION_MAX];
 static struct pci_epf_header sprd_header[SPRD_FUNCTION_MAX];
 
 static irqreturn_t sprd_epf_irq_handler(int irq_number, void *private);
+
+static bool sprd_epf_is_defective_chip(void)
+{
+	static bool first_read = true, defective;
+
+	if (first_read) {
+		first_read = false;
+		defective = sprd_kproperty_chipid("UD710-AB") == 0;
+	}
+
+	return defective;
+}
 
 int sprd_pci_epf_register_notify(int function,
 				 void (*notify)(int event, void *data),
@@ -224,7 +242,10 @@ int sprd_pci_epf_raise_irq(int function, int irq)
 		return -EINVAL;
 	}
 
-	irq += REQUEST_BASE_IRQ;
+	if (sprd_epf_is_defective_chip())
+		irq += REQUEST_BASE_IRQ_DEFECT;
+	else
+		irq += REQUEST_BASE_IRQ;
 	/* *
 	 * in dw_pcie_ep_raise_msi_irq, write to the data reg
 	 * is (irq -1) , so here, we must pass (irq + 1)

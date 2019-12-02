@@ -18,6 +18,7 @@
 #ifdef CONFIG_SPRD_PCIE_EP_DEVICE
 #include <linux/platform_device.h>
 #endif
+#include <linux/soc/sprd/hwfeature.h>
 
 enum {
 	SPRD_PCIE_WAIT_FIRST_READY = 0,
@@ -25,9 +26,7 @@ enum {
 	SPRD_PCIE_SCANNED,
 	SPRD_PCIE_WAIT_REMOVED,
 	SPRD_PCIE_REMOVED,
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	SPRD_PCIE_SCANNED_2BAR,
-#endif
 };
 
 #if defined(CONFIG_SPRD_PCIE_EP_DEVICE) || defined(CONFIG_PCIE_EPF_SPRD)
@@ -43,7 +42,7 @@ int sprd_pcie_wait_resource(u32 dst, int timeout);
 int sprd_pcie_request_resource(u32 dst);
 int sprd_pcie_release_resource(u32 dst);
 int sprd_pcie_resource_trash(u32 dst);
-
+bool sprd_pcie_is_defective_chip(void);
 #else
 /* dummy functions */
 static inline int sprd_pcie_wait_resource(u32 dst, int timeout) {return 0; }
@@ -51,6 +50,7 @@ static inline int sprd_pcie_wait_resource(u32 dst, int timeout) {return 0; }
 static inline int sprd_pcie_request_resource(u32 dst) {return 0; }
 static inline int sprd_pcie_release_resource(u32 dst) {return 0; }
 static inline int sprd_pcie_resource_trash(u32 dst) {return 0; }
+static inline bool sprd_pcie_is_defective_chip(void) {return false; }
 #endif
 
 #ifdef CONFIG_PCIE_EPF_SPRD
@@ -70,7 +70,6 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
  */
 void sprd_pcie_resource_reboot_ep(u32 dst);
 
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 /*
  * sprd_pcie_wait_load_resource
  * In case of the open the feature CONFIG_PCIE_SPRD_SPLIT_BAR,
@@ -93,7 +92,6 @@ int sprd_pcie_wait_load_resource(u32 dst);
  * can rescan ep now.
  */
 void sprd_pcie_resource_notify_load_done(u32 dst);
-#endif
 #endif /* CONFIG_SPRD_PCIE_EP_DEVICE */
 
 #endif /* _SPRD_PCIE_RESOURCE_H */

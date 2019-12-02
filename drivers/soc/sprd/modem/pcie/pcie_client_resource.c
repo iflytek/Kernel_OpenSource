@@ -84,10 +84,9 @@ static void pcie_resource_client_epf_notify(int event, void *private)
 	switch (event) {
 	case SPRD_EPF_BIND:
 		pr_info("pcie res: epf be binded.\n");
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
-		sprd_pci_epf_raise_irq(res->ep_fun,
-				 PCIE_MSI_EP_READY_FOR_RESCAN);
-#endif
+		if (sprd_pcie_is_defective_chip())
+			sprd_pci_epf_raise_irq(res->ep_fun,
+					 PCIE_MSI_EP_READY_FOR_RESCAN);
 		break;
 
 	case SPRD_EPF_UNBIND:
@@ -325,4 +324,16 @@ int sprd_register_pcie_resource_first_ready(u32 dst,
 	res->first_ready_notify.notify = notify;
 
 	return 0;
+}
+
+bool sprd_pcie_is_defective_chip(void)
+{
+	static bool first_read = true, defective;
+
+	if (first_read) {
+		first_read = false;
+		defective = sprd_kproperty_chipid("UD710-AB") == 0;
+	}
+
+	return defective;
 }

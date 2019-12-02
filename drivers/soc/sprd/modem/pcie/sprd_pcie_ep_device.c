@@ -27,6 +27,8 @@
 #include <linux/soc/sprd/sprd_pcie_ep_device.h>
 #include <linux/workqueue.h>
 
+#include "../include/sprd_pcie_resource.h"
+
 #define DRV_MODULE_NAME		"sprd-pcie-ep-device"
 
 enum dev_pci_barno {
@@ -40,9 +42,13 @@ enum dev_pci_barno {
 };
 
 #define MAX_SUPPORT_IRQ	32
-#define REQUEST_BASE_IRQ	16
-#define REQUEST_MAX_IRQ	(REQUEST_BASE_IRQ + PCIE_MSI_MAX_IRQ)
 #define IPA_HW_IRQ_CNT 4
+#define IPA_HW_IRQ_BASE 16
+#define IPA_HW_IRQ_BASE_DEFECT 0
+
+#define REQUEST_BASE_IRQ (IPA_HW_IRQ_BASE + IPA_HW_IRQ_CNT)
+#define REQUEST_BASE_IRQ_DEFECT 16
+#define REQUEST_MAX_IRQ (REQUEST_BASE_IRQ + PCIE_MSI_MAX_IRQ)
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
 /* the bar0 and the bar1 are used for ipa */
@@ -119,6 +125,8 @@ struct sprd_pci_ep_dev {
 	spinlock_t	set_bar_lock;	/* set bar spinlock */
 	unsigned long	bar_res;
 
+	u32	base_irq;
+	u32	ipa_base_irq;
 	u32	bak_irq_status;
 	u8	iatu_unroll_enabled;
 	u8	ep;
@@ -825,7 +833,7 @@ static irqreturn_t sprd_pci_ep_dev_irqhandler(int irq, void *dev_ptr)
 
 	dev_dbg(dev, "ep: irq handler. irq = %d\n",  irq);
 
-	irq -= (pdev->irq + REQUEST_BASE_IRQ);
+	irq -= (pdev->irq + ep_dev->base_irq);
 	if (irq >= PCIE_MSI_MAX_IRQ) {
 		dev_err(dev, "ep: error, irq = %d", irq);
 		return IRQ_HANDLED;
@@ -1021,7 +1029,15 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 		 pdev->irq,
 		 ep_dev->irq_cnt);
 
-	for (i = REQUEST_BASE_IRQ; i < REQUEST_MAX_IRQ; i++) {
+	if (sprd_pcie_is_defective_chip()) {
+		ep_dev->base_irq = REQUEST_BASE_IRQ_DEFECT;
+		ep_dev->ipa_base_irq = IPA_HW_IRQ_BASE_DEFECT;
+	} else {
+		ep_dev->base_irq = REQUEST_BASE_IRQ;
+		ep_dev->ipa_base_irq = IPA_HW_IRQ_BASE;
+	}
+
+	for (i = ep_dev->base_irq; i < REQUEST_MAX_IRQ; i++) {
 		err = devm_request_irq(dev, pdev->irq + i,
 				       sprd_pci_ep_dev_irqhandler,
 				       IRQF_SHARED, DRV_MODULE_NAME, ep_dev);
@@ -1032,7 +1048,7 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	}
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
-	for (i = 0; i < IPA_HW_IRQ_CNT; i++) {
+	for (i = ep_dev->ipa_base_irq; i < IPA_HW_IRQ_CNT; i++) {
 		err = devm_request_irq(dev, pdev->irq + i,
 				       sprd_pci_ep_dev_irqhandler,
 				       IRQF_SHARED, DRV_MODULE_NAME, ep_dev);
@@ -1073,13 +1089,11 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	ep_dev->event = PCIE_EP_PROBE;
 	g_ep_dev[ep_dev->ep] = ep_dev;
 
-#ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
 	if (!ep_dev->bar[BAR_1] || !ep_dev->bar[BAR_3]) {
 		/* only 2 bar, set PCIE_EP_PROBE_BEFORE_SPLIT_BAR */
 		ep_dev->event = PCIE_EP_PROBE_BEFORE_SPLIT_BAR;
 		dev_info(dev, "ep:bar not ready, wait the next probe!");
 	}
-#endif
 
 	/* restore all the config */
 	if (ep_dev->event == PCIE_EP_PROBE)
@@ -1092,11 +1106,11 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	return 0;
 
 err_free_irq:
-	for (i = REQUEST_BASE_IRQ; i < REQUEST_MAX_IRQ; i++)
+	for (i = ep_dev->base_irq; i < REQUEST_MAX_IRQ; i++)
 		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
-	for (i = 0; i < IPA_HW_IRQ_CNT; i++)
+	for (i = ep_dev->ipa_base_irq; i < IPA_HW_IRQ_CNT; i++)
 		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
 #endif
 
@@ -1130,11 +1144,11 @@ static void sprd_pci_ep_dev_remove(struct pci_dev *pdev)
 	if (ep_dev->cfg_base)
 		iounmap(ep_dev->cfg_base);
 
-	for (i = REQUEST_BASE_IRQ; i < REQUEST_MAX_IRQ; i++)
+	for (i = ep_dev->base_irq; i < REQUEST_MAX_IRQ; i++)
 		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
-	for (i = 0; i < IPA_HW_IRQ_CNT; i++)
+	for (i = ep_dev->ipa_base_irq; i < IPA_HW_IRQ_CNT; i++)
 		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
 #endif
 
