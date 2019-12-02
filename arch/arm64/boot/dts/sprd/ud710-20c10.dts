@@ -372,12 +372,13 @@
 		regulator-boot-on;
 		regulator-always-on;
 	};
-
+/*
 	flash: sc2703-flash@4a {
 		compatible = "sprd,sc2703-flash";
 		reg = <0x4a>;
 		flash-chip-en-gpios = <&ap_gpio 143 0>;
 	};
+*/
 
 	sc2703_pmic: pmic@4C {
 		compatible = "sprd,sc2703";
@@ -449,8 +450,8 @@
 		status = "okay";
 	};
 
-	sensor_sub2: sensor-sub2@20 {
-		compatible = "sprd,sensor-sub2";
+	sensor_main3: sensor-main3@20 {
+		compatible = "sprd,sensor-main3";
 		reg = <0x20>;
 
 		clock-names = "clk_src","sensor_eb",
@@ -470,6 +471,23 @@
 		avdd-gpios = <&ap_gpio 140 0>;
 
 		status = "okay";
+	};
+
+	flash_ic: flash-ic@63 {
+		compatible = "sprd,flash-aw3642";
+		reg = <0x63>;
+		sprd,flash-ic = <3642>;
+		sprd,torch = <1>;
+		sprd,preflash = <1>;
+		sprd,highlight = <1>;
+		sprd,torch-level = <8>;
+		sprd,preflash-level = <8>;
+		sprd,highlight-level = <16>;
+		sprd,lvfm-enable = <1>;
+		/*flash-chip-en-gpios = <&ap_gpio 136 0>;*/
+		flash-torch-en-gpios = <&ap_gpio 157 0>;
+		flash-en-gpios = <&ap_gpio 142 0>;
+		/*flash-sync-gpios = <&ap_gpio 138 0>;*/
 	};
 };
 
@@ -524,8 +542,8 @@
 		status = "okay";
 	};
 
-	sensor_main3: sensor-main3@6a {
-		compatible = "sprd,sensor-main3";
+	sensor_sub2: sensor-sub2@6a {
+		compatible = "sprd,sensor-sub2";
 		reg = <0x6a>;
 
 		clock-names = "clk_src","sensor_eb",
@@ -566,6 +584,8 @@
 	};
 };
 
+
+
 &dmc_mpu {
 	status = "okay";
 };
@@ -589,6 +609,7 @@
 
 &dcam {
 	status = "okay";
+	sprd,dcam-superzoom = <0>;
 };
 
 &iommu_dcam {
