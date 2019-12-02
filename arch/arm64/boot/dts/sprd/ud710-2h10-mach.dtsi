@@ -480,6 +480,7 @@
 &sdio0 {
 	sprd,sdr104-dly=<0x18 0x7f 0x17 0x17>;
 	sprd,sdr50-dly=<0x46 0x7f 0x15 0x15>;
+	sprd,ddr50-dly=<0x1a 0x19 0x19 0x19>;
 	sprd,sdhs-dly=<0x7f 0x92 0x96 0x96>;
 	vmmc-supply = <&vddsdcore>;
 	vqmmc-supply = <&vddsdio>;
@@ -487,6 +488,7 @@
 	bus-width = <4>;
 	sd-uhs-sdr104;
 	sd-uhs-sdr50;
+	sd-uhs-ddr50;
 	sprd,name = "sdio_sd";
 	sprd,sdio-adma;
 	no-sdio;
