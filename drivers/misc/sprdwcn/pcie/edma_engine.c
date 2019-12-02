@@ -1387,14 +1387,14 @@ static int dscr_ring_init(int chn, struct dscr_ring *dscr_ring,
 	for (i = 0; i < size; i++) {
 		if (inout == TX) {
 			dscr[i].chn_ptr_high.bit.rf_chn_tx_next_dscr_ptr_high =
-						GET_8_OF_40(&dscr[i + 1]);
+				GET_8_OF_40(mpool_vir_to_phy(&dscr[i + 1]));
 			tmp = GET_32_OF_40((unsigned char *)(&dscr[i + 1]));
 			memcpy((unsigned char *)(&dscr[i]
 				.rf_chn_tx_next_dscr_ptr_low),
 			       (unsigned char *)(&tmp), 4);
 		} else {
 			dscr[i].chn_ptr_high.bit.rf_chn_rx_next_dscr_ptr_high =
-			    GET_8_OF_40(&dscr[i + 1]);
+			    GET_8_OF_40(mpool_vir_to_phy(&dscr[i + 1]));
 			tmp = GET_32_OF_40((unsigned char *)(&dscr[i + 1]));
 			memcpy((unsigned char *)(&dscr[i]
 						.rf_chn_rx_next_dscr_ptr_low),
@@ -1407,7 +1407,7 @@ static int dscr_ring_init(int chn, struct dscr_ring *dscr_ring,
 	}
 	if (inout == TX) {
 		dscr[i].chn_ptr_high.bit.rf_chn_tx_next_dscr_ptr_high =
-		    GET_8_OF_40(&dscr[0]);
+		    GET_8_OF_40(mpool_vir_to_phy(&dscr[0]));
 		tmp = GET_32_OF_40((unsigned char *)(&dscr[0]));
 		memcpy((unsigned char *)(&dscr[i].rf_chn_tx_next_dscr_ptr_low),
 		       (unsigned char *)(&tmp), 4);
@@ -1415,7 +1415,7 @@ static int dscr_ring_init(int chn, struct dscr_ring *dscr_ring,
 
 	} else {
 		dscr[i].chn_ptr_high.bit.rf_chn_rx_next_dscr_ptr_high =
-		    GET_8_OF_40(&dscr[0]);
+		    GET_8_OF_40(mpool_vir_to_phy(&dscr[0]));
 		tmp = GET_32_OF_40((unsigned char *)(&dscr[0]));
 		memcpy((unsigned char *)(&dscr[i].rf_chn_rx_next_dscr_ptr_low),
 		       (unsigned char *)(&tmp), 4);
@@ -1491,7 +1491,7 @@ int edma_chn_init(int chn, int mode, int inout, int max_trans)
 			/* tx_list link point */
 			local_DSCR.chn_ptr_high.bit
 						.rf_chn_tx_next_dscr_ptr_high =
-					GET_8_OF_40(dscr_ring->head);
+				GET_8_OF_40(mpool_vir_to_phy(dscr_ring->head));
 			dma_int.bit.rf_chn_tx_complete_int_en = 1;
 			dma_int.bit.rf_chn_tx_pop_int_clr = 1;
 			dma_int.bit.rf_chn_tx_complete_int_clr = 1;
@@ -1500,7 +1500,7 @@ int edma_chn_init(int chn, int mode, int inout, int max_trans)
 			    GET_32_OF_40((unsigned char *)(dscr_ring->head));
 			local_DSCR.chn_ptr_high.bit
 						.rf_chn_rx_next_dscr_ptr_high =
-					GET_8_OF_40(dscr_ring->head);
+				GET_8_OF_40(mpool_vir_to_phy(dscr_ring->head));
 			dma_int.bit.rf_chn_rx_push_int_en = 1;
 			/* clear semaphore value */
 			dma_cfg.bit.rf_chn_sem_value = 0xFF;
