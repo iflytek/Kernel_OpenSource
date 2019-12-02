@@ -20,6 +20,8 @@
 #include <asm/arch/sdio_reg.h>
 #include <asm/arch/common.h>
 
+extern uint32_t (*sdhci_get_delay)(uint32_t device_type);
+
 /*
  * TODO：
  * Now many macros(such as: SPRD_EMMC_BASE, REG_AP_CLK_EMMC_CFG)
@@ -53,6 +55,9 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 
 	"vddgen0",
 	"vddemmccore",
+	{
+		.mmc_dly = 0x00000000
+	},
 },
 {
 	SD,
@@ -79,11 +84,23 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 
 	"vddsdio",
 	"vddsdcore",
+	{
+		.sd_dly = 0x9696927f
+        },
 }
 };
 
+uint32_t get_delay_value(uint32_t device_type)
+{
+	if (device_type == SD)
+		return sdio_ctrl_info[device_type].sdio_dly.sd_dly.sdhs_dly;
+	else
+		return sdio_ctrl_info[device_type].sdio_dly.mmc_dly.mmchs_dly;
+}
+
 struct sdio_base_info *get_sdcontrol_info(uint32_t device_type)
 {
+	sdhci_get_delay = get_delay_value;
 	return  &sdio_ctrl_info[device_type];
 }
 
