@@ -55,9 +55,12 @@ static void sipa_sender_notify_cb(void *priv, enum sipa_hal_evt_type evt,
 	if (evt & SIPA_RECV_EVT)
 		wake_up(&sender->free_waitq);
 
-	if (evt & SIPA_HAL_TXFIFO_OVERFLOW)
+	if (evt & SIPA_RECV_WARN_EVT) {
 		dev_err(sender->ctx->pdev,
 			"sipa overflow on ep:%d\n", sender->ep->id);
+		sender->no_free_cnt++;
+		wake_up(&sender->free_waitq);
+	}
 
 	if (evt & SIPA_HAL_ENTER_FLOW_CTRL)
 		sender->enter_flow_ctrl_cnt++;
@@ -152,18 +155,17 @@ static bool sipa_sender_ck_unfree(struct sipa_skb_sender *sender)
 
 static int sipa_free_thread(void *data)
 {
-	int ret;
 	struct sipa_skb_sender *sender = (struct sipa_skb_sender *)data;
 	struct sched_param param = {.sched_priority = 90};
 
 	sched_setscheduler(current, SCHED_RR, &param);
 
 	while (!kthread_should_stop()) {
-		ret = wait_event_interruptible(sender->free_waitq,
-					       !sipa_sender_ck_unfree(sender) ||
-					       sender->free_notify_net);
-		if (!ret)
-			sipa_free_sent_items(sender);
+		wait_event_interruptible(sender->free_waitq,
+					 !sipa_sender_ck_unfree(sender) ||
+					 sender->free_notify_net);
+
+		sipa_free_sent_items(sender);
 	}
 
 	return 0;
@@ -222,6 +224,7 @@ int sipa_sender_prepare_suspend(struct sipa_skb_sender *sender)
 		pr_err("pkt_type = %d sender have something to handle\n",
 		       sender->type);
 		atomic_set(&sender->check_suspend, 0);
+		wake_up(&sender->free_waitq);
 		return -EAGAIN;
 	}
 
