@@ -125,6 +125,8 @@ static struct volt_grades_table ums312_volt_grades_tbl[] = {
 		},
 		.grade_count = 6,
 	},
+	{
+	},
 };
 
 static struct udelay_tbl ums312_up_udelay_tbl[] = {
@@ -150,6 +152,8 @@ static struct udelay_tbl ums312_up_udelay_tbl[] = {
 			GENREGSET(0x118, 0, 0xffff),
 		},
 	},
+	{
+	},
 };
 
 static struct udelay_tbl ums312_down_udelay_tbl[] = {
@@ -174,6 +178,8 @@ static struct udelay_tbl ums312_down_udelay_tbl[] = {
 			GENREGSET(0x88, 16, 0xffff),
 			GENREGSET(0x11c, 0, 0xffff),
 		},
+	},
+	{
 	},
 };
 
