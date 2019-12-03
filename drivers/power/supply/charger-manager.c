@@ -2815,7 +2815,8 @@ static void cm_batt_works(struct work_struct *work)
 		 */
 		if (cm->desc->cap >= 99 &&
 		    cm->desc->trickle_time >= cm->desc->trickle_time_out &&
-		    cm->desc->trickle_time_out > 0)
+		    cm->desc->trickle_time_out > 0 &&
+		    bat_uA > 0)
 			cm->desc->force_set_full = true;
 
 		break;
