@@ -22,6 +22,7 @@
 #include <linux/of_irq.h>
 #include <linux/platform_device.h>
 #include <linux/property.h>
+#include <linux/soc/sprd/hwfeature.h>
 
 #include "pcie-designware.h"
 #include "pcie-sprd.h"
@@ -162,19 +163,23 @@ static void sprd_pcie_ep_reinit(struct work_struct *work)
 	dw_pcie_setup(pci);
 
 #ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
-	val = dw_pcie_readl_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3);
-	dw_pcie_writel_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
-			   (val & ~LTSSM_EN));
+	if (sprd_kproperty_chipid("UD710-AB") == 0) {
+		val = dw_pcie_readl_dbi(ep->pci,
+					PCIE_SS_REG_BASE + PE0_GEN_CTRL_3);
+		dw_pcie_writel_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
+				   (val & ~LTSSM_EN));
 
-	ret = sprd_pcie_split_bar(ep->pci);
-	if (ret) {
-		dev_err(&pdev->dev, "failed to split bar\n");
-		return;
+		ret = sprd_pcie_split_bar(ep->pci);
+		if (ret) {
+			dev_err(&pdev->dev, "failed to split bar\n");
+			return;
+		}
+
+		val = dw_pcie_readl_dbi(ep->pci,
+					PCIE_SS_REG_BASE + PE0_GEN_CTRL_3);
+		dw_pcie_writel_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
+				   (val | LTSSM_EN));
 	}
-
-	val = dw_pcie_readl_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3);
-	dw_pcie_writel_dbi(ep->pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
-			   (val | LTSSM_EN));
 #endif
 
 	ret = dw_pcie_wait_for_link(pci);
