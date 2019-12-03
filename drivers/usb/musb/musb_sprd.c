@@ -34,6 +34,7 @@
 #include <linux/wait.h>
 #include <linux/mfd/syscon.h>
 #include <linux/regmap.h>
+#include <linux/soc/sprd/hwfeature.h>
 
 #include "musb_core.h"
 #include "sprd_musbhsdma.h"
@@ -81,6 +82,7 @@ struct sprd_glue {
 	bool		suspending;
 };
 
+static const char roc1_chipid_single[] = "UD710-AA";
 static int boot_charging;
 
 static u64 sprd_device_dma_mask = DMA_BIT_MASK(BITS_PER_LONG);
@@ -347,6 +349,70 @@ static const struct musb_platform_ops sprd_musb_ops = {
 #define SPRD_MUSB_RAM_BITS	13
 static struct musb_fifo_cfg sprd_musb_device_mode_cfg[] = {
 	MUSB_EP_FIFO_DOUBLE(1, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(1, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(2, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(2, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(3, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(3, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(4, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(4, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(5, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(5, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(6, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(6, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(7, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(7, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(8, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(8, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(9, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(9, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(10, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(10, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(11, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(11, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(12, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(12, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(13, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(13, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(14, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(14, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(15, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(15, FIFO_RX, 512),
+};
+static struct musb_fifo_cfg sprd_musb_host_mode_cfg[] = {
+	MUSB_EP_FIFO_DOUBLE(1, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(1, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(2, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(2, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(3, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(3, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(4, FIFO_TX, 1024),
+	MUSB_EP_FIFO_DOUBLE(4, FIFO_RX, 4096),
+	MUSB_EP_FIFO_DOUBLE(5, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(5, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(6, FIFO_TX, 1024),
+	MUSB_EP_FIFO_DOUBLE(6, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(7, FIFO_TX, 1024),
+	MUSB_EP_FIFO_DOUBLE(7, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(8, FIFO_TX, 1024),
+	MUSB_EP_FIFO_DOUBLE(8, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(9, FIFO_TX, 1024),
+	MUSB_EP_FIFO_DOUBLE(9, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(10, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(10, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(11, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(11, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(12, FIFO_TX, 512),
+	MUSB_EP_FIFO_DOUBLE(12, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(13, FIFO_TX, 8),
+	MUSB_EP_FIFO_DOUBLE(13, FIFO_RX, 8),
+	MUSB_EP_FIFO_DOUBLE(14, FIFO_TX, 8),
+	MUSB_EP_FIFO_DOUBLE(14, FIFO_RX, 8),
+	MUSB_EP_FIFO_DOUBLE(15, FIFO_TX, 8),
+	MUSB_EP_FIFO_DOUBLE(15, FIFO_RX, 8),
+};
+static struct musb_fifo_cfg sprd_musb_device_mode_cfg_single[] = {
+	MUSB_EP_FIFO_DOUBLE(1, FIFO_TX, 512),
 	MUSB_EP_FIFO_SINGLE(1, FIFO_RX, 512),
 	MUSB_EP_FIFO_DOUBLE(2, FIFO_TX, 512),
 	MUSB_EP_FIFO_SINGLE(2, FIFO_RX, 512),
@@ -377,7 +443,7 @@ static struct musb_fifo_cfg sprd_musb_device_mode_cfg[] = {
 	MUSB_EP_FIFO_SINGLE(15, FIFO_TX, 512),
 	MUSB_EP_FIFO_SINGLE(15, FIFO_RX, 512),
 };
-static struct musb_fifo_cfg sprd_musb_host_mode_cfg[] = {
+static struct musb_fifo_cfg sprd_musb_host_mode_cfg_single[] = {
 	MUSB_EP_FIFO_SINGLE(1, FIFO_TX, 512),
 	MUSB_EP_FIFO_SINGLE(1, FIFO_RX, 512),
 	MUSB_EP_FIFO_SINGLE(2, FIFO_TX, 512),
@@ -414,6 +480,18 @@ static struct musb_hdrc_config sprd_musb_hdrc_config = {
 	.fifo_cfg = sprd_musb_device_mode_cfg,
 	.host_fifo_cfg = sprd_musb_host_mode_cfg,
 	.fifo_cfg_size = ARRAY_SIZE(sprd_musb_device_mode_cfg),
+	.multipoint = false,
+	.dyn_fifo = true,
+	.soft_con = true,
+	.num_eps = SPRD_MUSB_MAX_EP_NUM,
+	.ram_bits = SPRD_MUSB_RAM_BITS,
+	.dma = 0,
+};
+
+static struct musb_hdrc_config sprd_musb_hdrc_config_single = {
+	.fifo_cfg = sprd_musb_device_mode_cfg_single,
+	.host_fifo_cfg = sprd_musb_host_mode_cfg_single,
+	.fifo_cfg_size = ARRAY_SIZE(sprd_musb_device_mode_cfg_single),
 	.multipoint = false,
 	.dyn_fifo = true,
 	.soft_con = true,
@@ -907,6 +985,7 @@ static int musb_sprd_probe(struct platform_device *pdev)
 	struct sprd_glue *glue;
 	u32 buf[2];
 	int ret;
+	const char *single_chipid;
 
 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
 	if (!glue)
@@ -975,8 +1054,14 @@ static int musb_sprd_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, glue);
 
+	single_chipid = of_device_get_match_data(&pdev->dev);
+	if (single_chipid && sprd_kproperty_chipid(single_chipid)) {
+		pdata.config = &sprd_musb_hdrc_config_single;
+		dev_info(&pdev->dev, "chip id is %s\n", single_chipid);
+	} else {
+		pdata.config = &sprd_musb_hdrc_config;
+	}
 	pdata.platform_ops = &sprd_musb_ops;
-	pdata.config = &sprd_musb_hdrc_config;
 	glue->power_always_on = of_property_read_bool(node, "wakeup-source");
 	pdata.board_data = &glue->power_always_on;
 	glue->is_suspend = false;
@@ -1288,7 +1373,7 @@ static const struct dev_pm_ops musb_sprd_pm_ops = {
 static const struct of_device_id usb_ids[] = {
 	{ .compatible = "sprd,sharkl3-musb" },
 	{ .compatible = "sprd,sharkl5-musb" },
-	{ .compatible = "sprd,roc1-musb" },
+	{ .compatible = "sprd,roc1-musb", .data = roc1_chipid_single },
 	{}
 };
 
