@@ -54,6 +54,8 @@ struct pam_ipa_hal_proc_tag {
 					  u32 filled_addrl, u32 filled_addrh);
 	u32 (*set_ddr_mapping)(void __iomem *reg_base,
 			       u32 offset_l, u32 offset_h);
+	void (*set_ul_ddr_mapping)(void __iomem *reg_base,
+				   u32 offset_l, u32 offset_h);
 	u32 (*set_pcie_rc_base)(void __iomem *reg_base,
 				u32 offset_l, u32 offset_h);
 	u32 (*start)(void __iomem *reg_base);

@@ -134,6 +134,12 @@ static u32 pam_ipa_hal_set_ddr_mapping(void __iomem *reg_base,
 	return ret;
 }
 
+static void pam_ipa_hal_set_ul_ddr_mapping(void __iomem *reg_base,
+					   u32 offset_l, u32 offset_h)
+{
+	pam_ipa_phy_set_ul_ddr_mapping(reg_base, offset_l, offset_h);
+}
+
 static u32 pam_ipa_hal_set_pcie_rc_base(void __iomem *reg_base,
 					u32 offset_l, u32 offset_h)
 {
@@ -297,6 +303,8 @@ u32 pam_ipa_init_api(struct pam_ipa_hal_proc_tag *ops)
 		pam_ipa_hal_init_wiap_dl_fifo_sts_addr;
 	ops->set_ddr_mapping =
 		pam_ipa_hal_set_ddr_mapping;
+	ops->set_ul_ddr_mapping =
+		pam_ipa_hal_set_ul_ddr_mapping;
 	ops->set_pcie_rc_base =
 		pam_ipa_hal_set_pcie_rc_base;
 	ops->start = pam_ipa_hal_start;
@@ -416,6 +424,10 @@ u32 pam_ipa_init(struct pam_ipa_cfg_tag *cfg)
 		cfg->reg_base,
 		PAM_IPA_GET_LOW32(cfg->pcie_offset),
 		PAM_IPA_GET_HIGH32(cfg->pcie_offset));
+
+	pam_ipa_hal_set_ul_ddr_mapping(cfg->reg_base,
+				       PAM_IPA_GET_LOW32(cfg->pcie_offset),
+				       PAM_IPA_GET_HIGH32(cfg->pcie_offset));
 
 	pam_ipa_hal_set_pcie_rc_base(
 		cfg->reg_base,

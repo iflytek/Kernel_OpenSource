@@ -161,6 +161,10 @@
 #define CFG_DL_SRC_FREE_BUFFER_MATERMARK_MASK	GENMASK(5, 1)
 #define CFG_DL_SRC_FREE_BUFFER_CLR_MASK		GENMASK(0, 0)
 
+#define UL_DDR_MAPPING_OFFSET_L			GENMASK(15, 0)
+#define UL_DDR_MAPPING_OFFSET_M			GENMASK(15, 0)
+#define UL_DDR_MAPPING_OFFSET_H			GENMASK(7, 0)
+
 static inline u32 pam_ipa_phy_init_pcie_ul_fifo_base(void __iomem *reg_base,
 						     u32 free_addrl,
 						     u32 free_addrh,
@@ -314,6 +318,30 @@ static inline u32 pam_ipa_phy_set_ddr_mapping(void __iomem *reg_base,
 		     reg_base + PAM_IPA_DDR_MAPPINH_OFFSET_H);
 
 	return TRUE;
+}
+
+static inline void pam_ipa_phy_set_ul_ddr_mapping(void __iomem *reg_base,
+						  u32 offset_l, u32 offset_h)
+{
+	u32 tmp;
+
+	tmp = readl_relaxed(reg_base + PAM_IPA_CFG_DL_DST_FILLED_BUFFER_CTRL);
+	tmp &= ~UL_DDR_MAPPING_OFFSET_L;
+	tmp |= ((offset_l & 0x0000FFFFl) << 16);
+	writel_relaxed(tmp,
+		       reg_base + PAM_IPA_CFG_DL_DST_FILLED_BUFFER_CTRL);
+
+	tmp = readl_relaxed(reg_base + PAM_IPA_CFG_DL_DST_FREE_BUFFER_CTRL);
+	tmp &= ~UL_DDR_MAPPING_OFFSET_M;
+	tmp |= (offset_l & 0xFFFF0000l);
+	writel_relaxed(tmp,
+		       reg_base + PAM_IPA_CFG_DL_DST_FREE_BUFFER_CTRL);
+
+	tmp = readl_relaxed(reg_base + PAM_IPA_CFG_DL_SRC_FILLED_BUFFER_CTRL);
+	tmp &= ~UL_DDR_MAPPING_OFFSET_H;
+	tmp |= ((offset_h & 0xFFl) << 16);
+	writel_relaxed(tmp,
+		       reg_base + PAM_IPA_CFG_DL_SRC_FILLED_BUFFER_CTRL);
 }
 
 static inline u32 pam_ipa_phy_set_pcie_rc_base(void __iomem *reg_base,
