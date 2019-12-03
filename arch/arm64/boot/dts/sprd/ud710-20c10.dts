@@ -549,6 +549,21 @@
 
 };
 
+&i2c4 {
+	status = "okay";
+	clock-frequency = <400000>;
+
+	aw881xx_smartpa: aw88195@34 {
+		compatible = "awinic,aw881xx_smartpa";
+		reg = <0x34>;
+		reset-gpio = <&ap_gpio 156 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&ap_gpio 52 GPIO_ACTIVE_HIGH>;
+		aw881xx,monitor-flag = <1>;
+		aw881xx,monitor-timer-val = <30000>;
+		#sound-dai-cells = <1>;
+	};
+};
+
 &dmc_mpu {
 	status = "okay";
 };
@@ -719,6 +734,186 @@
 		"DMIC Pin", "DMic Jack",
 		"DMIC1 Pin", "DMic1 Jack",
 		"inter Ear PA", "EAR Pin";
+
+	/* 38: smart pa normal ap01 */
+	sprd-audio-card,dai-link@56 {
+		ignore-suspend = <1>;
+		link-name = "BE_NORMAL_AP01_SMTPA";
+		stream-name = "BE_ST_NORMAL_AP01_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 34>;
+		};
+		codec {
+			sound-dai = <&aw881xx_smartpa 0>;
+		};
+	};
+
+	/* 39: smart pa normal ap23 */
+	sprd-audio-card,dai-link@57 {
+		ignore-suspend = <1>;
+		link-name = "BE_NORMAL_AP23_SMTPA";
+		stream-name = "BE_ST_NORMAL_AP23_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 35>;
+		};
+		codec {
+			sound-dai = <&aw881xx_smartpa 0>;
+		};
+	};
+
+	/* 40: smart pa fast playback */
+	sprd-audio-card,dai-link@58 {
+		ignore-suspend = <1>;
+		link-name = "BE_FAST_P_SMTPA";
+		stream-name = "BE_ST_FAST_P_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 36>;
+		};
+		codec {
+			sound-dai = <&aw881xx_smartpa 0>;
+		};
+	};
+
+	/* 41: smart pa offload */
+	sprd-audio-card,dai-link@59 {
+		ignore-suspend = <1>;
+		link-name = "BE_OFFLOAD_SMTPA";
+		stream-name = "BE_ST_OFFLOAD_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 37>;
+		};
+		codec {
+			sound-dai = <&aw881xx_smartpa 0>;
+		};
+	};
+
+	/* 42: smart pa voice */
+	sprd-audio-card,dai-link@60 {
+		ignore-suspend = <1>;
+		link-name = "BE_VOICE_SMTPA";
+		stream-name = "BE_ST_VOICE_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 38>;
+		};
+		codec {
+			sound-dai = <&aw881xx_smartpa 0>;
+		};
+	};
+
+	/* 43: smart pa voip */
+	sprd-audio-card,dai-link@61 {
+		ignore-suspend = <1>;
+		link-name = "BE_VOIP_SMTPA";
+		stream-name = "BE_DAI_ID_VOIP_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 39>;
+		};
+		codec {
+			sound-dai = <&aw881xx_smartpa 0>;
+		};
+	};
+
+	/* 44: smart pa fm */
+	sprd-audio-card,dai-link@62 {
+		ignore-suspend = <1>;
+		link-name = "BE_FM_SMTPA";
+		stream-name = "BE_ST_FM_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 40>;
+		};
+		codec {
+			sound-dai = <&aw881xx_smartpa 0>;
+		};
+	};
+
+	/* 45: smart pa loopback */
+	sprd-audio-card,dai-link@63 {
+		ignore-suspend = <1>;
+		link-name = "BE_LOOP_SMTPA";
+		stream-name = "BE_ST_LOOP_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 41>;
+		};
+		codec {
+			sound-dai = <&aw881xx_smartpa 0>;
+		};
+	};
+
+	/* 46: smart pa fm dsp */
+	sprd-audio-card,dai-link@64 {
+		ignore-suspend = <1>;
+		link-name = "BE_FM_DSP_SMTPA";
+		stream-name = "BE_ST_FM_DSP_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 42>;
+		};
+		codec {
+			sound-dai = <&aw881xx_smartpa 0>;
+		};
+	};
 };
 
 &isp_dvfs {

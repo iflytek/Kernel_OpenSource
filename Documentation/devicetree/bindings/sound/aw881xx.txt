@@ -1,0 +1,25 @@
+AWINIC AW881XX smart pa bindings
+
+Required properties:
+- compatible : Should be "awinic,aw881xx_smartpa"
+- reg: I2C slave address, 0x34.
+- reset-gpio: The reset pin for smart pa.
+- irq-gpio: The interrupt pin for smart pa.
+- aw881xx,monitor-flag: The flag of hrtimer monitor,
+	if equal 0 means disable hrtimer, if equal 1 means enable hrtimer monitor.
+- aw881xx,monitor-timer-val: The expiry of hrtimer timer monitor.
+- #sound-dai-cells : it used to specify how many cells used when using dai phandle.
+	if equal 0 means using default dai 0, if equal 1,
+	the dai number is determined by the second parameter of sound-dai property.
+
+Example:
+
+	aw881xx_smartpa: aw88195@34 {
+		compatible = "awinic,aw881xx_smartpa";
+		reg = <0x34>;
+		reset-gpio = <&ap_gpio 156 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&ap_gpio 52 GPIO_ACTIVE_HIGH>;
+		aw881xx,monitor-flag = <1>;
+		aw881xx,monitor-timer-val = <30000>;
+		#sound-dai-cells = <1>;
+	};
