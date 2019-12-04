@@ -507,6 +507,8 @@ static int edma_pop_link(int chn, struct desc *__head, struct desc *__tail,
 			return -1;
 		}
 
+		dump_dscr_reg(dscr);
+		edma_dump_chn_reg(chn);
 		if (*head__) {
 			mbuf->next = dscr->link.p;
 			mbuf = mbuf->next;
@@ -1217,7 +1219,7 @@ int msi_irq_handle(int irq)
 	struct edma_info *edma = edma_info();
 	struct wcn_pcie_info *priv;
 
-	WCN_INFO("irq msi handle=%d\n", irq);
+	WCNDBG("irq msi handle=%d\n", irq);
 	if (!wcn_get_edma_status()) {
 		WCN_ERR("do not handle this irq, card removed\n");
 		return -1;
@@ -1281,7 +1283,7 @@ int msi_irq_handle(int irq)
 		enqueue(&(edma->isr_func.q), (unsigned char *)(&msg));
 		WCN_DBG(" callback not in irq\n");
 		set_wcnevent(&(edma->isr_func.q.event));
-		WCN_INFO("cb not irq=%ld, chn=%d\n", irq_flags, chn);
+		WCNDBG("cb not irq=%ld, chn=%d\n", irq_flags, chn);
 		local_irq_restore(irq_flags);
 		return 0;
 	} else if (mchn_hw_cb_in_irq(chn) == -1) {
@@ -1293,7 +1295,7 @@ int msi_irq_handle(int irq)
 	WCN_DBG("callback in irq\n");
 	hisrfunc(&msg);
 
-	WCN_INFO("cb in irq=%ld, chn=%d\n", irq_flags, chn);
+	WCNDBG("cb in irq=%ld, chn=%d\n", irq_flags, chn);
 	local_irq_restore(irq_flags);
 
 	return 0;
@@ -1590,7 +1592,7 @@ int edma_tp_count(int chn, void *head, void *tail, int num)
 		bytecount += mbuf->len;
 		dt = time_sub_us(&start_time, &time);
 		if (dt >= 1000000) {
-			WCN_INFO("edma-tp:%d/%d (byte/us)\n",
+			WCNDBG("edma-tp:%d/%d (byte/us)\n",
 				 bytecount, dt);
 			bytecount = 0;
 		}

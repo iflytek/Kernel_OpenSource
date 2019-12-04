@@ -27,6 +27,10 @@ marlin-$(CONFIG_WCN_UTILS) += \
 
 marlin-objs += $(MARLINOFILES)
 
+ifeq ($(TARGET_BUILD_VARIANT),user)
+ccflags-y += -DCONFIG_WCN_USER
+endif
+
 #WCN_PLATFORM
 obj-$(CONFIG_WCN_PLATFORM) := wcn_platform.o
 wcn_platform-c-objs += wcn_parn_parser.o

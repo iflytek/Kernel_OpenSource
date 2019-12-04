@@ -533,7 +533,7 @@ static int wcn_pcie_wait_for_link(struct pci_dev *pdev)
 	for (retries = 0; retries < 1000; retries++) {
 		pci_read_config_dword(pdev, WCN_PCIE_PHY_DEBUG_R0, &val);
 		if ((val & LTSSM_STATE_MASK) == LTSSM_STATE_L0) {
-			WCN_INFO("retry_cnt=%d\n", retries);
+			WCNDBG("retry_cnt=%d\n", retries);
 			return 0;
 		}
 		udelay(100);
@@ -559,7 +559,7 @@ int sprd_pcie_set_aspm_policy(enum sub_sys subsys, enum wcn_bus_pm_state state)
 	int ret;
 	struct wcn_pcie_info *priv = get_wcn_device_info();
 
-	WCN_INFO("aspm_policy sys:%d, set[%d]\n", subsys, state);
+	WCNDBG("aspm_policy sys:%d, set[%d]\n", subsys, state);
 	if (subsys == WIFI)
 		priv->pm_state.wifi = state;
 	else if (subsys == BLUETOOTH)
