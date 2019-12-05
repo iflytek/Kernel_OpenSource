@@ -1246,12 +1246,11 @@ static int sdiohal_dtbs_buf_init(void)
 {
 	struct sdiohal_data_t *p_data = sdiohal_get_data();
 
-	p_data->dtbs_buf = sdiohal_alloc_frag(MAX_MBUF_SIZE,
-					      GFP_ATOMIC | __GFP_COLD);
-	if (!p_data->dtbs_buf)
+	p_data->dtbs_buf = kzalloc(MAX_MBUF_SIZE, GFP_KERNEL);
+	if (!p_data->dtbs_buf) {
+		WCN_INFO("dtbs buf alloc fail\n");
 		return -ENOMEM;
-
-	WARN_ON(((unsigned long int)p_data->dtbs_buf) % 64);
+	}
 
 	return 0;
 }
@@ -1259,17 +1258,8 @@ static int sdiohal_dtbs_buf_init(void)
 static int sdiohal_dtbs_buf_deinit(void)
 {
 	struct sdiohal_data_t *p_data = sdiohal_get_data();
-	int order;
 
-	if (!p_data->dtbs_buf)
-		return -ENOMEM;
-
-#if (BITS_PER_LONG > 32) || (PAGE_SIZE >= 65536)
-	order = SDIOHAL_FRAG_PAGE_MAX_ORDER;
-#else
-	order = SDIOHAL_FRAG_PAGE_MAX_ORDER_32_BIT;
-#endif
-	free_pages((unsigned long)p_data->dtbs_buf, order);
+	kfree(p_data->dtbs_buf);
 	p_data->dtbs_buf = NULL;
 
 	return 0;
