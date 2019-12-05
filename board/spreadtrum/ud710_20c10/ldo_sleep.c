@@ -13,6 +13,12 @@
 #define CONFIG_DCDCSRAM_DEEP_DROP_VOL  600
 #define CONFIG_DCDCMODEM_DEEP_DROP_VOL 600
 #define CONFIG_DCDCGPU_DEEP_DROP_VOL   600
+#ifndef ROC1_CHIP_VER_AA
+#define ROC1_CHIP_VER_AA             1
+#endif
+#ifndef ROC1_CHIP_VER_AB
+#define ROC1_CHIP_VER_AB             3
+#endif
 #endif
 #define CONFIG_DCDCCORE_DEEP_DROP_VOL  600
 
@@ -72,9 +78,9 @@ static void pmic_lowpower_config(void)
 {
 #if defined(CONFIG_ADIE_SC2730)
 	uint32_t adie_id;
-	#ifdef ROC1_CACHE_MODIFICATION
+#ifdef ROC1_CACHE_MODIFICATION
 	uint32_t drop_val;
-	#endif
+#endif
 
 	adie_id = ANA_REG_GET(ANA_REG_GLB_CHIP_ID_LOW);
 
@@ -108,59 +114,69 @@ static void pmic_lowpower_config(void)
 		0
 	);
 
+
+#ifdef ROC1_CACHE_MODIFICATION
 	/*
 	 * DCDC pd an drop config in sleep mode
 	 * with cache workaround dcdc_sram/dcdc_gpu/dcdc_modem cannot shutdown when
 	 * sleep.if not use workaround, we need check whether can.
 	 */
+	if (ROC1_CHIP_VER_AA == CHIP_REG_GET(REG_AON_APB_AON_VER_ID)) {
+		ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
+			//BIT_SLP_DCDCMODEM_PD_EN |     //ap_sys/vsp/dpu/wtlcp/pubcp
+			//BIT_SLP_DCDCMEMQ_PD_EN |      //for ddr keep on even sleep
+			//BIT_SLP_DCDCSRAM_PD_EN
+			BIT_SLP_DCDCSRAM_DROP_EN |
+			BIT_SLP_DCDCMODEM_DROP_EN |
+			BIT_SLP_DCDCGPU_DROP_EN |
+			//BIT_SLP_DCDCCORE_DROP_EN |
+			//BIT_SLP_DCDCWPA_PD_EN |       //2h10 board not used
+			//BIT_SLP_DCDCGPU_PD_EN |
+			//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
+			BIT_SLP_DCDCGEN1_PD_EN |
+			0
+		);
+
+		drop_val = (CONFIG_DCDCSRAM_DEEP_DROP_VOL * 1000U) / 3125U;
+		ANA_REG_SET(ANA_REG_GLB_DCDC_SRAM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
+
+		drop_val = (CONFIG_DCDCMODEM_DEEP_DROP_VOL * 1000U) / 3125U;
+		ANA_REG_SET(ANA_REG_GLB_DCDC_MODEM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
+
+		drop_val = (CONFIG_DCDCGPU_DEEP_DROP_VOL * 1000U) / 3125U;
+		ANA_REG_SET(ANA_REG_GLB_DCDC_GPU_SLP_CTRL1, BITS_DCDC_GPU_CTRL_DS_SW(drop_val));
+	} else {     //if is AB chip
+		ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
+			BIT_SLP_DCDCMODEM_PD_EN |       //ap_sys/vsp/dpu/wtlcp/pubcp
+			//BIT_SLP_DCDCMEMQ_PD_EN |      //for ddr keep on even sleep
+			BIT_SLP_DCDCSRAM_PD_EN |        //GPU/MM/AP/Ananke/corinth/cpu top
+			//BIT_SLP_DCDCSRAM_DROP_EN |
+			//BIT_SLP_DCDCMODEM_DROP_EN |
+			//BIT_SLP_DCDCGPU_DROP_EN |
+			BIT_SLP_DCDCCORE_DROP_EN |
+			//BIT_SLP_DCDCWPA_PD_EN |       //2h10 board not used
+			BIT_SLP_DCDCGPU_PD_EN |         //GPU/ISP/CPP/JPG/AUDCP...
+			//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
+			BIT_SLP_DCDCGEN1_PD_EN |
+			0
+		);
+	}
+#else
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-	#ifndef ROC1_CACHE_MODIFICATION
-		BIT_SLP_DCDCMODEM_PD_EN |
-	#else
-		//BIT_SLP_DCDCMODEM_PD_EN |     //ap_sys/vsp/dpu/wtlcp/pubcp
-	#endif
+		BIT_SLP_DCDCMODEM_PD_EN |       //ap_sys/vsp/dpu/wtlcp/pubcp
 		//BIT_SLP_DCDCMEMQ_PD_EN |      //for ddr keep on even sleep
-	#ifndef ROC1_CACHE_MODIFICATION
 		BIT_SLP_DCDCSRAM_PD_EN |        //GPU/MM/AP/Ananke/corinth/cpu top
-	#else
-		//BIT_SLP_DCDCSRAM_PD_EN
-	#endif
-	#ifndef ROC1_CACHE_MODIFICATION
 		//BIT_SLP_DCDCSRAM_DROP_EN |
 		//BIT_SLP_DCDCMODEM_DROP_EN |
 		//BIT_SLP_DCDCGPU_DROP_EN |
-	#else
-		BIT_SLP_DCDCSRAM_DROP_EN |
-		BIT_SLP_DCDCMODEM_DROP_EN |
-		BIT_SLP_DCDCGPU_DROP_EN |
-	#endif
-	#ifndef ROC1_CACHE_MODIFICATION
 		BIT_SLP_DCDCCORE_DROP_EN |
-	#else
-		//BIT_SLP_DCDCCORE_DROP_EN |
-	#endif
 		//BIT_SLP_DCDCWPA_PD_EN |       //2h10 board not used
-	#ifndef ROC1_CACHE_MODIFICATION
 		BIT_SLP_DCDCGPU_PD_EN |         //GPU/ISP/CPP/JPG/AUDCP...
-	#else
-		//BIT_SLP_DCDCGPU_PD_EN |
-	#endif
 		//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
 		BIT_SLP_DCDCGEN1_PD_EN |
 		0
 	);
-
-	#ifdef ROC1_CACHE_MODIFICATION
-	drop_val = (CONFIG_DCDCSRAM_DEEP_DROP_VOL * 1000U) / 3125U;
-	ANA_REG_SET(ANA_REG_GLB_DCDC_SRAM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
-
-	drop_val = (CONFIG_DCDCMODEM_DEEP_DROP_VOL * 1000U) / 3125U;
-	ANA_REG_SET(ANA_REG_GLB_DCDC_MODEM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
-
-	drop_val = (CONFIG_DCDCGPU_DEEP_DROP_VOL * 1000U) / 3125U;
-	ANA_REG_SET(ANA_REG_GLB_DCDC_GPU_SLP_CTRL1, BITS_DCDC_GPU_CTRL_DS_SW(drop_val));
-	#endif
-
+#endif
 	/*
 	 * CHIP_ID BA:0xB000 AB:A-0001 AA 0xA-0000
 	 * only BA CHIP can config DCDCGPU & DCDCCORE SLP_LP

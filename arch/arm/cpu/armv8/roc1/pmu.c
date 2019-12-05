@@ -574,6 +574,13 @@ void pmu_commom_config(void)
 }
 
 #ifdef ROC1_CACHE_MODIFICATION
+#ifndef ROC1_CHIP_VER_AA
+#define ROC1_CHIP_VER_AA             1
+#endif
+#ifndef ROC1_CHIP_VER_AB
+#define ROC1_CHIP_VER_AB             3
+#endif
+
 volatile u32 wait_sync = 0;
 extern void mmu_dcache_sync_va(u64 va);
 extern void secondary_start();
@@ -932,7 +939,8 @@ void CSP_Init(uint32_t gen_para)
 
 	//cache workaround
 #ifdef ROC1_CACHE_MODIFICATION
-	cache_workaround();
+	if (ROC1_CHIP_VER_AA == CHIP_REG_GET(REG_AON_APB_AON_VER_ID))
+		cache_workaround();
 #endif
 
 	aon_idle_config();
