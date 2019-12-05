@@ -113,6 +113,9 @@ void init_global_reg(void)
 	//fix osc error
 	CHIP_REG_OR(0x719000A4,BIT_29);
 
+	//WORKAROUND no rsp data abort error
+	CHIP_REG_AND(0x71a00104,~0xff);
+	CHIP_REG_OR(0x71a00104,0x4);
 	CHIP_REG_OR(0x323B808C,BIT_15);
 	CHIP_REG_OR(0x323B801C,BIT_24);
 
