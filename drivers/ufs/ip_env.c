@@ -116,8 +116,14 @@ void init_global_reg(void)
 	//WORKAROUND no rsp data abort error
 	CHIP_REG_AND(0x71a00104,~0xff);
 	CHIP_REG_OR(0x71a00104,0x4);
+
 	CHIP_REG_OR(0x323B808C,BIT_15);
 	CHIP_REG_OR(0x323B801C,BIT_24);
+
+	//WORKAROUND no rsp data abort erro
+	CHIP_REG_OR(0x323b4008,0xff);
+	CHIP_REG_AND(0x323b801c,~(0x7 << 14));
+	CHIP_REG_OR(0x323b801c,0x4 << 14);
 
 	CHIP_REG_OR(0x71800148,BIT_0);
 }
