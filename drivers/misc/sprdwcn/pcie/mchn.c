@@ -150,9 +150,10 @@ int mchn_hw_pop_link(int chn, void *head, void *tail, int num)
 		WARN_ON(1);
 		return -1;
 	}
+#if MDBG_DEBUG_MODE
 	if (mchn->ops[chn]->hif_type == HW_TYPE_PCIE)
 		edma_tp_count(chn, head, tail, num);
-
+#endif
 	return mchn->ops[chn]->pop_link(chn, (struct mbuf_t *)head,
 					(struct mbuf_t *)tail, num);
 }
