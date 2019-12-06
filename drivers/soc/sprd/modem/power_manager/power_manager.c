@@ -904,7 +904,10 @@ static int sprd_mpm_init_debugfs(void)
 static int __init modem_power_manager_init(void)
 {
 	register_pm_notifier(&sprd_mpm_notifier_block);
+
+#if defined(CONFIG_DEBUG_FS)
 	sprd_mpm_init_debugfs();
+#endif
 
 	return 0;
 }
