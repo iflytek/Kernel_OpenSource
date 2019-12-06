@@ -107,6 +107,7 @@ struct sblock_ring {
 	/* virt of header->pool->rxblk_blks */
 	struct sblock_blks	*p_rxblks;
 
+	unsigned int	poll_mask;
 	int	*txrecord; /* record the state of every txblk */
 	int	*rxrecord; /* record the state of every rxblk */
 	int	yell;	   /* need to notify cp */

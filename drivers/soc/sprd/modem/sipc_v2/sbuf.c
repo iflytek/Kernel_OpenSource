@@ -207,6 +207,8 @@ static void sbuf_skip_old_data(struct sbuf_mgr *sbuf)
 		/* *(hd_op->tx_wt_p) = *(hd_op->tx_rd_p); */
 		/* clean sbuf rx ring */
 		*(hd_op->rx_rd_p) = *(hd_op->rx_wt_p);
+		/* restore write mask. */
+		ring->poll_mask = POLLOUT | POLLWRNORM;
 	}
 	ring = &sbuf->rings[0];
 	/* release resource */
@@ -245,6 +247,8 @@ static void sbuf_comm_init(struct sbuf_mgr *sbuf)
 		mutex_init(&ring->txlock);
 		mutex_init(&ring->rxlock);
 
+		/* init, set write mask. */
+		ring->poll_mask = POLLOUT | POLLWRNORM;
 		sbuf_pms_init(ring, sbuf->dst, sbuf->channel, i);
 	}
 }
@@ -587,12 +591,41 @@ static int sbuf_thread(void *data)
 				if (ring->need_wake_lock)
 					sprd_pms_request_wakelock_period(ring->tx_pms,
 									 500);
+
+				/* request resource before read share memory */
+				rval = sipc_smem_request_resource(ring->tx_pms,
+								  sbuf->dst,
+								  -1);
+				if (!rval) {
+					/* set write mask. */
+					ring->poll_mask |=
+						POLLOUT | POLLWRNORM;
+
+					/* release resource */
+					sipc_smem_release_resource(ring->tx_pms,
+								   sbuf->dst);
+				}
+
 				wake_up_interruptible_all(&ring->txwait);
 				if (ring->handler)
 					ring->handler(SBUF_NOTIFY_WRITE,
 						      ring->data);
 				break;
 			case SMSG_EVENT_SBUF_WRPTR:
+				/* request resource before read share memory */
+				rval = sipc_smem_request_resource(ring->rx_pms,
+								  sbuf->dst,
+								  -1);
+				if (!rval) {
+					/* set read mask. */
+					ring->poll_mask |=
+						POLLIN | POLLRDNORM;
+
+					/* release resource */
+					sipc_smem_release_resource(ring->rx_pms,
+								   sbuf->dst);
+				}
+
 				if (ring->need_wake_lock)
 					sprd_pms_request_wakelock_period(ring->rx_pms,
 									 500);
@@ -838,6 +871,12 @@ int sbuf_write(u8 dst, u8 channel, u32 bufid,
 		 *(hd_op->tx_rd_p));
 	no_data = ((int)(*(hd_op->tx_wt_p) - *(hd_op->tx_rd_p)) >=
 					hd_op->tx_size);
+	/* update write mask */
+	if (no_data)
+		ring->poll_mask &= ~(POLLOUT | POLLWRNORM);
+	else
+		ring->poll_mask |= POLLOUT | POLLWRNORM;
+
 	/* release resource */
 	sipc_smem_release_resource(ring->tx_pms, sbuf->dst);
 
@@ -850,8 +889,7 @@ int sbuf_write(u8 dst, u8 channel, u32 bufid,
 			/* wait forever */
 			rval = wait_event_interruptible(
 				ring->txwait,
-				(int)(*(hd_op->tx_wt_p) - *(hd_op->tx_rd_p)) <
-				hd_op->tx_size ||
+				ring->poll_mask & (POLLOUT | POLLWRNORM) ||
 				sbuf->state == SBUF_STATE_IDLE);
 			if (rval < 0)
 				pr_debug("%s: wait interrupted!\n", __func__);
@@ -864,8 +902,7 @@ int sbuf_write(u8 dst, u8 channel, u32 bufid,
 			/* wait timeout */
 			rval = wait_event_interruptible_timeout(
 				ring->txwait,
-				(int)(*(hd_op->tx_wt_p) - *(hd_op->tx_rd_p)) <
-				hd_op->tx_size ||
+				ring->poll_mask & (POLLOUT | POLLWRNORM) ||
 				sbuf->state == SBUF_STATE_IDLE,
 				timeout);
 			if (rval < 0) {
@@ -960,6 +997,13 @@ int sbuf_write(u8 dst, u8 channel, u32 bufid,
 		u_buf.buf += txsize;
 	}
 
+	/* update poll mask. */
+	hd_op = &ring->header_op;
+	if (*(hd_op->tx_wt_p) - *(hd_op->tx_rd_p) < hd_op->tx_size)
+		ring->poll_mask |= POLLOUT | POLLWRNORM;
+	else
+		ring->poll_mask &= ~(POLLOUT | POLLWRNORM);
+
 	/* release resource */
 	sipc_smem_release_resource(ring->tx_pms, sbuf->dst);
 	if (ring->need_wake_lock)
@@ -1040,6 +1084,12 @@ int sbuf_read(u8 dst, u8 channel, u32 bufid,
 		 *(hd_op->rx_wt_p),
 		 *(hd_op->rx_rd_p));
 	no_data = (*(hd_op->rx_wt_p) == *(hd_op->rx_rd_p));
+	/* update read mask */
+	if (no_data)
+		ring->poll_mask &= ~(POLLIN | POLLRDNORM);
+	else
+		ring->poll_mask |= POLLIN | POLLRDNORM;
+
 	/* release resource */
 	sipc_smem_release_resource(ring->rx_pms, sbuf->dst);
 
@@ -1053,7 +1103,7 @@ int sbuf_read(u8 dst, u8 channel, u32 bufid,
 			/* wait forever */
 			rval = wait_event_interruptible(
 				ring->rxwait,
-				*(hd_op->rx_wt_p) != *(hd_op->rx_rd_p) ||
+				ring->poll_mask & (POLLIN | POLLRDNORM) ||
 				sbuf->state == SBUF_STATE_IDLE);
 			if (rval < 0)
 				pr_debug("%s: wait interrupted!\n", __func__);
@@ -1066,7 +1116,7 @@ int sbuf_read(u8 dst, u8 channel, u32 bufid,
 			/* wait timeout */
 			rval = wait_event_interruptible_timeout(
 				ring->rxwait,
-				*(hd_op->rx_wt_p) != *(hd_op->rx_rd_p) ||
+				ring->poll_mask & (POLLIN | POLLRDNORM) ||
 				sbuf->state == SBUF_STATE_IDLE, timeout);
 			if (rval < 0) {
 				pr_debug("%s: wait interrupted!\n", __func__);
@@ -1170,6 +1220,12 @@ int sbuf_read(u8 dst, u8 channel, u32 bufid,
 		u_buf.buf += rxsize;
 	}
 
+	/* update read mask */
+	if (*(hd_op->rx_wt_p) != *(hd_op->rx_rd_p))
+		ring->poll_mask |= POLLIN | POLLRDNORM;
+	else
+		ring->poll_mask &= ~(POLLIN | POLLRDNORM);
+
 	/* release resource */
 	sipc_smem_release_resource(ring->rx_pms, sbuf->dst);
 	if (ring->need_wake_lock)
@@ -1213,20 +1269,7 @@ int sbuf_poll_wait(u8 dst, u8 channel, u32 bufid,
 	poll_wait(filp, &ring->txwait, wait);
 	poll_wait(filp, &ring->rxwait, wait);
 
-	/* must request resource before read or write share memory */
-	if (sipc_smem_request_resource(ring->tx_pms, sbuf->dst, -1) < 0)
-		return mask;
-
-	if (*(hd_op->rx_wt_p) != *(hd_op->rx_rd_p))
-		mask |= POLLIN | POLLRDNORM;
-
-	if (*(hd_op->tx_wt_p) - *(hd_op->tx_rd_p) < hd_op->tx_size)
-		mask |= POLLOUT | POLLWRNORM;
-
-	/* release resource */
-	sipc_smem_release_resource(ring->tx_pms, sbuf->dst);
-
-	return mask;
+	return ring->poll_mask;
 }
 EXPORT_SYMBOL_GPL(sbuf_poll_wait);
 

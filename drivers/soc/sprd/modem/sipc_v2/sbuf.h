@@ -95,6 +95,7 @@ struct sbuf_ring {
 	char	rx_pms_name[20];
 
 	bool	need_wake_lock;
+	unsigned int	poll_mask;
 
 	void	(*handler)(int event, void *data);
 	void	*data;
