@@ -1720,7 +1720,7 @@ static int ucp1301_power_on(struct snd_soc_dapm_widget *w,
 
 static const struct snd_soc_dapm_widget ucp1301_dapm_widgets[] = {
 	SND_SOC_DAPM_AIF_IN("UCP1301 PLAY", "Playback", 0, SND_SOC_NOPM, 0, 0),
-	SND_SOC_DAPM_PGA_E("UCP1301 SPK ON", SND_SOC_NOPM, 0, 0, NULL, 0,
+	SND_SOC_DAPM_PGA_S("UCP1301 SPK ON", 200, SND_SOC_NOPM, 0, 0,
 			   ucp1301_power_on,
 			   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_OUTPUT("UCP1301 SPK"),
