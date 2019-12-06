@@ -34,7 +34,7 @@ static void pcie_sipa_res_wait_res_work_fn(struct work_struct *work)
 						      struct pcie_sipa_res_prod,
 						      wait_work);
 
-	ret = sprd_pcie_wait_resource(res->dst, 0);
+	ret = sprd_pcie_wait_resource(res->dst, -1);
 
 	/* pcie not ready, just return. */
 	if (ret) {
