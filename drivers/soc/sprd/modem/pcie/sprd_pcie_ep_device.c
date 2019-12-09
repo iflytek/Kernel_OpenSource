@@ -12,6 +12,7 @@
  */
 
 #include <linux/delay.h>
+#include <linux/debugfs.h>
 #include <linux/fs.h>
 #include <linux/interrupt.h>
 #include <linux/irq.h>
@@ -1227,6 +1228,182 @@ static struct pci_driver sprd_pci_ep_dev_driver = {
 	}
 };
 module_pci_driver(sprd_pci_ep_dev_driver);
+
+#if defined(CONFIG_DEBUG_FS)
+static void sprd_pci_ep_dev_save_show(struct seq_file *m,
+				      struct sprd_pci_ep_dev_save *ep_save,
+				      int ep)
+{
+	u32 i;
+
+	seq_printf(m, "ep-save-%d configs:\n", ep);
+	seq_printf(m, "bar_res = 0x%lx\n", ep_save->bar_res);
+
+	for (i = 0; i < BAR_MAX; i++) {
+		seq_printf(m, "src_addr[%d] = 0x%lx\n",
+			   i,
+			   (unsigned long)ep_save->src_addr[i]);
+		seq_printf(m, "target_addr[%d] = 0x%lx\n",
+			   i,
+			   (unsigned long)ep_save->target_addr[i]);
+		seq_printf(m, "map_size[%d] = 0x%lx\n",
+			   i,
+			   ep_save->map_size[i]);
+	}
+}
+
+static void sprd_pci_ep_dev_config_show(struct seq_file *m,
+					struct sprd_pci_ep_dev *ep_dev)
+{
+	u32 i;
+	void __iomem *base;
+
+	seq_printf(m, "ep-%d configs:\n", ep_dev->ep);
+
+	/* doorbell regs */
+	seq_puts(m, "door bell regs:\n");
+	base = ep_dev->cfg_base + DOOR_BELL_BASE;
+
+	seq_printf(m, "irq_enable = 0x%08x\n irq_status = 0x%08x\n",
+		   readl_relaxed(base + DOOR_BELL_ENABLE),
+		   readl_relaxed(base + DOOR_BELL_STATUS));
+
+	/* iatu reg regs */
+	seq_puts(m, "iatu regs reg:\n");
+	for (i = 0; i < IATU_MAX_REGION * 2; i++) {
+		base = ep_dev->cfg_base + IATU_REG_BASE + i * 100;
+		seq_printf(m, "IATU[%d]:\n", i);
+		seq_printf(m, "0x%p: 0x%08x 0x%08x 0x%08x 0x%08x\n",
+			   base,
+			   readl_relaxed(base + 0x0),
+			   readl_relaxed(base + 0x4),
+			   readl_relaxed(base + 0x8),
+			   readl_relaxed(base + 0xc));
+		base += 0x10;
+		seq_printf(m, "0x%p: 0x%08x 0x%08x 0x%08x 0x%08x\n",
+			   base,
+			   readl_relaxed(base + 0x0),
+			   readl_relaxed(base + 0x4),
+			   readl_relaxed(base + 0x8),
+			   readl_relaxed(base + 0x10));
+	}
+}
+
+static void sprd_pci_ep_dev_backup_show(struct seq_file *m,
+					struct sprd_pci_ep_dev_save *ep_save,
+					int ep)
+{
+	int i;
+	u32 (*save_reg)[PCIE_SAVE_REG_NUM];
+	void __iomem *base;
+
+	save_reg = ep_save->save_reg;
+
+	seq_printf(m, "ep-%d backup configs:\n", ep);
+
+	/* doorbell regs */
+	seq_puts(m, "door bell regs:\n");
+	seq_printf(m, "irq_enable = 0x%08x\n irq_status = 0x%08x\n",
+		   ep_save->doorbell_enable,
+		   ep_save->doorbell_status);
+
+	/* iatu reg regs */
+	seq_puts(m, "iatu regs reg:\n");
+	for (i = 0; i < PCIE_SAVE_REGION_NUM; i++) {
+		seq_printf(m, "IATU[%d]:\n", i);
+		base = ep_save->cfg_base + IATU_REG_BASE + i * 100;
+
+		seq_printf(m, "0x%p: 0x%08x 0x%08x 0x%08x 0x%08x\n",
+			   base,
+			   save_reg[i][0],
+			   save_reg[i][1],
+			   save_reg[i][2],
+			   save_reg[i][3]);
+		base += 0x10;
+		seq_printf(m, "0x%p: 0x%08x 0x%08x 0x%08x 0x%08x\n",
+			   base,
+			   save_reg[i][4],
+			   save_reg[i][5],
+			   save_reg[i][6],
+			   save_reg[i][7]);
+	}
+}
+
+static int sprd_pci_ep_dev_show(struct seq_file *m, void *unused)
+{
+	u32 i;
+	struct sprd_pci_ep_dev *ep_dev;
+	struct sprd_pci_ep_dev_save *ep_save;
+
+	for (i = 0; i < PCIE_EP_NR; i++) {
+		/* ep_save configus */
+		ep_save = &g_ep_save[i];
+		ep_dev = g_ep_dev[i];
+
+		if (!ep_dev && !ep_save->save_succ)
+			continue;
+
+		if (ep_save)
+			sprd_pci_ep_dev_save_show(m, ep_save, i);
+
+		if (ep_dev)
+			sprd_pci_ep_dev_config_show(m, ep_dev);
+		else
+			sprd_pci_ep_dev_backup_show(m, ep_save, i);
+	}
+
+	return 0;
+}
+
+static int sprd_pci_ep_dev_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, sprd_pci_ep_dev_show, NULL);
+}
+
+static const struct file_operations sprd_pci_ep_dev_fops = {
+	.owner = THIS_MODULE,
+	.open = sprd_pci_ep_dev_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static struct dentry *g_ep_debugfs_root;
+
+static int sprd_pci_ep_dev_init_debugfs(void)
+{
+	struct dentry *g_ep_debugfs_root = debugfs_create_dir("ep_dev", NULL);
+
+	if (!g_ep_debugfs_root)
+		return -ENXIO;
+
+	debugfs_create_file("ep", 0444,
+			    g_ep_debugfs_root,
+			    NULL, &sprd_pci_ep_dev_fops);
+	return 0;
+}
+
+static void sprd_pci_ep_dev_remove_debugfs(void)
+{
+	debugfs_remove_recursive(g_ep_debugfs_root);
+}
+
+static int __init sprd_pci_ep_dev_init(void)
+{
+
+	sprd_pci_ep_dev_init_debugfs();
+
+	return 0;
+}
+
+static void __exit sprd_pci_ep_dev_exit(void)
+{
+	sprd_pci_ep_dev_remove_debugfs();
+}
+
+module_init(sprd_pci_ep_dev_init);
+module_exit(sprd_pci_ep_dev_exit);
+#endif
 
 MODULE_DESCRIPTION("SPRD PCI EP DEVICE HOST DRIVER");
 MODULE_AUTHOR("Wenping Zhou <wenping.zhou@unisoc.com>");
