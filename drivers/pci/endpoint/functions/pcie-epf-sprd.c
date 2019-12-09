@@ -64,6 +64,11 @@ struct sprd_pci_epf {
 	spinlock_t		lock;
 	int			irq_number;
 	u32			bak_irq_status;
+
+#ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
+	struct sprd_ep_res	ipa_res;
+#endif
+
 	struct work_struct linkup_work;
 };
 
@@ -355,6 +360,13 @@ void __iomem *sprd_epf_ipa_map(phys_addr_t src_addr,
 		return NULL;
 
 	dev = &epf_sprd->epf->dev;
+
+	/* only support one ipa res, must unmap before remap */
+	if (epf_sprd->ipa_res.cpu_phy_addr) {
+		dev_err(dev, "failed to map, must unmap the old ipa map!\n");
+		return NULL;
+	}
+
 	epc = epf_sprd->epf->epc;
 	size = PAGE_ALIGN(size);
 	ret = pci_epc_map_addr(epc, src_addr, dst_addr, size);
@@ -365,13 +377,35 @@ void __iomem *sprd_epf_ipa_map(phys_addr_t src_addr,
 
 	cpu_vir_addr = ioremap_nocache(src_addr, size);
 
+	epf_sprd->ipa_res.cpu_phy_addr = src_addr;
+	epf_sprd->ipa_res.rc_addr = dst_addr;
+	epf_sprd->ipa_res.size = size;
+	epf_sprd->ipa_res.cpu_vir_addr = cpu_vir_addr;
+
 	return cpu_vir_addr;
 }
 EXPORT_SYMBOL_GPL(sprd_epf_ipa_map);
 
 void sprd_epf_ipa_unmap(void __iomem *cpu_vir_addr)
 {
+	struct sprd_pci_epf *epf_sprd;
+	struct pci_epc *epc;
+
+	epf_sprd = g_epf_sprd[SPRD_FUNCTION_0];
+	if (!epf_sprd || IS_ERR(epf_sprd->epf->epc))
+		return;
+
+	if (!cpu_vir_addr || cpu_vir_addr != epf_sprd->ipa_res.cpu_vir_addr)
+		return;
+
 	iounmap(cpu_vir_addr);
+	epc = epf_sprd->epf->epc;
+	pci_epc_unmap_addr(epc, epf_sprd->ipa_res.cpu_phy_addr);
+
+	epf_sprd->ipa_res.cpu_vir_addr = NULL;
+	epf_sprd->ipa_res.cpu_phy_addr = 0;
+	epf_sprd->ipa_res.rc_addr = 0;
+	epf_sprd->ipa_res.size = 0;
 }
 EXPORT_SYMBOL_GPL(sprd_epf_ipa_unmap);
 #endif
@@ -401,7 +435,7 @@ void sprd_pci_epf_unmap_memory(int function, const void __iomem *cpu_vir_addr)
 	spin_lock_irqsave(&epf_sprd->lock, flags);
 	list_for_each_entry_safe(res, next, &epf_sprd->res_list, list) {
 		if (res->cpu_vir_addr == cpu_vir_addr) {
-			pci_epc_unmap_addr(epc, res->rc_addr);
+			pci_epc_unmap_addr(epc, res->cpu_phy_addr);
 			pci_epc_mem_free_addr(epc,
 					      res->cpu_phy_addr,
 					      res->cpu_vir_addr,
@@ -414,6 +448,46 @@ void sprd_pci_epf_unmap_memory(int function, const void __iomem *cpu_vir_addr)
 	spin_unlock_irqrestore(&epf_sprd->lock, flags);
 }
 EXPORT_SYMBOL_GPL(sprd_pci_epf_unmap_memory);
+
+static void sprd_pci_epf_restore(struct sprd_pci_epf *epf_sprd)
+{
+	struct pci_epc *epc;
+	struct device *dev;
+	struct sprd_ep_res *res;
+	unsigned long flags;
+
+	dev = &epf_sprd->epf->dev;
+	epc = epf_sprd->epf->epc;
+
+#ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
+	res = &epf_sprd->ipa_res;
+	if (res->rc_addr) {
+		dev_dbg(dev, "map: ep_addr=0x%lx, rc_addr=0x%lx, size=0x%lx\n",
+			(unsigned long)res->cpu_phy_addr,
+			(unsigned long)res->rc_addr,
+			res->size);
+
+		/* after pci reset, the outbound must remap */
+		pci_epc_unmap_addr(epc, res->cpu_phy_addr);
+		if (pci_epc_map_addr(epc, res->cpu_phy_addr,
+				     res->rc_addr, res->size))
+			dev_err(dev, "failed to map rc_addr=0x%lx!\n",
+				(unsigned long)res->rc_addr);
+	}
+#endif
+
+	/* find the res from list, reconfig them */
+	spin_lock_irqsave(&epf_sprd->lock, flags);
+	list_for_each_entry(res, &epf_sprd->res_list, list) {
+		/* after pci reset, the outbound must remap */
+		pci_epc_unmap_addr(epc, res->cpu_phy_addr);
+		if (pci_epc_map_addr(epc, res->cpu_phy_addr,
+				     res->rc_addr, res->size))
+			dev_err(dev, "failed to map rc_addr=0x%lx!\n",
+				(unsigned long)res->rc_addr);
+	}
+	spin_unlock_irqrestore(&epf_sprd->lock, flags);
+}
 
 static irqreturn_t sprd_epf_irq_handler(int irq_number, void *private)
 {
@@ -459,6 +533,9 @@ static void sprd_epf_linkup_work_fn(struct work_struct *work)
 	struct pci_epf *epf = epf_sprd->epf;
 	struct device *dev = &epf->dev;
 	void (*notify)(int event, void *data);
+
+	/* restore config */
+	sprd_pci_epf_restore(epf_sprd);
 
 	if (epf->func_no < SPRD_FUNCTION_MAX) {
 		/* first, linkup notify */
@@ -624,7 +701,7 @@ static int sprd_epf_remove(struct pci_epf *epf)
 	cancel_work_sync(&epf_sprd->linkup_work);
 	spin_lock_irqsave(&epf_sprd->lock, flags);
 	list_for_each_entry_safe(res, next, &epf_sprd->res_list, list) {
-		pci_epc_unmap_addr(epc, res->rc_addr);
+		pci_epc_unmap_addr(epc, res->cpu_phy_addr);
 		pci_epc_mem_free_addr(epc, res->cpu_phy_addr,
 				      res->cpu_vir_addr,
 				      res->size);
