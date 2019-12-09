@@ -70,6 +70,7 @@ struct sprd_pci_epf {
 #endif
 
 	struct work_struct linkup_work;
+	struct work_struct unlink_work;
 };
 
 struct sprd_pci_epf_notify {
@@ -554,6 +555,21 @@ static void sprd_epf_linkup_work_fn(struct work_struct *work)
 	}
 }
 
+static void sprd_epf_unlink_work_fn(struct work_struct *work)
+{
+	void (*notify)(int event, void *data);
+	struct sprd_pci_epf *epf_sprd = container_of(work, struct sprd_pci_epf,
+						     unlink_work);
+	struct pci_epf *epf = epf_sprd->epf;
+
+	if (epf->func_no < SPRD_FUNCTION_MAX) {
+		notify = g_epf_notify[epf->func_no].notify;
+		if (notify)
+			notify(SPRD_EPF_UNLINK,
+			       g_epf_notify[epf->func_no].data);
+	}
+}
+
 static int sprd_epf_bind(struct pci_epf *epf)
 {
 #ifdef CONFIG_SPRD_EPF_ENABLE_EPCONF
@@ -628,8 +644,11 @@ static void sprd_epf_linkup(struct pci_epf *epf)
 static void sprd_epf_unlink(struct pci_epf *epf)
 {
 	struct device *dev = &epf->dev;
+	struct sprd_pci_epf *epf_sprd = epf_get_drvdata(epf);
 
 	dev_info(dev, "unlink: func_no = %d\n", epf->func_no);
+
+	schedule_work(&epf_sprd->unlink_work);
 }
 
 static const struct pci_epf_device_id sprd_epf_ids[] = {
@@ -665,6 +684,7 @@ static int sprd_epf_probe(struct pci_epf *epf)
 	spin_lock_init(&epf_sprd->lock);
 	INIT_LIST_HEAD(&epf_sprd->res_list);
 	INIT_WORK(&epf_sprd->linkup_work, sprd_epf_linkup_work_fn);
+	INIT_WORK(&epf_sprd->unlink_work, sprd_epf_unlink_work_fn);
 
 	g_epf_sprd[epf->func_no] = epf_sprd;
 	notify = g_epf_notify[epf->func_no].notify;
@@ -699,6 +719,8 @@ static int sprd_epf_remove(struct pci_epf *epf)
 	struct sprd_pci_epf *epf_sprd = epf_get_drvdata(epf);
 
 	cancel_work_sync(&epf_sprd->linkup_work);
+	cancel_work_sync(&epf_sprd->unlink_work);
+
 	spin_lock_irqsave(&epf_sprd->lock, flags);
 	list_for_each_entry_safe(res, next, &epf_sprd->res_list, list) {
 		pci_epc_unmap_addr(epc, res->cpu_phy_addr);
