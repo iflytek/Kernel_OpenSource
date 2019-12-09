@@ -20,15 +20,6 @@
 #endif
 #include <linux/soc/sprd/hwfeature.h>
 
-enum {
-	SPRD_PCIE_WAIT_FIRST_READY = 0,
-	SPRD_PCIE_WAIT_SCANNED,
-	SPRD_PCIE_SCANNED,
-	SPRD_PCIE_WAIT_REMOVED,
-	SPRD_PCIE_REMOVED,
-	SPRD_PCIE_SCANNED_2BAR,
-};
-
 #if defined(CONFIG_SPRD_PCIE_EP_DEVICE) || defined(CONFIG_PCIE_EPF_SPRD)
 /*
  * sprd_pcie_wait_resource

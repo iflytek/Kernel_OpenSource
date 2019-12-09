@@ -32,14 +32,24 @@
 
 #include "../include/sprd_pcie_resource.h"
 
-#define PCIE_REMOVE_SCAN_GAP	msecs_to_jiffies(100)
+#define PCIE_REMOVE_SCAN_GAP	msecs_to_jiffies(200)
+
+enum rc_state {
+	SPRD_PCIE_WAIT_FIRST_READY = 0,
+	SPRD_PCIE_WAIT_SCANNED,
+	SPRD_PCIE_SCANNED,
+	SPRD_PCIE_WAIT_REMOVED,
+	SPRD_PCIE_REMOVED,
+	SPRD_PCIE_SCANNED_2BAR,
+};
 
 struct sprd_pcie_res {
 	u32	dst;
 	u32	ep_dev;
 	u32	state;
 	u32	scan_cnt;
-	unsigned long	removed_jiff;
+	bool	ep_power_on;
+	unsigned long	action_jiff;
 
 	struct sprd_pms	*pms;
 	char		pms_name[20];
@@ -107,7 +117,7 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 
 		/* clear removed irq and notify ep scanned */
 		sprd_ep_dev_clear_doolbell_irq(res->ep_dev,
-					       PCIE_DBEL_EP_REMOVED);
+					       PCIE_DBEL_EP_REMOVING);
 		sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
 
 		/* wakeup all blocked thread */
@@ -145,7 +155,10 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 		 * client modem power up,
 		 * no need wake lock and no need wait resource.
 		 */
-		sprd_pms_power_up(res->pms);
+		if (!res->ep_power_on) {
+			res->ep_power_on = true;
+			sprd_pms_power_up(res->pms);
+		}
 
 		/* only after received ep request can backup the ep configs. */
 		sprd_ep_dev_set_backup(res->ep_dev);
@@ -155,7 +168,10 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 		 * client modem power down,
 		 * no need wake lock.
 		 */
-		sprd_pms_power_down(res->pms, true);
+		if (res->ep_power_on) {
+			res->ep_power_on = false;
+			sprd_pms_power_down(res->pms, false);
+		}
 	} else if (irq == PCIE_MSI_EP_READY_FOR_RESCAN) {
 		pr_debug("pcie res: ep ready for rescan.\n");
 		res->ep_ready_for_rescan = true;
@@ -173,7 +189,10 @@ static void sprd_pcie_resource_scan_fn(struct work_struct *work)
 	struct sprd_pcie_res *res = container_of(work, struct sprd_pcie_res,
 						 scan_work);
 
-	diff = jiffies - res->removed_jiff;
+	/* request wakelock */
+	sprd_pms_request_wakelock(res->pms);
+
+	diff = jiffies - res->action_jiff;
 	if (diff < PCIE_REMOVE_SCAN_GAP) {
 		/* must ensure that the scan starts after a period of remove. */
 		delay = jiffies_to_msecs(PCIE_REMOVE_SCAN_GAP - diff);
@@ -183,17 +202,37 @@ static void sprd_pcie_resource_scan_fn(struct work_struct *work)
 	ret = sprd_pcie_configure_device(res->pcie_dev);
 	if (ret)
 		pr_err("pcie res: scan error = %d!\n", ret);
+
+	/* record the last scan jiffies */
+	res->action_jiff = jiffies;
+
+	/* release wakelock */
+	sprd_pms_release_wakelock(res->pms);
 }
 
 static void sprd_pcie_resource_remove_fn(struct work_struct *work)
 {
+	unsigned long diff;
+	unsigned int delay;
 	int ret;
 	struct sprd_pcie_res *res = container_of(work, struct sprd_pcie_res,
 						 remove_work);
 
+	/* request wakelock */
+	sprd_pms_request_wakelock(res->pms);
+
+	pr_debug("pcie res: remove work!\n");
+
+	diff = jiffies - res->action_jiff;
+	if (diff < PCIE_REMOVE_SCAN_GAP) {
+		/* must ensure that the remove starts after a period of scan. */
+		delay = jiffies_to_msecs(PCIE_REMOVE_SCAN_GAP - diff);
+		msleep(delay);
+	}
+
 	/* notify ep removed, must before removed */
 	sprd_ep_dev_clear_doolbell_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
-	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_REMOVED);
+	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_REMOVING);
 
 	/* waiting for the doorbell irq to ep */
 	msleep(50);
@@ -203,8 +242,11 @@ static void sprd_pcie_resource_remove_fn(struct work_struct *work)
 	if (ret)
 		pr_err("pcie res: remove error = %d.\n!", ret);
 
-	/* record the last removed jiffies */
-	res->removed_jiff = jiffies;
+	/* record the last remov jiffies */
+	res->action_jiff = jiffies;
+
+	/* release wakelock */
+	sprd_pms_release_wakelock(res->pms);
 }
 
 static void sprd_pcie_resource_start_scan(struct sprd_pcie_res *res)
@@ -239,7 +281,10 @@ static void sprd_pcie_resource_event_process(enum sprd_pcie_event event,
 
 	if (event == SPRD_PCIE_EVENT_WAKEUP) {
 		pr_debug("pcie res: wakeup by ep, event=%d.\n", event);
-		sprd_pms_power_up(res->pms);
+		if (!res->ep_power_on) {
+			res->ep_power_on = true;
+			sprd_pms_power_up(res->pms);
+		}
 	}
 }
 

@@ -27,6 +27,21 @@
 #include "pcie_sipa_res.h"
 #endif
 
+enum ep_msg {
+	RC_SCANNED_MSG = 0,
+	RC_REMOVING_MSG,
+	EPC_UNLINK_MSG,
+	EPC_LINKUP_MSG
+};
+
+enum pcie_ep_state {
+	SPRD_PCIE_WAIT_FIRST_READY = 0,
+	SPRD_PCIE_WAIT_SCANNED,
+	SPRD_PCIE_SCANNED,
+	SPRD_PCIE_WAIT_REMOVED,
+	SPRD_PCIE_REMOVED
+};
+
 struct sprd_pci_res_notify {
 	void	(*notify)(void *p);
 	void	*data;
@@ -34,9 +49,10 @@ struct sprd_pci_res_notify {
 
 struct sprd_pcie_res {
 	u32	dst;
-	u32	state;
 	u32	ep_fun;
-	bool	request_wait;
+	enum pcie_ep_state	state;
+	bool	msi_later;
+	bool	wakeup_later;
 
 #ifdef CONFIG_SPRD_SIPA
 	void *sipa_res;
@@ -53,6 +69,81 @@ struct sprd_pcie_res {
 };
 
 static struct sprd_pcie_res *g_pcie_res[SIPC_ID_NR];
+
+/* the state machine of ep, init SPRD_PCIE_WAIT_FIRST_READY.
+ * SPRD_PCIE_WAIT_FIRST_READY (receive RC scanned) ==> SPRD_PCIE_SCANNED
+ * SPRD_PCIE_SCANNED (receive RC removing)==> SPRD_PCIE_WAIT_REMOVED
+ * SPRD_PCIE_WAIT_REMOVED(receive epc unlink)==>SPRD_PCIE_REMOVED
+ * SPRD_PCIE_REMOVED(receive epc linkup)==>SPRD_PCIE_WAIT_SCANNED
+ * SPRD_PCIE_WAIT_SCANNED(receive RC scanned)==>SPRD_PCIE_SCANNED
+ */
+static const char *change_msg[EPC_LINKUP_MSG + 1] = {
+	"rc scanned",
+	"rc removing",
+	"epc unlink",
+	"epc linkup"
+};
+
+static const char *state_msg[SPRD_PCIE_REMOVED + 1] = {
+	"wait first ready",
+	"wait sacanned",
+	"scanned",
+	"wait remove",
+	"removed"
+};
+
+static void pcie_resource_client_change_state(struct sprd_pcie_res *res,
+					      enum ep_msg msg)
+{
+	u32 old_state = res->state;
+
+	pr_debug("pcie res: change state msg=%s, old_state=%s.\n",
+		 change_msg[msg], state_msg[old_state]);
+
+	switch (msg) {
+	case RC_SCANNED_MSG:
+		if (old_state != SPRD_PCIE_WAIT_FIRST_READY
+		    && old_state != SPRD_PCIE_WAIT_SCANNED) {
+			pr_err("pcie res: %s msg err, old state=%s",
+			       change_msg[msg], state_msg[old_state]);
+			return;
+		}
+		res->state = SPRD_PCIE_SCANNED;
+		break;
+
+	case RC_REMOVING_MSG:
+		if (old_state != SPRD_PCIE_SCANNED) {
+			pr_err("pcie res: %s msg err, old state=%s",
+			       change_msg[msg], state_msg[old_state]);
+			return;
+		}
+		res->state = SPRD_PCIE_WAIT_REMOVED;
+		break;
+
+	case EPC_UNLINK_MSG:
+		if (old_state != SPRD_PCIE_WAIT_REMOVED) {
+			if (old_state != SPRD_PCIE_WAIT_FIRST_READY)
+				pr_err("pcie res: %s msg err, old state=%s",
+				       change_msg[msg], state_msg[old_state]);
+			return;
+		}
+		res->state = SPRD_PCIE_REMOVED;
+		break;
+
+	case EPC_LINKUP_MSG:
+		if (old_state != SPRD_PCIE_REMOVED) {
+			if (old_state != SPRD_PCIE_WAIT_FIRST_READY)
+				pr_err("pcie res: %s msg err, old state=%s",
+				       change_msg[msg], state_msg[old_state]);
+			return;
+		}
+		res->state = SPRD_PCIE_WAIT_SCANNED;
+		break;
+	}
+
+	pr_debug("pcie res: change state from %s to %s.\n",
+		 state_msg[old_state], state_msg[res->state]);
+}
 
 static void sprd_pcie_resource_first_ready_notify(struct sprd_pcie_res *res)
 {
@@ -98,10 +189,33 @@ static void pcie_resource_client_epf_notify(int event, void *private)
 		break;
 
 	case SPRD_EPF_LINK_UP:
+		/* get a wakelock */
+		__pm_stay_awake(&res->ws);
+
 		pr_info("pcie res: epf linkup.\n");
+		pcie_resource_client_change_state(res, EPC_LINKUP_MSG);
+
 		/* first ready notify */
 		if (res->state == SPRD_PCIE_WAIT_FIRST_READY)
 			sprd_pcie_resource_first_ready_notify(res);
+
+		break;
+
+	case SPRD_EPF_UNLINK:
+		/* Here need this log to debug pcie scan and remove */
+		pr_info("pcie res: epf unlink.\n");
+		pcie_resource_client_change_state(res, EPC_UNLINK_MSG);
+
+		/*  if has wakeup pending, send wakeup to rc */
+		if (res->wakeup_later) {
+			res->wakeup_later = false;
+			pr_debug("pcie res: send wakeup to rc.\n");
+			if (sprd_pci_epf_start(res->ep_fun))
+				pr_err("pcie res: send wakeup to rc failed.\n");
+		}
+
+		/* relax a wakelock */
+		__pm_relax(&res->ws);
 		break;
 
 	default:
@@ -114,25 +228,22 @@ static irqreturn_t pcie_resource_client_irq_handler(int irq, void *private)
 	struct sprd_pcie_res *res = (struct sprd_pcie_res *)private;
 
 	if (irq == PCIE_DBEL_EP_SCANNED) {
-		/* get a wakelock */
-		__pm_stay_awake(&res->ws);
+		pcie_resource_client_change_state(res, RC_SCANNED_MSG);
 
-		if (res->request_wait) {
-			res->request_wait = false;
-			pr_info("pcie res: request msi to rc.\n");
+		/* wakeup all blocked thread */
+		pr_debug("pcie res: scanned, wakup all.\n");
+		wake_up_interruptible_all(&res->wait_pcie_ready);
+
+		/*  if has msi pending, send msi to rc */
+		if (res->msi_later) {
+			res->msi_later = false;
+			pr_debug("pcie res: request msi to rc.\n");
 			sprd_pci_epf_raise_irq(res->ep_fun,
 					     PCIE_MSI_REQUEST_RES);
 		}
-		/* wakeup all blocked thread */
-		pr_info("pcie res: scanned, wakup all.\n");
-		res->state = SPRD_PCIE_SCANNED;
-		wake_up_interruptible_all(&res->wait_pcie_ready);
-	} else if (irq == PCIE_DBEL_EP_REMOVED) {
-		pr_info("pcie res: removed.\n");
-		res->state = SPRD_PCIE_REMOVED;
-
-		/* relax a wakelock */
-		__pm_relax(&res->ws);
+	} else if (irq == PCIE_DBEL_EP_REMOVING) {
+		pr_debug("pcie res: removing.\n");
+		pcie_resource_client_change_state(res, RC_REMOVING_MSG);
 	}
 
 	return IRQ_HANDLED;
@@ -158,7 +269,7 @@ int sprd_pcie_resource_client_init(u32 dst, u32 ep_fun)
 	init_waitqueue_head(&res->wait_pcie_ready);
 	sprd_pci_epf_register_irq_handler_ex(res->ep_fun,
 					     PCIE_DBEL_EP_SCANNED,
-					     PCIE_DBEL_EP_REMOVED,
+					     PCIE_DBEL_EP_REMOVING,
 					     pcie_resource_client_irq_handler,
 					     res);
 	sprd_pci_epf_register_notify(res->ep_fun,
@@ -186,7 +297,7 @@ int sprd_pcie_resource_trash(u32 dst)
 
 	sprd_pci_epf_unregister_irq_handler_ex(res->ep_fun,
 		PCIE_DBEL_EP_SCANNED,
-		PCIE_DBEL_EP_REMOVED);
+		PCIE_DBEL_EP_REMOVING);
 	sprd_pci_epf_unregister_notify(res->ep_fun);
 
 	kfree(res);
@@ -253,29 +364,51 @@ int sprd_pcie_request_resource(u32 dst)
 
 	res = g_pcie_res[dst];
 
-	if (res->state == SPRD_PCIE_SCANNED) {
+	pr_debug("pcie res: request res, state=%d.\n", res->state);
+
+	switch (res->state) {
+	case SPRD_PCIE_WAIT_FIRST_READY:
+	case SPRD_PCIE_WAIT_SCANNED:
+		pr_debug("pcie res: later send request msi to rc.\n");
+		res->msi_later = true;
+		break;
+
+	case SPRD_PCIE_WAIT_REMOVED:
+		pr_debug("pcie res: later send wakeup to rc.\n");
+		res->wakeup_later = true;
+		break;
+
+	case SPRD_PCIE_SCANNED:
 		/*
-		 * if pcie state is SCANNED, just send PCIE_MSI_REQUEST_RES
-		 * to the host. After host receive res msi interrupt,
+		 * if pcie state is SCANNED, just send
+		 * PCIE_MSI_REQUEST_RES to the host.
+		 * After host receive res msi interrupt,
 		 * it will increase one vote in modem power manger.
 		 */
 		pr_info("pcie res: send request msi to rc.\n");
 		ret = sprd_pci_epf_raise_irq(res->ep_fun,
 					     PCIE_MSI_REQUEST_RES);
-	} else if (res->state == SPRD_PCIE_REMOVED) {
-		res->state = SPRD_PCIE_WAIT_SCANNED;
+		break;
+
+	case SPRD_PCIE_REMOVED:
 		/*
-		 * if pcie state is removed, poll wake_up singnal to host,
-		 * and he host will rescan the pcie.
+		 * if pcie state is removed, poll wake_up singnal
+		 * to host, and he host will rescan the pcie.
 		 */
 		pr_info("pcie res: send wakeup to rc.\n");
-		ret = sprd_pci_epf_start(res->ep_fun);
-	} else if (res->state == SPRD_PCIE_WAIT_FIRST_READY) {
+		if (sprd_pci_epf_start(res->ep_fun) == 0)
+			break;
+
+		/* may receive ep reset, wait linkup and scanned */
 		pr_info("pcie res: later send request msi to rc.\n");
-		res->request_wait = true;
-	} else {
-		pr_err("pcie res: request res, state=%d.\n", res->state);
+		res->msi_later = true;
+		break;
+
+	default:
+		pr_err("pcie res: request res err, state=%d.\n",
+		       res->state);
 		ret = -EPERM;
+		break;
 	}
 
 	return ret;
@@ -291,7 +424,8 @@ int sprd_pcie_release_resource(u32 dst)
 
 	res = g_pcie_res[dst];
 
-	if (res->state == SPRD_PCIE_SCANNED) {
+	switch (res->state) {
+	case SPRD_PCIE_SCANNED:
 		/*
 		 * if pcie state is SCANNED, send PCIE_MSI_RELEASE_RES
 		 * to the host, else, do nothing. After host receive res msi
@@ -302,9 +436,18 @@ int sprd_pcie_release_resource(u32 dst)
 		pr_info("pcie res: send release msi to rc.\n");
 		ret = sprd_pci_epf_raise_irq(res->ep_fun,
 					     PCIE_MSI_RELEASE_RES);
-	} else {
+		break;
+
+	case SPRD_PCIE_WAIT_FIRST_READY:
+		/* if has msi pending, remove it */
+		if (res->msi_later)
+			res->msi_later = false;
+		break;
+
+	default:
 		pr_err("pcie res: release res state=%d.\n", res->state);
 		ret = -EPERM;
+		break;
 	}
 
 	return ret;
