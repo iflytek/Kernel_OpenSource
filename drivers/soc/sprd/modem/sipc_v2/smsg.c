@@ -53,8 +53,8 @@
 #define SIPC_READL(addr)      readl((__force void __iomem *)(addr))
 #define SIPC_WRITEL(b, addr)  writel(b, (__force void __iomem *)(addr))
 
-#define CLIENT_LATENCY	(15 * 1000)
-#define HOST_LATENCY	(30 * 1000)
+#define CLIENT_LATENCY	(1 * 1000)
+#define HOST_LATENCY	(1 * 1000)
 
 static u8 g_wakeup_flag;
 
