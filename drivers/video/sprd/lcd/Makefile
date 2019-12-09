@@ -4,6 +4,7 @@ obj-$(CONFIG_LCD_ICNL9911_TXD_MIPI_HDP) += lcd_icnl9911_txd_mipi_hdp.o
 obj-$(CONFIG_LCD_ILI9881C_TRULY_MIPI_HD) += lcd_ili9881c_truly_mipi_hd.o
 obj-$(CONFIG_LCD_ILI9881C_3LANE_MIPI_HD) += lcd_ili9881c_3lane_mipi_hd.o
 obj-$(CONFIG_LCD_ILI9881C_SKYWORTH_HD) += lcd_ili9881c_skyworth_mipi_hd.o
+obj-$(CONFIG_LCD_SSD2092_TRULY_MIPI_FHD) += lcd_ssd2092_truly_mipi_fhd.o
 obj-$(CONFIG_LCD_ST7701_BOE_MIPI_WVGA) += lcd_st7701_boe_mipi_wvga.o
 obj-$(CONFIG_LCD_ST7701_COE_MIPI_WVGA) += lcd_st7701_coe_mipi_wvga.o
 obj-$(CONFIG_LCD_NT35532_TRULY_MIPI_FHD) += lcd_nt35532_truly_mipi_fhd.o

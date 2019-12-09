@@ -19,6 +19,7 @@ extern struct panel_driver icnl9911_txd_driver;
 extern struct panel_driver ili9881c_truly_driver;
 extern struct panel_driver ili9881c_3lane_driver;
 extern struct panel_driver ili9881c_skyworth_driver;
+extern struct panel_driver ssd2092_truly_driver;
 extern struct panel_driver st7701_boe_driver;
 extern struct panel_driver st7701_coe_driver;
 extern struct panel_driver nt35532_truly_driver;
@@ -68,6 +69,12 @@ static struct panel_cfg supported_panel[] = {
 	{
 		.lcd_id = 0x7701,
 		.drv = &st7701_boe_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_SSD2092_TRULY_MIPI_FHD
+	{
+		.lcd_id = 0x2092,
+		.drv = &ssd2092_truly_driver,
 	},
 #endif
 #ifdef CONFIG_LCD_ST7701_COE_MIPI_WVGA
