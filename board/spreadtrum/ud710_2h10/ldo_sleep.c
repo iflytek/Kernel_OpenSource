@@ -11,8 +11,6 @@
 
 #ifdef ROC1_CACHE_MODIFICATION
 #define CONFIG_DCDCSRAM_DEEP_DROP_VOL  600
-#define CONFIG_DCDCMODEM_DEEP_DROP_VOL 600
-#define CONFIG_DCDCGPU_DEEP_DROP_VOL   600
 #ifndef ROC1_CHIP_VER_AA
 #define ROC1_CHIP_VER_AA             1
 #endif
@@ -21,6 +19,8 @@
 #endif
 #endif
 #define CONFIG_DCDCCORE_DEEP_DROP_VOL  600
+#define CONFIG_DCDCMODEM_DEEP_DROP_VOL 600
+#define CONFIG_DCDCGPU_DEEP_DROP_VOL   600
 
 void dcdc_ldo_power_on()
 {
@@ -147,35 +147,47 @@ static void pmic_lowpower_config(void)
 		ANA_REG_SET(ANA_REG_GLB_DCDC_GPU_SLP_CTRL1, BITS_DCDC_GPU_CTRL_DS_SW(drop_val));
 	} else {     //if is AB chip
 		ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-			BIT_SLP_DCDCMODEM_PD_EN |       //ap_sys/vsp/dpu/wtlcp/pubcp
+			//BIT_SLP_DCDCMODEM_PD_EN |     //ASIC design not pd
 			//BIT_SLP_DCDCMEMQ_PD_EN |      //for ddr keep on even sleep
 			BIT_SLP_DCDCSRAM_PD_EN |        //GPU/MM/AP/Ananke/corinth/cpu top
 			//BIT_SLP_DCDCSRAM_DROP_EN |
-			//BIT_SLP_DCDCMODEM_DROP_EN |
-			//BIT_SLP_DCDCGPU_DROP_EN |
+			BIT_SLP_DCDCMODEM_DROP_EN |
+			BIT_SLP_DCDCGPU_DROP_EN |
 			BIT_SLP_DCDCCORE_DROP_EN |
 			//BIT_SLP_DCDCWPA_PD_EN |       //2h10 board not used
-			BIT_SLP_DCDCGPU_PD_EN |         //GPU/ISP/CPP/JPG/AUDCP...
+			//BIT_SLP_DCDCGPU_PD_EN |       //ASIC design not pd
 			//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
 			BIT_SLP_DCDCGEN1_PD_EN |
 			0
 		);
+
+		drop_val = (CONFIG_DCDCMODEM_DEEP_DROP_VOL * 1000U) / 3125U;
+		ANA_REG_SET(ANA_REG_GLB_DCDC_MODEM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
+
+		drop_val = (CONFIG_DCDCGPU_DEEP_DROP_VOL * 1000U) / 3125U;
+		ANA_REG_SET(ANA_REG_GLB_DCDC_GPU_SLP_CTRL1, BITS_DCDC_GPU_CTRL_DS_SW(drop_val));
 	}
 #else
 	ANA_REG_SET(ANA_REG_GLB_SLP_DCDC_PD_CTRL,
-		BIT_SLP_DCDCMODEM_PD_EN |       //ap_sys/vsp/dpu/wtlcp/pubcp
+		//BIT_SLP_DCDCMODEM_PD_EN |     //ASIC design not pd
 		//BIT_SLP_DCDCMEMQ_PD_EN |      //for ddr keep on even sleep
 		BIT_SLP_DCDCSRAM_PD_EN |        //GPU/MM/AP/Ananke/corinth/cpu top
 		//BIT_SLP_DCDCSRAM_DROP_EN |
-		//BIT_SLP_DCDCMODEM_DROP_EN |
-		//BIT_SLP_DCDCGPU_DROP_EN |
+		BIT_SLP_DCDCMODEM_DROP_EN |
+		BIT_SLP_DCDCGPU_DROP_EN |
 		BIT_SLP_DCDCCORE_DROP_EN |
 		//BIT_SLP_DCDCWPA_PD_EN |       //2h10 board not used
-		BIT_SLP_DCDCGPU_PD_EN |         //GPU/ISP/CPP/JPG/AUDCP...
+		//BIT_SLP_DCDCGPU_PD_EN |       //ASIC design not pd
 		//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
 		BIT_SLP_DCDCGEN1_PD_EN |
 		0
 	);
+
+	drop_val = (CONFIG_DCDCMODEM_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_MODEM_SLP_CTRL1, BITS_DCDC_MODEM_CTRL_DS_SW(drop_val));
+
+	drop_val = (CONFIG_DCDCGPU_DEEP_DROP_VOL * 1000U) / 3125U;
+	ANA_REG_SET(ANA_REG_GLB_DCDC_GPU_SLP_CTRL1, BITS_DCDC_GPU_CTRL_DS_SW(drop_val));
 #endif
 	/*
 	 * CHIP_ID BA:0xB000 AB:A-0001 AA 0xA-0000
