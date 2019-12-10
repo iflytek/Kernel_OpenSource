@@ -26,6 +26,7 @@
 #include <linux/regulator/driver.h>
 #include <linux/regulator/machine.h>
 #include <linux/sipa.h>
+#include <linux/debugfs.h>
 
 #define DRV_NAME "sprd-sipa-sys"
 
@@ -76,7 +77,6 @@ struct sipa_sys_pd_drv {
 	struct clk *ipa_core_clk;
 	struct clk *ipa_core_parent;
 	struct clk *ipa_core_default;
-	bool regu_on;
 	bool pd_on;
 	struct sipa_sys_register regs[0];
 };
@@ -205,75 +205,12 @@ static int sipa_sys_do_power_off(struct sipa_sys_pd_drv *drv)
 
 static int sipa_sys_update_power_state(struct sipa_sys_pd_drv *drv)
 {
-	if (drv->regu_on || drv->pd_on)
+	if (drv->pd_on)
 		sipa_sys_do_power_on(drv);
 	else
 		sipa_sys_do_power_off(drv);
 
 	return 0;
-}
-
-static int sipa_sys_regu_enable(struct regulator_dev *dev)
-{
-	struct sipa_sys_pd_drv *drv = rdev_get_drvdata(dev);
-
-	drv->regu_on = true;
-	sipa_sys_update_power_state(drv);
-	dev_dbg(drv->dev, "regu power on\n");
-
-	return 0;
-}
-
-static int sipa_sys_regu_disable(struct regulator_dev *dev)
-{
-	struct sipa_sys_pd_drv *drv = rdev_get_drvdata(dev);
-
-	drv->regu_on = false;
-	sipa_sys_update_power_state(drv);
-	dev_dbg(drv->dev, "regu power off\n");
-
-	return 0;
-}
-
-static int sipa_sys_regu_is_enabled(struct regulator_dev *dev)
-{
-	struct sipa_sys_pd_drv *drv = rdev_get_drvdata(dev);
-
-	return drv->regu_on;
-}
-
-static const struct regulator_ops sipa_sys_regu_ops = {
-	.enable = sipa_sys_regu_enable,
-	.disable = sipa_sys_regu_disable,
-	.is_enabled = sipa_sys_regu_is_enabled,
-};
-
-static const struct regulator_desc sipa_sys_regu_desc = {
-	.name = "vdd-ipa",
-	.of_match = "vdd-ipa",
-	.type = REGULATOR_VOLTAGE,
-	.owner = THIS_MODULE,
-	.ops = &sipa_sys_regu_ops,
-	.fixed_uV = 5000000,
-	.n_voltages = 1,
-};
-
-static int sipa_sys_register_regulator(struct sipa_sys_pd_drv *drv)
-{
-	struct regulator_config cfg = {};
-	struct regulator_dev *reg;
-	int ret = 0;
-
-	cfg.dev = drv->dev;
-	cfg.driver_data = drv;
-	reg = devm_regulator_register(drv->dev,
-				      &sipa_sys_regu_desc, &cfg);
-	if (IS_ERR(reg)) {
-		ret = PTR_ERR(reg);
-		dev_err(drv->dev, "Can't reg_info regulator:%d\n", ret);
-	}
-
-	return ret;
 }
 
 static int sipa_sys_parse_dts(struct sipa_sys_pd_drv *drv)
@@ -408,10 +345,6 @@ static int sipa_sys_drv_probe(struct platform_device *pdev_p)
 	ret = sipa_sys_parse_dts(drv);
 	if (ret)
 		return ret;
-
-	ret = sipa_sys_register_regulator(drv);
-	if (ret)
-		dev_warn(drv->dev, "sipa sys reg regulator fail!");
 
 	ret = sipa_sys_register_power_domain(drv);
 	if (ret)
