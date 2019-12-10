@@ -1,8 +1,6 @@
 #include <linux/kernel.h>
 #include <linux/regmap.h>
 #include <linux/sipa.h>
-#include <linux/regulator/consumer.h>
-
 #include "pam_ipa_regs.h"
 #include "../pam_ipa_core.h"
 
@@ -338,25 +336,6 @@ int pam_ipa_set_enabled(struct pam_ipa_cfg_tag *cfg, bool enable)
 	return ret;
 }
 EXPORT_SYMBOL(pam_ipa_set_enabled);
-
-int pam_ipa_force_wakeup(struct pam_ipa_cfg_tag *cfg, bool enable)
-{
-	int ret;
-
-	if (!cfg->vpower)
-		return -EINVAL;
-
-	if (enable)
-		ret = regulator_enable(cfg->vpower);
-	else
-		ret = regulator_disable(cfg->vpower);
-
-	if (ret < 0)
-		pr_err("pam_ipa enable = %d vpower failed\n", enable);
-
-	return ret;
-}
-EXPORT_SYMBOL(pam_ipa_force_wakeup);
 
 u32 pam_ipa_init(struct pam_ipa_cfg_tag *cfg)
 {

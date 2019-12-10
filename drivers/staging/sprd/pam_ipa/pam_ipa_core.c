@@ -13,8 +13,8 @@
 #include <linux/regmap.h>
 #include <linux/sipc.h>
 #include <linux/mfd/syscon.h>
-#include <linux/regulator/consumer.h>
 #include <linux/workqueue.h>
+#include <linux/pm_runtime.h>
 #include "pam_ipa_core.h"
 #include "../sipa_delegate/sipa_delegate.h"
 
@@ -85,13 +85,6 @@ static int pam_ipa_parse_dts_configuration(struct platform_device *pdev,
 							  "enable");
 	if (IS_ERR(cfg->enable_regmap))
 		pr_warn("%s :get enable regmap fail!\n", __func__);
-
-	cfg->vpower = devm_regulator_get(&pdev->dev, "vpower");
-	if (IS_ERR(cfg->vpower)) {
-		ret = PTR_ERR(cfg->vpower);
-		dev_err(&pdev->dev, "unable to get vpower supply %d\n", ret);
-		return ret;
-	}
 
 	ret = syscon_get_args_by_name(pdev->dev.of_node,
 				      "enable", 2,
@@ -220,6 +213,7 @@ EXPORT_SYMBOL(pam_ipa_on_miniap_ready);
 
 static void pam_ipa_prepare_suspend(struct device *dev)
 {
+	int ret;
 	struct pam_ipa_cfg_tag *cfg = dev_get_drvdata(dev);
 
 	if (cfg->power_status)
@@ -238,7 +232,11 @@ static void pam_ipa_prepare_suspend(struct device *dev)
 	}
 
 	if (!(cfg->suspend_stage & PAM_IPA_FORCE_SUSPEND)) {
-		pam_ipa_force_wakeup(cfg, false);
+		ret = pm_runtime_put(&cfg->pdev->dev);
+		if (ret)
+			dev_err(&cfg->pdev->dev,
+				"pm runtime put err, ret = %d\n",
+				ret);
 		cfg->suspend_stage |= PAM_IPA_FORCE_SUSPEND;
 	}
 }
@@ -252,7 +250,13 @@ static int pam_ipa_prepare_resume(struct device *dev)
 		return 0;
 
 	if (cfg->suspend_stage & PAM_IPA_FORCE_SUSPEND) {
-		pam_ipa_force_wakeup(cfg, true);
+		ret = pm_runtime_get_sync(&cfg->pdev->dev);
+		if (ret) {
+			dev_err(&cfg->pdev->dev,
+				"pm runtime get sync err, ret = %d\n",
+				ret);
+			return ret;
+		}
 		cfg->suspend_stage &= ~PAM_IPA_FORCE_SUSPEND;
 	}
 
@@ -421,6 +425,8 @@ static int pam_ipa_plat_drv_probe(struct platform_device *pdev_p)
 		dev_err(&pdev_p->dev, "pam ipa power wq create failed\n");
 		return -ENOMEM;
 	}
+
+	pm_runtime_enable(&pdev_p->dev);
 
 	return 0;
 }
