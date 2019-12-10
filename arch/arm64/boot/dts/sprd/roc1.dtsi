@@ -857,11 +857,12 @@
 				compatible = "sprd,pam-ipa";
 				reg = <0 0x21140000 0 0x100>;
 				reg-names = "pam-ipa-base";
-				vpower-supply = <&vddipa>;
 				syscons = <&ipa_ahb_regs
 					  REG_IPA_AHB_IPA_EB
 					  MASK_IPA_AHB_PAM_IPA_EB>;
 				syscon-names = "enable";
+
+				power-domains = <&pd_ipa_sys>;
 
 				sprd,cp-ul-intr-to-ap = <0>;
 				sprd,cp-ul-threshold = <1>;
@@ -886,7 +887,6 @@
 				reg-names = "glb-base", "iram-base";
 				interrupts = <GIC_SPI 138 IRQ_TYPE_LEVEL_HIGH>;
 				interrupt-names = "local_ipa_irq";
-				vpower-supply = <&vddipa>;
 
 				syscons = <&ipa_ahb_regs
 					  REG_IPA_AHB_IPA_EB
@@ -895,6 +895,8 @@
 					  REG_PMU_APB_IPA_FORCE_WAKEUP_CFG
 					  MASK_PMU_APB_IPA_FORCE_WAKEUP>;
 				syscon-names = "enable", "wakeup";
+
+				power-domains = <&pd_ipa_sys>;
 
 				sprd,sipa-bypass-mode = <0>;
 				sprd,need-through-pcie;
@@ -1223,7 +1225,7 @@
 				pcie-wakeup-gpios = <&eic_debounce 11
 						     GPIO_ACTIVE_HIGH>;
 				status = "disabled";
-				vpower-supply = <&vddipa>;
+				power-domains = <&pd_ipa_sys>;
 
 				dummy@0 {
 					label = "msi_int";
@@ -1264,7 +1266,7 @@
 				pcie-wakeup-gpios = <&eic_debounce 10
 						     GPIO_ACTIVE_HIGH>;
 				status = "disabled";
-				vpower-supply = <&vddipa>;
+				power-domains = <&pd_ipa_sys>;
 
 				dummy@0 {
 					label = "msi_int";
@@ -2338,10 +2340,6 @@
 					<&ext_26m>;
 				clock-names = "ipa_core", "ipa_core_source",
 					      "ipa_core_default";
-
-				vddipa:vdd-ipa {
-					regulator-name = "IPA_SYS_VPOWER";
-				};
 			};
 		};
 
