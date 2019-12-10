@@ -24,7 +24,7 @@
 #include <linux/io.h>
 #include <linux/cdev.h>
 #include <linux/pm_wakeup.h>
-#include <linux/regulator/consumer.h>
+#include <linux/pm_runtime.h>
 
 #include "sipa_api.h"
 #include "sipa_priv.h"
@@ -480,12 +480,21 @@ early_resume:
  */
 static void sipa_resume_work(struct sipa_control *ctrl)
 {
+	int ret;
+
 	if (!ctrl)
 		return;
 
 	if (ctrl->suspend_stage & SIPA_FORCE_SUSPEND) {
+		ret = pm_runtime_get_sync(ctrl->ctx->pdev);
+		if (ret) {
+			dev_err(ctrl->ctx->pdev,
+				"pm runtime put err, ret = %d\n",
+				ret);
+			return;
+		}
+
 		ctrl->suspend_stage &= ~SIPA_FORCE_SUSPEND;
-		sipa_force_wakeup(&ctrl->params_cfg, true);
 	}
 
 	sipa_prepare_resume(ctrl);
@@ -629,6 +638,7 @@ static int sipa_fifo_prepare_suspend(struct device *dev)
 
 static int sipa_prepare_suspend(struct device *dev)
 {
+	int ret;
 	struct sipa_control *ctrl = dev_get_drvdata(dev);
 
 	if (ctrl->power_flag)
@@ -647,9 +657,13 @@ static int sipa_prepare_suspend(struct device *dev)
 	    !sipa_set_enabled(false))
 		ctrl->suspend_stage |= SIPA_EB_SUSPEND;
 
-	if (!(ctrl->suspend_stage & SIPA_FORCE_SUSPEND) &&
-	    !sipa_force_wakeup(&ctrl->params_cfg, false))
+	if (!(ctrl->suspend_stage & SIPA_FORCE_SUSPEND)) {
+		ret = pm_runtime_put(dev);
+		if (ret)
+			dev_err(dev, "pm runtime put err, ret = %d\n",
+				ret);
 		ctrl->suspend_stage |= SIPA_FORCE_SUSPEND;
+	}
 
 	ctrl->suspend_stage |= SIPA_ACTION_SUSPEND;
 
@@ -1060,18 +1074,6 @@ static int sipa_parse_dts_configuration(struct platform_device *pdev,
 	else {
 		cfg->enable_reg = reg_info[0];
 		cfg->enable_mask = reg_info[1];
-	}
-
-	/* get wakeup register informations */
-	if (cfg->standalone_subsys) {
-		cfg->vpower = devm_regulator_get(&pdev->dev, "vpower");
-		if (IS_ERR(cfg->vpower)) {
-			ret = PTR_ERR(cfg->vpower);
-			dev_err(&pdev->dev,
-				"unable to get vpower supply %d\n",
-				ret);
-			return ret;
-		}
 	}
 
 	/* get IPA fifo memory settings */
@@ -1582,6 +1584,9 @@ static int sipa_plat_drv_probe(struct platform_device *pdev_p)
 	atomic_set(&ctrl->recv_cnt, 0);
 	device_init_wakeup(dev, true);
 	sipa_init_debugfs(&ctrl->params_cfg, ctrl);
+
+	pm_runtime_enable(dev);
+
 	return ret;
 }
 

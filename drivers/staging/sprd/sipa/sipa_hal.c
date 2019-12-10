@@ -10,7 +10,6 @@
 #include <linux/of_address.h>
 #include <linux/of_reserved_mem.h>
 #include <linux/dma-mapping.h>
-#include <linux/regulator/consumer.h>
 #include <linux/delay.h>
 #include <linux/slab.h>
 
@@ -354,27 +353,6 @@ int sipa_hal_set_enabled(struct sipa_plat_drv_cfg *cfg, bool enable)
 	return ret;
 }
 EXPORT_SYMBOL(sipa_hal_set_enabled);
-
-int sipa_force_wakeup(struct sipa_plat_drv_cfg *cfg, bool wake)
-{
-	int ret = 0;
-	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
-
-	if (!cfg->vpower)
-		return ret;
-
-	if (wake)
-		ret = regulator_enable(cfg->vpower);
-	else
-		ret = regulator_disable(cfg->vpower);
-
-	if (ret < 0)
-		dev_err(ctrl->ctx->pdev, "enable vpower failed");
-
-	return ret;
-}
-EXPORT_SYMBOL(sipa_force_wakeup);
-
 
 int sipa_open_common_fifo(sipa_hal_hdl hdl,
 			  enum sipa_cmn_fifo_index fifo,
