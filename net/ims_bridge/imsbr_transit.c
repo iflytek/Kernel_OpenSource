@@ -172,6 +172,7 @@ void imsbr_transit_process(struct imsbr_sipc *sipc, struct sblock *blk,
 		target = &imsbr_ctrl_ap;
 	} else {
 		pr_err("unknown sipc type");
+		imsbr_transit_sblock_release(sipc, blk);
 		return;
 	}
 
@@ -179,6 +180,7 @@ void imsbr_transit_process(struct imsbr_sipc *sipc, struct sblock *blk,
 	if (err) {
 		pr_err("fail to get sblock from %s, err %d",
 		       target->desc, err);
+		imsbr_transit_sblock_release(sipc, blk);
 		return;
 	}
 
