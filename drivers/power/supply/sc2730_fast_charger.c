@@ -215,6 +215,15 @@ static u32 sc2730_fchg_get_detect_status(struct sc2730_fchg_info *info)
 	unsigned long timeout;
 	int value, ret;
 
+	/*
+	 * In cold boot phase, system will detect fast charger status,
+	 * if charger is not plugged in, it will cost another 2s
+	 * to detect fast charger status, so we detect fast charger
+	 * status only when DCP charger is plugged in
+	 */
+	if (info->usb_phy->chg_type != DCP_TYPE)
+		return POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
+
 	reinit_completion(&info->completion);
 
 	if (info->input_vol < FCHG_VOLTAGE_9V)
