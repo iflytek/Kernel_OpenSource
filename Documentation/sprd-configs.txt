@@ -10543,8 +10543,8 @@ CONFIG_PAGE_OFFSET
 	[function] Set the memory limit between userspace and kernelspace.
 CONFIG_PANIC_ON_OOPS
 	[arch] all
-	[plat] roc1,sharkl3,sharkl5,sharkl5_32
-	[missing plat] orca
+	[plat] all
+	[missing plat] none
 	[field] menu
 	[subsys] core
 	[must] debug
