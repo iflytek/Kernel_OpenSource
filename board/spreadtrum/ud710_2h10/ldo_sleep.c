@@ -59,7 +59,7 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vddsim1");
 	//regulator_enable("vddsim2");
 	//regulator_enable("vddwifipa");
-	regulator_enable("vddldo0");
+	//regulator_enable("vddldo0");
 	regulator_enable("vddldo1");
 	regulator_enable("vddldo2");
 #endif
@@ -247,7 +247,7 @@ static void pmic_lowpower_config(void)
 		//BIT_SLP_LDO_VDDLDO2_PD_EN |  //type c use.should shutdown by user self
 		BIT_SLP_LDO_AVDD12_PD_EN |     //csi/dsi/ufs use
 		//BIT_SLP_LDO_VDDWCN_PD_EN |   //ORCA use, only referd by EXT_EN4
-		//BIT_SLP_LDO_VDDLDO0_PD_EN |  //marlin use.should shutdown by user self
+		BIT_SLP_LDO_VDDLDO0_PD_EN |    //marlin use
 		//BIT_SLP_LDO_VDDCAMD1_PD_EN | //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDCAMA1_PD_EN | //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDSIM0_PD_EN |  //sim0 use.should shutdown by user self
