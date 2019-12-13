@@ -54,6 +54,9 @@ struct video_timing video_1920x1080_24Hz  = {
 	638, 44, 148, 1920,  2750,  4,  5,
 	36, 1080, 1125, 1, 1, 32, 2, 74250};
 
+
+BLOCKING_NOTIFIER_HEAD(sprd_hdmi_notifier_list);
+
 static int lt9611_i2c_read(u8 reg, u8 *data, u16 length)
 {
 	int err;
@@ -872,6 +875,46 @@ void lt9611_dphy_debug(void)
 #endif
 }
 
+static int lt9211_resume(void)
+{
+	lt9611_pll(video);
+	lt9611_mipi_pcr(video);
+	lt9611_hdmi_tx_digital(video);
+	lt9611_hdmi_out_enable();
+
+	return 0;
+}
+
+static int lt9211_suspend(void)
+{
+	lt9611_hdmi_out_disable();
+
+	return 0;
+}
+
+static int sprd_hdmi_notifier_call(struct notifier_block *nb,
+				   unsigned long code, void *_param)
+{
+	switch (code) {
+	case SPRD_HDMI_RESUME:
+		lt9211_resume();
+		break;
+
+	case SPRD_HDMI_SUSPEND:
+		lt9211_suspend();
+		break;
+
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+static struct notifier_block sprd_hdmi_notifier_block = {
+	.notifier_call = sprd_hdmi_notifier_call,
+};
+
 int lt9611_init(void)
 {
 	int ret = 0;
@@ -927,6 +970,21 @@ int lt9611_init(void)
 	return 0;
 }
 
+int hdmi_notifier_chain_register(struct notifier_block *nb)
+{
+	return blocking_notifier_chain_register(&sprd_hdmi_notifier_list, nb);
+}
+
+int hdmi_notifier_chain_unregister(struct notifier_block *nb)
+{
+	return blocking_notifier_chain_unregister(&sprd_hdmi_notifier_list, nb);
+}
+
+int hdmi_notifier_call_chain(unsigned long val, void *v)
+{
+	return blocking_notifier_call_chain(&sprd_hdmi_notifier_list, val, v);
+}
+
 static int lt9611_i2c_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
@@ -949,6 +1007,8 @@ static int lt9611_i2c_probe(struct i2c_client *client,
 		return ret;
 	}
 
+	hdmi_notifier_chain_register(&sprd_hdmi_notifier_block);
+
 	LT_INFO("I2C device probe OK\n");
 
 	return 0;
@@ -958,6 +1018,8 @@ static int lt9611_i2c_remove(struct i2c_client *client)
 {
 	i2c_set_clientdata(client, NULL);
 	lt9611_i2c.client = NULL;
+
+	hdmi_notifier_chain_unregister(&sprd_hdmi_notifier_block);
 
 	return 0;
 }

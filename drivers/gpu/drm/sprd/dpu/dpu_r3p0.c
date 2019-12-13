@@ -20,6 +20,7 @@
 #include "sprd_dpu.h"
 #include "sprd_dvfs_dpu.h"
 #include "sprd_corner.h"
+#include "lt9611_i2c.h"
 
 #define DISPC_INT_FBC_PLD_ERR_MASK	BIT(8)
 #define DISPC_INT_FBC_HDR_ERR_MASK	BIT(9)
@@ -585,6 +586,9 @@ static void dpu_stop(struct dpu_context *ctx)
 		reg->dpu_ctrl |= BIT(1);
 
 	dpu_wait_stop_done(ctx);
+
+	hdmi_notifier_call_chain(SPRD_HDMI_SUSPEND, NULL);
+
 	pr_info("dpu stop\n");
 }
 
@@ -597,6 +601,8 @@ static void dpu_run(struct dpu_context *ctx)
 	ctx->is_stopped = false;
 
 	pr_info("dpu run\n");
+
+	hdmi_notifier_call_chain(SPRD_HDMI_RESUME, NULL);
 
 	if (ctx->if_type == SPRD_DISPC_IF_EDPI) {
 		/*
