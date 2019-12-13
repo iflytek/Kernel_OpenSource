@@ -507,8 +507,6 @@ static int edma_pop_link(int chn, struct desc *__head, struct desc *__tail,
 			return -1;
 		}
 
-		dump_dscr_reg(dscr);
-		edma_dump_chn_reg(chn);
 		if (*head__) {
 			mbuf->next = dscr->link.p;
 			mbuf = mbuf->next;
