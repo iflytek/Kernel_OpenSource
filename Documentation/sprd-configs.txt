@@ -12153,15 +12153,6 @@ CONFIG_SC27XX_TSENSOR_THERMAL
 	[missing plat description]
 	[function] This function is used to config thermal moudle to get
 	osc and extern cystal temperature.
-CONFIG_SCAN_BALANCE_ANON_FILE
-	[arch] arm64
-	[plat] sharkl5
-	[missing plat] orca,roc1,sharkl3
-	[field] make
-	[subsys] mm
-	[must] home
-	[missing plat description] none
-	[function] scan balance anonymous pages and page caches when reclaim
 CONFIG_SCHEDSTATS
 	[arch] all
 	[plat] all
