@@ -96,6 +96,8 @@ struct sbuf_ring {
 
 	bool	need_wake_lock;
 	unsigned int	poll_mask;
+	/* protect poll_mask member */
+	spinlock_t	poll_lock;
 
 	void	(*handler)(int event, void *data);
 	void	*data;

@@ -67,8 +67,6 @@ void sblock_put(u8 dst, u8 channel, struct sblock *blk)
 				     sblock->stored_smem_addr;
 	ring->p_txblks[txpos].length = poolhd_op->tx_size;
 	*(poolhd_op->tx_rd_p) = *(poolhd_op->tx_rd_p) - 1;
-	/* set write mask. */
-	ring->poll_mask |= POLLOUT | POLLWRNORM;
 	if ((int)(*(poolhd_op->tx_wt_p) - *(poolhd_op->tx_rd_p)) == 1)
 		wake_up_interruptible_all(&(ring->getwait));
 	index = sblock_get_index((blk->addr - ring->txblk_virt),
@@ -77,10 +75,50 @@ void sblock_put(u8 dst, u8 channel, struct sblock *blk)
 
 	spin_unlock_irqrestore(&ring->p_txlock, flags);
 
+	/* set write mask. */
+	spin_lock_irqsave(&ring->poll_lock, flags);
+	ring->poll_mask |= POLLOUT | POLLWRNORM;
+	spin_unlock_irqrestore(&ring->poll_lock, flags);
+
 	/* request in sblock_get, release here */
 	sipc_smem_release_resource(ring->tx_pms, dst);
 }
 EXPORT_SYMBOL_GPL(sblock_put);
+
+static bool sblock_has_data(struct sblock_mgr *sblock, bool tx)
+{
+	struct sblock_ring_header_op *poolhd_op;
+	struct sblock_ring_header_op *ringhd_op;
+	struct sblock_ring *ring = sblock->ring;
+	bool has_data;
+	unsigned long flags;
+
+	/* if it is local share memory,
+	 * check the read and write point directly.
+	 */
+	if (smsg_ipcs[sblock->dst]->smem_type == SMEM_LOCAL) {
+		if (tx) {
+			poolhd_op = &ring->header_op.poolhd_op;
+			return *(poolhd_op->tx_rd_p) != *(poolhd_op->tx_wt_p);
+		}
+
+		ringhd_op = &ring->header_op.ringhd_op;
+		return *(ringhd_op->rx_wt_p) != *(ringhd_op->rx_rd_p);
+	}
+
+	/*
+	 * if it is remote share memmory read the poll_mask, this situation
+	 * requires that the poll_mask must be accurate enough.
+	 */
+	spin_lock_irqsave(&ring->poll_lock, flags);
+	if (tx)
+		has_data = ring->poll_mask & (POLLOUT | POLLWRNORM);
+	else
+		has_data = ring->poll_mask & (POLLIN | POLLRDNORM);
+	spin_unlock_irqrestore(&ring->poll_lock, flags);
+
+	return has_data;
+}
 
 /* clean rings and recover pools */
 static int sblock_recover(u8 dst, u8 channel)
@@ -155,7 +193,9 @@ static int sblock_recover(u8 dst, u8 channel)
 	spin_unlock_irqrestore(&ring->r_rxlock, pflags);
 
 	/* restore write mask. */
-	ring->poll_mask = POLLOUT | POLLWRNORM;
+	spin_lock_irqsave(&ring->poll_lock, qflags);
+	ring->poll_mask |= POLLOUT | POLLWRNORM;
+	spin_unlock_irqrestore(&ring->poll_lock, qflags);
 
 	/* release resource */
 	sipc_smem_release_resource(ring->rx_pms, dst);
@@ -567,6 +607,7 @@ static int sblock_thread(void *data)
 {
 	struct sblock_mgr *sblock = data;
 	struct smsg mcmd, mrecv;
+	unsigned long flags;
 	int rval;
 	int recovery = 0;
 	struct smsg_ipc *sipc;
@@ -688,18 +729,10 @@ static int sblock_thread(void *data)
 			switch (mrecv.flag) {
 			case SMSG_EVENT_SBLOCK_SEND:
 				ring = sblock->ring;
-				rval = sipc_smem_request_resource(ring->rx_pms,
-								  sblock->dst,
-								  -1);
-				if (!rval) {
-					/* set read mask. */
-					ring->poll_mask |= POLLIN | POLLRDNORM;
-
-					/* release resource */
-					sipc_smem_release_resource(ring->rx_pms,
-								   sblock->dst);
-				}
-
+				/* set read mask. */
+				spin_lock_irqsave(&ring->poll_lock, flags);
+				ring->poll_mask |= POLLIN | POLLRDNORM;
+				spin_unlock_irqrestore(&ring->poll_lock, flags);
 				wake_up_interruptible_all(&sblock->ring->recvwait);
 				if (sblock->handler)
 					sblock->handler(SBLOCK_NOTIFY_RECV,
@@ -707,18 +740,10 @@ static int sblock_thread(void *data)
 				break;
 			case SMSG_EVENT_SBLOCK_RELEASE:
 				ring = sblock->ring;
-				rval = sipc_smem_request_resource(ring->tx_pms,
-								  sblock->dst,
-								  -1);
-				if (!rval) {
-					/* set write mask. */
-					ring->poll_mask |= POLLOUT | POLLWRNORM;
-
-					/* release resource */
-					sipc_smem_release_resource(ring->tx_pms,
-								   sblock->dst);
-				}
-
+				/* set write mask. */
+				spin_lock_irqsave(&ring->poll_lock, flags);
+				ring->poll_mask |= POLLOUT | POLLWRNORM;
+				spin_unlock_irqrestore(&ring->poll_lock, flags);
 				wake_up_interruptible_all(&sblock->ring->getwait);
 				if (sblock->handler)
 					sblock->handler(SBLOCK_NOTIFY_GET,
@@ -817,6 +842,7 @@ static int sblock_mgr_create(uint8_t dst,
 	spin_lock_init(&sblock->ring->r_rxlock);
 	spin_lock_init(&sblock->ring->p_txlock);
 	spin_lock_init(&sblock->ring->p_rxlock);
+	spin_lock_init(&sblock->ring->poll_lock);
 
 	*sb_mgr = sblock;
 
@@ -1176,12 +1202,14 @@ int sblock_get(u8 dst, u8 channel, struct sblock *blk, int timeout)
 	if (rval < 0)
 		return rval;
 
+	spin_lock_irqsave(&ring->poll_lock, flags);
 	no_data = *(poolhd_op->tx_rd_p) == *(poolhd_op->tx_wt_p);
 	/* update write mask */
 	if (no_data)
 		ring->poll_mask &= ~(POLLOUT | POLLWRNORM);
 	else
 		ring->poll_mask |= POLLOUT | POLLWRNORM;
+	spin_unlock_irqrestore(&ring->poll_lock, flags);
 
 	/* release resource */
 	sipc_smem_release_resource(ring->tx_pms, dst);
@@ -1194,7 +1222,7 @@ int sblock_get(u8 dst, u8 channel, struct sblock *blk, int timeout)
 		} else if (timeout < 0) {
 			/* wait forever */
 			rval = wait_event_interruptible(ring->getwait,
-							ring->poll_mask & (POLLOUT | POLLWRNORM) ||
+							sblock_has_data(sblock, true) ||
 							sblock->state == SBLOCK_STATE_IDLE);
 			if (rval < 0)
 				pr_debug("%s: wait interrupted!\n", __func__);
@@ -1206,7 +1234,7 @@ int sblock_get(u8 dst, u8 channel, struct sblock *blk, int timeout)
 		} else {
 			/* wait timeout */
 			rval = wait_event_interruptible_timeout(ring->getwait,
-								ring->poll_mask & (POLLOUT | POLLWRNORM) ||
+								sblock_has_data(sblock, true) ||
 								sblock == SBLOCK_STATE_IDLE,
 				timeout);
 			if (rval < 0) {
@@ -1252,11 +1280,13 @@ int sblock_get(u8 dst, u8 channel, struct sblock *blk, int timeout)
 	}
 	spin_unlock_irqrestore(&ring->p_txlock, flags);
 
+	spin_lock_irqsave(&ring->poll_lock, flags);
 	/* update write mask */
 	if (*(poolhd_op->tx_wt_p) != *(poolhd_op->tx_rd_p))
-		ring->poll_mask |= POLLOUT | POLLWRNORM;
-	else
 		ring->poll_mask &= ~(POLLOUT | POLLWRNORM);
+	else
+		ring->poll_mask |= POLLOUT | POLLWRNORM;
+	spin_unlock_irqrestore(&ring->poll_lock, flags);
 
 	return rval;
 }
@@ -1424,12 +1454,14 @@ int sblock_receive(u8 dst, u8 channel,
 		 *(ringhd_op->rx_wt_p),
 		 *(ringhd_op->rx_rd_p));
 
+	spin_lock_irqsave(&ring->poll_lock, flags);
 	no_data = *(ringhd_op->rx_wt_p) == *(ringhd_op->rx_rd_p);
 	/* update read mask */
 	if (no_data)
 		ring->poll_mask &= ~(POLLIN | POLLRDNORM);
 	else
 		ring->poll_mask |= POLLIN | POLLRDNORM;
+	spin_unlock_irqrestore(&ring->poll_lock, flags);
 
 	/* release resource */
 	sipc_smem_release_resource(ring->rx_pms, dst);
@@ -1443,7 +1475,7 @@ int sblock_receive(u8 dst, u8 channel,
 		} else if (timeout < 0) {
 			/* wait forever */
 			rval = wait_event_interruptible(ring->recvwait,
-				ring->poll_mask & (POLLIN | POLLRDNORM));
+				sblock_has_data(sblock, false));
 			if (rval < 0)
 				pr_info("%s: wait interrupted!\n", __func__);
 
@@ -1455,7 +1487,7 @@ int sblock_receive(u8 dst, u8 channel,
 		} else {
 			/* wait timeout */
 			rval = wait_event_interruptible_timeout(ring->recvwait,
-				ring->poll_mask & (POLLIN | POLLRDNORM),
+				sblock_has_data(sblock, false),
 				timeout);
 			if (rval < 0) {
 				pr_info("%s: wait interrupted!\n", __func__);
@@ -1503,11 +1535,13 @@ int sblock_receive(u8 dst, u8 channel,
 	}
 	spin_unlock_irqrestore(&ring->r_rxlock, flags);
 
+	spin_lock_irqsave(&ring->poll_lock, flags);
 	/* update read mask */
 	if (*(ringhd_op->rx_wt_p) != *(ringhd_op->rx_rd_p))
-		ring->poll_mask |= POLLIN | POLLRDNORM;
-	else
 		ring->poll_mask &= ~(POLLIN | POLLRDNORM);
+	else
+		ring->poll_mask |= POLLIN | POLLRDNORM;
+	spin_unlock_irqrestore(&ring->poll_lock, flags);
 
 	return rval;
 }
@@ -1685,7 +1719,13 @@ unsigned int sblock_poll_wait(u8 dst, u8 channel,
 	poll_wait(filp, &ring->recvwait, wait);
 	poll_wait(filp, &ring->getwait, wait);
 
-	return ring->poll_mask;
+	if (sblock_has_data(sblock, true))
+		mask |= POLLOUT | POLLWRNORM;
+
+	if (sblock_has_data(sblock, false))
+		mask |= POLLIN | POLLRDNORM;
+
+	return mask;
 }
 EXPORT_SYMBOL_GPL(sblock_poll_wait);
 

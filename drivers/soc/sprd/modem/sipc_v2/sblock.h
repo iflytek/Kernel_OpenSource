@@ -108,6 +108,9 @@ struct sblock_ring {
 	struct sblock_blks	*p_rxblks;
 
 	unsigned int	poll_mask;
+	/* protect the poll_mask menber */
+	spinlock_t	poll_lock;
+
 	int	*txrecord; /* record the state of every txblk */
 	int	*rxrecord; /* record the state of every rxblk */
 	int	yell;	   /* need to notify cp */
