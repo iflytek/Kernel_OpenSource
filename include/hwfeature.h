@@ -28,6 +28,7 @@ struct hwfeature {
     int count;
     int append_to_cmdline;
     int hwf_off;
+    int root_off;
     char *key;
     char *value;
     void *fdt;

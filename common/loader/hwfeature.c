@@ -105,6 +105,8 @@ static int hwfeature_fdt_header(struct hwfeature *phwf)
         return -1;
     }
 
+    phwf->root_off = root_off;
+
     hwf_off = fdt_subnode_offset(phwf->fdt, root_off, "hwfeature");
     if (hwf_off < 0)
         hwf_off = fdt_add_subnode(phwf->fdt, root_off, "hwfeature");
@@ -114,7 +116,7 @@ static int hwfeature_fdt_header(struct hwfeature *phwf)
 
 static int hwfeature_fdt_mknodes(struct hwfeature *phwf, char *path, int *dt_node_off)
 {
-    int next_off, node_off;
+    int node_off;
     char *node_name;
 
     while (path) {
@@ -137,9 +139,26 @@ static int hwfeature_fdt_mkprop(struct hwfeature *phwf, char *prop, char *value,
 {
     int ret;
 
-    if (value)
-        ret = fdt_setprop_string(phwf->fdt, dt_node_off, prop, value);
-    else
+    if (value) {
+        char *vop = value;
+        /* /idle-states/core_pd/entry-latency-us=1000@u32 */
+        strsep(&vop, "@"); /* strsep will replace @ to \0 */
+        if (vop) {
+            union {
+                uint32_t v32;
+                uint64_t v64;
+            } val;
+            if (strcmp("u32", vop) == 0) {
+                val.v32 = (uint32_t)simple_strtoul(value, NULL, 0);
+                ret = fdt_setprop_u32(phwf->fdt, dt_node_off, prop, val.v32);
+            } else if (strcmp("u64", vop) == 0) {
+                val.v64 = (uint64_t)simple_strtoull(value, NULL, 0);
+                ret = fdt_setprop_u64(phwf->fdt, dt_node_off, prop, val.v64);
+            } else
+                ret = -1;
+        } else
+            ret = fdt_setprop_string(phwf->fdt, dt_node_off, prop, value);
+    } else
         ret = fdt_setprop_empty(phwf->fdt, dt_node_off, prop);
 
     return ret;
@@ -150,7 +169,12 @@ static int hwfeature_fdt_generate(struct hwfeature *phwf)
     int next_off;
     char *prop_key_prefix, *prop_key, *prop_value;
 
-    next_off = phwf->hwf_off;
+    if (phwf->key[0] != '/') {
+        next_off = phwf->hwf_off;
+    } else {
+        next_off = phwf->root_off;
+        phwf->key++; /* skip the leading slash /, assume only 1 / */
+    }
     prop_key = strrchr(phwf->key, '/');
     if (prop_key) {
         *prop_key++ = '\0';
