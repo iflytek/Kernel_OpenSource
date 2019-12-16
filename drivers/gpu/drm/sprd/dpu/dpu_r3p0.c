@@ -29,8 +29,9 @@
 #define DISPC_INT_MMU_VAOR_WR_MASK	BIT(17)
 #define DISPC_INT_MMU_VAOR_RD_MASK	BIT(16)
 
-#define XFBC8888_HEADER_SIZE(w, h) (ALIGN((w) * (h) / (8 * 8) / 2, 128))
-#define XFBC8888_PAYLOAD_SIZE(w, h) (w * h * 4)
+#define XFBC8888_HEADER_SIZE(w, h) (ALIGN(ALIGN(w, 8) * ALIGN(h, 8) \
+				/ (8 * 8) / 2, 128))
+#define XFBC8888_PAYLOAD_SIZE(w, h) (ALIGN(w, 8) * ALIGN(h, 8) * 4)
 #define XFBC8888_BUFFER_SIZE(w, h) (XFBC8888_HEADER_SIZE(w, h) \
 				+ XFBC8888_PAYLOAD_SIZE(w, h))
 
@@ -675,7 +676,7 @@ static void dpu_write_back(struct dpu_context *ctx,
 
 	wb_layer.dst_w = mode_width;
 	wb_layer.dst_h = mode_height;
-	wb_layer.pitch[0] = mode_width * 4;
+	wb_layer.pitch[0] = ALIGN(mode_width, 8) * 4;
 	wb_layer.xfbc = wb_xfbc_en;
 	wb_layer.header_size_r = XFBC8888_HEADER_SIZE(mode_width, mode_height);
 
@@ -735,6 +736,18 @@ static void dpu_wb_work_func(struct work_struct *data)
 		container_of(data, struct dpu_context, wb_work);
 
 	down(&ctx->refresh_lock);
+
+	if (!ctx->is_inited) {
+		up(&ctx->refresh_lock);
+		pr_err("dpu is not initialized\n");
+		return;
+	}
+
+	if (ctx->disable_flip) {
+		up(&ctx->refresh_lock);
+		pr_warn("dpu flip is disabled\n");
+		return;
+	}
 
 	if (wb_en && (vsync_count > max_vsync_count))
 		dpu_write_back(ctx, 1, false);
@@ -1371,8 +1384,8 @@ static void dpu_dpi_init(struct dpu_context *ctx)
 		/* use dpi as interface */
 		reg->dpu_cfg0 &= ~BIT(0);
 
-		/* disable Halt function for SPRD DSI */
-		reg->dpi_ctrl &= ~BIT(16);
+		/* enable Halt function for SPRD DSI */
+		reg->dpi_ctrl |= BIT(16);
 
 		/* set dpi timing */
 		reg->dpi_h_timing = (ctx->vm.hsync_len << 0) |
