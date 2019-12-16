@@ -779,7 +779,7 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 	priv = get_wcn_device_info();
 	if (priv == NULL) {
 		WCN_ERR("priv is NULL\n");
-		goto err_out;
+		return -ENOMEM;
 	}
 	priv->dev = pdev;
 	pci_set_drvdata(pdev, priv);
@@ -919,7 +919,7 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 	device_wakeup_enable(&(pdev->dev));
 	ret = sprd_ep_addr_map(priv);
 	if (ret < 0)
-		return ret;
+		goto err_out;
 
 	wcn_bus_change_state(priv, WCN_BUS_UP);
 	atomic_set(&priv->xmit_cnt, 0x0);
