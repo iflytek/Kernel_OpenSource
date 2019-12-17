@@ -353,13 +353,13 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 
 	ret = devm_request_threaded_irq(dev, ep->perst_irq,
 					sprd_pcie_perst_irq, NULL,
-					IRQF_TRIGGER_LOW,
+					IRQF_TRIGGER_LOW | IRQF_NO_SUSPEND,
 					"pcie_perst", ep);
-
 	if (ret < 0) {
 		dev_err(dev, "cannot request perst irq\n");
 		return ret;
 	}
+	enable_irq_wake(ep->perst_irq);
 
 	ep->wq = create_singlethread_workqueue("perst_irq");
 	if (!ep->wq)
