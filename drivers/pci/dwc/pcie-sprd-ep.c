@@ -204,8 +204,10 @@ static void sprd_pcie_ep_shutdown(struct work_struct *work)
 	if (ret < 0)
 		dev_err(&pdev->dev,
 			"set pcie uninit syscons fail, return %d\n", ret);
-	else
+	else {
+		ep->is_powered = false;
 		dw_pcie_ep_unlink(&pci->ep);
+	}
 
 	pm_relax(dev);
 }
@@ -250,6 +252,7 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 		queue_work(ep->wq, &ep->shutdown_work);
 	else {
 		pm_stay_awake(dev);
+		ep->is_powered = true;
 		queue_work(ep->wq, &ep->reinit_work);
 	}
 
@@ -297,6 +300,12 @@ static int sprd_add_pcie_ep(struct sprd_pcie *sprd_pcie,
 
 static int sprd_pcie_establish_link(struct dw_pcie *pci)
 {
+	struct sprd_pcie *ep = dev_get_drvdata(pci->dev);
+
+	/* if ep is already powered on,  unallowed operation */
+	if (ep->is_powered)
+		return -EPERM;
+
 	sprd_pcie_wakeup(pci, true);
 	return 0;
 }
@@ -327,6 +336,8 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 	ep = devm_kzalloc(dev, sizeof(*ep), GFP_KERNEL);
 	if (!ep)
 		return -ENOMEM;
+
+	ep->is_powered = true;
 
 	pci = devm_kzalloc(dev, sizeof(*pci), GFP_KERNEL);
 	if (!pci)
