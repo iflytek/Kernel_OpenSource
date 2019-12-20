@@ -12773,7 +12773,7 @@ CONFIG_SND_SMARTPA_AW881XX
 	[field] make
 	[subsys] sound
 	[must] user
-	[missing plat description] only roc1 need to support AW881XX smart pa
+	[missing plat description]only roc1 need to support AW881XX smart pa
 	[function] to support AW881XX smart pa
 CONFIG_SND_SOC
 	[arch] all
@@ -13273,8 +13273,8 @@ CONFIG_SPRD_CPROC
 	[missing plat description] none
 	[function] This function is used to enable sprd cproc module for modem boot.
 CONFIG_SPRD_CPU_COOLING
-	[arch] arm64
-	[plat] orca,roc1,sharkl5
+	[arch] all
+	[plat] orca,roc1,sharkl5,sharkl5_32
 	[missing plat] sharkl3
 	[field] make
 	[subsys] thermal
@@ -13291,8 +13291,8 @@ CONFIG_SPRD_CPU_COOLING_CPUIDLE
 	[missing plat description]
 	[function] sprd thermal policy
 CONFIG_SPRD_CPU_COOLING_DEVICE
-	[arch] arm64
-	[plat] orca,roc1,sharkl5
+	[arch] all
+	[plat] orca,roc1,sharkl5,sharkl5_32
 	[missing plat] sharkl3
 	[field] make
 	[subsys] thermal
@@ -14485,8 +14485,8 @@ CONFIG_THERMAL_GOV_POWER_ALLOCATOR
 	[missing plat description] none
 	[function] Power allocator thermal governor.
 CONFIG_THERMAL_GOV_STEP_WISE
-	[arch] all
-	[plat] sharkl3,sharkl5_32
+	[arch] arm64
+	[plat] sharkl3
 	[missing plat] orca,roc1,sharkl5
 	[field] make
 	[subsys] thermal
