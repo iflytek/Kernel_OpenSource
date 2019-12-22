@@ -136,6 +136,9 @@ static irqreturn_t cpasserttriger_handler(int irq, void *dev_id)
 
 static irqreturn_t cppanictriger_handler(int irq, void *dev_id)
 {
+	/* disble cp panic irq. */
+	disable_irq(irq);
+
 	if (!mcd_dev || !mcd_dev->init)
 		return IRQ_NONE;
 
@@ -385,6 +388,9 @@ void modem_ctrl_poweron_modem(int on)
 			mcd_dev->init->modem_status = MDM_CTRL_COLD_RESET;
 			gpiod_set_value_cansleep(mcd_dev->init->gpio_poweron,
 						 0);
+
+			/* enable cp panic irq after cp reset. */
+			enable_irq(mcd_dev->init->irq_cppanic);
 		}
 		break;
 	case MDM_CTRL_PCIE_RECOVERY:
