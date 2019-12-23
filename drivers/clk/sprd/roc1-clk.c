@@ -351,15 +351,15 @@ static SPRD_PLL_WITH_ITABLE_K_FVCO(gpll_clk, "gpll", "gpll-gate", 0x2c,
 static struct clk_bit_field f_isppll[PLL_FACT_MAX] = {
 	{ .shift = 0,	.width = 0 },	/* lock_done	*/
 	{ .shift = 75,	.width = 1 },	/* div_s	*/
-	{ .shift = 64,	.width = 1 },	/* mod_en	*/
-	{ .shift = 65,	.width = 1 },	/* sdm_en	*/
+	{ .shift = 32,	.width = 1 },	/* mod_en	*/
+	{ .shift = 33,	.width = 1 },	/* sdm_en	*/
 	{ .shift = 0,	.width = 0 },	/* refin	*/
 	{ .shift = 0,	.width = 0 },	/* icp		*/
 	{ .shift = 5,	.width = 11 },	/* n		*/
 	{ .shift = 57,	.width = 7 },	/* nint		*/
 	{ .shift = 34,	.width = 23},	/* kint		*/
 	{ .shift = 0,	.width = 0 },	/* prediv	*/
-	{ .shift = 96,	.width = 1 },	/* postdiv	*/
+	{ .shift = 64,	.width = 1 },	/* postdiv	*/
 };
 
 static SPRD_PLL_WITH_ITABLE_K_FVCO(isppll_clk, "isppll", "isppll-gate", 0x40,
