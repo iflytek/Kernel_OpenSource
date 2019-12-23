@@ -1137,6 +1137,7 @@ module_param_call(policy, pcie_aspm_set_policy, pcie_aspm_get_policy,
 
 ssize_t sprd_pcie_aspm_set_policy(struct pci_dev *pdev, int val)
 {
+	u32 state;
 	struct pcie_link_state *link, *root = pdev->link_state->root;
 
 	if (val > ARRAY_SIZE(policy_str) || val < 0) {
@@ -1145,13 +1146,31 @@ ssize_t sprd_pcie_aspm_set_policy(struct pci_dev *pdev, int val)
 		return -EINVAL;
 	}
 
+	if (aspm_disabled)
+		return -EPERM;
+
 	down_read(&pci_bus_sem);
 	mutex_lock(&aspm_lock);
-	aspm_policy = val;
 	list_for_each_entry(link, &link_list, sibling) {
 		if (link->root != root)
 			continue;
-		pcie_config_aspm_link(link, policy_to_aspm_state(link));
+
+		switch (val) {
+		case POLICY_PERFORMANCE:
+			state = 0;
+			break;
+		case POLICY_POWERSAVE:
+			state = (ASPM_STATE_L0S | ASPM_STATE_L1);
+			break;
+		case POLICY_POWER_SUPERSAVE:
+			state = ASPM_STATE_ALL;
+			break;
+		default:
+			state = link->aspm_default;
+			break;
+		}
+
+		pcie_config_aspm_link(link, state);
 	}
 	mutex_unlock(&aspm_lock);
 	up_read(&pci_bus_sem);
@@ -1161,7 +1180,24 @@ ssize_t sprd_pcie_aspm_set_policy(struct pci_dev *pdev, int val)
 
 ssize_t sprd_pcie_aspm_get_policy(struct pci_dev *pdev, int *val)
 {
-	*val = aspm_policy;
+	u32 state;
+	struct pcie_link_state *link_state = pdev->link_state;
+
+	state = link_state->aspm_enabled;
+	switch (state & ASPM_STATE_ALL) {
+	case ASPM_STATE_ALL:
+		*val = POLICY_POWER_SUPERSAVE;
+		break;
+	case (ASPM_STATE_L0S | ASPM_STATE_L1):
+		*val = POLICY_POWERSAVE;
+		break;
+	case 0:
+		*val = POLICY_PERFORMANCE;
+		break;
+	default:
+		*val = POLICY_DEFAULT;
+		break;
+	}
 
 	return 0;
 }
