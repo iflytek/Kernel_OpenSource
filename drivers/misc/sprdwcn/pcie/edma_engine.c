@@ -1227,7 +1227,10 @@ int msi_irq_handle(int irq)
 	dma_int.reg = edma->dma_chn_reg[chn].dma_int.reg;
 	msg.chn = chn;
 
+	/*
 	__pm_wakeup_event(&edma->edma_pop_ws, jiffies_to_msecs(HZ / 2));
+	*/
+	__pm_stay_awake(&edma->edma_pop_ws);
 
 	if (edma->chn_sw[chn].inout == TX) {
 		wcn_set_tx_complete_status(1);
@@ -1258,12 +1261,14 @@ int msi_irq_handle(int irq)
 					if (!priv) {
 						WCN_ERR("%s:pcie ep is null\n",
 							__func__);
+						__pm_relax(&edma->edma_pop_ws);
 						local_irq_restore(irq_flags);
 						return -1;
 					}
 					if (priv->rc_pd)
 						sprd_pcie_dump_rc_regs(
 								priv->rc_pd);
+					__pm_relax(&edma->edma_pop_ws);
 					local_irq_restore(irq_flags);
 					return -1;
 				}
@@ -1282,9 +1287,11 @@ int msi_irq_handle(int irq)
 		WCN_DBG(" callback not in irq\n");
 		set_wcnevent(&(edma->isr_func.q.event));
 		WCNDBG("cb not irq=%ld, chn=%d\n", irq_flags, chn);
+		__pm_relax(&edma->edma_pop_ws);
 		local_irq_restore(irq_flags);
 		return 0;
 	} else if (mchn_hw_cb_in_irq(chn) == -1) {
+		__pm_relax(&edma->edma_pop_ws);
 		local_irq_restore(irq_flags);
 		WCN_ERR(" irq=%ld, chn=%d\n", irq_flags, chn);
 		return -1;
@@ -1294,6 +1301,7 @@ int msi_irq_handle(int irq)
 	hisrfunc(&msg);
 
 	WCNDBG("cb in irq=%ld, chn=%d\n", irq_flags, chn);
+	__pm_relax(&edma->edma_pop_ws);
 	local_irq_restore(irq_flags);
 
 	return 0;
