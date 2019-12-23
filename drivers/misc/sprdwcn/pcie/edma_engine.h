@@ -42,9 +42,6 @@ enum ADDR_REGION_TYPE {
 #define INCR_RING_BUFF_INDX(indx, max_num) \
 	((((indx) + 1) < (max_num)) ? ((indx) + 1) : (0))
 
-#define DECR_RING_BUFF_INDX(indx, max_num) \
-	((indx > 0) ? ((indx) - 1) : ((max_num) - 1))
-
 #define GET_32_OF_40(a) ((unsigned int)((unsigned long)	\
 				(mpool_vir_to_phy(a)) & 0xFFFFFFFF))
 #define GET_8_OF_40(a)	((unsigned char) \

@@ -814,23 +814,6 @@ int edma_push_link(int chn, void *head, void *tail, int num)
 	return 0;
 }
 
-
-static int edma_pending_q_num(int chn)
-{
-	int ret;
-	struct edma_pending_q *q;
-	struct edma_info *edma = edma_info();
-
-	q = &(edma->chn_sw[chn].pending_q);
-
-	if (q->wt >= q->rd)
-		ret = q->wt - q->rd;
-	else
-		ret = q->wt + (q->max - q->rd);
-	return ret;
-}
-
-#ifdef ONEBYONE
 static int edma_pending_q_buffer(int chn, void *head, void *tail, int num)
 {
 	struct edma_pending_q *q;
@@ -849,38 +832,6 @@ static int edma_pending_q_buffer(int chn, void *head, void *tail, int num)
 
 	return OK;
 }
-
-#else
-static int edma_pending_q_buffer(int chn, void *head, void *tail, int num)
-{
-	struct edma_pending_q *q;
-	struct edma_info *edma = edma_info();
-	struct mbuf_t *mbuf;
-	int q_pre_wt;
-
-	q = &(edma->chn_sw[chn].pending_q);
-
-	if ((q->wt + 1) % (q->max) == q->rd) {
-		WCN_ERR("%s(%d) full\n", __func__, chn);
-		return ERROR;
-	}
-
-	q_pre_wt = DECR_RING_BUFF_INDX(q->wt, q->max);
-	if ((edma_pending_q_num(chn) > 0) && (q->ring[q_pre_wt].num < 200)) {
-		mbuf = q->ring[q_pre_wt].tail;
-		mbuf->next = head;
-		q->ring[q_pre_wt].tail = tail;
-		q->ring[q_pre_wt].num += num;
-	} else {
-		q->ring[q->wt].head = head;
-		q->ring[q->wt].tail = tail;
-		q->ring[q->wt].num  = num;
-		q->wt = INCR_RING_BUFF_INDX(q->wt, q->max);
-	}
-
-	return OK;
-}
-#endif
 
 int edma_push_link_async(int chn, void *head, void *tail, int num)
 {
@@ -920,6 +871,20 @@ int edma_push_link_wait_complete(int chn, void *head, void *tail, int num,
 }
 
 
+static int edma_pending_q_num(int chn)
+{
+	int ret;
+	struct edma_pending_q *q;
+	struct edma_info *edma = edma_info();
+
+	q = &(edma->chn_sw[chn].pending_q);
+
+	if (q->wt >= q->rd)
+		ret = q->wt - q->rd;
+	else
+		ret = q->wt + (q->max - q->rd);
+	return ret;
+}
 
 static int edma_pending_q_flush(int chn)
 {
