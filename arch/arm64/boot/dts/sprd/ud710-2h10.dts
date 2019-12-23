@@ -960,6 +960,11 @@
 			 REG_ANLG_PHY_G6_ANALOG_PCIEPLL_V_PCIEPLL_V_CTRL0
 			 MASK_ANLG_PHY_G6_ANALOG_PCIEPLL_V_DIFF_OR_SING_SEL
 			 0x0>;
+	sprd,pcie-aspml1p2-syscons =
+		<&pmu_apb_regs 1 0
+			 REG_PMU_APB_RESERVED_REG
+			 (0x1 << 17)     /* no corresponding macro */
+			 0>;
 };
 
 &pin_controller {
