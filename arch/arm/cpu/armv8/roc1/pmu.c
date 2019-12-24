@@ -939,8 +939,11 @@ void CSP_Init(uint32_t gen_para)
 
 	//cache workaround
 #ifdef ROC1_CACHE_MODIFICATION
-	if (ROC1_CHIP_VER_AA == CHIP_REG_GET(REG_AON_APB_AON_VER_ID))
+	if (ROC1_CHIP_VER_AA == CHIP_REG_GET(REG_AON_APB_AON_VER_ID)) {
 		cache_workaround();
+	} else {
+		regulator_set_voltage("vddsram", 850);
+	}
 #endif
 
 	aon_idle_config();
