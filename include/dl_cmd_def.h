@@ -54,6 +54,7 @@ typedef enum dl_cmd_type {
     BSL_CMD_WRITE_DATETIME = 0x22,
     BSL_CMD_CHECK_NV_TYPE=0x24,                /* 0xC, just sharkl2 */
     BSL_CMD_SET_DEBUGINFO = 0x25,
+    BSL_CMD_SET_FIRST_MODE = 0x2A,
 
     BSL_CMD_END_PROCESS = 0x7F,
     /* Start of the Command can be transmited by phone*/

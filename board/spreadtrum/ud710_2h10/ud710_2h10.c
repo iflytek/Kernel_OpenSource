@@ -148,6 +148,7 @@ int board_late_init(void)
 CBOOT_FUNC s_boot_func_array[CHECK_BOOTMODE_FUN_NUM] = {
 	get_mode_from_bat_low,
 	write_sysdump_before_boot_extend,
+	get_mode_from_miscdata_boot_flag,
 	/* 1 get mode from file*/
 	get_mode_from_file_extend,
 	/* 2 get mode from watch dog*/
@@ -190,6 +191,8 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 	MODE_REGIST(CMD_ALARM_MODE, alarm_mode);
 	MODE_REGIST(CMD_SPRDISK_MODE, sprdisk_mode);
 	MODE_REGIST(CMD_AUTOTEST_MODE, autotest_mode);
+	MODE_REGIST(CMD_APKMMI_MODE, apkmmi_mode);
+	MODE_REGIST(CMD_UPT_MODE, upt_mode);
 	return ;
 }
 

@@ -21,6 +21,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+extern u32 get_first_mode;
 extern void *lcd_get_base_addr(void *lcd_base);
 extern uint32_t lcd_get_pixel_clock(void);
 extern uint32_t load_lcd_id_to_kernel();
@@ -815,6 +816,25 @@ int fdt_fixup_mtd(void *fdt)
 	return ret;
 }
 #endif
+
+int fdt_fixup_first_mode(void *fdt)
+{
+	char buf[32];
+	int ret = 0;
+	uint32_t first_mode = 0;
+
+	memset(buf, 0, 32);
+
+	if ((get_first_mode & 0xFFFFFF00) == SET_FIRST_MODE_MAGIC){
+		first_mode = get_first_mode & 0x000000FF;
+		sprintf(buf, "first_mode=%x", first_mode);
+		debugf("cmdline first_mode=%x\n", first_mode);
+
+		ret = fdt_chosen_bootargs_append(fdt, buf, 1);
+	}
+
+	return ret;
+}
 
 int fdt_fixup_lcdid(void *fdt)
 {

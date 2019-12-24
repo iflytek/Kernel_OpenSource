@@ -644,3 +644,16 @@ int read_adc_calibration_data(char *buffer,int size)
 	return size;
 }
 
+void download_after_enter_cali_mode(u8 cail_mode)
+{
+	memset(calibration_cmd_buf, 0, MAX_CALIBRATION_LEN);
+	s_is_calibration_mode = 1;
+	snprintf(calibration_cmd_buf, MAX_CALIBRATION_LEN, "calibration=%d,%d,146 ", cail_mode, 0);
+}
+
+void download_after_enter_autotest_mode(u8 cali_mode)
+{
+	memset(calibration_cmd_buf, 0, MAX_CALIBRATION_LEN);
+	s_is_calibration_mode = 1;
+	snprintf(calibration_cmd_buf, MAX_CALIBRATION_LEN, "autotest=1 ");
+}

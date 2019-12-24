@@ -31,11 +31,63 @@ typedef enum {
 	CMD_IQ_REBOOT_MODE,
 	CMD_SLEEP_MODE,
 	CMD_SPRDISK_MODE,
+	CMD_APKMMI_MODE,
+	CMD_UPT_MODE,
 
 	/*this is not a mode name ,beyond CMD_MAX_MODE means overflow*/
 	CMD_MAX_MODE
 }boot_mode_enum_type;
 
+typedef enum {
+	CMD_SET_FIRST_NORMAL_BOOT_MODE = 0,
+
+	CMD_SET_FIRST_GSM_CLA_MODE,
+	CMD_SET_FIRST_GSM_FINAL_TEST_MODE,
+
+	CMD_SET_FIRST_WCDMA_CLA_MODE,
+	CMD_SET_FIRST_WCDMA_FINAL_TEST_MODE,
+
+	CMD_SET_FIRST_TDSCDMA_CLA_MODE,
+	CMD_SET_FIRST_TDSCDMA_FINAL_TEST_MODE,
+
+	CMD_SET_FIRST_LTETDD_CLA_MODE,
+	CMD_SET_FIRST_LTETDD_FINAL_TEST_MODE,
+
+	CMD_SET_FIRST_LTEFDD_CLA_MODE,
+	CMD_SET_FIRST_LTEFDD_FINAL_TEST_MODE,
+
+	CMD_SET_FIRST_NR5GSUB6G_CLA_MODE,
+	CMD_SET_FIRST_NR5GSUB6G_FINAL_TEST_MODE,
+
+	CMD_SET_FIRST_NRMMW_CLA_MODE,
+	CMD_SET_FIRST_NRMMW_FINAL_TEST_MODE,
+
+	CMD_SET_FIRST_CDMA2K_CLA_MODE,
+	CMD_SET_FIRST_CDMA2K_FINAL_TEST_MODE,
+
+	CMD_SET_FIRST_BBAT_MODE,
+
+	CMD_SET_FIRST_NATIVE_MMI_MODE,/* MMI for feature phone */
+
+	CMD_SET_FIRST_APK_MMI_MODE,/* apply for smartphone */
+
+	CMD_SET_FIRST_NBIOT_CAL_MODE,
+	CMD_SET_FIRST_NBIOT_FINAL_TEST_MODE,
+
+	CMD_SET_FIRST_UPT_MODE,
+
+	CMD_SET_FIRST_MAX_MODE
+}set_first_mode_enum_type;
+
+typedef struct first_boot_mode {
+	u32 set_mode;
+	u32 boot_mode;
+	u32 cail_parameter;
+} first_boot_mode_t;
+
+#define SET_FIRST_MODE_MAGIC 0x53464d00
+#define SET_FIRST_MODE_OFFSET (9 * 1024 + 32)
+#define SET_FIRST_MDOE_LEN 0x4
 
 #define CHECK_BOOTMODE_FUN_NUM 15
 typedef boot_mode_enum_type (*CBOOT_FUNC) (void);
@@ -79,6 +131,8 @@ void autodloader_mode(void);
 void iq_mode(void);
 void autotest_mode(void);
 void sprdisk_mode(void);
+void apkmmi_mode(void);
+void upt_mode(void);
 
 boot_mode_enum_type get_mode_from_arg(char* mode_name);
 boot_mode_enum_type get_mode_from_pctool(void);
@@ -90,6 +144,7 @@ boot_mode_enum_type get_mode_from_alarm_register(void);
 boot_mode_enum_type get_mode_from_charger(void);
 boot_mode_enum_type get_mode_from_keypad(void);
 boot_mode_enum_type get_mode_from_gpio_extend(void);
+boot_mode_enum_type get_mode_from_miscdata_boot_flag(void);
 
 void vlx_nand_boot(char * kernel_pname, int backlight_set, int lcd_enable);
 #endif

@@ -74,4 +74,5 @@ void dl_enable_write_flash(void);
 #ifdef CONFIG_DTS_MEM_LAYOUT
 int dl_set_buf_base_size();
 #endif
+int dl_set_first_mode(dl_packet_t *packet, void *arg);
 #endif /*DL_CMD_PROC_H */

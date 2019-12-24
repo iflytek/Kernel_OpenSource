@@ -615,3 +615,23 @@ int dl_cmd_read_flashtype(dl_packet_t *packet, void *arg)
 }
 #endif
 
+int dl_set_first_mode(dl_packet_t *packet, void *arg)
+{
+	u32 set_first_mode = 0;
+	u32 op_res = OPERATE_SUCCESS;
+
+	set_first_mode = *(packet->body.content);
+	debugf("set_first_mode: 0x%x\n", set_first_mode);
+
+	set_first_mode += SET_FIRST_MODE_MAGIC;
+
+	if(0 != common_raw_write("miscdata", (uint64_t)(sizeof(set_first_mode)), (uint64_t)0,
+				(uint64_t)SET_FIRST_MODE_OFFSET, &set_first_mode)){
+		op_res = OPERATE_WRITE_ERROR;
+	}
+
+	_send_reply(op_res);
+
+	return 0;
+}
+

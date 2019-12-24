@@ -159,6 +159,7 @@ int do_download(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #ifdef CONFIG_EMMC_DDR_CHECK_TYPE
 	dl_cmd_register(BSL_CMD_READ_FLASH_TYPE, dl_cmd_read_flashtype);
 #endif
+	dl_cmd_register(BSL_CMD_SET_FIRST_MODE, dl_set_first_mode);
 	usb_init(0);
 
 	/* uart download doesn't supoort disable hdlc, so need check it */

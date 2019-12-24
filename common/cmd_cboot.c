@@ -112,6 +112,34 @@ boot_mode_enum_type write_sysdump_before_boot_extend(void)
 	return CMD_UNDEFINED_MODE;
 }
 #endif
+
+/* get mode from miscdata */
+boot_mode_enum_type get_mode_from_miscdata_boot_flag(void)
+{
+	switch (read_boot_flag()) {
+		case CMD_CALIBRATION_MODE:
+			debugf("get mode from firstmode field: calibration\n");
+			return CMD_CALIBRATION_MODE;
+		case CMD_FACTORYTEST_MODE:
+			debugf("get mode from firstmode field: factorytest\n");
+			return CMD_FACTORYTEST_MODE;
+		case CMD_AUTOTEST_MODE:
+			debugf("get mode from firstmode field: autotest\n");
+			return CMD_AUTOTEST_MODE;
+		case CMD_APKMMI_MODE:
+			debugf("get mode from firstmode field: apkmmi\n");
+			return CMD_APKMMI_MODE;
+		case CMD_UPT_MODE:
+			debugf("get mode from firstmode field: upt\n");
+			return CMD_UPT_MODE;
+		default:
+			debugf("get mode from file: no set first mode\n");
+			return CMD_UNDEFINED_MODE;
+	}
+
+	return CMD_UNDEFINED_MODE;
+}
+
 /*1 get mode from file, just for recovery mode now*/
 boot_mode_enum_type get_mode_from_file_extend(void)
 {

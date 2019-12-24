@@ -294,3 +294,17 @@ void sprdisk_mode(void)
 	vlx_nand_boot(BOOT_PART, BACKLIGHT_OFF, LCD_ON);
 
 }
+
+void apkmmi_mode(void)
+{
+	debugf("enter\n");
+	setenv("bootmode", "apkmmi_mode");
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_ON, LCD_ON);
+}
+
+void upt_mode(void)
+{
+	debugf("enter\n");
+	setenv("bootmode", "upt_mode");
+	vlx_nand_boot(BOOT_PART, BACKLIGHT_ON, LCD_ON);
+}

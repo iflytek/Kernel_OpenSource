@@ -175,6 +175,7 @@ void fdt_fixup_all(u8 *fdt_blob)
 	/* if enabled, set loglevel = 7*/
 	fdt_fixup_loglevel(fdt_blob);
 	fdt_fixup_system_mount_part_num(fdt_blob);
+	fdt_fixup_first_mode(fdt_blob);
 
 #ifdef CONFIG_GET_CPU_SERIAL_NUMBER
 	fdt_fixup_cpu_serial_number(fdt_blob);
