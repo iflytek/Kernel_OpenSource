@@ -290,7 +290,6 @@
 
 &dpu {
 	status = "okay";
-	sprd,backlight = <&pmic_backlight>;
 };
 
 &thm_zone {
@@ -310,7 +309,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	panel {
+	panel: panel {
 		compatible = "sprd,generic-mipi-panel";
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -390,17 +389,6 @@
 			compatible = "sprd,sc2703-lcd-regulator";
 			regulator-name = "sc2703-lcd";
 			regulator-boot-on;
-		};
-
-		pmic_backlight: sc2703-backlight {
-			compatible = "sprd,sc2703-backlight";
-
-			pwms = <&pwms 0 40000>;
-			pwm-names = "wled-pwm";
-			//int-gpios = <&ap_gpio 96 0>;
-
-			sprd,wled-mode = "duty-det-analog-mode";
-			sprd,max-brightness = <255>;
 		};
 	};
 
