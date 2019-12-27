@@ -84,6 +84,10 @@ static void sprd_pcie_resource_host_first_rescan_do(struct sprd_pcie_res *res)
 	if (ret)
 		pr_err("pcie res: register pci ret=%d.\n", ret);
 
+	/* power up for ep after the first scan. */
+	res->ep_power_on = true;
+	sprd_pms_power_up(res->pms);
+
 #ifdef CONFIG_SPRD_SIPA
 	/*
 	 * in host side, producer res id is SIPA_RM_RES_PROD_PCIE3,
