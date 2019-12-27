@@ -11,8 +11,10 @@
  * GNU General Public License for more details.
  */
 
+#include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/of_irq.h>
 #include <linux/platform_device.h>
 #include <linux/sysfs.h>
 #include <linux/timer.h>
@@ -291,6 +293,74 @@ static ssize_t wb_debug_store(struct device *dev,
 }
 static DEVICE_ATTR_WO(wb_debug);
 
+static ssize_t irq_register_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	uint32_t value;
+	struct sprd_dpu *dpu = dev_get_drvdata(dev);
+	struct dpu_context *ctx = &dpu->ctx;
+	int ret;
+
+	if (kstrtou32(buf, 10, &value)) {
+		pr_err("Invalid input for irq_register\n");
+		return -EINVAL;
+	}
+
+	if (value > 0 && ctx->irq) {
+		down(&ctx->refresh_lock);
+		if (!ctx->is_inited) {
+			pr_err("dpu is not initialized!\n");
+			up(&ctx->refresh_lock);
+			return -EINVAL;
+		}
+		if (dpu->core->enable_vsync)
+			dpu->core->enable_vsync(ctx);
+
+		ret = devm_request_irq(&dpu->dev, ctx->irq, ctx->dpu_isr,
+					0, "DISPC", dpu);
+		if (ret) {
+			up(&ctx->refresh_lock);
+			pr_err("error: dpu request irq failed\n");
+			return -EINVAL;
+		}
+
+		enable_irq(ctx->irq);
+		up(&ctx->refresh_lock);
+	}
+
+	return count;
+}
+static DEVICE_ATTR_WO(irq_register);
+
+static ssize_t irq_unregister_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	uint32_t value;
+	struct sprd_dpu *dpu = dev_get_drvdata(dev);
+	struct dpu_context *ctx = &dpu->ctx;
+
+	if (kstrtou32(buf, 10, &value)) {
+		pr_err("Invalid input for irq_unregister\n");
+		return -EINVAL;
+	}
+
+	if (value > 0 && ctx->irq) {
+		down(&ctx->refresh_lock);
+		if (!ctx->is_inited) {
+			pr_err("dpu is not initialized!\n");
+			up(&ctx->refresh_lock);
+			return -EINVAL;
+		}
+		if (dpu->core->disable_vsync)
+			dpu->core->disable_vsync(ctx);
+		devm_free_irq(&dpu->dev, ctx->irq, dpu);
+		up(&ctx->refresh_lock);
+	}
+
+	return count;
+}
+static DEVICE_ATTR_WO(irq_unregister);
+
 static struct attribute *dpu_attrs[] = {
 	&dev_attr_run.attr,
 	&dev_attr_refresh.attr,
@@ -301,8 +371,11 @@ static struct attribute *dpu_attrs[] = {
 	&dev_attr_wr_regs.attr,
 	&dev_attr_dpu_version.attr,
 	&dev_attr_wb_debug.attr,
+	&dev_attr_irq_register.attr,
+	&dev_attr_irq_unregister.attr,
 	NULL,
 };
+
 static const struct attribute_group dpu_group = {
 	.attrs = dpu_attrs,
 };

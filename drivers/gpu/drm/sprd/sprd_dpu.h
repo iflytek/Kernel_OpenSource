@@ -182,6 +182,7 @@ struct dpu_context {
 	unsigned long logo_size;
 	struct work_struct cabc_work;
 	struct work_struct cabc_bl_update;
+	irqreturn_t (*dpu_isr)(int irq, void *data);
 };
 
 struct sprd_dpu {
