@@ -578,12 +578,20 @@ static int sprd_epf_bind(struct pci_epf *epf)
 	void  (*notify)(int event, void *data);
 	struct pci_epc *epc = epf->epc;
 	struct device *dev = &epf->dev;
+	struct sprd_pci_epf *epf_sprd = epf_get_drvdata(epf);
 
 	if (WARN_ON_ONCE(!epc))
 		return -EINVAL;
 
 	dev_info(dev, "bind: func_no = %d, epf->func_no = =%d\n",
 		epf->func_no, epf->msi_interrupts);
+
+	/*
+	 * Normal chip, after orca boot, pcie is already linked.
+	 * So after epf bind, must do the linkup work.
+	 */
+	if (!sprd_epf_is_defective_chip())
+		schedule_work(&epf_sprd->linkup_work);
 
 	/*
 	 * if the feature CONFIG_SPRD_EPF_ENABLE_EPCONF
