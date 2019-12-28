@@ -1282,7 +1282,7 @@ int sblock_get(u8 dst, u8 channel, struct sblock *blk, int timeout)
 
 	spin_lock_irqsave(&ring->poll_lock, flags);
 	/* update write mask */
-	if (*(poolhd_op->tx_wt_p) != *(poolhd_op->tx_rd_p))
+	if (*(poolhd_op->tx_wt_p) == *(poolhd_op->tx_rd_p))
 		ring->poll_mask &= ~(POLLOUT | POLLWRNORM);
 	else
 		ring->poll_mask |= POLLOUT | POLLWRNORM;
@@ -1537,7 +1537,7 @@ int sblock_receive(u8 dst, u8 channel,
 
 	spin_lock_irqsave(&ring->poll_lock, flags);
 	/* update read mask */
-	if (*(ringhd_op->rx_wt_p) != *(ringhd_op->rx_rd_p))
+	if (*(ringhd_op->rx_wt_p) == *(ringhd_op->rx_rd_p))
 		ring->poll_mask &= ~(POLLIN | POLLRDNORM);
 	else
 		ring->poll_mask |= POLLIN | POLLRDNORM;

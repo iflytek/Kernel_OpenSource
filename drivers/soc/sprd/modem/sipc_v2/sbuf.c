@@ -1020,7 +1020,8 @@ int sbuf_write(u8 dst, u8 channel, u32 bufid,
 
 	/* update write mask */
 	spin_lock_irqsave(&ring->poll_lock, flags);
-	if (*(hd_op->tx_wt_p) - *(hd_op->tx_rd_p) < hd_op->tx_size)
+	if ((int)(*(hd_op->tx_wt_p) - *(hd_op->tx_rd_p)) >=
+	    hd_op->tx_size)
 		ring->poll_mask &= ~(POLLOUT | POLLWRNORM);
 	else
 		ring->poll_mask |= POLLOUT | POLLWRNORM;
@@ -1247,7 +1248,7 @@ int sbuf_read(u8 dst, u8 channel, u32 bufid,
 
 	/* update read mask */
 	spin_lock_irqsave(&ring->poll_lock, flags);
-	if (*(hd_op->rx_wt_p) != *(hd_op->rx_rd_p))
+	if (*(hd_op->rx_wt_p) == *(hd_op->rx_rd_p))
 		ring->poll_mask &= ~(POLLIN | POLLRDNORM);
 	else
 		ring->poll_mask |= POLLIN | POLLRDNORM;
