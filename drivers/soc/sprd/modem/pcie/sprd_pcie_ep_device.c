@@ -49,7 +49,6 @@ enum dev_pci_barno {
 
 #define REQUEST_BASE_IRQ (IPA_HW_IRQ_BASE + IPA_HW_IRQ_CNT)
 #define REQUEST_BASE_IRQ_DEFECT 16
-#define REQUEST_MAX_IRQ (REQUEST_BASE_IRQ + PCIE_MSI_MAX_IRQ)
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
 /* the bar0 and the bar1 are used for ipa */
@@ -1010,7 +1009,7 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	irq_cnt = pci_enable_msi_range(pdev, 1, MAX_SUPPORT_IRQ);
 #endif
 
-	if (irq_cnt < REQUEST_MAX_IRQ) {
+	if (irq_cnt < MAX_SUPPORT_IRQ) {
 		err = irq_cnt < 0 ? irq_cnt : -EINVAL;
 		dev_err(dev, "ep: failed to get MSI interrupts, err=%d\n", err);
 		goto err_disable_msi;
@@ -1029,7 +1028,9 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 		ep_dev->ipa_base_irq = IPA_HW_IRQ_BASE;
 	}
 
-	for (i = ep_dev->base_irq; i < REQUEST_MAX_IRQ; i++) {
+	for (i = ep_dev->base_irq;
+	     i < ep_dev->base_irq + PCIE_MSI_MAX_IRQ;
+	     i++) {
 		err = devm_request_irq(dev, pdev->irq + i,
 				       sprd_pci_ep_dev_irqhandler,
 				       IRQF_SHARED, DRV_MODULE_NAME, ep_dev);
@@ -1040,7 +1041,9 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	}
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
-	for (i = ep_dev->ipa_base_irq; i < IPA_HW_IRQ_CNT; i++) {
+	for (i = ep_dev->ipa_base_irq;
+	     i < ep_dev->ipa_base_irq + IPA_HW_IRQ_CNT;
+	     i++) {
 		err = devm_request_irq(dev, pdev->irq + i,
 				       sprd_pci_ep_dev_irqhandler,
 				       IRQF_SHARED, DRV_MODULE_NAME, ep_dev);
@@ -1098,11 +1101,13 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	return 0;
 
 err_free_irq:
-	for (i = ep_dev->base_irq; i < REQUEST_MAX_IRQ; i++)
+	for (i = ep_dev->base_irq; i < ep_dev->base_irq + PCIE_MSI_MAX_IRQ; i++)
 		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
-	for (i = ep_dev->ipa_base_irq; i < IPA_HW_IRQ_CNT; i++)
+	for (i = ep_dev->ipa_base_irq;
+	     i < ep_dev->ipa_base_irq + IPA_HW_IRQ_CNT;
+	     i++)
 		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
 #endif
 
@@ -1136,11 +1141,13 @@ static void sprd_pci_ep_dev_remove(struct pci_dev *pdev)
 	if (ep_dev->cfg_base)
 		iounmap(ep_dev->cfg_base);
 
-	for (i = ep_dev->base_irq; i < REQUEST_MAX_IRQ; i++)
+	for (i = ep_dev->base_irq; i < ep_dev->base_irq + PCIE_MSI_MAX_IRQ; i++)
 		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
-	for (i = ep_dev->ipa_base_irq; i < IPA_HW_IRQ_CNT; i++)
+	for (i = ep_dev->ipa_base_irq;
+	     i < ep_dev->ipa_base_irq + IPA_HW_IRQ_CNT;
+	     i++)
 		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
 #endif
 
