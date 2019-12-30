@@ -22,7 +22,7 @@ enum {
 	MDM_CTRL_SET_CFG
 };
 
-void modem_ctrl_send_abnormal_to_ap(int status, u32 time_us);
+void modem_ctrl_send_abnormal_to_ap(int status);
 void modem_ctrl_poweron_modem(int on);
 int modem_ctrl_register_notifier(struct notifier_block *nb);
 void modem_ctrl_unregister_notifier(struct notifier_block *nb);
