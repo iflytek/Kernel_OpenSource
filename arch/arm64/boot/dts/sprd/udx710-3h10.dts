@@ -373,7 +373,8 @@
 	"gpio_73_config", "gpio_76_config", "gpio_91_config", "gpio_93_config",
 	"gpio_95_config", "gpio_97_config", "gpio_101_config", "gpio_99_config",
 	"gpio_92_config", "gpio_94_config", "gpio_96_config", "gpio_98_config",
-	"gpio_102_config", "gpio_100_config";
+	"gpio_102_config", "gpio_100_config",
+	"gpio_13", "gpio_13_config";
 	pinctrl-0 = <&gpio_46>;
 	pinctrl-1 = <&gpio_47>;
 	pinctrl-2 = <&gpio_44>;
@@ -466,6 +467,8 @@
 	pinctrl-89 = <&gpio_98_config>;
 	pinctrl-90 = <&gpio_102_config>;
 	pinctrl-91 = <&gpio_100_config>;
+	pinctrl-92 = <&gpio_13>;
+	pinctrl-93 = <&gpio_13_config>;
 
 	gpio_46: iis0clk {
 		pins = "ORCA_IIS0CLK";
@@ -877,6 +880,15 @@
 		function = "func4";
 		gpio_100_config: u5rxd_config {
 			pins = "ORCA_U5RXD_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_13: keyout1 {
+		pins = "ORCA_KEYOUT1";
+		function = "func4";
+		gpio_13_config: keyout1_config {
+			pins = "ORCA_KEYOUT1_MISC";
 			sprd,sleep-mode = <NONE_SLEEP>;
 		};
 	};
