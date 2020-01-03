@@ -291,29 +291,6 @@ static void aw88195_memclk_select(struct aw881xx *aw88195, unsigned char flag)
 	}
 }
 
-static int aw88195_sysst_check(struct aw881xx *aw88195)
-{
-	int ret = -1;
-	unsigned char i;
-	uint16_t reg_val = 0;
-
-	for (i = 0; i < AW88195_SYSST_CHECK_MAX; i++) {
-		aw88195_i2c_read(aw88195, AW88195_REG_SYSST, &reg_val);
-		if ((reg_val & (~AW88195_BIT_SYSST_CHECK_MASK)) ==
-			AW88195_BIT_SYSST_CHECK) {
-			ret = 0;
-			return ret;
-		} else {
-			pr_debug("%s: check fail, cnt=%d, reg_val=0x%04x\n",
-				__func__, i, reg_val);
-			msleep(2);
-		}
-	}
-	pr_info("%s: check fail\n", __func__);
-
-	return ret;
-}
-
 static int aw88195_get_sysint(struct aw881xx *aw88195, uint16_t *sysint)
 {
 	int ret = -1;
@@ -467,24 +444,17 @@ static int aw88195_dsp_set_vcalb(struct aw881xx *aw88195)
 
 static int aw88195_start(struct aw881xx *aw88195)
 {
-	int ret = -1;
-
 	pr_debug("%s: enter\n", __func__);
 
 	aw88195_run_pwd(aw88195, false);
-	ret = aw88195_sysst_check(aw88195);
-	if (ret < 0) {
-		aw88195_run_mute(aw88195, true);
-	} else {
-		aw88195_run_mute(aw88195, false);
+	aw88195_run_mute(aw88195, false);
 
-		if ((aw88195->monitor_flag) &&
-			(aw88195->spk_rcv_mode == AW881XX_SPEAKER_MODE)) {
-			aw881xx_monitor_start(aw88195);
-		}
+	if ((aw88195->monitor_flag) &&
+		(aw88195->spk_rcv_mode == AW881XX_SPEAKER_MODE)) {
+		aw881xx_monitor_start(aw88195);
 	}
 
-	return ret;
+	return 0;
 }
 
 static void aw88195_stop(struct aw881xx *aw88195)

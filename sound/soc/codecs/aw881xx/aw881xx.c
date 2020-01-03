@@ -584,15 +584,7 @@ static int aw881xx_mute(struct snd_soc_dai *dai, int mute, int stream)
 	} else {
 		if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
 			mutex_lock(&aw881xx->lock);
-			if (dev_ops->st_check(aw881xx) == 1) {
-				if (hrtimer_active(&aw881xx->fw_timer)) {
-					pr_info("%s: cancel fw timer\n", __func__);
-					hrtimer_cancel(&aw881xx->fw_timer);
-				}
-				dev_ops->smartpa_cfg(aw881xx, true);
-			} else {
-				hrtimer_start(&aw881xx->fw_timer, ktime_set(1, 1000000), HRTIMER_MODE_REL);
-			}
+			dev_ops->smartpa_cfg(aw881xx, true);
 			mutex_unlock(&aw881xx->lock);
 		}
 	}
