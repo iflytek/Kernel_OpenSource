@@ -228,7 +228,7 @@ void aw88195_set_cali_re(void *aw881xx)
  ******************************************************/
 static void aw88195_run_mute(struct aw881xx *aw88195, bool mute)
 {
-	pr_debug("%s: enter\n", __func__);
+	pr_debug("%s: enter, mute %d\n", __func__, mute);
 
 	if (mute) {
 		aw88195_i2c_write_bits(aw88195, AW88195_REG_PWMCTRL,
@@ -245,7 +245,7 @@ void aw88195_run_pwd(void *aw881xx, bool pwd)
 {
 	struct aw881xx *aw88195 = (struct aw881xx *)aw881xx;
 
-	pr_debug("%s: enter\n", __func__);
+	pr_debug("%s: enter, pwd %d\n", __func__, pwd);
 
 	if (pwd) {
 		aw88195_i2c_write_bits(aw88195, AW88195_REG_SYSCTRL,
