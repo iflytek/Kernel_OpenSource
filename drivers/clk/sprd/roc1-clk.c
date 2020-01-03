@@ -162,8 +162,8 @@ static struct clk_bit_field f_mpll1[PLL_FACT_MAX] = {
 	{ .shift = 113,	.width = 1 },	/* mod_en	*/
 	{ .shift = 122,	.width = 1 },	/* sdm_en	*/
 	{ .shift = 0,	.width = 0 },	/* refin	*/
-	{ .shift = 5,	.width = 7 },	/* icp		*/
-	{ .shift = 8,	.width = 18 },	/* n		*/
+	{ .shift = 5,	.width = 3 },	/* icp		*/
+	{ .shift = 8,	.width = 11},	/* n		*/
 	{ .shift = 87,	.width = 7 },	/* nint		*/
 	{ .shift = 64,	.width = 23},	/* kint		*/
 	{ .shift = 0,	.width = 0 },	/* prediv	*/
@@ -266,7 +266,7 @@ static struct clk_bit_field f_mpll2[PLL_FACT_MAX] = {
 	{ .shift = 144,	.width = 1 },	/* postdiv	*/
 };
 
-static SPRD_PLL_WITH_ITABLE_K_FVCO(mpll2_clk, "mpll2", "mpll2-gate", 0x9c,
+static SPRD_PLL_WITH_ITABLE_K_FVCO(mpll2_clk, "mpll2", "mpll2-gate", 0x0,
 				   5, mpll2_ftable, f_mpll2, 240,
 				   1000, 1000, 1, 1000000000ULL);
 
@@ -375,7 +375,7 @@ static struct clk_bit_field f_apll[PLL_FACT_MAX] = {
 	{ .shift = 82,	.width = 1 },	/* sdm_en	*/
 	{ .shift = 0,	.width = 0 },	/* refin	*/
 	{ .shift = 36,	.width = 3 },	/* icp		*/
-	{ .shift = 8,	.width = 11 },	/* n		*/
+	{ .shift = 40,	.width = 11 },	/* n		*/
 	{ .shift = 23,	.width = 7 },	/* nint		*/
 	{ .shift = 0,	.width = 23},	/* kint		*/
 	{ .shift = 0,	.width = 0 },	/* prediv	*/
