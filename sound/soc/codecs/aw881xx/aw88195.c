@@ -990,7 +990,7 @@ int aw88195_update_hw_params(void *aw881xx)
 	}
 	/* set chip rate */
 	aw88195_i2c_write_bits(aw88195, AW88195_REG_I2SCTRL,
-		AW88195_BIT_I2SCTRL_SR_MASK, reg_val);
+		AW88195_BIT_I2SCTRL_SR_MASK, AW88195_BIT_I2SCTRL_SR_48K);
 
 	/* match bit width */
 	switch (aw88195->width) {
