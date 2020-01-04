@@ -816,7 +816,7 @@ int smsg_send(u8 dst, struct smsg *msg, int timeout)
 	 * And it must before if (ipc->ring_base),
 	 * because it be inited as the same time as resource ready.
 	 */
-	rval = sprd_pms_request_resource(ch->tx_pms, -1);
+	rval = sprd_pms_request_resource(ch->tx_pms, timeout);
 	if (rval < 0)
 		return rval;
 

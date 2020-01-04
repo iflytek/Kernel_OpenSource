@@ -1303,6 +1303,7 @@ static int sblock_send_ex(u8 dst, u8 channel,
 	int rval = 0;
 	unsigned long flags;
 	u8 ch_index;
+	bool send_event = false;
 
 	ch_index = sipc_channel2index(channel);
 	if (ch_index == INVALID_CHANEL_INDEX) {
@@ -1337,11 +1338,7 @@ static int sblock_send_ex(u8 dst, u8 channel,
 
 	if (sblock->state == SBLOCK_STATE_READY) {
 		if (yell) {
-			smsg_set(&mevt, channel,
-				 SMSG_TYPE_EVENT,
-				 SMSG_EVENT_SBLOCK_SEND,
-				 0);
-			rval = smsg_send(dst, &mevt, 0);
+			send_event = true;
 		} else if (!ring->yell) {
 			if ((int)(*(ringhd_op->tx_wt_p) -
 				  *(ringhd_op->tx_rd_p)) == 1)
@@ -1356,6 +1353,18 @@ static int sblock_send_ex(u8 dst, u8 channel,
 
 	/* request in sblock_get, release here */
 	sipc_smem_release_resource(ring->tx_pms, dst);
+
+	/*
+	 * smsg_send may caused schedule,
+	 * can't be called in spinlock protected context.
+	 */
+	if (send_event) {
+		smsg_set(&mevt, channel,
+			 SMSG_TYPE_EVENT,
+			 SMSG_EVENT_SBLOCK_SEND,
+			 0);
+		rval = smsg_send(dst, &mevt, -1);
+	}
 
 	return rval;
 }
@@ -1405,7 +1414,7 @@ int sblock_send_finish(u8 dst, u8 channel)
 		smsg_set(&mevt, channel,
 			 SMSG_TYPE_EVENT,
 			 SMSG_EVENT_SBLOCK_SEND, 0);
-		rval = smsg_send(dst, &mevt, 0);
+		rval = smsg_send(dst, &mevt, -1);
 	}
 	/* release resource */
 	sipc_smem_release_resource(ring->tx_pms, dst);
@@ -1637,6 +1646,7 @@ int sblock_release(u8 dst, u8 channel, struct sblock *blk)
 	int rxpos;
 	int index;
 	u8 ch_index;
+	bool send_event = false;
 
 	ch_index = sipc_channel2index(channel);
 	if (ch_index == INVALID_CHANEL_INDEX) {
@@ -1668,11 +1678,7 @@ int sblock_release(u8 dst, u8 channel, struct sblock *blk)
 	if ((int)(*(poolhd_op->rx_wt_p) - *(poolhd_op->rx_rd_p)) == 1 &&
 	    sblock->state == SBLOCK_STATE_READY) {
 		/* send smsg to notify the peer side */
-		smsg_set(&mevt, channel,
-			 SMSG_TYPE_EVENT,
-			 SMSG_EVENT_SBLOCK_RELEASE,
-			 0);
-		smsg_send(dst, &mevt, -1);
+		send_event = true;
 	}
 
 	index = sblock_get_index((blk->addr - ring->rxblk_virt),
@@ -1683,6 +1689,18 @@ int sblock_release(u8 dst, u8 channel, struct sblock *blk)
 
 	/* request in sblock_receive, release here */
 	sipc_smem_release_resource(ring->rx_pms, dst);
+
+	/*
+	 * smsg_send may caused schedule,
+	 * can't be called in spinlock protected context.
+	 */
+	if (send_event) {
+		smsg_set(&mevt, channel,
+			 SMSG_TYPE_EVENT,
+			 SMSG_EVENT_SBLOCK_RELEASE,
+			 0);
+		smsg_send(dst, &mevt, -1);
+	}
 
 	return 0;
 }
