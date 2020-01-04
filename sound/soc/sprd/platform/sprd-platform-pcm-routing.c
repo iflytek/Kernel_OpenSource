@@ -354,7 +354,7 @@ static const struct snd_soc_dapm_widget sprd_pcm_routing_widgets[] = {
 	SND_SOC_DAPM_AIF_IN("BE_IF_NORMAL_AP01_BTSCO_P",
 			    "BE_DAI_NORMAL_AP01_BTSCO_P", 0, 0, 0, 0),
 	SND_SOC_DAPM_AIF_IN("BE_IF_NORMAL_AP01_SMTPA_P",
-			    "BE_DAI_NORMAL_AP01_SMTPA_P",
+			    "BE_DAI_ID_NORMAL_AP01_P_SMTPA",
 			    0, 0, 0, 0),
 	SND_SOC_DAPM_AIF_IN("BE_IF_ID_NORMAL_AP23_SMTPA",
 			    "BE_DAI_ID_NORMAL_AP23_SMTPA",
