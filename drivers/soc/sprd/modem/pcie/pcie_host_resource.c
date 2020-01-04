@@ -41,6 +41,7 @@ enum rc_state {
 	SPRD_PCIE_WAIT_REMOVED,
 	SPRD_PCIE_REMOVED,
 	SPRD_PCIE_SCANNED_2BAR,
+	SPRD_PCIE_WAIT_POWER_OFF
 };
 
 struct sprd_pcie_res {
@@ -106,11 +107,17 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 {
 	struct sprd_pcie_res *res = (struct sprd_pcie_res *)data;
 
+	/* wait power off, do nothing */
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+		return;
+
 	switch (event) {
 	case PCIE_EP_PROBE:
 		/* set state to scanned */
 		res->state = SPRD_PCIE_SCANNED;
 		res->scan_cnt++;
+
+		modem_ctrl_enable_cp_event();
 
 		pr_info("pcie res: ep_notify, probed cnt=%d.\n",
 			res->scan_cnt);
@@ -193,6 +200,10 @@ static void sprd_pcie_resource_scan_fn(struct work_struct *work)
 	struct sprd_pcie_res *res = container_of(work, struct sprd_pcie_res,
 						 scan_work);
 
+	/* wait power off, do nothing */
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+		return;
+
 	/* request wakelock */
 	sprd_pms_request_wakelock(res->pms);
 
@@ -221,6 +232,10 @@ static void sprd_pcie_resource_remove_fn(struct work_struct *work)
 	int ret;
 	struct sprd_pcie_res *res = container_of(work, struct sprd_pcie_res,
 						 remove_work);
+
+	/* wait power off, do nothing */
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+		return;
 
 	/* request wakelock */
 	sprd_pms_request_wakelock(res->pms);
@@ -333,6 +348,45 @@ static int sprd_pcie_resource_check_first_rescan(void *data)
 	return 0;
 }
 
+static int sprd_pcie_resource_host_mcd(struct notifier_block *nb,
+				      unsigned long mode, void *cmd)
+{
+	struct sprd_pcie_res *res;
+	int i;
+	u32 state;
+
+	pr_debug("pcie res: mcd mode=%ld.\n", mode);
+
+	switch (mode) {
+	case MDM_POWER_OFF:
+		state = SPRD_PCIE_WAIT_POWER_OFF;
+		break;
+
+	case MDM_PANIC:
+		state = SPRD_PCIE_WAIT_FIRST_READY;
+		break;
+
+	default:
+		return NOTIFY_DONE;
+	}
+
+	for (i = 0; i < SIPC_ID_NR; i++) {
+		res = g_pcie_res[i];
+		if (res) {
+			res->state = state;
+			cancel_work_sync(&res->scan_work);
+			cancel_work_sync(&res->remove_work);
+		}
+	}
+
+	return NOTIFY_DONE;
+}
+
+static struct notifier_block mcd_notify = {
+	.notifier_call = sprd_pcie_resource_host_mcd,
+	.priority = 149,
+};
+
 /* Because the ep bar can only be split by ep itself,
  * After all modem images be loaded, notify the pcie resource.
  */
@@ -385,6 +439,11 @@ void sprd_pcie_resource_reboot_ep(u32 dst)
 		return;
 
 	res = g_pcie_res[dst];
+
+	/* wait power off, do nothing */
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+		return;
+
 	res->state = SPRD_PCIE_WAIT_FIRST_READY;
 
 	res->ep_ready_for_rescan = false;
@@ -442,6 +501,8 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
 	sprd_ep_dev_register_notify(res->ep_dev,
 		sprd_pcie_resource_host_ep_notify, res);
 
+	modem_ctrl_register_notifier(&mcd_notify);
+
 	/* init wake up event callback */
 	res->reg_event.events = SPRD_PCIE_EVENT_WAKEUP;
 	res->reg_event.pdev = pcie_dev;
@@ -480,7 +541,7 @@ int sprd_pcie_resource_trash(u32 dst)
 			   PCIE_MSI_REQUEST_RES,
 			   PCIE_MSI_RELEASE_RES);
 	sprd_ep_dev_unregister_notify(res->ep_dev);
-
+	modem_ctrl_unregister_notifier(&mcd_notify);
 	sprd_pms_destroy(res->pms);
 
 	kfree(res);

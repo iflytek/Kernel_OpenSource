@@ -15,6 +15,7 @@
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/kthread.h>
+#include <linux/mdm_ctrl.h>
 #include <linux/pcie-epf-sprd.h>
 #include <linux/sched.h>
 #include <linux/sipc.h>
@@ -39,7 +40,8 @@ enum pcie_ep_state {
 	SPRD_PCIE_WAIT_SCANNED,
 	SPRD_PCIE_SCANNED,
 	SPRD_PCIE_WAIT_REMOVED,
-	SPRD_PCIE_REMOVED
+	SPRD_PCIE_REMOVED,
+	SPRD_PCIE_WAIT_POWER_OFF
 };
 
 struct sprd_pci_res_notify {
@@ -76,6 +78,7 @@ static struct sprd_pcie_res *g_pcie_res[SIPC_ID_NR];
  * SPRD_PCIE_WAIT_REMOVED(receive epc unlink)==>SPRD_PCIE_REMOVED
  * SPRD_PCIE_REMOVED(receive epc linkup)==>SPRD_PCIE_WAIT_SCANNED
  * SPRD_PCIE_WAIT_SCANNED(receive RC scanned)==>SPRD_PCIE_SCANNED
+ * SPRD_PCIE_WAIT_POWER_OFF can do nothing, just wait shutdown.
  */
 static const char *change_msg[EPC_LINKUP_MSG + 1] = {
 	"rc scanned",
@@ -96,6 +99,9 @@ static void pcie_resource_client_change_state(struct sprd_pcie_res *res,
 					      enum ep_msg msg)
 {
 	u32 old_state = res->state;
+
+	if (old_state == SPRD_PCIE_WAIT_POWER_OFF)
+		return;
 
 	pr_debug("pcie res: change state msg=%s, old_state=%s.\n",
 		 change_msg[msg], state_msg[old_state]);
@@ -172,6 +178,9 @@ static void pcie_resource_client_epf_notify(int event, void *private)
 {
 	struct sprd_pcie_res *res = (struct sprd_pcie_res *)private;
 
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+		return;
+
 	switch (event) {
 	case SPRD_EPF_BIND:
 		pr_info("pcie res: epf be binded.\n");
@@ -227,6 +236,9 @@ static irqreturn_t pcie_resource_client_irq_handler(int irq, void *private)
 {
 	struct sprd_pcie_res *res = (struct sprd_pcie_res *)private;
 
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+		return IRQ_HANDLED;
+
 	if (irq == PCIE_DBEL_EP_SCANNED) {
 		pcie_resource_client_change_state(res, RC_SCANNED_MSG);
 
@@ -248,6 +260,31 @@ static irqreturn_t pcie_resource_client_irq_handler(int irq, void *private)
 
 	return IRQ_HANDLED;
 }
+
+static int sprd_pcie_resource_client_mcd(struct notifier_block *nb,
+				      unsigned long mode, void *cmd)
+{
+	struct sprd_pcie_res *res;
+	int i;
+
+	pr_debug("pcie res: mcd event mode=%ld.\n", mode);
+
+	if (mode != MDM_POWER_OFF)
+		return NOTIFY_DONE;
+
+	for (i = 0; i < SIPC_ID_NR; i++) {
+		res = g_pcie_res[i];
+		if (res)
+			res->state = SPRD_PCIE_WAIT_POWER_OFF;
+	}
+
+	return NOTIFY_DONE;
+}
+
+static struct notifier_block mcd_notify = {
+	.notifier_call = sprd_pcie_resource_client_mcd,
+	.priority = 149,
+};
 
 int sprd_pcie_resource_client_init(u32 dst, u32 ep_fun)
 {
@@ -276,6 +313,8 @@ int sprd_pcie_resource_client_init(u32 dst, u32 ep_fun)
 				     pcie_resource_client_epf_notify,
 				     res);
 
+	modem_ctrl_register_notifier(&mcd_notify);
+
 	g_pcie_res[dst] = res;
 
 	return 0;
@@ -299,6 +338,7 @@ int sprd_pcie_resource_trash(u32 dst)
 		PCIE_DBEL_EP_SCANNED,
 		PCIE_DBEL_EP_REMOVING);
 	sprd_pci_epf_unregister_notify(res->ep_fun);
+	modem_ctrl_unregister_notifier(&mcd_notify);
 
 	kfree(res);
 	g_pcie_res[dst] = NULL;
@@ -364,6 +404,9 @@ int sprd_pcie_request_resource(u32 dst)
 
 	res = g_pcie_res[dst];
 
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+		return -EINVAL;
+
 	pr_debug("pcie res: request res, state=%d.\n", res->state);
 
 	switch (res->state) {
@@ -423,6 +466,9 @@ int sprd_pcie_release_resource(u32 dst)
 		return -EINVAL;
 
 	res = g_pcie_res[dst];
+
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+		return -EINVAL;
 
 	switch (res->state) {
 	case SPRD_PCIE_SCANNED:
