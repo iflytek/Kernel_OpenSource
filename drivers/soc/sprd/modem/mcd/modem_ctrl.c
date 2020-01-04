@@ -62,6 +62,7 @@ struct modem_ctrl_init_data {
 	u32 irq_cppanic;
 	u32 irq_cppoweroff;
 	u32 modem_status;
+	bool enable_cp_event;
 };
 
 struct modem_ctrl_device {
@@ -114,7 +115,7 @@ static void send_event_msg(struct kobject *kobj)
 
 static irqreturn_t cpwatchdogtriger_handler(int irq, void *dev_id)
 {
-	if (!mcd_dev || !mcd_dev->init)
+	if (!mcd_dev || !mcd_dev->init || !mcd_dev->init->enable_cp_event)
 		return IRQ_NONE;
 
 	mcd_dev->init->modem_status = MDM_WATCHDOG_RESET;
@@ -125,7 +126,7 @@ static irqreturn_t cpwatchdogtriger_handler(int irq, void *dev_id)
 
 static irqreturn_t cpasserttriger_handler(int irq, void *dev_id)
 {
-	if (!mcd_dev || !mcd_dev->init)
+	if (!mcd_dev || !mcd_dev->init || !mcd_dev->init->enable_cp_event)
 		return IRQ_NONE;
 
 	mcd_dev->init->modem_status = MDM_ASSERT;
@@ -136,7 +137,7 @@ static irqreturn_t cpasserttriger_handler(int irq, void *dev_id)
 
 static irqreturn_t cppanictriger_handler(int irq, void *dev_id)
 {
-	if (!mcd_dev || !mcd_dev->init)
+	if (!mcd_dev || !mcd_dev->init || !mcd_dev->init->enable_cp_event)
 		return IRQ_NONE;
 
 	mcd_dev->init->modem_status = MDM_PANIC;
@@ -150,6 +151,8 @@ static irqreturn_t cppoweroff_handler(int irq, void *dev_id)
 	if (!mcd_dev || !mcd_dev->init)
 		return IRQ_NONE;
 	/* To this reserve here for receve power off event from AP*/
+	atomic_notifier_call_chain(&modem_ctrl_chain,
+				   MDM_POWER_OFF, NULL);
 	kernel_power_off();
 	return IRQ_HANDLED;
 }
@@ -179,6 +182,7 @@ static int request_gpio_to_irq(struct gpio_desc *cp_gpio,
 			dev_err(mcd_dev->dev, "can not request irq for cp watchdog\n");
 			return ret;
 		}
+		enable_irq_wake(mcd_dev->init->irq_cpwatchdog);
 	} else if (cp_gpio == mcd_dev->init->gpio_cpassert) {
 		mcd_dev->init->irq_cpassert = ret;
 		ret = devm_request_threaded_irq(mcd_dev->dev,
@@ -190,6 +194,7 @@ static int request_gpio_to_irq(struct gpio_desc *cp_gpio,
 			dev_err(mcd_dev->dev, "can not request irq for cp assert\n");
 			return ret;
 		}
+		enable_irq_wake(mcd_dev->init->irq_cpassert);
 	} else if (cp_gpio == mcd_dev->init->gpio_cppanic) {
 		mcd_dev->init->irq_cppanic = ret;
 		ret = devm_request_threaded_irq(mcd_dev->dev,
@@ -202,6 +207,7 @@ static int request_gpio_to_irq(struct gpio_desc *cp_gpio,
 				"can not request irq for panic\n");
 			return ret;
 		}
+		enable_irq_wake(mcd_dev->init->irq_cppanic);
 	}  else if (cp_gpio == mcd_dev->init->gpio_cppoweroff) {
 		mcd_dev->init->irq_cppoweroff = ret;
 		ret = devm_request_threaded_irq(mcd_dev->dev,
@@ -214,6 +220,7 @@ static int request_gpio_to_irq(struct gpio_desc *cp_gpio,
 				"can not request irq for cppoweroff\n");
 			return ret;
 		}
+		enable_irq_wake(mcd_dev->init->irq_cppoweroff);
 	}
 	return 0;
 }
@@ -257,6 +264,12 @@ static int modem_gpios_init(struct modem_ctrl_device *mcd_dev, int soc_type)
 		gpiod_set_value_cansleep(mcd_dev->init->gpio_cppanic, 1);
 	}
 	return 0;
+}
+
+void modem_ctrl_enable_cp_event(void)
+{
+	if (mcd_dev && mcd_dev->init)
+		mcd_dev->init->enable_cp_event = true;
 }
 
 void modem_ctrl_send_abnormal_to_ap(int status)
@@ -316,7 +329,6 @@ static void modem_ctrl_send_cmd_to_cp(int status)
 		msleep(20);
 		gpiod_set_value_cansleep(gpiodesc, 20);
 	}
-
 }
 
 static void modem_ctrl_notify_abnormal_status(int status)
@@ -379,6 +391,7 @@ void modem_ctrl_poweron_modem(int on)
 		break;
 	case MDM_CTRL_COLD_RESET:
 		if (!IS_ERR(mcd_dev->init->gpio_poweron)) {
+			mcd_dev->init->enable_cp_event = false;
 			atomic_notifier_call_chain(&modem_ctrl_chain,
 						   MDM_CTRL_COLD_RESET, NULL);
 			dev_info(mcd_dev->dev, "modem_power reset: %d\n", on);
@@ -746,6 +759,8 @@ static int modem_ctrl_remove(struct platform_device *pdev)
 static void modem_ctrl_shutdown(struct platform_device *pdev)
 {
 	if (mcd_dev->soc_type == ROC1_SOC) {
+		atomic_notifier_call_chain(&modem_ctrl_chain,
+					   MDM_POWER_OFF, NULL);
 		modem_ctrl_send_cmd_to_cp(MDM_POWER_OFF);
 		/* Sleep 500ms for cp to deal power down process otherwise
 		 * cp will not power down clearly.

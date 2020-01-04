@@ -24,6 +24,7 @@ enum {
 
 void modem_ctrl_send_abnormal_to_ap(int status);
 void modem_ctrl_poweron_modem(int on);
+void modem_ctrl_enable_cp_event(void);
 int modem_ctrl_register_notifier(struct notifier_block *nb);
 void modem_ctrl_unregister_notifier(struct notifier_block *nb);
 
