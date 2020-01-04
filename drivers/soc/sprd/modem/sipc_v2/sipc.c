@@ -32,16 +32,29 @@
 #define MBOX_BAMK	"mbox"
 #define PCIE_BAMK	"pcie"
 
+enum {
+	NORMAL_MODE = 0,
+	CHARGE_MODE,
+	CALI_MODE
+};
+
+#define CALI_LATENCY	(10000 * 1000)
+#define NORMAL_LATENCY	(1 * 1000)
+
 /*
  * In charge mode, will only boot pm system,
  * so just create pm systen sipc.
  */
-static bool g_is_charge_mode;
+static u8 g_boot_mode;
 
 static int __init sipc_early_mode(char *str)
 {
 	if (!memcmp(str, "charger", 7))
-		g_is_charge_mode = true;
+		g_boot_mode = CHARGE_MODE;
+	else if (!memcmp(str, "cali", 4))
+		g_boot_mode = CALI_MODE;
+	else
+		g_boot_mode = NORMAL_MODE;
 
 	return 0;
 }
@@ -299,13 +312,21 @@ static int sipc_probe(struct platform_device *pdev)
 		 * In charge mode, will only boot pm system,
 		 * so just create pm systen sipc.
 		 */
-		if (g_is_charge_mode && ipc->dst != SIPC_ID_PM_SYS)
+		if (g_boot_mode == CHARGE_MODE && ipc->dst != SIPC_ID_PM_SYS)
 			return -ENODEV;
 
 		ipc->rxirq_status = sipc_rxirq_status;
 		ipc->rxirq_clear = sipc_rxirq_clear;
 		ipc->txirq_trigger = sipc_txirq_trigger;
 		spin_lock_init(&ipc->txpinlock);
+
+		if (ipc->type == SIPC_BASE_PCIE) {
+			/* init mpm delay enter idle time for pcie. */
+			if (g_boot_mode == CALI_MODE)
+				ipc->latency = CALI_LATENCY;
+			else
+				ipc->latency = NORMAL_LATENCY;
+		}
 
 		smsg_ipc_create(ipc);
 		platform_set_drvdata(pdev, ipc);

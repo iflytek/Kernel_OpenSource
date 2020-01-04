@@ -53,9 +53,6 @@
 #define SIPC_READL(addr)      readl((__force void __iomem *)(addr))
 #define SIPC_WRITEL(b, addr)  writel(b, (__force void __iomem *)(addr))
 
-#define CLIENT_LATENCY	(1 * 1000)
-#define HOST_LATENCY	(1 * 1000)
-
 static u8 g_wakeup_flag;
 
 struct smsg_ipc *smsg_ipcs[SIPC_ID_NR];
@@ -449,14 +446,8 @@ static void smsg_pcie_first_ready(void *data)
 
 static void smsg_ipc_mpm_init(struct smsg_ipc *ipc)
 {
-	unsigned int later = 0;
-
-	if (ipc->type == SIPC_BASE_PCIE)
-		/* init mpm delay enter idle time for pcie. */
-		later = ipc->client ? CLIENT_LATENCY : HOST_LATENCY;
-
 	/* create modem power manger instance for this sipc */
-	sprd_mpm_create(ipc->dst, ipc->name, later);
+	sprd_mpm_create(ipc->dst, ipc->name, ipc->latency);
 
 	/* init a power manager source */
 	ipc->sipc_pms = sprd_pms_create(ipc->dst, ipc->name, true);

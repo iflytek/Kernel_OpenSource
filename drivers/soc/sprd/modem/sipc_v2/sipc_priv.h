@@ -83,6 +83,7 @@ struct smsg_ipc {
 #ifdef CONFIG_PCIE_EPF_SPRD
 	u32	ep_fun;
 #endif
+	u32	latency;
 
 	/* send-buffer info */
 	uintptr_t	txbuf_addr;
