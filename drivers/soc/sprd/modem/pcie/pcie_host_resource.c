@@ -311,7 +311,7 @@ static int sprd_pcie_resource_rescan(struct sprd_pcie_res *res)
 	return 0;
 }
 
-static int sprd_pcie_resourc_check_first_rescan(void *data)
+static int sprd_pcie_resource_check_first_rescan(void *data)
 {
 	struct sprd_pcie_res *res = data;
 	int ret;
@@ -347,7 +347,7 @@ void sprd_pcie_resource_notify_load_done(u32 dst)
 
 	res = g_pcie_res[dst];
 
-	res->thread = kthread_create(sprd_pcie_resourc_check_first_rescan, res,
+	res->thread = kthread_create(sprd_pcie_resource_check_first_rescan, res,
 		"first rescan");
 	if (IS_ERR(res->thread))
 		pr_err("pcie res: Failed to create rescan thread.\n");

@@ -682,6 +682,10 @@ static int sblock_thread(void *data)
 
 		switch (mrecv.type) {
 		case SMSG_TYPE_OPEN:
+			pr_info("%s: channel %d-%d,revc open!\n",
+				__func__,
+				sblock->dst,
+				sblock->channel);
 			/* handle channel recovery */
 			if (recovery) {
 				if (sblock->handler)
@@ -1730,7 +1734,7 @@ unsigned int sblock_poll_wait(u8 dst, u8 channel,
 	ringhd_op = &(ring->header_op.ringhd_op);
 
 	if (sblock->state != SBLOCK_STATE_READY) {
-		pr_err("%s:sblock-%d-%d not ready to poll !\n",
+		pr_debug("%s:sblock-%d-%d not ready to poll !\n",
 		       __func__, dst, channel);
 		return mask;
 	}
