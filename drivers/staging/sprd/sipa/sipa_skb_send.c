@@ -175,8 +175,8 @@ static int sipa_skb_sender_init(struct sipa_skb_sender *sender)
 {
 	struct sipa_comm_fifo_params attr;
 
-	attr.tx_intr_delay_us = 500;
-	attr.tx_intr_threshold = 32;
+	attr.tx_intr_delay_us = 100;
+	attr.tx_intr_threshold = 128;
 	attr.flow_ctrl_cfg = flow_ctrl_tx_full;
 	attr.flowctrl_in_tx_full = true;
 	attr.flow_ctrl_irq_mode = enter_exit_flow_ctrl;
