@@ -4,8 +4,14 @@
 #define HW_TYPE_SDIO 0
 #define HW_TYPE_PCIE 1
 #define HW_TYPE_SIPC 2
+#define HW_TYPE_USB 3
 #define CHN_MAX_NUM 32
+
+#ifdef CONFIG_SDIOHAL
 #define PUB_HEAD_RSV 4
+#else
+#define PUB_HEAD_RSV 0
+#endif
 
 enum wcn_bus_state {
 	WCN_BUS_DOWN,	/* Not ready for frame transfers */
@@ -165,6 +171,7 @@ struct sprdwcn_bus_ops {
 
 	int (*driver_register)(void);
 	void (*driver_unregister)(void);
+	int (*get_hif_type)(void);
 
 };
 
