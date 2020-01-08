@@ -15,9 +15,9 @@
 #include "udx710-mach.dtsi"
 
 / {
-	model = "Spreadtrum UDX710_3h10 Board";
+	model = "Spreadtrum UDX710_3h10_32b Board";
 
-	compatible = "sprd,udx710_3h10", "sprd,udx710";
+	compatible = "sprd,udx710_3h10_32b", "sprd,udx710";
 
 	sprd,sc-id = <710 1 0x20000>;
 
@@ -32,7 +32,7 @@
 
 	chosen {
 		stdout-path = &uart0;
-		bootargs = "earlycon console=ttyS0,115200n8 loglevel=7 init=/init root=/dev/ram0 ro androidboot.hardware=udx710_3h10 androidboot.selinux=permissive swiotlb=64k androidboot.dtbo_idx=0 printk.devkmsg=on maxcpus=1";
+		bootargs = "earlycon console=ttyS0,115200n8 loglevel=7 init=/init root=/dev/ram0 ro androidboot.hardware=udx710_3h10_32b androidboot.selinux=permissive swiotlb=64k androidboot.dtbo_idx=0 printk.devkmsg=on maxcpus=1";
 	};
 
 	ion {
