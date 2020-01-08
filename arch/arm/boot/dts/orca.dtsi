@@ -1188,10 +1188,16 @@
 				      <0x29100000 0x100000>;
 				reg-names = "pamu3_glb_regs",
 					    "dwc3_core_regs";
+				syscons = <&ap_ipa_ahb_regs
+					REG_AP_IPA_AHB_RF_AHB_RST
+					MASK_AP_IPA_AHB_RF_USB_PAM_SOFT_RST>;
+				syscon-names = "reset";
 			};
 
 			ssphy0: ssphy0@634d0000 {
 				compatible = "sprd,orca1-ssphy0";
+				reg = <0x634d0000 0x10000>;
+				reg-names = "ssphy_glb_regs";
 				sprd,syscon-aon-apb = <&aon_apb_regs>;
 				sprd,syscon-ap-ahb = <&ap_ahb_regs>;
 				sprd,syscon-ipa-ahb = <&ap_ipa_ahb_regs>;
@@ -1201,6 +1207,8 @@
 
 			ssphy1: ssphy@634e0000 {
 				compatible = "sprd,orca1-ssphy1";
+				reg = <0x634e0000 0x10000>;
+				reg-names = "ssphy_glb_regs";
 				sprd,syscon-aon-apb = <&aon_apb_regs>;
 				sprd,syscon-ap-ahb = <&ap_ahb_regs>;
 				sprd,syscon-ipa-ahb = <&ap_ipa_ahb_regs>;
