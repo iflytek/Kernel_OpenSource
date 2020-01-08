@@ -36,6 +36,7 @@
 
 LIST_HEAD(dsi_core_head);
 LIST_HEAD(dsi_glb_head);
+static DEFINE_MUTEX(dsi_lock);
 
 static int sprd_dsi_resume(struct sprd_dsi *dsi)
 {
@@ -78,15 +79,31 @@ static void sprd_dsi_encoder_enable(struct drm_encoder *encoder)
 
 	DRM_INFO("%s()\n", __func__);
 
-	/* add if condition to avoid resume dsi for SR feature */
-	if (encoder->crtc->state->mode_changed &&
-	    !encoder->crtc->state->active_changed)
+	mutex_lock(&dsi_lock);
+
+	/* add if condition to avoid resume dsi for SR feature.
+	 * if esd recovery happened during display suspend, skip dsi resume.
+	 */
+	if (!encoder->crtc || !encoder->crtc->state->active ||
+	    (encoder->crtc->state->mode_changed &&
+	     !encoder->crtc->state->active_changed)) {
+		DRM_INFO("skip dsi resume\n");
+		mutex_unlock(&dsi_lock);
 		return;
+	}
+
+	if (dsi->ctx.is_inited) {
+		mutex_unlock(&dsi_lock);
+		DRM_ERROR("dsi is inited\n");
+		return;
+	}
 
 	pm_runtime_get_sync(dsi->dev.parent);
 
 	if (is_enabled) {
 		is_enabled = false;
+		dsi->ctx.is_inited = true;
+		mutex_unlock(&dsi_lock);
 		return;
 	}
 
@@ -109,6 +126,9 @@ static void sprd_dsi_encoder_enable(struct drm_encoder *encoder)
 		sprd_dphy_hs_clk_en(dsi->phy, true);
 
 	sprd_dpu_run(dpu);
+
+	dsi->ctx.is_inited = true;
+	mutex_unlock(&dsi_lock);
 }
 
 static void sprd_dsi_encoder_disable(struct drm_encoder *encoder)
@@ -122,6 +142,14 @@ static void sprd_dsi_encoder_disable(struct drm_encoder *encoder)
 	if (encoder->crtc->state->mode_changed &&
 	    !encoder->crtc->state->active_changed)
 		return;
+
+	mutex_lock(&dsi_lock);
+
+	if (!dsi->ctx.is_inited) {
+		mutex_unlock(&dsi_lock);
+		DRM_ERROR("dsi isn't inited\n");
+		return;
+	}
 
 	sprd_dpu_stop(dpu);
 	sprd_dsi_set_work_mode(dsi, DSI_MODE_CMD);
@@ -137,6 +165,9 @@ static void sprd_dsi_encoder_disable(struct drm_encoder *encoder)
 	sprd_dsi_suspend(dsi);
 
 	pm_runtime_put(dsi->dev.parent);
+
+	dsi->ctx.is_inited = false;
+	mutex_unlock(&dsi_lock);
 }
 
 static void sprd_dsi_encoder_mode_set(struct drm_encoder *encoder,
