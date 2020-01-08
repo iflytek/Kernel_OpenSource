@@ -25,6 +25,7 @@ struct pcie_sipa_res_prod {
 	struct sprd_pms		*pms;
 	char			pms_name[20];
 	struct work_struct	wait_work;
+	struct delayed_work	rm_work;
 };
 
 static void pcie_sipa_res_wait_res_work_fn(struct work_struct *work)
@@ -86,6 +87,38 @@ static int pcie_sipa_res_release_resource(void *data)
 	return 0;
 }
 
+static void pcie_sipa_res_create_rm_work_fn(struct work_struct *work)
+{
+	int ret;
+	struct sipa_rm_create_params rm_params;
+	struct pcie_sipa_res_prod *res = container_of(to_delayed_work(work),
+						      struct pcie_sipa_res_prod,
+						      rm_work);
+
+	rm_params.name = res->prod_id;
+	rm_params.floor_voltage = 0;
+	rm_params.reg_params.notify_cb = NULL;
+	rm_params.reg_params.user_data = res;
+	rm_params.request_resource = pcie_sipa_res_request_resource;
+	rm_params.release_resource = pcie_sipa_res_release_resource;
+	ret = sipa_rm_create_resource(&rm_params);
+
+	/* defer to create rm */
+	if (ret == -EPROBE_DEFER) {
+		schedule_delayed_work(&res->rm_work, msecs_to_jiffies(1000));
+		return;
+	}
+
+	/* add dependencys */
+	ret = sipa_rm_add_dependency(res->cons_id, res->prod_id);
+	if (ret < 0 && ret != -EINPROGRESS) {
+		pr_err("pcie_sipa_res: add_dependency error = %d!\n", ret);
+		sipa_rm_delete_resource(res->prod_id);
+		sprd_pms_destroy(res->pms);
+		kfree(res);
+	}
+}
+
 void *pcie_sipa_res_create(u8 dst, enum sipa_rm_res_id prod_id,
 			   enum sipa_rm_res_id cons_id)
 {
@@ -99,6 +132,7 @@ void *pcie_sipa_res_create(u8 dst, enum sipa_rm_res_id prod_id,
 
 	/* init wait pcie res work */
 	INIT_WORK(&res->wait_work, pcie_sipa_res_wait_res_work_fn);
+	INIT_DELAYED_WORK(&res->rm_work, pcie_sipa_res_create_rm_work_fn);
 
 	/* create pms */
 	strncpy(res->pms_name, "sipa", sizeof(res->pms_name));
@@ -121,7 +155,12 @@ void *pcie_sipa_res_create(u8 dst, enum sipa_rm_res_id prod_id,
 	rm_params.request_resource = pcie_sipa_res_request_resource;
 	rm_params.release_resource = pcie_sipa_res_release_resource;
 	ret = sipa_rm_create_resource(&rm_params);
-	if (ret) {
+
+	/* defer to create rm */
+	if (ret == -EPROBE_DEFER) {
+		schedule_delayed_work(&res->rm_work, msecs_to_jiffies(1000));
+		return res;
+	} else if (ret) {
 		pr_err("pcie_sipa_res: create rm error = %d!\n", ret);
 		sprd_pms_destroy(res->pms);
 		kfree(res);
@@ -146,6 +185,8 @@ void pcie_sipa_res_destroy(void *data)
 	struct pcie_sipa_res_prod *res = data;
 
 	cancel_work_sync(&res->wait_work);
+	cancel_delayed_work_sync(&res->rm_work);
+
 	sprd_pms_destroy(res->pms);
 	sipa_rm_delete_dependency(res->cons_id, res->prod_id);
 	sipa_rm_delete_resource(res->prod_id);
