@@ -52,6 +52,7 @@
 #include "../include/wcn_dbg.h"
 #include "../include/wcn_glb_reg.h"
 #include "sysfs.h"
+#include "romcode_download.h"
 
 #ifndef REG_PMU_APB_XTL_WAIT_CNT0
 #define REG_PMU_APB_XTL_WAIT_CNT0 0xe42b00ac
@@ -555,6 +556,48 @@ static int marlin_firmware_parse_image(struct marlin_firmware *mfirmware)
 	return 0;
 }
 
+#ifdef CONFIG_WCN_ROMCODED
+int marlin_firmware_write(struct marlin_firmware *fw)
+{
+	int i;
+	int img_count;
+	const struct combin_img_info *img_info;
+	int ret;
+
+	/* only WCNE magic rom will usb romcode download now! */
+	if (!bin_magic_is("WCNE", fw->data)) {
+		WCN_ERR("Marlin3 USB image must have maigc WCNE\n");
+		return -1;
+	}
+
+	ret = romcode_flow_start();
+	if (ret) {
+		WCN_ERR("romcode_flow_start error!\n");
+		return ret;
+	}
+
+	img_count = marlin_fw_get_img_count(fw->data);
+	img_info = marlin_firmware_get_combin_info(fw->data);
+
+	/* for every img_info */
+	for (i = 0; i < img_count; i++) {
+		if (img_info[i].size + img_info[i].offset > fw->size) {
+			WCN_ERR("%s memory crossover\n", __func__);
+			return -1;
+		}
+		ret = romcode_flow_download_nocrc(img_info[i].addr,
+				fw->data + img_info[i].offset,
+				img_info[i].size, PACKET_SIZE);
+		if (ret) {
+			WCN_ERR("%s usb download error\n", __func__);
+			return -1;
+		}
+	}
+
+	romcode_flow_exec(WCN_USB_FW_ADDR);
+	return 0;
+}
+#else
 static int marlin_firmware_write(struct marlin_firmware *mfirmware)
 {
 	int i = 0;
@@ -599,6 +642,7 @@ static int marlin_firmware_write(struct marlin_firmware *mfirmware)
 
 	return 0;
 }
+#endif
 
 static void marlin_release_firmware(struct marlin_firmware *mfirmware)
 {

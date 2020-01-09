@@ -7,6 +7,7 @@ MARLINOFILES += gnss/gnss_dump.o
 #end
 MARLINOFILES += wcn_boot.o
 marlin-$(CONFIG_WCN_PCIE) += pcie_boot.o
+marlin-$(CONFIG_WCN_ROMCODED) += romcode_download.o
 MARLINOFILES += wcn_dump.o
 marlin-$(CONFIG_WCN_SWD) += wcn_swd_dap.o
 MARLINOFILES += bufring.o

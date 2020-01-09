@@ -1360,6 +1360,7 @@ CONFIG_SC2355=y
 CONFIG_WCN_PCIE=y
 CONFIG_WCN_BOOT=y
 CONFIG_WCN_UTILS=y
+# CONFIG_WCN_ROMCODED is not set
 
 #
 # Spreadtrum Audio Assistant Modules
