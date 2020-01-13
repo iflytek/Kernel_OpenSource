@@ -313,6 +313,7 @@ static ssize_t irq_register_store(struct device *dev,
 			up(&ctx->refresh_lock);
 			return -EINVAL;
 		}
+
 		if (dpu->core->enable_vsync)
 			dpu->core->enable_vsync(ctx);
 
@@ -321,9 +322,13 @@ static ssize_t irq_register_store(struct device *dev,
 		if (ret) {
 			up(&ctx->refresh_lock);
 			pr_err("error: dpu request irq failed\n");
-			return -EINVAL;
+			return ret;
 		}
 
+		/*
+		 *We request dpu isr on sprd crtc driver and set the IRQ_NOAUTOEN flag,
+		 *so if not clear this flag, need to call "enable_irq" enable it.
+		 */
 		enable_irq(ctx->irq);
 		up(&ctx->refresh_lock);
 	}
@@ -351,8 +356,15 @@ static ssize_t irq_unregister_store(struct device *dev,
 			up(&ctx->refresh_lock);
 			return -EINVAL;
 		}
+
 		if (dpu->core->disable_vsync)
 			dpu->core->disable_vsync(ctx);
+
+		/*
+		 *We request dpu isr on sprd crtc driver and set the IRQ_NOAUTOEN flag,
+		 *so if not clear this flag, need to call "disable_irq" disable it.
+		 */
+		disable_irq(ctx->irq);
 		devm_free_irq(&dpu->dev, ctx->irq, dpu);
 		up(&ctx->refresh_lock);
 	}
