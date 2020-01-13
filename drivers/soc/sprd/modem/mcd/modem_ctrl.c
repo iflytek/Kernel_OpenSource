@@ -643,6 +643,8 @@ static int modem_ctrl_restart_handle(struct notifier_block *this,
 	if (!mcd_dev || mcd_dev->soc_type == ROC1_SOC)
 		return NOTIFY_DONE;
 	modem_ctrl_notify_abnormal_status(MDM_PANIC);
+	while (1)
+		;
 	return NOTIFY_DONE;
 }
 
