@@ -283,6 +283,11 @@
 						124872 43 >;
 	};
 
+	extcon_gpio: extcon-gpio {
+		compatible = "linux,extcon-usb-gpio";
+		vbus-gpio = <&pmic_eic 0 GPIO_ACTIVE_HIGH>;
+	};
+
 	ddr_dfs: scene-frequency {
 		compatible = "sprd,dfs";
 		freq-num = <8>;
@@ -624,12 +629,12 @@
 
 &ssphy {
 	vdd-supply = <&vddusb33>;
-	extcon = <&pmic_typec>;
+	extcon = <&extcon_gpio>;
 	status = "okay";
 };
 
 &usb3 {
-	extcon = <&pmic_typec>;
+	extcon = <&extcon_gpio>, <&pmic_typec>;
 	vbus-supply = <&vddvbus>;
 	status = "okay";
 };
