@@ -194,12 +194,12 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 }
 
 static const int adc2deltanv_table[] = {
-	-1, /* reserved */
-	-1, /* reserved */
-	-1, /* reserved */
-	-1, /* reserved */
-	-1, /* reserved */
 	1, /* hw_ver01.nv  */
+	-1, /* reserved */
+	-1, /* reserved */
+	-1, /* reserved */
+	-1, /* reserved */
+	-1, /* reserved */
 	0, /* hw_ver00.nv  */
 	-1 /* reserved */
 };
