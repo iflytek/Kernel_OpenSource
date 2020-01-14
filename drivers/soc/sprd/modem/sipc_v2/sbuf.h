@@ -109,6 +109,7 @@ struct sbuf_ring {
 struct sbuf_mgr {
 	u8	dst;
 	u8	channel;
+	bool	force_send;
 	u32	state;
 
 	void	*smem_virt;

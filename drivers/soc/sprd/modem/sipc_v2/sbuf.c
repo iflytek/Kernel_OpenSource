@@ -713,6 +713,11 @@ int sbuf_create(u8 dst, u8 channel, u32 bufnum, u32 txbufsize, u32 rxbufsize)
 	sbuf->state = SBUF_STATE_IDLE;
 	sbuf->dst = dst;
 	sbuf->channel = channel;
+
+	/* The dst smem type is pcie, need force send smsg in sbuf_write. */
+	if (sipc->type == SIPC_BASE_PCIE && sipc->smem_type == SMEM_LOCAL)
+		sbuf->force_send = true;
+
 	if (!sipc->client) {
 		ret = sbuf_host_init(sipc, sbuf, bufnum, txbufsize, rxbufsize);
 		if (ret) {
@@ -1005,8 +1010,12 @@ int sbuf_write(u8 dst, u8 channel, u32 bufid,
 
 		/* update tx wrptr */
 		*(hd_op->tx_wt_p) = *(hd_op->tx_wt_p) + txsize;
-		/* tx ringbuf is empty, so need to notify peer side */
-		if (*(hd_op->tx_wt_p) - *(hd_op->tx_rd_p) == txsize) {
+		/*
+		 * force send be true or tx ringbuf is empty,
+		 * need to notify peer side
+		 */
+		if (sbuf->force_send ||
+		    *(hd_op->tx_wt_p) - *(hd_op->tx_rd_p) == txsize) {
 			smsg_set(&mevt, channel,
 				 SMSG_TYPE_EVENT,
 				 SMSG_EVENT_SBUF_WRPTR,
@@ -1571,10 +1580,11 @@ static int sbuf_debug_show(struct seq_file *m, void *private)
 				continue;
 			/* list a sbuf channel */
 			sipc_debug_putline(m, '-', 100);
-			seq_printf(m, "sbuf_%d_%03d, state: %d, ",
+			seq_printf(m, "sbuf_%d_%03d, state: %d, force: %d",
 				   sbuf->dst,
 				   sbuf->channel,
-				   sbuf->state);
+				   sbuf->state,
+				   sbuf->force_send);
 			seq_printf(m, "virt: 0x%lx, phy: 0x%0x, map: 0x%x",
 				   (unsigned long)sbuf->smem_virt,
 				   sbuf->smem_addr,
