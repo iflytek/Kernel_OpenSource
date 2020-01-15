@@ -471,15 +471,26 @@ static inline bool pam_ipa_phy_get_start_status(void __iomem *reg_base)
 
 static inline u32 pam_ipa_phy_resume(void __iomem *reg_base, u32 flag)
 {
-	u32 tmp = 0;
+	u32 tmp = 0, timeout = 500;
 
 	tmp = __raw_readl(reg_base + PAM_IPA_CFG_START);
 	if (!flag) {
 		tmp |= 4;
 		__raw_writel(tmp, reg_base + PAM_IPA_CFG_START);
-		while ((__raw_readl(reg_base + PAM_IPA_CFG_START)
-				& 0x08l) == 0x0l)
-			;
+		do {
+			if (__raw_readl(reg_base + PAM_IPA_CFG_START) & 0x08l)
+				break;
+
+			cpu_relax();
+		} while (--timeout);
+
+		if (!timeout)
+			pr_err("pam ipa start: 0x%x UL: 0x%x DL: 0x%x\n",
+			       __raw_readl(reg_base + PAM_IPA_CFG_START),
+			       __raw_readl(reg_base +
+					   PAM_IPA_SW_DEBUG_UL_PTR_CURT_STS),
+			       __raw_readl(reg_base +
+					   PAM_IPA_SW_DEBUG_DL_PTR_CURT_STS));
 	} else {
 		tmp &= 0xFFFFFFFB;
 		__raw_writel(tmp, reg_base + PAM_IPA_CFG_START);
