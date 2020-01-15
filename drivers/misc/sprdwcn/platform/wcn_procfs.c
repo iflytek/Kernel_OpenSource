@@ -854,6 +854,9 @@ static ssize_t mdbg_proc_write(struct file *filp,
 		}
 	}
 
+	if (unlikely(marlin_get_download_status() != true))
+		return -EIO;
+
 	ret = sprdwcn_bus_list_alloc(0, &head, &tail, &num);
 	if (ret || head == NULL || tail == NULL) {
 		WCN_ERR("%s:%d mbuf_link_alloc fail\n", __func__, __LINE__);
