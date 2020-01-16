@@ -555,7 +555,8 @@ static int aw881xx_hw_params(struct snd_pcm_substream *substream,
 
 	/* get bit width */
 	aw881xx->width = AW881XX_24BIT_WIDTH;
-	pr_debug("%s: width = %d, rate %d\n", __func__, aw881xx->width, aw881xx->rate);
+	pr_debug("%s: params_width %d, width = %d, rate %d\n", __func__,
+		 params_width(params), aw881xx->width, aw881xx->rate);
 
 	mutex_lock(&aw881xx->lock);
 	dev_ops->update_hw_params(aw881xx);
