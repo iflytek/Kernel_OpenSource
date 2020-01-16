@@ -325,13 +325,15 @@
 					"clk_mm_ahb_parent",
 					"mm_mtx_eb",
 					"clk_mm_mtx",
-					"clk_mm_mtx_parent";
+					"clk_mm_mtx_parent",
+					"clk_isppll";
 				clocks = <&aonapb_gate CLK_MM_EB>,
 					<&mm_gate CLK_MM_CKG_EB>,
 					<&mm_clk CLK_MM_AHB>,
 					<&g12_pll CLK_TWPLL_153M6>,
 					<&mm_gate CLK_ISP_AHB_EB>,
 					<&mm_clk CLK_MM_MTX>,
+					<&g12_pll CLK_TWPLL_512M>,
 					<&g12_pll CLK_ISPPLL_468M>;
 				/*mm_qos_threshold = <&mm_qos_threshold>;*/
 			};
@@ -540,6 +542,7 @@
 					"isp_clk_307m2",
 					"isp_clk_384m",
 					"isp_clk_468m",
+					"isp_clk_512m",
 					"isp_clk_parent";
 				clocks = <&mm_gate CLK_MM_ISP_EB>,
 					<&mm_gate CLK_ISP_AHB_EB>,
@@ -548,7 +551,8 @@
 					<&g12_pll CLK_TWPLL_307M2>,
 					<&g12_pll CLK_TWPLL_384M>,
 					<&g12_pll CLK_ISPPLL_468M>,
-					<&g12_pll CLK_ISPPLL_468M>;
+					<&g12_pll CLK_TWPLL_512M>,
+					<&g12_pll CLK_TWPLL_512M>;
 				syscons = <&mm_ahb_regs REG_MM_AHB_AHB_RST
 					MASK_MM_AHB_ISP_SOFT_RST>,
 					<&mm_ahb_regs REG_MM_AHB_AHB_RST
@@ -766,13 +770,14 @@
 					"dcam_clk_256m",
 					"dcam_clk_307m2",
 					"dcam_clk_384m",
+					"dcam_clk_468m",
 					"dcam_clk_parent",
 					"dcam_axi_eb",
 					"dcam_axi_clk",
-					"dcam_axi_clk_192m",
 					"dcam_axi_clk_256m",
 					"dcam_axi_clk_307m2",
 					"dcam_axi_clk_384m",
+					"dcam_axi_clk_468m",
 					"dcam_axi_clk_parent";
 				clocks = <&mm_gate CLK_MM_DCAM_EB>,
 					<&mm_clk CLK_DCAM_IF>,
@@ -780,14 +785,15 @@
 					<&g12_pll CLK_TWPLL_256M>,
 					<&g12_pll CLK_TWPLL_307M2>,
 					<&g12_pll CLK_TWPLL_384M>,
-					<&g12_pll CLK_TWPLL_384M>,
+					<&g12_pll CLK_ISPPLL_468M>,
+					<&g12_pll CLK_ISPPLL_468M>,
 					<&mm_gate CLK_DCAM_AXI_EB>,
 					<&mm_clk CLK_DCAM_AXI>,
-					<&g12_pll CLK_TWPLL_192M>,
 					<&g12_pll CLK_TWPLL_256M>,
 					<&g12_pll CLK_TWPLL_307M2>,
 					<&g12_pll CLK_TWPLL_384M>,
-					<&g12_pll CLK_TWPLL_384M>;
+					<&g12_pll CLK_ISPPLL_468M>,
+					<&g12_pll CLK_ISPPLL_468M>;
 				syscons = <&mm_ahb_regs REG_MM_AHB_AHB_RST
 					MASK_MM_AHB_DCAM_ALL_SOFT_RST>,
 					<&mm_ahb_regs REG_MM_AHB_AHB_RST

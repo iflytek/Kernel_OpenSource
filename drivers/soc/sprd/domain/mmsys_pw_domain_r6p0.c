@@ -74,6 +74,8 @@ struct mmsys_power_info {
 	struct clk *mtx_clk;
 	struct clk *mtx_clk_parent;
 	struct clk *mtx_clk_default;
+
+	struct clk *isppll_clk;
 };
 
 #define PD_MM_DOWN_FLAG			0x7
@@ -251,6 +253,10 @@ static int mmsys_power_init(struct platform_device *pdev)
 		atomic_set(&pw_info->inited, 1);
 		pr_info("Read DTS OK\n");
 	}
+
+	pw_info->isppll_clk = of_clk_get_by_name(np, "clk_isppll");
+	if (IS_ERR_OR_NULL(pw_info->isppll_clk))
+		return PTR_ERR(pw_info->isppll_clk);
 
 	return ret;
 }
@@ -440,6 +446,8 @@ int sprd_cam_domain_eb(void)
 		/* mm mtx clk */
 		clk_set_parent(pw_info->mtx_clk, pw_info->mtx_clk_parent);
 		clk_prepare_enable(pw_info->mtx_clk);
+		/* isppll clk */
+		clk_prepare_enable(pw_info->isppll_clk);
 
 		/* Qos ar */
 		tmp = pw_info->mm_qos_ar;
@@ -474,6 +482,8 @@ int sprd_cam_domain_disable(void)
 	mutex_lock(&pw_info->mlock);
 	if (atomic_dec_return(&pw_info->users_clk) == 0) {
 		mmsys_notifier_call_chain(_E_PW_OFF, NULL);
+		/* isppll clk */
+		clk_disable_unprepare(pw_info->isppll_clk);
 		/* ahb clk */
 		clk_set_parent(pw_info->ahb_clk, pw_info->ahb_clk_default);
 		clk_disable_unprepare(pw_info->ahb_clk);
