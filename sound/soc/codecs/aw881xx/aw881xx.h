@@ -20,6 +20,8 @@
 
 #define AW881XX_VBAT_COEFF_INT_10BIT		(1023)
 
+#define AW881XX_24BIT_WIDTH		24
+
 /********************************************
  *
  * DSP I2C WRITES
