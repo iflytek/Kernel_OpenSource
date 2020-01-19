@@ -58,8 +58,11 @@ void modem_entry()
 		debugf("boot sp  OK\n");
 	}
 #endif
+
+#ifndef CONFIG_REMOVE_MODEM
 	/* charger modem don't power on orca */
 	if (!g_charger_mode)
 		modem_power_on();
+#endif
 }
 
