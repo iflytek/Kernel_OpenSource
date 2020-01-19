@@ -76,6 +76,10 @@ struct smsg_ipc {
 	u8	core_sensor_id;
 	u32	type; /* sipc type, mbox, ipi, pcie */
 
+#ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
+	void __iomem	*write_addr;
+#endif
+
 #ifdef CONFIG_SPRD_PCIE_EP_DEVICE
 	u32	ep_dev;
 	struct platform_device	*pcie_dev;

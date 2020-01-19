@@ -50,6 +50,8 @@
 #define REQUEST_BASE_IRQ	(IPA_HW_IRQ_BASE + IPA_HW_IRQ_CNT)
 #define REQUEST_BASE_IRQ_DEFECT	16
 
+#define PCIE_WRITE_DATA	0x5a5a5a5a
+
 struct sprd_ep_res {
 	struct list_head	list;
 	phys_addr_t		rc_addr;
@@ -82,6 +84,10 @@ struct sprd_pci_epf_irq_handler {
 	irq_handler_t	handler;
 	void		*data;
 };
+
+#ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
+static void __iomem	*g_write_addr[SPRD_FUNCTION_MAX];
+#endif
 
 static struct sprd_pci_epf *g_epf_sprd[SPRD_FUNCTION_MAX];
 static struct sprd_pci_epf_notify g_epf_notify[SPRD_FUNCTION_MAX];
@@ -163,6 +169,19 @@ int sprd_pci_epf_register_irq_handler(int function,
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sprd_pci_epf_register_irq_handler);
+
+#ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
+int sprd_pci_epf_set_write_addr(int function, void __iomem *write_addr)
+{
+	if (function >= SPRD_FUNCTION_MAX)
+		return -EINVAL;
+
+	g_write_addr[function] = write_addr;
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(sprd_pci_epf_set_write_addr);
+#endif
 
 int sprd_pci_epf_unregister_irq_handler(int function, int irq)
 {
@@ -499,18 +518,45 @@ static irqreturn_t sprd_epf_irq_handler(int irq_number, void *private)
 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
 	int irq, function;
 	u32 enable, status;
+#ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
+	int try_cnt = 10;
+	void __iomem *write_addr;
+#endif
 
 	function = epf_sprd->epf->func_no;
 	if (function >= SPRD_FUNCTION_MAX)
 		return IRQ_NONE;
 
-	/*read irq status and clear irq */
-	enable = dw_pcie_readl_dbi(pci, DOOR_BELL_BASE + DOOR_BELL_ENABLE);
+	enable = BIT(PCIE_DBEL_IRQ_MAX) - 1;
+
+	/*
+	 * before read doorbell must do a write action
+	 * to make PCIE exit L1 state.
+	 */
+#ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
+	write_addr = g_write_addr[function];
+	if (write_addr)
+		writel(PCIE_WRITE_DATA, write_addr);
+#endif
+
+	/* read irq status and clear irq */
 	status = dw_pcie_readl_dbi(pci, DOOR_BELL_BASE + DOOR_BELL_STATUS);
 	dw_pcie_writel_dbi(pci, DOOR_BELL_BASE + DOOR_BELL_STATUS, 0x0);
 
 	dev_dbg(dev, "func_no=%d, enable=%#x, status=%#x\n",
 		function, enable, status);
+
+#ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
+	/* if can't read status, try agian. */
+	while (!status && try_cnt--) {
+		if (write_addr)
+			writel(PCIE_WRITE_DATA, write_addr);
+		status = dw_pcie_readl_dbi(pci,
+					   DOOR_BELL_BASE + DOOR_BELL_STATUS);
+		dw_pcie_writel_dbi(pci, DOOR_BELL_BASE + DOOR_BELL_STATUS, 0x0);
+	}
+#endif
+
 	status &= enable;
 
 	for (irq = 0; irq < PCIE_DBEL_IRQ_MAX; irq++) {
