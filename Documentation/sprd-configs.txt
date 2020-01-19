@@ -13407,6 +13407,15 @@ CONFIG_SPRD_DMC_MPU_CORE
 	[must] debug
 	[missing plat description] none
 	[function] Enable MPU core function
+CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
+	[arch] arm64
+	[plat] orca
+	[missing plat] sharkl3 roc1,sharkl5,sharkl5_32
+	[field] make
+	[subsys] soc
+	[must] user
+	[missing plat description] none
+	[function] sprd pcie doorbell chip defect workaround
 CONFIG_SPRD_EFUSE
 	[arch] all
 	[plat] all
