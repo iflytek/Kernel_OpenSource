@@ -1823,9 +1823,10 @@ static int sblock_debug_show(struct seq_file *m, void *private)
 
 			poolhd_op = &(ring->header_op.poolhd_op);
 			ringhd_op = &(ring->header_op.ringhd_op);
-			seq_printf(m, "sblock ring: txblk_virt :0x%lx, rxblk_virt :0x%lx\n",
+			seq_printf(m, "sblock ring: txblk_virt :0x%lx, rxblk_virt :0x%lx, poll_mask=0x%x\n",
 				   (unsigned long)ring->txblk_virt,
-				   (unsigned long)ring->rxblk_virt);
+				   (unsigned long)ring->rxblk_virt,
+				   ring->poll_mask);
 			seq_printf(m, "sblock ring header: rxblk_addr :0x%0x, rxblk_rdptr :0x%0x, rxblk_wrptr :0x%0x, rxblk_size :%d, rxblk_count :%d, rxblk_blks: 0x%0x\n",
 				   ringhd_op->rx_addr, *(ringhd_op->rx_rd_p),
 				   *(ringhd_op->rx_wt_p), ringhd_op->rx_size,

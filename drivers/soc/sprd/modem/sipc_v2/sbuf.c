@@ -1604,8 +1604,9 @@ static int sbuf_debug_show(struct seq_file *m, void *private)
 				    *(hd_op->rx_wt_p) == 0)
 					continue;
 
-				seq_printf(m, "  rx ring[%2d]: addr: 0x%0x, ",
-					   n, ring->header->rxbuf_addr);
+				seq_printf(m, "  rx ring[%2d]: addr: 0x%0x, mask: 0x%x",
+					   n, ring->header->rxbuf_addr,
+					   ring->poll_mask);
 				seq_printf(m, "rp: 0x%0x, wp: 0x%0x, size: 0x%0x\n",
 					   *(hd_op->rx_rd_p),
 					   *(hd_op->rx_wt_p),
