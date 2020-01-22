@@ -33,6 +33,7 @@
 #include "../include/sprd_pcie_resource.h"
 
 #define PCIE_REMOVE_SCAN_GAP	msecs_to_jiffies(200)
+#define MAX_PMS_WAIT_TIME	5000
 
 enum rc_state {
 	SPRD_PCIE_WAIT_FIRST_READY = 0,
@@ -570,29 +571,31 @@ int sprd_pcie_wait_resource(u32 dst, int timeout)
 	if (timeout == 0)
 		return -ETIME;
 
-	if (timeout < 0) {
-		wait = wait_event_interruptible(
-						res->wait_pcie_ready,
-						res->state == SPRD_PCIE_SCANNED
-						);
+	/*
+	 * In some case, orca may has an exception, And the pcie
+	 * resource may never ready again. So we	must set a
+	 * maximum wait time for let user to know thereis an
+	 * exception in pcie, and can return an error code to the user.
+	 */
+	if (timeout < 0 || timeout > MAX_PMS_WAIT_TIME)
+		timeout = MAX_PMS_WAIT_TIME;
+
+	/*
+	 * timeout must add 1s,
+	 * because the pcie scan may took some time.
+	 */
+	delay = msecs_to_jiffies(timeout + 1000);
+	wait = wait_event_interruptible_timeout(res->wait_pcie_ready,
+						res->state ==
+						SPRD_PCIE_SCANNED,
+						delay);
+	if (wait == 0)
+		ret = -ETIME;
+	else if (wait > 0)
+		ret = 0;
+	else
 		ret = wait;
-	} else {
-		/*
-		 * timeout must add 1s,
-		 * because the pcie scan may took some time.
-		 */
-		delay = msecs_to_jiffies(timeout + 1000);
-		wait = wait_event_interruptible_timeout(res->wait_pcie_ready,
-							res->state ==
-							SPRD_PCIE_SCANNED,
-							delay);
-		if (wait == 0)
-			ret = -ETIME;
-		else if (wait > 0)
-			ret = 0;
-		else
-			ret = wait;
-	}
+
 
 	if (ret < 0 && ret != -ERESTARTSYS)
 		pr_err("pcie res: wait resource, val=%d.\n", ret);
