@@ -232,11 +232,6 @@ static void sprd_pcie_resource_remove_fn(struct work_struct *work)
 	int ret;
 	struct sprd_pcie_res *res = container_of(work, struct sprd_pcie_res,
 						 remove_work);
-
-	/* wait power off, do nothing */
-	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
-		return;
-
 	/* request wakelock */
 	sprd_pms_request_wakelock(res->pms);
 
@@ -247,6 +242,13 @@ static void sprd_pcie_resource_remove_fn(struct work_struct *work)
 		/* must ensure that the remove starts after a period of scan. */
 		delay = jiffies_to_msecs(PCIE_REMOVE_SCAN_GAP - diff);
 		msleep(delay);
+	}
+
+	/* in wait power off state, can't access ep. */
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF) {
+		/* release wakelock */
+		sprd_pms_release_wakelock(res->pms);
+		return;
 	}
 
 	/* notify ep removed, must before removed */
