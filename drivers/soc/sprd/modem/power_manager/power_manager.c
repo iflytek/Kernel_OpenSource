@@ -560,6 +560,7 @@ static void sprd_pms_relax_wakelock_timer(unsigned long data)
 		pms->expires = 0;
 		relax = true;
 	}
+	pms->awake = false;
 	spin_unlock_irqrestore(&pms->expires_lock, flags);
 
 	if (relax)
