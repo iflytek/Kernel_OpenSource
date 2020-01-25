@@ -734,9 +734,23 @@ static void pcie_config_aspm_link(struct pcie_link_state *link, u32 state)
 		state |= (link->aspm_enabled & ASPM_STATE_L1_SS_PCIPM);
 	}
 
-	/* Nothing to do if the link is already in the requested state */
-	if (link->aspm_enabled == state)
-		return;
+	/*
+	 * Nothing to do if the link is already in the requested state
+	 *
+	 * However, if aspm_policy = POLICY_DEFAULT and aspm state is changed
+	 * automatically, e.g. aspm state is set to POLICY_POWER_SUPERSAVE,
+	 * we must do something.
+	 * After system enter or exit suspend, pcie_aspm_pm_state_change() and
+	 * the value of link->aspm_enabled never be changed.
+	 * When system enter suspend, PCIe registers about ASPM will be cleared
+	 * and never be saved, so it's necessary to config PCIe ASPM registers
+	 * regardless of the value of parameter @state.
+	 *
+	 * So unisoc remove the following codes:
+	 *	if (link->aspm_enabled == state)
+	 *		return;
+	 */
+
 	/* Convert ASPM state to upstream/downstream ASPM register state */
 	if (state & ASPM_STATE_L0S_UP)
 		dwstream |= PCI_EXP_LNKCTL_ASPM_L0S;
@@ -769,7 +783,15 @@ static void pcie_config_aspm_link(struct pcie_link_state *link, u32 state)
 static void pcie_config_aspm_path(struct pcie_link_state *link)
 {
 	while (link) {
-		pcie_config_aspm_link(link, policy_to_aspm_state(link));
+		/*
+		 * Unisoc SoC contains two PCIe controllers (gen2 and gen3) and
+		 * these two PCIe have different ASPM default policies.
+		 * Therefore, it can't config aspm link by global variables
+		 * aspm_policy.
+		 * So Unisoc change parameter @policy_to_aspm_state(link) to
+		 * link->aspm_enabled
+		 */
+		pcie_config_aspm_link(link, link->aspm_enabled);
 		link = link->parent;
 	}
 }
