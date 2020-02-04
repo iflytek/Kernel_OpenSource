@@ -46,6 +46,40 @@ static void sprd_pcie_ep_init(struct dw_pcie_ep *ep)
 	sprd_pcie_setup_ep(ep);
 }
 
+static int sprd_pcie_ep_raise_legacy_irq(struct dw_pcie_ep *ep, u8 irq_num)
+{
+	u16 cmd;
+	int ret;
+	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+	struct device *dev = pci->dev;
+	struct platform_device *pdev = to_platform_device(dev);
+
+	cmd = dw_pcie_readw_dbi(pci, PCI_COMMAND);
+	if (cmd & PCI_COMMAND_INTX_DISABLE) {
+		dev_err(dev,
+			"can't generate INTx interrupts, please enable it\n");
+		return -EINVAL;
+	}
+
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-inta-assert-syscons");
+	if (ret < 0) {
+		dev_err(dev, "please add inta assert property in dts\n");
+		return ret;
+	}
+	/*
+	 * TODO: software can't sure the delay value, maybe it doesn't need
+	 * to delay after asserting INTA
+	 */
+	mdelay(1);
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-inta-deassert-syscons");
+	if (ret < 0) {
+		dev_err(dev, "please add inta deassert property in dts\n");
+		return ret;
+	}
+
+	return 0;
+}
+
 static int sprd_pcie_ep_raise_irq(struct dw_pcie_ep *ep,
 				  enum pci_epc_irq_type type,
 				  u8 interrupt_num)
@@ -54,8 +88,7 @@ static int sprd_pcie_ep_raise_irq(struct dw_pcie_ep *ep,
 
 	switch (type) {
 	case PCI_EPC_IRQ_LEGACY:
-		/* TODO*/
-		break;
+		return sprd_pcie_ep_raise_legacy_irq(ep, interrupt_num);
 	case  PCI_EPC_IRQ_MSI:
 		return dw_pcie_ep_raise_msi_irq(ep, interrupt_num);
 	default:
