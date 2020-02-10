@@ -195,16 +195,16 @@ static int sc27xx_fgu_temp_to_cap(struct power_supply_capacity_temp_table *table
 	if (i > 0 && i < table_len) {
 		temp = interpolate(value,
 				   table[i].temp,
-				   table[i].cap,
+				   table[i].cap * 10,
 				   table[i - 1].temp,
-				   table[i - 1].cap);
+				   table[i - 1].cap * 10);
 	} else if (i == 0) {
-		temp = table[0].cap;
+		temp = table[0].cap * 10;
 	} else {
-		temp = table[table_len - 1].cap;
+		temp = table[table_len - 1].cap * 10;
 	}
 
-	return temp;
+	return DIV_ROUND_UP(temp, 10);
 }
 
 static int sc27xx_fgu_temp_to_resistance(struct power_supply_resistance_temp_table *table,
