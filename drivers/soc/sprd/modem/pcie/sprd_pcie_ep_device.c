@@ -1028,30 +1028,6 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 		ep_dev->ipa_base_irq = IPA_HW_IRQ_BASE;
 	}
 
-	for (i = ep_dev->base_irq;
-	     i < ep_dev->base_irq + PCIE_MSI_MAX_IRQ;
-	     i++) {
-		err = devm_request_irq(dev, pdev->irq + i,
-				       sprd_pci_ep_dev_irqhandler,
-				       IRQF_SHARED, DRV_MODULE_NAME, ep_dev);
-		if (err)
-			dev_warn(dev,
-				"ep: failed to request IRQ %d for MSI %d\n",
-				pdev->irq + i, i + 1);
-	}
-
-#ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
-	for (i = ep_dev->ipa_base_irq;
-	     i < ep_dev->ipa_base_irq + IPA_HW_IRQ_CNT;
-	     i++) {
-		err = devm_request_irq(dev, pdev->irq + i,
-				       sprd_pci_ep_dev_irqhandler,
-				       IRQF_SHARED, DRV_MODULE_NAME, ep_dev);
-		if (!err)
-			sprd_pcie_teardown_msi_irq(pdev->irq + i);
-	}
-#endif
-
 	for (bar = BAR_0; bar <= BAR_5; bar++) {
 		res = &pdev->resource[bar];
 		dev_info(dev, "ep: BAR[%d] %pR\n", bar, res);
@@ -1064,7 +1040,7 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	if (!ep_dev->cfg_base) {
 		dev_err(dev, "ep: failed to map cfg bar.\n");
 		err = -ENOMEM;
-		goto err_free_irq;
+		goto err_disable_msi;
 	}
 
 	/* clear all 32 bit door bell */
@@ -1098,18 +1074,33 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	INIT_WORK(&ep_dev->notify_work, sprd_pci_ep_notify_fn);
 	schedule_work(&ep_dev->notify_work);
 
-	return 0;
-
-err_free_irq:
-	for (i = ep_dev->base_irq; i < ep_dev->base_irq + PCIE_MSI_MAX_IRQ; i++)
-		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
+	for (i = ep_dev->base_irq;
+		 i < ep_dev->base_irq + PCIE_MSI_MAX_IRQ;
+		 i++) {
+		err = devm_request_irq(dev, pdev->irq + i,
+					   sprd_pci_ep_dev_irqhandler,
+					   IRQF_SHARED, DRV_MODULE_NAME,
+					   ep_dev);
+		if (err)
+			dev_warn(dev,
+				"ep: failed to request IRQ %d for MSI %d\n",
+				pdev->irq + i, i + 1);
+	}
 
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
 	for (i = ep_dev->ipa_base_irq;
-	     i < ep_dev->ipa_base_irq + IPA_HW_IRQ_CNT;
-	     i++)
-		devm_free_irq(&pdev->dev, pdev->irq + i, ep_dev);
+		 i < ep_dev->ipa_base_irq + IPA_HW_IRQ_CNT;
+		 i++) {
+		err = devm_request_irq(dev, pdev->irq + i,
+					   sprd_pci_ep_dev_irqhandler,
+					   IRQF_SHARED, DRV_MODULE_NAME,
+					   ep_dev);
+		if (!err)
+			sprd_pcie_teardown_msi_irq(pdev->irq + i);
+	}
 #endif
+
+	return 0;
 
 err_disable_msi:
 	pci_disable_msi(pdev);
