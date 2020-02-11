@@ -835,7 +835,7 @@ static irqreturn_t sprd_pci_ep_dev_irqhandler(int irq, void *dev_ptr)
 	dev_dbg(dev, "ep: irq handler. irq = %d\n",  irq);
 
 	irq -= (pdev->irq + ep_dev->base_irq);
-	if (irq >= PCIE_MSI_MAX_IRQ) {
+	if (irq >= PCIE_MSI_MAX_IRQ || irq < 0) {
 		dev_err(dev, "ep: error, irq = %d", irq);
 		return IRQ_HANDLED;
 	}
