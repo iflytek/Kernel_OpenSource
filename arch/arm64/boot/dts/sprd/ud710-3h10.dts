@@ -158,8 +158,8 @@
 		cm-battery-hot = <800>;
 		cm-battery-temp-diff = <100>;
 
-		/* Allow charging for 6hr */
-		cm-charging-max = <21600000>;
+		/* Allow charging for 10hr */
+		cm-charging-max = <36000000>;
 		/* recovery charging after stop charging 3hr */
 		cm-discharging-max = <10800000>;
 
