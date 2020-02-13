@@ -50,6 +50,9 @@ dict_project={
 
 	#orca-3h10
 	'udx710_3h10_native-userdebug'           : { 'path' : 'sprd-board-config/orca/udx710_3h10/', },
+
+	#orca-3h10-pi
+	'udx710_3h10_native_pi-userdebug'           : { 'path' : 'sprd-board-config/orca/udx710_3h10_pi/', },
 }
 
 print_head="""
