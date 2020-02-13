@@ -633,6 +633,7 @@ static void dwc3_sprd_detect_cable(struct dwc3_sprd *sdwc)
 {
 	unsigned long flags;
 	enum usb_dr_mode mode = USB_DR_MODE_UNKNOWN;
+	struct extcon_dev *id_ext = sdwc->id_edev ? sdwc->id_edev : sdwc->edev;
 
 	spin_lock_irqsave(&sdwc->lock, flags);
 	if (extcon_get_state(sdwc->edev, EXTCON_USB) == true) {
@@ -649,7 +650,7 @@ static void dwc3_sprd_detect_cable(struct dwc3_sprd *sdwc)
 		sdwc->dr_mode = USB_DR_MODE_PERIPHERAL;
 		mode = sdwc->dr_mode;
 		queue_work(system_unbound_wq, &sdwc->work);
-	} else if (extcon_get_state(sdwc->edev, EXTCON_USB_HOST) == true) {
+	} else if (extcon_get_state(id_ext, EXTCON_USB_HOST) == true) {
 		if (sdwc->vbus_active == true) {
 			spin_unlock_irqrestore(&sdwc->lock, flags);
 			dev_info(sdwc->dev,
