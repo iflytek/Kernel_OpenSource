@@ -34,6 +34,7 @@
 
 #define PCIE_REMOVE_SCAN_GAP	msecs_to_jiffies(200)
 #define MAX_PMS_WAIT_TIME	5000
+#define MAX_PMS_DEFECTIVE_CHIP_WAIT_TIME	(15 * 1000)
 
 enum rc_state {
 	SPRD_PCIE_WAIT_FIRST_READY = 0,
@@ -50,6 +51,7 @@ struct sprd_pcie_res {
 	u32	ep_dev;
 	u32	state;
 	u32	scan_cnt;
+	u32	max_wait_time;
 	bool	ep_power_on;
 	unsigned long	action_jiff;
 
@@ -487,6 +489,11 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
 	res->state = SPRD_PCIE_WAIT_FIRST_READY;
 	res->pcie_dev = pcie_dev;
 
+	if (sprd_pcie_is_defective_chip())
+		res->max_wait_time = MAX_PMS_DEFECTIVE_CHIP_WAIT_TIME;
+	else
+		res->max_wait_time = MAX_PMS_WAIT_TIME;
+
 	init_waitqueue_head(&res->wait_pcie_ready);
 	INIT_WORK(&res->scan_work, sprd_pcie_resource_scan_fn);
 	INIT_WORK(&res->remove_work, sprd_pcie_resource_remove_fn);
@@ -577,8 +584,8 @@ int sprd_pcie_wait_resource(u32 dst, int timeout)
 	 * maximum wait time for let user to know thereis an
 	 * exception in pcie, and can return an error code to the user.
 	 */
-	if (timeout < 0 || timeout > MAX_PMS_WAIT_TIME)
-		timeout = MAX_PMS_WAIT_TIME;
+	if (timeout < 0 || timeout > res->max_wait_time)
+		timeout = res->max_wait_time;
 
 	/*
 	 * timeout must add 1s,
