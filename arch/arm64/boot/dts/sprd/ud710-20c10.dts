@@ -15,6 +15,7 @@
 #include "ud710-20c10-mach.dtsi"
 #include "ud710-20c10-modem.dtsi"
 #include "sprd-sound-fe-be.dtsi"
+#include "lcd/lcd_dummy_mipi.dtsi"
 #include "lcd/lcd_ft8006s_huaxian_mipi_hdp.dtsi"
 
 / {
