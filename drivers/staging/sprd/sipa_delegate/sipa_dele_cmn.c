@@ -442,6 +442,14 @@ int sipa_delegator_init(struct sipa_delegator *delegator,
 	return 0;
 }
 
+void sipa_delegator_exit(struct sipa_delegator *delegator)
+{
+	if (delegator) {
+		destroy_workqueue(delegator->smsg_wq);
+		kthread_stop(delegator->thread);
+	}
+}
+
 int sipa_delegator_start(struct sipa_delegator *delegator)
 {
 	struct sipa_rm_create_params rm_params;

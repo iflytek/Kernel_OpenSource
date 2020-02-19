@@ -129,6 +129,7 @@ int cp_delegator_init(struct sipa_delegator_create_params *params);
 
 int sipa_delegator_init(struct sipa_delegator *delegator,
 			struct sipa_delegator_create_params *params);
+void sipa_delegator_exit(struct sipa_delegator *delegator);
 int sipa_delegator_start(struct sipa_delegator *delegator);
 void sipa_dele_on_open(void *priv, u16 flag, u32 data);
 void sipa_dele_on_close(void *priv, u16 flag, u32 data);
