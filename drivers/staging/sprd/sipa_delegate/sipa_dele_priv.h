@@ -90,6 +90,10 @@ struct sipa_delegator {
 
 struct miniap_delegator {
 	struct sipa_delegator delegator;
+
+	struct sprd_pms *pms;
+	char pms_name[20];
+
 	bool ready;
 
 	dma_addr_t ul_free_fifo_phy;

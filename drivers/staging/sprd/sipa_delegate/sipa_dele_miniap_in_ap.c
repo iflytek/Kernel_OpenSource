@@ -24,6 +24,7 @@
 #include <linux/platform_device.h>
 #include <linux/mdm_ctrl.h>
 #include <linux/soc/sprd/sprd_pcie_ep_device.h>
+#include <linux/soc/sprd/sprd_mpm.h>
 #include "sipa_dele_priv.h"
 #include "../sipa/sipa_hal_priv.h"
 #include "../pam_ipa/pam_ipa_core.h"
@@ -32,18 +33,26 @@ static struct miniap_delegator *s_miniap_delegator;
 
 int notify_pam_ipa_miniap_ready(void)
 {
+	int ret;
 	struct sipa_to_pam_info info;
 	struct sipa_delegate_plat_drv_cfg *cfg;
 	phys_addr_t reg_mapped;
 
 	/* map mini ap addresses */
 	cfg = s_miniap_delegator->delegator.cfg;
+	ret = sprd_pms_request_resource(s_miniap_delegator->pms, -1);
+	if (ret) {
+		pr_err("sprd sipa pms request resource fail\n");
+		return ret;
+	}
+
 	sprd_ep_ipa_map(PCIE_IPA_TYPE_MEM,
 			cfg->mem_base,
 			cfg->mem_end - cfg->mem_base);
 	reg_mapped = sprd_ep_ipa_map(PCIE_IPA_TYPE_REG,
 				     cfg->reg_base,
 				     cfg->reg_end - cfg->reg_base);
+	sprd_pms_release_resource(s_miniap_delegator->pms);
 	/* notify pam_ipa */
 	info.term = SIPA_TERM_PCIE0;
 	info.dl_fifo.rx_fifo_base_addr = s_miniap_delegator->dl_free_fifo_phy;
@@ -156,6 +165,18 @@ int miniap_delegator_init(struct sipa_delegator_create_params *params)
 	s_miniap_delegator->ready = false;
 
 	sipa_delegator_start(&s_miniap_delegator->delegator);
+
+	strncpy(s_miniap_delegator->pms_name, "miniap_dele",
+		sizeof(s_miniap_delegator->pms_name));
+	s_miniap_delegator->pms =
+		sprd_pms_create(s_miniap_delegator->delegator.dst,
+				s_miniap_delegator->pms_name,
+				false);
+	if (!s_miniap_delegator->pms) {
+		pr_err("sipa create miniap dele pms fail\n");
+		sipa_delegator_exit(&s_miniap_delegator->delegator);
+		return -EINVAL;
+	}
 
 	modem_ctrl_register_notifier(&miniap_dele_restart_handler);
 
