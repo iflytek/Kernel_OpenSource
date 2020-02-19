@@ -437,6 +437,12 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 	struct pci_host_bridge *bridge;
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 
+	/* In order to avoid someone rescanning PCIe once more */
+	if (ctrl->is_powered) {
+		dev_err(&pdev->dev, "PCIe has alreadly scanned\n");
+		return 0;
+	}
+
 	ret = sprd_pcie_host_reinit(pdev);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "pcie rescan fail\n");
@@ -458,9 +464,14 @@ int sprd_pcie_unconfigure_device(struct platform_device *pdev)
 	struct pci_host_bridge *bridge;
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 
+	/* In order to avoid someone removing PCIe before establishing link */
+	if (!ctrl->is_powered) {
+		dev_err(&pdev->dev, "PCIe hasn't been scanned yet!\n");
+		return -ENODEV;
+	}
+
 	bridge = to_bridge_from_pdev(pdev);
 	bus = bridge->bus;
-
 	sprd_pcie_remove_bus(bus);
 
 	ret = sprd_pcie_host_uninit(pdev);
