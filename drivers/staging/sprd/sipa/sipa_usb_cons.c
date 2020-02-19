@@ -91,37 +91,24 @@ void sipa_rm_set_usb_eth_down(void)
 				  SIPA_RM_RES_PROD_PAM_IPA);
 	sipa_rm_delete_dependency(SIPA_RM_RES_CONS_USB,
 				  SIPA_RM_RES_PROD_MINI_AP);
+	sipa_rm_delete_dependency(SIPA_RM_RES_CONS_USB,
+				  SIPA_RM_RES_PROD_CP);
+	sipa_rm_delete_dependency(SIPA_RM_RES_CONS_USB,
+				  SIPA_RM_RES_PROD_PCIE3);
 }
 EXPORT_SYMBOL(sipa_rm_set_usb_eth_down);
 
-int sipa_rm_enable_usb_tether(void)
+void sipa_rm_enable_usb_tether(void)
 {
-	int ret;
-
-	ret = sipa_rm_add_dependency_sync(SIPA_RM_RES_CONS_USB,
-					  SIPA_RM_RES_PROD_IPA);
-	if (ret)
-		return ret;
-
-	ret = sipa_rm_add_dependency_sync(SIPA_RM_RES_CONS_USB,
-					  SIPA_RM_RES_PROD_PAM_IPA);
-	if (ret) {
-		sipa_rm_delete_dependency(SIPA_RM_RES_CONS_USB,
-					  SIPA_RM_RES_PROD_IPA);
-		return ret;
-	}
-
-	ret = sipa_rm_add_dependency_sync(SIPA_RM_RES_CONS_USB,
-					  SIPA_RM_RES_PROD_MINI_AP);
-
-	if (ret) {
-		sipa_rm_delete_dependency(SIPA_RM_RES_CONS_USB,
-					  SIPA_RM_RES_PROD_IPA);
-		sipa_rm_delete_dependency(SIPA_RM_RES_CONS_USB,
-					  SIPA_RM_RES_PROD_PAM_IPA);
-		return ret;
-	}
-
-	return ret;
+	sipa_rm_add_dependency_sync(SIPA_RM_RES_CONS_USB,
+				    SIPA_RM_RES_PROD_IPA);
+	sipa_rm_add_dependency_sync(SIPA_RM_RES_CONS_USB,
+				    SIPA_RM_RES_PROD_PAM_IPA);
+	sipa_rm_add_dependency_sync(SIPA_RM_RES_CONS_USB,
+				    SIPA_RM_RES_PROD_MINI_AP);
+	sipa_rm_add_dependency_sync(SIPA_RM_RES_CONS_USB,
+				    SIPA_RM_RES_PROD_CP);
+	sipa_rm_add_dependency_sync(SIPA_RM_RES_CONS_USB,
+				    SIPA_RM_RES_PROD_PCIE3);
 }
 EXPORT_SYMBOL(sipa_rm_enable_usb_tether);
