@@ -962,6 +962,12 @@ int aw88195_update_hw_params(void *aw881xx)
 	aw88195_i2c_write_bits(aw88195, AW88195_REG_I2SCTRL,
 		AW88195_BIT_I2SCTRL_SR_MASK, AW88195_BIT_I2SCTRL_SR_48K);
 
+	if (aw88195->rate == 32000 || aw88195->rate == 16000 ||
+	    aw88195->rate == 8000)
+		aw88195_i2c_write(aw88195, AW88195_REG_PLLCTRL1, 0x3f07);
+	else
+		aw88195_i2c_write(aw88195, AW88195_REG_PLLCTRL1, 0x7f07);
+
 	/* match bit width */
 	switch (aw88195->width) {
 	case 16:
