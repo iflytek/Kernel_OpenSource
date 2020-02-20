@@ -34,7 +34,7 @@
 
 #define PCIE_REMOVE_SCAN_GAP	msecs_to_jiffies(200)
 #define MAX_PMS_WAIT_TIME	5000
-#define MAX_PMS_DEFECTIVE_CHIP_WAIT_TIME	(15 * 1000)
+#define MAX_PMS_DEFECTIVE_CHIP_FIRST_WAIT_TIME	(55 * 1000)
 
 enum rc_state {
 	SPRD_PCIE_WAIT_FIRST_READY = 0,
@@ -349,6 +349,10 @@ static int sprd_pcie_resource_check_first_rescan(void *data)
 		}
 	}
 
+	/* After the first rescan, restore the normal wait time. */
+	if (sprd_pcie_is_defective_chip())
+		res->max_wait_time = MAX_PMS_WAIT_TIME;
+
 	res->thread = NULL;
 	return 0;
 }
@@ -453,6 +457,12 @@ void sprd_pcie_resource_reboot_ep(u32 dst)
 
 	res->ep_ready_for_rescan = false;
 
+	/* The defective chip , the first wait time must be enough long. */
+	if (sprd_pcie_is_defective_chip())
+		res->max_wait_time = MAX_PMS_DEFECTIVE_CHIP_FIRST_WAIT_TIME;
+	else
+		res->max_wait_time = MAX_PMS_WAIT_TIME;
+
 	/* after ep reboot, can't backup ep configs*/
 	sprd_ep_dev_clear_backup(res->ep_dev);
 
@@ -489,8 +499,9 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
 	res->state = SPRD_PCIE_WAIT_FIRST_READY;
 	res->pcie_dev = pcie_dev;
 
+	/* The defective chip , the first wait time must be enough long. */
 	if (sprd_pcie_is_defective_chip())
-		res->max_wait_time = MAX_PMS_DEFECTIVE_CHIP_WAIT_TIME;
+		res->max_wait_time = MAX_PMS_DEFECTIVE_CHIP_FIRST_WAIT_TIME;
 	else
 		res->max_wait_time = MAX_PMS_WAIT_TIME;
 
