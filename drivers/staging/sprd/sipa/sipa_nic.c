@@ -379,6 +379,7 @@ int sipa_nic_open(enum sipa_term_type src, int netid,
 		return ret;
 
 	atomic_set(&nic->status, NIC_OPEN);
+	nic->continue_notify = true;
 	nic->nic_id = nic_id;
 	nic->send_ep = ctrl->eps[s_spia_nic_statics[nic_id].send_ep];
 	nic->need_notify = 0;
@@ -420,6 +421,7 @@ void sipa_nic_close(enum sipa_nic_id nic_id)
 
 	sipa_nic_deregister_rm(nic, nic_id);
 	atomic_set(&nic->status, NIC_CLOSE);
+	nic->continue_notify = false;
 	/* free all  pending skbs */
 	while ((skb = skb_dequeue(&nic->rx_skb_q)) != NULL)
 		dev_kfree_skb_any(skb);
@@ -460,7 +462,7 @@ void sipa_nic_push_skb(struct sipa_nic *nic, struct sk_buff *skb)
 
 	atomic_inc(&ctrl->recv_cnt);
 	skb_queue_tail(&nic->rx_skb_q, skb);
-	if (nic->rx_skb_q.qlen == 1)
+	if (nic->rx_skb_q.qlen == 1 || nic->continue_notify)
 		nic->need_notify = 1;
 }
 EXPORT_SYMBOL(sipa_nic_push_skb);
@@ -515,6 +517,8 @@ int sipa_nic_rx(enum sipa_nic_id nic_id, struct sk_buff **out_skb)
 
 	nic = ctrl->nic[nic_id];
 	skb = skb_dequeue(&nic->rx_skb_q);
+	if (nic->continue_notify)
+		nic->continue_notify = false;
 
 	*out_skb = skb;
 	if (skb)

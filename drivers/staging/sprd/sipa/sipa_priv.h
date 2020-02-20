@@ -293,6 +293,7 @@ struct sipa_nic {
 	void *cb_priv;
 	atomic_t status;
 	bool flow_ctrl_status;
+	bool continue_notify;
 	struct sipa_nic_cons_res rm_res;
 };
 
