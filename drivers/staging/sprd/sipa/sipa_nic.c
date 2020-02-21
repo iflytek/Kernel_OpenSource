@@ -378,7 +378,6 @@ int sipa_nic_open(enum sipa_term_type src, int netid,
 	if (ret)
 		return ret;
 
-	atomic_set(&nic->status, NIC_OPEN);
 	nic->continue_notify = true;
 	nic->nic_id = nic_id;
 	nic->send_ep = ctrl->eps[s_spia_nic_statics[nic_id].send_ep];
@@ -398,6 +397,8 @@ int sipa_nic_open(enum sipa_term_type src, int netid,
 	}
 
 	sipa_skb_sender_add_nic(sender, nic);
+
+	atomic_set(&nic->status, NIC_OPEN);
 
 	return nic_id;
 }
@@ -419,8 +420,8 @@ void sipa_nic_close(enum sipa_nic_id nic_id)
 
 	nic = ctrl->nic[nic_id];
 
-	sipa_nic_deregister_rm(nic, nic_id);
 	atomic_set(&nic->status, NIC_CLOSE);
+	sipa_nic_deregister_rm(nic, nic_id);
 	nic->continue_notify = false;
 	/* free all  pending skbs */
 	while ((skb = skb_dequeue(&nic->rx_skb_q)) != NULL)
