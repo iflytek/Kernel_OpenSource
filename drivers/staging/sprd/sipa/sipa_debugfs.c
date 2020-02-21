@@ -145,6 +145,9 @@ static int sipa_flow_ctrl_show(struct seq_file *s, void *unused)
 		return 0;
 	}
 
+	seq_printf(s, "[SEND_ETH] left_cnt = %d\n",
+		   atomic_read(&eth_sender->left_cnt));
+
 	seq_printf(s, "[SEND_ETH] no_mem_cnt = %d no_free_cnt = %d\n",
 		   eth_sender->no_mem_cnt, eth_sender->no_free_cnt);
 
@@ -153,6 +156,9 @@ static int sipa_flow_ctrl_show(struct seq_file *s, void *unused)
 
 	seq_printf(s, "[SEND_ETH] exit_flow_ctrl_cnt = %d\n",
 		   eth_sender->exit_flow_ctrl_cnt);
+
+	seq_printf(s, "[SEND_IP] left_cnt = %d\n",
+		   atomic_read(&ip_sender->left_cnt));
 
 	seq_printf(s, "[SEND_IP] no_mem_cnt = %d no_free_cnt = %d\n",
 		   ip_sender->no_mem_cnt, ip_sender->no_free_cnt);
@@ -245,6 +251,9 @@ static int sipa_nic_debug_show(struct seq_file *s, void *unused)
 	int i;
 	struct sipa_control *ipa = (struct sipa_control *)s->private;
 
+	seq_printf(s, "suspend_stage = 0x%x recv_cnt = %d\n",
+		   ipa->suspend_stage, atomic_read(&ipa->recv_cnt));
+
 	for (i = 0; i < SIPA_NIC_MAX; i++) {
 		if (!ipa->nic[i])
 			continue;
@@ -254,10 +263,12 @@ static int sipa_nic_debug_show(struct seq_file *s, void *unused)
 			   ipa->nic[i]->src_mask,
 			   ipa->nic[i]->netid,
 			   ipa->nic[i]->flow_ctrl_status);
-		seq_printf(s, " qlen = %d need_notify = %d rm_flow_ctrl = %d\n",
+		seq_printf(s, " qlen = %d need_notify = %d rm_flow_ctrl = %d",
 			   ipa->nic[i]->rx_skb_q.qlen,
 			   ipa->nic[i]->need_notify,
 			   ipa->nic[i]->rm_res.rm_flow_ctrl);
+		seq_printf(s, " continue_notify = %d\n",
+			   ipa->nic[i]->continue_notify);
 	}
 
 	return 0;
