@@ -350,12 +350,6 @@ int sipa_skb_sender_send_data(struct sipa_skb_sender *sender,
 	struct sipa_skb_dma_addr_node *node;
 	struct sipa_hal_fifo_item item;
 
-	if (!atomic_read(&sender->left_cnt)) {
-		sender->no_free_cnt++;
-		return -EAGAIN;
-	}
-	atomic_dec(&sender->left_cnt);
-
 	dma_addr = dma_map_single(sender->ctx->pdev,
 				  skb->head,
 				  skb->len + skb_headroom(skb),
@@ -373,12 +367,26 @@ int sipa_skb_sender_send_data(struct sipa_skb_sender *sender,
 	item.src = sender->ep->send_fifo.src_id;
 
 	spin_lock_irqsave(&sender->send_lock, flags);
-
+	if (!atomic_read(&sender->left_cnt)) {
+		spin_unlock_irqrestore(&sender->send_lock, flags);
+		dma_unmap_single(sender->ctx->pdev,
+				 dma_addr,
+				 skb->len + skb_headroom(skb),
+				 DMA_TO_DEVICE);
+		sender->no_free_cnt++;
+		return -EAGAIN;
+	}
+	atomic_dec(&sender->left_cnt);
 	ret = sipa_hal_cache_rx_fifo_item(sender->ctx->hdl,
 					  sender->ep->send_fifo.idx,
 					  &item, 0);
 	if (ret) {
 		spin_unlock_irqrestore(&sender->send_lock, flags);
+		dma_unmap_single(sender->ctx->pdev,
+				 dma_addr,
+				 skb->len + skb_headroom(skb),
+				 DMA_TO_DEVICE);
+		atomic_add(1, &sender->left_cnt);
 		return ret;
 	}
 
