@@ -28,6 +28,9 @@
  * These immediate values should be removed if the corresponding
  * macros are defined.
  */
+
+extern uint32_t (*sdhci_get_delay)(uint32_t device_type);
+
 const struct sdio_base_info sdio_ctrl_info[2] = {
 {
 	EMMC,
@@ -53,6 +56,9 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 
 	"vddgen0",
 	"vddemmccore",
+	{
+		.mmc_dly = 0x009b9a00
+	},
 },
 {
 	SD,
@@ -82,8 +88,17 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 }
 };
 
+uint32_t get_delay_value(uint32_t device_type)
+{
+	if(device_type == SD)
+		return sdio_ctrl_info[device_type].sdio_dly.sd_dly.sdhs_dly;
+	if(device_type == EMMC)
+		return sdio_ctrl_info[device_type].sdio_dly.mmc_dly.mmchs_dly;
+}
+
 struct sdio_base_info *get_sdcontrol_info(uint32_t device_type)
 {
+	sdhci_get_delay = get_delay_value;
 	return  &sdio_ctrl_info[device_type];
 }
 
