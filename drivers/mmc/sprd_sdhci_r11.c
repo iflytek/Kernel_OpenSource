@@ -649,9 +649,8 @@ static void sdhci_set_ios(struct mmc *mmc)
 		host->set_control_reg(host);
 	if (mmc->clock != host->clock) {
 		sdhci_set_clock(mmc, mmc->clock);
-		if(sdhci_get_delay &&  (mmc->clock == mmc->tran_speed) &&
-		   (mmc->block_dev.dev == SD)) {
-			delay = sdhci_get_delay(SD);
+		if(sdhci_get_delay &&  (mmc->clock == mmc->tran_speed)) {
+			delay = sdhci_get_delay(mmc->block_dev.dev);
 			sdhci_writel(host, delay, SDHCI_DLL_DLY);
 		}
 	}
