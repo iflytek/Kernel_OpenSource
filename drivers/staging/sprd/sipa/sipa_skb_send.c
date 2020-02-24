@@ -57,7 +57,8 @@ static void sipa_sender_notify_cb(void *priv, enum sipa_hal_evt_type evt,
 
 	if (evt & SIPA_RECV_WARN_EVT) {
 		dev_err(sender->ctx->pdev,
-			"sipa overflow on ep:%d\n", sender->ep->id);
+			"sipa overflow on ep:%d evt = 0x%x\n",
+			sender->ep->id, evt);
 		sender->no_free_cnt++;
 		wake_up(&sender->free_waitq);
 	}
