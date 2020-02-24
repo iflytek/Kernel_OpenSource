@@ -53,6 +53,7 @@ struct sprd_pcie_res {
 	u32	scan_cnt;
 	u32	max_wait_time;
 	bool	ep_power_on;
+	bool	ep_dev_probe;
 	unsigned long	action_jiff;
 
 	struct sprd_pms	*pms;
@@ -119,7 +120,7 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 		/* set state to scanned */
 		res->state = SPRD_PCIE_SCANNED;
 		res->scan_cnt++;
-
+		res->ep_dev_probe = true;
 		modem_ctrl_enable_cp_event();
 
 		pr_info("pcie res: ep_notify, probed cnt=%d.\n",
@@ -141,10 +142,12 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 	case PCIE_EP_REMOVE:
 		pr_info("pcie res: ep_notify, removed.\n");
 		res->state = SPRD_PCIE_REMOVED;
+		res->ep_dev_probe = false;
 		break;
 
 	case PCIE_EP_PROBE_BEFORE_SPLIT_BAR:
 		res->state = SPRD_PCIE_SCANNED_2BAR;
+		res->ep_dev_probe = true;
 		pr_info("pcie res: probed before split bar.\n");
 		if (!res->ep_ready_for_rescan) {
 			wake_up_interruptible_all(&res->wait_load_ready);
@@ -247,8 +250,12 @@ static void sprd_pcie_resource_remove_fn(struct work_struct *work)
 		msleep(delay);
 	}
 
-	/* in wait power off state, can't access ep. */
-	if (res->state == SPRD_PCIE_WAIT_POWER_OFF) {
+	/*
+	 * in wait power off state, or ep device is not probing,
+	 * can't access ep.
+	 */
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF ||
+	    !res->ep_dev_probe) {
 		/* release wakelock */
 		sprd_pms_release_wakelock(res->pms);
 		return;
