@@ -210,6 +210,7 @@ static ssize_t modem_read(struct file *filp,
 	void *vmem;
 	struct modem_device *modem = filp->private_data;
 	phys_addr_t addr;
+	int ret;
 
 	dev_dbg(modem->p_dev, "read, %s!\n", modem->modem_name);
 
@@ -232,10 +233,15 @@ static ssize_t modem_read(struct file *filp,
 	r = count;
 	do {
 		addr = base + offset + (count - r);
+		ret = sprd_pms_request_resource(modem->rd_pms, -1);
+		if (ret)
+			return ret;
+
 		vmem = modem_map_memory(modem, addr, r, &map_size);
 		if (!vmem) {
 			dev_err(modem->p_dev,
 				"read, Unable to map  base: 0x%llx\n", addr);
+			sprd_pms_release_resource(modem->rd_pms);
 			return -ENOMEM;
 		}
 
@@ -244,9 +250,11 @@ static ssize_t modem_read(struct file *filp,
 			dev_err(modem->p_dev,
 				"read, copy data from user err!\n");
 			modem_ram_unmap(modem->modem_type, vmem);
+			sprd_pms_release_resource(modem->rd_pms);
 			return -EFAULT;
 		}
 		modem_ram_unmap(modem->modem_type, vmem);
+		sprd_pms_release_resource(modem->rd_pms);
 		r -= copy_size;
 		buf += copy_size;
 	} while (r > 0);
@@ -264,6 +272,7 @@ static ssize_t modem_write(struct file *filp,
 	void *vmem;
 	struct modem_device *modem = filp->private_data;
 	phys_addr_t addr;
+	int ret;
 
 	dev_dbg(modem->p_dev, "write, %s!\n", modem->modem_name);
 
@@ -286,11 +295,16 @@ static ssize_t modem_write(struct file *filp,
 	r = count;
 	do {
 		addr = base + offset + (count - r);
+		ret = sprd_pms_request_resource(modem->wt_pms, -1);
+		if (ret)
+			return ret;
+
 		vmem = modem_map_memory(modem, addr, r, &map_size);
 		if (!vmem) {
 			dev_err(modem->p_dev,
 				"write, Unable to map  base: 0x%llx\n",
 				addr);
+			sprd_pms_release_resource(modem->wt_pms);
 			return -ENOMEM;
 		}
 		copy_size = min_t(size_t, r, map_size);
@@ -298,9 +312,11 @@ static ssize_t modem_write(struct file *filp,
 			dev_err(modem->p_dev,
 				"write, copy data from user err!\n");
 			modem_ram_unmap(modem->modem_type, vmem);
+			sprd_pms_release_resource(modem->wt_pms);
 			return -EFAULT;
 		}
 		modem_ram_unmap(modem->modem_type, vmem);
+		sprd_pms_release_resource(modem->wt_pms);
 		r -= copy_size;
 		buf += copy_size;
 	} while (r > 0);
