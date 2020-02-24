@@ -377,7 +377,7 @@ static int modem_cmd_lock(struct file *filp,
 		 * sprd_pcie_wait_load_resource, this api will return after
 		 * the first pcie scan action, and in here we use it.
 		 */
-		sprd_pms_request_resource(pms, 0);
+		sprd_pms_power_up(pms);
 		ret = sprd_pcie_wait_load_resource(modem->modem_dst);
 		dev_info(modem->p_dev,
 			 "lock, wait load ret =%d\n", ret);
