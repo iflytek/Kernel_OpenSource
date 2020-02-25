@@ -154,10 +154,24 @@ int miniap_delegator_init(struct sipa_delegator_create_params *params)
 					  GFP_KERNEL);
 	if (!s_miniap_delegator)
 		return -ENOMEM;
+
+	strncpy(s_miniap_delegator->pms_name, "miniap_dele",
+		sizeof(s_miniap_delegator->pms_name));
+	s_miniap_delegator->pms =
+		sprd_pms_create(params->dst,
+				s_miniap_delegator->pms_name,
+				false);
+	if (!s_miniap_delegator->pms) {
+		dev_err(params->pdev, "sipa create miniap dele pms fail\n");
+		return -EPROBE_DEFER;
+	}
+
 	ret = sipa_delegator_init(&s_miniap_delegator->delegator,
 				  params);
-	if (ret)
+	if (ret) {
+		sprd_pms_destroy(s_miniap_delegator->pms);
 		return ret;
+	}
 
 	s_miniap_delegator->delegator.on_close = miniap_dele_on_close;
 	s_miniap_delegator->delegator.on_evt = miniap_dele_on_event;
@@ -165,19 +179,6 @@ int miniap_delegator_init(struct sipa_delegator_create_params *params)
 	s_miniap_delegator->ready = false;
 
 	sipa_delegator_start(&s_miniap_delegator->delegator);
-
-	strncpy(s_miniap_delegator->pms_name, "miniap_dele",
-		sizeof(s_miniap_delegator->pms_name));
-	s_miniap_delegator->pms =
-		sprd_pms_create(s_miniap_delegator->delegator.dst,
-				s_miniap_delegator->pms_name,
-				false);
-	if (!s_miniap_delegator->pms) {
-		pr_err("sipa create miniap dele pms fail\n");
-		sipa_delegator_exit(&s_miniap_delegator->delegator);
-		return -EINVAL;
-	}
-
 	modem_ctrl_register_notifier(&miniap_dele_restart_handler);
 
 	return 0;
