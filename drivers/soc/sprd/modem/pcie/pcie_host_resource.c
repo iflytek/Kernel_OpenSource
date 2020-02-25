@@ -293,6 +293,10 @@ static void sprd_pcie_resource_start_scan(struct sprd_pcie_res *res)
 
 static void sprd_pcie_resource_start_remove(struct sprd_pcie_res *res)
 {
+	/* wait power off, do nothing */
+	if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+		return;
+
 	if (res->state == SPRD_PCIE_SCANNED ||
 		res->state == SPRD_PCIE_WAIT_FIRST_READY
 		|| (res->state == SPRD_PCIE_SCANNED_2BAR)
@@ -388,6 +392,11 @@ static int sprd_pcie_resource_host_mcd(struct notifier_block *nb,
 
 	for (i = 0; i < SIPC_ID_NR; i++) {
 		res = g_pcie_res[i];
+
+		/* wait power off, do nothing */
+		if (res->state == SPRD_PCIE_WAIT_POWER_OFF)
+			continue;
+
 		if (res) {
 			res->state = state;
 			cancel_work_sync(&res->scan_work);
