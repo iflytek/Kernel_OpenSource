@@ -382,10 +382,6 @@ static int sprd_pcie_resource_host_mcd(struct notifier_block *nb,
 		state = SPRD_PCIE_WAIT_POWER_OFF;
 		break;
 
-	case MDM_PANIC:
-		state = SPRD_PCIE_WAIT_FIRST_READY;
-		break;
-
 	default:
 		return NOTIFY_DONE;
 	}
