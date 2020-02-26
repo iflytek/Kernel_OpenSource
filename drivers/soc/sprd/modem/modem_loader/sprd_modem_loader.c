@@ -202,6 +202,37 @@ static void *modem_map_memory(struct modem_device *modem, phys_addr_t start,
 	return NULL;
 }
 
+static int modem_request_pms(struct modem_device *modem, struct sprd_pms *pms)
+{
+	int ret;
+
+	if (modem->modem_type == PCIE_MODEM &&
+	    sprd_pcie_is_defective_chip()) {
+		/* In this case, pcie need split bar,
+		 * It has 2 times pcie scan action in host side boot process.
+		 * After the first scan, the ep only have 2 bar can be used
+		 * for memory map, the pcie resource is not completely ready.
+		 * The api sprd_pms_request_resource(pms, -1) will return
+		 * until the 2th scan action complete, and the ep will have
+		 * 4 bar can be used for memory map. but the ep bar can only
+		 * be split by the modem, so we can't used the commom api
+		 * sprd_pms_wait_resource here.
+		 * For workaroud this issue, we add a special api
+		 * sprd_pcie_wait_load_resource, this api will return after
+		 * the first pcie scan action, and in here we use it.
+		 */
+		sprd_pms_power_up(pms);
+		ret = sprd_pcie_wait_load_resource(modem->modem_dst);
+		dev_info(modem->p_dev,
+			 "lock, wait load ret =%d\n", ret);
+	} else {
+		/* must request resource before read or write ep memory */
+		ret = sprd_pms_request_resource(pms, -1);
+	}
+
+	return ret;
+}
+
 static ssize_t modem_read(struct file *filp,
 			  char __user *buf, size_t count, loff_t *ppos)
 {
@@ -233,7 +264,7 @@ static ssize_t modem_read(struct file *filp,
 	r = count;
 	do {
 		addr = base + offset + (count - r);
-		ret = sprd_pms_request_resource(modem->rd_pms, -1);
+		ret = modem_request_pms(modem, modem->rd_pms);
 		if (ret)
 			return ret;
 
@@ -295,7 +326,7 @@ static ssize_t modem_write(struct file *filp,
 	r = count;
 	do {
 		addr = base + offset + (count - r);
-		ret = sprd_pms_request_resource(modem->wt_pms, -1);
+		ret = modem_request_pms(modem, modem->wt_pms);
 		if (ret)
 			return ret;
 
@@ -362,29 +393,7 @@ static int modem_cmd_lock(struct file *filp,
 		mutex_lock(mut);
 	}
 
-	if (modem->modem_type == PCIE_MODEM &&
-	    sprd_pcie_is_defective_chip()) {
-		/* In this case, pcie need split bar,
-		 * It has 2 times pcie scan action in host side boot process.
-		 * After the first scan, the ep only have 2 bar can be used
-		 * for memory map, the pcie resource is not completely ready.
-		 * The api sprd_pms_request_resource(pms, -1) will return
-		 * until the 2th scan action complete, and the ep will have
-		 * 4 bar can be used for memory map. but the ep bar can only
-		 * be split by the modem, so we can't used the commom api
-		 * sprd_pms_wait_resource here.
-		 * For workaroud this issue, we add a special api
-		 * sprd_pcie_wait_load_resource, this api will return after
-		 * the first pcie scan action, and in here we use it.
-		 */
-		sprd_pms_power_up(pms);
-		ret = sprd_pcie_wait_load_resource(modem->modem_dst);
-		dev_info(modem->p_dev,
-			 "lock, wait load ret =%d\n", ret);
-	} else {
-		/* must request resource before read or write ep memory */
-		ret = sprd_pms_request_resource(pms, -1);
-	}
+	ret = modem_request_pms(modem, pms);
 
 	if (ret < 0) {
 		mutex_unlock(mut);
