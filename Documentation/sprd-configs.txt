@@ -13878,6 +13878,15 @@ CONFIG_SPRD_SIPA_DELE_CP_IN_MINIAP
 	[must]
 	[missing plat description]
 	[function]
+CONFIG_SPRD_SIPA_DELE_THIRD_IN_MINIAP
+	[arch] arm64
+	[plat] orca
+	[missing plat] roc1,sharkl3,sharkl5,sharkl5_32
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
 CONFIG_SPRD_SIPA_DELE_MINIAP_IN_AP
 	[arch] arm64
 	[plat] roc1

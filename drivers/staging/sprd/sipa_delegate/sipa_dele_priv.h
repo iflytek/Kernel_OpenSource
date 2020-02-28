@@ -129,6 +129,7 @@ struct sipa_delegator_create_params {
 
 int miniap_delegator_init(struct sipa_delegator_create_params *params);
 int ap_delegator_init(struct sipa_delegator_create_params *params);
+int sipa_third_ap_delegator_init(struct sipa_delegator_create_params *params);
 int cp_delegator_init(struct sipa_delegator_create_params *params);
 
 int sipa_delegator_init(struct sipa_delegator *delegator,
