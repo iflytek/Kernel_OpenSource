@@ -166,6 +166,12 @@ static u32 sipa_hal_set_wipa_ul_dma(void __iomem *reg_base, u32 enable)
 	return ipa_phy_ctrl_wiap_ul_dma(reg_base, enable);
 }
 
+static bool sipa_hal_ctrl_pcie_dl_dma(void __iomem *reg_base,
+				      bool enable)
+{
+	return ipa_phy_ctrl_pcie_dl_dma(reg_base, enable);
+}
+
 static u32 sipa_hal_enable_to_pcie_no_mac(void __iomem *reg_base, bool enable)
 {
 	return ipa_phy_enable_to_pcie_no_mac(reg_base, enable);
@@ -373,6 +379,7 @@ u32 sipa_glb_ops_init(
 		sipa_hal_check_resume_status;
 	ops->get_pause_status			=
 		sipa_hal_check_pause_status;
+	ops->ctrl_pcie_dl_dma = sipa_hal_ctrl_pcie_dl_dma;
 
 	return TRUE;
 }

@@ -204,6 +204,8 @@ int sipa_hal_get_cmn_fifo_filled_depth(sipa_hal_hdl hdl,
 
 int sipa_hal_enable_wiap_dma(sipa_hal_hdl hdl, bool dma);
 
+int sipa_hal_enable_pcie_dl_dma(sipa_hal_hdl hdl, bool eb);
+
 int sipa_tft_mode_init(sipa_hal_hdl hdl);
 
 int sipa_close_common_fifo(sipa_hal_hdl hdl,

@@ -86,6 +86,7 @@ Required properties:
 Optional properties:
 - sprd,need-through-pcie: boolean, set this for IPA need send data to cp behind.
 - sprd,wiap-ul-dma: boolean, set this for enable wiap ul common fifo dma function.
+- sprd,pcie-dl-dma: boolean, set this for enable pcie dl common fifo dma function.
 - sprd,tft-mode: boolean, set this for enable ipa tft(Traffic Flow Template) feature,
 	implement packet filtering and forwarding; not set this will disable ipa tft feature.
 
@@ -104,6 +105,7 @@ Examples:
 		sprd,sipa-bypass-mode = <0>;
 		sprd,need-through-pcie;
 		sprd,wiap-ul-dma;
+		sprd,pcie-dl-dma;
 		sprd,tft-mode;
 
 		sprd,usb-dl-tx = <1 1024>;

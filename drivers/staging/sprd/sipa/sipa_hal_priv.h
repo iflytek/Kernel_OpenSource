@@ -248,6 +248,8 @@ struct sipa_hal_global_ops {
 				      u32 enable);
 	u32 (*enable_wiap_ul_dma)(void __iomem *reg_base,
 				  u32 enable);
+	bool (*ctrl_pcie_dl_dma)(void __iomem *reg_base,
+				 bool enable);
 	u32 (*enable_def_flowctrl_to_src_blk)(void __iomem *reg_base);
 	u32 (*enable_to_pcie_no_mac)(void __iomem *reg_base, bool enable);
 	u32 (*enable_from_pcie_no_mac)(void __iomem *reg_base, bool enable);

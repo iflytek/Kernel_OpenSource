@@ -1033,6 +1033,9 @@ static int sipa_parse_dts_configuration(struct platform_device *pdev,
 		of_property_read_bool(pdev->dev.of_node,
 				      "sprd,wiap-ul-dma");
 
+	cfg->pcie_dl_dma = of_property_read_bool(pdev->dev.of_node,
+						 "sprd,pcie-dl-dma");
+
 	/* get tft mode flag */
 	cfg->tft_mode =
 		of_property_read_bool(pdev->dev.of_node,

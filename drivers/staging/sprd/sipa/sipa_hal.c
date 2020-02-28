@@ -845,6 +845,14 @@ int sipa_hal_enable_wiap_dma(sipa_hal_hdl hdl, bool dma)
 }
 EXPORT_SYMBOL(sipa_hal_enable_wiap_dma);
 
+int sipa_hal_enable_pcie_dl_dma(sipa_hal_hdl hdl, bool eb)
+{
+	struct sipa_hal_context *hal_cfg = (struct sipa_hal_context *)hdl;
+
+	return hal_cfg->glb_ops.ctrl_pcie_dl_dma(hal_cfg->phy_virt_res.glb_base,
+						 eb);
+}
+EXPORT_SYMBOL(sipa_hal_enable_pcie_dl_dma);
 /**
  * sipa_hal_reclaim_unuse_node() - reclaim that unfree description.
  * @hdl: &sipa_hal_ctx.
@@ -1328,6 +1336,8 @@ void sipa_resume_glb_reg_cfg(struct sipa_plat_drv_cfg *cfg)
 	void __iomem *glb_base = hal_cfg->phy_virt_res.glb_base;
 
 	hal_cfg->glb_ops.enable_wiap_ul_dma(glb_base, (u32)cfg->wiap_ul_dma);
+
+	hal_cfg->glb_ops.ctrl_pcie_dl_dma(glb_base, (u32)cfg->pcie_dl_dma);
 
 	hal_cfg->glb_ops.enable_cp_through_pcie(glb_base,
 						(u32)cfg->need_through_pcie);

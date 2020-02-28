@@ -148,6 +148,7 @@ struct sipa_plat_drv_cfg {
 	int is_bypass;
 	bool tft_mode;
 	bool wiap_ul_dma;
+	bool pcie_dl_dma;
 	bool need_through_pcie;
 
 	u32 fifo_iram_size;

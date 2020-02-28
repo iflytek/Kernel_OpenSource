@@ -1431,6 +1431,7 @@
  *   [0]: ul wiap dma enable
  */
 #define IPA_WIAP_UL_DMA_EN_MASK	(0x01l)
+#define IPA_DL_PCIE_DMA_EB_MASK BIT(17)
 #define ENABLE_PCIE_MEM_INTR_MODE_MASK BIT(15)
 
 #define MAP_UL_DEV_FIFO_FREE_FIFO_FATAL_INTERRUPT_FOR_CM4_MASK \
@@ -1940,6 +1941,27 @@ static inline u32 ipa_phy_ctrl_wiap_ul_dma(void __iomem *reg_base,
 	}
 
 	return flag;
+}
+
+static inline bool ipa_phy_ctrl_pcie_dl_dma(void __iomem *reg_base,
+					    bool enable)
+{
+	u32 tmp;
+
+	tmp = readl_relaxed(reg_base + IPA_CTRL);
+	if (enable)
+		tmp |= IPA_DL_PCIE_DMA_EB_MASK;
+	else
+		tmp &= (~IPA_DL_PCIE_DMA_EB_MASK);
+
+	writel_relaxed(tmp, reg_base + IPA_CTRL);
+
+	tmp = readl_relaxed(reg_base + IPA_CTRL);
+	if (((tmp & IPA_DL_PCIE_DMA_EB_MASK) && enable) ||
+	    (!(tmp & IPA_DL_PCIE_DMA_EB_MASK) && !enable))
+		return true;
+
+	return false;
 }
 
 static inline u32 ipa_phy_get_timestamp(void __iomem *reg_base)
