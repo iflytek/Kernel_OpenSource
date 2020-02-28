@@ -26,6 +26,7 @@
 #define MPOOL_SIZE	0x10000
 #define MAX_PRINT_BYTE_NUM 8
 #define EDMA_TX_TIMER_INTERVAL_MS	1000
+#define IRQ_MONITOR_TIMER_INTERVAL_MS	2000
 
 static int hisrfunc_debug;
 static int hisrfunc_line;
@@ -1224,7 +1225,13 @@ int msi_irq_handle(int irq)
 		WCN_ERR("do not handle this irq, card removed\n");
 		return -1;
 	}
+
 	local_irq_save(irq_flags);
+
+	/* 1s timeout */
+	edma->irq_monitor_timer.expires = jiffies + 1 * HZ;
+	add_timer_on(&edma->irq_monitor_timer, 4);
+
 	chn = (irq - 0) / 2;
 	dma_int.reg = edma->dma_chn_reg[chn].dma_int.reg;
 	msg.chn = chn;
@@ -1253,7 +1260,7 @@ int msi_irq_handle(int irq)
 				edma->dma_chn_reg[chn].dma_int.reg =
 								dma_int.reg;
 				if ((edma->dma_chn_reg[chn].dma_int.reg ==
-				    0xFFFFFFFF) || (i > 3000)) {
+				    0xFFFFFFFF) || (i > 10)) {
 					WCN_ERR("i=%d, dma_int=0x%08x\n", i,
 						edma->dma_chn_reg[chn].dma_int
 						.reg);
@@ -1261,12 +1268,14 @@ int msi_irq_handle(int irq)
 					if (!priv) {
 						WCN_ERR("%s:pcie ep is null\n",
 							__func__);
+						del_timer(&edma->irq_monitor_timer);
 						local_irq_restore(irq_flags);
 						return -1;
 					}
 					if (priv->rc_pd)
 						sprd_pcie_dump_rc_regs(
 								priv->rc_pd);
+					del_timer(&edma->irq_monitor_timer);
 					local_irq_restore(irq_flags);
 					return -1;
 				}
@@ -1285,11 +1294,13 @@ int msi_irq_handle(int irq)
 		WCN_DBG(" callback not in irq\n");
 		set_wcnevent(&(edma->isr_func.q.event));
 		WCNDBG("cb not irq=%ld, chn=%d\n", irq_flags, chn);
+		del_timer(&edma->irq_monitor_timer);
 		local_irq_restore(irq_flags);
 		return 0;
 	} else if (mchn_hw_cb_in_irq(chn) == -1) {
 		local_irq_restore(irq_flags);
 		WCN_ERR(" irq=%ld, chn=%d\n", irq_flags, chn);
+		del_timer(&edma->irq_monitor_timer);
 		return -1;
 	}
 
@@ -1297,6 +1308,7 @@ int msi_irq_handle(int irq)
 	hisrfunc(&msg);
 
 	WCNDBG("cb in irq=%ld, chn=%d\n", irq_flags, chn);
+	del_timer(&edma->irq_monitor_timer);
 	local_irq_restore(irq_flags);
 
 	return 0;
@@ -1714,11 +1726,25 @@ static void edma_tx_timer_expire(unsigned long data)
 	}
 }
 
+static void irq_monitor_timer_expire(unsigned long data)
+{
+	WCN_ERR("msi irq handle hold CPU timeout");
+
+	BUG_ON(1);
+}
+
 void edma_del_tx_timer(void)
 {
 	struct edma_info *edma = edma_info();
 
 	del_timer(&edma->edma_tx_timer);
+}
+
+void del_irq_monitor_timer(void)
+{
+	struct edma_info *edma = edma_info();
+
+	del_timer(&edma->irq_monitor_timer);
 }
 
 int edma_init(struct wcn_pcie_info *pcie_info)
@@ -1783,6 +1809,11 @@ int edma_init(struct wcn_pcie_info *pcie_info)
 	init_timer(&edma->edma_tx_timer);
 	edma->edma_tx_timer.data = (unsigned long) edma;
 	edma->edma_tx_timer.function = edma_tx_timer_expire;
+
+	/* Init msi irq monitor timer */
+	init_timer(&edma->irq_monitor_timer);
+	edma->irq_monitor_timer.data = (unsigned long) edma;
+	edma->irq_monitor_timer.function = irq_monitor_timer_expire;
 
 	WCN_INFO("%s done\n", __func__);
 

@@ -725,6 +725,7 @@ void sprd_pcie_remove_card(void *wcn_dev)
 		WCN_ERR("edma_hw_pause fail\n");
 
 	edma_del_tx_timer();
+	del_irq_monitor_timer();
 
 	/* rx: disable txrx irq */
 	if (disable_pcie_irq() < 0) {
