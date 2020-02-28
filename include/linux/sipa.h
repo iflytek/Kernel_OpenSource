@@ -219,6 +219,7 @@ struct sipa_comm_fifo_params {
 	u32 tx_intr_delay_us;
 	u32 tx_intr_threshold;
 	bool flowctrl_in_tx_full;
+	bool errcode_intr;
 	u32 flow_ctrl_cfg;
 	u32 flow_ctrl_irq_mode;
 	u32 tx_enter_flowctrl_watermark;

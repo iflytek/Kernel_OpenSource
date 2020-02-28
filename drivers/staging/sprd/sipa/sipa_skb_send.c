@@ -180,6 +180,7 @@ static int sipa_skb_sender_init(struct sipa_skb_sender *sender)
 	attr.tx_intr_threshold = 128;
 	attr.flow_ctrl_cfg = flow_ctrl_tx_full;
 	attr.flowctrl_in_tx_full = true;
+	attr.errcode_intr = true;
 	attr.flow_ctrl_irq_mode = enter_exit_flow_ctrl;
 	attr.rx_enter_flowctrl_watermark = 0;
 	attr.rx_leave_flowctrl_watermark = 0;

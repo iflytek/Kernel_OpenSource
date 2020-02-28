@@ -482,6 +482,13 @@ int sipa_open_common_fifo(sipa_hal_hdl hdl,
 		hal_cfg->fifo_ops.set_interrupt_txfifo_full(fifo, fifo_cfg,
 							    0, NULL);
 
+	if (attr->errcode_intr)
+		hal_cfg->fifo_ops.set_interrupt_error_code(fifo, fifo_cfg,
+							   1, NULL);
+	else
+		hal_cfg->fifo_ops.set_interrupt_error_code(fifo, fifo_cfg,
+							   0, NULL);
+
 	return 0;
 }
 EXPORT_SYMBOL(sipa_open_common_fifo);
