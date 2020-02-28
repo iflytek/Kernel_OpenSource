@@ -46,6 +46,19 @@
 static int (*scan_card_notify)(void);
 static struct wcn_pcie_info *g_pcie_dev;
 
+void wcn_dump_ep_regs(struct wcn_pcie_info *priv)
+{
+	u32 reg;
+
+	pci_read_config_dword(priv->dev, WCN_PCIE_PHY_DEBUG_R0, &reg);
+	WCN_INFO("EP config reg [0x728]: 0x%x\n", reg);
+	pci_read_config_dword(priv->dev, PCI_VENDOR_ID, &reg);
+	WCN_INFO("EP config reg [0]: 0x%x\n", reg);
+	WCN_INFO("EP memory reg [0x0]: 0x%x, [0x4]: 0x%x\n",
+		 sprd_pcie_read_reg32(priv, WCN_PCIE_DEV_AND_VND_ID),
+		 sprd_pcie_read_reg32(priv, WCN_PCIE_CMD));
+}
+
 struct wcn_pcie_info *get_wcn_device_info(void)
 {
 	return g_pcie_dev;
@@ -275,6 +288,12 @@ static int sprd_ep_addr_map(struct wcn_pcie_info *priv)
 			break;
 		WCN_INFO("%s:ibreg0 retries=%d\n", __func__, retries);
 		mdelay(LINK_WAIT_IATU);
+	}
+
+	val = sprd_pcie_read_reg32(priv, WCN_PCIE_DEV_AND_VND_ID);
+	if (val != 0x23551db3) {
+		WCN_ERR("%s: read EP memory fail, val = 0x%x\n", __func__, val);
+		return -1;
 	}
 
 	obreg0->type    = 0x00000000;
@@ -994,6 +1013,10 @@ static int sprd_ep_suspend(struct device *dev)
 	struct pci_dev *pdev = to_pci_dev(dev);
 	struct wcn_pcie_info *priv = pci_get_drvdata(pdev);
 
+	WCN_INFO("%s[+]\n", __func__);
+	if (!pdev)
+		return 0;
+
 	wcn_bus_change_state(priv, WCN_BUS_DOWN);
 	atomic_set(&priv->is_suspending, 1);
 
@@ -1014,11 +1037,6 @@ static int sprd_ep_suspend(struct device *dev)
 		atomic_set(&priv->is_suspending, 0);
 		return -1;
 	}
-
-	WCN_INFO("%s[+]\n", __func__);
-
-	if (!pdev)
-		return 0;
 
 	pci_save_state(to_pci_dev(dev));
 	priv->saved_state = pci_store_saved_state(to_pci_dev(dev));
@@ -1072,6 +1090,7 @@ static int sprd_ep_resume(struct device *dev)
 			}
 		}
 	}
+	WCN_INFO("%s[-]\n", __func__);
 	return 0;
 }
 

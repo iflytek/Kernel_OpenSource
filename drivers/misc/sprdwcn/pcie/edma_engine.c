@@ -602,8 +602,12 @@ int edma_hw_restore(void)
 {
 	struct edma_info *edma = edma_info();
 	union dma_glb_pause_reg tmp;
+	struct wcn_pcie_info *priv = get_wcn_device_info();
 
 	tmp.reg = readl_relaxed((void *)(&edma->dma_glb_reg->dma_pause.reg));
+	if (!tmp.reg)
+		wcn_dump_ep_regs(priv);
+
 	tmp.bit.rf_dma_pause = 0;
 	writel_relaxed(tmp.reg, (void *)(&edma->dma_glb_reg->dma_pause.reg));
 
@@ -1626,6 +1630,7 @@ int edma_dump_chn_reg(int chn)
 		return -1;
 	}
 
+	wcn_dump_ep_regs(pdev);
 	WCN_INFO("------------[ chn=%d ]------------\n", chn);
 	value = sprd_pcie_read_reg32(pdev, CHN_DMA_INT(chn));
 	WCN_INFO("[dma_int  ] = 0x%08x\n",  value);
@@ -1662,6 +1667,8 @@ int edma_dump_glb_reg(void)
 		pr_err("%s:pcie device is null\n", __func__);
 		return -1;
 	}
+
+	wcn_dump_ep_regs(pdev);
 	WCN_INFO("------------[ DMA glb Reg ]------------\n");
 	value = sprd_pcie_read_reg32(pdev, DMA_PAUSE);
 	WCN_INFO("[dma_pause  ] = 0x%08x\n", value);
@@ -1674,6 +1681,7 @@ int edma_dump_glb_reg(void)
 	value = sprd_pcie_read_reg32(pdev, DMA_DEBUG_STATUS);
 	WCN_INFO("[debug_sts  ] = 0x%08x\n",  value);
 	value = sprd_pcie_read_reg32(pdev, DMA_ARB_SEL_STATUS);
+	WCN_INFO("[arb_sel_sts] = 0x%08x\n",  value);
 
 	if ((value > 0) && (value < 31))
 		set_bit((value - 1), &edma->cur_chn_status);
@@ -1683,7 +1691,6 @@ int edma_dump_glb_reg(void)
 		return -1;
 	}
 
-	WCN_INFO("[arb_sel_sts] = 0x%08x\n",  value);
 	value = sprd_pcie_read_reg32(pdev, DMA_CHN_ARPROT);
 	WCN_INFO("[arport     ] = 0x%08x\n",  value);
 	value = sprd_pcie_read_reg32(pdev, DMA_CHN_AWPROT);
