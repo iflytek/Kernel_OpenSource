@@ -125,10 +125,10 @@ static void sprd_pcie_notify_client(struct sprd_pcie *ctrl,
 
 	if (ctrl->event_reg && ctrl->event_reg->callback &&
 		(ctrl->event_reg->events & event)) {
-		dev_dbg(pci->dev, "callback RC for event %d\n", event);
+		dev_emerg(pci->dev, "callback RC for event %d\n", event);
 		ctrl->event_reg->callback(event, ctrl->event_reg->data);
 	} else {
-		dev_dbg(pci->dev,
+		dev_emerg(pci->dev,
 			"client of RC doesn't have registration for event %d\n",
 			event);
 	}
@@ -156,6 +156,7 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 	 * read multiple times gpio value to ensure the value is consistent
 	 * with the trigger level.
 	 */
+	dev_emerg(pci->dev, "%s enter value:%d\n", __func__, value);
 
 	while (value != expect)
 		value = gpiod_get_value(ctrl->gpiod_wakeup);
@@ -170,11 +171,12 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 
 	irq_set_irq_type(irq, irq_flags);
 
+	dev_emerg(pci->dev, "%s finish value:%d\n", __func__, value);
 	if (!value) {
 		if (!ctrl->is_powered)
 			sprd_pcie_notify_client(ctrl, SPRD_PCIE_EVENT_WAKEUP);
 		else
-			dev_info(pci->dev,
+			dev_emerg(pci->dev,
 				"the pci has already been enumrated\n");
 	}
 
@@ -297,22 +299,23 @@ static int sprd_pcie_host_uninit(struct platform_device *pdev)
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 	struct dw_pcie *pci = ctrl->pci;
 
+	dev_emerg(&pdev->dev, "%s++\n", __func__);
 	sprd_pcie_save_dwc_reg(pci);
 
 	if (ctrl->is_suspended) {
 		ret = sprd_pcie_enter_pcipm_l2(pci);
 		if (ret < 0)
-			dev_warn(&pdev->dev, "NOTE: RC can't enter l2\n");
+			dev_emerg(&pdev->dev, "NOTE: RC can't enter l2\n");
 	}
 
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-suspend-syscons");
 	if (ret < 0)
-		dev_err(&pdev->dev,
+		dev_emerg(&pdev->dev,
 			"set pcie uninit syscons fail, return %d\n", ret);
 
 	ret = regulator_disable(ctrl->vpower);
 	if (ret < 0)
-		dev_err(&pdev->dev, "disable vpower failed, return %d\n", ret);
+		dev_emerg(&pdev->dev, "disable vpower failed, return %d\n", ret);
 
 	return ret;
 }
@@ -354,7 +357,7 @@ static void sprd_pcie_remove_bus(struct pci_bus *bus)
 		pci_unlock_rescan_remove();
 
 		if (child_bus) {
-			dev_dbg(&bus->dev,
+			dev_emerg(&bus->dev,
 				"all pcie devices have been removed\n");
 			return;
 		}
@@ -383,12 +386,12 @@ static int sprd_pcie_host_shutdown(struct platform_device *pdev)
 	sprd_pcie_save_dwc_reg(pci);
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
 	if (ret < 0)
-		dev_err(&pdev->dev,
+		dev_emerg(&pdev->dev,
 			"set pcie shutdown syscons fail, return %d\n", ret);
 
 	ret = regulator_disable(ctrl->vpower);
 	if (ret < 0)
-		dev_err(&pdev->dev, "disable vpower failed, return %d\n", ret);
+		dev_emerg(&pdev->dev, "disable vpower failed, return %d\n", ret);
 
 	return ret;
 }
@@ -403,13 +406,14 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 	struct dw_pcie *pci = ctrl->pci;
 	struct pcie_port *pp = &pci->pp;
 
+	dev_emerg(&pdev->dev, "%s++\n", __func__);
 	ret = regulator_enable(ctrl->vpower);
 	if (ret < 0)
-		dev_err(&pdev->dev, "enable vpower failed, return %d\n", ret);
+		dev_emerg(&pdev->dev, "enable vpower failed, return %d\n", ret);
 
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-resume-syscons");
 	if (ret < 0) {
-		dev_err(&pdev->dev,
+		dev_emerg(&pdev->dev,
 			"set pcie reinit syscons fail, return %d\n", ret);
 		return ret;
 	}
@@ -419,14 +423,14 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 	dw_pcie_setup_rc(pp);
 	ret = dw_pcie_wait_for_link(pci);
 	if (ret < 0) {
-		dev_err(&pdev->dev, "reinit fail, pcie can't establish link\n");
+		dev_emerg(&pdev->dev, "reinit fail, pcie can't establish link\n");
 		return ret;
 	}
 
 	sprd_pcie_restore_dwc_reg(pci);
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-aspml1p2-syscons");
 	if (ret < 0)
-		dev_err(&pdev->dev, "get pcie aspml1.2 syscons fail\n");
+		dev_emerg(&pdev->dev, "get pcie aspml1.2 syscons fail\n");
 
 	return 0;
 }
@@ -437,15 +441,16 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 	struct pci_host_bridge *bridge;
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 
+	dev_emerg(&pdev->dev, "%s++\n", __func__);
 	/* In order to avoid someone rescanning PCIe once more */
 	if (ctrl->is_powered) {
-		dev_err(&pdev->dev, "PCIe has alreadly scanned\n");
+		dev_emerg(&pdev->dev, "PCIe has alreadly scanned\n");
 		return 0;
 	}
 
 	ret = sprd_pcie_host_reinit(pdev);
 	if (ret < 0) {
-		dev_err(&pdev->dev, "pcie rescan fail\n");
+		dev_emerg(&pdev->dev, "pcie rescan fail\n");
 		return ret;
 	}
 
@@ -464,9 +469,10 @@ int sprd_pcie_unconfigure_device(struct platform_device *pdev)
 	struct pci_host_bridge *bridge;
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 
+	dev_emerg(&pdev->dev, "%s++\n", __func__);
 	/* In order to avoid someone removing PCIe before establishing link */
 	if (!ctrl->is_powered) {
-		dev_err(&pdev->dev, "PCIe hasn't been scanned yet!\n");
+		dev_emerg(&pdev->dev, "PCIe hasn't been scanned yet!\n");
 		return -ENODEV;
 	}
 
@@ -476,7 +482,7 @@ int sprd_pcie_unconfigure_device(struct platform_device *pdev)
 
 	ret = sprd_pcie_host_uninit(pdev);
 	if (ret < 0)
-		dev_warn(&pdev->dev,
+		dev_emerg(&pdev->dev,
 			 "please ignore pcie unconfigure failure\n");
 	ctrl->is_powered = 0;
 
@@ -571,7 +577,7 @@ static int sprd_pcie_suspend_noirq(struct device *dev)
 	ctrl->is_suspended = 1;
 	ret = sprd_pcie_host_uninit(pdev);
 	if (ret < 0)
-		dev_err(dev, "suspend noirq warning\n");
+		dev_emerg(dev, "suspend noirq warning\n");
 
 	return 0;
 }
@@ -596,7 +602,7 @@ static int sprd_pcie_resume_noirq(struct device *dev)
 
 	ret = sprd_pcie_host_reinit(pdev);
 	if (ret < 0)
-		dev_err(dev, "resume noirq warning\n");
+		dev_emerg(dev, "resume noirq warning\n");
 
 	return 0;
 }

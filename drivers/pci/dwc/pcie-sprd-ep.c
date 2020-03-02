@@ -110,11 +110,12 @@ static int sprd_pcie_wakeup(struct dw_pcie *pci, bool enable)
 	int ret;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 
+	dev_emerg(pci->dev, "%s enter, enable:%d\n", __func__, enable);
 	if (enable) {
 		ret = sprd_pcie_syscon_setting(pdev,
 					       "sprd,pcie-startup-syscons");
 		if (ret < 0) {
-			dev_err(&pdev->dev,
+			dev_emerg(&pdev->dev,
 				"set pcie enable syscons fail, return %d\n",
 				ret);
 			return ret;
@@ -125,7 +126,7 @@ static int sprd_pcie_wakeup(struct dw_pcie *pci, bool enable)
 		ret = sprd_pcie_syscon_setting(pdev,
 					       "sprd,pcie-shutdown-syscons");
 		if (ret < 0) {
-			dev_err(&pdev->dev,
+			dev_emerg(&pdev->dev,
 				"set pcie disable syscons fail, return %d\n",
 				ret);
 			return ret;
@@ -150,14 +151,14 @@ static void sprd_pcie_ep_reinit(struct work_struct *work)
 	int val;
 #endif
 
+	dev_emerg(pci->dev, "%s++\n", __func__);
+
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
 	if (ret < 0) {
-		dev_err(&pdev->dev,
+		dev_emerg(&pdev->dev,
 			"set pcie reinit syscons fail, return %d\n", ret);
 		return;
 	}
-
-	dev_info(pci->dev, "%s.\n", __func__);
 
 	sprd_pcie_setup_ep(&pci->ep);
 	dw_pcie_setup(pci);
@@ -184,7 +185,7 @@ static void sprd_pcie_ep_reinit(struct work_struct *work)
 
 	ret = dw_pcie_wait_for_link(pci);
 	if (ret < 0)
-		dev_err(pci->dev, "link fail after perst\n");
+		dev_emerg(pci->dev, "link fail after perst\n");
 	else {
 		sprd_pcie_wakeup(pci, false);
 		dw_pcie_ep_linkup(&pci->ep);
@@ -200,9 +201,10 @@ static void sprd_pcie_ep_shutdown(struct work_struct *work)
 	struct platform_device *pdev = to_platform_device(pci->dev);
 	struct device *dev = &pdev->dev;
 
+	dev_emerg(pci->dev, "%s++\n", __func__);
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
 	if (ret < 0)
-		dev_err(&pdev->dev,
+		dev_emerg(&pdev->dev,
 			"set pcie uninit syscons fail, return %d\n", ret);
 	else {
 		ep->is_powered = false;
@@ -228,6 +230,8 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 	struct platform_device *pdev = to_platform_device(pci->dev);
 	struct device *dev = &pdev->dev;
 
+	dev_emerg(&pdev->dev,
+		  "pci perst irq enter ori val: %d\n", val);
 	/* WORKAROUND: At present, if setting high-lever trigger, when intterupt
 	 * occurs the value read from gpio is low lever occasinally. When
 	 * setting low-level trigger has the similar problem. Temporarily read
@@ -248,6 +252,8 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 
 	irq_set_irq_type(irq, irq_flags);
 
+	dev_emerg(&pdev->dev,
+		  "pci perst irq queue val: %d\n", val);
 	if (!val)
 		queue_work(ep->wq, &ep->shutdown_work);
 	else {
@@ -268,6 +274,7 @@ static int sprd_add_pcie_ep(struct sprd_pcie *sprd_pcie,
 	struct device *dev = &pdev->dev;
 	struct dw_pcie *pci = sprd_pcie->pci;
 
+	dev_emerg(pci->dev, "%s++\n", __func__);
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbi");
 	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
 	if (!pci->dbi_base)

@@ -62,7 +62,7 @@ int sprd_pcie_syscon_setting(struct platform_device *pdev, char *env)
 	/* one handle and NUM_OF_ARGS args */
 	count = of_property_count_elems_of_size(np, env,
 		(NUM_OF_ARGS + 1) * sizeof(u32));
-	dev_dbg(&pdev->dev, "property (%s) reg count is %d :\n", env, count);
+	dev_emerg(&pdev->dev, "property (%s) reg count is %d :\n", env, count);
 
 	for (i = 0; i < count; i++) {
 		err = of_parse_phandle_with_fixed_args(np, env, NUM_OF_ARGS,
@@ -103,7 +103,7 @@ int sprd_pcie_syscon_setting(struct platform_device *pdev, char *env)
 			msleep(delay);
 
 		regmap_read(iomap, reg, &tmp_val);
-		dev_dbg(&pdev->dev,
+		dev_emerg(&pdev->dev,
 			"%2d:reg[0x%8x] mask[0x%8x] val[0x%8x] result[0x%8x]\n",
 			i, reg, mask, val, tmp_val);
 	}
@@ -127,14 +127,14 @@ int sprd_pcie_enter_pcipm_l2(struct dw_pcie *pci)
 	for (retries = 0; retries < ENTER_L2_MAX_RETRIES; retries++) {
 		reg = dw_pcie_readl_dbi(pci, PCIE_PHY_DEBUG_R0);
 		if ((reg & LTSSM_STATE_MASK) == LTSSM_STATE_L2_IDLE) {
-			dev_info(pci->dev,
+			dev_emerg(pci->dev,
 				 "enter L2, LTSSM state: 0x%x\n", reg);
 			return 0;
 		}
 		/* TODO: now we can't sure the delay time */
 		usleep_range(1000, 2000);
 	}
-	dev_err(pci->dev,
+	dev_emerg(pci->dev,
 		"can't enter L2, [0x%x]: 0x%x, [0x%x]: 0x%x, [0x%x]: 0x%x\n",
 		SPRD_PCIE_PE0_PM_CTRL,
 		dw_pcie_readl_dbi(pci, SPRD_PCIE_PE0_PM_CTRL),
