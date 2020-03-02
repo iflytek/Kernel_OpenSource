@@ -1859,7 +1859,7 @@ CONFIG_CHARGER_SC2703
 	[subsys] power
 	[must] user
 	[missing plat description]
-	[function] This function is used to enable charg
+	[function] This function is used to enable charge
 CONFIG_CLEANCACHE
 	[arch] all
 	[plat] roc1,sharkl3,sharkl5,sharkl5_32

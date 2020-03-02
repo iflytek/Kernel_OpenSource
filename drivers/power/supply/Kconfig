@@ -636,6 +636,13 @@ config CHARGER_SC2731
 	 Say Y here to enable support for battery charging with SC2731
 	 PMIC chips.
 
+config CHARGER_SC2721
+	tristate "Spreadtrum SC2721 charger driver"
+	depends on MFD_SC27XX_PMIC || COMPILE_TEST
+	help
+	 Say Y here to enable support for battery charging with SC2721
+	 PMIC chips.
+
 config CHARGER_FAN54015
 	tristate "Fairchild FAN54015 Charger"
 	depends on I2C || COMPILE_TEST
