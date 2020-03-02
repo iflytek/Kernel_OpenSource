@@ -299,7 +299,7 @@ int sprd_pci_epf_start(int function)
 	epc = epf_sprd->epf->epc;
 	dev = &epf_sprd->epf->dev;
 
-	dev_dbg(dev, "pci_epc_start.\n");
+	dev_info(dev, "pci_epc_start.\n");
 
 	return pci_epc_start(epc);
 }
@@ -328,6 +328,10 @@ void __iomem *sprd_pci_epf_map_memory(int function,
 	res = devm_kzalloc(dev, sizeof(*res), GFP_KERNEL);
 	if (!res)
 		return NULL;
+
+	dev_info(dev, "ep: epf map rc_addr=0x%lx, size=0x%lx\n",
+		(unsigned long)rc_addr,
+		(unsigned long)size);
 
 	epc = epf_sprd->epf->epc;
 	size = PAGE_ALIGN(size);
@@ -381,6 +385,11 @@ void __iomem *sprd_epf_ipa_map(phys_addr_t src_addr,
 
 	dev = &epf_sprd->epf->dev;
 
+	dev_info(dev, "ep: epf ipa map src_addr=0x%lx, dst_addr=0x%lx size=0x%lx\n",
+		(unsigned long)src_addr,
+		(unsigned long)dst_addr,
+		(unsigned long)size);
+
 	/* only support one ipa res, must unmap before remap */
 	if (epf_sprd->ipa_res.cpu_phy_addr) {
 		dev_err(dev, "failed to map, must unmap the old ipa map!\n");
@@ -415,6 +424,8 @@ void sprd_epf_ipa_unmap(void __iomem *cpu_vir_addr)
 	if (!epf_sprd || IS_ERR(epf_sprd->epf->epc))
 		return;
 
+	dev_info(&epf_sprd->epf->dev, "ipa unmap\n");
+
 	if (!cpu_vir_addr || cpu_vir_addr != epf_sprd->ipa_res.cpu_vir_addr)
 		return;
 
@@ -448,7 +459,7 @@ void sprd_pci_epf_unmap_memory(int function, const void __iomem *cpu_vir_addr)
 	dev = &(epf_sprd->epf->dev);
 	epc = epf_sprd->epf->epc;
 
-	dev_dbg(dev, "map: unpap func_no=%d, cpu_vir_addr=0x%p\n",
+	dev_info(dev, "map: unpap func_no=%d, cpu_vir_addr=0x%p\n",
 		function, cpu_vir_addr);
 
 	/* find the res from list */
@@ -482,7 +493,7 @@ static void sprd_pci_epf_restore(struct sprd_pci_epf *epf_sprd)
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
 	res = &epf_sprd->ipa_res;
 	if (res->rc_addr) {
-		dev_dbg(dev, "map: ep_addr=0x%lx, rc_addr=0x%lx, size=0x%lx\n",
+		dev_info(dev, "map: ep_addr=0x%lx, rc_addr=0x%lx, size=0x%lx\n",
 			(unsigned long)res->cpu_phy_addr,
 			(unsigned long)res->rc_addr,
 			res->size);
@@ -592,7 +603,7 @@ static void sprd_epf_linkup_work_fn(struct work_struct *work)
 			       g_epf_notify[epf->func_no].data);
 
 		/* then, enable door bell irq */
-		dev_dbg(dev, "enable doorbell irq.");
+		dev_info(dev, "enable doorbell irq.");
 		ep = epc_get_drvdata(epf->epc);
 		pci = to_dw_pcie_from_ep(ep);
 		dw_pcie_writel_dbi(pci,
@@ -719,6 +730,8 @@ static int sprd_epf_probe(struct pci_epf *epf)
 	struct sprd_pci_epf *epf_sprd;
 	struct device *dev = &epf->dev;
 
+	dev_info(dev, "probe.");
+
 	epf_sprd = devm_kzalloc(dev, sizeof(*epf_sprd), GFP_KERNEL);
 	if (!epf_sprd)
 		return -ENOMEM;
@@ -771,6 +784,8 @@ static int sprd_epf_remove(struct pci_epf *epf)
 	struct device *dev = &epf->dev;
 	struct pci_epc *epc = epf->epc;
 	struct sprd_pci_epf *epf_sprd = epf_get_drvdata(epf);
+
+	dev_info(dev, "remove.");
 
 	cancel_work_sync(&epf_sprd->linkup_work);
 	cancel_work_sync(&epf_sprd->unlink_work);

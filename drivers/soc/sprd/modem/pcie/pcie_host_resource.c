@@ -167,7 +167,7 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 	struct sprd_pcie_res *res = (struct sprd_pcie_res *)private;
 
 	if (irq == PCIE_MSI_REQUEST_RES) {
-		pr_debug("pcie res: ep request res.\n");
+		pr_info("pcie res: ep request res.\n");
 		/*
 		 * client modem power up,
 		 * no need wake lock and no need wait resource.
@@ -180,7 +180,7 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 		/* only after received ep request can backup the ep configs. */
 		sprd_ep_dev_set_backup(res->ep_dev);
 	} else if (irq == PCIE_MSI_RELEASE_RES) {
-		pr_debug("pcie res: ep release res.\n");
+		pr_info("pcie res: ep release res.\n");
 		/*
 		 * client modem power down,
 		 * no need wake lock.
@@ -190,7 +190,7 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 			sprd_pms_power_down(res->pms, false);
 		}
 	} else if (irq == PCIE_MSI_EP_READY_FOR_RESCAN) {
-		pr_debug("pcie res: ep ready for rescan.\n");
+		pr_info("pcie res: ep ready for rescan.\n");
 		res->ep_ready_for_rescan = true;
 		wake_up_interruptible_all(&res->wait_first_rescan);
 	}
@@ -220,6 +220,8 @@ static void sprd_pcie_resource_scan_fn(struct work_struct *work)
 		msleep(delay);
 	}
 
+	pr_info("pcie res: scan\n");
+
 	ret = sprd_pcie_configure_device(res->pcie_dev);
 	if (ret)
 		pr_err("pcie res: scan error = %d!\n", ret);
@@ -241,7 +243,7 @@ static void sprd_pcie_resource_remove_fn(struct work_struct *work)
 	/* request wakelock */
 	sprd_pms_request_wakelock(res->pms);
 
-	pr_debug("pcie res: remove work!\n");
+	pr_info("pcie res: remove work!\n");
 
 	diff = jiffies - res->action_jiff;
 	if (diff < PCIE_REMOVE_SCAN_GAP) {
@@ -268,6 +270,8 @@ static void sprd_pcie_resource_remove_fn(struct work_struct *work)
 	/* waiting for the doorbell irq to ep */
 	msleep(50);
 
+	pr_info("pcie res: remove\n");
+
 	/* start removed ep*/
 	ret = sprd_pcie_unconfigure_device(res->pcie_dev);
 	if (ret)
@@ -284,7 +288,7 @@ static void sprd_pcie_resource_start_scan(struct sprd_pcie_res *res)
 {
 	if (res->state == SPRD_PCIE_SCANNED ||
 		res->state == SPRD_PCIE_WAIT_SCANNED) {
-		pr_debug("pcie res: scanned, do nothing!\n");
+		pr_info("pcie res: scanned, do nothing!\n");
 	} else {
 		pr_info("pcie res: start scan!\n");
 		queue_work(res->wq, &res->scan_work);
@@ -315,7 +319,7 @@ static void sprd_pcie_resource_event_process(enum sprd_pcie_event event,
 	struct sprd_pcie_res *res = data;
 
 	if (event == SPRD_PCIE_EVENT_WAKEUP) {
-		pr_debug("pcie res: wakeup by ep, event=%d.\n", event);
+		pr_info("pcie res: wakeup by ep, event=%d.\n", event);
 		if (!res->ep_power_on) {
 			res->ep_power_on = true;
 			sprd_pms_power_up(res->pms);
@@ -334,7 +338,7 @@ static void sprd_pcie_resource_event_process(enum sprd_pcie_event event,
  */
 static int sprd_pcie_resource_rescan(struct sprd_pcie_res *res)
 {
-	pr_debug("pcie res: rescan.\n");
+	pr_info("pcie res: rescan.\n");
 
 	sprd_pcie_resource_start_remove(res);
 	sprd_pcie_resource_start_scan(res);
@@ -347,7 +351,7 @@ static int sprd_pcie_resource_check_first_rescan(void *data)
 	struct sprd_pcie_res *res = data;
 	int ret;
 
-	pr_debug("pcie res: check first rescan.\n");
+	pr_info("pcie res: check first rescan.\n");
 
 	while (!kthread_should_stop()) {
 		ret = wait_event_interruptible(
@@ -375,7 +379,7 @@ static int sprd_pcie_resource_host_mcd(struct notifier_block *nb,
 	int i;
 	u32 state;
 
-	pr_debug("pcie res: mcd mode=%ld.\n", mode);
+	pr_info("pcie res: mcd mode=%ld.\n", mode);
 
 	switch (mode) {
 	case MDM_POWER_OFF:
@@ -415,7 +419,7 @@ void sprd_pcie_resource_notify_load_done(u32 dst)
 {
 	struct sprd_pcie_res *res;
 
-	pr_debug("pcie res: load done.\n");
+	pr_info("pcie res: load done.\n");
 
 	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
 		return;

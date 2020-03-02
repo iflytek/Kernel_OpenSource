@@ -32,6 +32,8 @@
 #endif
 #include <linux/mdm_ctrl.h>
 
+#include "../include/sprd_pcie_resource.h"
+
 enum {
 	ROC1_SOC = 0,
 	ORCA_SOC

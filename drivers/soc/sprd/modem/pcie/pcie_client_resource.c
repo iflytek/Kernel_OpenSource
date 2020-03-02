@@ -147,7 +147,7 @@ static void pcie_resource_client_change_state(struct sprd_pcie_res *res,
 		break;
 	}
 
-	pr_debug("pcie res: change state from %s to %s.\n",
+	pr_info("pcie res: change state from %s to %s.\n",
 		 state_msg[old_state], state_msg[res->state]);
 }
 
@@ -243,18 +243,18 @@ static irqreturn_t pcie_resource_client_irq_handler(int irq, void *private)
 		pcie_resource_client_change_state(res, RC_SCANNED_MSG);
 
 		/* wakeup all blocked thread */
-		pr_debug("pcie res: scanned, wakup all.\n");
+		pr_info("pcie res: scanned, wakup all.\n");
 		wake_up_interruptible_all(&res->wait_pcie_ready);
 
 		/*  if has msi pending, send msi to rc */
 		if (res->msi_later) {
 			res->msi_later = false;
-			pr_debug("pcie res: request msi to rc.\n");
+			pr_info("pcie res: request msi to rc.\n");
 			sprd_pci_epf_raise_irq(res->ep_fun,
 					     PCIE_MSI_REQUEST_RES);
 		}
 	} else if (irq == PCIE_DBEL_EP_REMOVING) {
-		pr_debug("pcie res: removing.\n");
+		pr_info("pcie res: removing.\n");
 		pcie_resource_client_change_state(res, RC_REMOVING_MSG);
 	}
 
@@ -267,7 +267,7 @@ static int sprd_pcie_resource_client_mcd(struct notifier_block *nb,
 	struct sprd_pcie_res *res;
 	int i;
 
-	pr_debug("pcie res: mcd event mode=%ld.\n", mode);
+	pr_info("pcie res: mcd event mode=%ld.\n", mode);
 
 	if (mode != MDM_POWER_OFF)
 		return NOTIFY_DONE;
@@ -412,12 +412,12 @@ int sprd_pcie_request_resource(u32 dst)
 	switch (res->state) {
 	case SPRD_PCIE_WAIT_FIRST_READY:
 	case SPRD_PCIE_WAIT_SCANNED:
-		pr_debug("pcie res: later send request msi to rc.\n");
+		pr_info("pcie res: later send request msi to rc.\n");
 		res->msi_later = true;
 		break;
 
 	case SPRD_PCIE_WAIT_REMOVED:
-		pr_debug("pcie res: later send wakeup to rc.\n");
+		pr_info("pcie res: later send wakeup to rc.\n");
 		res->wakeup_later = true;
 		break;
 

@@ -174,7 +174,7 @@ static void modem_get_base_range(struct modem_device *modem,
 		size = region->size;
 	}
 
-	dev_dbg(modem->p_dev, "get base 0x%llx, size = 0x%lx!\n", base, size);
+	dev_info(modem->p_dev, "get base 0x%llx, size = 0x%lx!\n", base, size);
 
 	*p_base = base;
 	*p_size = size;
@@ -388,7 +388,7 @@ static int modem_cmd_lock(struct file *filp,
 			return -EBUSY;
 		}
 	} else {
-		dev_dbg(modem->p_dev, "lock, %s has get lock %d !\n",
+		dev_info(modem->p_dev, "lock, %s has get lock %d !\n",
 			current->comm, b_rx);
 		mutex_lock(mut);
 	}
@@ -426,7 +426,7 @@ static int modem_cmd_unlock(struct modem_device *modem, int b_rx)
 	name[0] = 0;
 	mutex_unlock(mut);
 
-	dev_dbg(modem->p_dev,
+	dev_info(modem->p_dev,
 		"unlock, %s has unlock %d!\n",
 		current->comm, b_rx);
 
@@ -508,7 +508,7 @@ static void soc_modem_start(struct modem_device *modem)
 	/* waiting for core reset release stably */
 	msleep(50);
 
-	dev_info(modem->p_dev, "start over\n");
+	dev_info(modem->p_dev, "%s start over\n", modem->modem_name);
 }
 
 static void soc_modem_stop(struct modem_device *modem)
@@ -531,12 +531,12 @@ static void soc_modem_stop(struct modem_device *modem)
 	/* waiting for power off stably */
 	msleep(50);
 
-	dev_info(modem->p_dev, "stop over\n");
+	dev_info(modem->p_dev, "%s stop over\n", modem->modem_name);
 }
 
 static int modem_run(struct modem_device *modem, u8 b_run)
 {
-	dev_info(modem->p_dev, "%s modem run = %d!\n", current->comm, b_run);
+	dev_info(modem->p_dev, "%s run = %d!\n", modem->modem_name, b_run);
 
 	if (modem->run_state == b_run)
 		return -EINVAL;
