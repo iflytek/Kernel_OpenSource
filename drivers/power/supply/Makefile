@@ -87,6 +87,7 @@ obj-$(CONFIG_CHARGER_CROS_USBPD)	+= cros_usbpd-charger.o
 obj-$(CONFIG_CHARGER_SC2731)	+= sc2731_charger.o
 obj-$(CONFIG_FUEL_GAUGE_SC27XX)	+= sc27xx_fuel_gauge.o
 obj-$(CONFIG_CHARGER_SC2703)	+= sc2703-charger.o
+obj-$(CONFIG_CHARGER_SC2721)	+= sc2721_charger.o
 obj-$(CONFIG_CHARGER_FAN54015)	+= fan54015-charger.o
 obj-$(CONFIG_FAST_CHARGER_SC2730) += sc2730_fast_charger.o
 obj-$(CONFIG_IFLYTEK_CHARGER_MANAGER)	+= iflytek-charger-manager.o
