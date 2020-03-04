@@ -103,7 +103,7 @@ int sprd_pcie_syscon_setting(struct platform_device *pdev, char *env)
 			msleep(delay);
 
 		regmap_read(iomap, reg, &tmp_val);
-		dev_emerg(&pdev->dev,
+		dev_info(&pdev->dev,
 			"%2d:reg[0x%8x] mask[0x%8x] val[0x%8x] result[0x%8x]\n",
 			i, reg, mask, val, tmp_val);
 	}

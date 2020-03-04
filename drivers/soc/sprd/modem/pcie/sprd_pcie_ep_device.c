@@ -1045,7 +1045,7 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 
 	for (bar = BAR_0; bar <= BAR_5; bar++) {
 		res = &pdev->resource[bar];
-		dev_info(dev, "ep: BAR[%d] %pR\n", bar, res);
+		dev_dbg(dev, "ep: BAR[%d] %pR\n", bar, res);
 		/* only save mem bar */
 		if (resource_type(res) == IORESOURCE_MEM)
 			ep_dev->bar[bar] = res;

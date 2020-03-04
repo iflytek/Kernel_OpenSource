@@ -24,8 +24,8 @@
 //#undef pr_debug
 //#define pr_debug pr_emerg
 
-#undef pr_info
-#define pr_info pr_emerg
+//#undef pr_info
+//#define pr_info pr_emerg
 
 #undef pr_err
 #define pr_err pr_emerg
