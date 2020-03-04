@@ -1563,6 +1563,8 @@ static int sipa_usb_open(struct net_device *net)
 	dev->nic_id = ret;
 	dev->state = DEV_ON;
 
+	sipa_rm_enable_usb_tether();
+
 	/* for lowpower */
 	sipa_rm_set_usb_eth_up();
 
