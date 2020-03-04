@@ -201,7 +201,7 @@ static const int adc2deltanv_table[] = {
 	-1, /* reserved */
 	-1, /* reserved */
 	-1, /* reserved */
-	-1, /* reserved */
+	2, /* hw_ver02.nv */
 	1, /* hw_ver01.nv  */
 	0, /* hw_ver00.nv  */
 	-1 /* reserved */
