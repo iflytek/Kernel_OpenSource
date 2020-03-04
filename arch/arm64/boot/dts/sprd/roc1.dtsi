@@ -741,7 +741,7 @@
 				reg = <0 0x62800000 0 0x200>,
 					<0 0x62800200 0 0x60>;
 				iova-base = <0x20000000>;
-				iova-size = <0x8000000>;
+				iova-size = <0x10000000>;
 				reg_name = "mmu_interrupt_reg","mmu_reg",
 					"iova pool";
 				status = "disabled";
