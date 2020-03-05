@@ -39,7 +39,7 @@ enum {
 };
 
 #define CALI_LATENCY	(10000 * 1000)
-#define NORMAL_LATENCY	(1 * 1000)
+#define NORMAL_LATENCY	(15 * 1000)
 
 /*
  * In charge mode, will only boot pm system,
