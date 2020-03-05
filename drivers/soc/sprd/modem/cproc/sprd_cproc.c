@@ -35,6 +35,10 @@
 #include <linux/debugfs.h>
 #include <linux/sprd_cp.h>
 
+#ifdef CONFIG_SPRD_SECBOOT
+#include "../secureboot/sprd_secureboot.h"
+#endif
+
 #include "../include/sprd_cproc.h"
 
 #ifdef CONFIG_DEBUG_FS
@@ -1002,6 +1006,16 @@ static int sprd_cproc_native_arm_start(void *arg)
 
 	if (!pdata)
 		return -ENODEV;
+
+#ifdef CONFIG_SPRD_SECBOOT
+	/* only cp need verify. */
+	if (strstr(pdata->devname, "cp") &&
+	    sprd_image_verify(&pdata->load_table)) {
+		pr_err("cproc: %s verify err!\n", pdata->devname);
+		return -EACCES;
+	}
+#endif
+
 	ctrl = pdata->ctrl;
 
 	pr_debug("%s: %s, type = 0x%x, status = 0x%x\n",
@@ -1648,6 +1662,19 @@ static int sprd_cproc_parse_dt(struct cproc_init_data **init,
 		}
 		seg->base = res.start;
 		seg->maxsz = res.end - res.start + 1;
+#ifdef CONFIG_SPRD_SECBOOT
+		if (sprd_check_secure_part(seg->name) >= 0) {
+			seg->base -= SECBOOT_HEAD_SIZE;
+			seg->maxsz += seg->maxsz;
+			pdata->load_table.image_cnt++;
+			pdata->load_table.image[i].img_addr = seg->base;
+			pdata->load_table.image[i].img_len = seg->maxsz;
+			pdata->load_table.image[i].img_name = seg->name;
+			pr_info("cproc: sec_table[%d] base=0x%x, size=0x%0x, name=%s\n",
+				i, seg->base, seg->maxsz, seg->name);
+		}
+#endif
+
 		pr_debug("%s: child node [%d] base=0x%x, size=0x%0x\n",
 			__func__, i, seg->base, seg->maxsz);
 		i++;
