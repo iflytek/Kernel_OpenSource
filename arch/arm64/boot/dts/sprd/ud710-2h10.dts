@@ -17,6 +17,7 @@
 #include "sprd-sound-fe-be.dtsi"
 #include "lcd/lcd_td4310_truly_mipi_fhd.dtsi"
 #include "lcd/lcd_ssd2092_truly_mipi_fhd.dtsi"
+#include "lcd/lcd_tv105wum_mipi_hd.dtsi"
 
 / {
 	model = "Spreadtrum UD710 2h10 Board";
@@ -411,9 +412,9 @@
 &i2c0 {
 	status = "okay";
 
-	sensor_main: sensor-main@34 {
+	sensor_main: sensor-main@20 {
 		compatible = "sprd,sensor-main";
-		reg = <0x34>;
+		reg = <0x20>;
 
 		clock-names = "clk_src","sensor_eb",
 			"clk_96m","clk_76m8",
