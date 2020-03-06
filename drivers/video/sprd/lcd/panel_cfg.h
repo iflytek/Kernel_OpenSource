@@ -33,6 +33,7 @@ extern struct panel_driver lt9611_driver;
 extern struct panel_driver rm67191_edo_driver;
 extern struct panel_driver r61350_truly_driver;
 extern struct panel_driver td4310_truly_driver;
+extern struct panel_driver tv105wum_driver;
 
 static struct panel_cfg supported_panel[] = {
 #ifdef CONFIG_LCD_FT8006S_HUAXIAN_MIPI_HDP
@@ -148,6 +149,12 @@ static struct panel_cfg supported_panel[] = {
 		.lcd_id = 0x4310,
 		.drv = &td4310_truly_driver,
 	},
+#endif
+#ifdef CONFIG_LCD_TV105WUM_MIPI_HD
+    {
+        .lcd_id = 0x5432,
+        .drv = &tv105wum_driver,
+    },
 #endif
 /* warning: the dummy lcd must be the last item in this array */
 	{
