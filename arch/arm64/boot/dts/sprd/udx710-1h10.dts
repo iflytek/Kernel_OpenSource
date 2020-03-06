@@ -195,3 +195,78 @@
 			0x0>;
 	status = "okay";
 };
+
+/* for BBAT gpio test */
+&pin_controller {
+	pinctrl-names =
+	"gpio_3", "gpio_4", "gpio_5",
+	"gpio_125","gpio_135","gpio_136",
+	"gpio_3_config", "gpio_4_config", "gpio_5_config",
+	"gpio_125_config","gpio_135_config","gpio_136_config";
+	pinctrl-0 = <&gpio_3>;
+	pinctrl-1 = <&gpio_4>;
+	pinctrl-2 = <&gpio_5>;
+	pinctrl-3 = <&gpio_125>;
+	pinctrl-4 = <&gpio_135>;
+	pinctrl-5 = <&gpio_136>;
+	pinctrl-6 = <&gpio_3_config>;
+	pinctrl-7 = <&gpio_4_config>;
+	pinctrl-8 = <&gpio_5_config>;
+	pinctrl-9 = <&gpio_125_config>;
+	pinctrl-10 = <&gpio_135_config>;
+	pinctrl-11 = <&gpio_136_config>;
+
+	gpio_3: simclk1 {
+		pins = "ORCA_SIMCLK1";
+		function = "func4";
+		gpio_3_config: simclk1_config {
+			pins = "ORCA_SIMCLK1_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_4: simda1 {
+		pins = "ORCA_SIMDA1";
+		function = "func4";
+		gpio_4_config: simda1_config {
+			pins = "ORCA_SIMDA1_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_5: simrst1 {
+		pins = "ORCA_SIMRST1";
+		function = "func4";
+		gpio_5_config: simrst1_config {
+			pins = "ORCA_SIMRST1_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_125: rfctl0 {
+		pins = "ORCA_RFCTL0";
+		function = "func4";
+		gpio_125_config: rfctl0_config {
+			pins = "ORCA_RFCTL0_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_135: rfctl10 {
+		pins = "ORCA_RFCTL10";
+		function = "func4";
+		gpio_135_config: rfctl10_config {
+			pins = "ORCA_RFCTL10_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+
+	gpio_136: rfctl11 {
+		pins = "ORCA_RFCTL11_MISC";
+		function = "func4";
+		gpio_136_config: rfctl11_config {
+			pins = "ORCA_RFCTL11_MISC";
+			sprd,sleep-mode = <NONE_SLEEP>;
+		};
+	};
+};
