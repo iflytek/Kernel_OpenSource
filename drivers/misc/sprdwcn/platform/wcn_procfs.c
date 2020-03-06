@@ -76,6 +76,9 @@ void mdbg_assert_interface(char *str)
 {
 	int len = MDBG_ASSERT_SIZE;
 
+	if (unlikely(marlin_get_download_status() != true))
+		return;
+
 	if (strlen(str) <= MDBG_ASSERT_SIZE)
 		len = strlen(str);
 	strncpy(mdbg_proc->assert.buf, str, len);
