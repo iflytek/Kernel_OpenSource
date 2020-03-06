@@ -84,6 +84,7 @@
 &i2c3 {
 	status = "okay";
 
+/*
 	synaptics-touch@20 {
 		compatible = "synaptics,dsx";
 		reg = <0x20>;
@@ -97,6 +98,17 @@
 		gpios = <&ap_gpio 145 GPIO_ACTIVE_HIGH
 			&ap_gpio 144 GPIO_ACTIVE_HIGH>;
 	};
+*/
+    elan@10 {
+        compatible = "elan,ts";
+        reg = <0x10>;
+        interrupt-parent = <&ap_gpio>;
+        interrupts = <13 0x02>;
+        elan,rst-gpio = <&ap_gpio 145 GPIO_ACTIVE_HIGH>;
+        elan,intr-gpio = <&ap_gpio 144 GPIO_ACTIVE_HIGH>;
+        vdd-supply = <&vdd28>;
+        //vdd_i2c-supply = <&vdd28>;
+    };
 };
 
 &panel {
