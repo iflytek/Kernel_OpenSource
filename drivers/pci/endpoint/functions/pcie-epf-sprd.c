@@ -72,7 +72,6 @@ struct sprd_pci_epf {
 #endif
 
 	struct work_struct linkup_work;
-	struct work_struct unlink_work;
 };
 
 struct sprd_pci_epf_notify {
@@ -590,40 +589,18 @@ static void sprd_epf_linkup_work_fn(struct work_struct *work)
 						     linkup_work);
 	struct pci_epf *epf = epf_sprd->epf;
 	struct device *dev = &epf->dev;
-	void (*notify)(int event, void *data);
 
 	/* restore config */
 	sprd_pci_epf_restore(epf_sprd);
 
 	if (epf->func_no < SPRD_FUNCTION_MAX) {
-		/* first, linkup notify */
-		notify = g_epf_notify[epf->func_no].notify;
-		if (notify)
-			notify(SPRD_EPF_LINK_UP,
-			       g_epf_notify[epf->func_no].data);
-
-		/* then, enable door bell irq */
+		/* enable door bell irq */
 		dev_info(dev, "enable doorbell irq.");
 		ep = epc_get_drvdata(epf->epc);
 		pci = to_dw_pcie_from_ep(ep);
 		dw_pcie_writel_dbi(pci,
 				   DOOR_BELL_BASE + DOOR_BELL_ENABLE,
 				   BIT(PCIE_DBEL_IRQ_MAX) - 1);
-	}
-}
-
-static void sprd_epf_unlink_work_fn(struct work_struct *work)
-{
-	void (*notify)(int event, void *data);
-	struct sprd_pci_epf *epf_sprd = container_of(work, struct sprd_pci_epf,
-						     unlink_work);
-	struct pci_epf *epf = epf_sprd->epf;
-
-	if (epf->func_no < SPRD_FUNCTION_MAX) {
-		notify = g_epf_notify[epf->func_no].notify;
-		if (notify)
-			notify(SPRD_EPF_UNLINK,
-			       g_epf_notify[epf->func_no].data);
 	}
 }
 
@@ -647,9 +624,14 @@ static int sprd_epf_bind(struct pci_epf *epf)
 	 * Normal chip, after orca boot, pcie is already linked.
 	 * So after epf bind, must do the linkup work.
 	 */
-	if (!sprd_epf_is_defective_chip())
+	if (!sprd_epf_is_defective_chip()) {
+		/* first, linkup notify */
+		notify = g_epf_notify[epf->func_no].notify;
+		if (notify)
+			notify(SPRD_EPF_LINK_UP,
+			       g_epf_notify[epf->func_no].data);
 		schedule_work(&epf_sprd->linkup_work);
-
+	}
 	/*
 	 * if the feature CONFIG_SPRD_EPF_ENABLE_EPCONF
 	 * (default closed) is not opend, we can't set the header
@@ -700,8 +682,15 @@ static void sprd_epf_linkup(struct pci_epf *epf)
 {
 	struct device *dev = &epf->dev;
 	struct sprd_pci_epf *epf_sprd = epf_get_drvdata(epf);
+	void  (*notify)(int event, void *data);
 
 	dev_info(dev, "linkup: func_no = %d\n", epf->func_no);
+
+	/* first, linkup notify */
+	notify = g_epf_notify[epf->func_no].notify;
+	if (notify)
+		notify(SPRD_EPF_LINK_UP,
+			   g_epf_notify[epf->func_no].data);
 
 	schedule_work(&epf_sprd->linkup_work);
 }
@@ -709,11 +698,16 @@ static void sprd_epf_linkup(struct pci_epf *epf)
 static void sprd_epf_unlink(struct pci_epf *epf)
 {
 	struct device *dev = &epf->dev;
-	struct sprd_pci_epf *epf_sprd = epf_get_drvdata(epf);
+	void (*notify)(int event, void *data);
 
 	dev_info(dev, "unlink: func_no = %d\n", epf->func_no);
 
-	schedule_work(&epf_sprd->unlink_work);
+	if (epf->func_no < SPRD_FUNCTION_MAX) {
+		notify = g_epf_notify[epf->func_no].notify;
+		if (notify)
+			notify(SPRD_EPF_UNLINK,
+				   g_epf_notify[epf->func_no].data);
+	}
 }
 
 static const struct pci_epf_device_id sprd_epf_ids[] = {
@@ -751,7 +745,6 @@ static int sprd_epf_probe(struct pci_epf *epf)
 	spin_lock_init(&epf_sprd->lock);
 	INIT_LIST_HEAD(&epf_sprd->res_list);
 	INIT_WORK(&epf_sprd->linkup_work, sprd_epf_linkup_work_fn);
-	INIT_WORK(&epf_sprd->unlink_work, sprd_epf_unlink_work_fn);
 
 	g_epf_sprd[epf->func_no] = epf_sprd;
 	notify = g_epf_notify[epf->func_no].notify;
@@ -788,7 +781,6 @@ static int sprd_epf_remove(struct pci_epf *epf)
 	dev_info(dev, "remove.");
 
 	cancel_work_sync(&epf_sprd->linkup_work);
-	cancel_work_sync(&epf_sprd->unlink_work);
 
 	spin_lock_irqsave(&epf_sprd->lock, flags);
 	list_for_each_entry_safe(res, next, &epf_sprd->res_list, list) {

@@ -181,4 +181,13 @@ void sprd_pms_power_up(struct sprd_pms *pms);
  */
 void sprd_pms_power_down(struct sprd_pms *pms, bool immediately);
 
+/**
+ * sprd_pms_power_down_complete - clear all votes of this pms.
+ *
+ * @pms, the point of this pms.
+ */
+#define sprd_pms_power_down_complete(pms)	do {\
+	sprd_pms_power_down((pms), false);\
+} while ((pms)->active_cnt)
+
 #endif

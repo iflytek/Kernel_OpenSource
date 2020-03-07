@@ -26,7 +26,6 @@
 #include <linux/sched.h>
 #include <uapi/linux/sched/types.h>
 #include <linux/soc/sprd/sprd_pcie_ep_device.h>
-#include <linux/workqueue.h>
 
 #include "../include/sprd_pcie_resource.h"
 
@@ -140,7 +139,6 @@ struct sprd_pci_ep_dev {
 	dma_addr_t		target_addr[BAR_MAX];
 	size_t		map_size[BAR_MAX];
 	int	event;
-	struct work_struct	notify_work;
 };
 
 struct sprd_pci_ep_dev_save {
@@ -821,7 +819,7 @@ static int sprd_ep_dev_unmap_bar(int ep, int bar)
 	pdev = ep_dev->pdev;
 	dev = &pdev->dev;
 
-	dev_info(dev, "ep: unmap bar = %d\n", bar);
+	dev_dbg(dev, "ep: unmap bar = %d\n", bar);
 
 	if (!ep_dev->bar_vir[bar])
 		return -ENODEV;
@@ -960,18 +958,6 @@ static void sprd_pci_ep_dev_restore(struct sprd_pci_ep_dev *ep_dev)
 	}
 }
 
-static void sprd_pci_ep_notify_fn(struct work_struct *work)
-{
-	struct sprd_ep_dev_notify *notify;
-	struct sprd_pci_ep_dev *ep_dev = container_of(work,
-						      struct sprd_pci_ep_dev,
-						      notify_work);
-
-	notify = &g_ep_dev_notify[ep_dev->ep];
-	if (notify->notify)
-		notify->notify(ep_dev->event, notify->data);
-}
-
 static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 				 const struct pci_device_id *ent)
 {
@@ -981,6 +967,7 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	struct device *dev = &pdev->dev;
 	struct sprd_pci_ep_dev *ep_dev;
 	struct resource *res;
+	struct sprd_ep_dev_notify *notify;
 
 	dev_info(dev, "ep: probe\n");
 
@@ -1085,9 +1072,10 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	if (ep_dev->event == PCIE_EP_PROBE)
 		sprd_pci_ep_dev_restore(ep_dev);
 
-	/* start notify work */
-	INIT_WORK(&ep_dev->notify_work, sprd_pci_ep_notify_fn);
-	schedule_work(&ep_dev->notify_work);
+	/* probe notify */
+	notify = &g_ep_dev_notify[ep_dev->ep];
+	if (notify->notify)
+		notify->notify(ep_dev->event, notify->data);
 
 	for (i = ep_dev->base_irq;
 		 i < ep_dev->base_irq + PCIE_MSI_MAX_IRQ;
@@ -1134,8 +1122,6 @@ static void sprd_pci_ep_dev_remove(struct pci_dev *pdev)
 	struct sprd_pci_ep_dev *ep_dev = pci_get_drvdata(pdev);
 
 	dev_info(&pdev->dev, "ep: remove\n");
-
-	cancel_work_sync(&ep_dev->notify_work);
 
 	/* first notify PCIE_EP_REMOVE */
 	notify = &g_ep_dev_notify[ep_dev->ep];

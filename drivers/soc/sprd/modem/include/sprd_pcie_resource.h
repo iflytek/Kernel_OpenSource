@@ -97,12 +97,6 @@ void sprd_pcie_resource_reboot_ep(u32 dst);
  */
 int sprd_pcie_wait_load_resource(u32 dst);
 
-
-/* Because the ep bar can only be split by ep itself,
- * After all modem images be loaded, notify pcie resource
- * can rescan ep now.
- */
-void sprd_pcie_resource_notify_load_done(u32 dst);
 #endif /* CONFIG_SPRD_PCIE_EP_DEVICE */
 
 #endif /* _SPRD_PCIE_RESOURCE_H */
