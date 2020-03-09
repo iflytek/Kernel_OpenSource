@@ -265,7 +265,8 @@ struct sipa_hal_global_ops {
 	bool (*get_resume_status)(void __iomem *reg_base);
 	bool (*get_pause_status)(void __iomem *reg_base);
 	void (*enable_pcie_intr_write_reg_mode)(void __iomem *reg_base,
-						bool enable);
+						bool enable, const u64 *reg,
+						const u32 *pattern);
 };
 
 struct sipa_sys_ops {

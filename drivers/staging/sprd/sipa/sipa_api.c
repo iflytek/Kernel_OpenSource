@@ -1582,21 +1582,43 @@ static int sipa_plat_drv_probe(struct platform_device *pdev_p)
  * offset address and register , we should save offset and names
  * in the device data structure.
  */
+
+static struct sipa_pcie_mem_intr_cfg sipa_defs_pcie = {
+	.eb = false,
+};
+
+static struct sipa_pcie_mem_intr_cfg sipa_orca_8198d_pcie = {
+	.eb = true,
+	.pcie_mem_intr_reg = {0x2900002c, 0x2900002c,
+			      0x2900002c, 0x2900002c},
+	.pcie_mem_intr_pattern = {1, 1, 1, 1},
+};
+
 static struct sipa_hw_data roc1_defs_data = {
 	.ahb_reg = sipa_roc1_ahb_regmap,
 	.ahb_regnum = ROC1_AHB_MAX_REG,
 	.standalone_subsys = true,
+	.pcie_cfg = &sipa_defs_pcie,
 };
 
 static struct sipa_hw_data orca_defs_data = {
 	.ahb_reg = sipa_orca_ahb_regmap,
 	.ahb_regnum = ORCA_AHB_MAX_REG,
 	.standalone_subsys = false,
+	.pcie_cfg = &sipa_defs_pcie,
+};
+
+static struct sipa_hw_data orca_8198d_data = {
+	.ahb_reg = sipa_orca_ahb_regmap,
+	.ahb_regnum = ORCA_AHB_MAX_REG,
+	.standalone_subsys = false,
+	.pcie_cfg = &sipa_orca_8198d_pcie,
 };
 
 static struct of_device_id sipa_plat_drv_match[] = {
 	{ .compatible = "sprd,roc1-sipa", .data = &roc1_defs_data },
 	{ .compatible = "sprd,orca-sipa", .data = &orca_defs_data },
+	{ .compatible = "sprd,orca-8198d-sipa", .data = &orca_8198d_data },
 	{ .compatible = "sprd,remote-sipa", },
 	{}
 };

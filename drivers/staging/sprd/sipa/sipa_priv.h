@@ -112,9 +112,16 @@ struct ipa_register_map {
 	u32 size;
 };
 
+struct sipa_pcie_mem_intr_cfg {
+	bool eb;
+	u64 pcie_mem_intr_reg[4];
+	u32 pcie_mem_intr_pattern[4];
+};
+
 struct sipa_hw_data {
 	const u32 ahb_regnum;
 	const struct ipa_register_map *ahb_reg;
+	const struct sipa_pcie_mem_intr_cfg *pcie_cfg;
 	const bool standalone_subsys;
 };
 

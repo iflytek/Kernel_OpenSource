@@ -1334,6 +1334,9 @@ void sipa_resume_glb_reg_cfg(struct sipa_plat_drv_cfg *cfg)
 {
 	struct sipa_hal_context *hal_cfg = &sipa_hal_ctx;
 	void __iomem *glb_base = hal_cfg->phy_virt_res.glb_base;
+	const struct sipa_pcie_mem_intr_cfg *pcie_cfg = cfg->hw_data->pcie_cfg;
+	const u64 *pcie_reg = pcie_cfg->pcie_mem_intr_reg;
+	const u32 *pcie_pattern = pcie_cfg->pcie_mem_intr_pattern;
 
 	hal_cfg->glb_ops.enable_wiap_ul_dma(glb_base, (u32)cfg->wiap_ul_dma);
 
@@ -1345,5 +1348,11 @@ void sipa_resume_glb_reg_cfg(struct sipa_plat_drv_cfg *cfg)
 	hal_cfg->glb_ops.enable_def_flowctrl_to_src_blk(glb_base);
 
 	hal_cfg->glb_ops.set_mode(glb_base, cfg->is_bypass);
+
+	if (pcie_cfg->eb)
+		hal_cfg->glb_ops.enable_pcie_intr_write_reg_mode(glb_base,
+								 true,
+								 pcie_reg,
+								 pcie_pattern);
 }
 EXPORT_SYMBOL(sipa_resume_glb_reg_cfg);

@@ -292,28 +292,22 @@ static void ipa_phy_set_ul_tx_intr(void __iomem *reg_base,
 }
 
 static void sipa_hal_enable_pcie_intr_write_reg_mode(void __iomem *reg_base,
-						     bool enable)
+						     bool enable,
+						     const u64 *reg,
+						     const u32 *pattern)
 {
 	ipa_phy_enable_pcie_mem_intr(reg_base, enable);
 	if (!enable)
 		return;
 
-	ipa_phy_set_dl_tx_intr(reg_base,
-			       SIPA_PCIE_INTR_ADDR_LOW,
-			       SIPA_PCIE_INTR_ADDR_HIGH,
-			       SIPA_PCIE_DL_TX_INTR_PATTERN);
-	ipa_phy_set_dl_rx_intr(reg_base,
-			       SIPA_PCIE_INTR_ADDR_LOW,
-			       SIPA_PCIE_INTR_ADDR_HIGH,
-			       SIPA_PCIE_DL_RX_INTR_PATTERN);
-	ipa_phy_set_ul_rx_intr(reg_base,
-			       SIPA_PCIE_INTR_ADDR_LOW,
-			       SIPA_PCIE_INTR_ADDR_HIGH,
-			       SIPA_PCIE_UL_RX_INTR_PATTERN);
-	ipa_phy_set_ul_tx_intr(reg_base,
-			       SIPA_PCIE_INTR_ADDR_LOW,
-			       SIPA_PCIE_INTR_ADDR_HIGH,
-			       SIPA_PCIE_UL_TX_INTR_PATTERN);
+	ipa_phy_set_dl_tx_intr(reg_base, lower_32_bits(reg[0]),
+			       upper_32_bits(reg[0]), pattern[0]);
+	ipa_phy_set_dl_rx_intr(reg_base, lower_32_bits(reg[1]),
+			       upper_32_bits(reg[1]), pattern[1]);
+	ipa_phy_set_ul_tx_intr(reg_base, lower_32_bits(reg[2]),
+			       upper_32_bits(reg[2]), pattern[2]);
+	ipa_phy_set_ul_rx_intr(reg_base, lower_32_bits(reg[3]),
+			       upper_32_bits(reg[3]), pattern[3]);
 }
 
 u32 sipa_glb_ops_init(
