@@ -99,7 +99,7 @@ export NEED_AUTO_ADAPTIVE
 #DO NOT MODIFY RF_ADAPTIVE_BOARD_LIST if you don't know what it is
 #Add rf band auto adaptive only to specified board in RF_ADAPTIVE_BOARD_LIST
 
-RF_ADAPTIVE_BOARD_LIST := "ums312_1h10" "ums312_1h10_32b" "ums312_2h10_32b" "udx710_3h10" "ums512_1h10" "ud710_2h10" "ud710_20c10"
+RF_ADAPTIVE_BOARD_LIST := "ums312_1h10" "ums312_1h10_32b" "ums312_2h10_32b" "udx710_3h10" "ums512_1h10" "ud710_2h10" "ud710_2c10" "ud710_20c10"
 
 NEED_RF_ADAPTIVE := $(filter $(CONFIG_SYS_CONFIG_NAME), $(RF_ADAPTIVE_BOARD_LIST))
 export NEED_RF_ADAPTIVE
