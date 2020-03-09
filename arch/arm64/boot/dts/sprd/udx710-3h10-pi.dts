@@ -184,6 +184,7 @@
 &ipa_local {
 	sprd,sipa-bypass-mode = <0>;
 
+	sprd,pcie-dl-dma;
 	sprd,usb-dl-tx = <0 4096>;
 	sprd,usb-dl-rx = <0 4096>;
 	sprd,usb-ul-tx = <0 2048>;
