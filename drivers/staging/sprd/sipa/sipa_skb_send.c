@@ -85,16 +85,16 @@ static void sipa_free_sent_items(struct sipa_skb_sender *sender)
 		sipa_hal_recv_conversion_node_to_item(sender->ctx->hdl,
 						      sender->ep->send_fifo.idx,
 						      &item, i);
-		if (item.err_code > 1)
+		if (item.err_code)
 			dev_err(sender->ctx->pdev,
 				"have node transfer err = %d\n", item.err_code);
 
 		spin_lock_irqsave(&sender->send_lock, flags);
 		if (list_empty(&sender->sending_list)) {
-			pr_err("fifo id %d: send list is empty\n",
-			       sender->ep->send_fifo.idx);
+			pr_err("fifo id %d: send list is empty i = %d num = %d\n",
+			       sender->ep->send_fifo.idx, i, num);
 			spin_unlock_irqrestore(&sender->send_lock, flags);
-			return;
+			continue;
 		}
 
 		list_for_each_entry_safe(iter, _iter,
@@ -129,10 +129,10 @@ static void sipa_free_sent_items(struct sipa_skb_sender *sender)
 		sender->free_notify_net = false;
 		sipa_inform_evt_to_nics(sender, SIPA_LEAVE_FLOWCTRL);
 	}
-	if (num != success_cnt)
+	if (num != success_cnt || i != num)
 		dev_err(sender->ctx->pdev,
-			"recv num = %d release num = %d\n",
-			num, success_cnt);
+			"i = %d recv num = %d release num = %d\n",
+			i, num, success_cnt);
 }
 
 static bool sipa_sender_ck_unfree(struct sipa_skb_sender *sender)
