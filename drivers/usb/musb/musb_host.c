@@ -2906,16 +2906,18 @@ static int musb_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 
 		qh->is_ready = 0;
 		musb_giveback(musb, urb, 0);
-		qh->is_ready = ready;
+		if (musb_ep_get_qh(qh->hw_ep, is_in)) {
+			qh->is_ready = ready;
 
-		/* If nothing else (usually musb_giveback) is using it
-		 * and its URB list has emptied, recycle this qh.
-		 */
-		if (list_empty(&qh->hep->urb_list)) {
-			musb_ep_set_qh(ep, is_in, NULL);
-			qh->hep->hcpriv = NULL;
-			list_del(&qh->ring);
-			kfree(qh);
+			/* If nothing else (usually musb_giveback) is using it
+			 * and its URB list has emptied, recycle this qh.
+			 */
+			if (list_empty(&qh->hep->urb_list)) {
+				musb_ep_set_qh(ep, is_in, NULL);
+				qh->hep->hcpriv = NULL;
+				list_del(&qh->ring);
+				kfree(qh);
+			}
 		}
 	} else
 		ret = musb_cleanup_urb(urb, qh);
