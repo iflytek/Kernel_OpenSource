@@ -242,6 +242,7 @@ void sprd_pcie_dump_rc_regs(struct platform_device *pdev)
 {
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 	struct dw_pcie *pci = ctrl->pci;
+	u32 index, offset;
 
 	dev_emerg(&pdev->dev, "LTSSM [0xe64]: 0x%x, [0x728]: 0x%x\n",
 		  dw_pcie_readl_dbi(pci, SPRD_PCIE_PE0_PM_STS),
@@ -251,5 +252,10 @@ void sprd_pcie_dump_rc_regs(struct platform_device *pdev)
 		       16, 4, pci->dbi_base, 0xc0, 0);
 	print_hex_dump(KERN_ERR, "PCIe RC reg: ", DUMP_PREFIX_ADDRESS,
 		       16, 4, pci->dbi_base + 0x100, 0x80, 0);
+	for (index = 0; index <= 2; index++) {
+		offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
+		print_hex_dump(KERN_ERR, "PCIe RC reg: ", DUMP_PREFIX_ADDRESS,
+			       16, 4, pci->dbi_base + offset, 0x20, 0);
+	}
 }
 EXPORT_SYMBOL(sprd_pcie_dump_rc_regs);
