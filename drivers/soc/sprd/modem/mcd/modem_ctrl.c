@@ -417,6 +417,11 @@ void modem_ctrl_poweron_modem(int on)
 	case MDM_POWER_OFF:
 		atomic_notifier_call_chain(&modem_ctrl_chain,
 					   MDM_POWER_OFF, NULL);
+		/*
+		 * sleep 500 ms for other module to do something
+		 * before orca power down.
+		 */
+		msleep(500);
 		modem_ctrl_send_cmd_to_cp(MDM_POWER_OFF);
 		break;
 	default:
@@ -768,10 +773,10 @@ static void modem_ctrl_shutdown(struct platform_device *pdev)
 		atomic_notifier_call_chain(&modem_ctrl_chain,
 					   MDM_POWER_OFF, NULL);
 		/*
-		 * sleep 50 ms for other module to do something
+		 * sleep 500 ms for other module to do something
 		 * before orca power down.
 		 */
-		msleep(50);
+		msleep(500);
 		modem_ctrl_send_cmd_to_cp(MDM_POWER_OFF);
 		/* Sleep 500ms for cp to deal power down process otherwise
 		 * cp will not power down clearly.
