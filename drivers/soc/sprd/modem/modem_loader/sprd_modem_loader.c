@@ -542,18 +542,6 @@ static int modem_run(struct modem_device *modem, u8 b_run)
 		return -EINVAL;
 
 	modem->run_state = b_run;
-	if (b_run) {
-		if (modem->modem_type == PCIE_MODEM &&
-			sprd_pcie_is_defective_chip() &&
-			modem->modem_name ==
-			modem_5g[SPRD_5G_MODEM_PS].name) {
-			/* Because the ep bar can only be split by ep itself,
-			 * After all modem images be loaded, notify pcie
-			 * resource can rescan ep now.
-			 */
-			sprd_pcie_resource_notify_load_done(modem->modem_dst);
-		}
-	}
 
 	if (modem->modem_type == SOC_MODEM) {
 		if (b_run)
