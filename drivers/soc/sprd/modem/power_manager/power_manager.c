@@ -19,7 +19,6 @@
 #include <linux/soc/sprd/sprd_mpm.h>
 #include <linux/suspend.h>
 #include <linux/types.h>
-#include <linux/workqueue.h>
 
 /*
  * The data struct of modem power manager.
@@ -43,9 +42,6 @@ struct sprd_mpm_data {
 	int (*wait_resource)(unsigned int dst, int timeout);
 	int (*request_resource)(unsigned int dst);
 	int (*release_resource)(unsigned int dst);
-
-	struct work_struct	release_res_work;
-	struct work_struct	request_res_work;
 };
 
 /*
@@ -130,8 +126,17 @@ static struct notifier_block sprd_mpm_notifier_block = {
  */
 static void sprd_mpm_request_resource(struct sprd_mpm_data *mpm)
 {
-	if (mpm->request_resource)
-		schedule_work(&mpm->request_res_work);
+	int ret;
+
+	if (!mpm->request_resource)
+		return;
+
+	pr_debug("mpm: %s request res.\n", mpm->name);
+
+	ret = mpm->request_resource(mpm->dst);
+	if (ret)
+		pr_err("mpm: %s request res, ret = %d.\n", mpm->name, ret);
+
 }
 
 /**
@@ -140,8 +145,16 @@ static void sprd_mpm_request_resource(struct sprd_mpm_data *mpm)
  */
 static void sprd_mpm_release_resource(struct sprd_mpm_data *mpm)
 {
-	if (mpm->release_resource)
-		schedule_work(&mpm->release_res_work);
+	int ret;
+
+	if (!mpm->release_resource)
+		return;
+
+	pr_debug("mpm: %s releae res.\n", mpm->name);
+
+	ret = mpm->release_resource(mpm->dst);
+	if (ret)
+		pr_err("mpm: %s request res, ret = %d.\n", mpm->name, ret);
 }
 
 /**
@@ -200,40 +213,6 @@ static void sprd_mpm_start_deactive(struct sprd_mpm_data *mpm)
 		mpm->expires = 1;
 
 	mod_timer(&mpm->timer, mpm->expires);
-}
-
-/**
- * sprd_mpm_request_res_work_fn
- * do release resource call in here.
- */
-static void sprd_mpm_request_res_work_fn(struct work_struct *work)
-{
-	struct sprd_mpm_data *mpm = container_of(work, struct sprd_mpm_data,
-						 request_res_work);
-	int ret;
-
-	pr_debug("mpm: %s request res work.\n", mpm->name);
-
-	ret = mpm->request_resource(mpm->dst);
-	if (ret)
-		pr_err("mpm: %s request res, ret = %d.\n", mpm->name, ret);
-}
-
-/**
- * sprd_mpm_release_res_work_fn
- * do relase resource call in here
- */
-static void sprd_mpm_release_res_work_fn(struct work_struct *work)
-{
-	struct sprd_mpm_data *mpm = container_of(work, struct sprd_mpm_data,
-						 release_res_work);
-	int ret;
-
-	pr_debug("mpm: %s releae res work.\n", mpm->name);
-
-	ret = mpm->release_resource(mpm->dst);
-	if (ret)
-		pr_err("mpm: %s request res, ret = %d.\n", mpm->name, ret);
 }
 
 /**
@@ -591,9 +570,6 @@ int sprd_mpm_create(unsigned int dst, const char *name,
 		    sprd_mpm_deactive_timer_fn,
 		    (unsigned long)mpm);
 
-	INIT_WORK(&mpm->request_res_work, sprd_mpm_request_res_work_fn);
-	INIT_WORK(&mpm->release_res_work, sprd_mpm_release_res_work_fn);
-
 	g_sprd_mpm[dst] = mpm;
 
 	return 0;
@@ -635,8 +611,6 @@ int sprd_mpm_destroy(unsigned int dst)
 		return -ENODEV;
 
 	sprd_mpm_cancel_timer(mpm);
-	cancel_work_sync(&mpm->request_res_work);
-	cancel_work_sync(&mpm->release_res_work);
 
 	spin_lock_irqsave(&mpm->mpm_lock, flags);
 	list_for_each_entry_safe(pms,
