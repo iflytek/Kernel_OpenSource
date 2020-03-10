@@ -148,6 +148,7 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 	int value = gpiod_get_value(ctrl->gpiod_wakeup);
 	u32 irq_flags = irq_get_trigger_type(irq);
 	u32 expect = (irq_flags & IRQF_TRIGGER_HIGH) ? 1 : 0;
+	int i;
 
 	/*
 	 * WORKAROUND: At present, if setting high-level trigger, when
@@ -158,29 +159,32 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 	 */
 	dev_emerg(pci->dev, "%s enter value:%d\n", __func__, value);
 
-	while (value != expect)
-		value = gpiod_get_value(ctrl->gpiod_wakeup);
+	for (i = 0; i < 100; i++) {
+		if (value != expect)
+			value = gpiod_get_value(ctrl->gpiod_wakeup);
+		else {
+			if (!value) {
+				irq_flags &= ~IRQF_TRIGGER_LOW;
+				irq_flags |= IRQF_TRIGGER_HIGH;
+			} else {
+				irq_flags &= ~IRQF_TRIGGER_HIGH;
+				irq_flags |= IRQF_TRIGGER_LOW;
+			}
 
-	if (!value) {
-		irq_flags &= ~IRQF_TRIGGER_LOW;
-		irq_flags |= IRQF_TRIGGER_HIGH;
-	} else {
-		irq_flags &= ~IRQF_TRIGGER_HIGH;
-		irq_flags |= IRQF_TRIGGER_LOW;
+			irq_set_irq_type(irq, irq_flags);
+
+			if (!value && !ctrl->is_powered)
+				sprd_pcie_notify_client(ctrl,
+					SPRD_PCIE_EVENT_WAKEUP);
+			return IRQ_HANDLED;
+		}
 	}
 
-	irq_set_irq_type(irq, irq_flags);
+	dev_emerg(pci->dev,
+		  "%s pci wake irq cannot get expect val. val:%d, expect:%d\n",
+		  __func__, value, expect);
 
-	dev_emerg(pci->dev, "%s finish value:%d\n", __func__, value);
-	if (!value) {
-		if (!ctrl->is_powered)
-			sprd_pcie_notify_client(ctrl, SPRD_PCIE_EVENT_WAKEUP);
-		else
-			dev_emerg(pci->dev,
-				"the pci has already been enumrated\n");
-	}
-
-	return IRQ_HANDLED;
+	return IRQ_NONE;
 }
 
 static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
