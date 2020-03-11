@@ -462,6 +462,9 @@ static void rndis_response_complete(struct usb_ep *ep, struct usb_request *req)
 	struct usb_composite_dev	*cdev = rndis->port.func.config->cdev;
 	int				status = req->status;
 
+	if (!cdev)
+		return;
+	cdev->setup_pending = false;
 	/* after TX:
 	 *  - USB_CDC_GET_ENCAPSULATED_RESPONSE (ep0/control)
 	 *  - RNDIS_RESPONSE_AVAILABLE (status/irq)
@@ -502,6 +505,9 @@ static void rndis_command_complete(struct usb_ep *ep, struct usb_request *req)
 	int				status;
 	rndis_init_msg_type		*buf;
 
+	if (!cdev)
+		return;
+	cdev->setup_pending = false;
 	if (req->status < 0)
 		return;
 	/* received RNDIS command from USB_CDC_SEND_ENCAPSULATED_COMMAND */
@@ -619,6 +625,8 @@ invalid:
 		value = usb_ep_queue(cdev->gadget->ep0, req, GFP_ATOMIC);
 		if (value < 0)
 			ERROR(cdev, "rndis response on err %d\n", value);
+		else
+			cdev->setup_pending = true;
 	}
 
 	/* device either stalls (value < 0) or reports success */
