@@ -982,7 +982,7 @@ static int sipa_parse_dts_configuration(struct platform_device *pdev,
 		dev_err(&pdev->dev, "No matching driver data found\n");
 		return -EINVAL;
 	}
-	cfg->debugfs_data = pdata;
+	cfg->hw_data = pdata;
 	cfg->standalone_subsys = pdata->standalone_subsys;
 	/* get IPA global register base  address */
 	resource = platform_get_resource_byname(pdev,

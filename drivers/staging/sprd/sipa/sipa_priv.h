@@ -159,11 +159,11 @@ struct sipa_plat_drv_cfg {
 	phys_addr_t iram_phy;
 	resource_size_t iram_size;
 
+	const struct sipa_hw_data *hw_data;
 	u32 suspend_cnt;
 	u32 resume_cnt;
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *debugfs_root;
-	const void *debugfs_data;
 #endif
 	struct sipa_common_fifo_cfg common_fifo_cfg[SIPA_FIFO_MAX];
 };
