@@ -22,11 +22,15 @@ extern u32 wcn_print_level;
 #define WCN_DBG(fmt, args...)\
 	pr_debug(" dbg: " fmt, ## args)
 
+#define WCNDBG(fmt, args...)
+
+#if 0
 #ifdef CONFIG_WCN_USER
 #define WCNDBG(fmt, args...)
 #else
 #define WCNDBG(fmt, args...)\
 	pr_info(": " fmt, ## args)
+#endif
 #endif
 
 #define WCN_DEBUG(fmt, args...) do { \

@@ -1232,8 +1232,8 @@ int msi_irq_handle(int irq)
 
 	local_irq_save(irq_flags);
 
-	/* 1s timeout */
-	edma->irq_monitor_timer.expires = jiffies + 1 * HZ;
+	/* 3s timeout */
+	edma->irq_monitor_timer.expires = jiffies + 3 * HZ;
 	add_timer_on(&edma->irq_monitor_timer, 4);
 
 	chn = (irq - 0) / 2;
@@ -1295,7 +1295,6 @@ int msi_irq_handle(int irq)
 	}
 	if (mchn_hw_cb_in_irq(chn) == 0) {
 		enqueue(&(edma->isr_func.q), (unsigned char *)(&msg));
-		WCN_DBG(" callback not in irq\n");
 		set_wcnevent(&(edma->isr_func.q.event));
 		WCNDBG("cb not irq=%ld, chn=%d\n", irq_flags, chn);
 		del_timer(&edma->irq_monitor_timer);
@@ -1308,7 +1307,6 @@ int msi_irq_handle(int irq)
 		return -1;
 	}
 
-	WCN_DBG("callback in irq\n");
 	hisrfunc(&msg);
 
 	WCNDBG("cb in irq=%ld, chn=%d\n", irq_flags, chn);
