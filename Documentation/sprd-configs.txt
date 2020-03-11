@@ -13736,8 +13736,8 @@ CONFIG_SPRD_PMIC_SYSCON
 	[function] This function is used to calibrate PMIC 26M.
 CONFIG_SPRD_POWER_DEBUG
 	[arch] all
-	[plat] roc1,sharkl3,sharkl5,sharkl5_32
-	[missing plat] orca
+	[plat] all
+	[missing plat] none
 	[field] make
 	[subsys] soc
 	[must] debug
