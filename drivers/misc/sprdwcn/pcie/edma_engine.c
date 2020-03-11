@@ -578,8 +578,11 @@ int edma_hw_pause(void)
 	struct edma_info *edma = edma_info();
 	union dma_glb_pause_reg tmp;
 	u32 retries;
+	struct wcn_pcie_info *priv = get_wcn_device_info();
 
 	tmp.reg = readl_relaxed((void *)(&edma->dma_glb_reg->dma_pause.reg));
+	if (!tmp.reg)
+		wcn_dump_ep_regs(priv);
 	tmp.bit.rf_dma_pause = 1;
 	writel_relaxed(tmp.reg, (void *)(&edma->dma_glb_reg->dma_pause.reg));
 

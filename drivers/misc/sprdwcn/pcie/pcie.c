@@ -46,10 +46,37 @@
 static int (*scan_card_notify)(void);
 static struct wcn_pcie_info *g_pcie_dev;
 
+void wcn_dump_ep_mems(struct wcn_pcie_info *priv)
+{
+	u32 reg;
+	u32 mem[16];
+	int i;
+
+	pci_read_config_dword(priv->dev, 00, &reg);
+	WCN_INFO("EP [00] =0x%x\n", reg);
+	pci_read_config_dword(priv->dev, 04, &reg);
+	WCN_INFO("EP [04] =0x%x\n", reg);
+	pci_read_config_dword(priv->dev, 0x10, &reg);
+	WCN_INFO("EP [10] =0x%x\n", reg);
+	pci_read_config_dword(priv->dev, 0x18, &reg);
+	WCN_INFO("EP [18] =0x%x\n", reg);
+	pci_read_config_dword(priv->dev, 0x20, &reg);
+	WCN_INFO("EP [20] =0x%x\n", reg);
+	pci_read_config_dword(priv->dev, 0x24, &reg);
+	WCN_INFO("EP [24] =0x%x\n", reg);
+	sprd_pcie_mem_read(0x40500000, mem, 16 * 4);
+	for (i = 0; i < 16; i++)
+		WCN_INFO("mem[%d]= 0x%x\n", i, mem[i]);
+	sprd_pcie_mem_read(0x40160000, mem, 16 * 4);
+	for (i = 0; i < 16; i++)
+		WCN_INFO("EDMA_GLB[%d]= 0x%x\n", i, mem[i]);
+}
+
 void wcn_dump_ep_regs(struct wcn_pcie_info *priv)
 {
 	u32 reg;
 
+	wcn_dump_ep_mems(priv);
 	pci_read_config_dword(priv->dev, WCN_PCIE_PHY_DEBUG_R0, &reg);
 	WCN_INFO("EP config reg [0x728]: 0x%x\n", reg);
 	pci_read_config_dword(priv->dev, PCI_VENDOR_ID, &reg);
