@@ -9,6 +9,16 @@ static int lt9611_init(void)
 	struct sprd_dsi *dsi = &dsi_device;
 	struct sprd_dphy *dphy = &dphy_device;
 
+#ifdef CONFIG_MIPI_TO_HDMI_SWITCH
+        sprd_gpio_request(NULL,28);
+        sprd_gpio_direction_output(NULL,28,0);
+        mdelay(10);
+
+        sprd_gpio_request(NULL,31);
+        sprd_gpio_direction_output(NULL,31,0);
+        mdelay(10);
+#endif
+
 	pr_info("lt9611_power\n");
 	mipi_dsi_lp_cmd_enable(dsi, true);
 	mipi_dsi_set_work_mode(dsi, SPRD_MIPI_MODE_VIDEO);
@@ -40,12 +50,12 @@ static struct panel_info lt9611_info = {
         /* DPI specific parameters */
         .pixel_clk = 153600000,
         .rgb_timing = {
-                .hfp = 32,
-                .hbp = 32,
-                .hsync = 4,
-                .vfp = 176,
-                .vbp = 16,
-                .vsync = 10,
+                .hfp = 88,
+                .hbp = 148,
+                .hsync = 44,
+                .vfp = 4,
+                .vbp = 36,
+                .vsync = 5,
         },
 
         /* MIPI DSI specific parameters */
