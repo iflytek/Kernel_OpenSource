@@ -45,6 +45,33 @@ static void sprd_pcie_fix_class(struct pci_dev *dev)
 }
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SYNOPSYS, 0xabcd, sprd_pcie_fix_class);
 
+static void sprd_pcie_fix_header(struct pci_dev *dev)
+{
+	u32 val;
+	struct pci_dev *bridge;
+	struct pcie_port *pp;
+	struct dw_pcie *pci;
+
+	/*
+	 * Only the RC which connects with marlin3 EP needs to modify
+	 * port T_POWER_ON register.
+	 */
+	if ((dev->vendor == PCI_VENDOR_ID_MARLIN3) &&
+	    (dev->device == PCI_DEVICE_ID_MARLIN3)) {
+		bridge = dev->bus->self;
+		pp = bridge->bus->sysdata;
+		pci = to_dw_pcie_from_pp(pp);
+
+		val = dw_pcie_readl_dbi(pci, SPRD_PCIE_GEN2_L1SS_CAP);
+		val &= ~(PCIE_T_POWER_ON_SCALE_MASK |
+			 PCIE_T_POWER_ON_VALUE_MASK);
+		val |= (PCIE_T_POWER_ON_SCALE | PCIE_T_POWER_ON_VALUE);
+		dw_pcie_writel_dbi(pci, SPRD_PCIE_GEN2_L1SS_CAP, val);
+	}
+}
+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_MARLIN3, PCI_DEVICE_ID_MARLIN3,
+			 sprd_pcie_fix_header);
+
 int sprd_pcie_syscon_setting(struct platform_device *pdev, char *env)
 {
 	struct device_node *np = pdev->dev.of_node;

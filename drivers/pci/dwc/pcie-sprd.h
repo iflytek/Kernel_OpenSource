@@ -3,6 +3,17 @@
 
 #include "pcie-designware.h"
 
+/*
+ * TODO: The following register only for roc1 PCIe gen2 (pcie0),
+ * but it's a common PCIe capability.
+ * Different PCIe host controller has different offset address.
+ */
+#define SPRD_PCIE_GEN2_L1SS_CAP		0x154
+#define  PCIE_T_POWER_ON_SCALE_MASK	(0x3 << 16)
+#define  PCIE_T_POWER_ON_SCALE		(0x1 << 16)
+#define  PCIE_T_POWER_ON_VALUE_MASK	(0x1f << 19)
+#define  PCIE_T_POWER_ON_VALUE		(0xf << 19)
+
 #define SPRD_PCIE_PE0_PM_CTRL			0xe60
 #define SPRD_PCIE_APP_CLK_PM_EN			(0x1 << 21)
 
@@ -19,6 +30,8 @@
 #define ENTER_L2_MAX_RETRIES	10
 
 #define PCI_DEVICE_ID_SPRD_RC	0xabcd
+#define PCI_DEVICE_ID_MARLIN3	0x2355
+#define PCI_VENDOR_ID_MARLIN3	0x1db3
 
 #define PCI_BAR_NUM	6
 #define PCI_BAR_EN	1
