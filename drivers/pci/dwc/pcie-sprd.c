@@ -446,6 +446,15 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 
 	dev_emerg(&pdev->dev, "%s++\n", __func__);
+	/*
+	 * If sprd_pcie_probe() return before mallocing memory for struct
+	 * sprd_pcie, no one can access any memory of this struct.
+	 */
+	if (!ctrl) {
+		dev_err(&pdev->dev, "pcie RC host controller is NULL\n");
+		return -EINVAL;
+	}
+
 	/* In order to avoid someone rescanning PCIe once more */
 	if (ctrl->is_powered) {
 		dev_emerg(&pdev->dev, "PCIe has alreadly scanned\n");
