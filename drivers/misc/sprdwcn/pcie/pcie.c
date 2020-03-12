@@ -67,6 +67,11 @@ void wcn_dump_ep_mems(struct wcn_pcie_info *priv)
 	sprd_pcie_mem_read(0x40500000, mem, 16 * 4);
 	for (i = 0; i < 16; i++)
 		WCN_INFO("mem[%d]= 0x%x\n", i, mem[i]);
+
+	sprd_pcie_mem_read(0x40130000, mem, 16 * 4);
+	for (i = 0; i < 16; i++)
+		WCN_INFO("4013[%d]= 0x%x\n", i, mem[i]);
+
 	sprd_pcie_mem_read(0x40160000, mem, 16 * 4);
 	for (i = 0; i < 16; i++)
 		WCN_INFO("EDMA_GLB[%d]= 0x%x\n", i, mem[i]);
