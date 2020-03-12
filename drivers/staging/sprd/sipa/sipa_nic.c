@@ -27,6 +27,9 @@
 		(1 << SIPA_TERM_VAP2) | (1 << SIPA_TERM_CP0) | \
 		(1 << SIPA_TERM_CP1) | (1 << SIPA_TERM_VCP))
 
+#define SIPA_PCIE_SRC ((1 << SIPA_TERM_PCIE0) | (1 << SIPA_TERM_PCIE1) | \
+		(1 << SIPA_TERM_PCIE2))
+
 #define SIPA_NIC_RM_INACTIVE_TIMER	3000
 
 struct sipa_nic_statics_info {
@@ -107,6 +110,20 @@ static struct sipa_nic_statics_info s_spia_nic_statics[SIPA_NIC_MAX] = {
 		.src_mask = SIPA_CP_SRC,
 		.netid = 7,
 		.cons = SIPA_RM_RES_CONS_WWAN_UL,
+	},
+	{
+		.send_ep = SIPA_EP_AP_ETH,
+		.pkt_type = SIPA_PKT_ETH,
+		.src_mask = SIPA_PCIE_SRC,
+		.netid = 8,
+		.cons = SIPA_RM_RES_CONS_WWAN_DL,
+	},
+	{
+		.send_ep = SIPA_EP_AP_ETH,
+		.pkt_type = SIPA_PKT_ETH,
+		.src_mask = SIPA_PCIE_SRC,
+		.netid = 9,
+		.cons = SIPA_RM_RES_CONS_WWAN_DL,
 	},
 };
 
