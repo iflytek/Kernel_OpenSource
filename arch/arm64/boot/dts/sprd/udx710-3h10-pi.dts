@@ -184,9 +184,8 @@
 &ipa_local {
 	compatible = "sprd,orca-8198d-sipa";
 
-	sprd,sipa-bypass-mode = <1>;
+	sprd,sipa-bypass-mode = <0>;
 
-	sprd,tft-mode;
 	sprd,pcie-dl-dma;
 	sprd,usb-dl-tx = <0 4096>;
 	sprd,usb-dl-rx = <0 4096>;
