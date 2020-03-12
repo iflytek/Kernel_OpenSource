@@ -252,6 +252,8 @@ void sprd_pcie_dump_rc_regs(struct platform_device *pdev)
 		       16, 4, pci->dbi_base, 0xc0, 0);
 	print_hex_dump(KERN_ERR, "PCIe RC reg: ", DUMP_PREFIX_ADDRESS,
 		       16, 4, pci->dbi_base + 0x100, 0x80, 0);
+	print_hex_dump(KERN_ERR, "PCIe RC reg: ", DUMP_PREFIX_ADDRESS,
+		       16, 4, pci->dbi_base + PCIE_MSI_ADDR_LO, 0x20, 0);
 	for (index = 0; index <= 2; index++) {
 		offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
 		print_hex_dump(KERN_ERR, "PCIe RC reg: ", DUMP_PREFIX_ADDRESS,
