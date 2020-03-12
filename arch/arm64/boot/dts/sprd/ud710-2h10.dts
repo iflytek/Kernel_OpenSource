@@ -39,7 +39,7 @@
 
 	chosen {
 		stdout-path = &uart1;
-		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=1 init=/init root=/dev/mmcblk0p30 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_2h10 androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat";
+		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=15 init=/init root=/dev/mmcblk0p30 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_2h10 androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat";
 	};
 
 	ipi: interrupt-controller {
@@ -152,8 +152,8 @@
 		cm-fullbatt-current = <120000>;
 		cm-fullbatt-capacity = <100>;
 
-		cm-num-chargers = <1>;
-		cm-chargers = "sc2703_charger";
+		cm-num-chargers = <2>;
+		cm-chargers = "sc2703_charger", "bq2560x_charger";
 		cm-fuel-gauge = "sc27xx-fgu";
 
 		/* in deci centigrade */
@@ -184,6 +184,11 @@
 		/* drop voltage in microVolts to restart charging */
 		cm-charge-voltage-drop = <700000>;
 
+		/* when the safe charging voltage is exceeded, stop charging */
+		cm-fast-charge-voltage-max = <10500000>;
+		/* drop voltage in microVolts to restart charging */
+		cm-fast-charge-voltage-drop = <700000>;
+#if 0
 		cm-dcp-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 700000 4400000>,
 			<1450 1420 2000000 4400000>, <1600 1570 700000 4100000>;
 		cm-sdp-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 500000 4400000>,
@@ -194,7 +199,7 @@
 			<1450 1420 500000 4400000>, <1600 1570 500000 4100000>;
 		cm-fchg-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 700000 4400000>,
 			<1450 1420 3250000 4400000>, <1600 1570 700000 4100000>;
-
+#endif
 		regulator@0 {
 			cm-regulator-name = "vddgen0";
 			cable@0 {
@@ -390,6 +395,7 @@
 			};
 		};
 	};
+
 	sc2703-disp@4b {
 		compatible = "sprd,sc2703-disp";
 		reg = <0x4b>;
@@ -482,6 +488,19 @@
 		power-down-gpios = <&ap_gpio 40 0>;
 
 		status = "okay";
+	};
+};
+
+&i2c2 {
+	status = "okay";
+
+	bq2560x_chg: charger@6b {
+		compatible = "ti,bq2560x_chg";
+		reg = <0x6b>;
+		phys = <&ssphy>;
+		monitored-battery = <&bat>;
+		extcon = <&pmic_typec>;
+		enable-gpio = <&ap_gpio 52 GPIO_ACTIVE_HIGH>;
 	};
 };
 
@@ -591,6 +610,7 @@
 &pmic_fchg {
 	sprd,input-voltage-microvolt = <9000000>;
 	phys = <&ssphy>;
+	status = "okay";
 };
 
 &vsp {
@@ -631,12 +651,14 @@
 
 &ssphy {
 	vdd-supply = <&vddusb33>;
+/*	extcon = <&pmic_typec>;*/
 	extcon = <&extcon_gpio>;
 	status = "okay";
 };
 
 &usb3 {
 	extcon = <&extcon_gpio>, <&pmic_typec>;
+/*	extcon = <&pmic_typec>;*/
 	vbus-supply = <&vddvbus>;
 	status = "okay";
 };
