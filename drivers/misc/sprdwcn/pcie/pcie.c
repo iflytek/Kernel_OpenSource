@@ -1058,6 +1058,7 @@ static int sprd_ep_suspend(struct device *dev)
 			ret = ops->power_notify(chn, 0);
 			if (ret != 0) {
 				atomic_set(&priv->is_suspending, 0);
+				wcn_bus_change_state(priv, WCN_BUS_UP);
 				WCN_INFO("[%s] chn:%d suspend fail\n",
 					 __func__, chn);
 				return ret;
@@ -1116,6 +1117,7 @@ static int sprd_ep_resume(struct device *dev)
 		if ((ops != NULL) && (ops->power_notify != NULL)) {
 			ret = ops->power_notify(chn, 1);
 			if (ret != 0) {
+				wcn_bus_change_state(priv, WCN_BUS_DOWN);
 				WCN_INFO("[%s] chn:%d resume fail\n",
 					 __func__, chn);
 				return ret;
