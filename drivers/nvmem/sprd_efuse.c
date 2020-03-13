@@ -372,7 +372,14 @@ static int sprd_efuse_read(void *context, u32 offset, void *val, size_t bytes)
 static int sprd_efuse_write(void *context, u32 offset, void *val, size_t bytes)
 {
 	struct sprd_efuse *efuse = context;
+	u32 index = offset / SPRD_EFUSE_BLOCK_WIDTH;
 	bool lock;
+
+	/*
+	 * efuse has two parts secure efuse block and public efuse block.
+	 * public eFuse starts is different according to projects.
+	 */
+	index += efuse->var_data->blk_start;
 
 	/*
 	 * Lock indicates if the block can be programmed or not. If the writing
@@ -385,7 +392,7 @@ static int sprd_efuse_write(void *context, u32 offset, void *val, size_t bytes)
 	else
 		lock = true;
 
-	return sprd_efuse_prog(efuse, offset, true, lock, val);
+	return sprd_efuse_prog(efuse, index, true, lock, val);
 }
 
 static int sprd_efuse_probe(struct platform_device *pdev)
