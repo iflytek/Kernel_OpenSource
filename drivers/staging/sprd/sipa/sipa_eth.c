@@ -39,6 +39,8 @@
 
 #define SIPA_ETH_NAPI_WEIGHT 64
 #define SIPA_ETH_IFACE_PREF "sipa_eth"
+#define SIPA_ETH_VPCIE_PREF "vpcie"
+#define SIPA_ETH_VPCIE_IDX 8
 
 static struct dentry *root;
 static int sipa_eth_debugfs_mknod(void *root, void *data);
@@ -458,6 +460,10 @@ static int sipa_eth_parse_dt(
 	case 0 ... 7:
 		snprintf(pdata->name, IFNAMSIZ, "%s%d",
 			 SIPA_ETH_IFACE_PREF, id);
+		break;
+	case 8 ... 11:
+		snprintf(pdata->name, IFNAMSIZ, "%s%d",
+			 SIPA_ETH_VPCIE_PREF, id - SIPA_ETH_VPCIE_IDX);
 		break;
 	default:
 		pr_err("wrong alias id from dts, id %d\n", id);
