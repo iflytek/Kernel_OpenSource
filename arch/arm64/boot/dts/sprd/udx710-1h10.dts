@@ -57,6 +57,12 @@
 		cppoweroff-gpio = <&ap_gpio 29 GPIO_ACTIVE_HIGH>;
 	};
 
+	sprd-verify {
+		compatible = "sprd,orca-verify";
+		nvmem-names = "ap-efuse";
+		nvmem = <&ap_efuse>;
+	};
+
 	extcon_usb0: extcon_usb0 {
 		compatible = "linux,extcon-usb-gpio";
 

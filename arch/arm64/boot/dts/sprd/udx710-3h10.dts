@@ -57,6 +57,12 @@
 		memory-region-re = <&ddrbist_reserved>, <&cp_reserved>, <&smem_reserved>;
 	};
 
+	sprd-verify {
+		compatible = "sprd,orca-verify";
+		nvmem-names = "ap-efuse";
+		nvmem = <&ap_efuse>;
+	};
+
 	gpio-keys {
 		compatible = "gpio-keys";
 
