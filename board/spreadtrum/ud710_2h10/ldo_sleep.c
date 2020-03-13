@@ -133,7 +133,7 @@ static void pmic_lowpower_config(void)
 			//BIT_SLP_DCDCWPA_PD_EN |       //2h10 board not used
 			//BIT_SLP_DCDCGPU_PD_EN |
 			//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
-			BIT_SLP_DCDCGEN1_PD_EN |
+			//BIT_SLP_DCDCGEN1_PD_EN |
 			0
 		);
 
@@ -157,7 +157,7 @@ static void pmic_lowpower_config(void)
 			//BIT_SLP_DCDCWPA_PD_EN |       //2h10 board not used
 			//BIT_SLP_DCDCGPU_PD_EN |       //ASIC design not pd
 			//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
-			BIT_SLP_DCDCGEN1_PD_EN |
+			//BIT_SLP_DCDCGEN1_PD_EN |
 			0
 		);
 
@@ -179,7 +179,7 @@ static void pmic_lowpower_config(void)
 		//BIT_SLP_DCDCWPA_PD_EN |       //2h10 board not used
 		//BIT_SLP_DCDCGPU_PD_EN |       //ASIC design not pd
 		//BIT_SLP_DCDCCPU_PD_EN |       //AI use. should shutdown by user self
-		BIT_SLP_DCDCGEN1_PD_EN |
+		//BIT_SLP_DCDCGEN1_PD_EN |
 		0
 	);
 
@@ -203,7 +203,7 @@ static void pmic_lowpower_config(void)
 			//BIT_SLP_DCDCGPU_LP_EN |      //cannot config slp_lp
 			//BIT_SLP_DCDCCORE_LP_EN |     //cannot config slp_lp
 			BIT_SLP_DCDCCPU_LP_EN |        //AI use
-			BIT_SLP_DCDCGEN1_LP_EN |
+			//BIT_SLP_DCDCGEN1_LP_EN |
 			BIT_SLP_DCDCGEN0_LP_EN |
 			BIT_SLP_DCDCWPA_LP_EN |
 			0
@@ -217,7 +217,7 @@ static void pmic_lowpower_config(void)
 			BIT_SLP_DCDCGPU_LP_EN |
 			BIT_SLP_DCDCCORE_LP_EN |
 			BIT_SLP_DCDCCPU_LP_EN |        //AI use
-			BIT_SLP_DCDCGEN1_LP_EN |
+			//BIT_SLP_DCDCGEN1_LP_EN |
 			BIT_SLP_DCDCGEN0_LP_EN |
 			BIT_SLP_DCDCWPA_LP_EN |
 			0
@@ -346,8 +346,8 @@ static void pmic_lowpower_config(void)
 		//BIT_DCDC_GEN1_EXT_XTL0_EN |
 		//BIT_DCDC_GEN1_EXT_XTL1_EN |
 		//BIT_DCDC_GEN1_EXT_XTL2_EN |
-		BIT_DCDC_GEN1_EXT_XTL3_EN | //WB_CLK_REQ
-		BIT_DCDC_GEN1_EXT_XTL4_EN | //because vddrf1v25 refered EXT_XTL_EN4
+		//BIT_DCDC_GEN1_EXT_XTL3_EN | //WB_CLK_REQ
+		//BIT_DCDC_GEN1_EXT_XTL4_EN | //because vddrf1v25 refered EXT_XTL_EN4
 		//BIT_DCDC_GEN1_EXT_XTL5_EN |
 		0
 	);
