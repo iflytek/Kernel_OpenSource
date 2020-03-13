@@ -13310,8 +13310,8 @@ CONFIG_SPRD_CPU_HOTPLUG_GOV
 	[function] Enable cpu hotplug based on PM_QoS for IPA, powerhint and etc.
 CONFIG_SPRD_CPU_USAGE
 	[arch] all
-	[plat] roc1,sharkl3,sharkl5,sharkl5_32
-	[missing plat] orca
+	[plat] all
+	[missing plat] none
 	[field] make
 	[subsys] debug
 	[must] debug
