@@ -16,6 +16,7 @@
 #include <linux/clk.h>
 #include <linux/gpio/consumer.h>
 #include <linux/interrupt.h>
+#include <linux/kthread.h>
 #include <linux/mfd/syscon.h>
 #include <linux/module.h>
 #include <linux/of_device.h>
@@ -23,9 +24,23 @@
 #include <linux/platform_device.h>
 #include <linux/property.h>
 #include <linux/soc/sprd/hwfeature.h>
+#include <linux/wait.h>
+#include <uapi/linux/sched/types.h>
 
 #include "pcie-designware.h"
 #include "pcie-sprd.h"
+
+enum {
+	SPRD_PCIE_REINIT_ACTION = 0,
+	SPRD_PCIE_SHUTDOWN_ACTION = 1,
+};
+
+struct sprd_pcie_action {
+	unsigned int action;
+	struct list_head entry;
+};
+
+static DEFINE_SPINLOCK(pcie_action_lock);
 
 /*
  * WORKAROUND: set CX_FLT_MASK_UR_POIS bit to fix pam ipa pcie access error
@@ -173,10 +188,8 @@ static int sprd_pcie_wakeup(struct dw_pcie *pci, bool enable)
 	return 0;
 }
 
-static void sprd_pcie_ep_reinit(struct work_struct *work)
+static void sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 {
-	struct sprd_pcie *ep = container_of(work, struct sprd_pcie,
-					    reinit_work);
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 	int ret;
@@ -220,16 +233,15 @@ static void sprd_pcie_ep_reinit(struct work_struct *work)
 	if (ret < 0)
 		dev_emerg(pci->dev, "link fail after perst\n");
 	else {
+		ep->is_powered = true;
 		sprd_pcie_wakeup(pci, false);
 		dw_pcie_ep_linkup(&pci->ep);
 	}
 }
 
-static void sprd_pcie_ep_shutdown(struct work_struct *work)
+static void sprd_pcie_ep_shutdown(struct sprd_pcie *ep)
 {
 	int ret;
-	struct sprd_pcie *ep = container_of(work, struct sprd_pcie,
-					    shutdown_work);
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 	struct device *dev = &pdev->dev;
@@ -247,6 +259,63 @@ static void sprd_pcie_ep_shutdown(struct work_struct *work)
 	pm_relax(dev);
 }
 
+static void sprd_pcie_do_actions(struct sprd_pcie *ep)
+{
+	struct sprd_pcie_action *pos, *tmp;
+
+	list_for_each_entry_safe(pos, tmp, &ep->action_list, entry) {
+		if (pos->action == SPRD_PCIE_REINIT_ACTION)
+			sprd_pcie_ep_reinit(ep);
+		else if (pos->action == SPRD_PCIE_SHUTDOWN_ACTION)
+			sprd_pcie_ep_shutdown(ep);
+
+		list_del(&pos->entry);
+		kfree(pos);
+	}
+}
+
+static int sprd_pcie_thread(void *data)
+{
+	struct sprd_pcie *ep = data;
+	struct dw_pcie *pci = ep->pci;
+	struct platform_device *pdev = to_platform_device(pci->dev);
+	unsigned long flags;
+	int ret;
+
+	while (!kthread_should_stop()) {
+		spin_lock_irqsave(&pcie_action_lock, flags);
+		ret = wait_event_interruptible_lock_irq(ep->action_wait,
+			!list_empty(&ep->action_list), pcie_action_lock);
+
+		if (ret == 0)
+			sprd_pcie_do_actions(ep);
+		else
+			dev_err(&pdev->dev, "pcie wait ret= %d\n", ret);
+		spin_unlock_irqrestore(&pcie_action_lock, flags);
+	}
+
+	return 0;
+}
+
+static int sprd_pcie_add_action(struct sprd_pcie *ep, unsigned int action)
+{
+	struct sprd_pcie_action *pos;
+	unsigned long flags;
+
+	pos = kzalloc(sizeof(*pos), GFP_KERNEL);
+	if (!pos)
+		return -ENOMEM;
+
+	pos->action = action;
+	spin_lock_irqsave(&pcie_action_lock, flags);
+	list_add_tail(&pos->entry, &ep->action_list);
+	spin_unlock_irqrestore(&pcie_action_lock, flags);
+
+	wake_up_interruptible_all(&ep->action_wait);
+
+	return 0;
+}
+
 /*
  * PERST# (high active)from root complex to wake up CP.
  *
@@ -261,10 +330,12 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 	u32 expect = (irq_flags & IRQF_TRIGGER_HIGH) ? 1 : 0;
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
-	struct device *dev = &pdev->dev;
+	int i;
 
+	disable_irq_nosync(irq);
 	dev_emerg(&pdev->dev,
 		  "pci perst irq enter ori val: %d\n", val);
+
 	/* WORKAROUND: At present, if setting high-lever trigger, when intterupt
 	 * occurs the value read from gpio is low lever occasinally. When
 	 * setting low-level trigger has the similar problem. Temporarily read
@@ -272,28 +343,48 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 	 * trigger level, and this workaround will be removed when the problem
 	 * fixed.
 	 */
-	while (val != expect)
-		val = gpiod_get_value(ep->gpiod_perst);
+	for (i = 0; i < 100; i++) {
+		if (val != expect)
+			val = gpiod_get_value(ep->gpiod_perst);
+		else {
+			if (!val) {
+				irq_flags &= ~IRQF_TRIGGER_LOW;
+				irq_flags |= IRQF_TRIGGER_HIGH;
+			} else {
+				irq_flags &= ~IRQF_TRIGGER_HIGH;
+				irq_flags |= IRQF_TRIGGER_LOW;
+			}
+			irq_set_irq_type(irq, irq_flags);
 
-	if (!val) {
-		irq_flags &= ~IRQF_TRIGGER_LOW;
-		irq_flags |= IRQF_TRIGGER_HIGH;
-	} else {
-		irq_flags &= ~IRQF_TRIGGER_HIGH;
-		irq_flags |= IRQF_TRIGGER_LOW;
+			return IRQ_WAKE_THREAD;
+		}
 	}
 
-	irq_set_irq_type(irq, irq_flags);
+	dev_emerg(&pdev->dev,
+		  "pci perst irq cannot get expect val: %d, expect: %d\n",
+		  val, expect);
+
+	return IRQ_NONE;
+}
+
+static irqreturn_t sprd_pcie_perst_thread_irq(int irq, void *data)
+{
+	struct sprd_pcie *ep = data;
+	int val = gpiod_get_value(ep->gpiod_perst);
+	struct dw_pcie *pci = ep->pci;
+	struct platform_device *pdev = to_platform_device(pci->dev);
+	struct device *dev = &pdev->dev;
 
 	dev_emerg(&pdev->dev,
-		  "pci perst irq queue val: %d\n", val);
+		  "pci perst thread irq queue val: %d\n", val);
 	if (!val)
-		queue_work(ep->wq, &ep->shutdown_work);
+		sprd_pcie_add_action(ep, SPRD_PCIE_SHUTDOWN_ACTION);
 	else {
 		pm_stay_awake(dev);
 		ep->is_powered = true;
-		queue_work(ep->wq, &ep->reinit_work);
+		sprd_pcie_add_action(ep, SPRD_PCIE_REINIT_ACTION);
 	}
+	enable_irq(irq);
 
 	return IRQ_HANDLED;
 }
@@ -365,6 +456,7 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct dw_pcie *pci;
 	struct sprd_pcie *ep;
+	struct sched_param param = {.sched_priority = 10};
 	int ret;
 
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
@@ -403,30 +495,36 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 	}
 
 	ret = devm_request_threaded_irq(dev, ep->perst_irq,
-					sprd_pcie_perst_irq, NULL,
+					sprd_pcie_perst_irq,
+					sprd_pcie_perst_thread_irq,
 					IRQF_TRIGGER_LOW | IRQF_NO_SUSPEND,
 					"pcie_perst", ep);
+	enable_irq_wake(ep->wakeup_irq);
+
 	if (ret < 0) {
 		dev_err(dev, "cannot request perst irq\n");
 		return ret;
 	}
 	enable_irq_wake(ep->perst_irq);
 
-	ep->wq = create_singlethread_workqueue("perst_irq");
-	if (!ep->wq)
-		return -ENOMEM;
-
-	INIT_WORK(&ep->reinit_work, sprd_pcie_ep_reinit);
-	INIT_WORK(&ep->shutdown_work, sprd_pcie_ep_shutdown);
-
-	device_init_wakeup(dev, true);
-
 	ret = sprd_add_pcie_ep(ep, pdev);
 	if (ret) {
 		dev_err(dev, "cannot initialize ep host\n");
-		destroy_workqueue(ep->wq);
 		return ret;
 	}
+
+	init_waitqueue_head(&ep->action_wait);
+	INIT_LIST_HEAD(&ep->action_list);
+
+	ep->action_thread = kthread_create(sprd_pcie_thread, ep,
+					   "sprd_pcie_ep");
+	if (IS_ERR(ep->action_thread)) {
+		dev_err(dev, "Failed to create kthread\n");
+		return PTR_ERR(ep->action_thread);
+	}
+	/* set the thread as a real time thread, and its priority is 10 */
+	sched_setscheduler(ep->action_thread, SCHED_FIFO, &param);
+	wake_up_process(ep->action_thread);
 
 	return 0;
 }
@@ -434,10 +532,15 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 static int sprd_pcie_ep_remove(struct platform_device *pdev)
 {
 	struct sprd_pcie *ep = platform_get_drvdata(pdev);
-	struct device *dev = &pdev->dev;
+	struct sprd_pcie_action *pos, *tmp;
 
-	destroy_workqueue(ep->wq);
-	device_init_wakeup(dev, false);
+	if (!IS_ERR(ep->action_thread))
+		kthread_stop(ep->action_thread);
+
+	list_for_each_entry_safe(pos, tmp, &ep->action_list, entry) {
+		list_del(&pos->entry);
+		kfree(pos);
+	}
 
 	return 0;
 }

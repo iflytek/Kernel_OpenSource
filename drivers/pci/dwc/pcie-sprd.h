@@ -69,9 +69,10 @@ struct sprd_pcie {
 	struct regulator *vpower;
 
 	struct sprd_pcie_register_event *event_reg;
-	struct work_struct reinit_work;
-	struct work_struct shutdown_work;
-	struct workqueue_struct *wq;
+
+	wait_queue_head_t action_wait;
+	struct task_struct *action_thread;
+	struct list_head action_list;
 
 	size_t label_len; /* pcie controller device length + 10 */
 	char wakeup_label[0];
