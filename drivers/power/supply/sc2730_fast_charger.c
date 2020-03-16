@@ -213,7 +213,7 @@ static int sc2730_fchg_usb_change(struct notifier_block *nb,
 static u32 sc2730_fchg_get_detect_status(struct sc2730_fchg_info *info)
 {
 	unsigned long timeout;
-	int ret;
+	int value, ret;
 
 	/*
 	 * In cold boot phase, system will detect fast charger status,
@@ -225,6 +225,15 @@ static u32 sc2730_fchg_get_detect_status(struct sc2730_fchg_info *info)
 		return POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
 
 	reinit_completion(&info->completion);
+
+	if (info->input_vol < FCHG_VOLTAGE_9V)
+		value = 0;
+	else if (info->input_vol < FCHG_VOLTAGE_12V)
+		value = 1;
+	else if (info->input_vol < FCHG_VOLTAGE_20V)
+		value = 2;
+	else
+		value = 3;
 
 	/*
 	 * Due to the the current source of the fast charge internal module is small
@@ -267,6 +276,15 @@ static u32 sc2730_fchg_get_detect_status(struct sc2730_fchg_info *info)
 				 FCHG_TIME2_MASK, FCHG1_TIME2_VALUE);
 	if (ret) {
 		dev_err(info->dev, "failed to set fast charge time2\n");
+		return ret;
+	}
+
+	ret = regmap_update_bits(info->regmap, info->base + FCHG_CTRL,
+			FCHG_DET_VOL_MASK << FCHG_DET_VOL_SHIFT,
+			(value & FCHG_DET_VOL_MASK) << FCHG_DET_VOL_SHIFT);
+	if (ret) {
+		dev_err(info->dev,
+			"failed to set fast charger detect voltage.\n");
 		return ret;
 	}
 
@@ -332,32 +350,6 @@ static void sc2730_fchg_disable(struct sc2730_fchg_info *info)
 		dev_err(info->dev, "failed to disable charger clock.\n");
 }
 
-static int sc2730_fchg_adjust_voltage(struct sc2730_fchg_info *info,
-				      u32 input_vol)
-{
-	int ret, value;
-
-	if (input_vol < FCHG_VOLTAGE_9V)
-		value = 0;
-	else if (input_vol < FCHG_VOLTAGE_12V)
-		value = 1;
-	else if (input_vol < FCHG_VOLTAGE_20V)
-		value = 2;
-	else
-		value = 3;
-
-	ret = regmap_update_bits(info->regmap, info->base + FCHG_CTRL,
-		FCHG_DET_VOL_MASK << FCHG_DET_VOL_SHIFT,
-		(value & FCHG_DET_VOL_MASK) << FCHG_DET_VOL_SHIFT);
-	if (ret) {
-		dev_err(info->dev,
-			"failed to set fast charger detect voltage.\n");
-		return ret;
-	}
-
-	return 0;
-}
-
 static int sc2730_fchg_usb_get_property(struct power_supply *psy,
 					enum power_supply_property psp,
 					union power_supply_propval *val)
@@ -382,50 +374,9 @@ static int sc2730_fchg_usb_get_property(struct power_supply *psy,
 	return ret;
 }
 
-static int sc2730_fchg_usb_set_property(struct power_supply *psy,
-					enum power_supply_property psp,
-					const union power_supply_propval *val)
-{
-	struct sc2730_fchg_info *info = power_supply_get_drvdata(psy);
-	int ret = 0;
-
-	mutex_lock(&info->lock);
-
-	switch (psp) {
-	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
-		ret = sc2730_fchg_adjust_voltage(info, val->intval);
-		if (ret < 0)
-			dev_err(info->dev, "failed to adjust fchg voltage\n");
-		break;
-
-	default:
-		ret = -EINVAL;
-	}
-
-	mutex_unlock(&info->lock);
-	return ret;
-}
-
-static int sc2730_fchg_property_is_writeable(struct power_supply *psy,
-					     enum power_supply_property psp)
-{
-	int ret;
-
-	switch (psp) {
-	case  POWER_SUPPLY_PROP_VOLTAGE_MAX:
-		ret = 1;
-		break;
-
-	default:
-		ret = 0;
-	}
-
-	return ret;
-}
 
 static enum power_supply_property sc2730_fchg_usb_props[] = {
 	POWER_SUPPLY_PROP_CHARGE_TYPE,
-	POWER_SUPPLY_PROP_VOLTAGE_MAX,
 };
 
 static const struct power_supply_desc sc2730_fchg_desc = {
@@ -434,8 +385,6 @@ static const struct power_supply_desc sc2730_fchg_desc = {
 	.properties		= sc2730_fchg_usb_props,
 	.num_properties		= ARRAY_SIZE(sc2730_fchg_usb_props),
 	.get_property		= sc2730_fchg_usb_get_property,
-	.set_property		= sc2730_fchg_usb_set_property,
-	.property_is_writeable	= sc2730_fchg_property_is_writeable,
 };
 
 static void sc2730_fchg_work(struct work_struct *data)

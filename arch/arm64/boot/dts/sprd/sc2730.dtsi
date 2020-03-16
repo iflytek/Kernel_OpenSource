@@ -125,7 +125,7 @@
 			interrupts = <5 IRQ_TYPE_LEVEL_HIGH>;
 			nvmem-cell-names = "fchg_cur_calib";
 			nvmem-cells = <&headset_adc_fir>;
-			//status = "disabled";
+			status = "disabled";
 		};
 
 		pmic_adc: adc@504 {
