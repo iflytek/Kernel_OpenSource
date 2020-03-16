@@ -16,9 +16,7 @@
 #include "ud710-2h10-modem.dtsi"
 #include "sprd-sound-fe-be.dtsi"
 #include "lcd/lcd_dummy_mipi.dtsi"
-#include "lcd/lcd_td4310_truly_mipi_fhd.dtsi"
-#include "lcd/lcd_ssd2092_truly_mipi_fhd.dtsi"
-
+#include "lcd/lcd_jd9365_htt_mipi_fhd.dtsi"
 / {
 	model = "Spreadtrum UD710 2c10 Board";
 
