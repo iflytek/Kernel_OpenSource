@@ -67,6 +67,7 @@ struct sprd_pci_epf {
 	int			irq_number;
 	u32			bak_irq_status;
 
+	bool		no_msi;
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
 	struct sprd_ep_res	ipa_res;
 #endif
@@ -87,6 +88,7 @@ struct sprd_pci_epf_irq_handler {
 #ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
 static void __iomem	*g_write_addr[SPRD_FUNCTION_MAX];
 #endif
+static void __iomem	*g_irq_addr[SPRD_FUNCTION_MAX];
 
 static struct sprd_pci_epf *g_epf_sprd[SPRD_FUNCTION_MAX];
 static struct sprd_pci_epf_notify g_epf_notify[SPRD_FUNCTION_MAX];
@@ -182,6 +184,16 @@ int sprd_pci_epf_set_write_addr(int function, void __iomem *write_addr)
 EXPORT_SYMBOL_GPL(sprd_pci_epf_set_write_addr);
 #endif
 
+int sprd_pci_epf_set_irq_addr(int function, void __iomem *irq_addr)
+{
+	if (function >= SPRD_FUNCTION_MAX)
+		return -EINVAL;
+
+	g_irq_addr[function] = irq_addr;
+
+	return 0;
+}
+
 int sprd_pci_epf_unregister_irq_handler(int function, int irq)
 {
 	struct sprd_pci_epf_irq_handler *epf_handler;
@@ -247,6 +259,8 @@ int sprd_pci_epf_raise_irq(int function, int irq)
 	struct pci_epc *epc;
 	struct sprd_pci_epf *epf_sprd;
 	struct device *dev;
+	void __iomem *legacy_addr;
+	u32 value;
 
 	if (function >= SPRD_FUNCTION_MAX)
 		return -EINVAL;
@@ -259,6 +273,26 @@ int sprd_pci_epf_raise_irq(int function, int irq)
 	epc = epf_sprd->epf->epc;
 	msi_count = pci_epc_get_msi(epc);
 
+	dev_dbg(dev,
+		"raise irq func_no=%d, irq=%d, msi_count=%d\n",
+		function, irq, msi_count);
+
+	if (sprd_epf_is_defective_chip())
+		irq += REQUEST_BASE_IRQ_DEFECT;
+	else
+		irq += REQUEST_BASE_IRQ;
+
+	if (epf_sprd->no_msi) {
+		/* update irq in legacy addr. */
+		if (g_irq_addr[function]) {
+			legacy_addr = g_irq_addr[0];
+			value = readl(legacy_addr);
+			value |= BIT(irq);
+			writel(value, legacy_addr);
+		}
+		return pci_epc_raise_irq(epc, PCI_EPC_IRQ_LEGACY, 0);
+	}
+
 	if (irq > msi_count || msi_count <= 0) {
 		dev_err(dev,
 			"raise irq func_no=%d, irq=%d, msi_count=%d\n",
@@ -266,10 +300,6 @@ int sprd_pci_epf_raise_irq(int function, int irq)
 		return -EINVAL;
 	}
 
-	if (sprd_epf_is_defective_chip())
-		irq += REQUEST_BASE_IRQ_DEFECT;
-	else
-		irq += REQUEST_BASE_IRQ;
 	/* *
 	 * in dw_pcie_ep_raise_msi_irq, write to the data reg
 	 * is (irq -1) , so here, we must pass (irq + 1)
@@ -609,6 +639,7 @@ static int sprd_epf_bind(struct pci_epf *epf)
 #ifdef CONFIG_SPRD_EPF_ENABLE_EPCONF
 	int ret;
 #endif
+	int msi_count;
 	void  (*notify)(int event, void *data);
 	struct pci_epc *epc = epf->epc;
 	struct device *dev = &epf->dev;
@@ -619,6 +650,13 @@ static int sprd_epf_bind(struct pci_epf *epf)
 
 	dev_info(dev, "bind: func_no = %d, epf->func_no = =%d\n",
 		epf->func_no, epf->msi_interrupts);
+
+	msi_count = pci_epc_get_msi(epc);
+	if (msi_count < PCIE_MSI_IRQ_MAX) {
+		dev_info(dev,
+			"leagacy is true, msi_count=%d\n", msi_count);
+		epf_sprd->no_msi = true;
+	}
 
 	/*
 	 * Normal chip, after orca boot, pcie is already linked.

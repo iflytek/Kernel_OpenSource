@@ -87,6 +87,7 @@ void sprd_epf_ipa_unmap(void __iomem *cpu_vir_addr);
 #ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
 int sprd_pci_epf_set_write_addr(int function, void __iomem *write_addr);
 #endif
+int sprd_pci_epf_set_irq_addr(int function, void __iomem *irq_addr);
 
 #endif
 

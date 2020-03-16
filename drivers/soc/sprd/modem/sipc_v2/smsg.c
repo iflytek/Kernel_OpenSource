@@ -51,7 +51,8 @@
 #define SMSG_RXBUF_WRPTR	(SMSG_RINGHDR + 12)
 
 #define SMSG_RESERVE_BASE	(SMSG_RINGHDR + SZ_1K)
-#define SMSG_PCIE_WRPTR	(SMSG_RESERVE_BASE + 0)
+#define SMSG_PCIE_WRPTR		(SMSG_RESERVE_BASE + 0)
+#define SMSG_PCIE_IRQPTR	(SMSG_RESERVE_BASE + 4)
 
 #define SIPC_READL(addr)      readl((__force void __iomem *)(addr))
 #define SIPC_WRITEL(b, addr)  writel(b, (__force void __iomem *)(addr))
@@ -312,6 +313,8 @@ static void smsg_ipc_init_smsg_irq_callback(struct smsg_ipc *ipc)
 #ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
 		sprd_pci_epf_set_write_addr(ipc->ep_fun, ipc->write_addr);
 #endif
+		sprd_pci_epf_set_irq_addr(ipc->ep_fun,
+					  ipc->smem_vbase + SMSG_PCIE_IRQPTR);
 		return;
 	}
 #endif
