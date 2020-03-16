@@ -224,6 +224,7 @@ struct sc27xx_pd {
 	struct regulator *vbus;
 	struct regulator *vconn;
 	struct tcpc_config config;
+	struct work_struct pd_work;
 	enum typec_cc_polarity cc_polarity;
 	enum typec_cc_status cc1;
 	enum typec_cc_status cc2;
@@ -1123,13 +1124,19 @@ static int sc27xx_pd_extcon_event(struct notifier_block *nb,
 				 unsigned long event, void *param)
 {
 	struct sc27xx_pd *pd = container_of(nb, struct sc27xx_pd, extcon_nb);
+
+	schedule_work(&pd->pd_work);
+	return NOTIFY_OK;
+}
+
+static void sc27xx_pd_work(struct work_struct *work)
+{
+	struct sc27xx_pd *pd = container_of(work, struct sc27xx_pd, pd_work);
 	int ret;
 
 	ret = sc27xx_pd_check_vbus_cc_status(pd);
 	if (ret)
-		return ret;
-
-	return NOTIFY_OK;
+		dev_err(pd->dev, "failed to check vbus and cc status\n");
 }
 
 #define PDO_FIXED_FLAGS 0
@@ -1301,6 +1308,7 @@ static int sc27xx_pd_probe(struct platform_device *pdev)
 	}
 
 	INIT_DELAYED_WORK(&pd->typec_detect_work, sc27xx_pd_detect_typec_work);
+	INIT_WORK(&pd->pd_work, sc27xx_pd_work);
 
 	pd->tcpm_port = tcpm_register_port(pd->dev, &pd->tcpc);
 	if (IS_ERR(pd->tcpm_port))
