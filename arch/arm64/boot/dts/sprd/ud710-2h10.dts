@@ -1215,48 +1215,13 @@
 
 	sprd,pcie-aspml1p2-syscons =
 		<&anlg_pcie20_phy_regs 1 0
-			REG_PIPE_CFGA_ANA_CFG13
+			REG_ANALOG_USB30_CFGA_ANA_CFG13
 			MASK_PIPE_CFGA_ANA_CFG13_CFG_FORCE_REFCLK_EN
 			(0x1 << 23)>,
-		/* enter gen1 low power mode */
-		<&anlg_pcie20_phy_regs 1 0
-			REG_PIPE_CFGA_ANA_CFG13
-			MASK_PIPE_CFGA_ANA_CFG13_CFG_G1_ONLY
-			(0x1 << 28)>,
-		/*
-		 * delay time between PCIEPLL_H_PD deassert and
-		 * PCIEPLL_H_RST deassert
-		 */
-		<&pmu_apb_regs 1 0
-			REG_PMU_APB_PCIEPLL_H_RST_CTRL_CFG
-			MASK_PMU_APB_PCIEPLL_H_DELAY_PWR_ON
-			(0x4e << 16)>,
-		/*
-		 * delay time between PCIEPLL_H_RST assert and
-		 * PCIEPLL_H_PD assert
-		 */
-		<&pmu_apb_regs 1 0
-			REG_PMU_APB_PCIEPLL_H_RST_CTRL_CFG
-			MASK_PMU_APB_PCIEPLL_H_DELAY_RST_ASSERT
-			0x4e>,
-		/*
-		 * wait for 145us after CLKREQ# pulled low to make sure 100M
-		 * reference is stable
-		 */
-		<&pmu_apb_regs 1 0
-			REG_PMU_APB_PLL_WAIT_CNT3
-			MASK_PMU_APB_PCIEPLL_H_WAIT_CNT
-			0x5>,
-		/* auto gate 100M reference clock of pcie gen2 phy */
 		<&pmu_apb_regs 1 0
 			REG_PMU_APB_RESERVED_REG
 			(0x1 << 16)     /* no corresponding macro */
-			0>,
-		/* auto gate 100M reference pll of pcie gen2 phy */
-		<&pmu_apb_regs 1 0
-			REG_PMU_APB_RESERVED_REG
-			0x1     /* no corresponding macro */
-			0x1>;
+			0>;
 };
 
 &pcie1 {
