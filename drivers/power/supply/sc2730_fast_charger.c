@@ -50,6 +50,7 @@
 #define FCHG_TIME2_MASK				GENMASK(11, 0)
 #define FCHG_DET_VOL_MASK			GENMASK(1, 0)
 #define FCHG_DET_VOL_SHIFT			3
+#define FCHG_DET_VOL_EXIT_SFCP			3
 #define FCHG_CALI_MASK				GENMASK(15, 9)
 #define FCHG_CALI_SHIFT				9
 
@@ -547,6 +548,26 @@ static int sc2730_fchg_remove(struct platform_device *pdev)
 	return 0;
 }
 
+static void sc2730_fchg_shutdown(struct platform_device *pdev)
+{
+	struct sc2730_fchg_info *info = platform_get_drvdata(pdev);
+	int ret;
+	u32 value = FCHG_DET_VOL_EXIT_SFCP;
+
+	/*
+	 * SFCP will handsharke failed from charging in shut down
+	 * to charging in power up, because SFCP is not exit before
+	 * shut down. Set bit3:4 to 2b'11 to exit SFCP.
+	 */
+
+	ret = regmap_update_bits(info->regmap, info->base + FCHG_CTRL,
+			FCHG_DET_VOL_MASK << FCHG_DET_VOL_SHIFT,
+			(value & FCHG_DET_VOL_MASK) << FCHG_DET_VOL_SHIFT);
+	if (ret)
+		dev_err(info->dev,
+			"failed to set fast charger detect voltage.\n");
+}
+
 static const struct of_device_id sc2730_fchg_of_match[] = {
 	{ .compatible = "sprd,sc2730-fast-charger", },
 	{ }
@@ -559,6 +580,7 @@ static struct platform_driver sc2730_fchg_driver = {
 	},
 	.probe = sc2730_fchg_probe,
 	.remove = sc2730_fchg_remove,
+	.shutdown = sc2730_fchg_shutdown,
 };
 
 module_platform_driver(sc2730_fchg_driver);
