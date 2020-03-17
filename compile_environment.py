@@ -52,7 +52,10 @@ dict_project={
 	'udx710_3h10_native-userdebug'           : { 'path' : 'sprd-board-config/orca/udx710_3h10/', },
 
 	#orca-3h10-pi
-	'udx710_3h10_native_pi-userdebug'           : { 'path' : 'sprd-board-config/orca/udx710_3h10_pi/', },
+	'udx710_3h10_pi_native-userdebug'           : { 'path' : 'sprd-board-config/orca/udx710_3h10_pi/', },
+
+	#orca-3h10-nse
+	'udx710_3h10_nse_native-userdebug'           : { 'path' : 'sprd-board-config/orca/udx710_3h10_nse/', },
 }
 
 print_head="""
