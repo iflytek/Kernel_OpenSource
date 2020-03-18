@@ -39,6 +39,7 @@
 #include "sprd-codec.h"
 #include "sprd-headset.h"
 #include "sprd-asoc-card-utils.h"
+#define IFLYTEK_NO_MIC 1
 
 #define HDST_DEBUG_LOG pr_debug("%s %d\n", __func__, __LINE__)
 
@@ -603,7 +604,8 @@ static void sprd_headset_eic_plugin_enable(void)
 	struct sprd_headset_platform_data *pdata = (hdst ? &hdst->pdata : NULL);
 
 	if (pdata->support_typec_hdst) {
-		gpiod_set_value_cansleep(pdata->typec_mic_gpio, 0);
+		if (!IS_ERR(pdata->typec_mic_gpio))
+			gpiod_set_value_cansleep(pdata->typec_mic_gpio, 0);
 		return;
 	}
 
@@ -1292,8 +1294,8 @@ sprd_headset_typec_mic_switch(struct sprd_headset *hdst, bool high,
 {
 	struct sprd_headset_platform_data *pdata = &hdst->pdata;
 	int mic_gpio_level;
-
-	mic_gpio_level = gpiod_get_value(pdata->typec_mic_gpio);
+	if (!IS_ERR(pdata->typec_mic_gpio))
+		mic_gpio_level = gpiod_get_value(pdata->typec_mic_gpio);
 	if (mic_gpio_level == high)
 		return;
 
@@ -1302,7 +1304,8 @@ sprd_headset_typec_mic_switch(struct sprd_headset *hdst, bool high,
 	sprd_msleep(20);
 	sprd_headset_typec_fast_discharging(true);
 	sprd_msleep(1);
-	gpiod_set_value_cansleep(pdata->typec_mic_gpio, high);
+	if (!IS_ERR(pdata->typec_mic_gpio))
+		gpiod_set_value_cansleep(pdata->typec_mic_gpio, high);
 	sprd_msleep(1);
 	sprd_headset_typec_fast_discharging(false);
 	if (!no_headmicbias_on)
@@ -1829,7 +1832,8 @@ sprd_headset_prepare_next_plugin(struct sprd_headset_platform_data *pdata,
 	unsigned long rc;
 
 	if (pdata->support_typec_hdst) {
-		gpiod_set_value_cansleep(pdata->typec_mic_gpio, 0);
+		if (!IS_ERR(pdata->typec_mic_gpio))
+			gpiod_set_value_cansleep(pdata->typec_mic_gpio, 0);
 		return;
 	}
 
@@ -2054,8 +2058,8 @@ static void headset_detect_all_work_func(struct work_struct *work)
 	} else {
 		pr_info("typec_notifier typec_attached %d, lr_gpio %d, mic_gpio %d\n",
 			hdst->typec_attached,
-			gpiod_get_value(pdata->typec_lr_gpio),
-			gpiod_get_value(pdata->typec_mic_gpio));
+			gpiod_get_value(pdata->typec_lr_gpio),			
+			!IS_ERR(pdata->typec_mic_gpio) ? gpiod_get_value(pdata->typec_mic_gpio) : -1);
 		/*
 		 * 1. attached: type-c d+/d- -> left/right channel of headphone;
 		 * 2. detached: type-c d+/d- -> usb d+/d-.
@@ -2863,7 +2867,8 @@ int sprd_headset_soc_probe(struct snd_soc_codec *codec)
 
 	if (pdata->support_typec_hdst) {
 		gpiod_direction_output(pdata->typec_lr_gpio, 0);
-		gpiod_direction_output(pdata->typec_mic_gpio, 0);
+		if (!IS_ERR(pdata->typec_mic_gpio))
+			gpiod_direction_output(pdata->typec_mic_gpio, 0);
 		hdst->edev = extcon_get_edev_by_phandle(&pdev->dev, 0);
 		if (IS_ERR(hdst->edev)) {
 			ret = PTR_ERR(hdst->edev);
@@ -3091,7 +3096,11 @@ static int sprd_headset_parse_dt(struct sprd_headset *hdst)
 		0, GPIOD_ASIS);
 	if (IS_ERR(pdata->typec_mic_gpio)) {
 		dev_err(dev, "parse 'mic-gpios' fail\n");
+#ifdef IFLYTEK_NO_MIC
+		dev_warn(dev, "we not support typec mic\n");
+#else
 		return PTR_ERR(pdata->typec_mic_gpio);
+#endif
 	}
 	pdata->typec_lr_gpio = devm_gpiod_get_index(dev, "lr",
 		0, GPIOD_ASIS);
