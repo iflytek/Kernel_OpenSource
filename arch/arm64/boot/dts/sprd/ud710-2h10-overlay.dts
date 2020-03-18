@@ -35,6 +35,14 @@
 					debounce-interval = <2>;
 					wakeup-source;
 				};
+
+				key-ai {
+					label = "AI Key";
+					linux,code = <KEY_F5>;
+					gpios = <&ap_gpio 91 GPIO_ACTIVE_LOW>;
+					debounce-interval = <2>;
+					wakeup-source;
+				};
 			};
 
 			fingerprint@0 {
