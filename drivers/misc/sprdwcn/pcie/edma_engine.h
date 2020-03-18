@@ -381,7 +381,6 @@ struct edma_info {
 	struct wakeup_source edma_push_ws;
 	struct wakeup_source edma_pop_ws;
 	struct timer_list edma_tx_timer;
-	struct timer_list irq_monitor_timer;
 	unsigned long cur_chn_status;
 	struct mutex mpool_lock;
 };
@@ -506,6 +505,5 @@ int edma_hw_restore(void);
 int edma_dump_chn_reg(int chn);
 int edma_dump_glb_reg(void);
 void edma_del_tx_timer(void);
-void del_irq_monitor_timer(void);
 int edma_tasklet_deinit(void);
 #endif
