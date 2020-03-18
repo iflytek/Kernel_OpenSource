@@ -63,6 +63,7 @@ static const char * const sfp_netdev[] = {
 				    "seth",
 				    "sipa_usb",
 				    "sipa_eth",
+				    "vpcie",
 				    NULL
 				  };
 
@@ -71,6 +72,7 @@ static const char * const ipa_netdev[IPA_TERM_MAX] = {
 				    [1] = "usb",
 				    [2] = "wlan",
 				    [6] = "sipa_eth",
+				    [16] = "vpcie",
 				  };
 int sfp_rand(void)
 {
