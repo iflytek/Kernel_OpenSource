@@ -570,6 +570,27 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 	return 0;
 }
 
+/* While pcie gen3 is working, AP can't suspend */
+static int sprd_pcie_pm_prepare(struct device *dev)
+{
+	struct sprd_pcie *ctrl;
+
+	if (device_property_read_bool(dev, "no-pcie")) {
+		dev_info(dev, "no pcie device, do nothing in pcie prepare\n");
+		return 0;
+	}
+
+	ctrl = dev_get_drvdata(dev);
+
+	if (ctrl->is_powered &&
+	    device_property_read_bool(dev, "no-suspend")) {
+		dev_info(dev, "can't suspend now, pcie is running\n");
+		return -EBUSY;
+	}
+
+	return 0;
+}
+
 static int sprd_pcie_suspend_noirq(struct device *dev)
 {
 	int ret;
@@ -621,6 +642,7 @@ static int sprd_pcie_resume_noirq(struct device *dev)
 }
 
 static const struct dev_pm_ops sprd_pcie_pm_ops = {
+	.prepare = sprd_pcie_pm_prepare,
 	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(sprd_pcie_suspend_noirq,
 				      sprd_pcie_resume_noirq)
 };
