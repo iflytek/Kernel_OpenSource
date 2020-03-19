@@ -1,0 +1,29 @@
+Synaptics TD4310 I2C touchscreen controller
+
+Required properties:
+ - compatible:     "focaltech,roc1-touchscreen"
+ - gpios: 	   The reset and interrupt GPIO number
+ - reg: 	   I2C slave address of the chip
+ - vdd-supply:   to find vdd by the name
+ - virtualkeys:    the virtual keys for back/home/task
+ - max-x:       the touchpanel size of width
+ - max-y:       the touchpanel size of heigth
+
+Example nodes:
+
+&i2c3 {
+	status = "okay";
+
+	touchscreen@38{
+		compatible = "focaltech,roc1-touchscreen";
+		reg = <0x38>;
+		gpios = <&ap_gpio 145 GPIO_ACTIVE_HIGH
+			&ap_gpio 144 GPIO_ACTIVE_HIGH>;
+		vdd-supply = <&vdd18>;
+		virtualkeys = <80 1600 30 30
+			240 1600 30 30
+			400 1600 30 30>;
+		max-x = <720>;
+		max-y = <1520>;
+	};
+};
