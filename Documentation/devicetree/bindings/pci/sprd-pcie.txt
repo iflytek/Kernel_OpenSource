@@ -61,6 +61,7 @@ HOST MODE
 	   controller), which may belong to dummy@1
 
  - no-pcie: no pcie device.
+ - no-suspend: AP can't enter suspend unless pcie device is removed.
  - ep-poweron-late: the ep which connected the rc will power on late.
  - label: describe the interrupt connect to which interrupt controller
  - interrupt-parent: specifies the phandle to the parent interrupt controller
