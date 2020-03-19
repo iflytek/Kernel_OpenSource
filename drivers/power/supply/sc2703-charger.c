@@ -821,10 +821,7 @@ static void sc2703_charger_work(struct work_struct *data)
 			cur = info->cur.unknown_cur;
 		}
 
-		if (sc2703_charger_is_support_fchg(info)) {
-			limit_cur = info->cur.fchg_limit;
-			cur = info->cur.fchg_cur;
-		}
+		sc2703_charger_is_support_fchg(info);
 
 		ret = sc2703_charger_set_limit_current(info, limit_cur);
 		if (ret)

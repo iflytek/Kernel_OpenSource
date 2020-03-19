@@ -117,7 +117,6 @@ struct charger_cable {
  * @attr_name: "name" sysfs entry
  * @attr_state: "state" sysfs entry
  * @attr_externally_control: "externally_control" sysfs entry
- * @attr_jeita_control: "jeita_control" sysfs entry
  * @attrs: Arrays pointing to attr_name/state/externally_control for attr_g
  */
 struct charger_regulator {
@@ -140,8 +139,7 @@ struct charger_regulator {
 	struct device_attribute attr_state;
 	struct device_attribute attr_stop_charge;
 	struct device_attribute attr_externally_control;
-	struct device_attribute attr_jeita_control;
-	struct attribute *attrs[6];
+	struct attribute *attrs[5];
 
 	struct charger_manager *cm;
 };
@@ -221,7 +219,6 @@ struct charger_jeita_table {
  * @jeita_tab: Specify the jeita temperature table, which is used to
  *	adjust the charging current according to the battery temperature.
  * @jeita_tab_size: Specify the size of jeita temperature table.
- * @jeita_disabled: disable jeita function when needs
  * @jeita_tab_array: Specify the jeita temperature table array, which is used to
  *	save the point of adjust the charging current according to the battery temperature.
  */
@@ -288,7 +285,6 @@ struct charger_desc {
 
 	struct charger_jeita_table *jeita_tab;
 	u32 jeita_tab_size;
-	bool jeita_disabled;
 	struct charger_jeita_table *jeita_tab_array[CM_JEITA_MAX];
 };
 
@@ -345,6 +341,10 @@ struct charger_manager {
 #ifdef CONFIG_CHARGER_MANAGER
 extern void cm_notify_event(struct power_supply *psy,
 				enum cm_event_types type, char *msg);
+#elif CONFIG_IFLYTEK_CHARGER_MANAGER
+extern void cm_notify_event(struct power_supply *psy,
+				enum cm_event_types type, char *msg);
+
 #else
 static inline void cm_notify_event(struct power_supply *psy,
 				enum cm_event_types type, char *msg) { }
