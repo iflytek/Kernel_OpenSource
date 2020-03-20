@@ -808,7 +808,15 @@ static void fill_dsp_startup_data(struct vbc_codec_priv *vbc_codec,
 	info->id = scene_id;
 	info->stream = stream;
 	para->dac_id = get_startup_scene_dac_id(scene_id);
-	para->adc_id = get_startup_scene_adc_id(scene_id);
+
+	pr_debug("adc_id %d, dmic_chn_sel 0x%x\n", para->adc_id,
+		 vbc_codec->dmic_chn_sel << VBC_DMIC_ADC_ID_SHIFT);
+	if (vbc_codec->dmic_chn_sel)
+		//para->adc_id = get_startup_scene_adc_id(scene_id) | vbc_codec->dmic_chn_sel << VBC_DMIC_ADC_ID_SHIFT;
+		para->adc_id = vbc_codec->dmic_chn_sel;
+	else
+		para->adc_id = get_startup_scene_adc_id(scene_id);
+
 	/* vbc_if or iis */
 	for (i = VBC_MUX_ADC0_SOURCE; i < VBC_MUX_ADC_SOURCE_MAX; i++) {
 		para->adc_source[i].id = vbc_codec->mux_adc_source[i].id;
@@ -4800,6 +4808,62 @@ static struct snd_soc_dai_ops fm_dsp_ops = {
 	.hw_free = scene_fm_dsp_hw_free,
 };
 
+void scene_dump_set(enum vbc_dump_position_e pos)
+{
+	switch (pos) {
+	default:
+	case DUMP_POS_DAC0_E:
+		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC0);
+		break;
+	case DUMP_POS_DAC1_E:
+		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC1);
+		break;
+	case DUMP_POS_A4:
+		dsp_vbc_mux_loop_da0_set(VBC_MUX_LOOP_DAC0, DAC0_MBDRC_OUT);
+		dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
+					     DAC0_DAC1_SEL_DAC0);
+		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
+		break;
+	case DUMP_POS_A3:
+		dsp_vbc_mux_loop_da0_set(VBC_MUX_LOOP_DAC0, DAC0_EQ4_OUT);
+		dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
+					     DAC0_DAC1_SEL_DAC0);
+		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
+		break;
+	case DUMP_POS_A2:
+		dsp_vbc_mux_loop_da0_set(VBC_MUX_LOOP_DAC0,
+					 DAC0_MIX1_OUT);
+		dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
+					     DAC0_DAC1_SEL_DAC0);
+		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
+		break;
+	case DUMP_POS_A1:
+		dsp_vbc_mux_loop_da0_set(VBC_MUX_LOOP_DAC0,
+					 DAC0_SMTHDG_OUT);
+		dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
+					     DAC0_DAC1_SEL_DAC0);
+		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
+		break;
+	case DUMP_POS_V2:
+		dsp_vbc_mux_loop_da1_set(VBC_MUX_LOOP_DAC1,
+					 DAC1_MIXERDG_OUT);
+		dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
+					     DAC0_DAC1_SEL_DAC1);
+		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
+		break;
+	case DUMP_POS_V1:
+		dsp_vbc_mux_loop_da1_set(VBC_MUX_LOOP_DAC1,
+					 DAC1_MIXER_OUT);
+		dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
+					     DAC0_DAC1_SEL_DAC1);
+		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
+		break;
+	case DUMP_POS_DAC0_TO_ADC1:
+		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC1, ADC_IN_DAC0);
+		break;
+	}
+}
+
 /* vbc dump */
 static int scene_dump_startup(struct snd_pcm_substream *substream,
 			      struct snd_soc_dai *dai)
@@ -4830,57 +4894,7 @@ static int scene_dump_startup(struct snd_pcm_substream *substream,
 		}
 		pos = vbc_codec->vbc_dump_position;
 		pr_info("dump scene pos = %s\n", vbc_dumppos2name(pos));
-		switch (pos) {
-		default:
-		case DUMP_POS_DAC0_E:
-			dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC0);
-			break;
-		case DUMP_POS_DAC1_E:
-			dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC1);
-			break;
-		case DUMP_POS_A4:
-			dsp_vbc_mux_loop_da0_set(VBC_MUX_LOOP_DAC0,
-				DAC0_MBDRC_OUT);
-			dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
-						     DAC0_DAC1_SEL_DAC0);
-			dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
-			break;
-		case DUMP_POS_A3:
-			dsp_vbc_mux_loop_da0_set(VBC_MUX_LOOP_DAC0,
-				DAC0_EQ4_OUT);
-			dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
-						     DAC0_DAC1_SEL_DAC0);
-			dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
-			break;
-		case DUMP_POS_A2:
-			dsp_vbc_mux_loop_da0_set(VBC_MUX_LOOP_DAC0,
-				DAC0_MIX1_OUT);
-			dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
-						     DAC0_DAC1_SEL_DAC0);
-			dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
-			break;
-		case DUMP_POS_A1:
-			dsp_vbc_mux_loop_da0_set(VBC_MUX_LOOP_DAC0,
-				DAC0_SMTHDG_OUT);
-			dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
-						     DAC0_DAC1_SEL_DAC0);
-			dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
-			break;
-		case DUMP_POS_V2:
-			dsp_vbc_mux_loop_da1_set(VBC_MUX_LOOP_DAC1,
-				DAC1_MIXERDG_OUT);
-			dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
-						     DAC0_DAC1_SEL_DAC1);
-			dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
-			break;
-		case DUMP_POS_V1:
-			dsp_vbc_mux_loop_da1_set(VBC_MUX_LOOP_DAC1,
-				DAC1_MIXER_OUT);
-			dsp_vbc_mux_loop_da0_da1_set(VBC_MUX_LOOP_DAC0_DAC1,
-						     DAC0_DAC1_SEL_DAC1);
-			dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC0, ADC_IN_DAC_LOOP);
-			break;
-		}
+		scene_dump_set(pos);
 		dsp_vbc_mux_audrcd_set(VBC_MUX_AUDRCD01, AUDRCD_IN_ADC0);
 	}
 	startup_unlock_mtx(scene_id, stream);
