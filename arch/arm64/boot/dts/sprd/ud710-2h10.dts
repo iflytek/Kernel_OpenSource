@@ -39,7 +39,7 @@
 
 	chosen {
 		stdout-path = &uart1;
-		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=15 init=/init root=/dev/mmcblk0p30 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_2h10 androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat";
+		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=1 init=/init root=/dev/mmcblk0p30 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_2h10 androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat";
 	};
 
 	ipi: interrupt-controller {
@@ -507,13 +507,21 @@
 &i2c4 {
 	status = "okay";
 	clock-frequency = <400000>;
-
-	ucp1301_spk: ucp1301@58 {
-		compatible = "sprd,ucp1301-spk";
-		reg = <0x58>;
-		reset-gpios = <&ap_gpio 156 GPIO_ACTIVE_HIGH>;
+	i2c_left_smartpa:i2c_left_smartpa@34 {
+		compatible = "awinic,aw8898_left_smartpa";
 		#sound-dai-cells = <1>;
+		reg = <0x34>;
+		reset-gpio = <&ap_gpio 16 1>;
+		status = "okay";
 	};
+	
+	i2c_right_smartpa:i2c_right_smartpa@35 {
+		compatible = "awinic,aw8898_right_smartpa";
+		#sound-dai-cells = <1>;
+		reg = <0x35>;
+		reset-gpio = <&ap_gpio 37 1>;
+		status = "okay";
+	};	
 };
 
 &dmc_mpu {
@@ -674,7 +682,7 @@
 &sprd_headset {
 	status = "okay";
 	extcon = <&pmic_typec>;
-	mic-gpios = <&ap_gpio 52 GPIO_ACTIVE_HIGH>;
+//	mic-gpios = <&ap_gpio 52 GPIO_ACTIVE_HIGH>;
 	lr-gpios = <&ap_gpio 55 GPIO_ACTIVE_HIGH>;
 	switch-supply = <&vddusb33>;
 	sprd,switch-voltage = <3300000>;
@@ -696,17 +704,15 @@
 		"MIC2 Pin", "Aux Mic Jack",
 		"inter HP PA", "HP Pin",
 		"inter Spk PA", "SPK Pin",
-		"UCP1301 SPK ON", "SPK Pin",
-		"inter Spk PA", "UCP1301 SPK",
 		"DMIC Pin", "DMic Jack",
 		"DMIC1 Pin", "DMic1 Jack",
 		"inter Ear PA", "EAR Pin";
 
-	/* 35: ucp1301 normal ap01 */
-	sprd-audio-card,dai-link@53 {
+	/* 38: smart pa normal ap01 */
+	sprd-audio-card,dai-link@56 {
 		ignore-suspend = <1>;
-		link-name = "BE_NORMAL_AP01_UCPSPK";
-		stream-name = "BE_ST_NORMAL_AP01_UCPSPK";
+		link-name = "BE_NORMAL_AP01_SMTPA";
+		stream-name = "BE_ST_NORMAL_AP01_SMTPA";
 		no-pcm = <1>;
 		dpcm-playback = <1>;
 		be-id = <0>;
@@ -715,12 +721,343 @@
 			sound-dai = <&sprd_route_pcm>;
 		};
 		cpu {
-			sound-dai = <&vbc_v4 3>;
+			sound-dai = <&vbc_v4 34>;
 		};
 		codec {
-			sound-dai = <&ucp1301_spk 0>;
+			sound-dai = <&i2c_left_smartpa 0>;
 		};
 	};
+
+	/* 39: smart pa normal ap23 */
+	sprd-audio-card,dai-link@57 {
+		ignore-suspend = <1>;
+		link-name = "BE_NORMAL_AP23_SMTPA";
+		stream-name = "BE_ST_NORMAL_AP23_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 35>;
+		};
+		codec {
+			sound-dai = <&i2c_left_smartpa 0>;
+		};
+	};
+	/* 40: smart pa fast playback */
+	sprd-audio-card,dai-link@58 {
+		ignore-suspend = <1>;
+		link-name = "BE_FAST_P_SMTPA";
+		stream-name = "BE_ST_FAST_P_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 36>;
+		};
+		codec {
+			sound-dai = <&i2c_left_smartpa 0>;
+		};
+	};
+	/* 41: smart pa offload */
+	sprd-audio-card,dai-link@59 {
+		ignore-suspend = <1>;
+		link-name = "BE_OFFLOAD_SMTPA";
+		stream-name = "BE_ST_OFFLOAD_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 37>;
+		};
+		codec {
+			sound-dai = <&i2c_left_smartpa 0>;
+		};
+	};
+
+	/* 42: smart pa voice */
+	sprd-audio-card,dai-link@60 {
+		ignore-suspend = <1>;
+		link-name = "BE_VOICE_SMTPA";
+		stream-name = "BE_ST_VOICE_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 38>;
+		};
+		codec {
+			sound-dai = <&i2c_left_smartpa 0>;
+		};
+	};
+	/* 43: smart pa voip */
+	sprd-audio-card,dai-link@61 {
+		ignore-suspend = <1>;
+		link-name = "BE_VOIP_SMTPA";
+		stream-name = "BE_DAI_ID_VOIP_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 39>;
+		};
+		codec {
+			sound-dai = <&i2c_left_smartpa 0>;
+		};
+	};
+	/* 44: smart pa fm */
+	sprd-audio-card,dai-link@62 {
+		ignore-suspend = <1>;
+		link-name = "BE_FM_SMTPA";
+		stream-name = "BE_ST_FM_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 40>;
+		};
+		codec {
+			sound-dai = <&i2c_left_smartpa 0>;
+		};
+	};
+	/* 45: smart pa loopback */
+	sprd-audio-card,dai-link@63 {
+		ignore-suspend = <1>;
+		link-name = "BE_LOOP_SMTPA";
+		stream-name = "BE_ST_LOOP_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 41>;
+		};
+		codec {
+			sound-dai = <&i2c_left_smartpa 0>;
+		};
+	};
+
+	/* 46: smart pa fm dsp */
+	sprd-audio-card,dai-link@64 {
+		ignore-suspend = <1>;
+		link-name = "BE_FM_DSP_SMTPA";
+		stream-name = "BE_ST_FM_DSP_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 42>;
+		};
+		codec {
+			sound-dai = <&i2c_left_smartpa 0>;
+		};
+	};
+#if 0	
+		/* 47: smart pa normal ap01 */
+	sprd-audio-card,dai-link@65 {
+		ignore-suspend = <1>;
+		link-name = "BE_NORMAL_AP01_SMTPA";
+		stream-name = "BE_ST_NORMAL_AP01_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 43>;
+		};
+		codec {
+			sound-dai = <&i2c_right_smartpa 0>;
+		};
+	};
+
+	/* 48: smart pa normal ap23 */
+	sprd-audio-card,dai-link@66 {
+		ignore-suspend = <1>;
+		link-name = "BE_NORMAL_AP23_SMTPA";
+		stream-name = "BE_ST_NORMAL_AP23_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 44>;
+		};
+		codec {
+			sound-dai = <&i2c_right_smartpa 0>;
+		};
+	};
+	/* 49: smart pa fast playback */
+	sprd-audio-card,dai-link@67 {
+		ignore-suspend = <1>;
+		link-name = "BE_FAST_P_SMTPA";
+		stream-name = "BE_ST_FAST_P_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 45>;
+		};
+		codec {
+			sound-dai = <&i2c_right_smartpa 0>;
+		};
+	};
+	/* 50: smart pa offload */
+	sprd-audio-card,dai-link@68 {
+		ignore-suspend = <1>;
+		link-name = "BE_OFFLOAD_SMTPA";
+		stream-name = "BE_ST_OFFLOAD_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 46>;
+		};
+		codec {
+			sound-dai = <&i2c_right_smartpa 0>;
+		};
+	};
+
+	/* 51: smart pa voice */
+	sprd-audio-card,dai-link@69 {
+		ignore-suspend = <1>;
+		link-name = "BE_VOICE_SMTPA";
+		stream-name = "BE_ST_VOICE_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 47>;
+		};
+		codec {
+			sound-dai = <&i2c_right_smartpa 0>;
+		};
+	};
+	/* 52: smart pa voip */
+	sprd-audio-card,dai-link@70 {
+		ignore-suspend = <1>;
+		link-name = "BE_VOIP_SMTPA";
+		stream-name = "BE_DAI_ID_VOIP_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 48>;
+		};
+		codec {
+			sound-dai = <&i2c_right_smartpa 0>;
+		};
+	};
+	/* 53: smart pa fm */
+	sprd-audio-card,dai-link@71 {
+		ignore-suspend = <1>;
+		link-name = "BE_FM_SMTPA";
+		stream-name = "BE_ST_FM_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 49>;
+		};
+		codec {
+			sound-dai = <&i2c_right_smartpa 0>;
+		};
+	};
+	/* 54: smart pa loopback */
+	sprd-audio-card,dai-link@72 {
+		ignore-suspend = <1>;
+		link-name = "BE_LOOP_SMTPA";
+		stream-name = "BE_ST_LOOP_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 50>;
+		};
+		codec {
+			sound-dai = <&i2c_right_smartpa 0>;
+		};
+	};
+
+	/* 55: smart pa fm dsp */
+	sprd-audio-card,dai-link@73 {
+		ignore-suspend = <1>;
+		link-name = "BE_FM_DSP_SMTPA";
+		stream-name = "BE_ST_FM_DSP_SMTPA";
+		no-pcm = <1>;
+		dpcm-playback = <1>;
+		be-id = <0>;
+		dai-format = "i2s";
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 51>;
+		};
+		codec {
+			sound-dai = <&i2c_right_smartpa 0>;
+		};
+	};
+#endif
 };
 
 &isp_dvfs {
