@@ -495,7 +495,8 @@ static void s_setup(struct net_device *dev)
 	 * avoid mdns to be send
 	 * also disable arp
 	 */
-	dev->flags &= ~(IFF_BROADCAST | IFF_MULTICAST | IFF_NOARP);
+	dev->flags &= ~(IFF_BROADCAST | IFF_MULTICAST);
+	dev->flags |= IFF_NOARP;
 }
 
 static int sipa_eth_probe(struct platform_device *pdev)
