@@ -122,40 +122,36 @@ static void pcie_resource_client_change_state(struct sprd_pcie_res *res,
 	switch (msg) {
 	case RC_SCANNED_MSG:
 		if (old_state != SPRD_PCIE_WAIT_FIRST_READY
-		    && old_state != SPRD_PCIE_WAIT_SCANNED) {
+		    && old_state != SPRD_PCIE_WAIT_SCANNED)
 			pr_err("pcie res: %s msg err, old state=%s",
 			       change_msg[msg], state_msg[old_state]);
-			return;
-		}
+
 		res->state = SPRD_PCIE_SCANNED;
 		break;
 
 	case RC_REMOVING_MSG:
-		if (old_state != SPRD_PCIE_SCANNED) {
+		if (old_state != SPRD_PCIE_SCANNED)
 			pr_err("pcie res: %s msg err, old state=%s",
 			       change_msg[msg], state_msg[old_state]);
 			return;
-		}
+
 		res->state = SPRD_PCIE_WAIT_REMOVED;
 		break;
 
 	case EPC_UNLINK_MSG:
-		if (old_state != SPRD_PCIE_WAIT_REMOVED) {
+		if (old_state != SPRD_PCIE_WAIT_REMOVED)
 			if (old_state != SPRD_PCIE_WAIT_FIRST_READY)
 				pr_err("pcie res: %s msg err, old state=%s",
 				       change_msg[msg], state_msg[old_state]);
-			return;
-		}
+
 		res->state = SPRD_PCIE_REMOVED;
 		break;
 
 	case EPC_LINKUP_MSG:
-		if (old_state != SPRD_PCIE_REMOVED) {
+		if (old_state != SPRD_PCIE_REMOVED)
 			if (old_state != SPRD_PCIE_WAIT_FIRST_READY)
 				pr_err("pcie res: %s msg err, old state=%s",
 				       change_msg[msg], state_msg[old_state]);
-			return;
-		}
 		res->state = SPRD_PCIE_WAIT_SCANNED;
 		break;
 	}
