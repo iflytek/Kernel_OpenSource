@@ -321,6 +321,8 @@ static int sprd_pcie_host_uninit(struct platform_device *pdev)
 	struct dw_pcie *pci = ctrl->pci;
 
 	dev_emerg(&pdev->dev, "%s++\n", __func__);
+
+	sprd_pcie_clear_unhandled_msi(pci);
 	sprd_pcie_save_dwc_reg(pci);
 
 	if (ctrl->is_suspended) {

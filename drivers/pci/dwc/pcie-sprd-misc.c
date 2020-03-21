@@ -173,6 +173,28 @@ int sprd_pcie_enter_pcipm_l2(struct dw_pcie *pci)
 	return -ETIMEDOUT;
 }
 
+/*
+ * WORKAROUND:
+ * Clear unhandled msi irqs before pcie power off.
+ * if an endpoint asserts a msi irq and then free the irq before
+ * it is handled, the irq line may be always active.
+ */
+void sprd_pcie_clear_unhandled_msi(struct dw_pcie *pci)
+{
+	u32 val, i;
+
+	for (i = 0; i < MAX_MSI_CTRLS; i++) {
+		val = dw_pcie_readl_dbi(pci, PCIE_MSI_INTR0_STATUS + i * 12);
+		if (val) {
+			dev_warn(pci->dev,
+				 "clear unhandled 0x%x in MSI INTR%d",
+				 val, i);
+			dw_pcie_writel_dbi(pci,
+					   PCIE_MSI_INTR0_ENABLE + i * 12, val);
+		}
+	}
+}
+
 void sprd_pcie_save_msi_ctrls(struct dw_pcie *pci)
 {
 	int i;
