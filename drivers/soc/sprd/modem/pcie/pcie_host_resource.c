@@ -80,6 +80,7 @@ struct sprd_pcie_res {
 	bool	ep_ready_for_rescan;
 	bool	reboot_ep_wait_removed;
 	bool	pcie_configured;
+	bool	ep_remove_respond;
 
 	unsigned long	action_jiff;
 
@@ -89,6 +90,7 @@ struct sprd_pcie_res {
 	wait_queue_head_t	wait_reboot_ep;
 	wait_queue_head_t	wait_pcie_ready;
 	wait_queue_head_t	wait_load_ready;
+	wait_queue_head_t	wait_ep_respond;
 
 #ifdef CONFIG_SPRD_SIPA
 	void *sipa_res;
@@ -281,6 +283,16 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 
 	case PCIE_MSI_EP_READY_FOR_RESCAN:
 		sprd_add_action(res->actions_queue, EP_READY_SCAN_ACTION);
+		break;
+
+	case PCIE_MSI_REMOVE_RESPOND:
+		res->ep_remove_respond = true;
+
+		 /* make sure the member ep_remove_respond has stored in the
+		  * memory before wake up the wait_ep_respond event.
+		  */
+		smp_mb();
+		wake_up(&res->wait_ep_respond);
 		break;
 
 	default:
@@ -580,12 +592,23 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 		return;
 	}
 
+	res->ep_remove_respond = false;
+
 	/* notify ep removed, must before removed */
 	sprd_ep_dev_clear_doolbell_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
 	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_REMOVING);
 
-	/* waiting for the doorbell irq to ep */
-	msleep(50);
+	/* waiting for ep remove respond, max time 4s,
+	 * remove it when wait ep remove respond or time out.
+	 */
+	ret = wait_event_timeout(res->wait_ep_respond,
+				 res->ep_remove_respond,
+				 msecs_to_jiffies(4000));
+	if (ret < 0) {
+		/* release wakelock */
+		sprd_pms_release_wakelock(res->pms);
+		return;
+	}
 
 	pr_info("pcie res: unconfig pcie\n");
 
@@ -823,6 +846,7 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
 	init_waitqueue_head(&res->wait_load_ready);
 	init_waitqueue_head(&res->wait_pcie_ready);
 	init_waitqueue_head(&res->wait_reboot_ep);
+	init_waitqueue_head(&res->wait_ep_respond);
 
 	wakeup_source_init(&res->ws, "pcie_res");
 
@@ -852,7 +876,7 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
 
 	sprd_ep_dev_register_irq_handler_ex(res->ep_dev,
 					    PCIE_MSI_REQUEST_RES,
-					    PCIE_MSI_RELEASE_RES,
+					    PCIE_MSI_REMOVE_RESPOND,
 					    sprd_pcie_resource_host_irq_handler,
 					    res);
 

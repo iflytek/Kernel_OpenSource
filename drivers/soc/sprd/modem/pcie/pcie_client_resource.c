@@ -506,6 +506,9 @@ static void sprd_pcie_resource_do_rc_removing(struct sprd_pcie_res *res)
 	pr_info("pcie res: removing.\n");
 
 	pcie_resource_client_change_state(res, RC_REMOVING_MSG);
+
+	/* give a respound msg after change remove state */
+	sprd_pci_epf_raise_irq(res->ep_fun, PCIE_MSI_REMOVE_RESPOND);
 }
 
 static void sprd_pcie_resource_do_actions(int action, void *data)
