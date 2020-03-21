@@ -1222,29 +1222,6 @@ enum VBC_AD_ID_E {
 	VBC_AD_MAX,
 };
 
-#define VBC_DMIC_ADC_ID_SHIFT 8
-
-/* bit8 DMIC0_L, bit9 DMIC0_R, bit10 DMIC1_L, bit11 DMIC1_R */
-enum VBC_DMIC_SEL_E {
-	VBC_DMIC_NONE,
-	VBC_DMIC_0L,
-	VBC_DMIC_0R,
-	VBC_DMIC_0L_0R,
-	VBC_DMIC_1L,
-	VBC_DMIC_0L_1L,
-	VBC_DMIC_0R_1L,
-	VBC_DMIC_0L_0R_1L,
-	VBC_DMIC_1R,
-	VBC_DMIC_0L_1R,
-	VBC_DMIC_0R_1R,
-	VBC_DMIC_0L_0R_1R,
-	VBC_DMIC_1L_1R,
-	VBC_DMIC_0L_1L_1R,
-	VBC_DMIC_0R_1L_1R,
-	VBC_DMIC_0L_0R_1L_1R,
-	VBC_DMIC_MAX,
-};
-
 struct snd_pcm_stream_info {
 	char name[32];
 	int id;
@@ -1368,7 +1345,6 @@ enum vbc_dump_position_e {
 	DUMP_POS_A1,
 	DUMP_POS_V2,
 	DUMP_POS_V1,
-	DUMP_POS_DAC0_TO_ADC1,
 	DUMP_POS_MAX,
 };
 
@@ -1425,12 +1401,10 @@ struct vbc_codec_priv {
 	 */
 	int need_aud_top_clk;
 	enum vbc_dump_position_e vbc_dump_position;
-	enum vbc_dump_position_e vbc_dump_position_cmd;
 	struct sbcenc_param_t sbcenc_para;
 	char firmware_path[AUD_FIRMWARE_PATHNAME_LEN_MAX];
 	struct mainmic_from_para mainmic_from[MAINMIC_USED_MAINMIC_TYPE_MAX];
 	struct vbc_iis_mst_sel_para mst_sel_para[IIS_MST_SEL_ID_MAX];
-	enum VBC_DMIC_SEL_E dmic_chn_sel;
 	/* to do */
 	atomic_t aux_iis_master_start;
 	int32_t ivs_smtpa_ctl_enable;
@@ -1461,7 +1435,6 @@ int ap_vbc_fifo_enable(int fifo_id, int chan, int enable);
 void ap_vbc_fifo_clear(int fifo_id);
 void ap_vbc_aud_dma_chn_en(int fifo_id, int vbc_chan, int enable);
 void vbc_phy_audply_set_src_mode(int en, int mode);
-void scene_dump_set(enum vbc_dump_position_e pos);
 
 /********************************************************************
  * dsp phy define interface
