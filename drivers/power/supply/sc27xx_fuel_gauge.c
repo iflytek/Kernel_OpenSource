@@ -131,6 +131,7 @@ struct sc27xx_fgu_data {
 	int comp_resistance;
 	int index;
 	int temp_buff[SC27XX_FGU_TEMP_BUFF_CNT];
+	int bat_temp;
 	struct power_supply_battery_ocv_table *cap_table;
 	struct power_supply_vol_temp_table *temp_table;
 	struct power_supply_capacity_temp_table *cap_temp_table;
@@ -543,12 +544,9 @@ static int sc27xx_fgu_get_capacity(struct sc27xx_fgu_data *data, int *cap,
 	*cap = delta_cap + data->init_cap;
 
 	if (data->cap_table_len > 0) {
-		ret = sc27xx_fgu_get_temp(data, &temp);
-		if (ret)
-			return ret;
 		temp_cap = sc27xx_fgu_temp_to_cap(data->cap_temp_table,
 						  data->cap_table_len,
-						  temp);
+						  data->bat_temp);
 		/*
 		 * Battery capacity at different temperatures, we think
 		 * the change is linear, the follow the formula: y = ax + k
@@ -613,7 +611,7 @@ static int sc27xx_fgu_get_current(struct sc27xx_fgu_data *data, int *val)
 
 static int sc27xx_fgu_get_vbat_ocv(struct sc27xx_fgu_data *data, int *val)
 {
-	int vol, cur, temp, resistance, ret;
+	int vol, cur, resistance, ret;
 
 	ret = sc27xx_fgu_get_vbat_vol(data, &vol);
 	if (ret)
@@ -625,14 +623,10 @@ static int sc27xx_fgu_get_vbat_ocv(struct sc27xx_fgu_data *data, int *val)
 
 	resistance = data->internal_resist;
 	if (data->resist_table_len > 0) {
-		ret = sc27xx_fgu_get_temp(data, &temp);
-		if (ret)
-			return ret;
-
 		resistance =
 			sc27xx_fgu_temp_to_resistance(data->resistance_table,
 						      data->resist_table_len,
-						      temp);
+						      data->bat_temp);
 		resistance = data->internal_resist * resistance / 100;
 	}
 
@@ -753,6 +747,8 @@ static int sc27xx_fgu_get_temp(struct sc27xx_fgu_data *data, int *temp)
 	} else {
 		*temp = 200;
 	}
+
+	data->bat_temp = *temp;
 
 	return 0;
 }
@@ -1028,17 +1024,11 @@ static void sc27xx_fgu_low_capacity_calibration(struct sc27xx_fgu_data *data,
 						int cap, int int_mode,
 						int chg_sts)
 {
-	int ret, ocv, adc, temp;
+	int ret, ocv, adc;
 
 	ret = sc27xx_fgu_get_vbat_ocv(data, &ocv);
 	if (ret) {
 		dev_err(data->dev, "get battery ocv error.\n");
-		return;
-	}
-
-	ret = sc27xx_fgu_get_temp(data, &temp);
-	if (ret) {
-		dev_err(data->dev, "get battery temperature error.\n");
 		return;
 	}
 
@@ -1048,7 +1038,7 @@ static void sc27xx_fgu_low_capacity_calibration(struct sc27xx_fgu_data *data,
 	 * lower capacity.
 	 */
 	if (chg_sts == POWER_SUPPLY_STATUS_CHARGING ||
-	    temp <= SC27XX_FGU_LOW_TEMP_REGION)
+	    data->bat_temp <= SC27XX_FGU_LOW_TEMP_REGION)
 		return;
 
 	if (ocv <= data->cap_table[data->table_len - 1].ocv) {
