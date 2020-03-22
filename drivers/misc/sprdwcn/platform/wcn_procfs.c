@@ -852,6 +852,8 @@ static ssize_t mdbg_proc_write(struct file *filp,
 		}
 	}
 
+	wcn_set_tx_complete_status(0);
+
 	if (unlikely(marlin_get_download_status() != true))
 		return -EIO;
 
