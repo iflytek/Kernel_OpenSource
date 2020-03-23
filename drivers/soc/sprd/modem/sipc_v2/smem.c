@@ -28,12 +28,12 @@
 /*
  * workround: Due to orca ipa hardware limitations
  * the sipc share memory must map from
- * 0x280000000(orca side) to 0x80000000(roc1
+ * 0x2x0000000(orca side) to 0xx0000000(roc1
  * side), and the size must be 256M
  */
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
-#define IPA_SRC_BASE	0x280000000
-#define IPA_DST_BASE	0x80000000
+#define IPA_GET_SRC_BASE(addr)	(((addr) & 0xf0000000) + 0x200000000)
+#define IPA_GET_DST_BASE(addr)	((addr) & 0xf0000000)
 #define IPA_SIZE	0x10000000
 #endif
 
@@ -308,12 +308,13 @@ int smem_init(u32 addr, u32 size, u32 dst, u32 mem_type)
 	if (mem_type == SMEM_PCIE) {
 #ifdef CONFIG_SPRD_IPA_PCIE_WORKROUND
 #ifdef CONFIG_PCIE_EPF_SPRD
-		spool->pcie_base = sprd_epf_ipa_map(IPA_SRC_BASE,
-						    IPA_DST_BASE, IPA_SIZE);
+		spool->pcie_base = sprd_epf_ipa_map(IPA_GET_SRC_BASE(addr),
+						    IPA_GET_DST_BASE(addr),
+						    IPA_SIZE);
 		if (!spool->pcie_base)
 			return -ENOMEM;
 
-		spool->pcie_base += (addr - IPA_DST_BASE);
+		spool->pcie_base += (addr - IPA_GET_DST_BASE(addr));
 #else
 		pr_err("Failed to pcie map, can't br here!\n");
 		return -ENOMEM;
