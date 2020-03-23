@@ -260,6 +260,18 @@
 	status = "okay";
 };
 
+&sipc_nr {
+	sprd,smem-info = <0x07800000 0x07800000 0x300000>;
+};
+
+&slog_nr {
+	status = "disabled";
+};
+
+&sdiag_nr {
+	status = "disabled";
+};
+
 &pcie1 {
 	sprd,pcie-startup-syscons =
 		<&ap_ipa_ahb_regs 0 0
