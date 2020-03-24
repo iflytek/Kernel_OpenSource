@@ -33,7 +33,7 @@
 #include <dt-bindings/soc/sprd,roc1-regs.h>
 
 #define TUNEHSAMP_3_9MA		(GENMASK(26, 25))
-#define TFREGRES_TUNE_VALUE	(0xe << 19)
+#define TFREGRES_TUNE_VALUE	(0x6 << 19)
 
 #define PHY_REG_BASE			(phy->base)
 
