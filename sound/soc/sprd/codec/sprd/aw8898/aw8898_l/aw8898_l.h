@@ -1,0 +1,78 @@
+#ifndef _AW8898_L_H_
+#define _AW8898_L_H_
+
+
+/*
+ * i2c transaction on Linux limited to 64k
+ * (See Linux kernel documentation: Documentation/i2c/writing-clients)
+*/
+#define MAX_I2C_BUFFER_SIZE 65536
+
+#define AW8898_L_FLAG_START_ON_MUTE   (1 << 0)
+#define AW8898_L_FLAG_SKIP_INTERRUPTS     (1 << 1)
+#define AW8898_L_FLAG_SAAM_AVAILABLE      (1 << 2)
+#define AW8898_L_FLAG_STEREO_DEVICE       (1 << 3)
+#define AW8898_L_FLAG_MULTI_MIC_INPUTS    (1 << 4)
+
+#define AW8898_L_NUM_RATES                9
+
+#define AW8898_L_MAX_REGISTER             0xff
+
+#define AW8898_L_START_WORK_DELAY_MS      400
+
+//#define AW8898_L_VBAT_MONITOR
+#ifdef AW8898_L_VBAT_MONITOR
+#define SYS_BAT_DEV "/sys/class/power_supply/battery/voltage_now"
+#define AW8898_L_SYS_VBAT_LIMIT           3600000
+#define AW8898_L_SYS_VBAT_MIN             3000000
+#endif
+
+
+enum aw8898_l_chipid{
+    AW8898_L_ID,
+};
+
+enum aw8898_l_mode_spk_rcv{
+    AW8898_L_SPEAKER_MODE = 0,
+    AW8898_L_RECEIVER_MODE = 1,
+};
+
+struct aw8898_l {
+    struct regmap *regmap;
+    struct i2c_client *i2c;
+    struct snd_soc_codec *codec;
+    struct device *dev;
+    struct mutex cfg_lock;
+#ifdef AW8898_L_VBAT_MONITOR
+    struct hrtimer vbat_monitor_timer;
+    struct work_struct vbat_monitor_work;
+#endif
+    int sysclk;
+    int rate;
+    int pstream;
+    int cstream;
+    struct delayed_work start_work;
+
+
+    int reset_gpio;
+    int irq_gpio;
+
+#ifdef CONFIG_DEBUG_FS
+    struct dentry *dbg_dir;
+#endif
+    u8 reg;
+
+    unsigned int flags;
+    unsigned int chipid;
+    unsigned int init;
+    unsigned int spk_rcv_mode;
+    unsigned int bst_ilimit;
+};
+
+struct aw8898_l_container{
+    int len;
+    unsigned char data[];
+};
+
+
+#endif
