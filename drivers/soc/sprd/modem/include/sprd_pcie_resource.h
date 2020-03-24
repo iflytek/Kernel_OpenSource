@@ -97,6 +97,17 @@ void sprd_pcie_resource_reboot_ep(u32 dst);
  */
 int sprd_pcie_wait_load_resource(u32 dst);
 
+/*
+ * sprd_pcie_img_load_done
+ * If the chip is AA chip, It has 2 times pcie scan action in host side
+ * boot process. After the first scan, the ep only have 2 bar can be
+ * used for memory map, the pcie resource is not completely ready,
+ * but the host can load images for ep,  and after or images are loaded,
+ * need call this api to start the 2nd scan action.
+ */
+void sprd_pcie_img_load_done(u32 dst);
+
+
 #endif /* CONFIG_SPRD_PCIE_EP_DEVICE */
 
 #endif /* _SPRD_PCIE_RESOURCE_H */

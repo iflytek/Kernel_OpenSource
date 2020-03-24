@@ -683,6 +683,9 @@ static long modem_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		if (ret == 0) {
 			modem->remote_flag = param;
 			modem_set_remote_flag(modem, b_clear);
+			/* notify pcie res load done. */
+			if (modem->remote_flag & MODEM_IMAGE_DONE_FLAG)
+				sprd_pcie_img_load_done(modem->modem_dst);
 		}
 		break;
 

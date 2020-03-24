@@ -63,6 +63,7 @@ enum rc_actions {
 	EP_REQUEST_ACTION,
 	EP_RELEASE_ACTION,
 	EP_READY_SCAN_ACTION,
+	EP_LOAD_DONE_ACTION,
 	EP_WAKEUP_ACTION
 };
 
@@ -78,6 +79,7 @@ struct sprd_pcie_res {
 	bool	ep_dev_probe;
 	bool	power_off;
 	bool	ep_ready_for_rescan;
+	bool	ep_load_done;
 	bool	reboot_ep_wait_removed;
 	bool	pcie_configured;
 	bool	ep_remove_respond;
@@ -351,6 +353,17 @@ static struct notifier_block mcd_notify = {
 	.priority = 49,
 };
 
+void sprd_pcie_img_load_done(u32 dst)
+{
+	struct sprd_pcie_res *res;
+
+	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
+		return;
+
+	res = g_pcie_res[dst];
+	sprd_add_action(res->actions_queue, EP_LOAD_DONE_ACTION);
+}
+
 int sprd_pcie_wait_load_resource(u32 dst)
 {
 	struct sprd_pcie_res *res;
@@ -423,6 +436,7 @@ void sprd_pcie_resource_reboot_ep(u32 dst)
 	res->ep_up_cnt = 0;
 	res->reboot_ep_wait_removed = false;
 	res->ep_ready_for_rescan = false;
+	res->ep_load_done = false;
 
 	sprd_pms_power_down_complete(res->pms);
 
@@ -749,7 +763,7 @@ static void sprd_pcie_resource_do_ready_scan(struct sprd_pcie_res *res)
 	pr_info("pcie res: power down for ep.");
 	sprd_pms_power_down(res->pms, false);
 
-	if (res->wait_scanned)
+	if (res->wait_scanned && res->ep_load_done)
 		sprd_add_action(res->actions_queue, REMOVE_PCIE_ACTION);
 }
 
@@ -760,6 +774,16 @@ static void sprd_pcie_resource_do_ep_wakeup(struct sprd_pcie_res *res)
 
 	/* power done fore wake up. */
 	sprd_pms_power_down(res->pms, false);
+}
+
+static void sprd_pcie_resource_do_ep_load_done(struct sprd_pcie_res *res)
+{
+	pr_info("pcie res: load done.\n");
+
+	res->ep_load_done = true;
+
+	if (res->wait_scanned && res->ep_ready_for_rescan)
+		sprd_add_action(res->actions_queue, REMOVE_PCIE_ACTION);
 }
 
 static void sprd_pcie_resource_do_actions(int action, void *data)
@@ -812,6 +836,10 @@ static void sprd_pcie_resource_do_actions(int action, void *data)
 
 	case EP_WAKEUP_ACTION:
 		sprd_pcie_resource_do_ep_wakeup(res);
+		break;
+
+	case EP_LOAD_DONE_ACTION:
+		sprd_pcie_resource_do_ep_load_done(res);
 		break;
 
 	default:
