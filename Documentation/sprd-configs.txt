@@ -1591,6 +1591,15 @@ CONFIG_BRANCH_PROFILE_NONE
 	[must] debug
 	[missing plat description] none
 	[function] No branch profiling
+CONFIG_BRIDGE
+	[arch] arm64
+	[plat] orca
+	[missing plat] roc1,sharkl3,sharkl5
+	[field] menu
+	[subsys] net
+	[must] user
+	[missing plat description] none
+	[function] Support for BRIDGE configuration
 CONFIG_BSD_PROCESS_ACCT
 	[arch] all
 	[plat] all
@@ -8021,6 +8030,15 @@ CONFIG_LIBFDT
 	[must] console
 	[missing plat description] none
 	[function] Support the kernel for fdt.
+CONFIG_LLC
+	[arch] arm64
+	[plat] orca
+	[missing plat] roc1,sharkl3,sharkl5
+	[field] menu
+	[subsys] net
+	[must] user
+	[missing plat description] none
+	[function] Support for LLC configuration
 CONFIG_LOCALVERSION
 	[arch] all
 	[plat] all
@@ -14178,6 +14196,15 @@ CONFIG_STANDALONE
 	[must] console
 	[missing plat description] none
 	[function] Select only drivers that don't need compile-time external firmware.
+CONFIG_STP
+	[arch] arm64
+	[plat] orca
+	[missing plat] roc1,sharkl3,sharkl5
+	[field] menu
+	[subsys] net
+	[must] user
+	[missing plat description] none
+	[function] Support for STP configuration
 CONFIG_STRICT_KERNEL_RWX
 	[arch] all
 	[plat] all
