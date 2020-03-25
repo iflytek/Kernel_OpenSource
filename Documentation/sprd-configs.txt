@@ -13326,6 +13326,15 @@ CONFIG_SPRD_CRYPTO
 	[must]
 	[missing plat description]
 	[function]
+CONFIG_SPRD_CRYPTO_SW
+	[arch] arm64
+	[plat] orca
+	[missing plat]roc1,sharkl3,sharkl5
+	[field]
+	[subsys]
+	[must]
+	[missing plat description]
+	[function]
 CONFIG_SPRD_DATA_TRANSPORTER
 	[arch] arm64
 	[plat] orca
