@@ -139,7 +139,7 @@
 		charge-dcp-current-microamp = <2000000 3000000>;
 		charge-cdp-current-microamp = <1150000 1150000>;
 		charge-unknown-current-microamp = <500000 500000>;
-		charge-fchg-current-microamp = <3250000 3000000>;
+		charge-fchg-current-microamp = <1500000 2000000>;
 	};
 
 	charger-manager {
@@ -1314,15 +1314,16 @@
 &pin_controller {
 	pinctrl-names =
 	/* spi2-csn, keyin0 */
-	"gpio_52", "gpio_124";
+	//"gpio_52", "gpio_124";
+	"gpio_124";
 
-	pinctrl-0 = <&gpio_52>;
+	//pinctrl-0 = <&gpio_52>;
 	pinctrl-1 = <&gpio_124>;
 
-	gpio_52: spi2-csn {
-		pins = "ROC1_SPI2_CSN";
-		function = "func4";
-	};
+	//gpio_52: spi2-csn {
+	//	pins = "ROC1_SPI2_CSN";
+	//	function = "func4";
+	//};
 
 	gpio_124: keyin0 {
 		pins = "ROC1_KEYIN0";

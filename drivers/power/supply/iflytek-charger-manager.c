@@ -38,6 +38,8 @@
 #define CM_CAP_CYCLE_TRACK_TIME		15
 #define CM_UVLO_OFFSET			50000
 #define CM_FORCE_SET_FUEL_CAP_FULL	100
+#define CM_LOW_TEMP_REGION		100
+#define CM_LOW_TEMP_SHUTDOWN_VALTAGE	3200000
 
 static const char * const default_event_names[] = {
 	[CM_EVENT_UNKNOWN] = "Unknown",
@@ -1927,6 +1929,9 @@ static void misc_event_handler(struct charger_manager *cm,
 	if (cm->desc->force_set_full)
 		cm->desc->force_set_full = false;
 
+	if (cm->charging_status)
+		cm->charging_status = 0;
+
 	if (is_polling_required(cm) && cm->desc->polling_interval_ms)
 		schedule_work(&setup_polling);
 	uevent_notify(cm, default_event_names[type]);
@@ -2950,7 +2955,7 @@ static void cm_batt_works(struct work_struct *work)
 				struct charger_manager, cap_update_work);
 	struct timespec64 cur_time;
 	int batt_uV, batt_ocV, bat_uA, fuel_cap, chg_sts, ret;
-	int period_time, flush_time;
+	int period_time, flush_time, cur_temp;
 	int chg_cur = 0, chg_limit_cur = 0;
 
 	ret = get_batt_uV(cm, &batt_uV);
@@ -2987,6 +2992,20 @@ static void cm_batt_works(struct work_struct *work)
 	if (ret) {
 		dev_err(cm->dev, "get chg_limit_cur error.\n");
 		return;
+	}
+
+	ret = cm_get_battery_temperature_by_psy(cm, &cur_temp);
+	if (ret) {
+		dev_err(cm->dev, "failed to get battery temperature\n");
+		return;
+	}
+
+	if (cur_temp <= CM_LOW_TEMP_REGION &&
+	    batt_uV <= CM_LOW_TEMP_SHUTDOWN_VALTAGE) {
+		if (cm->desc->low_temp_trigger_cnt++ > 1)
+			fuel_cap = 0;
+	} else if (cm->desc->low_temp_trigger_cnt != 0) {
+		cm->desc->low_temp_trigger_cnt = 0;
 	}
 
 	if (fuel_cap > 100)
@@ -3034,9 +3053,11 @@ static void cm_batt_works(struct work_struct *work)
 
 	dev_info(cm->dev, "battery voltage = %d, OCV = %d, current = %d, "
 		 "capacity = %d, charger status = %d, force set full = %d, "
-		 "charging current = %d, charging limit current = %d\n",
+		 "charging current = %d, charging limit current = %d, "
+		 "battery temperature = %d\n",
 		 batt_uV, batt_ocV, bat_uA, fuel_cap, cm->desc->charger_status,
-		 cm->desc->force_set_full, chg_cur, chg_limit_cur);
+		 cm->desc->force_set_full, chg_cur, chg_limit_cur, cur_temp);
+
 
 	switch (cm->desc->charger_status) {
 	case POWER_SUPPLY_STATUS_CHARGING:
@@ -3450,7 +3471,8 @@ static int cm_suspend_prepare(struct device *dev)
 	 * but this time need 30s, and the charger IC(fan54015)
 	 * watchdog timeout to reset.
 	 */
-	cm_feed_watchdog(cm);
+	if (is_ext_pwr_online(cm))
+		cm_feed_watchdog(cm);
 	cm_timer_set = cm_setup_timer();
 
 	if (cm_timer_set) {
