@@ -1,0 +1,20 @@
+Spreadtrum modem bindings
+
+Required properties:
+- compatible: "sprd,scproc_pubcp".
+- #address-cells: address-cells.
+- #size-cells: size-cells
+- reg: the pm ram ranges, base and size.
+
+Example:
+
+	sprd-pm {
+		compatible = "sprd,scproc_pubcp"
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		scproc_pubpm: scproc@800000 {
+			reg = <0x0 0x800000 0x0 0x40000>;
+		};
+	};

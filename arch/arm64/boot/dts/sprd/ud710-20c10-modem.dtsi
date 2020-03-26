@@ -148,4 +148,15 @@
 		cppanic-gpio = <&ap_gpio 37 GPIO_ACTIVE_HIGH>;
 		cppoweroff-gpio = <&ap_gpio 33 GPIO_ACTIVE_HIGH>;
 	};
+
+	sprd-pm {
+		compatible = "sprd,scproc_pubcp";
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		scproc_pubpm: scproc@800000 {
+			reg = <0x0 0x800000 0x0 0x40000>;
+		};
+	};
 };
