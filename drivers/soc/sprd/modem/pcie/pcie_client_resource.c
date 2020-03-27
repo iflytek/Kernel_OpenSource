@@ -68,6 +68,8 @@ struct sprd_pcie_res {
 	u32	ep_fun;
 	enum pcie_ep_state	state;
 	bool	msi_later;
+	bool	release_later;
+	bool	do_first_ready;
 	bool	wakeup_later;
 	bool	power_off;
 
@@ -133,7 +135,6 @@ static void pcie_resource_client_change_state(struct sprd_pcie_res *res,
 		if (old_state != SPRD_PCIE_SCANNED)
 			pr_err("pcie res: %s msg err, old state=%s",
 			       change_msg[msg], state_msg[old_state]);
-			return;
 
 		res->state = SPRD_PCIE_WAIT_REMOVED;
 		break;
@@ -407,17 +408,15 @@ static void sprd_pcie_resource_do_release_res(struct sprd_pcie_res *res)
 		 * the pcie.
 		 */
 		pr_info("pcie res: send release msi to rc.\n");
-		sprd_pci_epf_raise_irq(res->ep_fun,
-						 PCIE_MSI_RELEASE_RES);
+		sprd_pci_epf_raise_irq(res->ep_fun, PCIE_MSI_RELEASE_RES);
 		break;
 
 	case SPRD_PCIE_WAIT_FIRST_READY:
-		/* if has msi pending, remove it */
-		if (res->msi_later)
-			res->msi_later = false;
+		res->release_later = true;
 		break;
 
 	default:
+		res->release_later = true;
 		pr_err("pcie res: release res state=%d.\n", res->state);
 		break;
 	}
@@ -455,8 +454,10 @@ static void sprd_pcie_resource_do_epf_linkup(struct sprd_pcie_res *res)
 	pcie_resource_client_change_state(res, EPC_LINKUP_MSG);
 
 	/* first ready notify */
-	if (res->state == SPRD_PCIE_WAIT_FIRST_READY)
+	if (!res->do_first_ready) {
+		res->do_first_ready = true;
 		sprd_pcie_resource_first_ready_notify(res);
+	}
 }
 
 static void sprd_pcie_resource_do_epf_unlink(struct sprd_pcie_res *res)
@@ -494,6 +495,12 @@ static void sprd_pcie_resource_do_rc_scanned(struct sprd_pcie_res *res)
 		pr_info("pcie res: send request msi to rc.\n");
 		sprd_pci_epf_raise_irq(res->ep_fun,
 					 PCIE_MSI_REQUEST_RES);
+	}
+
+	if (res->release_later) {
+		res->release_later = false;
+		pr_info("pcie res: send release msi to rc.\n");
+		sprd_pci_epf_raise_irq(res->ep_fun, PCIE_MSI_RELEASE_RES);
 	}
 }
 
