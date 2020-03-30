@@ -253,6 +253,9 @@ static void sipa_nic_rm_timer_func(struct work_struct *work)
 	} else if (res->resource_requested) {
 		pr_debug("not calling release\n");
 		res->release_in_progress = false;
+		queue_delayed_work(system_unbound_wq,
+				   &res->work,
+				   res->jiffies);
 	} else {
 		pr_debug("calling release_resource on resource %d!\n",
 			 res->cons);
@@ -310,9 +313,10 @@ static int sipa_nic_rm_res_request(struct sipa_nic *nic)
 
 	spin_lock_irqsave(&res->lock, flags);
 	res->resource_requested = true;
-	if (res->need_request) {
+	if (res->need_request && !res->request_in_progress) {
 		need_flag = true;
 		res->need_request = false;
+		res->request_in_progress = true;
 	} else {
 		ret = res->request_in_progress ? -EINPROGRESS : 0;
 	}
