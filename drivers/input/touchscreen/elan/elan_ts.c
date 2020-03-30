@@ -124,7 +124,7 @@ static struct elan_ts_data *private_ts;
 #define FT_I2C_VTG_MIN_UV	1800000
 #define FT_I2C_VTG_MAX_UV	1800000
 
-#define SWAP_X_Y_RESOLUTION
+//#define SWAP_X_Y_RESOLUTION
 //#define ROTATE_X
 //#define ROTATE_Y
 
@@ -183,7 +183,7 @@ static void elan_switch_irq(int on)
 static int elan_ts_poll(void)
 {
 	int status = 0, retry = 20;
-	
+
 	if (!gpio_is_valid(private_ts->pdata->intr_gpio))
 		dev_err(&private_ts->client->dev,"[elan]%s intr gpio maybe free",__func__);
 
@@ -310,7 +310,7 @@ static int __hello_packet_handler(struct i2c_client *client)
 {
 	int rc;
 	struct elan_ts_data *ts = i2c_get_clientdata(client);
-	
+
 	rc = CheckISPstatus(client);
 	if (rc == 0x56)
 		ts->recover = 0x80;
@@ -318,9 +318,9 @@ static int __hello_packet_handler(struct i2c_client *client)
 		ts->recover = 0x0;
 	else
 		ts->recover = -1;
-	
+
 	dev_err(&client->dev, "[elan]%s %0x:%0x\n",__func__,rc,ts->recover);
-	
+
 	return ts->recover;
 }
 #else
@@ -500,7 +500,7 @@ int GetAckData(struct i2c_client *client)
 		return ACK_REWRITE;
 	else
 		return ACK_Fail;
-#endif		
+#endif
 
 	return 0;
 }
@@ -853,7 +853,7 @@ static int FW_Update(struct i2c_client *client, int source)
 	LastStartPage = PageNum - RemainPage + 1;
 	PayloadLenRemain = (FlashPageNum * PageSize) % PayloadLen;
 	PayloadLenRemainLast = (RemainPage * PageSize) % PayloadLen;
-	dev_dbg(&ts->client->dev, 
+	dev_dbg(&ts->client->dev,
 			"[ELAN] PageNum=%d, FlashPageNum=%d, RemainPage=%d, LastStartPage=%d\n",
 			PageNum, FlashPageNum, RemainPage, LastStartPage);
 	dev_dbg(&ts->client->dev,
@@ -1191,7 +1191,7 @@ static ssize_t store_check_cal(struct device *dev,
 		dev_err(&client->dev, "ELAN CALIBRATE & CHECK Fail\n");
 	else
 		dev_info(&client->dev, "ELAN CHECK CALIBRATE Success\n");
-	
+
 	return count;
 }
 static DEVICE_ATTR(check_cal, S_IWUSR, NULL, store_check_cal);
@@ -1297,8 +1297,8 @@ static struct attribute *elan_default_attributes[] = {
 	&dev_attr_enable_irq.attr,
 	&dev_attr_disable_irq.attr,
 	&dev_attr_calibrate.attr,
-	
-#ifdef ELAN_HID_IIC	
+
+#ifdef ELAN_HID_IIC
 	&dev_attr_check_cal.attr,
 #endif
 
@@ -1628,7 +1628,7 @@ static int __fw_packet_handler(struct i2c_client *client)
 		ts->x_trace = buf_recv[6] + buf_recv[10];
 		ts->y_trace = buf_recv[7] + buf_recv[11];
 	}
-#endif	
+#endif
 
 	dev_info(&ts->client->dev, "[elan] %s: x= %d, y=%d\n", __func__, ts->x_trace,ts->y_trace);
 	ts->x_resolution = (ts->x_trace - 1) * ts->hand_osr;
@@ -1813,7 +1813,7 @@ static int elan_ts_rough_calibrate(struct i2c_client *client)
 				__func__);
 		return -EINVAL;
 	}
-	
+
 	rc = elan_ts_poll();
 	if(rc) {
 		dev_err(&client->dev,
@@ -1843,8 +1843,8 @@ static int elan_ts_rough_calibrate(struct i2c_client *client)
 {
 	uint8_t flash_key[] = {CMD_W_PKT, 0xc0, 0xe1, 0x5a};
 	uint8_t cmd[] = {CMD_W_PKT, 0x29, 0x00, 0x01};
-	
-	
+
+
 	dev_info(&client->dev, "[elan] %s: enter\n", __func__);
 	dev_info(&client->dev,
 			"[elan] dump flash_key : %02x, %02x, %02x, %02x\n",
@@ -1891,7 +1891,7 @@ static int check_cal_status(struct i2c_client *client)
 	}
 
 	mdelay(10);
-	
+
 	res_len = elan_i2c_recv(client, resp, sizeof(resp));
 	rek_count = ((resp[6] << 8) | resp[7]);
 	dev_info(&client->dev, "rek_count = %d\n", rek_count);
@@ -1973,7 +1973,7 @@ update_elan_fw:
 		else
 			break;
 	}
-	
+
 	mdelay(200);
 
 	for (retry_cnt = 0; retry_cnt < 3; retry_cnt++) {
@@ -1994,10 +1994,10 @@ update_elan_fw:
 		}
 #endif
 	}
-	
+
 	elan_switch_irq(1);
 	iap_flag = 0;
-	
+
 no_update_elan_fw:
 	dev_info(&ts->client->dev,
 			"[elan] %s, fw check end..............\n",
@@ -2019,16 +2019,16 @@ static int elan_request_pen_input_dev(struct elan_ts_data *ts)
 				"[elan error] Failed to allocate pen device\n");
 		return err;
 	}
-	
-#ifdef ELAN_HID_PEN	
+
+#ifdef ELAN_HID_PEN
 	__set_bit(KEY_VOLUMEUP, ts->input_dev->keybit);
 	__set_bit(KEY_VOLUMEDOWN, ts->input_dev->keybit);
 #endif
 	error = input_mt_init_slots(ts->pen_idev, 2, INPUT_MT_DIRECT);
-	
+
 	ts->pen_idev->evbit[0] |= BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS) | BIT_MASK(EV_SYN);
 	ts->pen_idev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
-	
+
 	__set_bit(BTN_TOOL_RUBBER, ts->pen_idev->keybit);
 	__set_bit(BTN_STYLUS, ts->pen_idev->keybit);
 	__set_bit(BTN_STYLUS2, ts->pen_idev->keybit);
@@ -2037,7 +2037,7 @@ static int elan_request_pen_input_dev(struct elan_ts_data *ts)
 	__set_bit(INPUT_PROP_DIRECT, ts->pen_idev->propbit);
 	__set_bit(KEY_BACK, ts->pen_idev->keybit);
 	__set_bit(KEY_APPSELECT, ts->pen_idev->keybit);
-	
+
 	input_set_abs_params(ts->pen_idev, ABS_MT_TRACKING_ID, 0, 10, 0, 0);
 	input_set_abs_params(ts->pen_idev, ABS_X, 0,  1200, 0, 0);
 	input_set_abs_params(ts->pen_idev, ABS_Y, 0,  1920, 0, 0);
@@ -2082,7 +2082,7 @@ static int elan_request_input_dev(struct elan_ts_data *ts)
 
 	ts->input_dev->evbit[0] = BIT_MASK(EV_SYN)|
 		BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS) ;
-	/*	
+	/*
 	ts->input_dev->absbit[0] = BIT(ABS_X) |
 		BIT(ABS_Y) | BIT(ABS_PRESSURE);
 	*/
@@ -2092,9 +2092,9 @@ static int elan_request_input_dev(struct elan_ts_data *ts)
 	input_mt_init_slots(ts->input_dev, FINGERS_NUM,0);
 	input_set_abs_params(ts->input_dev, ABS_MT_TOOL_TYPE,
 			0, MT_TOOL_MAX, 0, 0);
-			
+
 #else
-	
+
 	//__set_bit(BTN_TOOL_PEN, ts->input_dev->keybit);
 	__set_bit(BTN_TOOL_FINGER, ts->input_dev->keybit);
 #endif
@@ -2102,9 +2102,9 @@ static int elan_request_input_dev(struct elan_ts_data *ts)
 			"[elan] %s: x resolution: %d, y resolution: %d\n",
 			__func__, ts->x_resolution, ts->y_resolution);
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_X,
-			0, 1200/*ts->x_resolution*/, 0, 0);
+			0, 1920/*1200ts->x_resolution*/, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_Y,
-			0, 1920/*ts->y_resolution*/, 0, 0);
+			0, 1200/*1920ts->y_resolution*/, 0, 0);
 	//input_set_abs_params(ts->input_dev, ABS_PRESSURE, 0, 511, 0, 0);
 	//input_set_abs_params(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0, 255, 0, 0);
 	//input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0);
@@ -2658,21 +2658,16 @@ static void elan_ts_report_data(struct elan_ts_data *ts, uint8_t *buf)
 			#ifdef ELAN_HID_IIC
 				#ifdef SWAP_X_Y_RESOLUTION
 					elan_ts_parse_xy(&buf[idx],&y,&x);
-				#else      
+				#else
 					elan_ts_parse_xy(&buf[idx],&x,&y);
 				#endif
-				x = x*1200 /ts->x_resolution;
-				y  = y*1920 /ts->y_resolution;
-				x = 1200-x;
-				//y = 1920-y;
-				
+				x = x * 1920 / ts->x_resolution;
+				y = y * 1200 / ts->y_resolution;
+
 				fbits = (((buf[idx] & 0xfc) >> 2) -1);
-				
-				if((x > 1600) || (y > 2560) || (fbits > 10))
-					continue;
-				
+
 				mTouchStatus[fbits] = buf[idx] & 0x03;
-				
+
 				if((buf[idx] & 0x03) == 0x00){
 					num--;
 					elan_ts_touch_up(ts, fbits, x, y);
