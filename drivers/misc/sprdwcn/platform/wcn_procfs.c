@@ -842,7 +842,8 @@ static ssize_t mdbg_proc_write(struct file *filp,
 		return -1;
 	}
 	/* make sure don't send at cmd to pcie when chip has power off */
-	if ((strncmp(mdbg_proc->write_buf, "at+", 3) == 0)) {
+	if ((strncmp(mdbg_proc->write_buf, "at+", 3) == 0) ||
+	    (strncmp(mdbg_proc->write_buf, "AT+", 3) == 0)) {
 		if (atomic_inc_return(&pcie_dev->xmit_cnt) >=
 			BUS_REMOVE_CARD_VAL) {
 			atomic_dec(&pcie_dev->xmit_cnt);
