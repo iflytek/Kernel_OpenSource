@@ -132,7 +132,8 @@ static void pcie_resource_client_change_state(struct sprd_pcie_res *res,
 		break;
 
 	case RC_REMOVING_MSG:
-		if (old_state != SPRD_PCIE_SCANNED)
+		if (old_state != SPRD_PCIE_SCANNED &&
+		    old_state != SPRD_PCIE_WAIT_FIRST_READY)
 			pr_err("pcie res: %s msg err, old state=%s",
 			       change_msg[msg], state_msg[old_state]);
 
