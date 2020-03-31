@@ -171,7 +171,7 @@ static bool sipa_nic_rm_res_reinit(struct sipa_nic *nic)
 	res->release_in_progress = false;
 	res->resource_requested = false;
 	res->reschedule_work = false;
-	res->release_in_progress = false;
+	res->request_in_progress = false;
 	ret = (atomic_read(&nic->status) == NIC_OPEN) &&
 		 nic->rm_res.rm_flow_ctrl;
 	if (ret)
@@ -262,6 +262,7 @@ static void sipa_nic_rm_timer_func(struct work_struct *work)
 		release_flag = true;
 		res->need_request = true;
 		res->release_in_progress = false;
+		res->request_in_progress = false;
 	}
 	spin_unlock_irqrestore(&res->lock, flags);
 
@@ -274,15 +275,8 @@ static int sipa_nic_rm_init(struct sipa_nic_cons_res *res,
 			    enum sipa_rm_res_id cons,
 			    unsigned long msecs)
 {
-	if (res->initied) {
-		res->resource_requested = false;
-		res->reschedule_work = false;
-		res->release_in_progress = false;
-		res->need_request = true;
-		res->request_in_progress = false;
-		res->rm_flow_ctrl = 0;
+	if (res->initied)
 		return -EEXIST;
-	}
 
 	res->initied = true;
 	res->cons = cons;
