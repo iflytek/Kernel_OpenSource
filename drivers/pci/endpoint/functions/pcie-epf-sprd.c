@@ -643,6 +643,8 @@ static int sprd_epf_bind(struct pci_epf *epf)
 	void  (*notify)(int event, void *data);
 	struct pci_epc *epc = epf->epc;
 	struct device *dev = &epf->dev;
+	struct dw_pcie_ep *ep;
+	struct dw_pcie *pci;
 	struct sprd_pci_epf *epf_sprd = epf_get_drvdata(epf);
 
 	if (WARN_ON_ONCE(!epc))
@@ -669,7 +671,15 @@ static int sprd_epf_bind(struct pci_epf *epf)
 			notify(SPRD_EPF_LINK_UP,
 			       g_epf_notify[epf->func_no].data);
 		schedule_work(&epf_sprd->linkup_work);
+	} else {
+		/* defective chip must enable door bell irq here. */
+		ep = epc_get_drvdata(epf->epc);
+		pci = to_dw_pcie_from_ep(ep);
+		dw_pcie_writel_dbi(pci,
+				   DOOR_BELL_BASE + DOOR_BELL_ENABLE,
+				   BIT(PCIE_DBEL_IRQ_MAX) - 1);
 	}
+
 	/*
 	 * if the feature CONFIG_SPRD_EPF_ENABLE_EPCONF
 	 * (default closed) is not opend, we can't set the header
