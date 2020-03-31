@@ -314,7 +314,7 @@ static void aw8898_r_container_update(struct aw8898_r *aw8898_r,
 
 static void aw8898_r_start_work_routine(struct work_struct *work)
 {
-    struct aw8898_r *aw8898_r = container_of(work, struct aw8898_r, start_work.work);
+    struct aw8898_r *aw8898_r = container_of(work, struct aw8898_r, start_work);
 
     aw8898_r_start(aw8898_r);
 
@@ -358,7 +358,7 @@ static void aw8898_r_cfg_loaded(const struct firmware *cont, void *context)
 
     aw8898_r_spk_rcv_mode(aw8898_r);
 
-    schedule_delayed_work(&aw8898_r->start_work, msecs_to_jiffies(AW8898_R_START_WORK_DELAY_MS));
+    schedule_work(&aw8898_r->start_work);
 }
 
 static int aw8898_r_load_cfg(struct aw8898_r *aw8898_r)
@@ -392,7 +392,7 @@ static void aw8898_r_smartpa_cfg(struct aw8898_r *aw8898_r, bool flag)
             aw8898_r_cold_start(aw8898_r);
         } else {
             aw8898_r_spk_rcv_mode(aw8898_r);
-            schedule_delayed_work(&aw8898_r->start_work, msecs_to_jiffies(AW8898_R_START_WORK_DELAY_MS));
+            schedule_work(&aw8898_r->start_work);
         }
     } else {
         aw8898_r_stop(aw8898_r);
@@ -1447,7 +1447,7 @@ static int aw8898_r_i2c_probe(struct i2c_client *i2c, const struct i2c_device_id
         goto err_sysfs;
     }
 
-    INIT_DELAYED_WORK(&aw8898_r->start_work, aw8898_r_start_work_routine);
+    INIT_WORK(&aw8898_r->start_work, aw8898_r_start_work_routine);
 
 #ifdef AW8898_R_VBAT_MONITOR
     aw8898_r_vbat_monitor_init(aw8898_r);

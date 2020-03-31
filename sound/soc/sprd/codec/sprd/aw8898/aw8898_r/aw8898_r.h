@@ -51,7 +51,7 @@ struct aw8898_r {
     int rate;
     int pstream;
     int cstream;
-    struct delayed_work start_work;
+    struct work_struct start_work;
 
 
     int reset_gpio;
