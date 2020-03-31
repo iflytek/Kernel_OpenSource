@@ -47,23 +47,6 @@ static int dw_pcie_wr_own_conf(struct pcie_port *pp, int where, int size,
 
 static void dwc_irq_ack(struct irq_data *d)
 {
-	struct msi_desc *msi;
-	struct pcie_port *pp;
-	int pos, i;
-
-	if (!d)
-		return;
-
-	pos = d->hwirq % 32;
-	i = d->hwirq / 32;
-
-	msi = irq_data_get_msi_desc(d);
-	if (msi) {
-		pp = msi_desc_to_pci_sysdata(msi);
-		if (pp)
-			dw_pcie_wr_own_conf(pp, PCIE_MSI_INTR0_STATUS + i * 12,
-					    4, BIT(pos));
-	}
 }
 
 static struct irq_chip dw_msi_irq_chip = {
@@ -93,6 +76,8 @@ irqreturn_t dw_handle_msi_irq(struct pcie_port *pp)
 		while ((pos = find_next_bit((unsigned long *) &val, 32,
 					    pos)) != 32) {
 			irq = irq_find_mapping(pp->irq_domain, i * 32 + pos);
+			dw_pcie_wr_own_conf(pp, PCIE_MSI_INTR0_STATUS + i * 12,
+					    4, BIT(pos));
 			generic_handle_irq(irq);
 			pos++;
 		}
