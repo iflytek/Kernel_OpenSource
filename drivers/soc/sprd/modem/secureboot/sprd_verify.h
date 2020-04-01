@@ -25,12 +25,7 @@ struct sys_img_header {
 void cal_sha256(u8 *input, u32 bytes_num, u8 *output);
 int sprd_verify_cert(u8 *hash_key_precert, u8 *hash_data, u8 *certptr);
 u32 sprd_get_img_size(u8 *buf);
-u8 *sprd_get_sechdr_addr(u8 *buf);
-u8 *sprd_get_code_addr(u8 *buf);
-u8 *sprd_get_cert_addr(u8 *buf);
-void sprd_get_hash_key(u8 *load_buf, u8 *hash_key);
-void sprd_get_pubk(u8 *load_buf, u8 *pubk);
-int sprd_verify_img(u8 *hash_key_precert, u8 *imgbuf);
-void sprd_secure_check(u8 *current_img_addr, u8 *data_header);
-int sprd_verify_img_kbc(u8 *hash_key_precert, u8 *imgbuf, u32 imgSize);
+u32 sprd_get_modem_size(u8 *buf);
+int sprd_verify_modem(u8 *hash_key_precert, u8 *imgbuf, u32 imgsize);
+int sprd_verify_img_kbc(u8 *hash_key_precert, u8 *imgbuf, u32 imgsize);
 #endif

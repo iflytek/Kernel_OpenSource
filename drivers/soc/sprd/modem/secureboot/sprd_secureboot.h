@@ -2,7 +2,7 @@
 #include <linux/stddef.h>
 
 #define SECBOOT_HEAD_SIZE 512
-#define MAX_MODEM_NUM 6
+#define MAX_MODEM_NUM 10
 
 static u8 *const secure_modem[] = {
 	"modem", "v3phy", "nrphy", "nrdsp1", NULL

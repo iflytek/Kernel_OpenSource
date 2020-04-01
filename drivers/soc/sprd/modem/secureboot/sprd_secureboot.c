@@ -68,7 +68,6 @@ int sprd_image_verify(struct kbc_load_table_s  *p_table)
 		else if (strcmp(p_table->image[i].img_name, "nrdsp1") == 0)
 			mode_flag = NRDSP1_BLOCK;
 
-		/* skip "modem" */
 		if ((strcmp(p_table->image[i].img_name, "v3phy") == 0) ||
 		     (strcmp(p_table->image[i].img_name, "nrphy") == 0) ||
 		     (strcmp(p_table->image[i].img_name, "nrdsp1") == 0)) {
@@ -82,6 +81,21 @@ int sprd_image_verify(struct kbc_load_table_s  *p_table)
 			memunmap(vaddr);
 			if (ret)
 				return ret;
+		}
+
+		if (strcmp(p_table->image[i].img_name, "modem") == 0) {
+			vaddr = memremap(p_table->image[i].img_addr,
+				p_table->image[i].img_len, MEMREMAP_WB);
+			if (!vaddr)
+				return -ENOMEM;
+			data_len = sprd_get_modem_size(vaddr);
+			ret = sprd_verify_modem(hash_key,
+				(u8 *)vaddr, data_len);
+			memunmap(vaddr);
+			if (ret) {
+				pr_err("verify modem failed\r\n");
+				return ret;
+			}
 		}
 	}
 	pr_info("secboot verify success\n");

@@ -26,15 +26,6 @@
 static struct nvmem_device *efuse;
 static u32 img_rollback_version;
 
-/* for dat modem */
-#define MODEM_MAGIC           "SCI1"
-#define MODEM_HDR_SIZE        12
-#define SCI_TYPE_MODEM_BIN    1
-#define SCI_TYPE_PARSING_LIB  2
-#define MODEM_LAST_HDR        0x100
-#define MODEM_SHA1_HDR        0x400
-#define MODEM_SHA1_SIZE       20
-
 struct data_block_header_t {
 	u32 type_flags;
 	u32 offset;
@@ -169,99 +160,18 @@ int sprd_verify_cert(u8 *hash_key_precert, u8 *hash_data, u8 *certptr)
 	return ret;
 }
 
-static bool is_packed_modem_image(u8 *data)
-{
-	if (memcmp(data, (u8 *)MODEM_MAGIC, sizeof(MODEM_MAGIC)))
-		return false;
-	return true;
-}
-
-static void get_modem_info(u8 *data, u32 *code_offset, u32 *code_len)
-{
-	u32 offset = 0, length = 0, hdr_offset = 0;
-	u8 hdr_buf[MODEM_HDR_SIZE << 3];
-	u8 read_len, result = 0;
-	int found = 0;
-	struct data_block_header_t *hdr_ptr;
-	struct data_block_header_t *endp;
-
-	read_len = sizeof(hdr_buf);
-	memcpy(hdr_buf, data, read_len);
-
-	do {
-		if (!hdr_offset) {
-			if (memcmp(hdr_buf, MODEM_MAGIC, sizeof(MODEM_MAGIC))) {
-				result = OLD_IMG;
-				pr_info("old image format!\n");
-				break;
-			}
-			hdr_ptr = (struct data_block_header_t *)hdr_buf + 1;
-			hdr_offset = MODEM_HDR_SIZE;
-		} else {
-			hdr_ptr = (struct data_block_header_t *)hdr_buf;
-		}
-
-		endp = (struct data_block_header_t *)(hdr_buf +
-			sizeof(hdr_buf));
-		while (hdr_ptr < endp) {
-			u32 type = (hdr_ptr->type_flags & 0xff);
-
-			if (type == SCI_TYPE_MODEM_BIN) {
-				found = 1;
-				break;
-			}
-			hdr_ptr++;
-		}
-
-		if (!found) {
-			result = OLD_IMG;
-			pr_err("no MODEM exe found in SCI header!");
-		}
-	} while (1);
-
-	if (!result) {
-		offset = hdr_ptr->offset;
-		if (hdr_ptr->type_flags & MODEM_SHA1_HDR)
-			offset += MODEM_SHA1_SIZE;
-		length = hdr_ptr->length;
-	}
-
-	*code_offset = offset;
-	*code_len = length;
-}
-
 u32 sprd_get_img_size(u8 *buf)
 {
-	struct sys_img_header *imghdr  = (struct sys_img_header *) buf;
+	struct sys_img_header *imghdr = (struct sys_img_header *) buf;
 
 	return imghdr->img_size;
 }
 
-u8 *sprd_get_sechdr_addr(u8 *buf)
+u32 sprd_get_modem_size(u8 *buf)
 {
 	struct sys_img_header *imghdr = (struct sys_img_header *) buf;
 
-	return buf + imghdr->img_size + sizeof(struct sys_img_header);
-}
-
-u8 *sprd_get_code_addr(u8 *buf)
-{
-	struct signed_img_header *sechdr_addr;
-	u8 *code_addr;
-
-	sechdr_addr = (struct signed_img_header *) sprd_get_sechdr_addr(buf);
-	code_addr = buf + sechdr_addr->payload_offset;
-	return code_addr;
-}
-
-u8 *sprd_get_cert_addr(u8 *buf)
-{
-	struct signed_img_header *sechdr_addr;
-	u8 *cert_addr;
-
-	sechdr_addr = (struct signed_img_header *) sprd_get_sechdr_addr(buf);
-	cert_addr = buf + sechdr_addr->cert_offset;
-	return cert_addr;
+	return imghdr->firmware_size;
 }
 
 u8 *sprd_get_cert_addr_kbc(u8 *buf, u32 imgSize)
@@ -272,66 +182,30 @@ u8 *sprd_get_cert_addr_kbc(u8 *buf, u32 imgSize)
 	return cert_addr;
 }
 
-int sprd_verify_img(u8 *hash_key_precert, u8 *imgbuf)
+int sprd_verify_modem(u8 *hash_key_precert, u8 *imgbuf, u32 imgsize)
 {
-	struct signed_img_header *imghdr;
-	u8 *code_addr, *curcertptr;
-	u32 modem_offset = 0, modem_len = 0;
+	u8 *code_addr;
+	u8 *curcertptr;
 	u8 soft_hash_data[HASH_BYTE_LEN];
-	u8 hash_key[HASH_BYTE_LEN];
 
-	imghdr = (struct signed_img_header *) sprd_get_sechdr_addr(imgbuf);
-	code_addr = sprd_get_code_addr(imgbuf);
-
-	if (is_packed_modem_image(code_addr)) {
-		get_modem_info(code_addr, &modem_offset, &modem_len);
-		code_addr += modem_offset;
-	}
-	/* used to indicate verify spl image fastboot spl */
-	memset(hash_key, 0xff, HASH_BYTE_LEN);
-	cal_sha256(code_addr, imghdr->payload_size, soft_hash_data);
-	curcertptr = sprd_get_cert_addr(imgbuf);
+	code_addr = imgbuf + sizeof(struct sys_img_header);
+	cal_sha256(code_addr, imgsize, soft_hash_data);
+	curcertptr = imgbuf + sizeof(struct sys_img_header) + imgsize
+		+ sizeof(struct signed_img_header);
 	return sprd_verify_cert(hash_key_precert, (u8 *)soft_hash_data,
 		curcertptr);
 }
 
-int sprd_verify_img_kbc(u8 *hash_key_precert, u8 *imgbuf, u32 imgSize)
+int sprd_verify_img_kbc(u8 *hash_key_precert, u8 *imgbuf, u32 imgsize)
 {
 	u8 soft_hash_data[HASH_BYTE_LEN];
 	u8 *curcertptr;
 
 	memset(soft_hash_data, 0xff, HASH_BYTE_LEN);
-	cal_sha256(imgbuf, imgSize, soft_hash_data);
-	curcertptr = sprd_get_cert_addr_kbc(imgbuf, imgSize);
+	cal_sha256(imgbuf, imgsize, soft_hash_data);
+	curcertptr = sprd_get_cert_addr_kbc(imgbuf, imgsize);
 	return sprd_verify_cert(hash_key_precert, (u8 *)soft_hash_data,
 		curcertptr);
-}
-
-void sprd_get_hash_key(u8 *load_buf, u8 *hash_key)
-{
-	struct sprd_keycert *certtype =
-		(struct sprd_keycert *)sprd_get_cert_addr((u8 *)load_buf);
-
-	memcpy(hash_key, certtype->hash_key, HASH_BYTE_LEN);
-}
-
-void sprd_get_pubk(u8 *load_buf, u8 *pubk)
-{
-	struct sprd_keycert *certtype =
-		(struct sprd_keycert *)sprd_get_cert_addr((u8 *)load_buf);
-
-	memcpy(pubk, (u8 *)&certtype->pubkey, sizeof(struct sprd_rsapubkey));
-}
-
-void sprd_secure_check(u8 *current_img_addr, u8 *data_header)
-{
-	u8 *hash_key_next = NULL;
-	u8 hash_key[HASH_BYTE_LEN];
-
-	memset(hash_key, 0, HASH_BYTE_LEN);
-	sprd_get_hash_key(current_img_addr, hash_key);
-	hash_key_next = hash_key;
-	sprd_verify_img(hash_key_next, data_header);
 }
 
 static const struct of_device_id sprd_verify_of_match[] = {
