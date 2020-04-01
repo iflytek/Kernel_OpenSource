@@ -46,7 +46,7 @@ static char *const mdm_stat[] = {
 
 #define REBOOT_MODEM_DELAY    1000
 #define POWERREST_MODEM_DELAY 2000
-#define RESET_MODEM_DELAY    50
+#define RESET_MODEM_DELAY    2000
 
 char cdev_name[] = "mdm_ctrl";
 
@@ -385,9 +385,10 @@ void modem_ctrl_poweron_modem(int on)
 						   MDM_CTRL_WARM_RESET, NULL);
 			dev_dbg(mcd_dev->dev, "set warm reset: %d\n", on);
 			gpiod_set_value_cansleep(mcd_dev->init->gpio_reset, 1);
-			/* Base the spec modem that need to wait 50ms */
+			/* Base the spec modem that need to wait 2000ms */
 			msleep(RESET_MODEM_DELAY);
 			mcd_dev->init->modem_status = MDM_CTRL_WARM_RESET;
+			send_event_msg(&mcd_dev->dev->kobj);
 			gpiod_set_value_cansleep(mcd_dev->init->gpio_reset, 0);
 		}
 		break;

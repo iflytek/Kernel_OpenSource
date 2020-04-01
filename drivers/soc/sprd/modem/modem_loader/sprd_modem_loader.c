@@ -123,6 +123,44 @@ typedef int (*MODEM_PARSE_FUN)(struct modem_device *modem,
 
 static struct class *modem_class;
 
+#ifdef CONFIG_SPRD_EXT_MODEM
+static void modem_get_remote_flag(struct modem_device *modem)
+{
+	ext_modem_ops->get_remote_flag(modem);
+	dev_dbg(modem->p_dev, "get remote flag = 0x%x!\n", modem->remote_flag);
+}
+
+static void modem_set_remote_flag(struct modem_device *modem, u8 b_clear)
+{
+	ext_modem_ops->set_remote_flag(modem, b_clear);
+	dev_dbg(modem->p_dev, "set remote flag = 0x%x, b_clear = %d!\n",
+		 modem->remote_flag, b_clear);
+}
+
+static int modem_reboot_ext_modem(struct modem_device *modem, u8 b_reset)
+{
+#ifdef CONFIG_SPRD_PCIE_EP_DEVICE
+	if (modem->modem_type == PCIE_MODEM)
+		sprd_pcie_resource_reboot_ep(modem->modem_dst, false);
+#endif
+
+#ifdef CONFIG_SPRD_EXT_MODEM_POWER_CTRL
+	return ext_modem_ops->reboot(modem, b_reset);
+#else
+	return 0;
+#endif
+}
+
+static int modem_poweroff_ext_modem(struct modem_device *modem)
+{
+#ifdef CONFIG_SPRD_EXT_MODEM_POWER_CTRL
+	return ext_modem_ops->poweroff(modem);
+#else
+	return 0;
+#endif
+}
+#endif
+
 static int modem_open(struct inode *inode, struct file *filp)
 {
 	struct modem_device *modem;
@@ -229,6 +267,38 @@ static int modem_request_pms(struct modem_device *modem, struct sprd_pms *pms)
 		/* must request resource before read or write ep memory */
 		ret = sprd_pms_request_resource(pms, -1);
 	}
+
+	return ret;
+}
+
+static int modem_rescan_pcie(struct modem_device *modem, struct sprd_pms *pms)
+{
+	int ret;
+	int cnt = 10;
+
+	sprd_pcie_resource_reboot_ep(modem->modem_dst, true);
+
+	/* first, wait pcie resource. */
+	ret = sprd_pcie_wait_load_resource(modem->modem_dst);
+	if (ret != 0) {
+		dev_info(modem->p_dev, "lock, wait load ret =%d\n", ret);
+		return ret;
+	}
+
+	sprd_pms_power_up(pms);
+
+	ret = -ETIME;
+	/* than, wait ep ddr ready. */
+	while (cnt--) {
+		modem_get_remote_flag(modem);
+		/* wait the ep set REMOTE_DDR_READY_FLAG. */
+		if (modem->remote_flag & REMOTE_DDR_READY_FLAG) {
+			ret = 0;
+			break;
+		}
+		msleep(100);
+	}
+	sprd_pms_power_down(pms, false);
 
 	return ret;
 }
@@ -395,6 +465,14 @@ static int modem_cmd_lock(struct file *filp,
 
 	ret = modem_request_pms(modem, pms);
 
+#ifdef CONFIG_SPRD_EXT_MODEM
+	/* pcie modem and b_rx is true and ret is -ETIME need rescan pcie. */
+	if (modem->modem_type == PCIE_MODEM && b_rx && ret == -ETIME) {
+		dev_info(modem->p_dev, "rescan pcie!");
+		ret = modem_rescan_pcie(modem, pms);
+	}
+#endif
+
 	if (ret < 0) {
 		mutex_unlock(mut);
 		return ret;
@@ -552,44 +630,6 @@ static int modem_run(struct modem_device *modem, u8 b_run)
 
 	return 0;
 }
-
-#ifdef CONFIG_SPRD_EXT_MODEM
-static void modem_get_remote_flag(struct modem_device *modem)
-{
-	ext_modem_ops->get_remote_flag(modem);
-	dev_info(modem->p_dev, "get remote flag = 0x%x!\n", modem->remote_flag);
-}
-
-static void modem_set_remote_flag(struct modem_device *modem, u8 b_clear)
-{
-	ext_modem_ops->set_remote_flag(modem, b_clear);
-	dev_info(modem->p_dev, "set remote flag = 0x%x, b_clear = %d!\n",
-		 modem->remote_flag, b_clear);
-}
-
-static int modem_reboot_ext_modem(struct modem_device *modem, u8 b_reset)
-{
-#ifdef CONFIG_SPRD_PCIE_EP_DEVICE
-	if (modem->modem_type == PCIE_MODEM)
-		sprd_pcie_resource_reboot_ep(modem->modem_dst);
-#endif
-
-#ifdef CONFIG_SPRD_EXT_MODEM_POWER_CTRL
-	return ext_modem_ops->reboot(modem, b_reset);
-#else
-	return 0;
-#endif
-}
-
-static int modem_poweroff_ext_modem(struct modem_device *modem)
-{
-#ifdef CONFIG_SPRD_EXT_MODEM_POWER_CTRL
-	return ext_modem_ops->poweroff(modem);
-#else
-	return 0;
-#endif
-}
-#endif
 
 static long modem_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {

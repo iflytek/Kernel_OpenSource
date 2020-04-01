@@ -79,7 +79,7 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
  * sprd_pcie_resource_reboot_ep
  * reboot ep contains rescan ep device.
  */
-void sprd_pcie_resource_reboot_ep(u32 dst);
+void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot);
 
 /*
  * sprd_pcie_wait_load_resource

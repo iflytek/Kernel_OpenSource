@@ -379,9 +379,10 @@ int sprd_pcie_wait_load_resource(u32 dst)
 		res->state == SPRD_PCIE_SCANNED_2BAR));
 }
 
-void sprd_pcie_resource_reboot_ep(u32 dst)
+void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot)
 {
 	struct sprd_pcie_res *res;
+	int ret;
 
 	pr_info("pcie res: enter reboot ep.\n");
 
@@ -399,15 +400,27 @@ void sprd_pcie_resource_reboot_ep(u32 dst)
 	res->reboot_ep_wait_removed = true;
 
 	/* must removed ep before reboot ep */
-	if (res->state != SPRD_PCIE_REMOVED) {
+	if (b_warm_reboot) {
+		/* start removed ep*/
+		ret = sprd_pcie_unconfigure_device(res->pcie_dev);
+		if (ret)
+			pr_err("pcie res: remove error state=%d.\n!", ret);
+	} else if (res->state != SPRD_PCIE_REMOVED) {
 		/*  must remove. */
 		if (res->state == SPRD_PCIE_SCANNED ||
 			res->state == SPRD_PCIE_SCANNED_2BAR)
 			sprd_add_action(res->actions_queue, REMOVE_PCIE_ACTION);
-
-		wait_event_interruptible(res->wait_reboot_ep,
-					 res->state == SPRD_PCIE_REMOVED);
+		ret = wait_event_interruptible_timeout(res->wait_reboot_ep,
+						       res->state ==
+						       SPRD_PCIE_REMOVED, 1000);
+		if (ret < 0)
+			pr_warn("pcie res: remove pcie error: %d\n", ret);
+		else if (ret == 0)
+			pr_warn("pcie res: timeout to wait for remove pcie.\n");
 	}
+
+	res->state = SPRD_PCIE_REMOVED;
+	res->pcie_configured = false;
 
 	/* wait power off, do nothing */
 	if (res->power_off) {
@@ -417,7 +430,10 @@ void sprd_pcie_resource_reboot_ep(u32 dst)
 
 	pr_info("pcie res: reboot ep.\n");
 
-	modem_ctrl_poweron_modem(MDM_CTRL_COLD_RESET);
+	if (b_warm_reboot)
+		modem_ctrl_poweron_modem(MDM_CTRL_WARM_RESET);
+	else
+		modem_ctrl_poweron_modem(MDM_CTRL_COLD_RESET);
 
 	/* after ep reboot, can't backup ep configs*/
 	sprd_ep_dev_clear_backup(res->ep_dev);
