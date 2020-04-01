@@ -259,13 +259,13 @@ static void aw8898_r_spk_rcv_mode(struct aw8898_r *aw8898_r)
 static void aw8898_r_start(struct aw8898_r *aw8898_r)
 {
     unsigned int reg_val = 0;
-    unsigned int iis_check_max = 5;
+    unsigned int iis_check_max = 10;
     unsigned int i = 0;
 
     pr_debug("%s enter\n", __func__);
 
     aw8898_r_run_pwd(aw8898_r, false);
-    msleep(2);
+//    msleep(2);
     for(i=0; i<iis_check_max; i++) {
         aw8898_r_i2c_read(aw8898_r, AW8898_R_REG_SYSST, &reg_val);
         if(reg_val & AW8898_R_BIT_SYSST_PLLS) {
@@ -276,7 +276,7 @@ static void aw8898_r_start(struct aw8898_r *aw8898_r)
 #endif
             return;
         }
-        msleep(2);
+        msleep(1);
     }
     aw8898_r_run_pwd(aw8898_r, true);
     pr_err("%s: iis signal check error\n", __func__);
