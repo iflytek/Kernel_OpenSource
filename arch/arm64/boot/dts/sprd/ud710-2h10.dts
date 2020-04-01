@@ -594,7 +594,7 @@
 };
 
 &pmic_fchg {
-	sprd,input-voltage-microvolt = <9000000>;
+	sprd,input-voltage-microvolt = <5000000>;
 	phys = <&ssphy>;
 	status = "okay";
 };
