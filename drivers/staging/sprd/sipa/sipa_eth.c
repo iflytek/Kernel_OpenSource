@@ -74,12 +74,49 @@ static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
 	struct net_device *dev;
 	struct sipa_eth_init_data *pdata = sipa_eth->pdata;
 	unsigned int real_len = 0;
+	unsigned int payload_len;
+	bool ip_arp = true;
 	bool v4v6 = false;
 
 	dev = sipa_eth->netdev;
 
-	/* eth is rawip */
+	if (!strncmp(dev->name, SIPA_ETH_VPCIE_PREF, strlen(SIPA_ETH_VPCIE_PREF))) {
+		skb->protocol = eth_type_trans(skb, dev);
+		pr_info("skb %p, protocol %d\n", skb, ntohs(skb->protocol));
+		skb_reset_network_header(skb);
+
+		/* It is a workaround for asic design defect,
+		 * the skb length is fixed to 1600 bytes received from IPA,
+		 * so we have to figure out the real len for each pkt.
+		 * Currently we support v4,v6,arp protocols only.
+		 * Vpcie0 has type APHDR_ETHER, so we need examine arp.
+		 */
+		switch (ntohs(skb->protocol)) {
+		case ETH_P_IP:
+			iph = ip_hdr(skb);
+			real_len = ntohs(iph->tot_len);
+			break;
+		case ETH_P_IPV6:
+			ipv6h = ipv6_hdr(skb);
+			payload_len = ntohs(ipv6h->payload_len);
+			real_len = payload_len + sizeof(struct ipv6hdr);
+			break;
+		case ETH_P_ARP:
+			real_len = arp_hdr_len(dev);
+			break;
+		default:
+			ip_arp = false;
+			pr_info("skb %p, vpcie just support v4/v6/arp\n", skb);
+			break;
+		}
+
+		if (ip_arp)
+			skb_trim(skb, real_len);
+
+		goto out;
+	}
 	/*
+	 * sipa_eth is rawip
 	 * The purpose of adding a fake mac header is
 	 * to prevent a "out-of order" issue
 	 * when doing napi_gro_receive.
@@ -115,8 +152,6 @@ static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
 	} else {
 		ipv6h = ipv6_hdr(skb);
 		if (ipv6h->version == 6) {
-			unsigned int payload_len;
-
 			skb->protocol = htons(ETH_P_IPV6);
 			payload_len = ntohs(ipv6h->payload_len);
 			real_len = payload_len + sizeof(struct ipv6hdr);
@@ -133,6 +168,7 @@ static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
 	if (v4v6)
 		skb_trim(skb, real_len);
 
+out:
 	/* TODO chechsum ... */
 	skb->ip_summed = CHECKSUM_NONE;
 	skb->dev = dev;
@@ -501,8 +537,12 @@ static void s_setup(struct net_device *dev)
 	 * avoid mdns to be send
 	 * also disable arp
 	 */
-	dev->flags &= ~(IFF_BROADCAST | IFF_MULTICAST);
-	dev->flags |= IFF_NOARP;
+	if (!strncmp(dev->name,
+		     SIPA_ETH_IFACE_PREF,
+		     strlen(SIPA_ETH_IFACE_PREF))) {
+		dev->flags |= IFF_NOARP;
+		dev->flags &= ~(IFF_BROADCAST | IFF_MULTICAST);
+	}
 }
 
 static int sipa_eth_probe(struct platform_device *pdev)
@@ -540,7 +580,10 @@ static int sipa_eth_probe(struct platform_device *pdev)
 	 * this will casue ipv6 fail in some test environment.
 	 * So set the sipa_eth net_device's type to ARPHRD_RAWIP here.
 	 */
-	netdev->type = ARPHRD_RAWIP;
+	if (!strncmp(netdev->name, SIPA_ETH_IFACE_PREF, strlen(SIPA_ETH_IFACE_PREF)))
+		netdev->type = ARPHRD_RAWIP;
+	else
+		netdev->type = ARPHRD_ETHER;
 
 	sipa_eth = netdev_priv(netdev);
 	sipa_eth_dt_stats_init(&sipa_eth->dt_stats);
