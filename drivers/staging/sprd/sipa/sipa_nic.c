@@ -167,11 +167,6 @@ static bool sipa_nic_rm_res_reinit(struct sipa_nic *nic)
 	struct sipa_nic_cons_res *res = &nic->rm_res;
 
 	spin_lock_irqsave(&res->lock, flags);
-	res->need_request = true;
-	res->release_in_progress = false;
-	res->resource_requested = false;
-	res->reschedule_work = false;
-	res->request_in_progress = false;
 	ret = (atomic_read(&nic->status) == NIC_OPEN) &&
 		 nic->rm_res.rm_flow_ctrl;
 	if (ret)
@@ -252,7 +247,6 @@ static void sipa_nic_rm_timer_func(struct work_struct *work)
 				   res->jiffies);
 	} else if (res->resource_requested) {
 		pr_debug("not calling release\n");
-		res->release_in_progress = false;
 		queue_delayed_work(system_unbound_wq,
 				   &res->work,
 				   res->jiffies);
