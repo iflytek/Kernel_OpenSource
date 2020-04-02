@@ -539,6 +539,8 @@ int soft_fastpath_process(int in_if,
 
 	/* Check whether is ip or ip6 header */
 	skb = (struct sk_buff *)data_header;
+
+	skb_reset_network_header(skb);
 	piphdr = ip_hdr(skb);
 	if (piphdr->version == 0x04) {
 		*out_if = sfp_check_mod_pkts(
@@ -552,7 +554,7 @@ int soft_fastpath_process(int in_if,
 			return 1;
 		else
 			return 0;
-	} else {
+	} else if (piphdr->version == 0x06) {
 		struct ipv6hdr *ip6hdr = (struct ipv6hdr *)piphdr;
 		*out_if = sfp_check_mod_pkts(
 			in_if,
@@ -565,9 +567,10 @@ int soft_fastpath_process(int in_if,
 			return 1;
 		else
 			return 0;
+	} else {
+		FP_PRT_DBG(FP_PRT_DEBUG, "recv neither v4 nor v6 pkt\n");
+		return 1;
 	}
-
-	return 1;
 }
 EXPORT_SYMBOL(soft_fastpath_process);
 
