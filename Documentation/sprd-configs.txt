@@ -3789,8 +3789,8 @@ CONFIG_DUMMY_CONSOLE
 	[function]
 CONFIG_DYNAMIC_DEBUG
 	[arch] all
-	[plat] roc1,sharkl3,sharkl5,sharkl5_32
-	[missing plat] orca
+	[plat] all
+	[missing plat] none
 	[field] code
 	[subsys] core,usb
 	[must] debug
@@ -13329,7 +13329,7 @@ CONFIG_SPRD_CRYPTO
 CONFIG_SPRD_CRYPTO_SW
 	[arch] arm64
 	[plat] orca
-	[missing plat]roc1,sharkl3,sharkl5
+	[missing plat] roc1,sharkl3,sharkl5
 	[field]
 	[subsys]
 	[must]
