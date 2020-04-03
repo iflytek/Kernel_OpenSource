@@ -111,6 +111,7 @@ struct elan_ts_data {
 	struct wake_lock wakelock;
 	struct proc_dir_entry *p;
 	int hover_flag;
+    bool suspend;
 };
 
 static struct workqueue_struct *init_elan_ic_wq;
@@ -1289,7 +1290,36 @@ static ssize_t show_hover_flag(struct device *dev,
 }
 static DEVICE_ATTR(hover_flag, S_IRUGO|S_IWUSR, show_hover_flag, hover_flag_store);
 
+static ssize_t ts_suspend_show(struct device *dev,
+                struct device_attribute *attr, char *buf)
+{
+		struct i2c_client *client = to_i2c_client(dev);
+		struct elan_ts_data *ts = i2c_get_clientdata(client);
 
+        return sprintf(buf, "%s\n",
+                        ts->suspend ? "true" : "false");
+}
+
+static int __maybe_unused elan_ts_resume(struct device *dev);
+static int __maybe_unused elan_ts_suspend(struct device *dev);
+
+static ssize_t ts_suspend_store(struct device *dev,
+                struct device_attribute *attr, const char *buf, size_t count)
+{
+		struct i2c_client *client = to_i2c_client(dev);
+		struct elan_ts_data *ts = i2c_get_clientdata(client);
+
+        if ((buf[0] == '1') && !ts->suspend) {
+		        dev_err(&private_ts->client->dev, "ts_suspend_store call elan_ts_suspend\n");
+                elan_ts_suspend(dev);
+        } else if ((buf[0] == '0') && ts->suspend) {
+		        dev_err(&private_ts->client->dev, "ts_suspend_store call elan_ts_resume\n");
+                elan_ts_resume(dev);
+        }
+
+        return count;
+}
+static DEVICE_ATTR(ts_suspend, S_IRUGO|S_IWUSR, ts_suspend_show, ts_suspend_store);
 
 static struct attribute *elan_default_attributes[] = {
 	&dev_attr_gpio_int.attr,
@@ -1306,6 +1336,7 @@ static struct attribute *elan_default_attributes[] = {
 	&dev_attr_update_fw_system.attr,
 	&dev_attr_fw_info.attr,
 	&dev_attr_hover_flag.attr,
+    &dev_attr_ts_suspend.attr,
 	NULL
 };
 
@@ -2130,8 +2161,6 @@ static int elan_request_input_dev(struct elan_ts_data *ts)
 	return 0;
 }
 #if defined(CONFIG_FB)
-static int __maybe_unused elan_ts_resume(struct device *dev);
-static int __maybe_unused elan_ts_suspend(struct device *dev);
 static int elan_ts_power_on(struct elan_ts_data *data, bool on);
 static int fb_notifier_callback(struct notifier_block *self,
                                 unsigned long event, void *data)
@@ -2140,7 +2169,7 @@ static int fb_notifier_callback(struct notifier_block *self,
     int *blank;
     struct elan_ts_data *elan_dev_data =
         container_of(self, struct elan_ts_data, fb_notif);
-    dev_dbg(&elan_dev_data->client->dev,
+    dev_err(&elan_dev_data->client->dev,
     			"%s fb notifier callback\n",__func__);
     if (evdata && evdata->data && elan_dev_data && private_ts->client) {
         if (event == FB_EVENT_BLANK) {
@@ -3459,6 +3488,9 @@ static int __maybe_unused elan_ts_suspend(struct device *dev)
 #if 1
     elan_ts_power_on(ts,false);
 #endif	
+
+    ts->suspend = true;
+
 	return 0;
 }
 
@@ -3473,9 +3505,9 @@ static int __maybe_unused elan_ts_resume(struct device *dev)
 	elan_ts_power_on(ts,true);
 #endif	
   msleep(200);
-	dev_info(&client->dev, "[elan] %s: enter\n", __func__);
+	dev_err(&client->dev, "[elan] %s: enter\n", __func__);
 	if (ts->power_lock == 0) {
-		dev_dbg(&client->dev, "[elan] reset gpio to resum tp\n");
+		dev_err(&client->dev, "[elan] reset gpio to resum tp\n");
 		elan_switch_irq(1);
 		rc = elan_ts_set_power_state(ts->client, PWR_STATE_NORMAL);
 		elan_reset();
@@ -3485,8 +3517,10 @@ static int __maybe_unused elan_ts_resume(struct device *dev)
 #endif
 
 	release_finger_pen(ts);
-	
-	dev_info(&client->dev, "[elan] %s: end\n", __func__);
+
+    ts->suspend = false;
+
+	dev_err(&client->dev, "[elan] %s: end\n", __func__);
 	return 0;
 }
 
@@ -3519,15 +3553,15 @@ static const struct of_device_id elants_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, elants_of_match);
 #endif
-static SIMPLE_DEV_PM_OPS(elants_i2c_pm_ops,
-		elan_ts_suspend, elan_ts_resume);
+//static SIMPLE_DEV_PM_OPS(elants_i2c_pm_ops,
+//		elan_ts_suspend, elan_ts_resume);
 
 static struct i2c_driver elan_ts_driver = {
 	.probe			= elan_ts_probe,
 	.remove			= elan_ts_remove,
 	.id_table		= elan_ts_id,
 	.driver			= {
-		.pm			= &elants_i2c_pm_ops,
+		//.pm			= &elants_i2c_pm_ops,
 		.name		= ELAN_TS_NAME,
 		.owner		= THIS_MODULE,
 #ifdef CONFIG_OF
