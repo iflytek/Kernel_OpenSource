@@ -46,6 +46,7 @@
 #define SC2703_OTG_NORMAL_VALID_MS	1500
 #define SC2703_CHARGER_VOLTAGE_MAX	6500000
 #define SC2703_FAST_CHARGER_VOLTAGE_MAX	11000000
+#define SC2703_FAST_CHARGER_DETECT_MS	1000
 
 struct sc2703_charger_info {
 	struct device *dev;
@@ -64,6 +65,7 @@ struct sc2703_charger_info {
 	bool long_key_detect;
 	u32 charger_type;
 	bool otg_enable;
+	struct delayed_work fchg_detect_work;
 };
 
 /* sc2703 input limit current, Milliamp */
@@ -883,6 +885,9 @@ static void sc2703_charger_work(struct work_struct *data)
 			goto out;
 
 		info->charging = true;
+
+		schedule_delayed_work(&info->fchg_detect_work,
+			      msecs_to_jiffies(SC2703_FAST_CHARGER_DETECT_MS));
 	} else if ((!info->limit && info->charging) || !present) {
 		/* Stop charging */
 		info->charging = false;
@@ -895,6 +900,27 @@ out:
 	dev_info(info->dev, "battery present = %d, charger type = %d\n",
 		 present, info->usb_phy->chg_type);
 	cm_notify_event(info->psy_usb, CM_EVENT_CHG_START_STOP, NULL);
+}
+
+/*
+ * Due to SFCP detect need cost 2 second, in order to let
+ * charger plug in event report to android layer to bright
+ * screen as soon as possible, we move sc2703_charger_fchg
+ * _is_support_fchg from sc2703_charger_work to sc2703_
+ * charger_fchg_work, and this fchg work will be sheduled
+ * 1000ms later.
+ */
+
+static void sc2703_charger_fchg_work(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct sc2703_charger_info *info = container_of(dwork,
+			struct sc2703_charger_info, fchg_detect_work);
+
+	if (!sc2703_charger_is_support_fchg(info) || !info->charging)
+		return;
+
+	cm_notify_event(info->psy_usb, CM_EVENT_FAST_CHARGE, NULL);
 }
 
 static int sc2703_charger_usb_change(struct notifier_block *nb,
@@ -1500,6 +1526,12 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
+	/*
+	 * This fchg detect work must init before detecting charger
+	 * status in charging of shut down, so that charger_work
+	 * can shedule fchg work.
+	 */
+	INIT_DELAYED_WORK(&info->fchg_detect_work, sc2703_charger_fchg_work);
 	sc2703_charger_detect_status(info);
 	INIT_DELAYED_WORK(&info->otg_work, sc2703_charger_otg_work);
 

@@ -43,6 +43,7 @@ enum cm_event_types {
 	CM_EVENT_EXT_PWR_IN_OUT,
 	CM_EVENT_CHG_START_STOP,
 	CM_EVENT_OTHERS,
+	CM_EVENT_FAST_CHARGE,
 };
 
 enum cm_jeita_types {

@@ -1661,6 +1661,28 @@ static bool cm_charger_is_support_fchg(struct charger_manager *cm)
 }
 
 /**
+ * fast_charge_handler - Event handler for CM_EVENT_FAST_CHARGE
+ * @cm: the Charger Manager representing the battery.
+ */
+static void fast_charge_handler(struct charger_manager *cm)
+{
+	if (cm_suspended)
+		device_set_wakeup_capable(cm->dev, true);
+
+	if (!is_ext_pwr_online(cm))
+		return;
+
+	if (cm_charger_is_support_fchg(cm)) {
+		cm->desc->charge_voltage_max =
+			cm->desc->fast_charge_voltage_max;
+		cm->desc->charge_voltage_drop =
+			cm->desc->fast_charge_voltage_drop;
+		cm->desc->jeita_tab =
+			cm->desc->jeita_tab_array[CM_JEITA_FCHG];
+	}
+}
+
+/**
  * misc_event_handler - Handler for other evnets
  * @cm: the Charger Manager representing the battery.
  * @type: the Charger Manager representing the battery.
@@ -1700,19 +1722,10 @@ static void misc_event_handler(struct charger_manager *cm,
 				cm->desc->jeita_tab_array[CM_JEITA_UNKNOWN];
 		}
 
-		if (cm_charger_is_support_fchg(cm)) {
-			cm->desc->charge_voltage_max =
-				cm->desc->fast_charge_voltage_max;
-			cm->desc->charge_voltage_drop =
-				cm->desc->fast_charge_voltage_drop;
-			cm->desc->jeita_tab =
-				cm->desc->jeita_tab_array[CM_JEITA_FCHG];
-		} else {
-			cm->desc->charge_voltage_max =
-				cm->desc->normal_charge_voltage_max;
-			cm->desc->charge_voltage_drop =
-				cm->desc->normal_charge_voltage_drop;
-		}
+		cm->desc->charge_voltage_max =
+			cm->desc->normal_charge_voltage_max;
+		cm->desc->charge_voltage_drop =
+			cm->desc->normal_charge_voltage_drop;
 
 		if (cm->desc->jeita_tab_size) {
 			int cur_temp, cur_jeita_status;
@@ -3445,6 +3458,9 @@ static void cm_notify_type_handle(struct charger_manager *cm, enum cm_event_type
 	case CM_EVENT_UNKNOWN:
 	case CM_EVENT_OTHERS:
 		uevent_notify(cm, msg ? msg : default_event_names[type]);
+		break;
+	case CM_EVENT_FAST_CHARGE:
+		fast_charge_handler(cm);
 		break;
 	default:
 		dev_err(cm->dev, "%s: type not specified\n", __func__);
