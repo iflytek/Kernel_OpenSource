@@ -27,6 +27,18 @@
 #include "pcie-designware.h"
 #include "pcie-sprd.h"
 
+static void sprd_pcie_set_regs(struct dw_pcie *pci)
+{
+	u32 val;
+
+	dw_pcie_writel_dbi(pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
+			   LTSSM_EN | L1_AUXCLK_EN);
+
+	val = dw_pcie_readl_dbi(pci, PCIE_SS_REG_BASE + APB_CLKFREQ_TIMEOUT);
+	val |= BUSERR_EN;
+	dw_pcie_writel_dbi(pci, PCIE_SS_REG_BASE + APB_CLKFREQ_TIMEOUT, val);
+}
+
 #ifdef CONFIG_SPRD_IPA_INTC
 static void sprd_pcie_fix_interrupt_line(struct pci_dev *dev)
 {
@@ -205,8 +217,7 @@ static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
 	pp = &pci->pp;
 	pp->ops = &sprd_pcie_host_ops;
 
-	dw_pcie_writel_dbi(pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
-			   LTSSM_EN | L1_AUXCLK_EN);
+	sprd_pcie_set_regs(pci);
 
 	ctrl = platform_get_drvdata(to_platform_device(pci->dev));
 
@@ -421,8 +432,7 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 			"set pcie reinit syscons fail, return %d\n", ret);
 		return ret;
 	}
-	dw_pcie_writel_dbi(pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
-			   LTSSM_EN | L1_AUXCLK_EN);
+	sprd_pcie_set_regs(pci);
 
 	dw_pcie_setup_rc(pp);
 	ret = dw_pcie_wait_for_link(pci);
