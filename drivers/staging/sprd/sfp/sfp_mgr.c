@@ -1094,8 +1094,7 @@ int sfp_mgr_init(void)
 		sfp_ipa_init();
 	}
 	sfp_proc_create();
-	if (sysctl_net_sfp_enable == 1)
-		sfp_mgr_proc_enable();
+	sfp_mgr_disable();
 	return 0;
 }
 
