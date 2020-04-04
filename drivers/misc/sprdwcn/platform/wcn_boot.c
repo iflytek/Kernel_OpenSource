@@ -1259,7 +1259,6 @@ void marlin_read_cali_data(void)
 	complete(&marlin_dev->download_done);
 }
 
-#ifndef CONFIG_WCN_PCIE
 static int marlin_write_cali_data(void)
 {
 	int i;
@@ -1310,7 +1309,6 @@ static int marlin_write_cali_data(void)
 
 	return -1;
 }
-#endif
 
 enum wcn_clock_type wcn_get_xtal_26m_clk_type(void)
 {
@@ -1468,10 +1466,9 @@ static int check_cp_ready(void)
 				__func__, ret);
 			return ret;
 		}
-		if (marlin_dev->sync_f.init_status == SYNC_IN_PROGRESS)
-			usleep_range(3000, 5000);
 		if (marlin_dev->sync_f.init_status == SYNC_ALL_FINISHED)
 			return 0;
+		usleep_range(3000, 5000);
 	}
 
 	WCN_ERR("%s sync val:0x%x, prj_type val:0x%x\n", __func__,
@@ -1753,9 +1750,9 @@ static void pre_btwifi_download_sdio(struct work_struct *work)
 {
 	if (btwifi_download_firmware() == 0 &&
 		marlin_start_run() == 0) {
+		marlin_write_cali_data();
 #ifndef CONFIG_WCN_PCIE
 		check_cp_clock_mode();
-		marlin_write_cali_data();
 		mem_pd_save_bin();
 #endif
 		check_cp_ready();
