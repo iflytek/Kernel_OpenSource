@@ -402,6 +402,13 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 		return ep->perst_irq;
 	}
 
+	/* The minimum time of debounce time is 3 milliseconds */
+	ret = gpiod_set_debounce(ep->gpiod_perst, 0);
+	if (ret) {
+		dev_err(dev, "cannot set debounce for pcie-perst irq\n");
+		return ret;
+	}
+
 	ret = devm_request_threaded_irq(dev, ep->perst_irq,
 					sprd_pcie_perst_irq, NULL,
 					IRQF_TRIGGER_LOW | IRQF_NO_SUSPEND,
