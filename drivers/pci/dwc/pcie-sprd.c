@@ -285,6 +285,12 @@ static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
 		goto no_wakeup;
 	}
 
+	/* The minimum debounce time is 3 milliseconds */
+	if (gpiod_set_debounce(ctrl->gpiod_wakeup, 0)) {
+		dev_warn(dev, "cannot set debounce for wakeup irq\n");
+		goto no_wakeup;
+	}
+
 	snprintf(ctrl->wakeup_label, ctrl->label_len,
 		 "%s wakeup", dev_name(dev));
 	ret = devm_request_threaded_irq(dev, ctrl->wakeup_irq,
