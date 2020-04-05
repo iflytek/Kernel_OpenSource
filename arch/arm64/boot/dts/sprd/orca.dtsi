@@ -1181,7 +1181,7 @@
 				num-lanes = <1>;
 				num-ib-windows = <6>;
 				num-ob-windows = <8>;
-				pcie-perst-gpios = <&eic_async 30
+				pcie-perst-gpios = <&eic_debounce 30
 						    GPIO_ACTIVE_HIGH>;
 				status = "disabled";
 			};
