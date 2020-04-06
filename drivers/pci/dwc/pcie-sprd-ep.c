@@ -14,8 +14,10 @@
  */
 
 #include <linux/clk.h>
+#include <linux/freezer.h>
 #include <linux/gpio/consumer.h>
 #include <linux/interrupt.h>
+#include <linux/kthread.h>
 #include <linux/mfd/syscon.h>
 #include <linux/module.h>
 #include <linux/of_device.h>
@@ -23,9 +25,23 @@
 #include <linux/platform_device.h>
 #include <linux/property.h>
 #include <linux/soc/sprd/hwfeature.h>
+#include <linux/wait.h>
 
 #include "pcie-designware.h"
 #include "pcie-sprd.h"
+
+enum {
+	SPRD_PCIE_REINIT_ACTION,
+	SPRD_PCIE_SHUTDOWN_ACTION,
+	SPRD_PCIE_WAKE_ACTION,
+};
+
+struct sprd_pcie_action {
+	unsigned int action;
+	struct list_head entry;
+};
+
+static DEFINE_SPINLOCK(pcie_action_lock);
 
 /*
  * WORKAROUND: set CX_FLT_MASK_UR_POIS bit to fix pam ipa pcie access error
@@ -133,50 +149,64 @@ static int sprd_pcie_split_bar(struct dw_pcie *pci)
 #endif
 
 /*
- * SPRD PCIe wakeup pin related registers cannot be operated after PCIe
- * controller EB  is disabled. So this func set the PCIe controller EB before
+ * SPRD PCIe wake# pin related registers cannot be operated after PCIe
+ * controller EB is disabled. So this func set the PCIe controller EB before
  * operate the wakeup pin.
+ * Pull down wake# pin in order to wakeup RC.
  */
-static int sprd_pcie_wakeup(struct dw_pcie *pci, bool enable)
+static int sprd_pcie_wake_down(struct sprd_pcie *ep)
 {
 	u32 val;
 	int ret;
+	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 
-	dev_emerg(pci->dev, "%s enter, enable:%d\n", __func__, enable);
-	if (enable) {
-		ret = sprd_pcie_syscon_setting(pdev,
-					       "sprd,pcie-startup-syscons");
-		if (ret < 0) {
-			dev_emerg(&pdev->dev,
-				"set pcie enable syscons fail, return %d\n",
-				ret);
-			return ret;
-		}
-		val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
-		val &= ~SPRD_SOFT_WAKE;
-		dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
-		ret = sprd_pcie_syscon_setting(pdev,
-					       "sprd,pcie-shutdown-syscons");
-		if (ret < 0) {
-			dev_emerg(&pdev->dev,
-				"set pcie disable syscons fail, return %d\n",
-				ret);
-			return ret;
-		}
-	} else {
-		val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
-		val |= SPRD_SOFT_WAKE;
-		dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
+	dev_info(&pdev->dev, "%s++\n", __func__);
+	mutex_lock(&ep->sprd_pcie_mutex);
+	if (ep->is_powered) {
+		dev_warn(&pdev->dev, "pcie has been powered, do nothing\n");
+		ret = -EPERM;
+		goto out;
 	}
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
+	if (ret < 0) {
+		dev_err(&pdev->dev,
+			"set pcie startup syscons fail, return %d\n", ret);
+		goto out;
+	}
+
+	val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
+	val &= ~SPRD_SOFT_WAKE;
+	dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
+	if (ret < 0)
+		dev_err(&pdev->dev,
+			"set pcie shutdown syscons fail, return %d\n", ret);
+
+out:
+	mutex_unlock(&ep->sprd_pcie_mutex);
+	return ret;
+}
+
+ /*
+  * Wake# pin will be pulled up automatically after PCIe established link.
+  * Whatever the hardware does, pull it down here.
+  */
+static int sprd_pcie_wake_up(struct sprd_pcie *ep)
+{
+	u32 val;
+	struct dw_pcie *pci = ep->pci;
+
+	dev_info(pci->dev, "%s++\n", __func__);
+	val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
+	val |= SPRD_SOFT_WAKE;
+	dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
 
 	return 0;
 }
 
-static void sprd_pcie_ep_reinit(struct work_struct *work)
+static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 {
-	struct sprd_pcie *ep = container_of(work, struct sprd_pcie,
-					    reinit_work);
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 	int ret;
@@ -184,14 +214,16 @@ static void sprd_pcie_ep_reinit(struct work_struct *work)
 	int val;
 #endif
 
-	dev_emerg(pci->dev, "%s++\n", __func__);
+	dev_info(pci->dev, "%s++\n", __func__);
+	mutex_lock(&ep->sprd_pcie_mutex);
 
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
 	if (ret < 0) {
-		dev_emerg(&pdev->dev,
+		dev_err(&pdev->dev,
 			"set pcie reinit syscons fail, return %d\n", ret);
-		return;
+		goto out;
 	}
+	ep->is_powered = true;
 
 	sprd_pcie_setup_ep(&pci->ep);
 	dw_pcie_setup(pci);
@@ -206,7 +238,7 @@ static void sprd_pcie_ep_reinit(struct work_struct *work)
 		ret = sprd_pcie_split_bar(ep->pci);
 		if (ret) {
 			dev_err(&pdev->dev, "failed to split bar\n");
-			return;
+			goto out;
 		}
 
 		val = dw_pcie_readl_dbi(ep->pci,
@@ -217,34 +249,115 @@ static void sprd_pcie_ep_reinit(struct work_struct *work)
 #endif
 
 	ret = dw_pcie_wait_for_link(pci);
-	if (ret < 0)
+	if (ret < 0) {
 		dev_emerg(pci->dev, "link fail after perst\n");
-	else {
-		sprd_pcie_wakeup(pci, false);
+		goto out;
+	} else {
+		sprd_pcie_wake_up(ep);
 		dw_pcie_ep_linkup(&pci->ep);
 	}
+
+out:
+	mutex_unlock(&ep->sprd_pcie_mutex);
+	return ret;
 }
 
-static void sprd_pcie_ep_shutdown(struct work_struct *work)
+static int sprd_pcie_ep_shutdown(struct sprd_pcie *ep)
 {
 	int ret;
-	struct sprd_pcie *ep = container_of(work, struct sprd_pcie,
-					    shutdown_work);
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 	struct device *dev = &pdev->dev;
 
-	dev_emerg(pci->dev, "%s++\n", __func__);
+	dev_info(dev, "%s++\n", __func__);
+	mutex_lock(&ep->sprd_pcie_mutex);
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
-	if (ret < 0)
-		dev_emerg(&pdev->dev,
+	if (ret < 0) {
+		dev_err(dev,
 			"set pcie uninit syscons fail, return %d\n", ret);
-	else {
+		goto out;
+	} else {
 		ep->is_powered = false;
 		dw_pcie_ep_unlink(&pci->ep);
 	}
 
-	pm_relax(dev);
+out:
+	mutex_unlock(&ep->sprd_pcie_mutex);
+	return ret;
+}
+
+static void sprd_pcie_do_actions(struct sprd_pcie *ep)
+{
+	struct sprd_pcie_action *pos, *tmp;
+
+	list_for_each_entry_safe(pos, tmp, &ep->action_list, entry) {
+		switch (pos->action) {
+		case SPRD_PCIE_REINIT_ACTION:
+			dev_info(ep->pci->dev,
+				 "%s: action: reinit\n", __func__);
+			sprd_pcie_ep_reinit(ep);
+			break;
+		case SPRD_PCIE_SHUTDOWN_ACTION:
+			dev_info(ep->pci->dev,
+				 "%s: action: shutdown\n", __func__);
+			sprd_pcie_ep_shutdown(ep);
+			break;
+		case SPRD_PCIE_WAKE_ACTION:
+			dev_info(ep->pci->dev,
+				 "%s: action: wake\n", __func__);
+			sprd_pcie_wake_down(ep);
+			break;
+		default:
+			break;
+		}
+
+		list_del(&pos->entry);
+		kfree(pos);
+	}
+}
+
+static int sprd_pcie_thread(void *data)
+{
+	struct sprd_pcie *ep = data;
+	struct dw_pcie *pci = ep->pci;
+	struct platform_device *pdev = to_platform_device(pci->dev);
+	unsigned long flags;
+	int ret;
+
+	set_freezable();
+	while (!kthread_should_stop()) {
+		spin_lock_irqsave(&pcie_action_lock, flags);
+		ret = wait_event_interruptible_lock_irq(ep->action_wait,
+			!list_empty(&ep->action_list), pcie_action_lock);
+		spin_unlock_irqrestore(&pcie_action_lock, flags);
+
+		if (!ret)
+			sprd_pcie_do_actions(ep);
+		else
+			dev_err(&pdev->dev,
+				"pcie wait action return %d\n", ret);
+	}
+
+	return 0;
+}
+
+static int sprd_pcie_add_action(struct sprd_pcie *ep, unsigned int action)
+{
+	struct sprd_pcie_action *pos;
+	unsigned long flags;
+
+	pos = kzalloc(sizeof(*pos), GFP_KERNEL);
+	if (!pos)
+		return -ENOMEM;
+
+	pos->action = action;
+	spin_lock_irqsave(&pcie_action_lock, flags);
+	list_add_tail(&pos->entry, &ep->action_list);
+	spin_unlock_irqrestore(&pcie_action_lock, flags);
+
+	wake_up_interruptible_all(&ep->action_wait);
+
+	return 0;
 }
 
 /*
@@ -262,9 +375,9 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 	struct device *dev = &pdev->dev;
+	int i;
 
-	dev_emerg(&pdev->dev,
-		  "pci perst irq enter ori val: %d\n", val);
+	dev_info(dev, "irq: %d, perst val: %d\n", irq, val);
 	/* WORKAROUND: At present, if setting high-lever trigger, when intterupt
 	 * occurs the value read from gpio is low lever occasinally. When
 	 * setting low-level trigger has the similar problem. Temporarily read
@@ -272,27 +385,47 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 	 * trigger level, and this workaround will be removed when the problem
 	 * fixed.
 	 */
-	while (val != expect)
-		val = gpiod_get_value(ep->gpiod_perst);
-
-	if (!val) {
-		irq_flags &= ~IRQF_TRIGGER_LOW;
-		irq_flags |= IRQF_TRIGGER_HIGH;
-	} else {
-		irq_flags &= ~IRQF_TRIGGER_HIGH;
-		irq_flags |= IRQF_TRIGGER_LOW;
+	for (i = 0; i < 100; i++) {
+		if (val != expect) {
+			val = gpiod_get_value(ep->gpiod_perst);
+			dev_warn(dev,
+				 "perst val (retries: %d): %d\n", i + 1, val);
+		} else {
+			if (!val) {
+				irq_flags &= ~IRQF_TRIGGER_LOW;
+				irq_flags |= IRQF_TRIGGER_HIGH;
+			} else {
+				irq_flags &= ~IRQF_TRIGGER_HIGH;
+				irq_flags |= IRQF_TRIGGER_LOW;
+			}
+			irq_set_irq_type(irq, irq_flags);
+			pm_wakeup_hard_event(pci->dev);
+			return IRQ_WAKE_THREAD;
+		}
 	}
 
-	irq_set_irq_type(irq, irq_flags);
+	dev_err(dev,
+		"cannot get expect perst val: %d, expect: %d\n", val, expect);
 
-	dev_emerg(&pdev->dev,
-		  "pci perst irq queue val: %d\n", val);
+	return IRQ_NONE;
+}
+
+static irqreturn_t sprd_pcie_perst_thread_irq(int irq, void *data)
+{
+	struct sprd_pcie *ep = data;
+	int val = gpiod_get_value(ep->gpiod_perst);
+	struct dw_pcie *pci = ep->pci;
+	struct platform_device *pdev = to_platform_device(pci->dev);
+	struct device *dev = &pdev->dev;
+
+	dev_info(&pdev->dev,
+		 "%s: perst val: %d, add action: %s\n",
+		 __func__, val, !val ? "shutdown" : "reinit");
 	if (!val)
-		queue_work(ep->wq, &ep->shutdown_work);
+		sprd_pcie_add_action(ep, SPRD_PCIE_SHUTDOWN_ACTION);
 	else {
 		pm_stay_awake(dev);
-		ep->is_powered = true;
-		queue_work(ep->wq, &ep->reinit_work);
+		sprd_pcie_add_action(ep, SPRD_PCIE_REINIT_ACTION);
 	}
 
 	return IRQ_HANDLED;
@@ -307,7 +440,7 @@ static int sprd_add_pcie_ep(struct sprd_pcie *sprd_pcie,
 	struct device *dev = &pdev->dev;
 	struct dw_pcie *pci = sprd_pcie->pci;
 
-	dev_emerg(pci->dev, "%s++\n", __func__);
+	dev_info(pci->dev, "%s++\n", __func__);
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbi");
 	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
 	if (!pci->dbi_base)
@@ -342,11 +475,15 @@ static int sprd_pcie_establish_link(struct dw_pcie *pci)
 {
 	struct sprd_pcie *ep = dev_get_drvdata(pci->dev);
 
+	dev_info(pci->dev, "%s: ep is powered? %s\n",
+		  __func__, ep->is_powered ? "yes, return now" : "no");
 	/* if ep is already powered on,  unallowed operation */
 	if (ep->is_powered)
 		return -EPERM;
 
-	sprd_pcie_wakeup(pci, true);
+	dev_info(pci->dev, "%s: add action: wake\n", __func__);
+	sprd_pcie_add_action(ep, SPRD_PCIE_WAKE_ACTION);
+
 	return 0;
 }
 
@@ -410,7 +547,8 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 	}
 
 	ret = devm_request_threaded_irq(dev, ep->perst_irq,
-					sprd_pcie_perst_irq, NULL,
+					sprd_pcie_perst_irq,
+					sprd_pcie_perst_thread_irq,
 					IRQF_TRIGGER_LOW | IRQF_NO_SUSPEND,
 					"pcie_perst", ep);
 	if (ret < 0) {
@@ -419,21 +557,23 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 	}
 	enable_irq_wake(ep->perst_irq);
 
-	ep->wq = create_singlethread_workqueue("perst_irq");
-	if (!ep->wq)
-		return -ENOMEM;
-
-	INIT_WORK(&ep->reinit_work, sprd_pcie_ep_reinit);
-	INIT_WORK(&ep->shutdown_work, sprd_pcie_ep_shutdown);
-
-	device_init_wakeup(dev, true);
-
 	ret = sprd_add_pcie_ep(ep, pdev);
 	if (ret) {
 		dev_err(dev, "cannot initialize ep host\n");
-		destroy_workqueue(ep->wq);
 		return ret;
 	}
+
+	init_waitqueue_head(&ep->action_wait);
+	INIT_LIST_HEAD(&ep->action_list);
+	mutex_init(&ep->sprd_pcie_mutex);
+
+	ep->action_thread = kthread_run(sprd_pcie_thread, ep,
+					"%s", "sprd_pcie_ep");
+	if (IS_ERR(ep->action_thread)) {
+		dev_err(dev, "Failed to create kthread\n");
+		return PTR_ERR(ep->action_thread);
+	}
+	wake_up_process(ep->action_thread);
 
 	return 0;
 }
@@ -441,10 +581,15 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 static int sprd_pcie_ep_remove(struct platform_device *pdev)
 {
 	struct sprd_pcie *ep = platform_get_drvdata(pdev);
-	struct device *dev = &pdev->dev;
+	struct sprd_pcie_action *pos, *tmp;
 
-	destroy_workqueue(ep->wq);
-	device_init_wakeup(dev, false);
+	if (!IS_ERR(ep->action_thread))
+		kthread_stop(ep->action_thread);
+
+	list_for_each_entry_safe(pos, tmp, &ep->action_list, entry) {
+		list_del(&pos->entry);
+		kfree(pos);
+	}
 
 	return 0;
 }
