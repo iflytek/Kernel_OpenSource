@@ -65,8 +65,8 @@
 			reg = <0x0 0x99800000 0x0 0x3000000>;
 		};
 
-		bmp_reserved: bmp-mem@fdbc0000 {
-			reg = <0x0 0xfdbc0000 0x0 0x01b00000>;
+		bmp_reserved: bmp-mem@9d000000 {
+			reg = <0x0 0x9d000000 0x0 0x9e4000>;
 		};
 
 		wb_reserved: writeback-mem@ff6c0000 {
