@@ -19,10 +19,14 @@
 #include "../crypto/sprd_sha256.h"
 #include <linux/kernel.h>
 #include <linux/string.h>
+#include <linux/cdev.h>
 
 #define TRUSTED_FIRMWARE 1
 #define NON_TRUSTED_FIRMWARE 0
 
+static dev_t dev_num;
+static struct cdev v_dev;
+static struct class *verify_class;
 static struct nvmem_device *efuse;
 static u32 img_rollback_version;
 
@@ -213,16 +217,143 @@ static const struct of_device_id sprd_verify_of_match[] = {
 	{ }
 };
 
+static int efuse_write_and_check(u32 block, u32 write_data)
+{
+	u32 read_data = 0, read_org = 0;
+
+	nvmem_device_read(efuse, (block - 2) * 4, 4, &read_org);
+	nvmem_device_write(efuse, (block - 2) * 4, 4, &write_data);
+	nvmem_device_read(efuse, (block - 2) * 4, 4, &read_data);
+
+	if ((read_org | write_data) != read_data)
+		return -EFAULT;
+
+	return 0;
+}
+
+static int write_rotpk_blocks(u32 start_id, u32 end_id, u32 *pwrite_data)
+{
+	int ret;
+	u32 block_id;
+	u32 *write_ptr = pwrite_data;
+
+	for (block_id = start_id; block_id <= end_id; block_id++) {
+		ret = efuse_write_and_check(block_id, *write_ptr);
+		if (ret)
+			return ret;
+		write_ptr++;
+	}
+	return ret;
+}
+
+static int verify_open(struct inode *inode, struct file *filp)
+{
+	return 0;
+}
+
+static long verify_ioctl(struct file *pfile, unsigned int cmd,
+	unsigned long arg)
+{
+	int ret, plcs;
+	u32 block, temp_data[8], rotpk_data[8];
+
+	if (!efuse) {
+		pr_err("ioctl get efuse handle error!\n");
+		return -ENODEV;
+	}
+	memcpy(rotpk_data, rotpk_hash, HASH_BYTE_LEN);
+
+	if (_IOC_TYPE(cmd) != EFUSE_MAGIC)
+		return -EINVAL;
+	if (_IOC_NR(cmd) > EFUSE_MAGIC_MAXNR)
+		return -EINVAL;
+
+	switch (cmd) {
+	case WR_EFUSE_ROTPK:
+		ret = write_rotpk_blocks(ROTPK_START, ROTPK_END, rotpk_data);
+		if (ret)
+			return ret;
+		break;
+
+	case RD_EFUSE_LCS:
+		for (block = ROTPK_START; block <= ROTPK_END; block++)
+			nvmem_device_read(efuse, (block - 2) * 4, 4,
+			&temp_data[block - ROTPK_START]);
+
+		if (memcmp(temp_data, rotpk_data, HASH_BYTE_LEN))
+			plcs = 1;
+		else
+			plcs = 5;
+		if (copy_to_user((int *)arg, &plcs, sizeof(int))) {
+			pr_err("error:copy_to_user fail...");
+			return -EFAULT;
+		}
+		ret = 0;
+		break;
+
+	default:
+		ret = -EINVAL;
+		break;
+	}
+	return ret;
+}
+
+static const struct file_operations verify_fops = {
+	.owner = THIS_MODULE,
+	.open = verify_open,
+	.unlocked_ioctl = verify_ioctl,
+};
+
 static int sprd_verify_probe(struct platform_device *pdev)
 {
+	int ret;
+	struct device *verify_dev;
+
 	efuse = devm_nvmem_device_get(&pdev->dev, "ap-efuse");
 	if (IS_ERR(efuse))
 		return PTR_ERR(efuse);
+
+	ret = alloc_chrdev_region(&dev_num, 0, 1, DEV_NAME);
+	if (ret < 0) {
+		pr_err("orca dev_num can't be registered!");
+		return ret;
+	}
+
+	cdev_init(&v_dev, &verify_fops);
+	cdev_add(&v_dev, dev_num, 1);
+
+	verify_class = class_create(THIS_MODULE, DEV_NAME);
+	if (IS_ERR(verify_class)) {
+		pr_err("error:create verify_class failed!");
+		cdev_del(&v_dev);
+		unregister_chrdev_region(dev_num, 1);
+		return PTR_ERR(verify_class);
+	}
+
+	verify_dev = device_create(verify_class, NULL, dev_num, NULL, DEV_NAME);
+	if (IS_ERR(verify_dev)) {
+		pr_err("error:create device failed!");
+		class_destroy(verify_class);
+		cdev_del(&v_dev);
+		unregister_chrdev_region(dev_num, 1);
+		return PTR_ERR(verify_dev);
+	}
+
+	return 0;
+}
+
+static int sprd_verify_remove(struct platform_device *pdev)
+{
+	device_destroy(verify_class, dev_num);
+	class_destroy(verify_class);
+	cdev_del(&v_dev);
+	unregister_chrdev_region(dev_num, 1);
 	return 0;
 }
 
 static struct platform_driver sprd_verify_driver = {
 	.probe = sprd_verify_probe,
+	.remove = sprd_verify_remove,
 	.driver = {
 		.name = "sprd-verify",
 		.of_match_table = sprd_verify_of_match,

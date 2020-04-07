@@ -18,6 +18,7 @@
 #include <linux/string.h>
 
 u8 mode_flag;
+u8 rotpk_hash[HASH_BYTE_LEN];
 static u8 hash_key[HASH_BYTE_LEN];
 
 static int __init scanner_hash(char *str)
@@ -25,8 +26,11 @@ static int __init scanner_hash(char *str)
 	u8 i;
 
 	if (str) {
-		for (i = 0; i < HASH_BYTE_LEN; i++) {
-			hash_key[i] = (u8)(*str);
+		for (i = 0; i < 2 * HASH_BYTE_LEN; i++) {
+			if (i < HASH_BYTE_LEN)
+				hash_key[i] = (u8)(*str);
+			else
+				rotpk_hash[i - HASH_BYTE_LEN] = (u8)(*str);
 			str++;
 		}
 	}

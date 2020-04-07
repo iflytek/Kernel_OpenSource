@@ -4,12 +4,21 @@
 #include <linux/raid/pq.h>
 #include <uapi/asm-generic/errno-base.h>
 
+#define ROTPK_START 15
+#define ROTPK_END 22
 #define MODEM_BLOCK 27
 #define V3PHY_BLOCK 28
 #define NRPHY_BLOCK 29
 #define NRDSP1_BLOCK 30
 #define OLD_IMG 2
+#define DEV_NAME  "verify-m"
 
+#define EFUSE_MAGIC  'z'
+#define WR_EFUSE_ROTPK    _IO(EFUSE_MAGIC, 0)
+#define RD_EFUSE_LCS     _IOR(EFUSE_MAGIC, 1, int)
+#define EFUSE_MAGIC_MAXNR 2
+
+extern u8 rotpk_hash[HASH_BYTE_LEN];
 struct sys_img_header {
 	u32 magic_num;
 	u32 version;
