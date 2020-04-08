@@ -188,6 +188,8 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 			if (!value && !ctrl->is_powered)
 				sprd_pcie_notify_client(ctrl,
 					SPRD_PCIE_EVENT_WAKEUP);
+
+			pm_wakeup_hard_event(pci->dev);
 			return IRQ_HANDLED;
 		}
 	}
@@ -301,6 +303,7 @@ static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
 		dev_warn(dev, "cannot request wakeup irq\n");
 
 	enable_irq_wake(ctrl->wakeup_irq);
+	device_init_wakeup(dev, true);
 
 no_wakeup:
 
