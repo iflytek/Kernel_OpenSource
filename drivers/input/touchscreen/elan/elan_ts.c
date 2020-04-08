@@ -2533,8 +2533,8 @@ static void elan_ts_report_pen(struct elan_ts_data *ts, uint8_t *buf)
 #endif		
 		y = y * 1920 / ((ts->y_trace-1) * 260);
 		x = x * 1200 / ((ts->x_trace-1) * 260);
-		x = 1200 - x;
-		//y = 1920 - y;
+		x = 1920 - x;
+		y = 1200 - y;
 #ifdef ELAN_ICS_SLOT_REPORT
 		if(pen_down == 0x01) {	
 			if(ts->hover_flag){
@@ -2692,6 +2692,9 @@ static void elan_ts_report_data(struct elan_ts_data *ts, uint8_t *buf)
 				#endif
 				x = x * 1920 / ts->x_resolution;
 				y = y * 1200 / ts->y_resolution;
+
+				x = 1920 - x;
+				y = 1200 - y;
 
 				fbits = (((buf[idx] & 0xfc) >> 2) -1);
 
