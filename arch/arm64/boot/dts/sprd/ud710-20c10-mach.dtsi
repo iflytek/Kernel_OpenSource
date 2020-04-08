@@ -530,6 +530,7 @@
 };
 
 &pcie1 {
+	no-suspend;
 	status = "okay";
 };
 
