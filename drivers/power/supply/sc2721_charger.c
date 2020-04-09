@@ -583,7 +583,7 @@ sc2721_charger_usb_set_property(struct power_supply *psy,
 		break;
 
 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX:
-		ret = sc2721_set_termination_voltage(info, val->intval);
+		ret = sc2721_set_termination_voltage(info, val->intval / 1000);
 		if (ret < 0)
 			dev_err(info->dev, "failed to set terminate voltage\n");
 		break;
