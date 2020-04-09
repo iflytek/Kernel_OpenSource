@@ -1778,6 +1778,8 @@ static int charger_get_property(struct power_supply *psy,
 			val->intval = POWER_SUPPLY_HEALTH_OVERHEAT;
 		else if (cm->emergency_stop < 0)
 			val->intval = POWER_SUPPLY_HEALTH_COLD;
+		else if (cm->charging_status & CM_CHARGE_VOLTAGE_ABNORMAL)
+			val->intval = POWER_SUPPLY_HEALTH_OVERVOLTAGE;
 		else
 			val->intval = POWER_SUPPLY_HEALTH_GOOD;
 		break;
