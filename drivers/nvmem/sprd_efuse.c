@@ -253,7 +253,6 @@ static int sprd_efuse_raw_prog(struct sprd_efuse *efuse, u32 blk, bool doub,
 	if (lock)
 		sprd_efuse_set_auto_check(efuse, false);
 
-	sprd_efuse_set_data_double(efuse, false);
 	/*
 	 * Check the efuse error status, if the programming is successful,
 	 * we should lock this efuse block to avoid programming again.
@@ -267,6 +266,9 @@ static int sprd_efuse_raw_prog(struct sprd_efuse *efuse, u32 blk, bool doub,
 		writel(0x0, efuse->base + SPRD_EFUSE_MEM(blk));
 		sprd_efuse_set_prog_lock(efuse, false);
 	}
+
+	if (doub)
+		sprd_efuse_set_data_double(efuse, false);
 
 	writel(SPRD_ERR_CLR_MASK, efuse->base + SPRD_EFUSE_NS_FLAG_CLR);
 	sprd_efuse_prog_power(efuse, false);
