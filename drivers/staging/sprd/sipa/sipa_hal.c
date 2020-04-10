@@ -1266,8 +1266,20 @@ EXPORT_SYMBOL(sipa_hal_init_pam_param);
 int sipa_swap_hash_table(struct sipa_hash_table *new_tbl,
 			 struct sipa_hash_table *old_tbl)
 {
+	int ret;
 	u32 len, addrl, addrh;
 	struct sipa_hal_context *hal_cfg = &sipa_hal_ctx;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+
+	if (!ctrl)
+		return -ENODEV;
+
+	if (!ctrl->params_cfg.enable_cnt || !ctrl->power_flag)
+		return -EBUSY;
+
+	ret = sipa_set_enabled(true);
+	if (ret)
+		return ret;
 
 	if (old_tbl) {
 		hal_cfg->glb_ops.get_hash_table(hal_cfg->phy_virt_res.glb_base,
@@ -1290,7 +1302,7 @@ int sipa_swap_hash_table(struct sipa_hash_table *new_tbl,
 		udelay(500);
 	}
 
-	return 0;
+	return sipa_set_enabled(false);
 }
 EXPORT_SYMBOL(sipa_swap_hash_table);
 
