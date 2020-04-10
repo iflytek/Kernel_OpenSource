@@ -13326,15 +13326,15 @@ CONFIG_SPRD_CRYPTO
 	[must]
 	[missing plat description]
 	[function]
-CONFIG_SPRD_CRYPTO_SW
+CONFIG_SPRD_CRYPTO_HASH_AHASH
 	[arch] arm64
 	[plat] orca
-	[missing plat]roc1,sharkl3,sharkl5
-	[field]
-	[subsys]
+	[missing plat] roc1,sharkl5,sharkl5pro,sharkl3,sharkle
+	[field] make,menu
+	[subsys] soc
 	[must]
-	[missing plat description]
-	[function]
+	[missing plat description]No requirement
+	[function] Enable/Disable HASH function by calling AHASH API
 CONFIG_SPRD_DATA_TRANSPORTER
 	[arch] arm64
 	[plat] orca
