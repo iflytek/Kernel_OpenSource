@@ -242,14 +242,18 @@ static int ssd2092_init(void)
 static int ssd2092_readid(void)
 {
 	struct sprd_dsi *dsi = &dsi_device;
-	uint8_t read_buf[3] = {0};
+	uint8_t read_buf[3] = {0xff, 0xff, 0xff};
+	uint8_t read_buf1[1] = {0xff};
 
 	mipi_dsi_lp_cmd_enable(dsi, true);
 	mipi_dsi_set_max_return_size(dsi, 3);
 	mipi_dsi_dcs_read(dsi, 0x04, read_buf, 3);
+	mipi_dsi_dcs_read(dsi, 0xA1, read_buf1, 1);
 
-	if((0x00 == read_buf[0]) && (0x00 == read_buf[1]) &&
-	   (0xb2 == read_buf[2])) {
+	if (((0x00 == read_buf[0]) && (0x00 == read_buf[1]) &&
+	     (0xb2 == read_buf[2])) ||
+	    ((0x00 == read_buf[0]) && (0x00 == read_buf[1]) &&
+	     (0x00 == read_buf[2]) && (0x01 == read_buf1[0]))) {
 		pr_info("ssd2092 read id success!\n");
 		return 0;
         }
