@@ -271,7 +271,7 @@ void print_hash_tbl(char *p, int len)
 		}
 		off += sprintf(off, "%02x ", *(p + i));
 	}
-	FP_PRT_DBG(FP_PRT_DETAIL, "%s\n\n", str);
+	FP_PRT_DBG(FP_PRT_DETAIL, "%s\n", str);
 }
 
 static void sfp_dma_hash_tbl_init(u8 *ipa_tbl_ptr, int n)

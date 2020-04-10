@@ -50,16 +50,12 @@ EXPORT_SYMBOL(sfp_mgr_disable);
 
 void procdebugprint_ipv4addr(struct seq_file *seq, u32 ipaddr)
 {
-	seq_printf(seq, "%d.%d.%d.%d", ((ipaddr >> 24) & 0xFF),
-		   ((ipaddr >> 16) & 0xFF), ((ipaddr >> 8) & 0xFF),
-		   ((ipaddr >> 0) & 0xFF));
+	seq_printf(seq, "%pI4", &ipaddr);
 }
 
 void procdebugprint_ipv6addr(struct seq_file *seq, u32 *ip6addr)
 {
-	seq_printf(seq, "0x%08x:0x%08x:0x%08x:0x%08x",
-		   ip6addr[0], ip6addr[1],
-		   ip6addr[2], ip6addr[3]);
+	seq_printf(seq, "%pI6", ip6addr);
 }
 
 void procdebugprint_mgr_fwd_info(struct seq_file *seq,
@@ -67,29 +63,17 @@ void procdebugprint_mgr_fwd_info(struct seq_file *seq,
 {
 	seq_puts(seq, "Original INFO:\n");
 	seq_puts(seq, "\tMAC INFO:\t");
-	seq_printf(seq, "dst:%02x.%02x.%02x.%02x.%02x.%02x\t",
-		   tuple->orig_mac_info.dst_mac[0],
-		   tuple->orig_mac_info.dst_mac[1],
-		   tuple->orig_mac_info.dst_mac[2],
-		   tuple->orig_mac_info.dst_mac[3],
-		   tuple->orig_mac_info.dst_mac[4],
-		   tuple->orig_mac_info.dst_mac[5]);
-	seq_printf(seq, "src:%02x.%02x.%02x.%02x.%02x.%02x\n",
-		   tuple->orig_mac_info.src_mac[0],
-		   tuple->orig_mac_info.src_mac[1],
-		   tuple->orig_mac_info.src_mac[2],
-		   tuple->orig_mac_info.src_mac[3],
-		   tuple->orig_mac_info.src_mac[4],
-		   tuple->orig_mac_info.src_mac[5]);
+	seq_printf(seq, "dst:%pM\t", tuple->orig_mac_info.dst_mac);
+	seq_printf(seq, "src:%pM\n", tuple->orig_mac_info.src_mac);
 	seq_puts(seq, "\tIP INFO:\t");
 	if (tuple->orig_info.l3_proto == NFPROTO_IPV4) {
-		seq_puts(seq, "dst: ");
-		procdebugprint_ipv4addr(seq, ntohl(tuple->orig_info.dst_ip.ip));
+		seq_puts(seq, "dst:");
+		procdebugprint_ipv4addr(seq, tuple->orig_info.dst_ip.ip);
 		seq_puts(seq, "\tsrc: ");
-		procdebugprint_ipv4addr(seq, ntohl(tuple->orig_info.src_ip.ip));
+		procdebugprint_ipv4addr(seq, tuple->orig_info.src_ip.ip);
 		seq_puts(seq, "\n");
 	} else {
-		seq_puts(seq, "dst: ");
+		seq_puts(seq, "dst:");
 		procdebugprint_ipv6addr(seq, tuple->orig_info.dst_ip.all);
 		seq_puts(seq, "\tsrc: ");
 		procdebugprint_ipv6addr(seq, tuple->orig_info.src_ip.all);
@@ -101,28 +85,14 @@ void procdebugprint_mgr_fwd_info(struct seq_file *seq,
 	seq_printf(seq, "src:%u\n", ntohs(tuple->orig_info.src_l4_info.all));
 	seq_puts(seq, "Transfer Info:\n");
 	seq_puts(seq, "\tMAC INFO:\t");
-	seq_printf(seq, "dst:%02x.%02x.%02x.%02x.%02x.%02x\t",
-		   tuple->trans_mac_info.dst_mac[0],
-		   tuple->trans_mac_info.dst_mac[1],
-		   tuple->trans_mac_info.dst_mac[2],
-		   tuple->trans_mac_info.dst_mac[3],
-		   tuple->trans_mac_info.dst_mac[4],
-		   tuple->trans_mac_info.dst_mac[5]);
-	seq_printf(seq, "src:%02x.%02x.%02x.%02x.%02x.%02x\n",
-		   tuple->trans_mac_info.src_mac[0],
-		   tuple->trans_mac_info.src_mac[1],
-		   tuple->trans_mac_info.src_mac[2],
-		   tuple->trans_mac_info.src_mac[3],
-		   tuple->trans_mac_info.src_mac[4],
-		   tuple->trans_mac_info.src_mac[5]);
+	seq_printf(seq, "dst:%pM\t", tuple->orig_mac_info.dst_mac);
+	seq_printf(seq, "src:%pM\n", tuple->orig_mac_info.src_mac);
 	seq_puts(seq, "\tIP Info:\t");
 	if (tuple->trans_info.l3_proto == NFPROTO_IPV4) {
 		seq_puts(seq, "dst:");
-		procdebugprint_ipv4addr(seq,
-					ntohl(tuple->trans_info.dst_ip.ip));
+		procdebugprint_ipv4addr(seq, tuple->trans_info.dst_ip.ip);
 		seq_puts(seq, "\tsrc:");
-		procdebugprint_ipv4addr(seq,
-					ntohl(tuple->trans_info.src_ip.ip));
+		procdebugprint_ipv4addr(seq, tuple->trans_info.src_ip.ip);
 		seq_puts(seq, "\n");
 	} else {
 		seq_puts(seq, "dst:");
@@ -146,28 +116,16 @@ void procdebugprint_fwd_info_2(struct seq_file *seq,
 {
 	seq_puts(seq, "Transfer Info:\n");
 	seq_puts(seq, "\tMAC INFO:\t");
-	seq_printf(seq, "dst:%02x.%02x.%02x.%02x.%02x.%02x\t",
-		   tuple->trans_mac_info.dst_mac[0],
-		   tuple->trans_mac_info.dst_mac[1],
-		   tuple->trans_mac_info.dst_mac[2],
-		   tuple->trans_mac_info.dst_mac[3],
-		   tuple->trans_mac_info.dst_mac[4],
-		   tuple->trans_mac_info.dst_mac[5]);
-	seq_printf(seq, "src:%02x.%02x.%02x.%02x.%02x.%02x\n",
-		   tuple->trans_mac_info.src_mac[0],
-		   tuple->trans_mac_info.src_mac[1],
-		   tuple->trans_mac_info.src_mac[2],
-		   tuple->trans_mac_info.src_mac[3],
-		   tuple->trans_mac_info.src_mac[4],
-		   tuple->trans_mac_info.src_mac[5]);
+	seq_printf(seq, "dst:%pM\t",
+		   tuple->trans_mac_info.dst_mac);
+	seq_printf(seq, "src:%pM\n",
+		   tuple->trans_mac_info.src_mac);
 	seq_puts(seq, "\tIP Info:\t");
 	if (tuple->trans_info.l3_proto == NFPROTO_IPV4) {
 		seq_puts(seq, "dst:");
-		procdebugprint_ipv4addr(seq,
-					ntohl(tuple->trans_info.dst_ip.ip));
+		procdebugprint_ipv4addr(seq, tuple->trans_info.dst_ip.ip);
 		seq_puts(seq, "\tsrc:");
-		procdebugprint_ipv4addr(seq,
-					ntohl(tuple->trans_info.src_ip.ip));
+		procdebugprint_ipv4addr(seq, tuple->trans_info.src_ip.ip);
 		seq_puts(seq, "\n");
 	} else {
 		seq_puts(seq, "dst:");
@@ -434,7 +392,7 @@ static int sfp_mgr_fwd_proc_show(struct seq_file *seq, void *v)
 	procdebugprint_mgr_fwd_info(seq, &entry_info1->ssfp_fwd_tuple);
 	entry_info2 = &sfp_ct->tuplehash[IP_CT_DIR_REPLY];
 	procdebugprint_mgr_fwd_info(seq, &entry_info2->ssfp_fwd_tuple);
-	seq_printf(seq, "\t time=%ld",
+	seq_printf(seq, "\ttime=%ld",
 		   (sfp_ct->timeout.expires - jiffies) / HZ);
 	seq_puts(seq, "\n");
 	return 0;
