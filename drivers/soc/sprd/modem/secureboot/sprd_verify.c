@@ -44,7 +44,7 @@ struct data_block_header_t {
 void cal_sha256(u8 *input, u32 bytes_num, u8 *output)
 {
 	if (input && output)
-		SHA256_hash(input, bytes_num, output, 0);
+		sha256_csum_wd(input, bytes_num, output, 0);
 	else
 		pr_err("\r\tthe pointer is error,pls check it\n");
 }
