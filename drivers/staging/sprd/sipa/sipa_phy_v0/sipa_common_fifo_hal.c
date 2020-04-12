@@ -105,7 +105,7 @@ ipa_put_pkt_to_cache_rx_fifo(struct device *dev,
 			fifo_cfg->rx_fifo.virtual_addr;
 
 	dma_addr = fifo_cfg->rx_fifo.fifo_base_addr_l |
-		(fifo_cfg->rx_fifo.fifo_base_addr_h << 8);
+		((u64)fifo_cfg->rx_fifo.fifo_base_addr_h << 32);
 
 	left_cnt = fifo_cfg->rx_fifo.depth -
 		ipa_phy_get_rx_fifo_filled_depth(fifo_cfg->fifo_reg_base);
@@ -155,7 +155,7 @@ ipa_recv_pkts_from_tx_fifo(struct device *dev,
 	ssize_t node_size = sizeof(struct sipa_node_description_tag);
 
 	dma_addr = fifo_cfg->tx_fifo.fifo_base_addr_l |
-		(fifo_cfg->tx_fifo.fifo_base_addr_h << 8);
+		((u64)fifo_cfg->tx_fifo.fifo_base_addr_h << 32);
 
 	num = ipa_phy_get_tx_fifo_filled_depth(fifo_cfg->fifo_reg_base);
 	index = fifo_cfg->tx_fifo.rd & (fifo_cfg->tx_fifo.depth - 1);
@@ -1379,7 +1379,7 @@ static int ipa_update_rx_fifo_wptr(struct device *dev,
 
 	fifo_cfg = cfg_base + id;
 	dma_addr = fifo_cfg->rx_fifo.fifo_base_addr_l |
-		(fifo_cfg->rx_fifo.fifo_base_addr_h << 8);
+		((u64)fifo_cfg->rx_fifo.fifo_base_addr_h << 32);
 	left_cnt = fifo_cfg->rx_fifo.depth -
 		ipa_phy_get_rx_fifo_filled_depth(fifo_cfg->fifo_reg_base);
 
