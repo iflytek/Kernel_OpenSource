@@ -123,6 +123,7 @@ struct sipa_hw_data {
 	const struct ipa_register_map *ahb_reg;
 	const struct sipa_pcie_mem_intr_cfg *pcie_cfg;
 	const bool standalone_subsys;
+	const u64 dma_mask;
 };
 
 struct sipa_plat_drv_cfg {

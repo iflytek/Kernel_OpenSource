@@ -1550,6 +1550,10 @@ static int sipa_plat_drv_probe(struct platform_device *pdev_p)
 		return ret;
 	}
 
+	if (dma_set_mask_and_coherent(dev,
+				      ctrl->params_cfg.hw_data->dma_mask))
+		dev_warn(dev, "no suitable DMA availabld\n");
+
 	ctrl->suspend_stage = SIPA_SUSPEND_MASK;
 	ret = ipa_pre_init(&ctrl->params_cfg);
 	if (ret) {
@@ -1599,6 +1603,7 @@ static struct sipa_hw_data roc1_defs_data = {
 	.ahb_regnum = ROC1_AHB_MAX_REG,
 	.standalone_subsys = true,
 	.pcie_cfg = &sipa_defs_pcie,
+	.dma_mask = DMA_BIT_MASK(34),
 };
 
 static struct sipa_hw_data orca_defs_data = {
@@ -1606,6 +1611,7 @@ static struct sipa_hw_data orca_defs_data = {
 	.ahb_regnum = ORCA_AHB_MAX_REG,
 	.standalone_subsys = false,
 	.pcie_cfg = &sipa_defs_pcie,
+	.dma_mask = DMA_BIT_MASK(34),
 };
 
 static struct sipa_hw_data orca_8198d_data = {
@@ -1613,6 +1619,7 @@ static struct sipa_hw_data orca_8198d_data = {
 	.ahb_regnum = ORCA_AHB_MAX_REG,
 	.standalone_subsys = false,
 	.pcie_cfg = &sipa_orca_8198d_pcie,
+	.dma_mask = DMA_BIT_MASK(34),
 };
 
 static struct of_device_id sipa_plat_drv_match[] = {
