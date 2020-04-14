@@ -127,7 +127,7 @@ int sprd_pcie_syscon_setting(struct platform_device *pdev, char *env)
 			break;
 		}
 		if (delay)
-			msleep(delay);
+			usleep_range(delay, delay + 10);
 
 		regmap_read(iomap, reg, &tmp_val);
 		dev_info(&pdev->dev,
