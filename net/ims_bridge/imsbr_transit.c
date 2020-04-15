@@ -128,7 +128,8 @@ static int imsbr_transit_sblock_get(struct imsbr_sipc *sipc, struct sblock *blk,
 {
 	int err;
 
-	err = sblock_get(sipc->dst, sipc->channel, blk, 0);
+	/* if fail to get sblock, we wait silencely */
+	err = sblock_get(sipc->dst, sipc->channel, blk, -1);
 	if (unlikely(err < 0)) {
 		pr_err("sblock_get %s fail, error=%d\n",
 		       sipc->desc, err);
