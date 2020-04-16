@@ -324,7 +324,6 @@ static int sprd_pcie_thread(void *data)
 	unsigned long flags;
 	int ret;
 
-	set_freezable();
 	while (!kthread_should_stop()) {
 		spin_lock_irqsave(&pcie_action_lock, flags);
 		ret = wait_event_interruptible_lock_irq(ep->action_wait,
