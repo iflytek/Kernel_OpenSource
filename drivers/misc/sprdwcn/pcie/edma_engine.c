@@ -580,6 +580,7 @@ int edma_hw_pause(void)
 	u32 retries;
 	struct wcn_pcie_info *priv = get_wcn_device_info();
 
+	del_timer_sync(&edma->edma_tx_timer);
 	tmp.reg = readl_relaxed((void *)(&edma->dma_glb_reg->dma_pause.reg));
 	if (!tmp.reg)
 		wcn_dump_ep_regs(priv);
