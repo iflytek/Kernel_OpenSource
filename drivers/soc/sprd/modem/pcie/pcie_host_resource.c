@@ -40,6 +40,7 @@ enum rc_state {
 	SPRD_PCIE_WAIT_SCANNED,
 	SPRD_PCIE_SCANNED,
 	SPRD_PCIE_WAIT_REMOVED,
+	SPRD_PCIE_START_REMOVED,
 	SPRD_PCIE_REMOVED,
 	SPRD_PCIE_SCANNED_2BAR
 };
@@ -48,6 +49,7 @@ enum rc_msg {
 	SCANNED_MSG = 0,
 	BAR_SCANNED_MSG,
 	REMOVED_MSG,
+	WAIT_REMOVE_MSG,
 	START_REMOVE_MSG,
 	START_SCAN_MSG,
 };
@@ -83,6 +85,7 @@ struct sprd_pcie_res {
 	bool	reboot_ep_wait_removed;
 	bool	pcie_configured;
 	bool	ep_remove_respond;
+	bool	ep_requested;
 
 	unsigned long	action_jiff;
 
@@ -110,7 +113,9 @@ struct sprd_pcie_res {
  * ==> SPRD_PCIE_SCANNED_2BAR
  * SPRD_PCIE_SCANNED_2BAR(star remove)==>SPRD_PCIE_WAIT_REMOVED
  * SPRD_PCIE_SCANNED (start remove)==> SPRD_PCIE_WAIT_REMOVED
- * SPRD_PCIE_WAIT_REMOVED(receive ep dev removed)==>SPRD_PCIE_REMOVED
+ * SPRD_PCIE_WAIT_REMOVED (ep up) ==> SPRD_PCIE_SCANNED
+ * SPRD_PCIE_WAIT_REMOVED (remove response)==> SPRD_PCIE_START_REMOVED
+ * SPRD_PCIE_START_REMOVED(receive ep dev removed)==>SPRD_PCIE_REMOVED
  * SPRD_PCIE_REMOVED(start scan)==>SPRD_PCIE_WAIT_SCANNED
  * SPRD_PCIE_WAIT_SCANNED(receiveep dev scanned)==>SPRD_PCIE_SCANNED
  * SPRD_PCIE_WAIT_SCANNED (receive ep dev scanned 2bar)
@@ -120,6 +125,7 @@ static const char *change_msg[START_SCAN_MSG + 1] = {
 	"scanned",
 	"2bar scanned",
 	"removed",
+	"wait remove",
 	"start remove",
 	"start scan"
 };
@@ -129,6 +135,7 @@ static const char *state_msg[SPRD_PCIE_SCANNED_2BAR + 1] = {
 	"wait sacanned",
 	"scanned",
 	"wait remove",
+	"start remove",
 	"removed",
 	"2bar sacanned"
 };
@@ -148,6 +155,7 @@ static void pcie_resource_host_change_state(struct sprd_pcie_res *res,
 	switch (msg) {
 	case SCANNED_MSG:
 		if (old_state != SPRD_PCIE_WAIT_FIRST_READY
+		    && old_state != SPRD_PCIE_WAIT_REMOVED
 		    && old_state != SPRD_PCIE_WAIT_SCANNED)
 			pr_err("pcie res: %s msg err, old state=%s",
 			       change_msg[msg], state_msg[old_state]);
@@ -164,7 +172,7 @@ static void pcie_resource_host_change_state(struct sprd_pcie_res *res,
 		res->state = SPRD_PCIE_SCANNED_2BAR;
 		break;
 
-	case START_REMOVE_MSG:
+	case WAIT_REMOVE_MSG:
 		if (old_state != SPRD_PCIE_SCANNED
 			&& old_state != SPRD_PCIE_SCANNED_2BAR)
 			pr_err("pcie res: %s msg err, old state=%s",
@@ -173,8 +181,16 @@ static void pcie_resource_host_change_state(struct sprd_pcie_res *res,
 		res->state = SPRD_PCIE_WAIT_REMOVED;
 		break;
 
-	case REMOVED_MSG:
+	case START_REMOVE_MSG:
 		if (old_state != SPRD_PCIE_WAIT_REMOVED)
+			pr_err("pcie res: %s msg err, old state=%s",
+			       change_msg[msg], state_msg[old_state]);
+
+		res->state = SPRD_PCIE_START_REMOVED;
+		break;
+
+	case REMOVED_MSG:
+		if (old_state != SPRD_PCIE_START_REMOVED)
 			if (old_state != SPRD_PCIE_WAIT_FIRST_READY)
 				pr_err("pcie res: %s msg err, old state=%s",
 				       change_msg[msg], state_msg[old_state]);
@@ -260,6 +276,10 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 
 	switch (irq) {
 	case PCIE_MSI_REQUEST_RES:
+		res->ep_requested = true;
+		if (res->state == SPRD_PCIE_WAIT_REMOVED)
+			wake_up(&res->wait_ep_respond);
+
 		/*
 		 * client modem power up,
 		 * no need wake lock and no need wait resource.
@@ -274,6 +294,8 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 		break;
 
 	case PCIE_MSI_RELEASE_RES:
+		res->ep_requested = false;
+
 		/* client modem power down, no need wake lock. */
 		sprd_add_action(res->actions_queue, EP_RELEASE_ACTION);
 		break;
@@ -595,9 +617,9 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 		return;
 	}
 
-	pcie_resource_host_change_state(res, START_REMOVE_MSG);
+	pcie_resource_host_change_state(res, WAIT_REMOVE_MSG);
 
-	pr_info("pcie res: start remove!\n");
+	pr_info("pcie res: wait remove!\n");
 
 	diff = jiffies - res->action_jiff;
 	if (diff < PCIE_REMOVE_SCAN_GAP) {
@@ -627,13 +649,25 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 	 * remove it when wait ep remove respond or time out.
 	 */
 	ret = wait_event_timeout(res->wait_ep_respond,
-				 res->ep_remove_respond,
+				 res->ep_remove_respond || res->ep_requested,
 				 msecs_to_jiffies(4000));
 	if (ret < 0) {
 		/* release wakelock */
 		sprd_pms_release_wakelock(res->pms);
 		return;
 	}
+
+	/* if ep_requested, cancel remove pcie, return to scanned state. */
+	if (res->ep_requested) {
+		pcie_resource_host_change_state(res, SCANNED_MSG);
+		/* wakeup all blocked thread */
+		wake_up_interruptible_all(&res->wait_pcie_ready);
+		/* release wakelock */
+		sprd_pms_release_wakelock(res->pms);
+		return;
+	}
+
+	pcie_resource_host_change_state(res, START_REMOVE_MSG);
 
 	pr_info("pcie res: unconfig pcie\n");
 
@@ -662,6 +696,7 @@ static void sprd_pcie_resource_do_request_res(struct sprd_pcie_res *res)
 		return;
 
 	case SPRD_PCIE_WAIT_REMOVED:
+	case SPRD_PCIE_START_REMOVED:
 		res->wait_scanned = true;
 		return;
 

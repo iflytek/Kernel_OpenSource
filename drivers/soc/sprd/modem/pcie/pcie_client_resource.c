@@ -72,6 +72,7 @@ struct sprd_pcie_res {
 	bool	do_first_ready;
 	bool	wakeup_later;
 	bool	power_off;
+	bool	requested;
 
 #ifdef CONFIG_SPRD_SIPA
 	void *sipa_res;
@@ -321,6 +322,7 @@ int sprd_pcie_request_resource(u32 dst)
 		return -EINVAL;
 
 	res = g_pcie_res[dst];
+	res->requested = true;
 
 	return sprd_add_action(res->actions_queue, REQUEST_RES_ACTION);
 }
@@ -333,6 +335,7 @@ int sprd_pcie_release_resource(u32 dst)
 		return -EINVAL;
 
 	res = g_pcie_res[dst];
+	res->requested = false;
 
 	return sprd_add_action(res->actions_queue, RELEASE_RES_ACTION);
 }
@@ -508,6 +511,10 @@ static void sprd_pcie_resource_do_rc_scanned(struct sprd_pcie_res *res)
 static void sprd_pcie_resource_do_rc_removing(struct sprd_pcie_res *res)
 {
 	pr_info("pcie res: removing.\n");
+
+	/* be requested, do not send PCIE_MSI_REMOVE_RESPOND to rc. */
+	if (res->requested)
+		return;
 
 	pcie_resource_client_change_state(res, RC_REMOVING_MSG);
 
