@@ -471,35 +471,6 @@ int sprd_ep_dev_clear_doolbell_irq(int ep, int irq)
 	return 0;
 }
 
-int sprd_ep_dev_set_backup(int ep)
-{
-	struct sprd_pci_ep_dev *ep_dev;
-
-	if (ep >= PCIE_EP_NR || !g_ep_dev[ep])
-		return -ENODEV;
-
-	ep_dev = g_ep_dev[ep];
-	ep_dev->need_backup = true;
-
-	/* backup once immediately. */
-	sprd_pci_ep_dev_backup(ep_dev);
-
-	return 0;
-}
-
-int sprd_ep_dev_clear_backup(int ep)
-{
-	struct sprd_pci_ep_dev *ep_dev;
-
-	if (ep >= PCIE_EP_NR || !g_ep_dev[ep])
-		return -ENODEV;
-
-	ep_dev = g_ep_dev[ep];
-	ep_dev->need_backup = false;
-
-	return 0;
-}
-
 static inline u32 sprd_pci_ep_iatu_readl(struct sprd_pci_ep_dev *ep_dev,
 					 u32 offset)
 {
@@ -1044,8 +1015,10 @@ static int sprd_pci_ep_dev_probe(struct pci_dev *pdev,
 	}
 
 	/* restore all the config */
-	if (ep_dev->event == PCIE_EP_PROBE)
+	if (ep_dev->event == PCIE_EP_PROBE) {
+		ep_dev->need_backup = true;
 		sprd_pci_ep_dev_restore(ep_dev);
+	}
 
 	/* probe notify */
 	notify = &g_ep_dev_notify[ep_dev->ep];
@@ -1249,7 +1222,7 @@ static void sprd_pci_ep_dev_config_show(struct seq_file *m,
 	/* iatu reg regs */
 	seq_puts(m, "iatu regs reg:\n");
 	for (i = 0; i < IATU_MAX_REGION * 2; i++) {
-		base = ep_dev->cfg_base + IATU_REG_BASE + i * 100;
+		base = ep_dev->cfg_base + IATU_REG_BASE + i * 0x100;
 		seq_printf(m, "IATU[%d]:\n", i);
 		seq_printf(m, "0x%p: 0x%08x 0x%08x 0x%08x 0x%08x\n",
 			   base,
@@ -1289,7 +1262,7 @@ static void sprd_pci_ep_dev_backup_show(struct seq_file *m,
 	seq_puts(m, "iatu regs reg:\n");
 	for (i = 0; i < PCIE_SAVE_REGION_NUM; i++) {
 		seq_printf(m, "IATU[%d]:\n", i);
-		base = ep_save->cfg_base + IATU_REG_BASE + i * 100;
+		base = ep_save->cfg_base + IATU_REG_BASE + i * 0x100;
 
 		seq_printf(m, "0x%p: 0x%08x 0x%08x 0x%08x 0x%08x\n",
 			   base,
@@ -1318,7 +1291,7 @@ static int sprd_pci_ep_dev_show(struct seq_file *m, void *unused)
 		ep_save = &g_ep_save[i];
 		ep_dev = g_ep_dev[i];
 
-		if (!ep_dev && !ep_save->save_succ)
+		if (!ep_dev)
 			continue;
 
 		if (ep_save)
@@ -1326,7 +1299,7 @@ static int sprd_pci_ep_dev_show(struct seq_file *m, void *unused)
 
 		if (ep_dev)
 			sprd_pci_ep_dev_config_show(m, ep_dev);
-		else
+		else if (ep_save->save_succ)
 			sprd_pci_ep_dev_backup_show(m, ep_save, i);
 	}
 

@@ -75,8 +75,6 @@ int sprd_ep_dev_unregister_irq_handler_ex(int ep,
 
 int sprd_ep_dev_raise_irq(int ep, int irq);
 int sprd_ep_dev_clear_doolbell_irq(int ep, int irq);
-int sprd_ep_dev_set_backup(int ep);
-int sprd_ep_dev_clear_backup(int ep);
 
 void __iomem *sprd_ep_map_memory(int ep,
 				 phys_addr_t cpu_addr,

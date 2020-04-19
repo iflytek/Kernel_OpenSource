@@ -285,12 +285,6 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 		 * no need wake lock and no need wait resource.
 		 */
 		sprd_add_action(res->actions_queue, EP_REQUEST_ACTION);
-
-		/*
-		 * only after received the ep request can backup the
-		 * ep configs.
-		 */
-		sprd_ep_dev_set_backup(res->ep_dev);
 		break;
 
 	case PCIE_MSI_RELEASE_RES:
@@ -456,9 +450,6 @@ void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot)
 		modem_ctrl_poweron_modem(MDM_CTRL_WARM_RESET);
 	else
 		modem_ctrl_poweron_modem(MDM_CTRL_COLD_RESET);
-
-	/* after ep reboot, can't backup ep configs*/
-	sprd_ep_dev_clear_backup(res->ep_dev);
 
 	/* The defective chip , the first wait time must be enough long. */
 	if (sprd_pcie_is_defective_chip())
