@@ -122,7 +122,6 @@ struct sprd_pci_ep_dev {
 	spinlock_t	bar_lock;	/* bar spinlock */
 	spinlock_t	set_irq_lock;	/* set irq spinlock */
 	spinlock_t	set_bar_lock;	/* set bar spinlock */
-	unsigned long	bar_res;
 
 	u32	base_irq;
 	u32	ipa_base_irq;
@@ -143,7 +142,6 @@ struct sprd_pci_ep_dev {
 
 struct sprd_pci_ep_dev_save {
 	bool		save_succ;
-	unsigned long	bar_res;
 	void __iomem	*bar_vir[BAR_MAX];
 	void __iomem	*cpu_vir[BAR_MAX];
 	dma_addr_t		src_addr[BAR_MAX];
@@ -162,7 +160,6 @@ static void *ep_dev_handler_data[PCIE_EP_NR][PCIE_MSI_MAX_IRQ];
 static struct sprd_ep_dev_notify g_ep_dev_notify[PCIE_EP_NR];
 
 static int sprd_ep_dev_get_bar(int ep);
-static int sprd_ep_dev_put_bar(int ep, int bar);
 static int sprd_ep_dev_adjust_region(struct sprd_pci_ep_dev *ep_dev,
 				     int bar, dma_addr_t *cpu_addr_ptr,
 				     size_t *size_ptr, dma_addr_t *offset_ptr);
@@ -290,7 +287,6 @@ void __iomem *sprd_ep_map_memory(int ep,
 	bar_addr = sprd_ep_dev_map_bar(ep, bar, cpu_addr, size);
 	if (!bar_addr) {
 		pr_err("%s: map bar = %d err!\n", __func__, bar);
-		sprd_ep_dev_put_bar(ep, bar);
 		return NULL;
 	}
 
@@ -311,7 +307,6 @@ void sprd_ep_unmap_memory(int ep, const void __iomem *bar_addr)
 	for (bar = 0; bar < BAR_MAX; bar++) {
 		if (bar_addr == ep_dev->cpu_vir[bar]) {
 			sprd_ep_dev_unmap_bar(ep, bar);
-			sprd_ep_dev_put_bar(ep, bar);
 			break;
 		}
 	}
@@ -405,7 +400,7 @@ int sprd_ep_ipa_unmap(int type, const phys_addr_t cpu_addr)
 		return -EINVAL;
 	}
 
-	ep_dev->target_addr[bar] = 0;
+	ep_dev->src_addr[bar] = 0;
 	ep_dev->target_addr[bar] = 0;
 	ep_dev->map_size[bar] = 0;
 	return sprd_ep_dev_just_unmap_bar(ep_dev, bar);
@@ -529,29 +524,11 @@ static int sprd_ep_dev_get_bar(int ep)
 	ep_dev = g_ep_dev[ep];
 	spin_lock(&ep_dev->bar_lock);
 	for (bar = BAR_MIN; bar < BAR_MAX; bar++) {
-		if (ep_dev->bar[bar] && !test_bit(bar, &ep_dev->bar_res)) {
-			set_bit(bar, &ep_dev->bar_res);
+		if (ep_dev->bar[bar] && !ep_dev->src_addr[bar]) {
 			ret = bar;
 			break;
 		}
 	}
-	spin_unlock(&ep_dev->bar_lock);
-
-	return ret;
-}
-
-static int sprd_ep_dev_put_bar(int ep, int bar)
-{
-	int ret = -ENODEV;
-	struct sprd_pci_ep_dev *ep_dev;
-
-	if (ep >= PCIE_EP_NR || !g_ep_dev[ep])
-		return -ENODEV;
-
-	ep_dev = g_ep_dev[ep];
-	spin_lock(&ep_dev->bar_lock);
-	if (test_and_clear_bit(bar, &ep_dev->bar_res))
-		ret = bar;
 	spin_unlock(&ep_dev->bar_lock);
 
 	return ret;
@@ -793,7 +770,7 @@ static void __iomem *sprd_ep_dev_map_bar(int ep, int bar,
 
 	if (sprd_ep_dev_just_map_bar(ep_dev, bar, cpu_addr, size)) {
 		dev_err(dev, "ep: map bar =%d\n", bar);
-		iounmap(ep_dev->bar_vir[bar]);
+		iounmap(bar_vir);
 		return NULL;
 	}
 
@@ -903,7 +880,6 @@ static void sprd_pci_ep_dev_backup(struct sprd_pci_ep_dev *ep_dev)
 	ep_save = &g_ep_save[ep_dev->ep];
 
 	/* save some member */
-	ep_save->bar_res = ep_dev->bar_res;
 	for (i = 0; i < BAR_MAX; i++) {
 		if (!ep_dev->src_addr[i])
 			continue;
@@ -934,7 +910,6 @@ static void sprd_pci_ep_dev_restore(struct sprd_pci_ep_dev *ep_dev)
 	ep_save = &g_ep_save[ep_dev->ep];
 
 	/* save some member */
-	ep_dev->bar_res = ep_save->bar_res;
 	for (i = 0; i < BAR_MAX; i++) {
 		if (!ep_save->src_addr[i])
 			continue;
@@ -1150,7 +1125,6 @@ static void sprd_pci_ep_dev_remove(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 
 	g_ep_dev[ep_dev->ep] = NULL;
-	ep_dev->bar_res = 0;
 }
 
 static const struct pci_device_id sprd_pci_ep_dev_tbl[] = {
@@ -1242,7 +1216,6 @@ static void sprd_pci_ep_dev_save_show(struct seq_file *m,
 	u32 i;
 
 	seq_printf(m, "ep-save-%d configs:\n", ep);
-	seq_printf(m, "bar_res = 0x%lx\n", ep_save->bar_res);
 
 	for (i = 0; i < BAR_MAX; i++) {
 		seq_printf(m, "src_addr[%d] = 0x%lx\n",
