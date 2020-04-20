@@ -434,14 +434,16 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 
 	dev_emerg(&pdev->dev, "%s++\n", __func__);
 	ret = regulator_enable(ctrl->vpower);
-	if (ret < 0)
+	if (ret < 0) {
 		dev_emerg(&pdev->dev, "enable vpower failed, return %d\n", ret);
+		return ret;
+	}
 
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-resume-syscons");
 	if (ret < 0) {
 		dev_emerg(&pdev->dev,
 			"set pcie reinit syscons fail, return %d\n", ret);
-		return ret;
+		goto power_off;
 	}
 	sprd_pcie_set_regs(pci);
 
@@ -449,7 +451,7 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 	ret = dw_pcie_wait_for_link(pci);
 	if (ret < 0) {
 		dev_emerg(&pdev->dev, "reinit fail, pcie can't establish link\n");
-		return ret;
+		goto power_off;
 	}
 
 	sprd_pcie_restore_dwc_reg(pci);
@@ -458,6 +460,12 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 		dev_emerg(&pdev->dev, "get pcie aspml1.2 syscons fail\n");
 
 	return 0;
+
+power_off:
+	sprd_pcie_syscon_setting(pdev, "sprd,pcie-suspend-syscons");
+	regulator_disable(ctrl->vpower);
+
+	return ret;
 }
 
 int sprd_pcie_configure_device(struct platform_device *pdev)
@@ -529,14 +537,8 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct dw_pcie *pci;
 	struct sprd_pcie *ctrl;
-	int ret;
+	int ret, err;
 	size_t len = strlen(dev_name(dev)) + 10;
-
-	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
-	if (ret < 0) {
-		dev_err(dev, "get pcie syscons fail, return %d\n", ret);
-		return ret;
-	}
 
 	if (device_property_read_bool(dev, "no-pcie")) {
 		dev_info(dev, "no pcie device\n");
@@ -546,17 +548,6 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 	ctrl = devm_kzalloc(dev, sizeof(*ctrl) + len, GFP_KERNEL);
 	if (!ctrl)
 		return -ENOMEM;
-
-	ctrl->vpower = devm_regulator_get(&pdev->dev, "vpower");
-	if (IS_ERR(ctrl->vpower)) {
-		ret = PTR_ERR(ctrl->vpower);
-		dev_err(dev, "unable to get vpower supply %d\n", ret);
-		return ret;
-	}
-
-	ret = regulator_enable(ctrl->vpower);
-	if (ret < 0)
-		dev_err(dev, "enable vpower failed, return %d\n", ret);
 
 	pci = devm_kzalloc(dev, sizeof(*pci), GFP_KERNEL);
 	if (!pci)
@@ -569,14 +560,38 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, ctrl);
 
+	ctrl->vpower = devm_regulator_get(&pdev->dev, "vpower");
+	if (IS_ERR(ctrl->vpower)) {
+		err = PTR_ERR(ctrl->vpower);
+		if (err == -EPROBE_DEFER)
+			dev_warn(dev,
+				 "vpower supply isn't ready, defer probe\n");
+		else
+			dev_err(dev, "no vpower regulator found\n");
+
+		return err;
+	}
+
+	ret = regulator_enable(ctrl->vpower);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "enable vpower failed, return %d\n", ret);
+		return ret;
+	}
+
+	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
+	if (ret < 0) {
+		dev_err(dev, "get pcie syscons fail, return %d\n", ret);
+		goto power_off;
+	}
+
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-aspml1p2-syscons");
 	if (ret < 0)
-		dev_err(&pdev->dev, "get pcie aspml1.2 syscons fail\n");
+		dev_warn(&pdev->dev, "get pcie aspml1.2 syscons fail\n");
 
 	ret = sprd_add_pcie_port(pci, pdev);
 	if (ret) {
 		dev_err(dev, "cannot initialize rc host\n");
-		return ret;
+		goto power_off;
 	}
 
 	ctrl->is_powered = 1;
@@ -589,6 +604,12 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 	}
 
 	return 0;
+
+power_off:
+	sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
+	regulator_disable(ctrl->vpower);
+
+	return ret;
 }
 
 /* While pcie gen3 is working, AP can't suspend */
