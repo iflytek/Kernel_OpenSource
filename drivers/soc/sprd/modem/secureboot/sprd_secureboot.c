@@ -18,19 +18,17 @@
 #include <linux/string.h>
 
 u8 mode_flag;
-u8 rotpk_hash[HASH_BYTE_LEN];
+u8 rotpk_hash[HASH_BYTE_LEN + CRC_16];
 static u8 hash_key[HASH_BYTE_LEN];
+static u8 cmdline_str[4 * HASH_BYTE_LEN + 2 * CRC_16];
 
 static int __init scanner_hash(char *str)
 {
 	u8 i;
 
 	if (str) {
-		for (i = 0; i < 2 * HASH_BYTE_LEN; i++) {
-			if (i < HASH_BYTE_LEN)
-				hash_key[i] = (u8)(*str);
-			else
-				rotpk_hash[i - HASH_BYTE_LEN] = (u8)(*str);
+		for (i = 0; i < 4 * HASH_BYTE_LEN + 2 * CRC_16; i++) {
+			cmdline_str[i] = (u8)(*str);
 			str++;
 		}
 	}
@@ -50,15 +48,37 @@ int sprd_check_secure_part(u8 *partition_name)
 	return -ERANGE;
 }
 
+static u8 hexchar_to_int(u8 c)
+{
+	if (c > '9')
+		return (c - '7');
+	else
+		return (c - '0');
+}
+
 int sprd_image_verify(struct kbc_load_table_s  *p_table)
 {
-	u8 i;
+	u8 i, high_4bit, low_4bit;
 	void *vaddr;
 	u32 data_len;
 	int ret = 0;
 
 	if (!p_table->image_cnt)
 		return -ENOENT;
+
+	for (i = 0; i < HASH_BYTE_LEN; i++) {
+		high_4bit = hexchar_to_int(cmdline_str[2 * i]) << 4;
+		low_4bit = hexchar_to_int(cmdline_str[2 * i + 1]);
+		hash_key[i] = high_4bit | low_4bit;
+	}
+
+	for (i = 0; i < HASH_BYTE_LEN + CRC_16; i++) {
+		high_4bit = hexchar_to_int(cmdline_str[2 * (i +
+			HASH_BYTE_LEN)]) << 4;
+		low_4bit = hexchar_to_int(cmdline_str[2 * (i +
+			HASH_BYTE_LEN) + 1]);
+		rotpk_hash[i] = high_4bit | low_4bit;
+	}
 
 	for (i = 0; i < MAX_MODEM_NUM; i++) {
 		if (!p_table->image[i].img_name)

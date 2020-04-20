@@ -18,7 +18,7 @@
 #define RD_EFUSE_LCS     _IOR(EFUSE_MAGIC, 1, int)
 #define EFUSE_MAGIC_MAXNR 2
 
-extern u8 rotpk_hash[HASH_BYTE_LEN];
+extern u8 rotpk_hash[HASH_BYTE_LEN + CRC_16];
 struct sys_img_header {
 	u32 magic_num;
 	u32 version;
