@@ -416,7 +416,7 @@ static int get_charger_type(struct charger_manager *cm, u32 *type)
  * Returns 0 if there is no error.
  * Returns a negative value on error.
  */
-static int set_batt_cap(struct charger_manager *cm)
+static int set_batt_cap(struct charger_manager *cm, int cap)
 {
 	union power_supply_propval val;
 	struct power_supply *fuel_gauge;
@@ -428,7 +428,7 @@ static int set_batt_cap(struct charger_manager *cm)
 		return -ENODEV;
 	}
 
-	val.intval = cm->desc->cap;
+	val.intval = cap;
 	ret = power_supply_set_property(fuel_gauge, POWER_SUPPLY_PROP_CAPACITY,
 					&val);
 	power_supply_put(fuel_gauge);
@@ -3007,6 +3007,7 @@ static void cm_batt_works(struct work_struct *work)
 	}
 
 	if (batt_uV <= cm->desc->shutdown_voltage - CM_UVLO_OFFSET) {
+		set_batt_cap(cm, 0);
 		dev_err(cm->dev, "WARN: batt_uV less than uvlo, will shutdown\n");
 		orderly_poweroff(true);
 	}
@@ -3017,7 +3018,7 @@ static void cm_batt_works(struct work_struct *work)
 	if (fuel_cap != cm->desc->cap) {
 		cm->desc->cap = fuel_cap;
 		cm->desc->update_capacity_time = cur_time.tv_sec;
-		set_batt_cap(cm);
+		set_batt_cap(cm, cm->desc->cap);
 		power_supply_changed(cm->charger_psy);
 	}
 
@@ -3300,7 +3301,7 @@ static void charger_manager_shutdown(struct platform_device *pdev)
 {
 	struct charger_manager *cm = platform_get_drvdata(pdev);
 
-	set_batt_cap(cm);
+	set_batt_cap(cm, cm->desc->cap);
 }
 
 static const struct platform_device_id charger_manager_id[] = {
