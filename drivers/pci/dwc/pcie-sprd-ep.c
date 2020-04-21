@@ -161,7 +161,7 @@ static int sprd_pcie_wake_down(struct sprd_pcie *ep)
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 
-	dev_info(&pdev->dev, "%s++\n", __func__);
+	dev_info(&pdev->dev, "wake down++\n");
 	mutex_lock(&ep->sprd_pcie_mutex);
 	if (ep->is_powered) {
 		dev_warn(&pdev->dev, "pcie has been powered, do nothing\n");
@@ -197,7 +197,7 @@ static int sprd_pcie_wake_up(struct sprd_pcie *ep)
 	u32 val;
 	struct dw_pcie *pci = ep->pci;
 
-	dev_info(pci->dev, "%s++\n", __func__);
+	dev_info(pci->dev, "wake up++\n");
 	val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
 	val |= SPRD_SOFT_WAKE;
 	dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
@@ -214,7 +214,7 @@ static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 	int val;
 #endif
 
-	dev_info(pci->dev, "%s++\n", __func__);
+	dev_info(pci->dev, "reinit++\n");
 	mutex_lock(&ep->sprd_pcie_mutex);
 
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
@@ -250,7 +250,7 @@ static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 
 	ret = dw_pcie_wait_for_link(pci);
 	if (ret < 0) {
-		dev_emerg(pci->dev, "link fail after perst\n");
+		dev_err(pci->dev, "link fail after perst\n");
 		goto out;
 	} else {
 		sprd_pcie_wake_up(ep);
@@ -269,7 +269,7 @@ static int sprd_pcie_ep_shutdown(struct sprd_pcie *ep)
 	struct platform_device *pdev = to_platform_device(pci->dev);
 	struct device *dev = &pdev->dev;
 
-	dev_info(dev, "%s++\n", __func__);
+	dev_info(dev, "shutdown ++\n");
 	mutex_lock(&ep->sprd_pcie_mutex);
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
 	if (ret < 0) {
@@ -293,18 +293,12 @@ static void sprd_pcie_do_actions(struct sprd_pcie *ep)
 	list_for_each_entry_safe(pos, tmp, &ep->action_list, entry) {
 		switch (pos->action) {
 		case SPRD_PCIE_REINIT_ACTION:
-			dev_info(ep->pci->dev,
-				 "%s: action: reinit\n", __func__);
 			sprd_pcie_ep_reinit(ep);
 			break;
 		case SPRD_PCIE_SHUTDOWN_ACTION:
-			dev_info(ep->pci->dev,
-				 "%s: action: shutdown\n", __func__);
 			sprd_pcie_ep_shutdown(ep);
 			break;
 		case SPRD_PCIE_WAKE_ACTION:
-			dev_info(ep->pci->dev,
-				 "%s: action: wake\n", __func__);
 			sprd_pcie_wake_down(ep);
 			break;
 		default:
@@ -376,7 +370,7 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 	struct device *dev = &pdev->dev;
 	int i;
 
-	dev_info(dev, "irq: %d, perst val: %d\n", irq, val);
+	dev_dbg(dev, "irq: %d, perst val: %d\n", irq, val);
 	/* WORKAROUND: At present, if setting high-lever trigger, when intterupt
 	 * occurs the value read from gpio is low lever occasinally. When
 	 * setting low-level trigger has the similar problem. Temporarily read
@@ -418,8 +412,8 @@ static irqreturn_t sprd_pcie_perst_thread_irq(int irq, void *data)
 	struct device *dev = &pdev->dev;
 
 	dev_info(&pdev->dev,
-		 "%s: perst val: %d, add action: %s\n",
-		 __func__, val, !val ? "shutdown" : "reinit");
+		 "perst val: %d, add action: %s\n",
+		 val, !val ? "shutdown" : "reinit");
 	if (!val)
 		sprd_pcie_add_action(ep, SPRD_PCIE_SHUTDOWN_ACTION);
 	else {
@@ -439,7 +433,7 @@ static int sprd_add_pcie_ep(struct sprd_pcie *sprd_pcie,
 	struct device *dev = &pdev->dev;
 	struct dw_pcie *pci = sprd_pcie->pci;
 
-	dev_info(pci->dev, "%s++\n", __func__);
+	dev_info(pci->dev, "add pcie ep++\n");
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbi");
 	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
 	if (!pci->dbi_base)
@@ -480,7 +474,7 @@ static int sprd_pcie_establish_link(struct dw_pcie *pci)
 	if (ep->is_powered)
 		return -EPERM;
 
-	dev_info(pci->dev, "%s: add action: wake\n", __func__);
+	dev_info(pci->dev, "add action: wake\n");
 	sprd_pcie_add_action(ep, SPRD_PCIE_WAKE_ACTION);
 
 	return 0;
