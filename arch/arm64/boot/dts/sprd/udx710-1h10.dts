@@ -268,7 +268,7 @@
 	};
 
 	gpio_136: rfctl11 {
-		pins = "ORCA_RFCTL11_MISC";
+		pins = "ORCA_RFCTL11";
 		function = "func4";
 		gpio_136_config: rfctl11_config {
 			pins = "ORCA_RFCTL11_MISC";
