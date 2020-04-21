@@ -1240,9 +1240,6 @@ int msi_irq_handle(int irq)
 	dma_int.reg = edma->dma_chn_reg[chn].dma_int.reg;
 	msg.chn = chn;
 
-	if (!atomic_read(&edma->pcie_info->is_suspending))
-		__pm_wakeup_event(&edma->edma_pop_ws, jiffies_to_msecs(HZ / 2));
-
 	if (edma->chn_sw[chn].inout == TX) {
 		wcn_set_tx_complete_status(1);
 		clear_bit(chn, &edma->cur_chn_status);
@@ -1272,43 +1269,41 @@ int msi_irq_handle(int irq)
 					if (!priv) {
 						WCN_ERR("%s:pcie ep is null\n",
 							__func__);
-						local_irq_restore(irq_flags);
-						return -1;
+						goto error;
 					}
 					if (priv->rc_pd)
 						sprd_pcie_dump_rc_regs(
 								priv->rc_pd);
-					local_irq_restore(irq_flags);
-					return -1;
+					goto error;
 				}
 			} while (edma->dma_chn_reg[chn].dma_int.reg & 0x040400);
-
 			msg.evt = ISR_MSG_RX_POP;
-
 		} else {
 			dma_int.bit.rf_chn_rx_push_int_clr = 1;
 			edma->dma_chn_reg[chn].dma_int.reg = dma_int.reg;
 			msg.evt = ISR_MSG_RX_PUSH;
 		}
 	}
+
 	if (mchn_hw_cb_in_irq(chn) == 0) {
 		enqueue(&(edma->isr_func.q), (unsigned char *)(&msg));
 		set_wcnevent(&(edma->isr_func.q.event));
 		WCNDBG("cb not irq=%ld, chn=%d\n", irq_flags, chn);
-		local_irq_restore(irq_flags);
-		return 0;
+		goto out;
 	} else if (mchn_hw_cb_in_irq(chn) == -1) {
-		local_irq_restore(irq_flags);
 		WCN_ERR(" irq=%ld, chn=%d\n", irq_flags, chn);
-		return -1;
+		goto error;
 	}
 
 	hisrfunc(&msg);
-
 	WCNDBG("cb in irq=%ld, chn=%d\n", irq_flags, chn);
+out:
 	local_irq_restore(irq_flags);
-
 	return 0;
+
+error:
+	local_irq_restore(irq_flags);
+	return -1;
 }
 
 int edma_task(void *a)
@@ -1346,11 +1341,8 @@ static void edma_tasklet(unsigned long data)
 	struct isr_msg_queue msg = { 0 };
 	struct edma_info *edma = edma_info();
 	struct msg_q *q = &(edma->isr_func.q);
-
 	while (dequeue(q, (unsigned char *)(&msg), -1) == OK)
 		hisrfunc(&msg);
-
-
 }
 
 static void dscr_ring_deinit(int chn)
@@ -1787,8 +1779,9 @@ int edma_init(struct wcn_pcie_info *pcie_info)
 		edma->chn_sw[i].mode = -1;
 	}
 
-	wakeup_source_init(&edma->edma_push_ws, "wcn edma txrx push");
-	wakeup_source_init(&edma->edma_pop_ws, "wcn edma txrx callback");
+	wakeup_source_init(&edma->edma_push_ws, "edma txrx push");
+	wakeup_source_init(&edma->edma_pop_ws, "edma txrx cb");
+
 	mutex_init(&edma->mpool_lock);
 
 	/* Init edma tx send timeout timer */
