@@ -50,7 +50,7 @@ static struct panel_info lt9611_info = {
         /* DPI specific parameters */
         .pixel_clk = 153600000,
         .rgb_timing = {
-                .hfp = 88,
+                .hfp = 164,
                 .hbp = 148,
                 .hsync = 44,
                 .vfp = 4,
