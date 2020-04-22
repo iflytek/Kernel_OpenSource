@@ -133,12 +133,6 @@ static struct panel_cfg supported_panel[] = {
 		.drv = &jd9365_htt_driver,
 	},
 #endif
-#ifdef CONFIG_LCD_LT9611_MIPI_FHD
-	{
-		.lcd_id = 0x9611,
-		.drv = &lt9611_driver,
-	},
-#endif
 #ifdef CONFIG_LCD_RM67191_EDO_MIPI_FHD
 	{
 		.lcd_id = 0x67191,
@@ -162,6 +156,11 @@ static struct panel_cfg supported_panel[] = {
         .lcd_id = 0x5432,
         .drv = &tv105wum_driver,
     },
+#ifdef CONFIG_LCD_LT9611_MIPI_FHD
+	{
+		.lcd_id = 0x9611,
+		.drv = &lt9611_driver,
+	},
 #endif
 /* warning: the dummy lcd must be the last item in this array */
 	{

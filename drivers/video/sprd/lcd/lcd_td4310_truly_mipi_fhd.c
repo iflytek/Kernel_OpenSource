@@ -129,6 +129,16 @@ static int td4310_readid(void)
 
 static int td4310_power(int on)
 {
+#ifdef CONFIG_MIPI_TO_HDMI_SWITCH
+	sprd_gpio_request(NULL,28);
+	sprd_gpio_direction_output(NULL,28,0);
+	mdelay(10);
+
+	sprd_gpio_request(NULL,31);
+	sprd_gpio_direction_output(NULL,31,1);
+	mdelay(10);
+#endif
+
 	if (on) {
 #ifdef CONFIG_LCM_GPIO_AVDDEN
                 sprd_gpio_request(NULL, CONFIG_LCM_GPIO_AVDDEN);
