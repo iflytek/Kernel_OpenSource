@@ -34,18 +34,18 @@ static void pcie_sipa_res_wait_res_work_fn(struct work_struct *work)
 	struct pcie_sipa_res_prod *res = container_of(work,
 						      struct pcie_sipa_res_prod,
 						      wait_work);
+	enum sipa_rm_event event = SIPA_RM_EVT_GRANTED;
 
 	ret = sprd_pcie_wait_resource(res->dst, -1);
 
 	/* pcie not ready, just return. */
 	if (ret) {
 		pr_err("pcie_sipa_res: wait res error = %d!\n", ret);
-		return;
+		event = SIPA_RM_EVT_FAIL;
 	}
 
 	/* notify ipa module  that pcie is ready. */
-	sipa_rm_notify_completion(SIPA_RM_EVT_GRANTED,
-			  res->prod_id);
+	sipa_rm_notify_completion(event, res->prod_id);
 }
 
 static int pcie_sipa_res_request_resource(void *data)
