@@ -20,26 +20,6 @@
 #endif
 #include <linux/soc/sprd/hwfeature.h>
 
-#if 1
-//#undef pr_debug
-//#define pr_debug pr_emerg
-
-//#undef pr_info
-//#define pr_info pr_emerg
-
-#undef pr_err
-#define pr_err pr_emerg
-
-//#undef dev_dbg
-//#define dev_dbg dev_emerg
-
-#undef dev_info
-#define dev_info dev_emerg
-
-#undef dev_err
-#define dev_err dev_emerg
-#endif
-
 #if defined(CONFIG_SPRD_PCIE_EP_DEVICE) || defined(CONFIG_PCIE_EPF_SPRD)
 /*
  * sprd_pcie_wait_resource
