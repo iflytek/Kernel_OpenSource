@@ -429,10 +429,14 @@ void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot)
 		ret = wait_event_interruptible_timeout(res->wait_reboot_ep,
 						       res->state ==
 						       SPRD_PCIE_REMOVED, 1000);
-		if (ret < 0)
-			pr_warn("pcie res: remove pcie error: %d\n", ret);
-		else if (ret == 0)
-			pr_warn("pcie res: timeout to wait for remove pcie.\n");
+		if (ret <= 0) {
+			pr_info("pcie res: force unconfig pcie.\n");
+
+			/* start removed ep*/
+			ret = sprd_pcie_unconfigure_device(res->pcie_dev);
+			if (ret)
+				pr_err("pcie res: remove error=%d.\n!", ret);
+		}
 	}
 
 	res->state = SPRD_PCIE_REMOVED;
@@ -648,8 +652,10 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 		return;
 	}
 
-	/* if ep_requested, cancel remove pcie, return to scanned state. */
-	if (res->ep_requested) {
+	/* if ep_requested and reboot_ep_wait_removed is false,
+	 * cancel remove pcie, return to scanned state.
+	 */
+	if (res->ep_requested && !res->reboot_ep_wait_removed) {
 		pcie_resource_host_change_state(res, SCANNED_MSG);
 		/* wakeup all blocked thread */
 		wake_up_interruptible_all(&res->wait_pcie_ready);
