@@ -62,6 +62,7 @@ enum rc_actions {
 	EP_PROBE_ACTION,
 	BAR_PROBE_ACTION,
 	EP_REMOVE_ACTION,
+	EP_SCANNED_RESPOND_ACTION,
 	EP_REQUEST_ACTION,
 	EP_RELEASE_ACTION,
 	EP_READY_SCAN_ACTION,
@@ -76,6 +77,7 @@ struct sprd_pcie_res {
 	u32	scan_cnt;
 	u32	max_wait_time;
 	u32	ep_up_cnt;
+	u32	ep_reboot_cnt;
 
 	bool	wait_scanned;
 	bool	ep_dev_probe;
@@ -243,6 +245,10 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 	switch (event) {
 	case PCIE_EP_PROBE:
 		res->ep_dev_probe = true;
+		 /* make sure the member ep_dev_probe has stored in the
+		  * memory before do below actions.
+		  */
+		smp_mb();
 
 		/*  firsrt scan do somtehing */
 		if (!res->scan_cnt++)
@@ -254,11 +260,21 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 
 	case PCIE_EP_REMOVE:
 		res->ep_dev_probe = false;
+		 /* make sure the member ep_dev_probe has stored in the
+		  * memory before do below actions.
+		  */
+		smp_mb();
+
 		sprd_add_action(res->actions_queue, EP_REMOVE_ACTION);
 		break;
 
 	case PCIE_EP_PROBE_BEFORE_SPLIT_BAR:
 		res->ep_dev_probe = true;
+		 /* make sure the member ep_dev_probe has stored in the
+		  * memory before do below actions.
+		  */
+		smp_mb();
+
 		sprd_add_action(res->actions_queue, BAR_PROBE_ACTION);
 		break;
 
@@ -275,8 +291,17 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 		return IRQ_HANDLED;
 
 	switch (irq) {
+	case PCIE_MSI_SCANNED_RESPOND:
+		sprd_add_action(res->actions_queue, EP_SCANNED_RESPOND_ACTION);
+		break;
+
 	case PCIE_MSI_REQUEST_RES:
 		res->ep_requested = true;
+		 /* make sure the member ep_requested has stored in the
+		  * memory before do below actions.
+		  */
+		smp_mb();
+
 		if (res->state == SPRD_PCIE_WAIT_REMOVED)
 			wake_up(&res->wait_ep_respond);
 
@@ -289,6 +314,10 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 
 	case PCIE_MSI_RELEASE_RES:
 		res->ep_requested = false;
+		 /* make sure the member ep_requested has stored in the
+		  * memory before do below actions.
+		  */
+		smp_mb();
 
 		/* client modem power down, no need wake lock. */
 		sprd_add_action(res->actions_queue, EP_RELEASE_ACTION);
@@ -414,6 +443,10 @@ void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot)
 	sprd_pms_request_wakelock(res->pms);
 
 	res->reboot_ep_wait_removed = true;
+	 /* make sure the member reboot_ep_wait_removed
+	  * has stored in the memory before do below actions.
+	  */
+	smp_mb();
 
 	/* must removed ep before reboot ep */
 	if (b_warm_reboot) {
@@ -448,7 +481,8 @@ void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot)
 		return;
 	}
 
-	pr_info("pcie res: reboot ep.\n");
+	res->ep_reboot_cnt++;
+	pr_info("pcie res: reboot ep cnt=%d.\n", res->ep_reboot_cnt);
 
 	if (b_warm_reboot)
 		modem_ctrl_poweron_modem(MDM_CTRL_WARM_RESET);
@@ -465,6 +499,10 @@ void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot)
 	res->reboot_ep_wait_removed = false;
 	res->ep_ready_for_rescan = false;
 	res->ep_load_done = false;
+	 /* make sure the member of res has stored
+	  *  in the memory before do below actions.
+	  */
+	smp_mb();
 
 	sprd_pms_power_down_complete(res->pms);
 
@@ -637,7 +675,6 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 	res->ep_remove_respond = false;
 
 	/* notify ep removed, must before removed */
-	sprd_ep_dev_clear_doolbell_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
 	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_REMOVING);
 
 	/* waiting for ep remove respond, max time 4s,
@@ -730,11 +767,9 @@ static void sprd_pcie_resource_do_ep_probe(struct sprd_pcie_res *res)
 	pcie_resource_host_change_state(res, SCANNED_MSG);
 	res->wait_scanned = false;
 
-	if (!res->ep_ready_for_rescan) {
-		pr_info("pcie res: power up for ep.");
-		/* power up for ep until ep ready for rescan. */
-		sprd_pms_power_up(res->pms);
-	}
+	/* power up for ep until recieve ep resond scan. */
+	sprd_pms_power_up(res->pms);
+
 	/* clear removed irq and notify ep scanned */
 	sprd_ep_dev_clear_doolbell_irq(res->ep_dev,
 					   PCIE_DBEL_EP_REMOVING);
@@ -780,6 +815,12 @@ static void sprd_pcie_resource_do_ep_remove(struct sprd_pcie_res *res)
 		sprd_add_action(res->actions_queue, SCAN_PCIE_ACTION);
 }
 
+static void sprd_pcie_resource_do_ep_scaned_respond(struct sprd_pcie_res *res)
+{
+	pr_info("pcie res: ep scaned respond.");
+	sprd_pms_power_down(res->pms, false);
+}
+
 static void sprd_pcie_resource_do_ep_request(struct sprd_pcie_res *res)
 {
 	pr_info("pcie res: ep request res up cnt=%d.\n", res->ep_up_cnt);
@@ -802,9 +843,6 @@ static void sprd_pcie_resource_do_ready_scan(struct sprd_pcie_res *res)
 	pr_info("pcie res: ep ready for rescan.\n");
 
 	res->ep_ready_for_rescan = true;
-
-	pr_info("pcie res: power down for ep.");
-	sprd_pms_power_down(res->pms, false);
 
 	if (res->wait_scanned && res->ep_load_done)
 		sprd_add_action(res->actions_queue, REMOVE_PCIE_ACTION);
@@ -863,6 +901,10 @@ static void sprd_pcie_resource_do_actions(int action, void *data)
 
 	case EP_REMOVE_ACTION:
 		sprd_pcie_resource_do_ep_remove(res);
+		break;
+
+	case EP_SCANNED_RESPOND_ACTION:
+		sprd_pcie_resource_do_ep_scaned_respond(res);
 		break;
 
 	case EP_REQUEST_ACTION:

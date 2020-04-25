@@ -323,6 +323,10 @@ int sprd_pcie_request_resource(u32 dst)
 
 	res = g_pcie_res[dst];
 	res->requested = true;
+	 /* make sure the member requested has stored in the
+	  * memory before do below actions.
+	  */
+	smp_mb();
 
 	return sprd_add_action(res->actions_queue, REQUEST_RES_ACTION);
 }
@@ -336,6 +340,10 @@ int sprd_pcie_release_resource(u32 dst)
 
 	res = g_pcie_res[dst];
 	res->requested = false;
+	 /* make sure the member requested has stored in the
+	  * memory before do below actions.
+	  */
+	smp_mb();
 
 	return sprd_add_action(res->actions_queue, RELEASE_RES_ACTION);
 }
@@ -488,6 +496,9 @@ static void sprd_pcie_resource_do_epf_unlink(struct sprd_pcie_res *res)
 static void sprd_pcie_resource_do_rc_scanned(struct sprd_pcie_res *res)
 {
 	pcie_resource_client_change_state(res, RC_SCANNED_MSG);
+
+	/* send respond to rc. */
+	sprd_pci_epf_raise_irq(res->ep_fun, PCIE_MSI_SCANNED_RESPOND);
 
 	/* wakeup all blocked thread */
 	pr_info("pcie res: scanned, wakup all.\n");
