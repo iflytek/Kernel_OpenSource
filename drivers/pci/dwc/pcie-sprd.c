@@ -23,9 +23,14 @@
 #include <linux/platform_device.h>
 #include <linux/property.h>
 #include <linux/pm_runtime.h>
+#include <linux/suspend.h>
 
 #include "pcie-designware.h"
 #include "pcie-sprd.h"
+
+#define REINIT_RETRIES  200
+#define REINIT_WAIT_MIN  19000
+#define REINIT_WAIT_MAX  20000
 
 static void sprd_pcie_buserr_enable(struct dw_pcie *pci)
 {
@@ -528,6 +533,12 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 		return 0;
 	}
 
+	ctrl->retries = 0;
+	while (ctrl->reinit_disable && ctrl->retries++ < REINIT_RETRIES)
+		usleep_range(REINIT_WAIT_MIN, REINIT_WAIT_MAX);
+	if (ctrl->retries >= REINIT_RETRIES)
+		dev_warn(&pdev->dev, "system in sleep, cannot reinit\n");
+
 	ret = sprd_pcie_host_reinit(pdev);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "pcie rescan fail\n");
@@ -572,6 +583,49 @@ int sprd_pcie_unconfigure_device(struct platform_device *pdev)
 	return 0;
 }
 EXPORT_SYMBOL(sprd_pcie_unconfigure_device);
+
+#ifdef CONFIG_PM_SLEEP
+static int sprd_pcie_pm_notify(struct notifier_block *notify_block,
+			unsigned long mode, void *unused)
+{
+	struct sprd_pcie *ctrl = container_of(
+		notify_block, struct sprd_pcie, pm_notify);
+	unsigned long flags;
+
+	switch (mode) {
+	case PM_HIBERNATION_PREPARE:
+	case PM_SUSPEND_PREPARE:
+	case PM_RESTORE_PREPARE:
+		spin_lock_irqsave(&ctrl->lock, flags);
+		ctrl->reinit_disable = 1;
+		spin_unlock_irqrestore(&ctrl->lock, flags);
+		break;
+
+	case PM_POST_SUSPEND:
+	case PM_POST_HIBERNATION:
+	case PM_POST_RESTORE:
+		spin_lock_irqsave(&ctrl->lock, flags);
+		ctrl->reinit_disable = 0;
+		spin_unlock_irqrestore(&ctrl->lock, flags);
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+void sprd_pcie_register_pm_notifier(struct sprd_pcie *ctrl)
+{
+	ctrl->pm_notify.notifier_call = sprd_pcie_pm_notify;
+	register_pm_notifier(&ctrl->pm_notify);
+}
+
+void sprd_pcie_unregister_pm_notifier(struct sprd_pcie *ctrl)
+{
+	unregister_pm_notifier(&ctrl->pm_notify);
+}
+#endif
 
 static int sprd_pcie_probe(struct platform_device *pdev)
 {
@@ -635,6 +689,9 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 		ctrl->is_powered = 0;
 	}
 
+	sprd_pcie_register_pm_notifier(ctrl);
+	ctrl->reinit_disable = 0;
+
 	return 0;
 
 power_off:
@@ -648,6 +705,16 @@ err_get_sync:
 	pm_runtime_disable(dev);
 
 	return ret;
+}
+
+static int sprd_pcie_remove(struct platform_device *pdev)
+{
+	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
+
+	sprd_pcie_unregister_pm_notifier(ctrl);
+	pm_runtime_disable(&pdev->dev);
+
+	return 0;
 }
 
 /* While pcie gen3 is working, AP can't suspend */
@@ -729,6 +796,7 @@ static const struct dev_pm_ops sprd_pcie_pm_ops = {
 
 static struct platform_driver sprd_pcie_driver = {
 	.probe = sprd_pcie_probe,
+	.remove = sprd_pcie_remove,
 	.driver = {
 		.name = "sprd-pcie",
 		.suppress_bind_attrs = true,

@@ -1,6 +1,8 @@
 #include <linux/mutex.h>
+#include <linux/notifier.h>
 #include <linux/regmap.h>
 #include <linux/pcie-rc-sprd.h>
+#include <linux/spinlock_types.h>
 
 #include "pcie-designware.h"
 
@@ -45,6 +47,7 @@ struct sprd_pcie {
 	struct dw_pcie *pci;
 	struct clk *pcie_eb;
 	struct mutex sprd_pcie_mutex;
+	spinlock_t lock;
 
 #ifdef CONFIG_SPRD_IPA_INTC
 	/* These irq lines are connected to ipa level2 interrupt controller */
@@ -71,6 +74,13 @@ struct sprd_pcie {
 	struct regulator *vpower;
 	unsigned int is_wakedown:1;
 
+	/* when pci enter suspend cannot reinit the pci */
+	unsigned int reinit_disable:1;
+	int retries;
+#ifdef CONFIG_PM_SLEEP
+	struct notifier_block	pm_notify;
+#endif
+
 	struct sprd_pcie_register_event *event_reg;
 
 	wait_queue_head_t action_wait;
@@ -93,3 +103,10 @@ void sprd_pcie_save_dwc_reg(struct dw_pcie *pci);
 void sprd_pcie_restore_dwc_reg(struct dw_pcie *pci);
 int sprd_pcie_enter_pcipm_l2(struct dw_pcie *pci);
 int sprd_pcie_check_vendor_id(struct dw_pcie *pci);
+#ifdef CONFIG_PM_SLEEP
+void sprd_pcie_register_pm_notifier(struct sprd_pcie *ctrl);
+void sprd_pcie_unregister_pm_notifier(struct sprd_pcie *ctrl);
+#else
+static inline void sprd_pcie_register_pm_notifier(struct sprd_pcie *ctrl) { }
+static inline void sprd_pcie_unregister_pm_notifier(struct sprd_pcie *ctrl) { }
+#endif
