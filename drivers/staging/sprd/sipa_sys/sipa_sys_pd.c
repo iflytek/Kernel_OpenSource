@@ -324,6 +324,67 @@ static int sipa_sys_register_power_domain(struct sipa_sys_pd_drv *drv)
 	return ret;
 }
 
+#ifdef CONFIG_DEBUG_FS
+static int sipa_sys_debug_show(struct seq_file *s, void *unused)
+{
+	struct pm_domain_data *pdd;
+	struct sipa_sys_pd_drv *drv = (struct sipa_sys_pd_drv *)s->private;
+
+	seq_puts(s, "status:\n");
+	seq_puts(s, "\t0: active 1: power off\n\n");
+	seq_puts(s, "power status:\n");
+	seq_puts(s, "\t0: active 1: resuming 2: suspended 3: suspending\n\n");
+
+	seq_printf(s, "pd_on = %d sd_count = %d status = %d\n",
+		   drv->pd_on,
+		   atomic_read(&drv->gpd.sd_count),
+		   drv->gpd.status);
+
+	seq_printf(s, "device_count = %d suspended_count = %d prepared_count = %d\n",
+		   drv->gpd.device_count, drv->gpd.suspended_count,
+		   drv->gpd.prepared_count);
+
+	list_for_each_entry(pdd, &drv->gpd.dev_list, list_node)
+		seq_printf(s,
+			   "%s power status = %d, disable_depth = %d usage_cnt = %d\n",
+			   dev_name(pdd->dev), pdd->dev->power.runtime_status,
+			   pdd->dev->power.disable_depth,
+			   atomic_read(&pdd->dev->power.usage_count));
+
+	debugfs_create_symlink("sprd-sipa-sys", NULL,
+			       "/sys/kernel/debug/sprd-sipa-sys/power_domain");
+
+	return 0;
+}
+
+static int sipa_sys_debug_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, sipa_sys_debug_show, inode->i_private);
+}
+
+static const struct file_operations sipa_sys_debug_fops = {
+	.open = sipa_sys_debug_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static int sipa_sys_init_debugfs(struct platform_device *pdev)
+{
+	struct dentry *root;
+	struct sipa_sys_pd_drv *drv = platform_get_drvdata(pdev);
+
+	root = debugfs_create_dir(DRV_NAME, NULL);
+	if (!root)
+		return -ENOMEM;
+
+	debugfs_create_file("power_domain", 0444, root, drv,
+			    &sipa_sys_debug_fops);
+
+	return 0;
+}
+#endif
+
 static int sipa_sys_drv_probe(struct platform_device *pdev_p)
 {
 	int ret;
@@ -349,6 +410,12 @@ static int sipa_sys_drv_probe(struct platform_device *pdev_p)
 	ret = sipa_sys_register_power_domain(drv);
 	if (ret)
 		dev_warn(drv->dev, "sipa sys reg power domain fail!");
+
+#ifdef CONFIG_DEBUG_FS
+	ret = sipa_sys_init_debugfs(pdev_p);
+	if (ret)
+		dev_warn(drv->dev, "sipa_sys init debug fs fail\n");
+#endif
 
 	sipa_sys_init(drv);
 
