@@ -107,6 +107,11 @@
 		};
 	};
 
+	extcon_gpio: extcon-gpio {
+		compatible = "linux,extcon-usb-gpio";
+		vbus-gpio = <&pmic_eic 0 GPIO_ACTIVE_HIGH>;
+	};
+
 	dvfs_dcdc_cpu0_supply: dvfs-dcdc-cpu0-supply {
 		supply-type-sel = <0x29c 0 0>;
 		top-dvfs-adi-state = <0x88 0 0xf>;
@@ -214,12 +219,12 @@
 
 &ssphy1 {
 	vdd-supply = <&vddusb33>;
-	extcon = <&pmic_typec>;
+	extcon = <&extcon_gpio>;
 	status = "okay";
 };
 
 &usb3_1 {
-	extcon = <&pmic_typec>;
+	extcon = <&extcon_gpio>, <&pmic_typec>;
 	status = "okay";
 };
 
