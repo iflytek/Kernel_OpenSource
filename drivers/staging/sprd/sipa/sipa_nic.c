@@ -350,6 +350,35 @@ static void sipa_nic_rm_res_release(struct sipa_nic *nic)
 	spin_unlock_irqrestore(&res->lock, flags);
 }
 
+int sipa_nic_check_suspend_condition(void)
+{
+	int i;
+	unsigned long flags;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+
+	for (i = 0; i < SIPA_NIC_MAX; i++) {
+		if (!ctrl->nic[i])
+			continue;
+
+		if (atomic_read(&ctrl->nic[i]->status) != NIC_OPEN)
+			continue;
+
+		spin_lock_irqsave(&ctrl->nic[i]->rm_res.lock, flags);
+		if (!ctrl->nic[i]->rm_res.need_request) {
+			spin_unlock_irqrestore(&ctrl->nic[i]->rm_res.lock,
+					       flags);
+			dev_info(ctrl->ctx->pdev,
+				 "nic can't sleep netid = %d, src_mask = 0x%x",
+				 ctrl->nic[i]->netid, ctrl->nic[i]->src_mask);
+			return -EAGAIN;
+		}
+		spin_unlock_irqrestore(&ctrl->nic[i]->rm_res.lock, flags);
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(sipa_nic_check_suspend_condition);
+
 int sipa_nic_open(enum sipa_term_type src, int netid,
 		  sipa_notify_cb cb, void *priv)
 {

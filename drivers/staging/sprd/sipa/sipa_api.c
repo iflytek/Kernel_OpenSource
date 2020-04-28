@@ -558,6 +558,9 @@ static int sipa_ep_prepare_suspend(struct device *dev)
 	if (ctrl->suspend_stage & SIPA_EP_SUSPEND)
 		return 0;
 
+	if (sipa_nic_check_suspend_condition())
+		return -EAGAIN;
+
 	if (sipa_check_ep_suspend(dev, SIPA_EP_USB) ||
 	    sipa_check_ep_suspend(dev, SIPA_EP_WIFI) ||
 	    sipa_check_ep_suspend(dev, SIPA_EP_PCIE) ||

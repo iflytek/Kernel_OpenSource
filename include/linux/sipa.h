@@ -381,6 +381,9 @@ int sipa_nic_rx(enum sipa_nic_id nic_id, struct sk_buff **out_skb);
 int sipa_nic_trigger_flow_ctrl_work(enum sipa_nic_id, int err);
 
 int sipa_nic_rx_has_data(enum sipa_nic_id nic_id);
+
+int sipa_nic_check_suspend_condition(void);
+
 /*
  * IPA hash table managment
  */
