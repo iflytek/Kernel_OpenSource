@@ -16,6 +16,7 @@
 #include <linux/sipa.h>
 #include "sipa_priv.h"
 #include "sipa_hal.h"
+#include "sipa_rm_res.h"
 
 static void sipa_usb_rm_notify_cb(void *user_data,
 				  enum sipa_rm_event event,
@@ -26,9 +27,8 @@ static void sipa_usb_rm_notify_cb(void *user_data,
 	pr_debug("%s: event %d\n", __func__, event);
 	switch (event) {
 	case SIPA_RM_EVT_GRANTED:
-		complete(&ctrl->usb_rm_comp);
-		break;
 	case SIPA_RM_EVT_RELEASED:
+		complete(&ctrl->usb_rm_comp);
 		break;
 	default:
 		pr_err("%s: unknown event %d\n", __func__, event);
@@ -63,16 +63,31 @@ EXPORT_SYMBOL(sipa_rm_usb_cons_deinit);
 int sipa_rm_set_usb_eth_up(void)
 {
 	int ret;
+	long wait_ret;
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+	struct sipa_rm_resource *resource;
 
 	reinit_completion(&ctrl->usb_rm_comp);
 	ret = sipa_rm_request_resource(SIPA_RM_RES_CONS_USB);
 	if (ret) {
 		if (ret != -EINPROGRESS)
 			return ret;
-		wait_for_completion(&ctrl->usb_rm_comp);
-	}
+		wait_ret = wait_for_completion_timeout(&ctrl->usb_rm_comp,
+							msecs_to_jiffies(1000));
+		if (wait_ret == 0) {
+			return -ETIMEDOUT;
+		} else {
+			struct sipa_rm_resource **res =
+					sipa_rm_get_all_resource();
 
+			resource = res[SIPA_RM_RES_CONS_USB];
+			if (resource != NULL &&
+				resource->state == SIPA_RM_GRANTED)
+				return 0;
+			else
+				return -EINVAL;
+		}
+	}
 	return ret;
 }
 EXPORT_SYMBOL(sipa_rm_set_usb_eth_up);
