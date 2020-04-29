@@ -125,8 +125,13 @@ static void sipa_dele_wq_handler(struct work_struct *work)
 
 	ret = smsg_send(smsg_work->delegator->dst,
 			&smsg_work->msg, -1);
-	if (ret)
-		pr_err("smsg send fail %d\n", ret);
+	if (ret) {
+		enum sipa_rm_res_id prod_id = smsg_work->delegator->prod_id;
+
+		if (smsg_work->msg.flag == SMSG_FLG_DELE_REQUEST)
+			sipa_rm_notify_completion(SIPA_RM_EVT_FAIL, prod_id);
+		pr_err("smsg send fail %d prod_id = %d\n", ret, prod_id);
+	}
 }
 
 static void sipa_dele_notify_handler(struct work_struct *work)
