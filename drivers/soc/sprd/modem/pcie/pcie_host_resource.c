@@ -418,10 +418,11 @@ int sprd_pcie_wait_load_resource(u32 dst)
 		res->state == SPRD_PCIE_SCANNED_2BAR)
 		return 0;
 
-	return wait_event_interruptible(
+	return wait_event_interruptible_timeout(
 		res->wait_load_ready,
 		(res->state == SPRD_PCIE_SCANNED ||
-		res->state == SPRD_PCIE_SCANNED_2BAR));
+		res->state == SPRD_PCIE_SCANNED_2BAR),
+		res->max_wait_time);
 }
 
 void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot)
@@ -461,7 +462,8 @@ void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot)
 			sprd_add_action(res->actions_queue, REMOVE_PCIE_ACTION);
 		ret = wait_event_interruptible_timeout(res->wait_reboot_ep,
 						       res->state ==
-						       SPRD_PCIE_REMOVED, 1000);
+						       SPRD_PCIE_REMOVED,
+						       msecs_to_jiffies(5000));
 		if (ret <= 0) {
 			pr_info("pcie res: force unconfig pcie.\n");
 
@@ -718,7 +720,6 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 	sprd_pms_release_wakelock(res->pms);
 }
 
-
 static void sprd_pcie_resource_do_request_res(struct sprd_pcie_res *res)
 {
 	pr_info("pcie res: request resource, state=%d.\n", res->state);
@@ -777,6 +778,7 @@ static void sprd_pcie_resource_do_ep_probe(struct sprd_pcie_res *res)
 
 	/* wakeup all blocked thread */
 	wake_up_interruptible_all(&res->wait_pcie_ready);
+	wake_up_interruptible_all(&res->wait_load_ready);
 
 	/* reboot_ep_wait_removed must remove. */
 	if (res->reboot_ep_wait_removed)
