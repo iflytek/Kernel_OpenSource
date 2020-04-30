@@ -82,7 +82,6 @@ static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
 
 	if (!strncmp(dev->name, SIPA_ETH_VPCIE_PREF, strlen(SIPA_ETH_VPCIE_PREF))) {
 		skb->protocol = eth_type_trans(skb, dev);
-		pr_info("skb %p, protocol %d\n", skb, ntohs(skb->protocol));
 		skb_reset_network_header(skb);
 
 		/* It is a workaround for asic design defect,
@@ -286,10 +285,10 @@ READ_AGAIN:
 		 * So do rx_handler manually to prevent
 		 * sipa_eth from stopping receiving pkts.
 		 */
-		if (atomic_read(&sipa_eth->rx_evt)) {
+		if (atomic_read(&sipa_eth->rx_evt) || atomic_read(&sipa_eth->rx_busy)) {
 			pr_debug("rx evt recv after napi complete");
 			atomic_set(&sipa_eth->rx_evt, 0);
-			sipa_eth_rx_handler((void *)sipa_eth);
+			napi_schedule(&sipa_eth->napi);
 		}
 	}
 
