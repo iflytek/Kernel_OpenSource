@@ -1764,11 +1764,15 @@ static bool cm_charger_is_support_fchg(struct charger_manager *cm)
 	union power_supply_propval val;
 	int ret, i;
 
-	for (i = 0; desc->psy_charger_stat[i]; i++) {
-		psy = power_supply_get_by_name(desc->psy_charger_stat[i]);
+	if (!desc->psy_fast_charger_stat)
+		return false;
+
+	for (i = 0; desc->psy_fast_charger_stat[i]; i++) {
+		psy = power_supply_get_by_name(desc->psy_fast_charger_stat[i]);
+
 		if (!psy) {
 			dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
-				desc->psy_charger_stat[i]);
+				desc->psy_fast_charger_stat[i]);
 			continue;
 		}
 
@@ -3102,15 +3106,34 @@ static struct charger_desc *of_cm_parse_desc(struct device *dev)
 
 	/* chargers */
 	of_property_read_u32(np, "cm-num-chargers", &num_chgs);
+
 	if (num_chgs) {
 		/* Allocate empty bin at the tail of array */
 		desc->psy_charger_stat = devm_kzalloc(dev, sizeof(char *)
 						* (num_chgs + 1), GFP_KERNEL);
 		if (desc->psy_charger_stat) {
 			int i;
+
 			for (i = 0; i < num_chgs; i++)
 				of_property_read_string_index(np, "cm-chargers",
 						i, &desc->psy_charger_stat[i]);
+		} else {
+			return ERR_PTR(-ENOMEM);
+		}
+	}
+
+	/* fast chargers */
+	of_property_read_u32(np, "cm-num-fast-chargers", &num_chgs);
+	if (num_chgs) {
+		/* Allocate empty bin at the tail of array */
+		desc->psy_fast_charger_stat = devm_kzalloc(dev, sizeof(char *)
+						* (num_chgs + 1), GFP_KERNEL);
+		if (desc->psy_fast_charger_stat) {
+			int i;
+
+			for (i = 0; i < num_chgs; i++)
+				of_property_read_string_index(np, "cm-fast-chargers",
+						i, &desc->psy_fast_charger_stat[i]);
 		} else {
 			return ERR_PTR(-ENOMEM);
 		}
@@ -3971,8 +3994,10 @@ void cm_notify_event(struct power_supply *psy, enum cm_event_types type,
 	list_for_each_entry(cm, &cm_list, entry) {
 		if (match_string(cm->desc->psy_charger_stat, -1,
 				 psy->desc->name) >= 0 ||
-				 match_string(&cm->desc->psy_fuel_gauge,
-					      -1, psy->desc->name) >= 0) {
+		    match_string(cm->desc->psy_fast_charger_stat,
+				 -1, psy->desc->name) >= 0 ||
+		    match_string(&cm->desc->psy_fuel_gauge,
+				 -1, psy->desc->name) >= 0) {
 			found_power_supply = true;
 			break;
 		}

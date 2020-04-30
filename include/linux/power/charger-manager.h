@@ -264,6 +264,7 @@ struct charger_desc {
 	enum data_source battery_present;
 
 	const char **psy_charger_stat;
+	const char **psy_fast_charger_stat;
 
 	int num_charger_regulators;
 	struct charger_regulator *charger_regulators;
