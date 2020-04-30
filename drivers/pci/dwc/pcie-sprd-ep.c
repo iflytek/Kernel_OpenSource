@@ -225,7 +225,10 @@ static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 	}
 	ep->is_powered = true;
 
+	/* wait 1ms until pcie establish link */
+	usleep_range(1000, 1100);
 	sprd_pcie_setup_ep(&pci->ep);
+	usleep_range(1000, 1100);
 	dw_pcie_setup(pci);
 
 #ifdef CONFIG_PCIE_SPRD_SPLIT_BAR
