@@ -892,9 +892,12 @@ void sipa_prepare_modem_power_off(void)
 	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
-	if (ctrl->params_cfg.enable_cnt && ctrl->power_flag)
-		hal_cfg->fifo_ops.ctrl_receive(fifo_cfg->fifo_id,
+	if (ctrl->params_cfg.enable_cnt && ctrl->power_flag) {
+		hal_cfg->fifo_ops.ctrl_receive(SIPA_FIFO_PCIE_DL,
 					       fifo_cfg, true);
+		hal_cfg->fifo_ops.ctrl_receive(SIPA_FIFO_CP_UL,
+					       fifo_cfg, true);
+	}
 }
 EXPORT_SYMBOL(sipa_prepare_modem_power_off);
 
@@ -904,9 +907,12 @@ void sipa_prepare_modem_power_on(void)
 	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
 	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
 
-	if (ctrl->params_cfg.enable_cnt && ctrl->power_flag)
-		hal_cfg->fifo_ops.ctrl_receive(fifo_cfg->fifo_id,
+	if (ctrl->params_cfg.enable_cnt && ctrl->power_flag) {
+		hal_cfg->fifo_ops.ctrl_receive(SIPA_FIFO_PCIE_DL,
 					       fifo_cfg, false);
+		hal_cfg->fifo_ops.ctrl_receive(SIPA_FIFO_CP_UL,
+					       fifo_cfg, false);
+	}
 }
 EXPORT_SYMBOL(sipa_prepare_modem_power_on);
 
