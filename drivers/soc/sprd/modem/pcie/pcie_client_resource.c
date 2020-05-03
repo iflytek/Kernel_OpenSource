@@ -277,6 +277,9 @@ int sprd_pcie_wait_resource(u32 dst, int timeout)
 
 	res = g_pcie_res[dst];
 
+	if (res->power_off)
+		return -EBUSY;
+
 	/*  pcie ready, return succ immediately */
 	if (res->state == SPRD_PCIE_SCANNED)
 		return 0;

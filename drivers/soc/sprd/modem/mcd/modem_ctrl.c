@@ -24,6 +24,7 @@
 #include <linux/uaccess.h>
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>
+#include <linux/syscore_ops.h>
 #include <linux/sipc.h>
 #include <linux/gpio/consumer.h>
 #include <linux/reboot.h>
@@ -514,6 +515,7 @@ static ssize_t modem_ctrl_write(struct file *filp,
 		dev_err(mcd_dev->dev, "Invalid input!\n");
 		return ret;
 	}
+
 	if (mcd_dev->soc_type == ROC1_SOC) {
 		if (mcd_cmd >= MDM_CTRL_POWER_OFF &&
 		    mcd_cmd <= MDM_CTRL_SET_CFG)
@@ -770,21 +772,32 @@ static int modem_ctrl_remove(struct platform_device *pdev)
 
 static void modem_ctrl_shutdown(struct platform_device *pdev)
 {
-	if (mcd_dev->soc_type == ROC1_SOC) {
-		atomic_notifier_call_chain(&modem_ctrl_chain,
-					   MDM_POWER_OFF, NULL);
-		/*
-		 * sleep 500 ms for other module to do something
-		 * before orca power down.
-		 */
-		msleep(500);
-		modem_ctrl_send_cmd_to_cp(MDM_POWER_OFF);
-		/* Sleep 500ms for cp to deal power down process otherwise
-		 * cp will not power down clearly.
-		 */
-		msleep(500);
-	}
+	pr_info("mcd: ctrl shutdown\n");
+
+	atomic_notifier_call_chain(&modem_ctrl_chain,
+				   MDM_POWER_OFF, NULL);
+	/*
+	 * sleep 500 ms for other module to do something
+	 * before orca power down.
+	 */
+	msleep(500);
 }
+
+static void modem_ctrl_core_shutdown(void)
+{
+	pr_info("mcd: core shutdown\n");
+
+	if (mcd_dev->soc_type == ROC1_SOC)
+		modem_ctrl_send_cmd_to_cp(MDM_POWER_OFF);
+}
+
+/*
+ * Stop cpufreq at shutdown to make sure it isn't holding any locks
+ * or mutexes when secondary CPUs are halted.
+ */
+static struct syscore_ops modem_ctrl_syscore_ops = {
+	.shutdown = modem_ctrl_core_shutdown,
+};
 
 static const struct of_device_id modem_ctrl_match_table[] = {
 	{.compatible = "sprd,roc1-modem-ctrl", },
@@ -804,6 +817,8 @@ static struct platform_driver modem_ctrl_driver = {
 static int __init modem_ctrl_init(void)
 {
 	modem_ctrl_class = class_create(THIS_MODULE, "modem_ctrl");
+	register_syscore_ops(&modem_ctrl_syscore_ops);
+
 	if (IS_ERR(modem_ctrl_class))
 		return PTR_ERR(modem_ctrl_class);
 	return platform_driver_register(&modem_ctrl_driver);

@@ -411,6 +411,9 @@ int sprd_pcie_wait_load_resource(u32 dst)
 	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
 		return -EINVAL;
 
+	if (res->power_off)
+		return -EBUSY;
+
 	res = g_pcie_res[dst];
 
 	/* can load image, return immediately */
@@ -723,6 +726,9 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 static void sprd_pcie_resource_do_request_res(struct sprd_pcie_res *res)
 {
 	pr_info("pcie res: request resource, state=%d.\n", res->state);
+
+	if (res->reboot_ep_wait_removed)
+		return;
 
 	switch (res->state) {
 	case SPRD_PCIE_SCANNED:
