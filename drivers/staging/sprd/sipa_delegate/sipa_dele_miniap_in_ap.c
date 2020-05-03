@@ -134,7 +134,8 @@ static void miniap_dele_power_off(void)
 static int miniap_dele_restart_handle(struct notifier_block *this,
 				      unsigned long mode, void *cmd)
 {
-	if (mode == MDM_CTRL_COLD_RESET)
+	if (mode == MDM_CTRL_COLD_RESET || mode == MDM_POWER_OFF ||
+	    mode == MDM_CTRL_WARM_RESET)
 		miniap_dele_power_off();
 
 	return NOTIFY_DONE;
