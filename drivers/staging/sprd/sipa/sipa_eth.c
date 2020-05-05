@@ -719,6 +719,7 @@ DEFINE_SIMPLE_ATTRIBUTE(fops_gro_enable,
 static int sipa_eth_debugfs_mknod(void *root, void *data)
 {
 	struct SIPA_ETH *sipa_eth = (struct SIPA_ETH *)data;
+	struct dentry *subroot;
 
 	if (!sipa_eth)
 		return -ENODEV;
@@ -726,9 +727,13 @@ static int sipa_eth_debugfs_mknod(void *root, void *data)
 	if (!root)
 		return -ENXIO;
 
-	debugfs_create_file(SIPA_ETH_IFACE_PREF,
+	subroot = debugfs_create_dir(sipa_eth->netdev->name, (struct dentry *)root);
+	if (!subroot)
+		return -ENOMEM;
+
+	debugfs_create_file("stats",
 			    0444,
-			    (struct dentry *)root,
+			    subroot,
 			    data,
 			    &sipa_eth_debug_fops);
 
