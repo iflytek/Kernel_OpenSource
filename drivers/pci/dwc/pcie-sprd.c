@@ -35,7 +35,7 @@ static void sprd_pcie_set_regs(struct dw_pcie *pci)
 			   LTSSM_EN | L1_AUXCLK_EN);
 
 	val = dw_pcie_readl_dbi(pci, PCIE_SS_REG_BASE + APB_CLKFREQ_TIMEOUT);
-	val |= BUSERR_EN;
+	val |= APB_CLKFREQ | BUSERR_EN;
 	dw_pcie_writel_dbi(pci, PCIE_SS_REG_BASE + APB_CLKFREQ_TIMEOUT, val);
 }
 

@@ -102,7 +102,8 @@
 #define  LTSSM_EN			(0x1 << 0)
 #define  L1_AUXCLK_EN			(0x1 << 8)
 #define APB_CLKFREQ_TIMEOUT		0x4
-#define  BUSERR_EN			(0xC << 0)
+#define  BUSERR_EN			(0x1 << 12)
+#define  APB_CLKFREQ			0x19a
 /*
  * iATU Unroll-specific register definitions
  * From 4.80 core version the address translation will be made by unroll
