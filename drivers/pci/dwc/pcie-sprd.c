@@ -470,6 +470,7 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 	struct pci_host_bridge *bridge;
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 
+	dev_info(&pdev->dev, "%s++\n", __func__);
 	/*
 	 * If sprd_pcie_probe() return before mallocing memory for struct
 	 * sprd_pcie, no one can access any memory of this struct.
@@ -506,9 +507,12 @@ int sprd_pcie_unconfigure_device(struct platform_device *pdev)
 	struct pci_host_bridge *bridge;
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 
+	dev_info(&pdev->dev, "%s++\n", __func__);
+	mutex_lock(&ctrl->sprd_pcie_mutex);
 	/* In order to avoid someone removing PCIe before establishing link */
 	if (!ctrl->is_powered) {
 		dev_err(&pdev->dev, "PCIe hasn't been scanned yet!\n");
+		mutex_unlock(&ctrl->sprd_pcie_mutex);
 		return -ENODEV;
 	}
 
@@ -521,6 +525,7 @@ int sprd_pcie_unconfigure_device(struct platform_device *pdev)
 		dev_err(&pdev->dev,
 			 "please ignore pcie unconfigure failure\n");
 	ctrl->is_powered = 0;
+	mutex_unlock(&ctrl->sprd_pcie_mutex);
 
 	return 0;
 }
@@ -587,6 +592,8 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 		dev_err(dev, "cannot initialize rc host\n");
 		goto power_off;
 	}
+
+	mutex_init(&ctrl->sprd_pcie_mutex);
 
 	ctrl->is_powered = 1;
 
