@@ -27,16 +27,33 @@
 #include "pcie-designware.h"
 #include "pcie-sprd.h"
 
-static void sprd_pcie_set_regs(struct dw_pcie *pci)
+static void sprd_pcie_buserr_enable(struct dw_pcie *pci)
 {
 	u32 val;
-
-	dw_pcie_writel_dbi(pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
-			   LTSSM_EN | L1_AUXCLK_EN);
 
 	val = dw_pcie_readl_dbi(pci, PCIE_SS_REG_BASE + APB_CLKFREQ_TIMEOUT);
 	val |= APB_CLKFREQ | BUSERR_EN;
 	dw_pcie_writel_dbi(pci, PCIE_SS_REG_BASE + APB_CLKFREQ_TIMEOUT, val);
+}
+
+/*
+ * 1. First configure your own configuration space register, and then establish
+ * the link to avoid the register exception caused by PCI instability during
+ * the link process.
+ * 2. Clear the ltssm_en bit before power down the pci to avoid establishing
+ * the link immediately after the next power up.
+ */
+static void sprd_pcie_ltssm_enable(struct dw_pcie *pci, bool enable)
+{
+	u32 val;
+
+	val = dw_pcie_readl_dbi(pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3);
+	if (enable)
+		dw_pcie_writel_dbi(pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
+				   val | LTSSM_EN);
+	else
+		dw_pcie_writel_dbi(pci, PCIE_SS_REG_BASE + PE0_GEN_CTRL_3,
+				   val &  ~LTSSM_EN);
 }
 
 #ifdef CONFIG_SPRD_IPA_INTC
@@ -73,11 +90,21 @@ static void sprd_pcie_assert_reset(struct pcie_port *pp)
 static int sprd_pcie_host_init(struct pcie_port *pp)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+	int ret;
 
 	sprd_pcie_assert_reset(pp);
 
+	sprd_pcie_buserr_enable(pci);
+
+	if (!device_property_read_bool(pci->dev, "ep-poweron-late")) {
+		ret = sprd_pcie_check_vendor_id(pci);
+		if (ret)
+			return ret;
+	}
+
 	dw_pcie_setup_rc(pp);
 
+	sprd_pcie_ltssm_enable(pci, true);
 	if (IS_ENABLED(CONFIG_PCI_MSI))
 		dw_pcie_msi_init(pp);
 
@@ -156,47 +183,15 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 	struct sprd_pcie *ctrl = data;
 	struct dw_pcie *pci = ctrl->pci;
 	int value = gpiod_get_value(ctrl->gpiod_wakeup);
-	u32 irq_flags = irq_get_trigger_type(irq);
-	u32 expect = (irq_flags & IRQF_TRIGGER_HIGH) ? 1 : 0;
-	int i;
 
-	/*
-	 * WORKAROUND: At present, if setting high-level trigger, when
-	 * interrupt occurs the value read from gpio is low level occasinally.
-	 * When setting low-level trigger has the similar problem. Temporarily
-	 * read multiple times gpio value to ensure the value is consistent
-	 * with the trigger level.
-	 */
 	dev_dbg(pci->dev, "wake up irq enter value:%d\n", value);
 
-	for (i = 0; i < 100; i++) {
-		if (value != expect)
-			value = gpiod_get_value(ctrl->gpiod_wakeup);
-		else {
-			if (!value) {
-				irq_flags &= ~IRQF_TRIGGER_LOW;
-				irq_flags |= IRQF_TRIGGER_HIGH;
-			} else {
-				irq_flags &= ~IRQF_TRIGGER_HIGH;
-				irq_flags |= IRQF_TRIGGER_LOW;
-			}
-
-			irq_set_irq_type(irq, irq_flags);
-
-			if (!value && !ctrl->is_powered)
-				sprd_pcie_notify_client(ctrl,
-					SPRD_PCIE_EVENT_WAKEUP);
-
-			pm_wakeup_hard_event(pci->dev);
-			return IRQ_HANDLED;
-		}
+	if (!ctrl->is_powered) {
+		sprd_pcie_notify_client(ctrl, SPRD_PCIE_EVENT_WAKEUP);
+		pm_wakeup_hard_event(pci->dev);
 	}
 
-	dev_err(pci->dev,
-		"pci wake irq cannot get expect val. val:%d, expect:%d\n",
-		value, expect);
-
-	return IRQ_NONE;
+	return IRQ_HANDLED;
 }
 
 static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
@@ -216,8 +211,6 @@ static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
 
 	pp = &pci->pp;
 	pp->ops = &sprd_pcie_host_ops;
-
-	sprd_pcie_set_regs(pci);
 
 	ctrl = platform_get_drvdata(to_platform_device(pci->dev));
 
@@ -295,7 +288,7 @@ static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
 		 "%s wakeup", dev_name(dev));
 	ret = devm_request_threaded_irq(dev, ctrl->wakeup_irq,
 					sprd_pcie_wakeup_irq, NULL,
-					IRQF_TRIGGER_LOW | IRQF_NO_SUSPEND,
+					IRQF_TRIGGER_FALLING | IRQF_NO_SUSPEND,
 					ctrl->wakeup_label, ctrl);
 	if (ret < 0)
 		dev_warn(dev, "cannot request wakeup irq\n");
@@ -330,6 +323,7 @@ static int sprd_pcie_host_uninit(struct platform_device *pdev)
 			dev_info(&pdev->dev, "NOTE: RC can't enter l2\n");
 	}
 
+	sprd_pcie_ltssm_enable(pci, false);
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-suspend-syscons");
 	if (ret < 0)
 		dev_warn(&pdev->dev,
@@ -406,6 +400,7 @@ static int sprd_pcie_host_shutdown(struct platform_device *pdev)
 	 */
 	sprd_pcie_remove_bus(bus);
 	sprd_pcie_save_dwc_reg(pci);
+	sprd_pcie_ltssm_enable(pci, false);
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
 	if (ret < 0)
 		dev_err(&pdev->dev,
@@ -441,9 +436,16 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 			"set pcie reinit syscons fail, return %d\n", ret);
 		goto power_off;
 	}
-	sprd_pcie_set_regs(pci);
+
+	sprd_pcie_buserr_enable(pci);
+
+	ret = sprd_pcie_check_vendor_id(pci);
+	if (ret)
+		return ret;
 
 	dw_pcie_setup_rc(pp);
+
+	sprd_pcie_ltssm_enable(pci, true);
 	ret = dw_pcie_wait_for_link(pci);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "reinit fail, pcie can't establish link\n");

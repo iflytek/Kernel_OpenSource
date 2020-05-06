@@ -89,3 +89,4 @@ void sprd_pcie_clear_unhandled_msi(struct dw_pcie *pci);
 void sprd_pcie_save_dwc_reg(struct dw_pcie *pci);
 void sprd_pcie_restore_dwc_reg(struct dw_pcie *pci);
 int sprd_pcie_enter_pcipm_l2(struct dw_pcie *pci);
+int sprd_pcie_check_vendor_id(struct dw_pcie *pci);

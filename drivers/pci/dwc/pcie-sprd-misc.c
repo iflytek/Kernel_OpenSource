@@ -310,3 +310,21 @@ void sprd_pcie_dump_rc_regs(struct platform_device *pdev)
 	}
 }
 EXPORT_SYMBOL(sprd_pcie_dump_rc_regs);
+
+/* Check pci vendor id before modify its own config registers */
+int sprd_pcie_check_vendor_id(struct dw_pcie *pci)
+{
+	u16 val;
+	int retries;
+
+	for (retries = 0; retries < 100; retries++) {
+		val = dw_pcie_readw_dbi(pci, PCI_VENDOR_ID);
+		if (val == PCI_VENDOR_ID_SYNOPSYS)
+			return 0;
+		usleep_range(50, 100);
+	}
+
+	dev_err(pci->dev, "the vendor id is:0x%8x, retries:%d", val, retries);
+
+	return -ETIMEDOUT;
+}
