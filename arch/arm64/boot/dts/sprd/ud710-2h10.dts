@@ -1278,9 +1278,9 @@
 
 &pcie1 {
 	sprd,pcie-startup-syscons =
-		<&pmu_apb_regs 0 0
-			 REG_PMU_APB_RESERVED_REG
-			 0x20000
+		<&pmu_apb_regs 2 0
+			 REG_PMU_APB_PWR_STATUS0_DBG
+			 MASK_PMU_APB_PD_IPA_SYS_STATE
 			 0x0>,
 		<&anlg_phy_g6_regs 1 0
 			 REG_ANLG_PHY_G6_ANALOG_PCIEPLL_V_PCIEPLL_V_CTRL6
@@ -1290,55 +1290,35 @@
 			 REG_ANLG_PHY_G6_ANALOG_PCIEPLL_V_PCIEPLL_V_CTRL0
 			 MASK_ANLG_PHY_G6_ANALOG_PCIEPLL_V_RG_PCIEPLLV_DIVN
 			 0x3e00>,
-		<&pmu_apb_regs 0 0
-			 REG_PMU_APB_PCIEPLL_V_REL_CFG
-			 MASK_PMU_APB_PCIEPLL_V_FRC_ON
-			 0x100>,
-		<&pmu_apb_regs 2 0
-			 REG_PMU_APB_SLEEP_STATUS
-			 MASK_PMU_APB_IPA_SLP_STATUS
-			 0x6000000>,
-		<&pmu_apb_regs 2 0
-			 REG_PMU_APB_PWR_STATUS0_DBG
-			 MASK_PMU_APB_PD_IPA_SYS_STATE
-			 0x0>,
-		<&ipa_ahb_regs 0 0
-			 REG_IPA_AHB_IPA_EB
-			 MASK_IPA_AHB_PCIE3_EB
-			 0x80>,
-		<&anlg_phy_g6_regs 0 150
+		<&anlg_phy_g6_regs 0 0
 			 REG_ANLG_PHY_G6_ANALOG_PCIEPLL_V_PCIEPLL_V_CTRL0
 			 MASK_ANLG_PHY_G6_ANALOG_PCIEPLL_V_DIFF_OR_SING_SEL
 			 0x1>,
+		<&pmu_apb_regs 0 150
+			 REG_PMU_APB_PCIEPLL_V_REL_CFG
+			 MASK_PMU_APB_PCIEPLL_V_FRC_ON
+			 0x100>,
+		<&ipa_ahb_regs 0 150
+			 REG_IPA_AHB_IPA_EB
+			 MASK_IPA_AHB_PCIE3_EB
+			 0x80>,
 		<&pmu_apb_regs 0 2000
 			 REG_PMU_APB_PCIE_PERST_CTRL_CFG
 			 MASK_PMU_APB_REG_PCIE3_PERST_N_ASSERT
 			 0x0>;
 	sprd,pcie-resume-syscons =
-		<&pmu_apb_regs 0 0
-			REG_PMU_APB_PCIEPLL_V_REL_CFG
-			MASK_PMU_APB_PCIEPLL_V_IPA_SEL
-			0>,
-		<&pmu_apb_regs 0 0
-			 REG_PMU_APB_PCIEPLL_V_REL_CFG
-			 MASK_PMU_APB_PCIEPLL_V_FRC_ON
-			 0x100>,
-		<&pmu_apb_regs 2 0
-			 REG_PMU_APB_SLEEP_STATUS
-			 MASK_PMU_APB_IPA_SLP_STATUS
-			 0x6000000>,
 		<&pmu_apb_regs 2 0
 			 REG_PMU_APB_PWR_STATUS0_DBG
 			 MASK_PMU_APB_PD_IPA_SYS_STATE
 			 0x0>,
-		<&ipa_ahb_regs 0 0
+		<&pmu_apb_regs 0 150
+			 REG_PMU_APB_PCIEPLL_V_REL_CFG
+			 MASK_PMU_APB_PCIEPLL_V_FRC_ON
+			 0x100>,
+		<&ipa_ahb_regs 0 150
 			 REG_IPA_AHB_IPA_EB
 			 MASK_IPA_AHB_PCIE3_EB
 			 0x80>,
-		<&anlg_phy_g6_regs 0 150
-			 REG_ANLG_PHY_G6_ANALOG_PCIEPLL_V_PCIEPLL_V_CTRL0
-			 MASK_ANLG_PHY_G6_ANALOG_PCIEPLL_V_DIFF_OR_SING_SEL
-			 0x1>,
 		<&pmu_apb_regs 0 2000
 			 REG_PMU_APB_PCIE_PERST_CTRL_CFG
 			 MASK_PMU_APB_REG_PCIE3_PERST_N_ASSERT
@@ -1360,16 +1340,7 @@
 		<&pmu_apb_regs 0 0
 			 REG_PMU_APB_PCIEPLL_V_REL_CFG
 			 MASK_PMU_APB_PCIEPLL_V_FRC_ON
-			 0x0>,
-		<&anlg_phy_g6_regs 0 0
-			 REG_ANLG_PHY_G6_ANALOG_PCIEPLL_V_PCIEPLL_V_CTRL0
-			 MASK_ANLG_PHY_G6_ANALOG_PCIEPLL_V_DIFF_OR_SING_SEL
 			 0x0>;
-	sprd,pcie-aspml1p2-syscons =
-		<&pmu_apb_regs 1 0
-			 REG_PMU_APB_RESERVED_REG
-			 (0x1 << 17)     /* no corresponding macro */
-			 0>;
 };
 
 &pin_controller {
