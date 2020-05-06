@@ -24,6 +24,12 @@ extern u32 wcn_print_level;
 
 #define WCNDBG(fmt, args...)
 
+#define WCN_ERR_RATELIMIT(fmt, args...)\
+	pr_err_ratelimited(" error: " fmt, ## args)
+
+#define WCN_INFO_RATELIMIT(fmt, args...)\
+	pr_info_ratelimited(": " fmt, ## args)
+
 #if 0
 #ifdef CONFIG_WCN_USER
 #define WCNDBG(fmt, args...)

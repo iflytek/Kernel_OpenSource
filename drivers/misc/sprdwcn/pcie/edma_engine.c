@@ -833,7 +833,7 @@ static int edma_pending_q_buffer(int chn, void *head, void *tail, int num)
 	q = &(edma->chn_sw[chn].pending_q);
 
 	if ((q->wt + 1) % (q->max) == q->rd) {
-		WCN_ERR("%s(%d) full\n", __func__, chn);
+		WCN_ERR_RATELIMIT("%s(%d) full\n", __func__, chn);
 		return ERROR;
 	}
 	q->ring[q->wt].head = head;
