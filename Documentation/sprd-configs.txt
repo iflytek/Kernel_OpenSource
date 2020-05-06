@@ -11384,24 +11384,34 @@ CONFIG_PRINTK_TIME
 	[must] debug
 	[missing plat description] none
 	[function] Add time stamp in kernel log.
+CONFIG_PRINTK_TIME_BOOT
+	[arch] arm64
+	[plat] orca
+	[missing plat] none
+	[field] menu
+	[subsys] debug
+	[must] debug
+	[missing plat description] none
+	[function] Selecting this option causes the time stamps of printk() to be
+		stamped with the adjusted boottime clock.
 CONFIG_PRINTK_TIME_LOCAL
 	[arch] all
-	[plat] all
-	[missing plat] none
+	[plat] roc1,sharkl3,sharkl5,sharkl5_32
+	[missing plat]
 	[field]
 	[subsys]
 	[must]
-	[missing plat description] none
+	[missing plat description]
 	[function]
 CONFIG_PRINTK_TIME_TYPE
 	[arch] all
 	[plat] all
 	[missing plat] none
-	[field]
-	[subsys]
-	[must]
+	[field] code
+	[subsys] debug
+	[must] debug
 	[missing plat description] none
-	[function]
+	[function] Timestamps format value of printk() 0-4.
 CONFIG_PROBE_EVENTS
 	[arch] arm
 	[plat] sharkl5_32
