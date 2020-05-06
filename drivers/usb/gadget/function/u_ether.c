@@ -475,9 +475,10 @@ static int prealloc_sg(struct list_head *list, struct usb_ep *ep, u32 n,
 		if (!req)
 			return list_empty(list) ? -ENOMEM : 0;
 
+		list_add(&req->list, list);
 		req->complete = tx_complete;
 		if (!sg_supported)
-			goto add_list;
+			continue;
 		req->sg = kmalloc(
 				DL_MAX_PKTS_PER_XFER *
 				sizeof(struct scatterlist),
@@ -486,19 +487,22 @@ static int prealloc_sg(struct list_head *list, struct usb_ep *ep, u32 n,
 			goto extra;
 		sg_ctx = kmalloc(sizeof(*sg_ctx), GFP_ATOMIC);
 		if (!sg_ctx)
-			goto extra;
+			goto extra1;
 		req->context = sg_ctx;
 		req->buf = kzalloc(DL_MAX_PKTS_PER_XFER * hlen,
 					GFP_ATOMIC);
 		if (!req->buf)
-			goto extra;
-add_list:
-		list_add(&req->list, list);
+			goto extra2;
 	}
 	return 0;
 
+extra2:
+	kfree(req->context);
+
+extra1:
+	kfree(req->sg);
+
 extra:
-	/* free extras */
 	for (;;) {
 		struct list_head	*next;
 
@@ -510,8 +514,15 @@ extra:
 			break;
 
 		req = container_of(next, struct usb_request, list);
+
+		if (!sg_supported)
+			continue;
+
+		kfree(req->buf);
+		kfree(req->context);
+		kfree(req->sg);
 	}
-	return 0;
+	return -ENOMEM;
 }
 
 static int prealloc(struct list_head *list, struct usb_ep *ep, unsigned n)
