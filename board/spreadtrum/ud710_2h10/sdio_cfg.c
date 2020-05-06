@@ -56,7 +56,7 @@ const struct sdio_base_info sdio_ctrl_info[2] = {
 	"vddgen0",
 	"vddemmccore",
 	{
-		.mmc_dly = 0x00000000
+		.mmc_dly = 0x9c9c9d7f
 	},
 },
 {
