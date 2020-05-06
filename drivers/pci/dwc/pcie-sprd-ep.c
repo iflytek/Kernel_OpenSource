@@ -395,7 +395,7 @@ static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 				irq_flags |= IRQF_TRIGGER_LOW;
 			}
 			irq_set_irq_type(irq, irq_flags);
-			pm_wakeup_hard_event(pci->dev);
+			pm_wakeup_dev_event(pci->dev, 1000, true);
 			return IRQ_WAKE_THREAD;
 		}
 	}
@@ -559,6 +559,8 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+	device_init_wakeup(dev, true);
+
 	init_waitqueue_head(&ep->action_wait);
 	INIT_LIST_HEAD(&ep->action_list);
 	mutex_init(&ep->sprd_pcie_mutex);
@@ -586,6 +588,8 @@ static int sprd_pcie_ep_remove(struct platform_device *pdev)
 		list_del(&pos->entry);
 		kfree(pos);
 	}
+
+	device_init_wakeup(&pdev->dev, false);
 
 	return 0;
 }
