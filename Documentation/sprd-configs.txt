@@ -12604,12 +12604,12 @@ CONFIG_SLUB_DEBUG
 	[function] Increase debug efficiency for memory covered issue
 CONFIG_SLUB_DEBUG_ON
 	[arch] arm64
-	[plat] orca,roc1,sharkl3,sharkl5
-	[missing plat] none
+	[plat] roc1,sharkl3,sharkl5
+	[missing plat] orca
 	[field] code
 	[subsys] mm
 	[must] debug
-	[missing plat description] none
+	[missing plat description]
 	[function] Increase debug efficiency for memory covered issue,
 	   depends on SLUB && SLUB_DEBUG
 CONFIG_SMARTJOYPLUS_FF
