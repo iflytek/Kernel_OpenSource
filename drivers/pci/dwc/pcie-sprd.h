@@ -69,12 +69,15 @@ struct sprd_pcie {
 	unsigned int is_powered:1;
 	unsigned int is_suspended:1;
 	struct regulator *vpower;
+	unsigned int is_wakedown:1;
 
 	struct sprd_pcie_register_event *event_reg;
 
 	wait_queue_head_t action_wait;
 	struct task_struct *action_thread;
 	struct list_head action_list;
+
+	struct timer_list timer;
 
 	size_t label_len; /* pcie controller device length + 10 */
 	char wakeup_label[0];

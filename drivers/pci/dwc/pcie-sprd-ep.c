@@ -174,15 +174,14 @@ static int sprd_pcie_wake_down(struct sprd_pcie *ep)
 			"set pcie startup syscons fail, return %d\n", ret);
 		goto out;
 	}
+	ep->is_powered = true;
 
 	val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
 	val &= ~SPRD_SOFT_WAKE;
 	dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
-	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
-	if (ret < 0)
-		dev_err(&pdev->dev,
-			"set pcie shutdown syscons fail, return %d\n", ret);
 
+	mod_timer(&ep->timer, jiffies + msecs_to_jiffies(5000));
+	ep->is_wakedown = true;
 out:
 	mutex_unlock(&ep->sprd_pcie_mutex);
 	return ret;
@@ -217,16 +216,24 @@ static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 	dev_info(pci->dev, "reinit++\n");
 	mutex_lock(&ep->sprd_pcie_mutex);
 
-	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-startup-syscons");
-	if (ret < 0) {
-		dev_err(&pdev->dev,
-			"set pcie reinit syscons fail, return %d\n", ret);
-		goto out;
+	/* check whether pcie has been powered on in the wake down action */
+	if (!ep->is_powered) {
+		ret = sprd_pcie_syscon_setting(pdev,
+				"sprd,pcie-startup-syscons");
+		if (ret < 0) {
+			dev_err(&pdev->dev,
+				"set pcie startup syscons fail, return %d\n",
+				ret);
+			goto out;
+		}
+		ep->is_powered = true;
 	}
-	ep->is_powered = true;
 
 	/* wait 1ms until pcie establish link */
 	usleep_range(1000, 1100);
+	ret = sprd_pcie_check_vendor_id(pci);
+	if (ret)
+		return ret;
 	sprd_pcie_setup_ep(&pci->ep);
 	usleep_range(1000, 1100);
 	dw_pcie_setup(pci);
@@ -252,15 +259,17 @@ static int sprd_pcie_ep_reinit(struct sprd_pcie *ep)
 #endif
 
 	ret = dw_pcie_wait_for_link(pci);
-	if (ret < 0) {
+	if (ret < 0)
 		dev_err(pci->dev, "link fail after perst\n");
-		goto out;
-	} else {
-		sprd_pcie_wake_up(ep);
+	else
 		dw_pcie_ep_linkup(&pci->ep);
-	}
 
 out:
+	if (ep->is_wakedown) {
+		del_timer(&ep->timer);
+		ep->is_wakedown = false;
+	}
+	sprd_pcie_wake_up(ep);
 	mutex_unlock(&ep->sprd_pcie_mutex);
 	return ret;
 }
@@ -356,6 +365,16 @@ static int sprd_pcie_add_action(struct sprd_pcie *ep, unsigned int action)
 	return 0;
 }
 
+static void sprd_pcie_timeout(unsigned long data)
+{
+	struct sprd_pcie *ep = (struct sprd_pcie *)data;
+
+	dev_err(ep->pci->dev, "sprd pcie wait for link timeout\n");
+	del_timer(&ep->timer);
+	sprd_pcie_wake_up(ep);
+	ep->is_wakedown = false;
+}
+
 /*
  * PERST# (high active)from root complex to wake up CP.
  *
@@ -412,17 +431,15 @@ static irqreturn_t sprd_pcie_perst_thread_irq(int irq, void *data)
 	int val = gpiod_get_value(ep->gpiod_perst);
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
-	struct device *dev = &pdev->dev;
 
 	dev_info(&pdev->dev,
 		 "perst val: %d, add action: %s\n",
 		 val, !val ? "shutdown" : "reinit");
 	if (!val)
 		sprd_pcie_add_action(ep, SPRD_PCIE_SHUTDOWN_ACTION);
-	else {
-		pm_stay_awake(dev);
+	else
 		sprd_pcie_add_action(ep, SPRD_PCIE_REINIT_ACTION);
-	}
+
 
 	return IRQ_HANDLED;
 }
@@ -457,6 +474,10 @@ static int sprd_add_pcie_ep(struct sprd_pcie *sprd_pcie,
 
 	ep->phys_base = res->start;
 	ep->addr_size = resource_size(res);
+
+	ret = sprd_pcie_check_vendor_id(pci);
+	if (ret)
+		return ret;
 
 	ret = dw_pcie_ep_init(ep);
 	if (ret) {
@@ -565,6 +586,7 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&ep->action_list);
 	mutex_init(&ep->sprd_pcie_mutex);
 
+	setup_timer(&ep->timer, sprd_pcie_timeout, (unsigned long)ep);
 	ep->action_thread = kthread_run(sprd_pcie_thread, ep,
 					"%s", "sprd_pcie_ep");
 	if (IS_ERR(ep->action_thread)) {
