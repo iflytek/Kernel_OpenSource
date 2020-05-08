@@ -400,6 +400,12 @@ static int gnss_tsen_disable(int type)
 static void gnss_power_on(bool enable)
 {
 	int ret;
+#ifdef	CONFIG_SC2355
+#define MAX_CHANGE_CLK_RETRY_CNT 100
+	int retry_cnt = 0;
+	unsigned int cp_freq, arm_cfg, temp, apb_cfg;
+	unsigned int regaddr, regval;
+#endif
 
 	GNSSCOMM_INFO("%s:enable=%d,current gnss_status=%d\n", __func__,
 			enable, gnss_common_ctl_dev.gnss_status);
@@ -421,6 +427,95 @@ static void gnss_power_on(bool enable)
 #ifdef CONFIG_UMW2652
 		if (wcn_get_xtal_26m_clk_type() == WCN_CLOCK_TYPE_TSX)
 			gnss_tsen_disable(TSEN_EXT);
+#endif
+
+#ifdef	CONFIG_SC2355
+		ret = sprdwcn_bus_reg_read(CGM_GNSS_FAKE_CFG, &cp_freq, 4);
+		if (ret < 0) {
+			GNSSCOMM_ERR("%s read CGM_GNSS_FAKE_CFG error:%d\n",
+				__func__, ret);
+		}
+		GNSSCOMM_INFO("%s CGM_GNSS_FAKE_CFG:0x%x\n",
+				__func__, cp_freq);
+
+		while ((cp_freq != 0) &&
+				(retry_cnt < MAX_CHANGE_CLK_RETRY_CNT)) {
+			msleep(20);
+			retry_cnt++;
+			ret = sprdwcn_bus_reg_read(
+					CGM_GNSS_FAKE_CFG, &cp_freq, 4);
+			if (ret < 0) {
+				GNSSCOMM_ERR("%s get GNSS_FAKE_CFG err:%d\n",
+					__func__, ret);
+			}
+			GNSSCOMM_INFO("%s CGM_GNSS_FAKE_CFG:0x%x\n",
+				__func__, cp_freq);
+
+			for (regaddr = 0x40BA0000; regaddr <= 0x40BA002C;
+				 regaddr += 4) {
+				ret = sprdwcn_bus_reg_read(regaddr, &regval, 4);
+				if (ret < 0) {
+					GNSSCOMM_ERR("%s get addr[%x] err:%d\n",
+						__func__, regaddr, ret);
+				}
+				GNSSCOMM_INFO("%s regaddr[0x%x]:regval[0x%x]\n",
+					__func__, regaddr, regval);
+			}
+		}
+
+		if (retry_cnt == MAX_CHANGE_CLK_RETRY_CNT) {
+			//config reg CGM_GNSS_FAKE_CFG
+			temp = cp_freq & ~(BIT(8) | BIT(9));
+			temp = temp & ~(BIT(0) | BIT(1));
+			GNSSCOMM_INFO("%s set CGM_GNSS_FAKE_CFG temp:0x%x\n",
+				__func__, temp);
+			ret = sprdwcn_bus_reg_write(
+					CGM_GNSS_FAKE_CFG, &temp, 4);
+			if (ret < 0) {
+				GNSSCOMM_ERR("%s set GNSS_FAKE_CFG err:%d\n",
+					__func__, ret);
+			}
+
+			//config reg CGM_GNSS_ARM_CFG
+			ret = sprdwcn_bus_reg_read(
+					CGM_GNSS_ARM_CFG, &arm_cfg, 4);
+			if (ret < 0) {
+				GNSSCOMM_ERR("%s get CGM_GNSS_ARM_CFG err:%d\n",
+					__func__, ret);
+			}
+			GNSSCOMM_INFO("%s get CGM_GNSS_ARM_CFG:0x%x\n",
+				__func__, arm_cfg);
+
+			temp = arm_cfg & ~(BIT(8) | BIT(9));
+			GNSSCOMM_INFO("%s before set CGM_GNSS_ARM_CFG:0x%x\n",
+				__func__, temp);
+			ret = sprdwcn_bus_reg_write(
+					CGM_GNSS_ARM_CFG, &temp, 4);
+			if (ret < 0) {
+				GNSSCOMM_ERR("%s set CGM_GNSS_ARM_CFG err:%d\n",
+					__func__, ret);
+			}
+
+			//config reg CGM_GNSS_APB_CFG
+			ret = sprdwcn_bus_reg_read(
+					CGM_GNSS_APB_CFG, &apb_cfg, 4);
+			if (ret < 0) {
+				GNSSCOMM_ERR("%s get CGM_GNSS_APB_CFG err:%d\n",
+					__func__, ret);
+			}
+			GNSSCOMM_INFO("%s read CGM_GNSS_APB_CFG:0x%x\n",
+				__func__, apb_cfg);
+
+			temp = apb_cfg & ~(BIT(0));
+			GNSSCOMM_INFO("%s before set CGM_GNSS_APB_CFG:0x%x\n",
+				__func__, temp);
+			ret = sprdwcn_bus_reg_write(
+					CGM_GNSS_APB_CFG, &temp, 4);
+			if (ret < 0) {
+				GNSSCOMM_ERR("%s set CGM_GNSS_APB_CFG err:%d\n",
+					__func__, ret);
+			}
+		}
 #endif
 		ret = stop_marlin(gnss_common_ctl_dev.gnss_subsys);
 		if (ret != 0)
