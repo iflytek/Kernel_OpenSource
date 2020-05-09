@@ -26,6 +26,7 @@
 #define MPOOL_SIZE	0x10000
 #define MAX_PRINT_BYTE_NUM 8
 #define EDMA_TX_TIMER_INTERVAL_MS	1000
+#define EDMA_WIFI_TX_TIMER_INTERVAL_MS	200
 #define IRQ_MONITOR_TIMER_INTERVAL_MS	2000
 
 static int hisrfunc_debug;
@@ -545,6 +546,45 @@ static int edma_pop_link(int chn, struct desc *__head, struct desc *__tail,
 	return 0;
 }
 
+
+static void edma_wf_tx_timer_expire(unsigned long data)
+{
+	WCN_ERR("edma wifi tx send timeout\n");
+	if (!wcn_get_edma_status())
+		return;
+	if (edma_dump_glb_reg() < 0)
+		return;
+
+	edma_dump_chn_reg(10);
+}
+
+static void edma_tx_timer_expire(unsigned long data)
+{
+	struct edma_info *edma = (struct edma_info *)data;
+	int i;
+
+	WCN_ERR("edma tx send timeout\n");
+	if (!wcn_get_edma_status())
+		return;
+	wcn_set_tx_complete_status(1);
+
+	if (edma_dump_glb_reg() < 0)
+		return;
+
+	for (i = 0; i < 16; i++) {
+		if (test_bit(i, &edma->cur_chn_status))
+			edma_dump_chn_reg(i);
+	}
+}
+
+void edma_del_tx_timer(void)
+{
+	struct edma_info *edma = edma_info();
+
+	del_timer_sync(&edma->edma_tx_timer);
+	del_timer_sync(&edma->edma_wf_tx_timer);
+}
+
 static int edma_hw_tx_req(int chn)
 {
 	struct edma_info *edma = edma_info();
@@ -552,6 +592,13 @@ static int edma_hw_tx_req(int chn)
 	/* 1s timeout */
 	mod_timer(&edma->edma_tx_timer, jiffies +
 		  EDMA_TX_TIMER_INTERVAL_MS * HZ / 1000);
+
+	/* wifi tx 200ms timeout */
+	if (chn == 10) {
+		mod_timer(&edma->edma_wf_tx_timer, jiffies +
+			  EDMA_WIFI_TX_TIMER_INTERVAL_MS * HZ / 1000);
+	}
+
 	wcn_set_tx_complete_status(2);
 	edma->dma_chn_reg[chn].dma_tx_req.reg = 1;
 
@@ -580,7 +627,7 @@ int edma_hw_pause(void)
 	u32 retries;
 	struct wcn_pcie_info *priv = get_wcn_device_info();
 
-	del_timer_sync(&edma->edma_tx_timer);
+	edma_del_tx_timer();
 	tmp.reg = readl_relaxed((void *)(&edma->dma_glb_reg->dma_pause.reg));
 	if (!tmp.reg)
 		wcn_dump_ep_regs(priv);
@@ -753,11 +800,11 @@ int edma_push_link(int chn, void *head, void *tail, int num)
 		return -1;
 	}
 	if (num > edma->chn_sw[chn].dscr_ring.free) {
-		WCN_INFO("%s@%d err,chn:%d num:%d free:%d\n",
+		WCN_ERR("%s@%d err,chn:%d num:%d free:%d\n",
 			 __func__, __LINE__, chn, num,
 			  edma->chn_sw[chn].dscr_ring.free);
 		/* dscr not enough */
-		return -1;
+		return ERROR_PUSH_NUM;
 	}
 
 	WCN_DBG("%s(chn=%d, head=0x%p, tail=0x%p, num=%d)\n",
@@ -1244,6 +1291,10 @@ int msi_irq_handle(int irq)
 		wcn_set_tx_complete_status(1);
 		clear_bit(chn, &edma->cur_chn_status);
 		del_timer(&edma->edma_tx_timer);
+		/* wifi tx timer handle */
+		if (chn == 10)
+			del_timer(&edma->edma_wf_tx_timer);
+
 		if (irq % 2 == 0) {
 			dma_int.bit.rf_chn_tx_pop_int_clr = 1;
 			edma->dma_chn_reg[chn].dma_int.reg = dma_int.reg;
@@ -1699,32 +1750,6 @@ int edma_dump_glb_reg(void)
 	return 0;
 }
 
-static void edma_tx_timer_expire(unsigned long data)
-{
-	struct edma_info *edma = (struct edma_info *)data;
-	int i;
-
-	WCN_ERR("edma tx send timeout\n");
-	if (!wcn_get_edma_status())
-		return;
-	wcn_set_tx_complete_status(1);
-
-	if (edma_dump_glb_reg() < 0)
-		return;
-
-	for (i = 0; i < 16; i++) {
-		if (test_bit(i, &edma->cur_chn_status))
-			edma_dump_chn_reg(i);
-	}
-}
-
-void edma_del_tx_timer(void)
-{
-	struct edma_info *edma = edma_info();
-
-	del_timer(&edma->edma_tx_timer);
-}
-
 int edma_init(struct wcn_pcie_info *pcie_info)
 {
 	unsigned int i, ret, *reg;
@@ -1785,9 +1810,12 @@ int edma_init(struct wcn_pcie_info *pcie_info)
 	mutex_init(&edma->mpool_lock);
 
 	/* Init edma tx send timeout timer */
-	init_timer(&edma->edma_tx_timer);
-	edma->edma_tx_timer.data = (unsigned long) edma;
-	edma->edma_tx_timer.function = edma_tx_timer_expire;
+	setup_timer(&edma->edma_tx_timer, edma_tx_timer_expire,
+				(unsigned long) edma);
+
+	/* Init edma wifi tx send timeout timer */
+	setup_timer(&edma->edma_wf_tx_timer, edma_wf_tx_timer_expire,
+				(unsigned long) edma);
 
 	WCN_INFO("%s done\n", __func__);
 
