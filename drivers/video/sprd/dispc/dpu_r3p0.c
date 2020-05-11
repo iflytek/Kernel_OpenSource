@@ -769,9 +769,13 @@ static void dpu_dpi_init(struct dispc_context *ctx)
 	if (ctx->if_type == SPRD_DISPC_IF_DPI) {
 		/*use dpi as interface */
 		reg->dpu_cfg0 &= ~(BIT(0));
-
-		/* disalbe halt enable for SPRD DSI */
-		/* reg_val |= BIT(16); */
+		/*
+		 * FIXME:
+		 * Dpu halt enable for SPRD DSI.
+                 * Dpi_ctrl reg is static,  which just take affect after dpu_run().
+                 * So kernel cfg is not useful when first boot. We must enable it in uboot.
+                 */
+		reg_val |= BIT(16);
 
 		reg->dpi_ctrl = reg_val;
 
