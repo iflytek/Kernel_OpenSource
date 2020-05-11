@@ -97,6 +97,7 @@ misc:sprd_vsp:
 misc:sprd_jpg:
 staging:sprd:sfp:
 staging:sprd:sipa:
+staging:sprd:pam_ipa:
 staging:android:ion:
 soc:sprd:iommu:
 misc:audio:
