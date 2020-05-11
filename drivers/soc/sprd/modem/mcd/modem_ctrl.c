@@ -787,7 +787,7 @@ static void modem_ctrl_core_shutdown(void)
 {
 	pr_info("mcd: core shutdown\n");
 
-	if (mcd_dev->soc_type == ROC1_SOC)
+	if (mcd_dev && mcd_dev->soc_type == ROC1_SOC)
 		modem_ctrl_send_cmd_to_cp(MDM_POWER_OFF);
 }
 
