@@ -107,13 +107,13 @@ int sprd_get_imgversion(antirb_image_type imgType, unsigned int* swVersion)
         return ret;
     }
 
-    printf("%s: rpmb read blk %d successful \n", __func__, block_ind);
+    debugf("%s: rpmb read blk %d successful \n", __func__, block_ind);
 
     if (IMAGE_SYSTEM == imgType || IMAGE_VENDOR == imgType) {
         memcpy((void *)&imgver, data_rd, sizeof(struct sprd_img_ver_t));
 
         if(imgver.magic != SPRD_IMGVER_MAGIC) {
-            printf("invalid sprd imgversion magic %x exp %x \n",
+            debugf("invalid sprd imgversion magic %x exp %x \n",
                 imgver.magic, SPRD_IMGVER_MAGIC);
             return -1;
         }
@@ -121,7 +121,7 @@ int sprd_get_imgversion(antirb_image_type imgType, unsigned int* swVersion)
         memcpy((void *)&modem_imgver, data_rd, sizeof(struct sprd_modem_img_ver_t));
 
         if(modem_imgver.magic != SPRD_IMGVER_MAGIC) {
-            printf("invalid sprd imgversion magic %x exp %x \n",
+            debugf("invalid sprd imgversion magic %x exp %x \n",
                 modem_imgver.magic, SPRD_IMGVER_MAGIC);
             return -1;
         }

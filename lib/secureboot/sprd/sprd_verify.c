@@ -63,17 +63,17 @@ void dumpHex(const char *title, uint8_t * data, int len)
 {
 	int i, j;
 	int N = len / 16 + 1;
-	printf("%s\n", title);
-	printf("dumpHex:%d bytes", len);
+	debugf("%s\n", title);
+	debugf("dumpHex:%d bytes", len);
 	for (i = 0; i < N; i++) {
-		printf("\r\n");
+		debugf("\r\n");
 		for (j = 0; j < 16; j++) {
 			if (i * 16 + j >= len)
 				goto end;
-			printf("%02x", data[i * 16 + j]);
+			debugf("%02x", data[i * 16 + j]);
 		}
 	}
-end:	printf("\r\n");
+end:	debugf("\r\n");
 	return;
 }
 
@@ -524,18 +524,18 @@ void sprd_get_vboot_key(uint8_t * load_buf,uint8_t *key,uint32_t ubootkey_from)
 	}
 	else
 	{
-		secf("load_buf is 0x%x.\n", load_buf);
-		secf("sechdr_offset is 0x%llx.\n", sechdr_offset);
+		debugf("load_buf is 0x%x.\n", load_buf);
+		debugf("sechdr_offset is 0x%llx.\n", sechdr_offset);
 		sechdr_addr = (load_buf + sechdr_offset);
-		secf("sechdr_addr is 0x%x.\n", sechdr_addr);
+		debugf("sechdr_addr is 0x%x.\n", sechdr_addr);
 
 		vboot_signheader = (sprdsignedimageheader *)(sechdr_addr);
 	}
 
 	cert_addr = sechdr_addr + (vboot_signheader->cert_offset - sechdr_offset);
 
-	secf("sechdr_addr: 0x%llx. cert_addr: 0x%llx. cert_addr: 0x%llx. cert_addr: 0x%x. \n", sechdr_addr, cert_addr, (uint64_t)cert_addr, (uint32_t)cert_addr);
-	secf("sechdr_offset is 0x%llx, sechdr_addr->cert_offset is 0x%llx.\n", sechdr_offset, vboot_signheader->cert_offset);
+	debugf("sechdr_addr: 0x%llx. cert_addr: 0x%llx. cert_addr: 0x%llx. cert_addr: 0x%x. \n", sechdr_addr, cert_addr, (uint64_t)cert_addr, (uint32_t)cert_addr);
+	debugf("sechdr_offset is 0x%llx, sechdr_addr->cert_offset is 0x%llx.\n", sechdr_offset, vboot_signheader->cert_offset);
 
 	vboot_cert = (sprd_keycert *)cert_addr;
 	dumpHex("cert_key", vboot_cert->hash_key, SPRD_RSA4096PUBK_HASHLEN);

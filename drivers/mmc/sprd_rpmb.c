@@ -252,14 +252,14 @@ uint32_t rpmb_read_writecount(void)
 	if ((op_result == RPMB_RESULT_OK)
 	    && (msg_type == RPMB_MSG_TYPE_RESP_WRITE_COUNTER_VAL_READ)) {
 		bytes_to_u32(data_frame->write_counter, &writecount);
-		printf("read write count successed\n");
+		debugf("read write count successed\n");
 		free(data_frame);
 		mmc_switch_part(EMMC, USER_PARTITION);
 		return writecount;
 	}
 
 	else
-		printf(" read write count:0x%x ,msg_type:0x%x\n", op_result,
+		debugf(" read write count:0x%x ,msg_type:0x%x\n", op_result,
 		       msg_type);
 	free(data_frame);
 	mmc_switch_part(EMMC, USER_PARTITION);
@@ -318,7 +318,7 @@ uint8_t rpmb_blk_read(char *blk_data, uint16_t blk_index, uint8_t block_count)
 	}
 
 	else
-		printf(" read write count:0x%x ,msg_type:0x%x\n", op_result,
+		debugf(" read write count:0x%x ,msg_type:0x%x\n", op_result,
 		       msg_type);
 	free(resp_buf);
 	free(data_frame);
