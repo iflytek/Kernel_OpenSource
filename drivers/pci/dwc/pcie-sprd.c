@@ -183,15 +183,47 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 	struct sprd_pcie *ctrl = data;
 	struct dw_pcie *pci = ctrl->pci;
 	int value = gpiod_get_value(ctrl->gpiod_wakeup);
+	u32 irq_flags = irq_get_trigger_type(irq);
+	u32 expect = (irq_flags & IRQF_TRIGGER_HIGH) ? 1 : 0;
+	int i;
 
+	/*
+	 * WORKAROUND: At present, if setting high-level trigger, when
+	 * interrupt occurs the value read from gpio is low level occasinally.
+	 * When setting low-level trigger has the similar problem. Temporarily
+	 * read multiple times gpio value to ensure the value is consistent
+	 * with the trigger level.
+	 */
 	dev_dbg(pci->dev, "wake up irq enter value:%d\n", value);
 
-	if (!ctrl->is_powered) {
-		sprd_pcie_notify_client(ctrl, SPRD_PCIE_EVENT_WAKEUP);
-		pm_wakeup_hard_event(pci->dev);
+	for (i = 0; i < 100; i++) {
+		if (value != expect)
+			value = gpiod_get_value(ctrl->gpiod_wakeup);
+		else {
+			if (!value) {
+				irq_flags &= ~IRQF_TRIGGER_LOW;
+				irq_flags |= IRQF_TRIGGER_HIGH;
+			} else {
+				irq_flags &= ~IRQF_TRIGGER_HIGH;
+				irq_flags |= IRQF_TRIGGER_LOW;
+			}
+
+			irq_set_irq_type(irq, irq_flags);
+
+			if (!value && !ctrl->is_powered)
+				sprd_pcie_notify_client(ctrl,
+					SPRD_PCIE_EVENT_WAKEUP);
+
+			pm_wakeup_hard_event(pci->dev);
+			return IRQ_HANDLED;
+		}
 	}
 
-	return IRQ_HANDLED;
+	dev_err(pci->dev,
+		"pci wake irq cannot get expect val. val:%d, expect:%d\n",
+		value, expect);
+
+	return IRQ_NONE;
 }
 
 static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
@@ -288,7 +320,7 @@ static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
 		 "%s wakeup", dev_name(dev));
 	ret = devm_request_threaded_irq(dev, ctrl->wakeup_irq,
 					sprd_pcie_wakeup_irq, NULL,
-					IRQF_TRIGGER_FALLING | IRQF_NO_SUSPEND,
+					IRQF_TRIGGER_LOW | IRQF_NO_SUSPEND,
 					ctrl->wakeup_label, ctrl);
 	if (ret < 0)
 		dev_warn(dev, "cannot request wakeup irq\n");
