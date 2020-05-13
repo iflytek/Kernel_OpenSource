@@ -411,10 +411,10 @@ int sprd_pcie_wait_load_resource(u32 dst)
 	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
 		return -EINVAL;
 
+	res = g_pcie_res[dst];
+
 	if (res->power_off)
 		return -EBUSY;
-
-	res = g_pcie_res[dst];
 
 	/* can load image, return immediately */
 	if (res->state == SPRD_PCIE_SCANNED ||
