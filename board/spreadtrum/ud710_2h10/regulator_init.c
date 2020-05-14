@@ -14,7 +14,7 @@
 
 static int power_on_voltage_init(void)
 {
-	regulator_set_voltage("vddrf1v25",1200);
+	regulator_set_voltage("vddrf1v25",1100);
 	regulator_set_voltage("vddgen1",1300);
 	return 0;
 }
