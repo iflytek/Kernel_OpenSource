@@ -545,7 +545,8 @@ static int dwc3_sprd_vbus_notifier(struct notifier_block *nb,
 
 	if (event) {
 		spin_lock_irqsave(&sdwc->lock, flags);
-		if (sdwc->vbus_active == true) {
+		if (sdwc->vbus_active == true ||
+			sdwc->dr_mode == USB_DR_MODE_HOST) {
 			spin_unlock_irqrestore(&sdwc->lock, flags);
 			dev_info(sdwc->dev,
 				"ignore device connection detected from VBUS GPIO.\n");
@@ -571,7 +572,8 @@ static int dwc3_sprd_vbus_notifier(struct notifier_block *nb,
 			"device connection detected from VBUS GPIO.\n");
 	} else {
 		spin_lock_irqsave(&sdwc->lock, flags);
-		if (sdwc->vbus_active == false) {
+		if (sdwc->vbus_active == false ||
+			sdwc->dr_mode == USB_DR_MODE_HOST) {
 			spin_unlock_irqrestore(&sdwc->lock, flags);
 			dev_info(sdwc->dev,
 				"ignore device disconnect detected from VBUS GPIO.\n");
@@ -596,7 +598,8 @@ static int dwc3_sprd_id_notifier(struct notifier_block *nb,
 
 	if (event) {
 		spin_lock_irqsave(&sdwc->lock, flags);
-		if (sdwc->vbus_active == true) {
+		if (sdwc->vbus_active == true ||
+			sdwc->dr_mode == USB_DR_MODE_PERIPHERAL) {
 			spin_unlock_irqrestore(&sdwc->lock, flags);
 			dev_info(sdwc->dev,
 				"ignore host connection detected from ID GPIO.\n");
@@ -613,7 +616,8 @@ static int dwc3_sprd_id_notifier(struct notifier_block *nb,
 			"host connection detected from ID GPIO.\n");
 	} else {
 		spin_lock_irqsave(&sdwc->lock, flags);
-		if (sdwc->vbus_active == false) {
+		if (sdwc->vbus_active == false ||
+			sdwc->dr_mode == USB_DR_MODE_PERIPHERAL) {
 			spin_unlock_irqrestore(&sdwc->lock, flags);
 			dev_info(sdwc->dev,
 				"ignore host disconnect detected from ID GPIO.\n");
