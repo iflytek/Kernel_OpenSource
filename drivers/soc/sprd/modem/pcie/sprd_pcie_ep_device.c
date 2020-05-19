@@ -66,9 +66,9 @@ enum dev_pci_barno {
 #define PCI_CLASS_ID_SPRD_ORCA	0x80d00
 
 /* Parameters for the waiting for iATU enabled routine */
-#define LINK_WAIT_MAX_IATU_RETRIES	5
-#define LINK_WAIT_IATU_MIN		9000
-#define LINK_WAIT_IATU_MAX		10000
+#define LINK_WAIT_MAX_IATU_RETRIES	500
+#define LINK_WAIT_IATU_MIN		90 /* 9000 */
+#define LINK_WAIT_IATU_MAX		100 /* 10000 */
 
 /* ep config bar bar4 , can config ep iatu reg and door bell reg */
 #define EP_CFG_BAR	BAR_4
