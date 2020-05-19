@@ -940,6 +940,17 @@ static void sprd_pcie_resource_do_actions(int action, void *data)
 	}
 }
 
+bool sprd_pcie_ep_power_on(void)
+{
+	struct sprd_pcie_res *res;
+
+	res = g_pcie_res[SIPC_ID_MINIAP];
+	if (!res)
+		return false;
+
+	return res->ep_load_done > 0;
+}
+
 bool sprd_pcie_is_defective_chip(void)
 {
 	static bool first_read = true, defective;
