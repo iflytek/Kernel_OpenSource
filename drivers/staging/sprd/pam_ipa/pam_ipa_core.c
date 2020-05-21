@@ -331,9 +331,8 @@ static int pam_ipa_req_res(void *priv)
 	struct pam_ipa_cfg_tag *cfg = dev_get_drvdata((struct device *)priv);
 
 	cfg->power_status = true;
-	if (!cfg->suspend_stage)
-		return 0;
 
+	cancel_delayed_work(&cfg->power_work);
 	queue_delayed_work(cfg->power_wq, &cfg->power_work, 0);
 
 	return -EINPROGRESS;
@@ -344,6 +343,8 @@ static int pam_ipa_rel_res(void *priv)
 	struct pam_ipa_cfg_tag *cfg = dev_get_drvdata((struct device *)priv);
 
 	cfg->power_status = false;
+
+	cancel_delayed_work(&cfg->power_work);
 	queue_delayed_work(cfg->power_wq, &cfg->power_work, 0);
 
 	return 0;
