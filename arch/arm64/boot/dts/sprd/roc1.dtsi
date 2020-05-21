@@ -1222,7 +1222,7 @@
 				num-lanes = <1>;
 				num-vectors = <256>;
 				num-viewport = <8>;
-				pcie-wakeup-gpios = <&eic_debounce 11
+				pcie-wakeup-gpios = <&eic_async 11
 						     GPIO_ACTIVE_HIGH>;
 				status = "disabled";
 				power-domains = <&pd_ipa_sys>;
@@ -1263,7 +1263,7 @@
 				num-lanes = <1>;
 				num-vectors = <256>;
 				num-viewport = <8>;
-				pcie-wakeup-gpios = <&eic_debounce 10
+				pcie-wakeup-gpios = <&eic_async 10
 						     GPIO_ACTIVE_HIGH>;
 				status = "disabled";
 				power-domains = <&pd_ipa_sys>;
