@@ -478,20 +478,23 @@ early_resume:
  * ipa will work normally.
  *
  */
-static void sipa_resume_work(struct sipa_control *ctrl)
+static int sipa_resume_work(struct sipa_control *ctrl)
 {
 	int ret;
 
-	if (!ctrl)
-		return;
+	if (!ctrl) {
+		pr_err("sipa resume work ctrl is null\n");
+		return -EINVAL;
+	}
 
-	if (ctrl->suspend_stage & SIPA_FORCE_SUSPEND) {
+	if ((ctrl->suspend_stage & SIPA_FORCE_SUSPEND) &&
+	    ctrl->params_cfg.standalone_subsys) {
 		ret = pm_runtime_get_sync(ctrl->ctx->pdev);
 		if (ret) {
 			dev_err(ctrl->ctx->pdev,
-				"pm runtime put err, ret = %d\n",
+				"pm runtime get err, ret = %d\n",
 				ret);
-			return;
+			return ret;
 		}
 
 		ctrl->suspend_stage &= ~SIPA_FORCE_SUSPEND;
@@ -508,6 +511,8 @@ static void sipa_resume_work(struct sipa_control *ctrl)
 				  SIPA_RM_RES_PROD_IPA);
 
 	ctrl->suspend_stage = 0;
+
+	return 0;
 }
 
 /**
@@ -657,7 +662,8 @@ static int sipa_prepare_suspend(struct device *dev)
 	    !sipa_set_enabled(false))
 		ctrl->suspend_stage |= SIPA_EB_SUSPEND;
 
-	if (!(ctrl->suspend_stage & SIPA_FORCE_SUSPEND)) {
+	if (!(ctrl->suspend_stage & SIPA_FORCE_SUSPEND) &&
+	    ctrl->params_cfg.standalone_subsys) {
 		ret = pm_runtime_put(dev);
 		if (ret)
 			dev_err(dev, "pm runtime put err, ret = %d\n",
@@ -1517,6 +1523,16 @@ static void sipa_prepare_suspend_work(struct sipa_control *ctrl)
 	}
 }
 
+static void sipa_prepare_resume_work(struct sipa_control *ctrl)
+{
+	if (sipa_resume_work(ctrl) && ctrl->power_flag) {
+		queue_delayed_work(ctrl->power_wq, &ctrl->power_work,
+				   msecs_to_jiffies(100));
+		dev_info(ctrl->ctx->pdev,
+			 "sipa schedule_resume_work\n");
+	}
+}
+
 static void sipa_power_work(struct work_struct *work)
 {
 	struct delayed_work *power_delay_work = to_delayed_work(work);
@@ -1525,7 +1541,7 @@ static void sipa_power_work(struct work_struct *work)
 						 power_work);
 
 	if (ctrl->power_flag)
-		sipa_resume_work(ctrl);
+		sipa_prepare_resume_work(ctrl);
 	else
 		sipa_prepare_suspend_work(ctrl);
 }
@@ -1585,7 +1601,8 @@ static int sipa_plat_drv_probe(struct platform_device *pdev_p)
 	device_init_wakeup(dev, true);
 	sipa_init_debugfs(&ctrl->params_cfg, ctrl);
 
-	pm_runtime_enable(dev);
+	if (ctrl->params_cfg.standalone_subsys)
+		pm_runtime_enable(dev);
 
 	return ret;
 }
