@@ -304,6 +304,9 @@
 #define USBHUB_VDD1V2_EN 159
 #define USBHUB_DPDM_EN 63
 
+/* usb->pcie vdd1v05 */
+#define USBPCI_VDD1V05_EN 97
+
 /*pmic chipid */
 #define CONFIG_PMIC_CHIP_ID
 

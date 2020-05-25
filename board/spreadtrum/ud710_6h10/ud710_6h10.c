@@ -63,6 +63,33 @@ static void usb_hub_vdd1v2_en(void)
 
 }
 
+static void usb_pci_vdd1v05_en(void)
+{
+	sprd_gpio_request(NULL, USBPCI_VDD1V05_EN);
+	sprd_gpio_direction_output(NULL, USBPCI_VDD1V05_EN, 1);
+}
+
+static void set_peclk_100M(void)
+{
+	u32 reg = 0;
+
+	reg = __raw_readl(REG_ANLG_PHY_G6_ANALOG_PCIEPLL_V_PCIEPLL_V_CTRL0);
+	reg |= BIT_ANLG_PHY_G6_ANALOG_PCIEPLL_V_RG_PCIEPLLV_DIVN(0x1F);
+	__raw_writel(reg, REG_ANLG_PHY_G6_ANALOG_PCIEPLL_V_PCIEPLL_V_CTRL0);
+
+	/* TODO: Hardware recommended delay 100 ms */
+	mdelay(100);
+}
+
+static void set_perst(void)
+{
+	u32 reg = 0;
+
+	reg = __raw_readl(REG_PMU_APB_PCIE_PERST_CTRL_CFG);
+	reg &= ~(BIT_PMU_APB_REG_PCIE3_PERST_N_ASSERT);
+	__raw_writel(reg, REG_PMU_APB_PCIE_PERST_CTRL_CFG);
+}
+
 extern void setup_chipram_env(void);
 int board_init(void)
 {
@@ -82,6 +109,12 @@ int board_init(void)
 	usb_hub_vdd1v2_en();
 	/*FPGA forbiden*/
 	sprd_pmu_lowpower_init();
+
+	/* Renesas PCIe->USB Chip Sequence */
+	usb_pci_vdd1v05_en();
+	set_peclk_100M();
+	set_perst();
+
 	TDPllRefConfig(1);
 	enable_global_clocks();
 	thm_overheate_en();
