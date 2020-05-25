@@ -1886,15 +1886,10 @@ static void misc_event_handler(struct charger_manager *cm,
 			cm->desc->normal_charge_voltage_drop;
 
 		if (cm->desc->jeita_tab_size) {
-			int cur_temp, cur_jeita_status;
+			int cur_jeita_status;
 
-			ret = cm_get_battery_temperature_by_psy(cm, &cur_temp);
-			if (ret) {
-				dev_err(cm->dev, "failed to get battery temperature\n");
-				return;
-			}
-
-			cur_jeita_status = cm_manager_get_jeita_status(cm, cur_temp);
+			cur_jeita_status =
+				cm_manager_get_jeita_status(cm, cm->desc->temperature);
 			cm_manager_adjust_current(cm, cur_jeita_status);
 		}
 	} else {
