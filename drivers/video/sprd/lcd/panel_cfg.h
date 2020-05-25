@@ -156,6 +156,7 @@ static struct panel_cfg supported_panel[] = {
         .lcd_id = 0x5432,
         .drv = &tv105wum_driver,
     },
+#endif
 #ifdef CONFIG_LCD_LT9611_MIPI_FHD
 	{
 		.lcd_id = 0x9611,
