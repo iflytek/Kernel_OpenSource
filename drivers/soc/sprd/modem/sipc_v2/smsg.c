@@ -148,7 +148,7 @@ static void smsg_die_process(struct smsg_ipc *ipc, struct smsg *msg)
 			sbuf_get_status(ipc->dst,
 					sipc_status,
 					sizeof(sipc_status));
-			panic("cpcrash: %s", sipc_status);
+			panic("cpcrash:dst=%d %s", ipc->dst, sipc_status);
 			while (1)
 				;
 		}
