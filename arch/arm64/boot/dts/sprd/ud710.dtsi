@@ -1200,6 +1200,13 @@
 		 <&apapb_gate CLK_EMMC_EB>;
 };
 
+&ufs {
+	clock-names = "ufs_ao_eb",
+		      "ufs_ao_en";
+	clocks = <&aonapb_gate CLK_UFS_AO_EB>,
+		 <&aonapb_gate CLK_UFS_AO_EN>;
+};
+
 &i2c0 {
 	clock-names ="enable", "i2c", "source";
 	clocks = <&apapb_gate CLK_I2C0_EB>,

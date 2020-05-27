@@ -509,6 +509,10 @@
 	cd-gpios = <&eic_async 35 GPIO_ACTIVE_HIGH>;
 };
 
+&ufs {
+	status = "okay";
+};
+
 &spi0 {
 	/*used for fingerprint sensor*/
 	status = "okay";
