@@ -39,7 +39,7 @@
 
 	chosen {
 		stdout-path = &uart1;
-		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=1 init=/init root=/dev/mmcblk0p30 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_2h10u androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat";
+		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=1 init=/init root=/dev/sda31 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_2h10u androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat";
 	};
 
 	ipi: interrupt-controller {
@@ -89,8 +89,8 @@
 		clocks = <&aon_clk CLK_AON_AUX0>,
 			 <&ext_32k>,
 			 <&aonapb_gate CLK_AUX0_EB>;
-		sprd,btwf-file-name = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/wcnmodem";
-		sprd,gnss-file-name = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/gnssmodem";
+		sprd,btwf-file-name = "/dev/block/platform/71900000.ufs/by-name/wcnmodem";
+		sprd,gnss-file-name = "/dev/block/platform/71900000.ufs/by-name/gnssmodem";
 		sprd,rc-ctrl = <&pcie0>;
 	};
 
