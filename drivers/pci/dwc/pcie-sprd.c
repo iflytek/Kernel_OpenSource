@@ -599,6 +599,7 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 
 	if (device_property_read_bool(dev, "no-pcie")) {
 		dev_info(dev, "no pcie device\n");
+		sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
 		return 0;
 	}
 
