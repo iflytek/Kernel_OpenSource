@@ -411,10 +411,10 @@ int sprd_pcie_wait_load_resource(u32 dst)
 	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
 		return -EINVAL;
 
-	res = g_pcie_res[dst];
-
 	if (res->power_off)
 		return -EBUSY;
+
+	res = g_pcie_res[dst];
 
 	/* can load image, return immediately */
 	if (res->state == SPRD_PCIE_SCANNED ||
@@ -938,6 +938,17 @@ static void sprd_pcie_resource_do_actions(int action, void *data)
 	default:
 		break;
 	}
+}
+
+bool sprd_pcie_ep_power_on(void)
+{
+	struct sprd_pcie_res *res;
+
+	res = g_pcie_res[SIPC_ID_MINIAP];
+	if (!res)
+		return false;
+
+	return res->ep_load_done > 0;
 }
 
 bool sprd_pcie_is_defective_chip(void)

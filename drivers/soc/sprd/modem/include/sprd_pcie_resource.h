@@ -88,6 +88,11 @@ int sprd_pcie_wait_load_resource(u32 dst);
 void sprd_pcie_img_load_done(u32 dst);
 
 
+/*
+ * sprd_pcie_ep_power_on
+ */
+bool sprd_pcie_ep_power_on(void);
+
 #endif /* CONFIG_SPRD_PCIE_EP_DEVICE */
 
 #endif /* _SPRD_PCIE_RESOURCE_H */
