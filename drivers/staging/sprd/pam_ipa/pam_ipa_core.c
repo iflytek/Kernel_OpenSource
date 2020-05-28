@@ -216,9 +216,6 @@ static void pam_ipa_prepare_suspend(struct device *dev)
 	int ret;
 	struct pam_ipa_cfg_tag *cfg = dev_get_drvdata(dev);
 
-	if (cfg->power_status)
-		return;
-
 	if (!(cfg->suspend_stage & PAM_IPA_REG_SUSPEND)) {
 		sipa_disconnect(SIPA_EP_VCP, SIPA_DISCONNECT_START);
 		cfg->hal_ops.resume(cfg->reg_base, false);
@@ -246,9 +243,6 @@ static int pam_ipa_prepare_resume(struct device *dev)
 	int ret;
 	struct pam_ipa_cfg_tag *cfg = dev_get_drvdata(dev);
 
-	if (!cfg->power_status)
-		return 0;
-
 	if (cfg->suspend_stage & PAM_IPA_FORCE_SUSPEND) {
 		ret = pm_runtime_get_sync(&cfg->pdev->dev);
 		if (ret) {
@@ -266,7 +260,7 @@ static int pam_ipa_prepare_resume(struct device *dev)
 	}
 
 	if (!(cfg->suspend_stage & PAM_IPA_REG_SUSPEND))
-		return 0;
+		goto out;
 
 	if (!cfg->hal_ops.get_start_status(cfg->reg_base)) {
 		if (!cfg->ready) {
@@ -301,6 +295,7 @@ static int pam_ipa_prepare_resume(struct device *dev)
 
 	cfg->suspend_stage &= ~PAM_IPA_REG_SUSPEND;
 
+out:
 	sipa_rm_notify_completion(SIPA_RM_EVT_GRANTED,
 				  SIPA_RM_RES_PROD_PAM_IPA);
 
