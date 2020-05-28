@@ -110,6 +110,7 @@ asoc:sprd:include:
 asoc:sprd:
 misc:sprd_camera:
 scsi:ufs:sprd:
+scsi:ufs:
 fs:f2fs:
 fs:sdcardfs:
 fs:
