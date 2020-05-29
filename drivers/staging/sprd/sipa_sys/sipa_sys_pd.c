@@ -103,18 +103,20 @@ static int sipa_sys_wait_power_on(struct sipa_sys_register *reg_info)
 	int ret = 0;
 	u32 val;
 
-	if (reg_info->rmap)
+	if (reg_info->rmap) {
+		pr_info("sipa start poll ipa sys power status\n");
 		ret = regmap_read_poll_timeout(reg_info->rmap,
 					       reg_info->reg,
 					       val,
 					       !(val & reg_info->mask),
 					       SPRD_IPA_POWERON_POLL_US,
 					       SPRD_IPA_POWERON_TIMEOUT);
-	else
+	} else {
 		usleep_range((SPRD_IPA_POWERON_TIMEOUT >> 2) + 1, 5000);
+	}
 
 	if (ret)
-		pr_err("Polling check power on reg timed out: %x\n", val);
+		pr_err("sipa polling check power on reg timed out: %x\n", val);
 
 	return ret;
 }
@@ -124,7 +126,7 @@ static int sipa_sys_do_power_on(struct sipa_sys_pd_drv *drv)
 	struct sipa_sys_register *reg_info = &drv->regs[IPA_SYS_FORCEWAKEUP];
 	int ret = 0;
 
-	dev_dbg(drv->dev, "do power on\n");
+	dev_info(drv->dev, "sipa do power on\n");
 	if (reg_info->rmap) {
 		ret = regmap_update_bits(reg_info->rmap,
 					 reg_info->reg,
@@ -186,7 +188,7 @@ static int sipa_sys_do_power_off(struct sipa_sys_pd_drv *drv)
 	struct sipa_sys_register *reg_info = &drv->regs[IPA_SYS_FORCEWAKEUP];
 	int ret = 0;
 
-	dev_dbg(drv->dev, "do power off\n");
+	dev_info(drv->dev, "sipa do power off\n");
 	/* set ipa core clock to default */
 	if (drv->ipa_core_clk && drv->ipa_core_default)
 		clk_set_parent(drv->ipa_core_clk, drv->ipa_core_default);
