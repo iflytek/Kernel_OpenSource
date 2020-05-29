@@ -31,6 +31,7 @@
 #include <linux/seq_file.h>
 #include <linux/of_device.h>
 #include <linux/interrupt.h>
+#include <linux/spinlock.h>
 #include "sipa_eth.h"
 
 /* Device status */
@@ -42,6 +43,8 @@
 #define SIPA_ETH_VPCIE_PREF "vpcie"
 #define SIPA_ETH_VPCIE_IDX 8
 
+static unsigned long queue_lock_flags;
+static spinlock_t queue_lock; /* spin-lock for queue status protection */
 static struct dentry *root;
 static int sipa_eth_debugfs_mknod(void *root, void *data);
 static void sipa_eth_rx_handler (void *priv);
@@ -323,7 +326,10 @@ static void sipa_eth_flowctrl_handler(void *priv, int flowctrl)
 	if (flowctrl) {
 		netif_stop_queue(dev);
 	} else if (netif_queue_stopped(dev)) {
+		spin_lock_irqsave(&queue_lock, queue_lock_flags);
 		netif_wake_queue(dev);
+		spin_unlock_irqrestore(&queue_lock, queue_lock_flags);
+		pr_info("wakeup queue on dev %s\n", dev->name);
 	}
 }
 
@@ -334,16 +340,16 @@ static void sipa_eth_notify_cb(void *priv, enum sipa_evt_type evt,
 
 	switch (evt) {
 	case SIPA_RECEIVE:
-		pr_debug("SIPA_RECEIVE evt received\n");
+		pr_debug("dev %s recv SIPA_RECEIVE\n", sipa_eth->netdev->name);
 		atomic_set(&sipa_eth->rx_evt, 1);
 		sipa_eth_rx_handler(priv);
 		break;
 	case SIPA_LEAVE_FLOWCTRL:
-		pr_info("SIPA LEAVE FLOWCTRL\n");
+		pr_info("dev %s SIPA LEAVE FLOWCTRL\n", sipa_eth->netdev->name);
 		sipa_eth_flowctrl_handler(priv, 0);
 		break;
 	case SIPA_ENTER_FLOWCTRL:
-		pr_info("SIPA ENTER FLOWCTRL\n");
+		pr_info("dev %s SIPA ENTER FLOWCTRL\n", sipa_eth->netdev->name);
 		sipa_eth_flowctrl_handler(priv, 1);
 		break;
 	default:
@@ -384,7 +390,12 @@ static int sipa_eth_start_xmit(struct sk_buff *skb, struct net_device *dev)
 				skb_push(skb, ETH_HLEN);
 			dt_stats->tx_fail++;
 			sipa_eth->stats.tx_errors++;
-			netif_stop_queue(dev);
+			spin_lock_irqsave(&queue_lock, queue_lock_flags);
+			if (sipa_nic_check_flow_ctrl(sipa_eth->nic_id)) {
+				netif_stop_queue(dev);
+				pr_info("stop queue on dev %s\n", dev->name);
+			}
+			spin_unlock_irqrestore(&queue_lock, queue_lock_flags);
 			sipa_nic_trigger_flow_ctrl_work(sipa_eth->nic_id, ret);
 			return NETDEV_TX_BUSY;
 		}
@@ -681,6 +692,8 @@ static int sipa_eth_debug_show(struct seq_file *m, void *v)
 	seq_printf(m, "tx_fail=%u\n",
 		   stats->tx_fail);
 
+	seq_printf(m, "flowctl=%s\n",
+		   netif_queue_stopped(sipa_eth->netdev) ? "true" : "false");
 	seq_puts(m, "*************************************************\n");
 
 	return 0;
@@ -755,6 +768,7 @@ static void __init sipa_eth_debugfs_init(void)
 static int __init sipa_eth_init(void)
 {
 	sipa_eth_debugfs_init();
+	spin_lock_init(&queue_lock);
 	return platform_driver_register(&sipa_eth_driver);
 }
 
