@@ -384,6 +384,7 @@ int sipa_nic_rx_has_data(enum sipa_nic_id nic_id);
 
 int sipa_nic_check_suspend_condition(void);
 
+bool sipa_nic_check_flow_ctrl(enum sipa_nic_id nic_id);
 /*
  * IPA hash table managment
  */

@@ -600,6 +600,33 @@ int sipa_nic_rx_has_data(enum sipa_nic_id nic_id)
 }
 EXPORT_SYMBOL(sipa_nic_rx_has_data);
 
+bool sipa_nic_check_flow_ctrl(enum sipa_nic_id nic_id)
+{
+	bool flow_ctrl;
+	unsigned long flags;
+	struct sipa_nic *nic;
+	struct sipa_nic_cons_res *res;
+	struct sipa_control *ctrl = sipa_get_ctrl_pointer();
+
+	if (!ctrl) {
+		pr_err("sipa driver may not register\n");
+		return false;
+	}
+
+	if (!ctrl->nic[nic_id] ||
+	    atomic_read(&ctrl->nic[nic_id]->status) == NIC_CLOSE)
+		return false;
+
+	nic = ctrl->nic[nic_id];
+	res = &nic->rm_res;
+	spin_lock_irqsave(&res->lock, flags);
+	flow_ctrl = nic->rm_res.rm_flow_ctrl;
+	spin_unlock_irqrestore(&res->lock, flags);
+
+	return flow_ctrl;
+}
+EXPORT_SYMBOL(sipa_nic_check_flow_ctrl);
+
 int sipa_nic_trigger_flow_ctrl_work(enum sipa_nic_id nic_id, int err)
 {
 	struct sipa_skb_sender *sender;
