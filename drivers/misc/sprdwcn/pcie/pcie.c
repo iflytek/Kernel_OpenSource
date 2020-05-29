@@ -705,6 +705,7 @@ static struct platform_device *to_pdev_from_ep_node(struct device_node *ep_node)
 /* called by chip_power_on */
 int sprd_pcie_scan_card(void *wcn_dev)
 {
+	int ret;
 	struct wcn_pcie_info *priv = get_wcn_device_info();
 	struct platform_device *pdev;
 	struct device *dev;
@@ -724,7 +725,11 @@ int sprd_pcie_scan_card(void *wcn_dev)
 	if (priv->dev && priv->dev->is_added)
 		WCN_ERR("%s: card not NULL\n", __func__);
 
-	sprd_pcie_configure_device(pdev);
+	ret = sprd_pcie_configure_device(pdev);
+	if (ret) {
+		WCN_ERR("rescan pcie fail, return %d\n", ret);
+		return ret;
+	}
 
 	if (wait_for_completion_timeout(&priv->scan_done,
 	    msecs_to_jiffies(5000)) == 0) {
