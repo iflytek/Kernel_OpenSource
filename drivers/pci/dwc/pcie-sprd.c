@@ -420,7 +420,7 @@ static const struct dw_pcie_ops dw_pcie_ops = {
 
 static int sprd_pcie_host_reinit(struct platform_device *pdev)
 {
-	int ret;
+	int ret, err;
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 	struct dw_pcie *pci = ctrl->pci;
 	struct pcie_port *pp = &pci->pp;
@@ -464,10 +464,10 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 
 power_off:
 	sprd_pcie_syscon_setting(pdev, "sprd,pcie-suspend-syscons");
-	ret = pm_runtime_put(&pdev->dev);
-	if (ret < 0)
+	err = pm_runtime_put(&pdev->dev);
+	if (err < 0)
 		dev_warn(&pdev->dev,
-			"pm runtime put fail,ret:%d, usage_count:%d\n", ret,
+			"pm runtime put fail,ret:%d, usage_count:%d\n", err,
 			 atomic_read(&pdev->dev.power.usage_count));
 
 	return ret;
@@ -476,6 +476,7 @@ power_off:
 int sprd_pcie_configure_device(struct platform_device *pdev)
 {
 	int ret;
+	int retries = 0;
 	struct pci_host_bridge *bridge;
 	struct sprd_pcie *ctrl = platform_get_drvdata(pdev);
 
@@ -501,10 +502,14 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 	if (ctrl->retries >= REINIT_RETRIES)
 		dev_warn(&pdev->dev, "system in sleep, cannot reinit\n");
 
-	ret = sprd_pcie_host_reinit(pdev);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "pcie rescan fail\n");
-		return ret;
+	for (retries = 0; retries < 3; retries++) {
+		ret = sprd_pcie_host_reinit(pdev);
+		if (!ret)
+			break;
+		else if (ret < 0 && retries == 3) {
+			dev_err(&pdev->dev, "pcie reinit failed three times\n");
+			return ret;
+		}
 	}
 
 	bridge = to_bridge_from_pdev(pdev);

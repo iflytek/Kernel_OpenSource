@@ -120,7 +120,11 @@ int sprd_pcie_syscon_setting(struct platform_device *pdev, char *env)
 			j = 0;
 			do {
 				regmap_read(iomap, reg, &tmp_val);
-				if (j++ > 100)
+				/*
+				 * Sometimes PCIe/IPA SYS power on very slowly,
+				 * it may need 100ms.
+				 */
+				if (j++ > 2000)
 					return -ETIMEDOUT;
 				usleep_range(50, 100);
 			} while ((tmp_val & mask) != val);
@@ -130,7 +134,7 @@ int sprd_pcie_syscon_setting(struct platform_device *pdev, char *env)
 			usleep_range(delay, delay + 10);
 
 		regmap_read(iomap, reg, &tmp_val);
-		dev_dbg(&pdev->dev,
+		dev_info(&pdev->dev,
 			"%2d:reg[0x%8x] mask[0x%8x] val[0x%8x] result[0x%8x]\n",
 			i, reg, mask, val, tmp_val);
 	}
