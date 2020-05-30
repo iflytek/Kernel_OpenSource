@@ -450,7 +450,8 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 	sprd_pcie_ltssm_enable(pci, true);
 	ret = dw_pcie_wait_for_link(pci);
 	if (ret < 0) {
-		dev_err(&pdev->dev, "reinit fail, pcie can't establish link\n");
+		dev_err(&pdev->dev, "reinit fail,command register[0x%x]:0x%x\n",
+			PCI_COMMAND, dw_pcie_readl_dbi(pci, PCI_COMMAND));
 		goto power_off;
 	}
 
