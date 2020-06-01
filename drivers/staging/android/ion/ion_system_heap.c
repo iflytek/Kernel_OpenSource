@@ -501,6 +501,8 @@ free_heap:
 }
 
 extern struct ion_heap **heaps;
+extern unsigned int batchsize;
+
 static int ion_system_heap_create(void)
 {
 	struct ion_heap *heap;
@@ -509,6 +511,7 @@ static int ion_system_heap_create(void)
 	if (IS_ERR(heap))
 		return PTR_ERR(heap);
 	heap->name = "system";
+	heap->batchsize = batchsize;
 	heaps[0] = heap;
 	ion_device_add_heap(heap);
 
