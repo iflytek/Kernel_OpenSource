@@ -789,6 +789,9 @@ static void modem_ctrl_core_shutdown(void)
 	int cnt = 0;
 	int pre, state;
 
+	if (!mcd_dev)
+		return;
+
 #ifdef CONFIG_SPRD_PCIE_EP_DEVICE
 	/*  makesure the the ep power on. */
 	if (!sprd_pcie_ep_power_on()) {
@@ -801,7 +804,7 @@ static void modem_ctrl_core_shutdown(void)
 	state = !pre;
 	pr_info("mcd: core shutdown...pre = %d\n", pre);
 
-	if (mcd_dev && mcd_dev->soc_type == ROC1_SOC) {
+	if (mcd_dev->soc_type == ROC1_SOC) {
 		modem_ctrl_send_cmd_to_cp(MDM_POWER_OFF);
 
 		/* only care SYS_POWER_OFF event. */
@@ -814,7 +817,7 @@ static void modem_ctrl_core_shutdown(void)
 
 		/* delay 1s for orca shutdown. */
 		msleep(1000);
-	} else if (mcd_dev && mcd_dev->soc_type == ORCA_SOC) {
+	} else if (mcd_dev->soc_type == ORCA_SOC) {
 		pr_info("mcd: put assert gpio to %d.\n", state);
 		do {
 			gpiod_set_value(mcd_dev->init->gpio_cpassert, state);
