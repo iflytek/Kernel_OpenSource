@@ -441,6 +441,7 @@
 
 	ion {
 		compatible = "sprd,ion";
+		batchsize = <60>;
 		#address-cells = <1>;
 		#size-cells = <0>;
 
