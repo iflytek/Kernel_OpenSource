@@ -27,14 +27,14 @@
 				compatible = "android,fstab";
 				fs_vendor: vendor {
 					compatible = "android,vendor";
-					dev = "/dev/block/platform/71900000.ufs/by-name/vendor";
+					dev = "/dev/block/platform/soc/soc:ap-apb/71900000.ufs/by-name/vendor";
 					type = "ext4";
 					mnt_flags = "ro,barrier=1";
 					fsmgr_flags = "wait";
 				};
 				fs_product: product {
 					compatible = "android,product";
-					dev = "/dev/block/platform/71900000.ufs/by-name/product";
+					dev = "/dev/block/platform/soc/soc:ap-apb/71900000.ufs/by-name/product";
 					type = "ext4";
 					mnt_flags = "ro,barrier=1";
 					fsmgr_flags = "wait";
