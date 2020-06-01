@@ -229,8 +229,8 @@ static void pam_ipa_prepare_suspend(struct device *dev)
 	}
 
 	if (!(cfg->suspend_stage & PAM_IPA_FORCE_SUSPEND)) {
-		ret = pm_runtime_put(&cfg->pdev->dev);
-		if (ret)
+		ret = pm_runtime_put_sync(&cfg->pdev->dev);
+		if (ret < 0)
 			dev_err(&cfg->pdev->dev,
 				"pm runtime put err, ret = %d\n",
 				ret);
@@ -245,7 +245,7 @@ static int pam_ipa_prepare_resume(struct device *dev)
 
 	if (cfg->suspend_stage & PAM_IPA_FORCE_SUSPEND) {
 		ret = pm_runtime_get_sync(&cfg->pdev->dev);
-		if (ret) {
+		if (ret < 0) {
 			dev_err(&cfg->pdev->dev,
 				"pm runtime get sync err, ret = %d\n",
 				ret);
