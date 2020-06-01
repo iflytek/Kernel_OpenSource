@@ -490,7 +490,7 @@ static int sipa_resume_work(struct sipa_control *ctrl)
 	if ((ctrl->suspend_stage & SIPA_FORCE_SUSPEND) &&
 	    ctrl->params_cfg.standalone_subsys) {
 		ret = pm_runtime_get_sync(ctrl->ctx->pdev);
-		if (ret) {
+		if (ret < 0) {
 			dev_err(ctrl->ctx->pdev,
 				"pm runtime get err, ret = %d\n",
 				ret);
@@ -664,8 +664,8 @@ static int sipa_prepare_suspend(struct device *dev)
 
 	if (!(ctrl->suspend_stage & SIPA_FORCE_SUSPEND) &&
 	    ctrl->params_cfg.standalone_subsys) {
-		ret = pm_runtime_put(dev);
-		if (ret)
+		ret = pm_runtime_put_sync(dev);
+		if (ret < 0)
 			dev_err(dev, "pm runtime put err, ret = %d\n",
 				ret);
 		ctrl->suspend_stage |= SIPA_FORCE_SUSPEND;
