@@ -479,7 +479,7 @@ static int sprd_pamu3_set_suspend(struct usb_phy *x, int a)
 {
 	struct sprd_pamu3 *pamu3 = container_of(x, struct sprd_pamu3, pam);
 	u32 value;
-	int timeout = 500;
+	int timeout = 2;
 
 	if (!atomic_read(&pamu3->inited)) {
 		dev_warn(pamu3->dev, "is already disabled\n");
