@@ -1457,6 +1457,7 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 	mutex_init(&info->lock);
 	info->dev = &pdev->dev;
 	INIT_WORK(&info->work, sc2703_charger_work);
+	INIT_DELAYED_WORK(&info->fchg_detect_work, sc2703_charger_fchg_work);
 
 	info->regmap = dev_get_regmap(pdev->dev.parent, NULL);
 	if (!info->regmap) {
@@ -1528,12 +1529,6 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
-	/*
-	 * This fchg detect work must init before detecting charger
-	 * status in charging of shut down, so that charger_work
-	 * can shedule fchg work.
-	 */
-	INIT_DELAYED_WORK(&info->fchg_detect_work, sc2703_charger_fchg_work);
 	sc2703_charger_detect_status(info);
 	INIT_DELAYED_WORK(&info->otg_work, sc2703_charger_otg_work);
 
