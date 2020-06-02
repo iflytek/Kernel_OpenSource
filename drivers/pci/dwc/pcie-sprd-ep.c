@@ -152,7 +152,7 @@ static int sprd_pcie_split_bar(struct dw_pcie *pci)
  * SPRD PCIe wake# pin related registers cannot be operated after PCIe
  * controller EB is disabled. So this func set the PCIe controller EB before
  * operate the wakeup pin.
- * Pull down wake# pin in order to wakeup RC.
+ * Set the SPRD_SOFT_WAKE bit will pull down wake# pin in order to wakeup RC.
  */
 static int sprd_pcie_wake_down(struct sprd_pcie *ep)
 {
@@ -177,7 +177,7 @@ static int sprd_pcie_wake_down(struct sprd_pcie *ep)
 	ep->is_powered = true;
 
 	val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
-	val &= ~SPRD_SOFT_WAKE;
+	val |= SPRD_SOFT_WAKE;
 	dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
 
 	mod_timer(&ep->timer, jiffies + msecs_to_jiffies(5000));
@@ -198,7 +198,7 @@ static int sprd_pcie_wake_up(struct sprd_pcie *ep)
 
 	dev_info(pci->dev, "wake up++\n");
 	val = dw_pcie_readl_dbi(pci, SPRD_PCIE_RST_CTRL);
-	val |= SPRD_SOFT_WAKE;
+	val &= ~SPRD_SOFT_WAKE;
 	dw_pcie_writel_dbi(pci, SPRD_PCIE_RST_CTRL, val);
 
 	return 0;
