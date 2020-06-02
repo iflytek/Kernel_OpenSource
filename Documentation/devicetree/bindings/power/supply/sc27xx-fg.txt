@@ -19,6 +19,8 @@ Required properties:
 - nvmem-cell-names: Should be "fgu_calib".
 - monitored-battery: Phandle of battery characteristics devicetree node.
   See Documentation/devicetree/bindings/power/supply/battery.txt
+- first-calib-voltage: first low capacity calibration ocv voltage
+- first-calib-capacity: first calibration capacity corresponding to first first-calib-voltage
 
 Optional Properties:
 - sprd,comp-resistance-mohm: The coulomb counter internal resistance and the board
@@ -66,5 +68,7 @@ Example:
 			sprd,calib-resistance-real = <21500>;
 			sprd,calib-resistance-spec = <20000>;
 			sprd,comp-resistance-mohm = <30>;
+			first-calib-voltage = <3687000>;
+			first-calib-capacity = <50>;
 		};
 	};
