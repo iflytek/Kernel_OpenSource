@@ -60,7 +60,6 @@ struct dwc3_sprd {
 
 	bool			hibernate_en;
 	enum usb_dr_mode	dr_mode;
-	enum usb_dr_mode	next_mode;
 
 	struct wakeup_source		wake_lock;
 	spinlock_t		lock;
@@ -513,13 +512,6 @@ static void dwc3_sprd_hot_plug(struct dwc3_sprd *sdwc)
 		charging_only = sdwc->charging_mode;
 		sdwc->charging_mode = false;
 
-		if (sdwc->next_mode != USB_DR_MODE_UNKNOWN) {
-			sdwc->vbus_active = true;
-			sdwc->dr_mode = sdwc->next_mode;
-			sdwc->next_mode = USB_DR_MODE_UNKNOWN;
-			queue_work(system_unbound_wq, &sdwc->work);
-		}
-
 		spin_unlock_irqrestore(&sdwc->lock, flags);
 
 		if (!charging_only)
@@ -553,19 +545,10 @@ static int dwc3_sprd_vbus_notifier(struct notifier_block *nb,
 			return 0;
 		}
 
-		if (sdwc->dr_mode != USB_DR_MODE_UNKNOWN) {
-			sdwc->vbus_active = false;
-			sdwc->next_mode = USB_DR_MODE_PERIPHERAL;
-			queue_work(system_unbound_wq, &sdwc->work);
-			spin_unlock_irqrestore(&sdwc->lock, flags);
-			dev_info(sdwc->dev, "missed disconnect event when GPIO device connect.\n");
-			return 0;
-		}
 		__pm_stay_awake(&sdwc->wake_lock);
 
 		sdwc->vbus_active = true;
 		sdwc->dr_mode = USB_DR_MODE_PERIPHERAL;
-		sdwc->next_mode = USB_DR_MODE_UNKNOWN;
 		queue_work(system_unbound_wq, &sdwc->work);
 		spin_unlock_irqrestore(&sdwc->lock, flags);
 		dev_info(sdwc->dev,
@@ -581,7 +564,6 @@ static int dwc3_sprd_vbus_notifier(struct notifier_block *nb,
 		}
 
 		sdwc->vbus_active = false;
-		sdwc->next_mode = USB_DR_MODE_UNKNOWN;
 		queue_work(system_unbound_wq, &sdwc->work);
 		spin_unlock_irqrestore(&sdwc->lock, flags);
 		dev_info(sdwc->dev,
