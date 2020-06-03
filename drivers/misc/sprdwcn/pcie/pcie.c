@@ -77,6 +77,27 @@ void wcn_dump_ep_mems(struct wcn_pcie_info *priv)
 		WCN_INFO("EDMA_GLB[%d]= 0x%x\n", i, mem[i]);
 }
 
+
+void wcn_dump_ep_breg(struct wcn_pcie_info *priv, u32 breg_offset_addr)
+{
+	struct inbound_reg *breg;
+
+	if (!pcie_bar_vmem(priv, 4)) {
+		WCN_INFO("get bar4 base err\n");
+		return;
+	}
+	breg = (struct inbound_reg *) (pcie_bar_vmem(priv, 4) +
+				       breg_offset_addr);
+	WCN_INFO("type = 0x%x\n", breg->type);
+	WCN_INFO("en = 0x%x\n", breg->en);
+	WCN_INFO("lower_base_addr = 0x%x\n", breg->lower_base_addr);
+	WCN_INFO("upper_base_addr = 0x%x\n", breg->upper_base_addr);
+	WCN_INFO("limit = 0x%x\n", breg->limit);
+	WCN_INFO("lower_target_addr = 0x%x\n", breg->lower_target_addr);
+	WCN_INFO("upper_target_addr = 0x%x\n", breg->upper_target_addr);
+}
+
+
 void wcn_dump_ep_regs(struct wcn_pcie_info *priv)
 {
 	u32 reg;
@@ -86,6 +107,12 @@ void wcn_dump_ep_regs(struct wcn_pcie_info *priv)
 	WCN_INFO("EP config reg [0x728]: 0x%x\n", reg);
 	pci_read_config_dword(priv->dev, PCI_VENDOR_ID, &reg);
 	WCN_INFO("EP config reg [0]: 0x%x\n", reg);
+
+	WCN_INFO("------------[ EP ibreg0 ]------------\n");
+	wcn_dump_ep_breg(priv, IBREG0_OFFSET_ADDR);
+	WCN_INFO("------------[ EP ibreg1 ]------------\n");
+	wcn_dump_ep_breg(priv, IBREG1_OFFSET_ADDR);
+
 	WCN_INFO("EP memory reg [0x0]: 0x%x, [0x4]: 0x%x\n",
 		 sprd_pcie_read_reg32(priv, WCN_PCIE_DEV_AND_VND_ID),
 		 sprd_pcie_read_reg32(priv, WCN_PCIE_CMD));
