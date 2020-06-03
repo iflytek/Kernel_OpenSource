@@ -746,17 +746,25 @@ static void shub_send_ap_status(struct shub_data *sensor, u8 status)
 
 static void shub_synctimestamp(struct shub_data *sensor)
 {
-	s64 k_timestamp;
+	long k_timestamp;
+	long local_time_ms;
+	char timestamp[sizeof(k_timestamp) + sizeof(local_time_ms)] = {0};
 
 	if (sensor->mcu_mode != SHUB_NORMAL)
 		return;
 
 	k_timestamp = ktime_to_ms(ktime_get_boottime());
-	shub_send_command(sensor,
-			  HANDLE_MAX,
-			  SHUB_SET_TIMESYNC_SUBTYPE,
-			  (char *)&k_timestamp,
-			  sizeof(k_timestamp));
+	local_time_ms = ktime_to_ms(ktime_get_real());
+	/* adjustment for timezone */
+	local_time_ms = local_time_ms - sys_tz.tz_minuteswest * 60000;
+
+	memcpy(timestamp, (char *)&k_timestamp, sizeof(k_timestamp));
+	memcpy(timestamp + sizeof(k_timestamp), (char *)&local_time_ms,
+	       sizeof(local_time_ms));
+
+	shub_send_command(sensor, HANDLE_MAX,
+			  SHUB_SET_TIMESYNC_SUBTYPE, timestamp,
+			  sizeof(k_timestamp) + sizeof(local_time_ms));
 }
 
 static void shub_synctime_work(struct work_struct *work)
