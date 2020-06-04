@@ -135,7 +135,7 @@ static void start_insert_and_print_thread(void)
 					entry_lst) {
 			msleep(20);
 			hlist_del_rcu(&test_entry->entry_lst);
-			call_rcu(&test_entry->rcu, test_sfp_fwd_entry_free);
+			call_rcu_bh(&test_entry->rcu, test_sfp_fwd_entry_free);
 		}
 	}
 }

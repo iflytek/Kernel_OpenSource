@@ -177,19 +177,22 @@ int sfp_mgr_fwd_entry_delete(const struct nf_conntrack_tuple *tuple)
 				&sfp_ct->tuplehash[IP_CT_DIR_REPLY],
 				sfp_ct->hash[IP_CT_DIR_REPLY]);
 			spin_unlock_bh(&fwd_tbl.sp_lock);
+			spin_lock_bh(&mgr_lock);
 		} else {
+			spin_lock_bh(&mgr_lock);
 			delete_in_sfp_fwd_table(
 				&sfp_ct->tuplehash[IP_CT_DIR_ORIGINAL]);
 			delete_in_sfp_fwd_table(
 				&sfp_ct->tuplehash[IP_CT_DIR_REPLY]);
 		}
 		hlist_del_rcu(&sfp_ct->tuplehash[IP_CT_DIR_ORIGINAL].entry_lst);
-		call_rcu(&sfp_ct->tuplehash[IP_CT_DIR_ORIGINAL].rcu,
+		call_rcu_bh(&sfp_ct->tuplehash[IP_CT_DIR_ORIGINAL].rcu,
 			 sfp_mgr_fwd_entry_free);
 
 		hlist_del_rcu(&sfp_ct->tuplehash[IP_CT_DIR_REPLY].entry_lst);
-		call_rcu(&sfp_ct->tuplehash[IP_CT_DIR_REPLY].rcu,
+		call_rcu_bh(&sfp_ct->tuplehash[IP_CT_DIR_REPLY].rcu,
 			 sfp_mgr_fwd_entry_free);
+		spin_unlock_bh(&mgr_lock);
 		break;
 	}
 	rcu_read_unlock_bh();
@@ -239,14 +242,12 @@ static void sfp_mgr_fwd_death_by_timeout(unsigned long ul_fwd_entry_conn)
 	FP_PRT_TRUPLE_INFO(FP_PRT_DEBUG,
 			   &sfp_entry->tuplehash[IP_CT_DIR_REPLY].tuple);
 
-	rcu_read_lock_bh();
 	hlist_del_rcu(&sfp_entry->tuplehash[IP_CT_DIR_ORIGINAL].entry_lst);
-	call_rcu(&sfp_entry->tuplehash[IP_CT_DIR_ORIGINAL].rcu,
+	call_rcu_bh(&sfp_entry->tuplehash[IP_CT_DIR_ORIGINAL].rcu,
 		 sfp_mgr_fwd_entry_free);
 	hlist_del_rcu(&sfp_entry->tuplehash[IP_CT_DIR_REPLY].entry_lst);
-	call_rcu(&sfp_entry->tuplehash[IP_CT_DIR_REPLY].rcu,
+	call_rcu_bh(&sfp_entry->tuplehash[IP_CT_DIR_REPLY].rcu,
 		 sfp_mgr_fwd_entry_free);
-	rcu_read_unlock_bh();
 	spin_unlock_bh(&mgr_lock);
 }
 
@@ -1000,7 +1001,7 @@ void sfp_clear_fwd_table(int ifindex)
 			    tuple_hash->ssfp_fwd_tuple.out_ifindex == ifindex) {
 				hlist_del_rcu(&tuple_hash->entry_lst);
 				delete_in_sfp_fwd_table(tuple_hash);
-				call_rcu(&tuple_hash->rcu,
+				call_rcu_bh(&tuple_hash->rcu,
 					 sfp_mgr_fwd_entry_free);
 			}
 		}
@@ -1022,7 +1023,7 @@ void clear_sfp_mgr_table(void)
 					 &mgr_fwd_entries[i],
 					 entry_lst) {
 			hlist_del_rcu(&tuple_hash->entry_lst);
-			call_rcu(&tuple_hash->rcu, sfp_mgr_fwd_entry_free);
+			call_rcu_bh(&tuple_hash->rcu, sfp_mgr_fwd_entry_free);
 		}
 	}
 	rcu_read_unlock_bh();
