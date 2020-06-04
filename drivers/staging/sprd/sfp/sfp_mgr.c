@@ -667,7 +667,7 @@ int get_hw_iface_by_dev(struct net_device *dev)
 	return 0;
 }
 
-static bool is_banned_ipa_netdev(struct net_device *dev)
+bool is_banned_ipa_netdev(struct net_device *dev)
 {
 	int i;
 
