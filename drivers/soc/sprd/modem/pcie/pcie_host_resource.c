@@ -580,6 +580,8 @@ int sprd_pcie_request_resource(u32 dst)
 
 	res = g_pcie_res[dst];
 
+	sipc_set_wakeup_flag();
+
 	/* get a wakelock */
 	__pm_stay_awake(&res->ws);
 
