@@ -506,7 +506,7 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 		ret = sprd_pcie_host_reinit(pdev);
 		if (!ret)
 			break;
-		else if (ret < 0 && retries == 3) {
+		if (retries == 2) {
 			dev_err(&pdev->dev, "pcie reinit failed three times\n");
 			return ret;
 		}
