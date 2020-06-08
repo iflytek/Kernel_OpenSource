@@ -9,20 +9,29 @@
 
 #include <linux/notifier.h>
 
+/* cmd */
 enum {
 	MDM_CTRL_POWER_OFF = 0,
 	MDM_CTRL_POWER_ON,
 	MDM_CTRL_WARM_RESET,
 	MDM_CTRL_COLD_RESET,
-	MDM_WATCHDOG_RESET,
-	MDM_ASSERT,
-	MDM_PANIC,
-	MDM_CTRL_PCIE_RECOVERY,
-	MDM_POWER_OFF,
-	MDM_CTRL_SET_CFG
+	MDM_CTRL_CRASH_MODEM,
+	MDM_CTRL_CP_PANIC,
+	MDM_CTRL_POWEROFF_ACK
 };
 
-void modem_ctrl_send_abnormal_to_ap(int status);
+/* status */
+enum {
+	MDM_POWER_OFF = 0,
+	MDM_POWER_ON,
+	MDM_WARM_RESET,
+	MDM_COLD_RESET,
+	MDM_CRASH_CP,
+	MDM_CP_CRASH,
+	MDM_CP_POWER_OFF,
+	MDM_STAUS_CNT
+};
+
 void modem_ctrl_poweron_modem(int on);
 void modem_ctrl_enable_cp_event(void);
 int modem_ctrl_register_notifier(struct notifier_block *nb);
