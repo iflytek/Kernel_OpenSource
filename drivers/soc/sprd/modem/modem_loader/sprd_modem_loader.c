@@ -13,6 +13,7 @@
 
 #include <linux/cdev.h>
 #include <linux/kernel.h>
+#include <linux/mdm_ctrl.h>
 #include <linux/mm.h>
 #include <linux/module.h>
 #include <linux/io.h>
@@ -56,10 +57,11 @@
 
 #define MODEM_STOP_CMD _IO(MODEM_MAGIC, 0xc)
 #define MODEM_START_CMD _IO(MODEM_MAGIC, 0xd)
+#define MODEM_ASSERT_CMD _IO(MODEM_MAGIC, 0xe)
 
-#define MODEM_REBOOT_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0xe)
-#define MODEM_POWERON_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0xf)
-#define MODEM_POWEROFF_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0x10)
+#define MODEM_REBOOT_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0xf)
+#define MODEM_POWERON_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0x10)
+#define MODEM_POWEROFF_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0x11)
 
 #define	MODEM_READ_ALL_MEM 0xff
 #define	MODEM_READ_MODEM_MEM 0xfe
@@ -631,6 +633,16 @@ static int modem_run(struct modem_device *modem, u8 b_run)
 	return 0;
 }
 
+static int modem_assert(struct modem_device *modem)
+{
+#ifdef CONFIG_SPRD_EXT_MODEM
+	modem_ctrl_poweron_modem(MDM_CTRL_CRASH_MODEM);
+	return 0;
+#else
+	return smsg_senddie(modem->modem_dst);
+#endif
+}
+
 static long modem_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	int ret = -EINVAL;
@@ -748,6 +760,10 @@ static long modem_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	case MODEM_START_CMD:
 		ret = modem_run(modem, 1);
+		break;
+
+	case MODEM_ASSERT_CMD:
+		ret = modem_assert(modem);
 		break;
 
 	default:

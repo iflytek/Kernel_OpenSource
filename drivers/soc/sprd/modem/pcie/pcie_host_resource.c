@@ -554,8 +554,11 @@ int sprd_pcie_wait_resource(u32 dst, int timeout)
 						res->state ==
 						SPRD_PCIE_SCANNED,
 						delay);
-	if (wait == 0)
+	if (wait == 0) {
+		/* notify ep to crash. */
+		modem_ctrl_poweron_modem(MDM_CTRL_CRASH_MODEM);
 		ret = -ETIME;
+	}
 	else if (wait > 0)
 		ret = 0;
 	else
