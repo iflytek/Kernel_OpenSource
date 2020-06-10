@@ -1488,8 +1488,13 @@ READ_AGAIN:
 	 * we received is smaller than napi weight(64).
 	 * Then we are okay to do napi_complete.
 	 */
-	if (budget)
+	if (budget) {
 		napi_complete(napi);
+		if (atomic_read(&dev->rx_evt) || atomic_read(&dev->rx_busy)) {
+			atomic_set(&dev->rx_evt, 0);
+			napi_schedule(&dev->napi);
+		}
+	}
 
 out:
 	return tmp;
