@@ -169,7 +169,7 @@ static const int key_value[] = {KEY_MENU, KEY_HOME, KEY_BACK};
 
 /**********************update firmware macro switch*******************/
 
-//#define IAP_PORTION
+#define IAP_PORTION
 
 #if defined IAP_PORTION || defined ELAN_RAM_XX
 	/*The newest firmware, if update must be changed here*/

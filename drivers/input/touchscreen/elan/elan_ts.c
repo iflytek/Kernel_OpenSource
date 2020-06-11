@@ -125,7 +125,7 @@ static struct elan_ts_data *private_ts;
 #define FT_I2C_VTG_MIN_UV	1800000
 #define FT_I2C_VTG_MAX_UV	1800000
 
-//#define SWAP_X_Y_RESOLUTION
+#define SWAP_X_Y_RESOLUTION
 //#define ROTATE_X
 //#define ROTATE_Y
 
@@ -1291,33 +1291,32 @@ static ssize_t show_hover_flag(struct device *dev,
 static DEVICE_ATTR(hover_flag, S_IRUGO|S_IWUSR, show_hover_flag, hover_flag_store);
 
 static ssize_t ts_suspend_show(struct device *dev,
-                struct device_attribute *attr, char *buf)
+                        struct device_attribute *attr, char *buf)
 {
-		struct i2c_client *client = to_i2c_client(dev);
-		struct elan_ts_data *ts = i2c_get_clientdata(client);
+    struct i2c_client *client = to_i2c_client(dev);
+    struct elan_ts_data *ts = i2c_get_clientdata(client);
 
-        return sprintf(buf, "%s\n",
-                        ts->suspend ? "true" : "false");
+    return sprintf(buf, "%s\n", ts->suspend ? "true" : "false");
 }
 
 static int __maybe_unused elan_ts_resume(struct device *dev);
 static int __maybe_unused elan_ts_suspend(struct device *dev);
 
 static ssize_t ts_suspend_store(struct device *dev,
-                struct device_attribute *attr, const char *buf, size_t count)
+                        struct device_attribute *attr, const char *buf, size_t count)
 {
-		struct i2c_client *client = to_i2c_client(dev);
-		struct elan_ts_data *ts = i2c_get_clientdata(client);
+    struct i2c_client *client = to_i2c_client(dev);
+    struct elan_ts_data *ts = i2c_get_clientdata(client);
 
-        if ((buf[0] == '1') && !ts->suspend) {
-		        dev_err(&private_ts->client->dev, "ts_suspend_store call elan_ts_suspend\n");
-                elan_ts_suspend(dev);
-        } else if ((buf[0] == '0') && ts->suspend) {
-		        dev_err(&private_ts->client->dev, "ts_suspend_store call elan_ts_resume\n");
-                elan_ts_resume(dev);
-        }
+    if ((buf[0] == '1') && !ts->suspend) {
+        dev_err(&private_ts->client->dev, "ts_suspend_store call elan_ts_suspend\n");
+        elan_ts_suspend(dev);
+    } else if ((buf[0] == '0') && ts->suspend) {
+        dev_err(&private_ts->client->dev, "ts_suspend_store call elan_ts_resume\n");
+        elan_ts_resume(dev);
+    }
 
-        return count;
+    return count;
 }
 static DEVICE_ATTR(ts_suspend, S_IRUGO|S_IWUSR, ts_suspend_show, ts_suspend_store);
 
@@ -1944,19 +1943,17 @@ static void check_update_flage(struct elan_ts_data *ts)
 	int rc = 0;
 	int retry_cnt = 0;
 
-/*
 #ifdef ELAN_HID_IIC
 	rc = CheckISPstatus(ts->client);
 	if (rc == 0x56)
 		goto update_elan_fw;
 #else
-*/
 
 	if (ts->recover == 0x80) {
 		dev_dbg(&ts->client->dev, "[elan] ***fw is miss, force update!!!!***\n");
 		goto update_elan_fw;
 	}
-//#endif
+#endif
 
 #ifdef ELAN_HID_IIC
 	New_FW_ID           = file_fw_data[0xD5EB] << 8 | file_fw_data[0xD5EA];
@@ -2072,7 +2069,7 @@ static int elan_request_pen_input_dev(struct elan_ts_data *ts)
 	input_set_abs_params(ts->pen_idev, ABS_MT_TRACKING_ID, 0, 10, 0, 0);
 	input_set_abs_params(ts->pen_idev, ABS_X, 0,  1200, 0, 0);
 	input_set_abs_params(ts->pen_idev, ABS_Y, 0,  1920, 0, 0);
-	input_set_abs_params(ts->pen_idev, ABS_PRESSURE, 0, 511, 0, 0);
+	input_set_abs_params(ts->pen_idev, ABS_PRESSURE, 0, 4096, 0, 0);
 
 
 
@@ -2133,9 +2130,9 @@ static int elan_request_input_dev(struct elan_ts_data *ts)
 			"[elan] %s: x resolution: %d, y resolution: %d\n",
 			__func__, ts->x_resolution, ts->y_resolution);
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_X,
-			0, 1920/*1200ts->x_resolution*/, 0, 0);
+			0, 1200/*ts->x_resolution*/, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_Y,
-			0, 1200/*1920ts->y_resolution*/, 0, 0);
+			0, 1920/*ts->y_resolution*/, 0, 0);
 	//input_set_abs_params(ts->input_dev, ABS_PRESSURE, 0, 511, 0, 0);
 	//input_set_abs_params(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0, 255, 0, 0);
 	//input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0);
@@ -2169,7 +2166,7 @@ static int fb_notifier_callback(struct notifier_block *self,
     int *blank;
     struct elan_ts_data *elan_dev_data =
         container_of(self, struct elan_ts_data, fb_notif);
-    dev_err(&elan_dev_data->client->dev,
+    dev_dbg(&elan_dev_data->client->dev,
     			"%s fb notifier callback\n",__func__);
     if (evdata && evdata->data && elan_dev_data && private_ts->client) {
         if (event == FB_EVENT_BLANK) {
@@ -2498,31 +2495,54 @@ static void elan_ts_report_pen(struct elan_ts_data *ts, uint8_t *buf)
 	uint16_t y = 0;
 	static int  hover = 0,contact = 0;
 //  static unsigned int key_value;
-
-
+	static int pen_key_flag=0;
+    int pen_battery = 0;//1:normal 0:low power
+	static int battery_flag = -1;
   
 	pen_hover = buf[3] & 0x1;
-	pen_down = buf[3] & 0x03;
-	pen_key = buf[3];
+	pen_down = buf[3] & 0x33;
+	pen_key = (buf[3] >>2) & 0x07;
+    pen_battery = buf[10];
 
-/*
-	if (pen_key) {
-		dev_dbg(&ts->client->dev,
-				"[elan] report pen key %02x\n", pen_key);
-		if(0x05 == pen_key){
-			key_value = KEY_VOLUMEUP;
-			input_report_key(ts->input_dev, key_value, 1);
+    if (0 == pen_battery) {
+		if(battery_flag != pen_battery) {
+			char *envp[2];
+			battery_flag = pen_battery;
+			envp[0] = "battery=low";
+			envp[1] = NULL;
+			kobject_uevent_env(&ts->client->dev.kobj, KOBJ_CHANGE, envp);
 		}
-		else if(0x09 == pen_key){
-			key_value = KEY_VOLUMEDOWN;
-			input_report_key(ts->input_dev, key_value, 1);
+    }
+
+	if(pen_down == 0x01) {
+        if(pen_key == 0x01){  //below  key
+            //printk("elan_ts_report_pen ---------0x01 aaa \n");
+            pen_key_flag = BTN_STYLUS2;
+            input_report_key(ts->pen_idev, pen_key_flag, 1);
+        } else if(pen_key==0x02) { //upside key
+            //printk("elan_ts_report_pen ---------0x02 aaa \n");
+            pen_key_flag = BTN_STYLUS;
+            input_report_key(ts->pen_idev, pen_key_flag, 1);
+        }else if((pen_key == 0x00) && (pen_key_flag != 0)){
+            //printk("elan_ts_report_pen pen_key: %d release \n",pen_key_flag);
+            input_report_key(ts->pen_idev, pen_key_flag, 0);
+            pen_key_flag=0;
 		}
-		else{
-			input_report_key(ts->input_dev, key_value, 0);
-		}
-		//elan_ts_report_key(ts,pen_key);
-	}
-*/
+    } else if(pen_down > 0x01){ // for contact key value
+        if(pen_key == 0x01){  //below  key
+            //printk("elan_ts_report_pen ---------0x01 bbb \n");
+            pen_key_flag = BTN_STYLUS2;
+            input_report_key(ts->pen_idev, pen_key_flag, 1);
+        } else if(pen_key==0x04) { //upside key
+            //printk("elan_ts_report_pen ---------0x04 bbb \n");
+            pen_key_flag = BTN_STYLUS;
+            input_report_key(ts->pen_idev, pen_key_flag, 1);
+        }else if((pen_key == 0x00) && (pen_key_flag != 0)){
+            //printk("elan_ts_report_pen pen_key: %d release \n",pen_key_flag);
+            input_report_key(ts->pen_idev, pen_key_flag, 0);
+            pen_key_flag=0;
+        }
+    }
 
 	if (pen_hover) {
 		
@@ -2533,8 +2553,8 @@ static void elan_ts_report_pen(struct elan_ts_data *ts, uint8_t *buf)
 #endif		
 		y = y * 1920 / ((ts->y_trace-1) * 260);
 		x = x * 1200 / ((ts->x_trace-1) * 260);
-		x = 1920 - x;
-		y = 1200 - y;
+		//x = 1200 - x;
+		y = 1920 - y;
 #ifdef ELAN_ICS_SLOT_REPORT
 		if(pen_down == 0x01) {	
 			if(ts->hover_flag){
@@ -2612,9 +2632,15 @@ static void elan_ts_report_pen(struct elan_ts_data *ts, uint8_t *buf)
 		input_report_key(ts->pen_idev, BTN_TOUCH, false);
 		input_report_key(ts->pen_idev, BTN_TOOL_PEN, false);
 		input_mt_sync(ts->pen_idev);
-#endif		
+#endif
+		battery_flag = -1;
 	}
-		
+
+    /*
+	dev_info(&ts->client->dev,"[elan pen] %x:%x:%x:%x:%x:%x:%x:%x\n",
+					buf[0], buf[1], buf[2], buf[3],
+					buf[4], buf[5], buf[6], buf[7]);
+    */
 }
 #endif
 
@@ -2690,13 +2716,15 @@ static void elan_ts_report_data(struct elan_ts_data *ts, uint8_t *buf)
 				#else
 					elan_ts_parse_xy(&buf[idx],&x,&y);
 				#endif
-				x = x * 1920 / ts->x_resolution;
-				y = y * 1200 / ts->y_resolution;
-
-				x = 1920 - x;
-				y = 1200 - y;
+				x = x*1200 /ts->x_resolution;
+				y  = y*1920 /ts->y_resolution;
+				//x = 1200-x;
+				y = 1920-y;
 
 				fbits = (((buf[idx] & 0xfc) >> 2) -1);
+
+				if((x > 1600) || (y > 2560) || (fbits > 10))
+					continue;
 
 				mTouchStatus[fbits] = buf[idx] & 0x03;
 
@@ -2739,7 +2767,7 @@ static void elan_ts_report_data(struct elan_ts_data *ts, uint8_t *buf)
 			}
 		#endif
 			input_report_key(ts->input_dev, BTN_TOUCH, 0);
-			
+
 		#ifndef ELAN_HID_IIC
 			elan_ts_report_key(ts, button_byte);
 		#endif	
@@ -2790,7 +2818,7 @@ static void elan_ts_report_data(struct elan_ts_data *ts, uint8_t *buf)
 		}
 #endif
 	}
-	
+
 #ifdef ELAN_ICS_SLOT_REPORT
 	input_mt_sync_frame(ts->input_dev);
 
@@ -3504,13 +3532,13 @@ static int __maybe_unused elan_ts_resume(struct device *dev)
 #ifdef ELAN_ICS_SLOT_REPORT
 	int rc = 0;
 #endif
-#if 1	
+#if 1
 	elan_ts_power_on(ts,true);
-#endif	
+#endif
   msleep(200);
-	dev_err(&client->dev, "[elan] %s: enter\n", __func__);
+	dev_info(&client->dev, "[elan] %s: enter\n", __func__);
 	if (ts->power_lock == 0) {
-		dev_err(&client->dev, "[elan] reset gpio to resum tp\n");
+		dev_dbg(&client->dev, "[elan] reset gpio to resum tp\n");
 		elan_switch_irq(1);
 		rc = elan_ts_set_power_state(ts->client, PWR_STATE_NORMAL);
 		elan_reset();
@@ -3523,7 +3551,7 @@ static int __maybe_unused elan_ts_resume(struct device *dev)
 
     ts->suspend = false;
 
-	dev_err(&client->dev, "[elan] %s: end\n", __func__);
+	dev_info(&client->dev, "[elan] %s: end\n", __func__);
 	return 0;
 }
 
