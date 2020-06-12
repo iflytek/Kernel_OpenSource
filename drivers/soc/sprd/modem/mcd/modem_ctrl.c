@@ -35,6 +35,8 @@
 
 #include "../include/sprd_pcie_resource.h"
 
+extern int sysdump_status;
+
 enum {
 	ROC1_SOC = 0,
 	ORCA_SOC
@@ -533,7 +535,7 @@ static int modem_ctrl_parse_modem_dt(struct modem_ctrl_init_data **init,
 	pdata->name = cdev_name;
 
 	/* Triger watchdog,assert,panic of orca */
-	pdata->gpio_crash = devm_gpiod_get(dev, "cpwatchdog", GPIOD_OUT_HIGH);
+	pdata->gpio_crash = devm_gpiod_get(dev, "cpwatchdog", GPIOD_IN);
 	if (IS_ERR(pdata->gpio_crash))
 		return PTR_ERR(pdata->gpio_crash);
 
@@ -727,6 +729,10 @@ static void modem_ctrl_shutdown(struct platform_device *pdev)
 {
 	pr_info("mcd: ctrl shutdown\n");
 
+	/* orca do noting here. */
+	if (!mcd_dev || mcd_dev->soc_type == ORCA_SOC)
+		return;
+
 	atomic_notifier_call_chain(&modem_ctrl_chain,
 				   MDM_POWER_OFF, NULL);
 	/*
@@ -786,7 +792,7 @@ static void modem_ctrl_core_shutdown(void)
 	 * if cp can't respound, panic to  avoid orca shutdown
 	 * caused electricity leakage.
 	 */
-	if (cnt == 10000)
+	if (sysdump_status && cnt == 10000)
 		panic("CP BLOCK!");
 }
 
