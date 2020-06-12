@@ -219,8 +219,8 @@
 			0x10000>,
 		<&anlg_phy_g2_regs 1 0
 			REG_ANLG_PHY_G2_RF_ANALOG_PCIEPLL_H_PCIEPLLH_CTRL6
-			0x3000	/* no corresponding macro */
-			0x1000>,
+			0xf000	/* no corresponding macro */
+			0x5000>,
 		<&anlg_phy_g2_regs 0 0
 			REG_ANLG_PHY_G2_RF_ANALOG_PCIE_GEN2_1T1R_REG_SEL_CFG_0
 			MASK_ANLG_PHY_G2_RF_DBG_SEL_ANALOG_PCIE_GEN2_1T1R_PIPE_RESERVEDIN
@@ -253,13 +253,23 @@
 			REG_PMU_APB_RF_PCIE_SLP_CFG
 			MASK_PMU_APB_RF_PCIE_CLKREQ_PLL_GATE_MASK
 			0x0>,
-		<&pmu_apb_regs 0 150
+		<&pmu_apb_regs 0 150000
 			REG_PMU_APB_RF_PCIE_SLP_CFG
 			MASK_PMU_APB_RF_REG_PERST_N_ASSERT
 			0x10>,
+		<&pmu_apb_regs 0 2000
+			REG_PMU_APB_RF_PCIE_SLP_CFG
+			MASK_PMU_APB_RF_REG_PERST_N_ASSERT
+			0x0>;
+
+	sprd,pcie-shutdown-syscons =
 		<&pmu_apb_regs 0 0
 			REG_PMU_APB_RF_PCIE_SLP_CFG
 			MASK_PMU_APB_RF_REG_PERST_N_ASSERT
+			0x10>,
+		<&ap_ipa_ahb_regs 0 0
+			REG_AP_IPA_AHB_RF_AHB_EB
+			MASK_AP_IPA_AHB_RF_PCIE_EB
 			0x0>;
 
 	sprd,pcie-resume-syscons =
@@ -267,7 +277,12 @@
 			REG_AP_IPA_AHB_RF_AHB_EB
 			MASK_AP_IPA_AHB_RF_PCIE_EB
 			0x20>,
-		<&pmu_apb_regs 0 0
+		/* WORKAROUND: only for orca + AQ */
+		<&pmu_apb_regs 0 150000
+			REG_PMU_APB_RF_PCIE_SLP_CFG
+			MASK_PMU_APB_RF_REG_PERST_N_ASSERT
+			0x10>,
+		<&pmu_apb_regs 0 2000
 			REG_PMU_APB_RF_PCIE_SLP_CFG
 			MASK_PMU_APB_RF_REG_PERST_N_ASSERT
 			0x0>;
@@ -282,5 +297,5 @@
 			MASK_AP_IPA_AHB_RF_PCIE_EB
 			0x0>;
 
-	status = "disabled";
+	status = "okay";
 };
