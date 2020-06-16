@@ -270,6 +270,10 @@
 
 &pcie0 {
 	sprd,pcie-startup-syscons =
+		<&pmu_apb_regs 2 0
+			REG_PMU_APB_RF_PWR_STATUS1_DBG
+			MASK_PMU_APB_RF_PD_AP_SYS_STATE
+			0x0>,
 		<&aon_apb_regs 0 0
 			REG_AON_APB_RF_PCIE_SLV_ADDR_OFFSET
 			MASK_AON_APB_RF_PCIE_SLV_ADDR_OFFSET
@@ -334,6 +338,10 @@
 			0x0>;
 
 	sprd,pcie-resume-syscons =
+		<&pmu_apb_regs 2 0
+			REG_PMU_APB_RF_PWR_STATUS1_DBG
+			MASK_PMU_APB_RF_PD_AP_SYS_STATE
+			0x0>,
 		<&ap_ipa_ahb_regs 0 0
 			REG_AP_IPA_AHB_RF_AHB_EB
 			MASK_AP_IPA_AHB_RF_PCIE_EB
