@@ -40,6 +40,8 @@
 #define CM_UVLO_OFFSET			50000
 #define CM_FORCE_SET_FUEL_CAP_FULL	1000
 #define CM_LOW_TEMP_REGION		100
+#define CM_UVLO_CALIBRATION_VOLTAGE_THRESHOLD	3250000
+#define CM_UVLO_CALIBRATION_CNT_THRESHOLD	5
 #define CM_LOW_TEMP_SHUTDOWN_VALTAGE	3200000
 #define CM_TRACK_CAPACITY_SHUTDOWN_START_VOLTAGE	3500000
 #define CM_TRACK_CAPACITY_START_VOLTAGE	3650000
@@ -3327,6 +3329,34 @@ static void cm_track_capacity_init(struct charger_manager *cm)
 			   5 * HZ);
 }
 
+static void cm_uvlo_check_work(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct charger_manager *cm = container_of(dwork,
+				struct charger_manager, uvlo_work);
+	int batt_uV, ret;
+
+	ret = get_batt_uV(cm, &batt_uV);
+	if (ret) {
+		dev_err(cm->dev, "get_batt_uV error.\n");
+		return;
+	}
+
+	if (batt_uV < cm->desc->shutdown_voltage)
+		cm->desc->uvlo_trigger_cnt++;
+	else
+		cm->desc->uvlo_trigger_cnt = 0;
+
+	if (cm->desc->uvlo_trigger_cnt >= CM_UVLO_CALIBRATION_CNT_THRESHOLD) {
+		dev_err(cm->dev, "WARN: batt_uV less than uvlo, will shutdown\n");
+		set_batt_cap(cm, 0);
+		orderly_poweroff(true);
+	}
+
+	if (batt_uV < CM_UVLO_CALIBRATION_VOLTAGE_THRESHOLD)
+		schedule_delayed_work(&cm->uvlo_work, msecs_to_jiffies(800));
+}
+
 static void cm_batt_works(struct work_struct *work)
 {
 	struct delayed_work *dwork = to_delayed_work(work);
@@ -3551,10 +3581,9 @@ static void cm_batt_works(struct work_struct *work)
 		break;
 	}
 
-	if (batt_uV <= cm->desc->shutdown_voltage - CM_UVLO_OFFSET) {
-		set_batt_cap(cm, 0);
-		dev_err(cm->dev, "WARN: batt_uV less than uvlo, will shutdown\n");
-		orderly_poweroff(true);
+	if (batt_uV < CM_UVLO_CALIBRATION_VOLTAGE_THRESHOLD) {
+		dev_info(cm->dev, "batt_uV is less than UVLO calib volt\n");
+		schedule_delayed_work(&cm->uvlo_work, msecs_to_jiffies(100));
 	}
 
 	dev_info(cm->dev, "battery cap = %d, charger manager cap = %d\n",
@@ -3819,6 +3848,7 @@ static int charger_manager_probe(struct platform_device *pdev)
 	}
 
 	queue_delayed_work(system_power_efficient_wq, &cm->cap_update_work, CM_CAP_CYCLE_TRACK_TIME * HZ);
+	INIT_DELAYED_WORK(&cm->uvlo_work, cm_uvlo_check_work);
 
 	return 0;
 
@@ -3853,6 +3883,7 @@ static int charger_manager_remove(struct platform_device *pdev)
 	cancel_work_sync(&setup_polling);
 	cancel_delayed_work_sync(&cm_monitor_work);
 	cancel_delayed_work_sync(&cm->cap_update_work);
+	cancel_delayed_work_sync(&cm->uvlo_work);
 	if (cm->track.cap_tracking)
 		cancel_delayed_work_sync(&cm->track.track_capacity_work);
 
@@ -3917,6 +3948,7 @@ static int cm_suspend_prepare(struct device *dev)
 		cancel_delayed_work_sync(&cm_monitor_work);
 		cancel_delayed_work(&cm->fullbatt_vchk_work);
 		cancel_delayed_work_sync(&cm->cap_update_work);
+		cancel_delayed_work_sync(&cm->uvlo_work);
 		if (cm->track.cap_tracking)
 			cancel_delayed_work_sync(&cm->track.track_capacity_work);
 	}

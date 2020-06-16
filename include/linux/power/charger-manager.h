@@ -223,6 +223,8 @@ struct cm_track_capacity {
  * @charger_status: Recording state of charge
  * @charger_type: Recording type of charge
  * @trigger_cnt: The number of times the battery is fully charged
+ * @uvlo_trigger_cnt: The number of times the battery voltage is
+ *	less than under voltage lock out
  * @low_temp_trigger_cnt: The number of times the battery temperature
  *	is less than 10 degree.
  * @cap_one_time: The percentage of electricity is not
@@ -293,6 +295,7 @@ struct charger_desc {
 	int charger_status;
 	u32 charger_type;
 	int trigger_cnt;
+	int uvlo_trigger_cnt;
 	int low_temp_trigger_cnt;
 
 	u32 cap_one_time;
@@ -336,6 +339,7 @@ struct charger_desc {
  * @fullbatt_vchk_jiffies_at:
  *	jiffies at the time full battery check will occur.
  * @fullbatt_vchk_work: work queue for full battery check
+ * @uvlo_work: work queue to check uvlo state
  * @emergency_stop:
  *	When setting true, stop charging
  * @psy_name_buf: the name of power-supply-class for charger manager
@@ -361,6 +365,7 @@ struct charger_manager {
 	unsigned long fullbatt_vchk_jiffies_at;
 	struct delayed_work fullbatt_vchk_work;
 	struct delayed_work cap_update_work;
+	struct delayed_work uvlo_work;
 	int emergency_stop;
 
 	char psy_name_buf[PSY_NAME_MAX + 1];
