@@ -79,7 +79,9 @@ struct sprd_pcie_res {
 	u32	ep_up_cnt;
 	u32	ep_reboot_cnt;
 
+	bool	requested;
 	bool	wait_scanned;
+	bool	wait_scanned_respond;
 	bool	ep_dev_probe;
 	bool	power_off;
 	bool	ep_ready_for_rescan;
@@ -527,8 +529,8 @@ int sprd_pcie_wait_resource(u32 dst, int timeout)
 
 	res = g_pcie_res[dst];
 
-	/* pcie ready, return succ immediately. */
-	if (res->state == SPRD_PCIE_SCANNED)
+	/* pcie ready and resource is requested return succ immediately. */
+	if (res->state == SPRD_PCIE_SCANNED && res->requested)
 		return 0;
 
 	if (timeout == 0)
@@ -550,11 +552,14 @@ int sprd_pcie_wait_resource(u32 dst, int timeout)
 	delay = msecs_to_jiffies(timeout + 1000);
 	wait = wait_event_interruptible_timeout(res->wait_pcie_ready,
 						res->state ==
-						SPRD_PCIE_SCANNED,
+						SPRD_PCIE_SCANNED &&
+						res->requested,
 						delay);
 	if (wait == 0) {
 		/* notify ep to crash. */
-		modem_ctrl_poweron_modem(MDM_CTRL_CRASH_MODEM);
+		/* only exceed max_wait_time notify ep to crash. */
+		if (timeout == res->max_wait_time)
+			modem_ctrl_poweron_modem(MDM_CTRL_CRASH_MODEM);
 		ret = -ETIME;
 	}
 	else if (wait > 0)
@@ -579,6 +584,11 @@ int sprd_pcie_request_resource(u32 dst)
 	res = g_pcie_res[dst];
 
 	sipc_set_wakeup_flag();
+	res->requested = true;
+	 /* make sure the member requested has stored in the
+	  * memory before do below actions.
+	  */
+	smp_mb();
 
 	/* get a wakelock */
 	__pm_stay_awake(&res->ws);
@@ -595,6 +605,11 @@ int sprd_pcie_release_resource(u32 dst)
 		return -EINVAL;
 
 	res = g_pcie_res[dst];
+	res->requested = false;
+	 /* make sure the member requested has stored in the
+	  * memory before do below actions.
+	  */
+	smp_mb();
 
 	ret = sprd_add_action(res->actions_queue, RELEASE_RES_ACTION);
 
@@ -658,6 +673,10 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 		return;
 	}
 
+	/* has resource requested, don't remove pcie. */
+	if (res->ep_requested || res->requested)
+		return;
+
 	pcie_resource_host_change_state(res, WAIT_REMOVE_MSG);
 
 	pr_info("pcie res: wait remove!\n");
@@ -683,13 +702,15 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 	res->ep_remove_respond = false;
 
 	/* notify ep removed, must before removed */
-	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_REMOVING);
+	if (!res->ep_requested && !res->requested)
+		sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_REMOVING);
 
 	/* waiting for ep remove respond, max time 4s,
 	 * remove it when wait ep remove respond or time out.
 	 */
 	ret = wait_event_timeout(res->wait_ep_respond,
-				 res->ep_remove_respond || res->ep_requested,
+				 res->ep_remove_respond ||
+				 res->ep_requested || res->requested,
 				 msecs_to_jiffies(4000));
 	if (ret < 0) {
 		/* release wakelock */
@@ -700,8 +721,15 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 	/* if ep_requested and reboot_ep_wait_removed is false,
 	 * cancel remove pcie, return to scanned state.
 	 */
-	if (res->ep_requested && !res->reboot_ep_wait_removed) {
+	if ((res->ep_requested || res->requested) &&
+	    !res->reboot_ep_wait_removed) {
 		pcie_resource_host_change_state(res, SCANNED_MSG);
+		/* clear removed irq and notify ep scanned */
+		sprd_ep_dev_clear_doolbell_irq(res->ep_dev,
+					       PCIE_DBEL_EP_REMOVING);
+		sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
+		sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBELL_SIPC_IRQ);
+
 		/* wakeup all blocked thread */
 		wake_up_interruptible_all(&res->wait_pcie_ready);
 		/* release wakelock */
@@ -759,12 +787,6 @@ static void sprd_pcie_resource_do_release_res(struct sprd_pcie_res *res)
 {
 	pr_info("pcie res: release resource.\n");
 
-	if (res->state != SPRD_PCIE_SCANNED &&
-		res->state != SPRD_PCIE_SCANNED_2BAR) {
-		pr_err("pcie res: state err = %d.", res->state);
-		return;
-	}
-
 	sprd_pcie_resource_do_remove_pcie(res);
 }
 
@@ -776,6 +798,7 @@ static void sprd_pcie_resource_do_ep_probe(struct sprd_pcie_res *res)
 	/* set state to scanned */
 	pcie_resource_host_change_state(res, SCANNED_MSG);
 	res->wait_scanned = false;
+	res->wait_scanned_respond = true;
 
 	/* power up for ep until recieve ep resond scan. */
 	sprd_pms_power_up(res->pms);
@@ -784,6 +807,7 @@ static void sprd_pcie_resource_do_ep_probe(struct sprd_pcie_res *res)
 	sprd_ep_dev_clear_doolbell_irq(res->ep_dev,
 					   PCIE_DBEL_EP_REMOVING);
 	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
+	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBELL_SIPC_IRQ);
 
 	/* wakeup all blocked thread */
 	wake_up_interruptible_all(&res->wait_pcie_ready);
@@ -829,7 +853,10 @@ static void sprd_pcie_resource_do_ep_remove(struct sprd_pcie_res *res)
 static void sprd_pcie_resource_do_ep_scaned_respond(struct sprd_pcie_res *res)
 {
 	pr_info("pcie res: ep scaned respond.");
-	sprd_pms_power_down(res->pms, false);
+	if (res->wait_scanned_respond) {
+		res->wait_scanned_respond = false;
+		sprd_pms_power_down(res->pms, false);
+	}
 }
 
 static void sprd_pcie_resource_do_ep_request(struct sprd_pcie_res *res)
