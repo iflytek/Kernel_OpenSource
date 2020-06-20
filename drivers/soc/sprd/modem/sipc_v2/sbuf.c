@@ -548,6 +548,18 @@ static int sbuf_thread(void *data)
 			return 0;
 		}
 		sbuf->state = SBUF_STATE_READY;
+		for (bufid = 0; bufid < sbuf->ringnr; bufid++) {
+			/* if has sbuf handle give sbuf ready notify only. */
+			if (sbuf->handler) {
+				sbuf->handler(SBUF_NOTIFY_READY, 0, sbuf->data);
+				break;
+			}
+
+			ring = &sbuf->rings[bufid];
+			if (ring->handler)
+				ring->handler(SBUF_NOTIFY_READY,
+						ring->data);
+		}
 	}
 
 	/* sbuf init done, handle the ring rx events */
@@ -611,7 +623,18 @@ static int sbuf_thread(void *data)
 					 sbuf->dst_smem_addr);
 				smsg_send(sbuf->dst, &mcmd, -1);
 				sbuf->state = SBUF_STATE_READY;
+
 				for (bufid = 0; bufid < sbuf->ringnr; bufid++) {
+					/*
+					 * if has sbuf handle give
+					 * sbuf ready notify only.
+					 */
+					if (sbuf->handler) {
+						sbuf->handler(SBUF_NOTIFY_READY,
+							      0, sbuf->data);
+						break;
+					}
+
 					ring = &sbuf->rings[bufid];
 					if (ring->handler)
 						ring->handler(SBUF_NOTIFY_READY,
@@ -633,7 +656,12 @@ static int sbuf_thread(void *data)
 				ring->poll_mask |= POLLOUT | POLLWRNORM;
 				spin_unlock_irqrestore(&ring->poll_lock, flags);
 				wake_up_interruptible_all(&ring->txwait);
-				if (ring->handler)
+
+				if (sbuf->handler &&
+				    (sbuf->ch_mark & BIT(bufid)))
+					sbuf->handler(SBUF_NOTIFY_WRITE,
+						      bufid, sbuf->data);
+				else if (ring->handler)
 					ring->handler(SBUF_NOTIFY_WRITE,
 						      ring->data);
 				break;
@@ -647,7 +675,12 @@ static int sbuf_thread(void *data)
 					sprd_pms_request_wakelock_period(ring->rx_pms,
 									 500);
 				wake_up_interruptible_all(&ring->rxwait);
-				if (ring->handler)
+
+				if (sbuf->handler &&
+				    (sbuf->ch_mark & BIT(bufid)))
+					sbuf->handler(SBUF_NOTIFY_READ,
+						      bufid, sbuf->data);
+				else if (ring->handler)
 					ring->handler(SBUF_NOTIFY_READ,
 						      ring->data);
 				break;
@@ -676,7 +709,6 @@ static int sbuf_thread(void *data)
 
 	return 0;
 }
-
 
 int sbuf_create(u8 dst, u8 channel, u32 bufnum, u32 txbufsize, u32 rxbufsize)
 {
@@ -1353,6 +1385,10 @@ int sbuf_register_notifier(u8 dst, u8 channel, u32 bufid,
 	sbuf = sbufs[dst][ch_index];
 	if (!sbuf)
 		return -ENODEV;
+
+	if (!sbuf->rings)
+		return -EAGAIN;
+
 	ring = &sbuf->rings[bufid];
 	ring->handler = handler;
 	ring->data = data;
@@ -1363,6 +1399,40 @@ int sbuf_register_notifier(u8 dst, u8 channel, u32 bufid,
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sbuf_register_notifier);
+
+struct sbuf_mgr *sbuf_register_notifier_ex(u8 dst, u8 channel, u32 mark,
+					   void (*handler)(int event, u32 bufid,
+							   void *data),
+					   void *data)
+{
+	struct sbuf_mgr *sbuf;
+	u8 ch_index;
+	u32 i;
+
+	ch_index = sipc_channel2index(channel);
+	if (ch_index == INVALID_CHANEL_INDEX) {
+		pr_err("%s:channel %d invalid!\n", __func__, channel);
+		return NULL;
+	}
+	sbuf = sbufs[dst][ch_index];
+	if (!sbuf)
+		return NULL;
+
+	sbuf->ch_mark = mark;
+	sbuf->handler = handler;
+	sbuf->data = data;
+
+	if (sbuf->state == SBUF_STATE_READY) {
+		/* give sbuf ready notify first. */
+		handler(SBUF_NOTIFY_READY, 0, data);
+		for (i = 0; i < sbuf->ringnr; i++) {
+			if (sbuf->ch_mark & BIT(i))
+				handler(SBUF_NOTIFY_READ, i, data);
+		}
+	}
+
+	return sbuf;
+}
 
 void sbuf_get_status(u8 dst, char *status_info, int size)
 {
