@@ -13,10 +13,12 @@
 #ifndef SPRD_ACIIONS_QUEUE_H
 #define SPRD_ACIIONS_QUEUE_H
 
-typedef void (*do_actions) (int action, void *data);
+typedef void (*do_actions) (u32 action, int param, void *data);
 
-void *sprd_create_action_queue(char *name, do_actions do_function, void *data);
+void *sprd_create_action_queue(char *name, do_actions do_function,
+			       void *data, int sched_priority);
 void sprd_destroy_action_queue(void *action_queue);
-int sprd_add_action(void *actions_queue, int action);
+int sprd_add_action_ex(void *actions_queue, u32 action, int param);
+#define sprd_add_action(q, a)	sprd_add_action_ex(q, a, 0)
 #endif
 

@@ -540,7 +540,7 @@ static void sprd_pcie_resource_do_rc_removing(struct sprd_pcie_res *res)
 	sprd_pci_epf_raise_irq(res->ep_fun, PCIE_MSI_REMOVE_RESPOND);
 }
 
-static void sprd_pcie_resource_do_actions(int action, void *data)
+static void sprd_pcie_resource_do_actions(u32 action, int param, void *data)
 {
 	struct sprd_pcie_res *res = (struct sprd_pcie_res *)data;
 
@@ -625,7 +625,7 @@ int sprd_pcie_resource_client_init(u32 dst, u32 ep_fun)
 
 	res->actions_queue =
 		sprd_create_action_queue("pcie_res",
-					 sprd_pcie_resource_do_actions, res);
+					 sprd_pcie_resource_do_actions, res, 9);
 	if (!res->actions_queue) {
 		pr_err("pcie res:create actions failed.\n");
 		kfree(res);

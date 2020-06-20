@@ -142,8 +142,6 @@ static const char *state_msg[SPRD_PCIE_SCANNED_2BAR + 1] = {
 	"2bar sacanned"
 };
 
-static void sprd_pcie_resource_do_actions(int action, void *data);
-
 static struct sprd_pcie_res *g_pcie_res[SIPC_ID_NR];
 
 static void pcie_resource_host_change_state(struct sprd_pcie_res *res,
@@ -880,7 +878,7 @@ static void sprd_pcie_resource_do_ep_load_done(struct sprd_pcie_res *res)
 		sprd_add_action(res->actions_queue, REMOVE_PCIE_ACTION);
 }
 
-static void sprd_pcie_resource_do_actions(int action, void *data)
+static void sprd_pcie_resource_do_actions(u32 action, int param, void *data)
 {
 	struct sprd_pcie_res *res = (struct sprd_pcie_res *)data;
 
@@ -999,7 +997,7 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
 
 	res->actions_queue =
 		sprd_create_action_queue("pcie_res",
-					 sprd_pcie_resource_do_actions, res);
+					 sprd_pcie_resource_do_actions, res, 9);
 	if (!res->actions_queue) {
 		pr_err("pcie res:create actions failed.\n");
 		kfree(res);
