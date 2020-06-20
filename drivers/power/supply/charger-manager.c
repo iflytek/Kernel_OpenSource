@@ -700,6 +700,33 @@ static int get_charger_limit_current(struct charger_manager *cm, int *cur)
 	return ret;
 }
 
+static int get_charger_input_current(struct charger_manager *cm, int *cur)
+{
+	union power_supply_propval val;
+	struct power_supply *psy;
+	int i, ret = -ENODEV;
+
+	/* If at least one of them has one, it's yes. */
+	for (i = 0; cm->desc->psy_charger_stat[i]; i++) {
+		psy = power_supply_get_by_name(cm->desc->psy_charger_stat[i]);
+		if (!psy) {
+			dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
+				cm->desc->psy_charger_stat[i]);
+			continue;
+		}
+
+		ret = power_supply_get_property(psy,
+						POWER_SUPPLY_PROP_INPUT_CURRENT_NOW,
+						&val);
+		power_supply_put(psy);
+		if (ret == 0) {
+			*cur = val.intval;
+			break;
+		}
+	}
+
+	return ret;
+}
 /**
  * is_charging - Returns true if the battery is being charged.
  * @cm: the Charger Manager representing the battery.
@@ -1862,6 +1889,9 @@ static void misc_event_handler(struct charger_manager *cm,
 
 	if (cm->emergency_stop)
 		cm->emergency_stop = 0;
+
+	if (cm->desc->charger_type)
+		cm->desc->charger_type = 0;
 
 	cm->desc->thm_adjust_cur = -EINVAL;
 
@@ -3365,7 +3395,7 @@ static void cm_batt_works(struct work_struct *work)
 	struct timespec64 cur_time;
 	int batt_uV, batt_ocV, bat_uA, fuel_cap, chg_sts, ret;
 	int period_time, flush_time, cur_temp;
-	int chg_cur = 0, chg_limit_cur = 0;
+	int chg_cur = 0, chg_limit_cur = 0, input_cur = 0;
 	static int last_fuel_cap = CM_CAP_MAGIC_NUM;
 
 	ret = get_batt_uV(cm, &batt_uV);
@@ -3403,6 +3433,10 @@ static void cm_batt_works(struct work_struct *work)
 		dev_err(cm->dev, "get chg_limit_cur error.\n");
 		return;
 	}
+
+	ret = get_charger_input_current(cm, &input_cur);
+	if (ret)
+		dev_warn(cm->dev, "get input_cur error.\n");
 
 	ret = cm_get_battery_temperature_by_psy(cm, &cur_temp);
 	if (ret) {
@@ -3466,13 +3500,13 @@ static void cm_batt_works(struct work_struct *work)
 	else
 		cm->desc->charger_status = chg_sts;
 
-	dev_info(cm->dev, "battery voltage = %d, OCV = %d, current = %d, "
+	dev_info(cm->dev, "battery voltage = %d, OCV = %d, current = %d, input current = %d,"
 		 "capacity = %d, charger status = %d, force set full = %d, "
-		 "charging current = %d, charging limit current = %d, "
-		 "battery temperature = %d track state = %d\n",
-		 batt_uV, batt_ocV, bat_uA, fuel_cap, cm->desc->charger_status,
-		 cm->desc->force_set_full, chg_cur, chg_limit_cur, cur_temp,
-		 cm->track.state);
+		 "charging current = %d, charging limit current = %d, usb_type = %d, "
+		 "battery temperature = %d track state = %d, thm_adjust_cur = %d\n",
+		 batt_uV, batt_ocV, bat_uA, input_cur,  fuel_cap, cm->desc->charger_status,
+		 cm->desc->force_set_full, chg_cur, chg_limit_cur, cm->desc->charger_type,
+		 cur_temp, cm->track.state, cm->desc->thm_adjust_cur);
 
 	switch (cm->desc->charger_status) {
 	case POWER_SUPPLY_STATUS_CHARGING:
