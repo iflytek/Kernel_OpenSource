@@ -50,6 +50,8 @@ static char *const mdm_stat[MDM_STAUS_CNT] = {
 #define REBOOT_MODEM_DELAY    1000
 #define POWERREST_MODEM_DELAY 2000
 #define RESET_MODEM_DELAY    2000
+#define MAX_POWER_DOWN_WAIT_ORCA 5000
+#define MAX_REOOT_WAIT_ORCA 1000
 
 char cdev_name[] = "mdm_ctrl";
 
@@ -744,8 +746,10 @@ static void modem_ctrl_shutdown(struct platform_device *pdev)
 
 static void modem_ctrl_core_shutdown(void)
 {
-	int cnt = 0;
+	int cnt = 0, i = 0, max;
 	int pre, state;
+	bool recv_ack = false;
+	struct gpio_desc *gpio_ack;
 
 	if (!mcd_dev)
 		return;
@@ -758,42 +762,57 @@ static void modem_ctrl_core_shutdown(void)
 	}
 #endif
 
-	pre = gpiod_get_value(mcd_dev->init->gpio_poweroff_ack);
+	/*
+	 * SYS_POWER_OFF must wait more time to
+	 * makesure the orca has shutdown.
+	 */
+	max = g_mcd_reboot_event == SYS_POWER_OFF ?
+		MAX_POWER_DOWN_WAIT_ORCA : MAX_REOOT_WAIT_ORCA;
+
+	gpio_ack = mcd_dev->init->gpio_poweroff_ack;
+	pre = gpiod_get_value(gpio_ack);
 	state = !pre;
-	pr_info("mcd: core shutdown...pre = %d\n", pre);
+	pr_debug("mcd: core shutdown...pre = %d\n", pre);
 
 	if (mcd_dev->soc_type == ROC1_SOC) {
 		modem_ctrl_send_cmd_to_cp(MDM_CTRL_POWER_OFF);
 
-		/* only care SYS_POWER_OFF event. */
-		while (g_mcd_reboot_event == SYS_POWER_OFF &&
-			cnt < 10000 &&
-			pre == gpiod_get_value(mcd_dev->init->gpio_poweroff_ack)
-			) {
-			usleep_range(1000, 1200);
-			cnt++;
+		/* timeout or recv orca ack. */
+		for (cnt = 0; cnt < max; cnt++) {
+			mdelay(1);
+			if (pre != gpiod_get_value(gpio_ack)) {
+				recv_ack = true;
+				break;
+			}
 		}
 
-		/* delay 1s for orca shutdown. */
-		msleep(1000);
+		if (recv_ack) {
+			/* timeout or orca ack gpio state has changed. */
+			for (i = 0; i < 1000; i++) {
+				mdelay(1);
+				if (pre == gpiod_get_value(gpio_ack))
+					break;
+			}
+		} else {
+			/*
+			 * if cp can't respound, panic to avoid orca
+			 * shutdown caused electricity leakage.
+			 */
+			if (g_mcd_reboot_event == SYS_POWER_OFF
+			    && sysdump_status)
+				panic("CP BLOCK!");
+		}
 	} else if (mcd_dev->soc_type == ORCA_SOC) {
 		pr_info("mcd: put poweroff ack gpio to %d.\n", state);
+		/* delay 100ms for roc1 detect it. */
 		do {
-			gpiod_set_value(mcd_dev->init->gpio_poweroff_ack,
-					state);
-			msleep(100);
-		} while (state !=
-			 gpiod_get_value(mcd_dev->init->gpio_poweroff_ack));
+			if (state != gpiod_get_value(gpio_ack))
+				gpiod_set_value(gpio_ack, state);
+			mdelay(1);
+		} while (i++ < 100);
 	}
 
-	pr_info("mcd: core shutdown cnt = %d.\n", cnt);
-
-	/*
-	 * if cp can't respound, panic to  avoid orca shutdown
-	 * caused electricity leakage.
-	 */
-	if (sysdump_status && cnt == 10000)
-		panic("CP BLOCK!");
+	pr_info("mcd: core shutdown cnt=%d, i=%d.\n", cnt, i);
 }
 
 /*
