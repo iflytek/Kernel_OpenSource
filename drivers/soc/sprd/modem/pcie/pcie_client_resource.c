@@ -116,9 +116,10 @@ static const char *state_msg[SPRD_PCIE_REMOVED + 1] = {
 	"removed"
 };
 
-static void pcie_resource_client_change_state(struct sprd_pcie_res *res,
+static int pcie_resource_client_change_state(struct sprd_pcie_res *res,
 					      enum ep_msg msg)
 {
+	int err = 0;
 	u32 old_state = res->state;
 
 	pr_debug("pcie res: change state msg=%s, old_state=%s.\n",
@@ -126,43 +127,58 @@ static void pcie_resource_client_change_state(struct sprd_pcie_res *res,
 
 	switch (msg) {
 	case RC_SCANNED_MSG:
-		if (old_state != SPRD_PCIE_WAIT_FIRST_READY
-		    && old_state != SPRD_PCIE_WAIT_SCANNED)
+		if (old_state != SPRD_PCIE_WAIT_FIRST_READY &&
+		    old_state != SPRD_PCIE_WAIT_SCANNED) {
 			pr_err("pcie res: %s msg err, old state=%s",
 			       change_msg[msg], state_msg[old_state]);
+			err = -EINVAL;
+		}
 
 		res->state = SPRD_PCIE_SCANNED;
 		break;
 
 	case RC_REMOVING_MSG:
 		if (old_state != SPRD_PCIE_SCANNED &&
-		    old_state != SPRD_PCIE_WAIT_FIRST_READY)
+		    old_state != SPRD_PCIE_WAIT_FIRST_READY) {
 			pr_err("pcie res: %s msg err, old state=%s",
 			       change_msg[msg], state_msg[old_state]);
+			err = -EINVAL;
+		}
 
 		res->state = SPRD_PCIE_WAIT_REMOVED;
 		break;
 
 	case EPC_UNLINK_MSG:
-		if (old_state != SPRD_PCIE_WAIT_REMOVED)
-			if (old_state != SPRD_PCIE_WAIT_FIRST_READY)
-				pr_err("pcie res: %s msg err, old state=%s",
-				       change_msg[msg], state_msg[old_state]);
+		if (old_state != SPRD_PCIE_WAIT_REMOVED &&
+		    old_state != SPRD_PCIE_WAIT_FIRST_READY) {
+			pr_err("pcie res: %s msg err, old state=%s",
+			       change_msg[msg], state_msg[old_state]);
+			err = -EINVAL;
+		}
 
 		res->state = SPRD_PCIE_REMOVED;
 		break;
 
 	case EPC_LINKUP_MSG:
-		if (old_state != SPRD_PCIE_REMOVED)
-			if (old_state != SPRD_PCIE_WAIT_FIRST_READY)
-				pr_err("pcie res: %s msg err, old state=%s",
+		if (old_state != SPRD_PCIE_REMOVED &&
+		    old_state != SPRD_PCIE_WAIT_FIRST_READY) {
+			pr_err("pcie res: %s msg err, old state=%s",
 				       change_msg[msg], state_msg[old_state]);
+			err = -EINVAL;
+		}
+
 		res->state = SPRD_PCIE_WAIT_SCANNED;
+		break;
+
+	default:
+		err = -EINVAL;
 		break;
 	}
 
 	pr_info("pcie res: change state from %s to %s.\n",
 		 state_msg[old_state], state_msg[res->state]);
+
+	return err;
 }
 
 static void sprd_pcie_resource_first_ready_notify(struct sprd_pcie_res *res)
@@ -309,7 +325,9 @@ int sprd_pcie_wait_resource(u32 dst, int timeout)
 						delay);
 	if (wait == 0) {
 		ret = -ETIME;
-		panic("pcie res: wait time out!");
+		/* only exceed MAX_PMS_WAIT_TIME can panic system. */
+		if (timeout == MAX_PMS_WAIT_TIME)
+			panic("pcie res: wait time out!");
 	} else if (wait > 0)
 		ret = 0;
 	else
@@ -470,7 +488,8 @@ static void sprd_pcie_resource_do_epf_linkup(struct sprd_pcie_res *res)
 	/* get a wakelock */
 	__pm_stay_awake(&res->ws);
 
-	pcie_resource_client_change_state(res, EPC_LINKUP_MSG);
+	if (pcie_resource_client_change_state(res, EPC_LINKUP_MSG))
+		pr_warn("pcie res: change state err.\n");
 
 	/* first ready notify */
 	if (!res->do_first_ready) {
@@ -483,7 +502,8 @@ static void sprd_pcie_resource_do_epf_unlink(struct sprd_pcie_res *res)
 {
 	pr_info("pcie res: epf unlink.\n");
 
-	pcie_resource_client_change_state(res, EPC_UNLINK_MSG);
+	if (pcie_resource_client_change_state(res, EPC_UNLINK_MSG))
+		pr_warn("pcie res: change state err.\n");
 
 	/*	if has wakeup pending, send wakeup to rc */
 	if (res->wakeup_later) {
@@ -502,14 +522,18 @@ static void sprd_pcie_resource_do_epf_unlink(struct sprd_pcie_res *res)
 
 static void sprd_pcie_resource_do_rc_scanned(struct sprd_pcie_res *res)
 {
-	pcie_resource_client_change_state(res, RC_SCANNED_MSG);
+	pr_info("pcie res: scanned.\n");
+
+	/* SCANNED also can recv RC_SCANNED_MSG, but don't change state. */
+	if (res->state != SPRD_PCIE_SCANNED) {
+		if (pcie_resource_client_change_state(res, RC_SCANNED_MSG))
+			pr_warn("pcie res: change state err.\n");
+	}
 
 	/* send respond to rc. */
 	sprd_pci_epf_raise_irq(res->ep_fun, PCIE_MSI_SCANNED_RESPOND);
 
 	/* wakeup all blocked thread */
-	pr_info("pcie res: scanned, wakup all.\n");
-
 	wake_up_interruptible_all(&res->wait_pcie_ready);
 	/*	if has msi pending, send msi to rc */
 	if (res->msi_later) {
@@ -534,7 +558,8 @@ static void sprd_pcie_resource_do_rc_removing(struct sprd_pcie_res *res)
 	if (res->requested)
 		return;
 
-	pcie_resource_client_change_state(res, RC_REMOVING_MSG);
+	if (pcie_resource_client_change_state(res, RC_REMOVING_MSG))
+		pr_warn("pcie res: change state err.\n");
 
 	/* give a respound msg after change remove state */
 	sprd_pci_epf_raise_irq(res->ep_fun, PCIE_MSI_REMOVE_RESPOND);

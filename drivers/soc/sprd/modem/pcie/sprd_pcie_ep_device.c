@@ -415,8 +415,10 @@ int sprd_ep_dev_raise_irq(int ep, int irq)
 	void __iomem	*base;
 	u32 value;
 
-	if (ep >= PCIE_EP_NR || !g_ep_dev[ep])
+	if (ep >= PCIE_EP_NR || !g_ep_dev[ep]) {
+		pr_err("pcie res: raise irq err, nodev irq=%d", irq);
 		return -ENODEV;
+	}
 
 	ep_dev = g_ep_dev[ep];
 	pdev = ep_dev->pdev;
@@ -1069,6 +1071,9 @@ static void sprd_pci_ep_dev_remove(struct pci_dev *pdev)
 	struct sprd_ep_dev_notify *notify;
 	struct sprd_pci_ep_dev *ep_dev = pci_get_drvdata(pdev);
 
+	/*  first set it to null to stop some api use the free member. */
+	g_ep_dev[ep_dev->ep] = NULL;
+
 	dev_info(&pdev->dev, "ep: remove\n");
 
 	/* first notify PCIE_EP_REMOVE */
@@ -1096,8 +1101,6 @@ static void sprd_pci_ep_dev_remove(struct pci_dev *pdev)
 	pci_disable_msi(pdev);
 	pci_release_regions(pdev);
 	pci_disable_device(pdev);
-
-	g_ep_dev[ep_dev->ep] = NULL;
 }
 
 static const struct pci_device_id sprd_pci_ep_dev_tbl[] = {
