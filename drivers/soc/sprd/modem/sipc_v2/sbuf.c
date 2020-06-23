@@ -550,15 +550,15 @@ static int sbuf_thread(void *data)
 		sbuf->state = SBUF_STATE_READY;
 		for (bufid = 0; bufid < sbuf->ringnr; bufid++) {
 			/* if has sbuf handle give sbuf ready notify only. */
-			if (sbuf->handler) {
-				sbuf->handler(SBUF_NOTIFY_READY, 0, sbuf->data);
-				break;
+			if (sbuf->handler && (sbuf->ch_mark & BIT(bufid))) {
+				sbuf->handler(SBUF_NOTIFY_READY,
+					      bufid, sbuf->data);
+				continue;
 			}
 
 			ring = &sbuf->rings[bufid];
 			if (ring->handler)
-				ring->handler(SBUF_NOTIFY_READY,
-						ring->data);
+				ring->handler(SBUF_NOTIFY_READY, ring->data);
 		}
 	}
 
@@ -629,16 +629,18 @@ static int sbuf_thread(void *data)
 					 * if has sbuf handle give
 					 * sbuf ready notify only.
 					 */
-					if (sbuf->handler) {
+					if (sbuf->handler &&
+					    (sbuf->ch_mark & BIT(bufid))) {
 						sbuf->handler(SBUF_NOTIFY_READY,
-							      0, sbuf->data);
-						break;
+							      bufid,
+							      sbuf->data);
+						continue;
 					}
 
 					ring = &sbuf->rings[bufid];
 					if (ring->handler)
 						ring->handler(SBUF_NOTIFY_READY,
-								ring->data);
+							      ring->data);
 				}
 			}
 			break;
@@ -1423,11 +1425,9 @@ struct sbuf_mgr *sbuf_register_notifier_ex(u8 dst, u8 channel, u32 mark,
 	sbuf->data = data;
 
 	if (sbuf->state == SBUF_STATE_READY) {
-		/* give sbuf ready notify first. */
-		handler(SBUF_NOTIFY_READY, 0, data);
 		for (i = 0; i < sbuf->ringnr; i++) {
 			if (sbuf->ch_mark & BIT(i))
-				handler(SBUF_NOTIFY_READ, i, data);
+				handler(SBUF_NOTIFY_READY, i, data);
 		}
 	}
 
