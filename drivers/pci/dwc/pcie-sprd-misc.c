@@ -297,9 +297,11 @@ void sprd_pcie_dump_rc_regs(struct platform_device *pdev)
 	struct dw_pcie *pci = ctrl->pci;
 	u32 index, offset;
 
-	dev_emerg(&pdev->dev, "LTSSM [0xe64]: 0x%x, [0x728]: 0x%x\n",
+	dev_err(&pdev->dev,
+		  "LTSSM [0xe64]: 0x%x, [0x728]: 0x%x, [0xe04]: 0x%x\n",
 		  dw_pcie_readl_dbi(pci, SPRD_PCIE_PE0_PM_STS),
-		  dw_pcie_readl_dbi(pci, PCIE_PHY_DEBUG_R0));
+		  dw_pcie_readl_dbi(pci, PCIE_PHY_DEBUG_R0),
+		  dw_pcie_readl_dbi(pci, PCIE_SS_REG_BASE+APB_CLKFREQ_TIMEOUT));
 
 	print_hex_dump(KERN_ERR, "PCIe RC reg: ", DUMP_PREFIX_ADDRESS,
 		       16, 4, pci->dbi_base, 0xc0, 0);
