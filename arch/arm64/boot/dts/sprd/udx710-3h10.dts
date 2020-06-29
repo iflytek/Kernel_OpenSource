@@ -342,6 +342,11 @@
 			REG_PMU_APB_RF_PWR_STATUS1_DBG
 			MASK_PMU_APB_RF_PD_AP_SYS_STATE
 			0x0>,
+		/* check and wait PCIE PLL stable status */
+		<&pmu_apb_regs 2 0
+			REG_PMU_APB_RF_PLL_RST_CTRL_STATE1
+			MASK_PMU_APB_RF_ST_PCIEPLL_H_STATE
+			0x4000>,
 		<&ap_ipa_ahb_regs 0 0
 			REG_AP_IPA_AHB_RF_AHB_EB
 			MASK_AP_IPA_AHB_RF_PCIE_EB
