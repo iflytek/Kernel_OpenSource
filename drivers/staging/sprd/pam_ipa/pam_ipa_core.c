@@ -244,6 +244,14 @@ static int pam_ipa_prepare_resume(struct device *dev)
 	struct pam_ipa_cfg_tag *cfg = dev_get_drvdata(dev);
 
 	if (cfg->suspend_stage & PAM_IPA_FORCE_SUSPEND) {
+		if (pm_runtime_active(&cfg->pdev->dev)) {
+			dev_info(dev, "dd = %d is = %d rs = %d us = %d\n",
+				 dev->power.disable_depth,
+				 dev->power.is_suspended,
+				 dev->power.runtime_status,
+				 atomic_read(&dev->power.usage_count));
+			pm_runtime_set_suspended(&cfg->pdev->dev);
+		}
 		ret = pm_runtime_get_sync(&cfg->pdev->dev);
 		if (ret < 0) {
 			dev_err(&cfg->pdev->dev,
@@ -423,7 +431,6 @@ static int pam_ipa_plat_drv_probe(struct platform_device *pdev_p)
 	}
 
 	pm_runtime_enable(&pdev_p->dev);
-	dev_pm_syscore_device(&pdev_p->dev, true);
 
 	return 0;
 }
