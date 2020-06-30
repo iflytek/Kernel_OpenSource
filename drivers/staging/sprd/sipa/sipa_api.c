@@ -491,6 +491,14 @@ static int sipa_resume_work(struct sipa_control *ctrl)
 	dev = ctrl->ctx->pdev;
 	if ((ctrl->suspend_stage & SIPA_FORCE_SUSPEND) &&
 	    ctrl->params_cfg.standalone_subsys) {
+		if (pm_runtime_active(dev)) {
+			dev_info(dev, "dd = %d is = %d rs = %d uc = %d\n",
+				 dev->power.disable_depth,
+				 dev->power.is_suspended,
+				 dev->power.runtime_status,
+				 atomic_read(&dev->power.usage_count));
+			pm_runtime_set_suspended(dev);
+		}
 		ret = pm_runtime_get_sync(ctrl->ctx->pdev);
 		if (ret < 0) {
 			dev_err(ctrl->ctx->pdev,
@@ -1604,10 +1612,8 @@ static int sipa_plat_drv_probe(struct platform_device *pdev_p)
 	device_init_wakeup(dev, true);
 	sipa_init_debugfs(&ctrl->params_cfg, ctrl);
 
-	if (ctrl->params_cfg.standalone_subsys) {
+	if (ctrl->params_cfg.standalone_subsys)
 		pm_runtime_enable(dev);
-		dev_pm_syscore_device(dev, true);
-	}
 
 	return ret;
 }
