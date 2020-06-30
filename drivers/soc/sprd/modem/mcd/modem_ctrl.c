@@ -79,7 +79,6 @@ struct modem_ctrl_device {
 
 static struct class *modem_ctrl_class;
 static struct modem_ctrl_device *mcd_dev;
-static unsigned long g_mcd_reboot_event;
 
 /* modem control evnet notify  */
 static ATOMIC_NOTIFIER_HEAD(modem_ctrl_chain);
@@ -786,51 +785,10 @@ static void modem_ctrl_shutdown(struct platform_device *pdev)
 
 static void modem_ctrl_core_shutdown(void)
 {
-	int cnt = 0;
-	int pre, state;
+	pr_info("mcd: core shutdown\n");
 
-#ifdef CONFIG_SPRD_PCIE_EP_DEVICE
-	/*  makesure the the ep power on. */
-	if (!sprd_pcie_ep_power_on()) {
-		pr_info("mcd: core shutdown ep not power on.\n");
-		return;
-	}
-#endif
-
-	pre = gpiod_get_value(mcd_dev->init->gpio_cpassert);
-	state = !pre;
-	pr_info("mcd: core shutdown...pre = %d\n", pre);
-
-	if (mcd_dev && mcd_dev->soc_type == ROC1_SOC) {
+	if (mcd_dev && mcd_dev->soc_type == ROC1_SOC)
 		modem_ctrl_send_cmd_to_cp(MDM_POWER_OFF);
-
-		/* only care SYS_POWER_OFF event. */
-		while (g_mcd_reboot_event == SYS_POWER_OFF &&
-			cnt < 10000 &&
-			pre == gpiod_get_value(mcd_dev->init->gpio_cpassert)) {
-			mdelay(1);
-			cnt++;
-		}
-
-		/* delay 1s for orca shutdown. */
-		mdelay(1000);
-	} else if (mcd_dev && mcd_dev->soc_type == ORCA_SOC) {
-		pr_info("mcd: put assert gpio to %d.\n", state);
-		do {
-			gpiod_set_value(mcd_dev->init->gpio_cpassert, state);
-			mdelay(100);
-		} while (state !=
-			 gpiod_get_value(mcd_dev->init->gpio_cpassert));
-	}
-
-	pr_info("mcd: core shutdown cnt = %d.\n", cnt);
-
-	/*
-	 * if cp can't respound, panic to  avoid orca shutdown
-	 * caused electricity leakage.
-	 */
-	if (cnt == 10000)
-		panic("CP BLOCK!");
 }
 
 /*
@@ -856,23 +814,10 @@ static struct platform_driver modem_ctrl_driver = {
 	.shutdown = modem_ctrl_shutdown,
 };
 
-static int mcd_reboot_event(struct notifier_block *nb,
-			    unsigned long event, void *buf)
-{
-	g_mcd_reboot_event = event;
-
-	return NOTIFY_OK;
-}
-
-static struct notifier_block mcd_notifier = {
-	.notifier_call = mcd_reboot_event,
-};
-
 static int __init modem_ctrl_init(void)
 {
 	modem_ctrl_class = class_create(THIS_MODULE, "modem_ctrl");
 	register_syscore_ops(&modem_ctrl_syscore_ops);
-	register_reboot_notifier(&mcd_notifier);
 
 	if (IS_ERR(modem_ctrl_class))
 		return PTR_ERR(modem_ctrl_class);
@@ -881,9 +826,6 @@ static int __init modem_ctrl_init(void)
 
 static void __exit modem_ctrl_exit(void)
 {
-	unregister_syscore_ops(&modem_ctrl_syscore_ops);
-	unregister_reboot_notifier(&mcd_notifier);
-
 	class_destroy(modem_ctrl_class);
 	platform_driver_unregister(&modem_ctrl_driver);
 }
