@@ -53,6 +53,7 @@
 #define SMSG_RESERVE_BASE	(SMSG_RINGHDR + SZ_1K)
 #define SMSG_PCIE_WRPTR		(SMSG_RESERVE_BASE + 0)
 #define SMSG_PCIE_IRQPTR	(SMSG_RESERVE_BASE + 4)
+#define SMSG_PCIE_EPSTATE	(SMSG_RESERVE_BASE + 8)
 
 #define SIPC_READL(addr)      readl((__force void __iomem *)(addr))
 #define SIPC_WRITEL(b, addr)  writel(b, (__force void __iomem *)(addr))
@@ -436,6 +437,9 @@ static int smsg_ipc_smem_init(struct smsg_ipc *ipc)
 #ifdef CONFIG_SPRD_PCIE_DOORBELL_WORKAROUND
 		ipc->write_addr = base + SMSG_PCIE_WRPTR;
 #endif
+
+		sprd_pcie_resource_set_epstate_addr(ipc->dst,
+						    base + SMSG_PCIE_EPSTATE);
 	}
 
 	/* after smem_init complete, regist msg irq */
