@@ -2152,6 +2152,15 @@ static SPRD_SC_GATE_CLK(ce_sec_eb,	"ce-sec-eb",	"ext-26m", 0x0,
 		     0x1000, BIT(30), CLK_IGNORE_UNUSED, 0);
 static SPRD_SC_GATE_CLK(ce_pub_eb,	"ce-pub-eb",	"ext-26m", 0x0,
 		     0x1000, BIT(31), CLK_IGNORE_UNUSED, 0);
+static SPRD_SC_GATE_CLK(ufs_eb, "ufs-eb", "ext-26m", 0x10,
+		     0x1000, BIT(0), CLK_IGNORE_UNUSED, 0);
+static SPRD_SC_GATE_CLK(ufs_unipro_eb, "ufs-unipro-eb", "ext-26m", 0x10,
+		     0x1000, BIT(1), CLK_IGNORE_UNUSED, 0);
+static SPRD_SC_GATE_CLK(ufs_hci_eb, "ufs-hci-eb", "ext-26m", 0x10,
+		     0x1000, BIT(2), CLK_IGNORE_UNUSED, 0);
+static SPRD_SC_GATE_CLK(ufs_utp_eb, "ufs-utp-eb", "ext-26m", 0x10,
+		     0x1000, BIT(3), CLK_IGNORE_UNUSED, 0);
+
 
 static struct sprd_clk_common *roc1_apapb_gate[] = {
 	/* address base is 0x71000000 */
@@ -2183,6 +2192,10 @@ static struct sprd_clk_common *roc1_apapb_gate[] = {
 	&emmc_eb.common,
 	&ce_sec_eb.common,
 	&ce_pub_eb.common,
+	&ufs_eb.common,
+	&ufs_unipro_eb.common,
+	&ufs_hci_eb.common,
+	&ufs_utp_eb.common,
 };
 
 static struct clk_hw_onecell_data roc1_apapb_gate_hws = {
@@ -2215,6 +2228,10 @@ static struct clk_hw_onecell_data roc1_apapb_gate_hws = {
 		[CLK_EMMC_EB]		= &emmc_eb.common.hw,
 		[CLK_CE_SEC_EB]		= &ce_sec_eb.common.hw,
 		[CLK_CE_PUB_EB]		= &ce_pub_eb.common.hw,
+		[CLK_UFS_EB]		= &ufs_eb.common.hw,
+		[CLK_UFS_UNIPRO_EB]     = &ufs_unipro_eb.common.hw,
+		[CLK_UFS_HCI_EB]        = &ufs_hci_eb.common.hw,
+		[CLK_UFS_UTP_EB]        = &ufs_utp_eb.common.hw,
 	},
 	.num	= CLK_AP_APB_GATE_NUM,
 };
