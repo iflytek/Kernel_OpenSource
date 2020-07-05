@@ -34,14 +34,6 @@ void memset_dsp_share_memory()
 	/* audio cp ddr 3.5k+16 bytes */
 	memset((void *)AUDCP_DDR_COMMU_START,0x0,AUDCP_DDR_COMMU_SIZE);
 }
-void modem_power_on()
-{
-	debugf("power on orca.\n");
-	sprd_gpio_request(NULL,15);
-	sprd_gpio_direction_output(NULL, 15, 1);
-	msleep(2000);
-	sprd_gpio_direction_output(NULL, 15, 0);
-}
 
 void modem_entry()
 {
@@ -57,12 +49,6 @@ void modem_entry()
 		sp_boot();
 		debugf("boot sp  OK\n");
 	}
-#endif
-
-#ifndef CONFIG_REMOVE_MODEM
-	/* charger modem don't power on orca */
-	if (!g_charger_mode)
-		modem_power_on();
 #endif
 }
 

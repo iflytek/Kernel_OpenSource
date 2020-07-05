@@ -12,6 +12,8 @@
 
 #define CONFIG_KERNEL_BOOT_CP
 //#define CONFIG_MEM_LAYOUT_DECOUPLING
+#define CONFIG_POWERON_EXTERN_MODEM
+#define EXT_MODEM_PBINT		15
 
 /*build aarch64 u-boot.elf*/
 #define CONFIG_REMAKE_ELF
