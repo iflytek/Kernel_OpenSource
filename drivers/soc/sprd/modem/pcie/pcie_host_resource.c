@@ -76,6 +76,7 @@ struct sprd_pcie_res {
 	u32	state;
 	u32	scan_cnt;
 	u32	max_wait_time;
+	u32	ep_up_cnt;
 	u32	ep_reboot_cnt;
 
 	bool	requested;
@@ -92,7 +93,6 @@ struct sprd_pcie_res {
 
 	unsigned long	action_jiff;
 
-	void __iomem	*ep_state_ptr;
 	struct sprd_pms	*pms;
 	char		pms_name[20];
 
@@ -286,8 +286,6 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 {
 	struct sprd_pcie_res *res = (struct sprd_pcie_res *)private;
-	u32 action, state;
-	bool request;
 
 	if (res->reboot_ep_wait_removed)
 		return IRQ_HANDLED;
@@ -298,24 +296,7 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 		break;
 
 	case PCIE_MSI_REQUEST_RES:
-		action = EP_REQUEST_ACTION;
-		request = true;
-
-		if (res->ep_state_ptr) {
-			/* read ep state, if is released correct it */
-			state = readl(res->ep_state_ptr);
-			pr_debug("pcie res: ep request, read state=%d.", state);
-			if (state == EP_RELEASED) {
-				request = false;
-				action = EP_RELEASE_ACTION;
-			}
-		}
-
-		/* state no change, do nothing */
-		if (res->ep_requested == request)
-			break;
-
-		res->ep_requested = request;
+		res->ep_requested = true;
 		 /* make sure the member ep_requested has stored in the
 		  * memory before do below actions.
 		  */
@@ -328,35 +309,18 @@ static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 		 * client modem power up,
 		 * no need wake lock and no need wait resource.
 		 */
-		sprd_add_action(res->actions_queue, action);
+		sprd_add_action(res->actions_queue, EP_REQUEST_ACTION);
 		break;
 
 	case PCIE_MSI_RELEASE_RES:
-		action = EP_RELEASE_ACTION;
-		request = false;
-
-		if (res->ep_state_ptr) {
-			/* read ep state, if is requested correct it */
-			state = readl(res->ep_state_ptr);
-			pr_debug("pcie res: ep release, read state=%d.", state);
-			if (state == EP_REQUESTED) {
-				request = true;
-				action = EP_REQUEST_ACTION;
-			}
-		}
-
-		/* state no change, do nothing */
-		if (res->ep_requested == request)
-			break;
-
-		res->ep_requested = request;
+		res->ep_requested = false;
 		 /* make sure the member ep_requested has stored in the
 		  * memory before do below actions.
 		  */
 		smp_mb();
 
 		/* client modem power down, no need wake lock. */
-		sprd_add_action(res->actions_queue, action);
+		sprd_add_action(res->actions_queue, EP_RELEASE_ACTION);
 		break;
 
 	case PCIE_MSI_EP_READY_FOR_RESCAN:
@@ -536,6 +500,7 @@ void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot)
 	else
 		res->max_wait_time = MAX_PMS_WAIT_TIME;
 
+	res->ep_up_cnt = 0;
 	res->reboot_ep_wait_removed = false;
 	res->ep_ready_for_rescan = false;
 	res->ep_load_done = false;
@@ -736,12 +701,6 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 
 	res->ep_remove_respond = false;
 
-	if (res->ep_state_ptr) {
-		/* read ep state, if is requested correct it */
-		if (readl(res->ep_state_ptr) == EP_REQUESTED)
-			res->ep_requested = true;
-	}
-
 	/* notify ep removed, must before removed */
 	if (!res->ep_requested && !res->requested)
 		sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_REMOVING);
@@ -902,16 +861,19 @@ static void sprd_pcie_resource_do_ep_scaned_respond(struct sprd_pcie_res *res)
 
 static void sprd_pcie_resource_do_ep_request(struct sprd_pcie_res *res)
 {
-	pr_info("pcie res: ep request res.\n");
+	pr_info("pcie res: ep request res up cnt=%d.\n", res->ep_up_cnt);
 
-	sprd_pms_power_up(res->pms);
+	if (!res->ep_up_cnt++)
+		sprd_pms_power_up(res->pms);
+
 }
 
 static void sprd_pcie_resource_do_ep_release(struct sprd_pcie_res *res)
 {
-	pr_info("pcie res: ep release res.\n");
+	pr_info("pcie res: ep release res up cnt=%d.\n", res->ep_up_cnt);
 
-	sprd_pms_power_down(res->pms, false);
+	if (!--res->ep_up_cnt)
+		sprd_pms_power_down(res->pms, false);
 }
 
 static void sprd_pcie_resource_do_ready_scan(struct sprd_pcie_res *res)
@@ -1029,17 +991,6 @@ bool sprd_pcie_is_defective_chip(void)
 	}
 
 	return defective;
-}
-
-void sprd_pcie_resource_set_epstate_addr(u32 dst, void __iomem *addr)
-{
-	struct sprd_pcie_res *res;
-
-	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
-		return;
-
-	res = g_pcie_res[dst];
-	res->ep_state_ptr = addr;
 }
 
 int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
