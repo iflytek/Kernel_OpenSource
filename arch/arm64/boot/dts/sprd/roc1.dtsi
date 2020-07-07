@@ -2595,6 +2595,7 @@
 				vcc-supply = <&vddemmccore>;
 				vcc-fixed-regulator;
 				freq-table-hz = <0 0>,
+						<0 0>,
 						<0 0>;
 				#clock-cells = <1>;
 				reg = <0 0x71900000 0 0x10000>,

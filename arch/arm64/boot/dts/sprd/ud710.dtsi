@@ -1201,10 +1201,10 @@
 };
 
 &ufs {
-	clock-names = "ufs_ao_eb",
-		      "ufs_ao_en";
+	clock-names = "ufs_ao_eb", "ufs_ao_en", "ufs_ahb_enable";
 	clocks = <&aonapb_gate CLK_UFS_AO_EB>,
-		 <&aonapb_gate CLK_UFS_AO_EN>;
+		 <&aonapb_gate CLK_UFS_AO_EN>,
+		 <&apapb_gate CLK_UFS_EB>;
 };
 
 &i2c0 {
