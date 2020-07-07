@@ -97,6 +97,7 @@ static struct sprd_pcie_res *g_pcie_res[SIPC_ID_NR];
  * SPRD_PCIE_WAIT_FIRST_READY (receive RC scanned) ==> SPRD_PCIE_SCANNED
  * SPRD_PCIE_SCANNED (receive RC removing)==> SPRD_PCIE_WAIT_REMOVED
  * SPRD_PCIE_WAIT_REMOVED(receive epc unlink)==>SPRD_PCIE_REMOVED
+ * SPRD_PCIE_WAIT_REMOVED(receive rc scanned)==>SPRD_PCIE_SCANNED
  * SPRD_PCIE_REMOVED(receive epc linkup)==>SPRD_PCIE_WAIT_SCANNED
  * SPRD_PCIE_WAIT_SCANNED(receive RC scanned)==>SPRD_PCIE_SCANNED
  * SPRD_PCIE_WAIT_POWER_OFF can do nothing, just wait shutdown.
@@ -127,8 +128,10 @@ static int pcie_resource_client_change_state(struct sprd_pcie_res *res,
 
 	switch (msg) {
 	case RC_SCANNED_MSG:
+		/* SPRD_PCIE_WAIT_REMOVED, means rc cancel remove. */
 		if (old_state != SPRD_PCIE_WAIT_FIRST_READY &&
-		    old_state != SPRD_PCIE_WAIT_SCANNED) {
+		    old_state != SPRD_PCIE_WAIT_SCANNED &&
+		    old_state != SPRD_PCIE_WAIT_REMOVED) {
 			pr_err("pcie res: %s msg err, old state=%s",
 			       change_msg[msg], state_msg[old_state]);
 			err = -EINVAL;
@@ -535,9 +538,10 @@ static void sprd_pcie_resource_do_rc_scanned(struct sprd_pcie_res *res)
 
 	/* wakeup all blocked thread */
 	wake_up_interruptible_all(&res->wait_pcie_ready);
-	/*	if has msi pending, send msi to rc */
-	if (res->msi_later) {
+	/*	if has msi or wakeup pending, send request msi to rc */
+	if (res->msi_later || res->wakeup_later) {
 		res->msi_later = false;
+		res->wakeup_later = false;
 		pr_info("pcie res: send request msi to rc.\n");
 		sprd_pci_epf_raise_irq(res->ep_fun,
 					 PCIE_MSI_REQUEST_RES);
