@@ -351,6 +351,8 @@ static int sprd_pcie_add_action(struct sprd_pcie *ep, unsigned int action)
 	struct sprd_pcie_action *pos;
 	unsigned long flags;
 
+	dev_info(ep->pci->dev, "sprd pcie add action:%d\n", action);
+
 	pos = kzalloc(sizeof(*pos), GFP_KERNEL);
 	if (!pos)
 		return -ENOMEM;
@@ -384,45 +386,11 @@ static void sprd_pcie_timeout(unsigned long data)
 static irqreturn_t sprd_pcie_perst_irq(int irq, void *data)
 {
 	struct sprd_pcie *ep = data;
-	int val = gpiod_get_value(ep->gpiod_perst);
-	u32 irq_flags = irq_get_trigger_type(irq);
-	u32 expect = (irq_flags & IRQF_TRIGGER_HIGH) ? 1 : 0;
 	struct dw_pcie *pci = ep->pci;
-	struct platform_device *pdev = to_platform_device(pci->dev);
-	struct device *dev = &pdev->dev;
-	int i;
 
-	dev_dbg(dev, "irq: %d, perst val: %d\n", irq, val);
-	/* WORKAROUND: At present, if setting high-lever trigger, when intterupt
-	 * occurs the value read from gpio is low lever occasinally. When
-	 * setting low-level trigger has the similar problem. Temporarily read
-	 * multiple times gpio value to ensure the value is consistent with the
-	 * trigger level, and this workaround will be removed when the problem
-	 * fixed.
-	 */
-	for (i = 0; i < 100; i++) {
-		if (val != expect) {
-			val = gpiod_get_value(ep->gpiod_perst);
-			dev_warn(dev,
-				 "perst val (retries: %d): %d\n", i + 1, val);
-		} else {
-			if (!val) {
-				irq_flags &= ~IRQF_TRIGGER_LOW;
-				irq_flags |= IRQF_TRIGGER_HIGH;
-			} else {
-				irq_flags &= ~IRQF_TRIGGER_HIGH;
-				irq_flags |= IRQF_TRIGGER_LOW;
-			}
-			irq_set_irq_type(irq, irq_flags);
-			pm_wakeup_dev_event(pci->dev, 1000, true);
-			return IRQ_WAKE_THREAD;
-		}
-	}
+	pm_wakeup_dev_event(pci->dev, 1000, true);
 
-	dev_err(dev,
-		"cannot get expect perst val: %d, expect: %d\n", val, expect);
-
-	return IRQ_NONE;
+	return IRQ_WAKE_THREAD;
 }
 
 static irqreturn_t sprd_pcie_perst_thread_irq(int irq, void *data)
@@ -430,16 +398,18 @@ static irqreturn_t sprd_pcie_perst_thread_irq(int irq, void *data)
 	struct sprd_pcie *ep = data;
 	int val = gpiod_get_value(ep->gpiod_perst);
 	struct dw_pcie *pci = ep->pci;
-	struct platform_device *pdev = to_platform_device(pci->dev);
 
-	dev_info(&pdev->dev,
-		 "perst val: %d, add action: %s\n",
-		 val, !val ? "shutdown" : "reinit");
-	if (!val)
-		sprd_pcie_add_action(ep, SPRD_PCIE_SHUTDOWN_ACTION);
-	else
+	/*
+	 * If is_wakedown is true it means the ep request for link, and if
+	 * is_power is false it means the rc request for link.
+	 */
+	if (ep->is_wakedown || !ep->is_powered)
 		sprd_pcie_add_action(ep, SPRD_PCIE_REINIT_ACTION);
+	else
+		sprd_pcie_add_action(ep, SPRD_PCIE_SHUTDOWN_ACTION);
 
+	dev_info(pci->dev, "perst val: %d, is_wakedown:%d, is_powerd:%d\n",
+		 val, ep->is_wakedown, ep->is_powered);
 
 	return IRQ_HANDLED;
 }
@@ -556,17 +526,11 @@ static int sprd_pcie_ep_probe(struct platform_device *pdev)
 		return ep->perst_irq;
 	}
 
-	/* The minimum time of debounce time is 3 milliseconds */
-	ret = gpiod_set_debounce(ep->gpiod_perst, 0);
-	if (ret) {
-		dev_err(dev, "cannot set debounce for pcie-perst irq\n");
-		return ret;
-	}
-
 	ret = devm_request_threaded_irq(dev, ep->perst_irq,
 					sprd_pcie_perst_irq,
 					sprd_pcie_perst_thread_irq,
-					IRQF_TRIGGER_LOW | IRQF_NO_SUSPEND,
+					IRQF_TRIGGER_RISING |
+					IRQF_TRIGGER_FALLING | IRQF_NO_SUSPEND,
 					"pcie_perst", ep);
 	if (ret < 0) {
 		dev_err(dev, "cannot request perst irq\n");
