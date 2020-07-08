@@ -236,7 +236,7 @@ static void sprd_pcie_resource_do_ep_request(struct sprd_pcie_res *res)
 	pr_info("pcie res: ep request res up cnt=%d.\n", res->ep_up_cnt);
 
 	if (!res->ep_up_cnt++) {
-		sprd_pms_power_down(res->pms, false);
+		sprd_pms_power_up(res->pms);
 
 		if (res->state == SPRD_PCIE_WAIT_REMOVED)
 			wake_up(&res->wait_ep_respond);
