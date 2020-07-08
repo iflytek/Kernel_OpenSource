@@ -1518,6 +1518,13 @@ int edma_chn_init(int chn, int mode, int inout, int max_trans)
 
 	dma_int.reg = edma->dma_chn_reg[chn].dma_int.reg;
 	dma_cfg.reg = edma->dma_chn_reg[chn].dma_cfg.reg;
+	/*
+	 * First power on, dscr reg is random val, so need reset it
+	 * specially chn_ptr_high need be reset, avoid tx/rx next dscr high
+	 * addr error;
+	 * other regs will be setting in the next initial process.
+	 */
+	edma->dma_chn_reg[chn].dma_dscr.chn_ptr_high.reg = 0;
 	local_DSCR = edma->dma_chn_reg[chn].dma_dscr;
 
 	switch (mode) {
@@ -1606,8 +1613,6 @@ int edma_chn_init(int chn, int mode, int inout, int max_trans)
 						.rf_chn_rx_next_dscr_ptr_high =
 									0x80;
 		}
-		edma->dma_chn_reg[chn].dma_dscr.chn_ptr_high.reg =
-		    local_DSCR.chn_ptr_high.reg;
 
 		break;
 	default:
