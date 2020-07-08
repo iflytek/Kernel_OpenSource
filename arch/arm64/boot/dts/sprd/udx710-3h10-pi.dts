@@ -23,6 +23,10 @@
 
 	aliases {
 		serial0 = &uart0;
+		eth8 = &vpcie0;
+		eth9 = &vpcie1;
+		eth10 = &vpcie2;
+		eth11 = &vpcie3;
 	};
 
 	memory: memory@80000000 {
@@ -120,6 +124,34 @@
 			<6 0x100 0x248 0 0x1fff>;
 		tuning-latency-us = <200>;
 		chnl-in-i2c = <0>;
+	};
+
+	vpcie0: sipa-vpcie0 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <1>;
+		sprd,term-type = <0x10>;
+		sprd,mac-header;
+	};
+
+	vpcie1: sipa-vpcie1 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <2>;
+		sprd,term-type = <0x10>;
+		sprd,mac-header;
+	};
+
+	vpcie2: sipa-vpcie2 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <3>;
+		sprd,term-type = <0x10>;
+		sprd,mac-header;
+	};
+
+	vpcie3: sipa-vpcie3 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <4>;
+		sprd,term-type = <0x10>;
+		sprd,mac-header;
 	};
 };
 
