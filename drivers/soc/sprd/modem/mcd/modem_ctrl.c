@@ -271,6 +271,19 @@ void modem_ctrl_enable_cp_event(void)
 		mcd_dev->init->enable_cp_event = true;
 }
 
+static void modem_ctrl_restore_crash_gpio(void)
+{
+	struct gpio_desc *gpiodesc = NULL;
+
+	if (!mcd_dev || !mcd_dev->init)
+		return;
+
+	gpiodesc = mcd_dev->init->gpio_crash;
+
+	if (gpiodesc && !IS_ERR(gpiodesc))
+		gpiod_set_value_cansleep(gpiodesc, 1);
+}
+
 static void modem_ctrl_send_cmd_to_cp(int cmd)
 {
 	struct gpio_desc *gpiodesc = NULL;
@@ -354,6 +367,8 @@ void modem_ctrl_poweron_modem(int on)
 		send_event_msg(&mcd_dev->dev->kobj);
 		break;
 	case MDM_CTRL_WARM_RESET:
+		/* restore gpio crash before orca reset */
+		modem_ctrl_restore_crash_gpio();
 		if (!IS_ERR(mcd_dev->init->gpio_reset)) {
 			atomic_notifier_call_chain(&modem_ctrl_chain,
 						   MDM_CTRL_WARM_RESET, NULL);
@@ -367,6 +382,8 @@ void modem_ctrl_poweron_modem(int on)
 		}
 		break;
 	case MDM_CTRL_COLD_RESET:
+		/* restore gpio crash before orca reset */
+		modem_ctrl_restore_crash_gpio();
 		if (!IS_ERR(mcd_dev->init->gpio_poweron)) {
 			mcd_dev->init->enable_cp_event = false;
 			atomic_notifier_call_chain(&modem_ctrl_chain,
