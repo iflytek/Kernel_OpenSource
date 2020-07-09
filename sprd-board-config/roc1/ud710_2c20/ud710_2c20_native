@@ -1,0 +1,13 @@
+ifdef BUILD_FROM_KERNEL
+include sprd-board-config/roc1/ud710_2c20/ud710_2c20_base
+else
+include  $(KERNEL_PATH)/sprd-board-config/roc1/ud710_2c20/ud710_2c20_base
+endif
+
+#DEFCONFIG
+KERNEL_DEFCONFIG := sprd_roc1_defconfig
+
+#DTS
+TARGET_DTB := ud710-2c20
+TARGET_DTBO := ud710-2c20-overlay
+
