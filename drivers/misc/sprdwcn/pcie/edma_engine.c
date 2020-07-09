@@ -322,6 +322,8 @@ static int dscr_polling(struct desc *dscr, int loop)
 		 * time. or use cpu_relax()
 		 */
 		barrier();
+		if (loop < 1000000)
+			ndelay(1);
 	} while (loop--);
 
 	return -1;
@@ -496,7 +498,7 @@ static int edma_pop_link(int chn, struct desc *__head, struct desc *__tail,
 					       .flag);
 			return -1;
 		}
-		if (dscr_polling(dscr, 500000)) {
+		if (dscr_polling(dscr, 2000000)) {
 			WCN_ERR("%s(%d, 0x%p, 0x%p, 0x%p, free=%d) not done\n",
 				__func__, chn, __head, __tail, dscr,
 				edma->chn_sw[chn].dscr_ring.free);
