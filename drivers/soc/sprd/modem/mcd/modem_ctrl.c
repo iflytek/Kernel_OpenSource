@@ -793,6 +793,11 @@ static void modem_ctrl_core_shutdown(void)
 				if (pre == gpiod_get_value(gpio_ack))
 					break;
 			}
+			/*
+			 * Although ack gpio state has changed,
+			 * orca may still not completely powered off.
+			 */
+			mdelay(1000);
 		} else {
 			/*
 			 * if cp can't respound, panic to avoid orca
