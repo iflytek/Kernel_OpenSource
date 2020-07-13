@@ -227,7 +227,6 @@
 					<&cpufreq_gic>;
 		clock-latency = <50000>;
 		voltage-latency = <6413>;
-		cpufreq-boost-disable;
 
 		operating-points = <
 			/*kHZ	uV*/
@@ -250,7 +249,6 @@
 					<&cpufreq_gic>;
 		clock-latency = <50000>;
 		voltage-latency = <0>;
-		cpufreq-boost-disable;
 		operating-points = <
 			/*kHZ	uV*/
 			1820000 1050000
