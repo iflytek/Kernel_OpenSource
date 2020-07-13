@@ -221,7 +221,6 @@ u32 sprd_iommuex_cll_map(sprd_iommu_hdl  p_iommu_hdl,
 	u32 vir_base_entry = 0;
 	u32 total_page_entrys = 0;
 	u32 align_map_size = 0;
-	u32 fault_page;
 	struct sprd_iommu_widget *p_iommu_data = NULL;
 	struct sprd_iommuex_priv *p_iommu_priv = NULL;
 	struct scatterlist *sg;
@@ -248,16 +247,14 @@ u32 sprd_iommuex_cll_map(sprd_iommu_hdl  p_iommu_hdl,
 	if (p_map_param->p_sg_table == NULL) {
 		align_map_size = MAP_SIZE_PAGE_ALIGN_UP(p_map_param->total_map_size);
 		valid_page_entrys  = (u32)SIZE_TO_ENTRYS(align_map_size);
-		fault_page = p_iommu_priv->default_addr >> MMU_MAPING_PAGESIZE_SHIFFT;
 		if (iommu_id == IOMMU_EX_ISP)
-			memset32((void *)(p_iommu_priv->ppn_base_addr +
+			sprd_memset((void *)(p_iommu_priv->ppn_base_addr +
 				    vir_base_entry * 4),
-				    fault_page | 0x80000000, valid_page_entrys);
+				    0xFF, valid_page_entrys * 4);
 		else
-			memset32((void *)(p_iommu_priv->ppn_base_addr +
+			sprd_memset((void *)(p_iommu_priv->ppn_base_addr +
 				    vir_base_entry * 4),
-				    fault_page, valid_page_entrys);
-		total_page_entrys += valid_page_entrys;
+				    0x0, valid_page_entrys * 4);
 	} else {
 		for_each_sg(p_map_param->p_sg_table->sgl, sg,
 			     p_map_param->p_sg_table->nents, sg_index) {
