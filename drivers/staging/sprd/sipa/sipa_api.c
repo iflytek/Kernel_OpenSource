@@ -491,23 +491,18 @@ static int sipa_resume_work(struct sipa_control *ctrl)
 	dev = ctrl->ctx->pdev;
 	if ((ctrl->suspend_stage & SIPA_FORCE_SUSPEND) &&
 	    ctrl->params_cfg.standalone_subsys) {
-		if (pm_runtime_active(dev)) {
-			dev_info(dev, "dd = %d is = %d rs = %d uc = %d\n",
-				 dev->power.disable_depth,
+		ret = pm_runtime_get_sync(ctrl->ctx->pdev);
+		if (ret) {
+			pm_runtime_put(ctrl->ctx->pdev);
+			dev_info(dev,
+				 "ret = %d dd = %d is = %d rs = %d uc = %d\n",
+				 ret, dev->power.disable_depth,
 				 dev->power.is_suspended,
 				 dev->power.runtime_status,
 				 atomic_read(&dev->power.usage_count));
-			pm_runtime_set_suspended(dev);
-		}
-		ret = pm_runtime_get_sync(ctrl->ctx->pdev);
-		if (ret < 0) {
-			dev_err(ctrl->ctx->pdev,
-				"pm runtime get err, ret = %d\n",
-				ret);
 			return ret;
 		}
-		dev_info(dev, "sipa pm runtime get ret = %d\n",
-			 ret);
+
 		ctrl->suspend_stage &= ~SIPA_FORCE_SUSPEND;
 	}
 
