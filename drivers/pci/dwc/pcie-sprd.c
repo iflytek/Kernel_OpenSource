@@ -327,11 +327,14 @@ static int sprd_pcie_host_uninit(struct platform_device *pdev)
 		dev_warn(&pdev->dev,
 			"set pcie uninit syscons fail, return %d\n", ret);
 
-	ret = pm_runtime_put(&pdev->dev);
-	if (ret < 0)
-		dev_warn(&pdev->dev,
-			"pm runtime put fail,ret:%d, usage_count:%d\n", ret,
-			 atomic_read(&pdev->dev.power.usage_count));
+	if (!ctrl->is_suspended) {
+		ret = pm_runtime_put(&pdev->dev);
+		if (ret < 0)
+			dev_warn(&pdev->dev,
+				 "pm runtime put fail: %d, usage_count:%d\n",
+				 ret,
+				 atomic_read(&pdev->dev.power.usage_count));
+	}
 
 	return ret;
 }
@@ -425,11 +428,13 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 	struct dw_pcie *pci = ctrl->pci;
 	struct pcie_port *pp = &pci->pp;
 
-	ret = pm_runtime_get_sync(&pdev->dev);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "pm_runtime_get_sync failed, ret:%d\n",
-			ret);
-		return ret;
+	if (!ctrl->is_suspended) {
+		ret = pm_runtime_get_sync(&pdev->dev);
+		if (ret) {
+			dev_err(&pdev->dev,
+				"pm_runtime_get_sync failed, ret:%d\n", ret);
+			goto err_get_sync;
+		}
 	}
 
 	ret = sprd_pcie_syscon_setting(pdev, "sprd,pcie-resume-syscons");
@@ -464,12 +469,15 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 
 power_off:
 	sprd_pcie_syscon_setting(pdev, "sprd,pcie-suspend-syscons");
-	err = pm_runtime_put(&pdev->dev);
-	if (err < 0)
-		dev_warn(&pdev->dev,
-			"pm runtime put fail,ret:%d, usage_count:%d\n", err,
-			 atomic_read(&pdev->dev.power.usage_count));
-
+err_get_sync:
+	if (!ctrl->is_suspended) {
+		err = pm_runtime_put(&pdev->dev);
+		if (err < 0)
+			dev_warn(&pdev->dev,
+				"pm runtime put fail,ret:%d, usage_count:%d\n",
+				err,
+				atomic_read(&pdev->dev.power.usage_count));
+	}
 	return ret;
 }
 
@@ -628,8 +636,9 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 
 	pm_runtime_enable(dev);
 	ret = pm_runtime_get_sync(dev);
-	if (ret < 0) {
-		dev_err(dev, "pm_runtime_get_sync failed, ret:%d\n", ret);
+	if (ret) {
+		dev_err(dev,
+			"pm_runtime_get_sync failed, ret:%d\n", ret);
 		goto err_get_sync;
 	}
 
@@ -667,12 +676,12 @@ static int sprd_pcie_probe(struct platform_device *pdev)
 
 power_off:
 	sprd_pcie_syscon_setting(pdev, "sprd,pcie-shutdown-syscons");
+err_get_sync:
 	ret = pm_runtime_put(&pdev->dev);
 	if (ret < 0)
 		dev_warn(&pdev->dev,
-			"pm runtime put fail,ret:%d, usage_count:%d\n", ret,
-			 atomic_read(&pdev->dev.power.usage_count));
-err_get_sync:
+			 "pm runtime put fail: %d, usage_count:%d\n",
+			 ret, atomic_read(&pdev->dev.power.usage_count));
 	pm_runtime_disable(dev);
 
 	return ret;
@@ -750,11 +759,12 @@ static int sprd_pcie_resume_noirq(struct device *dev)
 
 	if (!ctrl->is_powered)
 		return 0;
-	ctrl->is_suspended = 0;
 
 	ret = sprd_pcie_host_reinit(pdev);
 	if (ret < 0)
 		dev_err(dev, "resume noirq warning\n");
+
+	ctrl->is_suspended = 0;
 
 	return 0;
 }
