@@ -436,12 +436,25 @@ static void ufs_sprd_hibern8_notify(struct ufs_hba *hba,
 			val = mask = REDESKEW_MASK;
 			ufs_sprd_rmwl(host->unipro_reg, mask, val, REG_PA_7);
 		}
+		if (cmd == UIC_CMD_DME_HIBER_EXIT)
+			/* Set soc pll as refclk before exit hibern8. */
+			ufs_sprd_rmwl(host->mphy_reg, RCLK_OUT_SEL,
+				      0, REG_DIG_CFG14);
+
 		break;
 	case POST_CHANGE:
 		if (cmd == UIC_CMD_DME_HIBER_EXIT) {
 			mask = REDESKEW_MASK;
 			ufs_sprd_rmwl(host->unipro_reg, mask, 0, REG_PA_7);
 		}
+		if (cmd == UIC_CMD_DME_HIBER_ENTER)
+			/*
+			 * Set ufs internal pll as refclk when enter hibern8,
+			 * the pll will be turned off in hibern8 to reduce
+			 * power consumption.
+			 */
+			ufs_sprd_rmwl(host->mphy_reg, RCLK_OUT_SEL,
+				      RCLK_OUT_SEL, REG_DIG_CFG14);
 		break;
 	default:
 		break;

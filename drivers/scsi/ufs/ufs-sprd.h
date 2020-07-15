@@ -79,6 +79,9 @@ struct ufs_sprd_host {
 #define REG_DIG_CFG7		0x1c
 #define CDR_MONITOR_BYPASS	(1 << 24)
 
+#define REG_DIG_CFG14	0x38
+#define RCLK_OUT_SEL	(1 << 5)
+
 #define REG_DIG_CFG35	0x8c
 #define TX_FIFOMODE	(1 << 15)
 
