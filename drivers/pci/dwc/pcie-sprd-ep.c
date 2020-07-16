@@ -161,7 +161,6 @@ static int sprd_pcie_wake_down(struct sprd_pcie *ep)
 	struct dw_pcie *pci = ep->pci;
 	struct platform_device *pdev = to_platform_device(pci->dev);
 
-	dev_info(&pdev->dev, "wake down++\n");
 	mutex_lock(&ep->sprd_pcie_mutex);
 	if (ep->is_powered) {
 		dev_warn(&pdev->dev, "pcie has been powered, do nothing\n");
@@ -182,6 +181,8 @@ static int sprd_pcie_wake_down(struct sprd_pcie *ep)
 
 	mod_timer(&ep->timer, jiffies + msecs_to_jiffies(5000));
 	ep->is_wakedown = true;
+	ep->wake_down_cnt++;
+	dev_info(&pdev->dev, "wake down count:%d\n", ep->wake_down_cnt);
 out:
 	mutex_unlock(&ep->sprd_pcie_mutex);
 	return ret;
