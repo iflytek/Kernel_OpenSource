@@ -60,6 +60,7 @@ struct sprd_pcie {
 
 	/* this irq cames from EIC to GIC */
 	int wakeup_irq;
+	u32 wake_down_irq_cnt;
 	struct gpio_desc *gpiod_wakeup;
 
 	int perst_irq;

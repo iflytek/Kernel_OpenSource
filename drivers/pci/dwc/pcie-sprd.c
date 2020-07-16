@@ -187,13 +187,25 @@ static irqreturn_t sprd_pcie_wakeup_irq(int irq, void *data)
 {
 	struct sprd_pcie *ctrl = data;
 	struct dw_pcie *pci = ctrl->pci;
+
+	pm_wakeup_hard_event(pci->dev);
+
+	return IRQ_WAKE_THREAD;
+}
+
+static irqreturn_t sprd_pcie_wakeup_thread_irq(int irq, void *data)
+{
+	struct sprd_pcie *ctrl = data;
+	struct dw_pcie *pci = ctrl->pci;
 	int value = gpiod_get_value(ctrl->gpiod_wakeup);
 
-	dev_dbg(pci->dev, "wake up irq enter value:%d\n", value);
+	ctrl->wake_down_irq_cnt++;
+	dev_info(pci->dev, "wake# value:%d, wake down count:%d, %s\n",
+		 value, ctrl->wake_down_irq_cnt,
+		 ctrl->is_powered ? "RC has been powered" : "");
 
 	if (!ctrl->is_powered)
 		sprd_pcie_notify_client(ctrl, SPRD_PCIE_EVENT_WAKEUP);
-	pm_wakeup_hard_event(pci->dev);
 
 	return IRQ_HANDLED;
 }
@@ -285,7 +297,8 @@ static int sprd_add_pcie_port(struct dw_pcie *pci, struct platform_device *pdev)
 	snprintf(ctrl->wakeup_label, ctrl->label_len,
 		 "%s wakeup", dev_name(dev));
 	ret = devm_request_threaded_irq(dev, ctrl->wakeup_irq,
-					sprd_pcie_wakeup_irq, NULL,
+					sprd_pcie_wakeup_irq,
+					sprd_pcie_wakeup_thread_irq,
 					IRQF_TRIGGER_RISING | IRQF_NO_SUSPEND,
 					ctrl->wakeup_label, ctrl);
 	if (ret < 0)
