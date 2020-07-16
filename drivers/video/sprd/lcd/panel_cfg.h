@@ -27,6 +27,7 @@ extern struct panel_driver nt35695_truly_driver;
 extern struct panel_driver nt35596_boe_driver;
 extern struct panel_driver nt35597_boe_driver;
 extern struct panel_driver nt35597_fpga_driver;
+extern struct panel_driver nt36525b_boe_driver;
 extern struct panel_driver jd9161_xxx_driver;
 extern struct panel_driver jd9366d_truly_driver;
 extern struct panel_driver jd9365_htt_driver;
@@ -113,6 +114,12 @@ static struct panel_cfg supported_panel[] = {
 	{
 		.lcd_id = 0x35695,
 		.drv = &nt35695_truly_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_NT36525B_BOE_MIPI_HDP
+	{
+		.lcd_id = 0x36525,
+		.drv = &nt36525b_boe_driver,
 	},
 #endif
 #ifdef CONFIG_LCD_JD9161_XXX_MIPI_WVGA
