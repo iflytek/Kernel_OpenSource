@@ -399,11 +399,7 @@ static irqreturn_t sprd_pcie_perst_thread_irq(int irq, void *data)
 	int val = gpiod_get_value(ep->gpiod_perst);
 	struct dw_pcie *pci = ep->pci;
 
-	/*
-	 * If is_wakedown is true it means the ep request for link, and if
-	 * is_power is false it means the rc request for link.
-	 */
-	if (ep->is_wakedown || !ep->is_powered)
+	if (val)
 		sprd_pcie_add_action(ep, SPRD_PCIE_REINIT_ACTION);
 	else
 		sprd_pcie_add_action(ep, SPRD_PCIE_SHUTDOWN_ACTION);
