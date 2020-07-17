@@ -489,10 +489,11 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 		dev_err(&pdev->dev, "pcie RC host controller is NULL\n");
 		return -EINVAL;
 	}
-
+	mutex_lock(&ctrl->sprd_pcie_mutex);
 	/* In order to avoid someone rescanning PCIe once more */
 	if (ctrl->is_powered) {
 		dev_info(&pdev->dev, "PCIe has alreadly scanned\n");
+		mutex_unlock(&ctrl->sprd_pcie_mutex);
 		return 0;
 	}
 
@@ -508,6 +509,7 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 			break;
 		if (retries == 2) {
 			dev_err(&pdev->dev, "pcie reinit failed three times\n");
+			mutex_unlock(&ctrl->sprd_pcie_mutex);
 			return ret;
 		}
 	}
@@ -515,6 +517,7 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 	bridge = to_bridge_from_pdev(pdev);
 	sprd_pcie_rescan_bus(bridge->bus);
 	ctrl->is_powered = 1;
+	mutex_unlock(&ctrl->sprd_pcie_mutex);
 
 	return 0;
 }
