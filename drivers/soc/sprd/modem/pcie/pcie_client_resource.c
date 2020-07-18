@@ -68,6 +68,7 @@ struct sprd_pci_res_notify {
 struct sprd_pcie_res {
 	u32	dst;
 	u32	ep_fun;
+	u32	scanned_cnt;
 	enum pcie_ep_state	state;
 	bool	msi_later;
 	bool	release_later;
@@ -328,8 +329,12 @@ int sprd_pcie_wait_resource(u32 dst, int timeout)
 						delay);
 	if (wait == 0) {
 		ret = -ETIME;
-		/* only exceed MAX_PMS_WAIT_TIME can panic system. */
-		if (timeout == MAX_PMS_WAIT_TIME)
+		/*
+		 * only exceed MAX_PMS_WAIT_TIME and
+		 * scanned cnt > 0 can panic system.
+		 */
+		if (timeout == MAX_PMS_WAIT_TIME &&
+		    res->scanned_cnt > 0)
 			panic("pcie res: wait time out!");
 	} else if (wait > 0)
 		ret = 0;
@@ -525,7 +530,8 @@ static void sprd_pcie_resource_do_epf_unlink(struct sprd_pcie_res *res)
 
 static void sprd_pcie_resource_do_rc_scanned(struct sprd_pcie_res *res)
 {
-	pr_info("pcie res: scanned.\n");
+	res->scanned_cnt++;
+	pr_info("pcie res: scanned cnt=%d.\n", res->scanned_cnt);
 
 	/* SCANNED also can recv RC_SCANNED_MSG, but don't change state. */
 	if (res->state != SPRD_PCIE_SCANNED) {
