@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 // Copyright (C) 2019 Spreadtrum Communications Inc.
 
+#include <linux/delay.h>
 #include <linux/extcon.h>
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
@@ -417,11 +418,6 @@ static int sc27xx_pd_reset(struct sc27xx_pd *pd)
 	if (ret < 0)
 		return ret;
 
-	ret = regmap_update_bits(pd->regmap, pd->base + SC27XX_INT_EN,
-				SC27XX_PD_PKG_RV_EN, SC27XX_PD_PKG_RV_EN);
-	if (ret < 0)
-		return ret;
-
 	return regmap_update_bits(pd->regmap, pd->base + SC27XX_PD_MESG_ID_CFG,
 				  SC27XX_PD_MESS_ID_MASK, 0x0);
 }
@@ -444,7 +440,7 @@ static int sc27xx_pd_send_hardreset(struct sc27xx_pd *pd)
 static int sc27xx_pd_set_rx(struct tcpc_dev *tcpc, bool on)
 {
 	struct sc27xx_pd *pd = tcpc_to_sc27xx_pd(tcpc);
-	u32 mask = SC27XX_PD_CTL_EN;
+	u32 mask = SC27XX_PD_CTL_EN, mask1 = SC27XX_PD_PKG_RV_EN;
 	int ret;
 
 	mutex_lock(&pd->lock);
@@ -456,13 +452,23 @@ static int sc27xx_pd_set_rx(struct tcpc_dev *tcpc, bool on)
 	if (ret < 0)
 		goto done;
 
+	ret = sc27xx_pd_reset(pd);
+	if (ret < 0)
+		goto done;
+
 	if (on) {
 		ret = regmap_update_bits(pd->regmap, pd->base + SC27XX_PD_CFG0,
 					 mask, mask);
 		if (ret < 0)
 			goto done;
+
+		ret = regmap_update_bits(pd->regmap, pd->base + SC27XX_INT_EN,
+					 mask1, mask1);
+		if (ret < 0)
+			goto done;
 	} else {
-		ret = sc27xx_pd_reset(pd);
+		ret = regmap_update_bits(pd->regmap, pd->base + SC27XX_INT_EN,
+					 mask1, ~mask1);
 		if (ret < 0)
 			goto done;
 
@@ -484,6 +490,10 @@ static int sc27xx_pd_tx_msg(struct sc27xx_pd *pd, const struct pd_message *msg)
 	u32 data_obj_num, data[PD_MAX_PAYLOAD * 2];
 	int i, ret;
 
+	ret = sc27xx_pd_tx_flush(pd);
+	if (ret < 0)
+		return ret;
+
 	data_obj_num = msg ? pd_header_cnt_le(msg->header) : 0;
 	if (data_obj_num > PD_MAX_PAYLOAD) {
 		dev_err(pd->dev, "pd tmsg too long, num=%d\n", data_obj_num);
@@ -494,11 +504,6 @@ static int sc27xx_pd_tx_msg(struct sc27xx_pd *pd, const struct pd_message *msg)
 	ret = regmap_write(pd->regmap, pd->base + SC27XX_PD_HEAD_CFG, header);
 	if (ret < 0)
 		return ret;
-
-	if (pd->msg_flag == 0 && pd_header_type(header) == PD_DATA_VENDOR_DEF) {
-		tcpm_pd_transmit_complete(pd->tcpm_port, TCPC_TX_SUCCESS);
-		return 0;
-	}
 
 	if (msg) {
 		for (i = 0; i < data_obj_num; i++) {
@@ -608,11 +613,6 @@ static int sc27xx_pd_read_message(struct sc27xx_pd *pd, struct pd_message *msg)
 		msg->payload[i] = cpu_to_le32(data[2 * i + 1] << 16 |
 				data[2 * i]);
 
-	if (data_obj_num && pd_header_type_le(msg->header) == PD_DATA_BIST) {
-		regmap_update_bits(pd->regmap, pd->base + SC27XX_INT_EN,
-				   SC27XX_PD_PKG_RV_EN, 0);
-	}
-
 	if (!data_obj_num &&
 	    pd_header_type_le(msg->header) == PD_CTRL_GOOD_CRC) {
 		if (!pd->constructed) {
@@ -620,6 +620,8 @@ static int sc27xx_pd_read_message(struct sc27xx_pd *pd, struct pd_message *msg)
 						 SC27XX_TYPC_PD_CFG,
 						 SC27XX_TYPEC_PD_CONSTRACT,
 						 SC27XX_TYPEC_PD_CONSTRACT);
+			if (ret < 0)
+				return ret;
 			pd->constructed = true;
 		}
 		tcpm_pd_transmit_complete(pd->tcpm_port, TCPC_TX_SUCCESS);
@@ -627,7 +629,7 @@ static int sc27xx_pd_read_message(struct sc27xx_pd *pd, struct pd_message *msg)
 		tcpm_pd_receive(pd->tcpm_port, msg);
 	}
 
-	return ret;
+	return sc27xx_pd_rx_flush(pd);
 }
 
 static int sc27xx_pd_rc_ref_cal(struct sc27xx_pd *pd)
@@ -936,6 +938,11 @@ static irqreturn_t sc27xx_pd_irq(int irq, void *dev_id)
 		if (ret < 0)
 			goto done;
 
+	       /*
+		* According to the requirements of ASIC spec, after receiving
+		* the interrupt,the data should be read after 500us.
+		*/
+		udelay(500);
 		ret = regmap_read_poll_timeout(pd->regmap,
 					      pd->base + SC27XX_PD_STS1,
 					      status,
@@ -1139,26 +1146,6 @@ static void sc27xx_pd_work(struct work_struct *work)
 		dev_err(pd->dev, "failed to check vbus and cc status\n");
 }
 
-#define PDO_FIXED_FLAGS 0
-static const u32 src_pdo[] = {
-	PDO_FIXED(5000, 400, PDO_FIXED_FLAGS),
-};
-
-static const u32 snk_pdo[] = {
-	PDO_FIXED(5000, 500, PDO_FIXED_FLAGS),
-};
-
-static const struct tcpc_config sc27xx_pd_config = {
-	.src_pdo = src_pdo,
-	.nr_src_pdo = ARRAY_SIZE(src_pdo),
-	.snk_pdo = snk_pdo,
-	.nr_snk_pdo = ARRAY_SIZE(snk_pdo),
-	.operating_snk_mw = 2500,
-	.type = TYPEC_PORT_DRP,
-	.default_role = TYPEC_SINK,
-	.alt_modes = NULL,
-};
-
 static void sc27xx_init_tcpc_dev(struct sc27xx_pd *pd)
 {
 	pd->tcpc.config = &pd->config;
@@ -1281,7 +1268,6 @@ static int sc27xx_pd_probe(struct platform_device *pdev)
 	mutex_init(&pd->lock);
 	pd->vbus_present = false;
 	pd->constructed = false;
-	pd->config = sc27xx_pd_config;
 	pd->tcpc.config = &pd->config;
 	pd->tcpc.fwnode = device_get_named_child_node(&pdev->dev, "connector");
 
