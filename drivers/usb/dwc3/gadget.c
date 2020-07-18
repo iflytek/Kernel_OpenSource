@@ -2039,7 +2039,8 @@ static int dwc3_gadget_stop(struct usb_gadget *g)
 
 	if (pm_runtime_suspended(dwc->dev))
 		goto out;
-
+	dwc->eps[0]->trb_enqueue = 0;
+	dwc->eps[1]->trb_enqueue = 0;
 	__dwc3_gadget_stop(dwc);
 
 	for (epnum = 2; epnum < DWC3_ENDPOINTS_NUM; epnum++) {
@@ -2623,7 +2624,8 @@ static void dwc3_reset_gadget(struct dwc3 *dwc)
 {
 	if (!dwc->gadget_driver)
 		return;
-
+	dwc->eps[0]->trb_enqueue = 0;
+	dwc->eps[1]->trb_enqueue = 0;
 	__dwc3_gadget_reset(dwc);
 
 	if (dwc->gadget.speed != USB_SPEED_UNKNOWN) {
