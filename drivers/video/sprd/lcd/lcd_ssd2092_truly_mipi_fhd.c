@@ -16,6 +16,11 @@
 #include "dsi/mipi_dsi_api.h"
 #include "sprd_dphy.h"
 
+#ifdef CONFIG_SC2703_LCD_POWERON
+extern void lcd_use_sc2703l_to_power_boost(void);
+#endif
+
+
 static uint8_t init_data[] = {
 	0x29, 0x00, 0x00, 0x03, 0xB5, 0x00, 0x00,
 	0x29, 0x00, 0x00, 0x03, 0xB3, 0x03, 0x96,
@@ -255,6 +260,10 @@ static int ssd2092_readid(void)
 	    ((0x00 == read_buf[0]) && (0x00 == read_buf[1]) &&
 	     (0x00 == read_buf[2]) && (0x01 == read_buf1[0]))) {
 		pr_info("ssd2092 read id success!\n");
+	#ifdef CONFIG_SC2703_LCD_POWERON
+		pr_info("ssd2092 need boost avdd/avee to 5.8v\n");
+		lcd_use_sc2703l_to_power_boost();
+	#endif
 		return 0;
         }
 	pr_err("read_buf[0] = 0x%x, read_buf[1] = 0x%x, read_buf[2] = 0x%x\n", read_buf[0], read_buf[1], read_buf[2]);

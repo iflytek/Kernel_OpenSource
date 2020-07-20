@@ -69,13 +69,24 @@ void lcd_use_sc2703l_to_power_on(void)
 	int loop = 100;
 
 	i2c_set_bus_num(SC2703_LCD_I2C_BUS);
-#ifdef CONFIG_LCD_SSD2092_TRULY_MIPI_FHD
+	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, SC2703_DISPLAY_EN_MASK);
+	printf("SC2703 status is %d\n", \
+			i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_STATUS));
+	while(loop --);
+}
+
+void lcd_use_sc2703l_to_power_boost(void)
+{
+	int loop = 100;
+
+	i2c_set_bus_num(SC2703_LCD_I2C_BUS);
+	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, 0x0);
+	/* boost avdd/avee vol to 5.8v*/
 	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_DISPLAY_BOOST_VOLTAGE, 0x78);
 	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_DISPLAY_LDO_VOLTAGE, 0x73);
 	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_DISPLAY_CP_VOLTAGE, 0x73);
-#endif
 	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, SC2703_DISPLAY_EN_MASK);
-	printf("SC2703 status is %d\n", \
+	printf("SC2703 boost status is %d\n", \
 			i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_STATUS));
 	while(loop --);
 }
