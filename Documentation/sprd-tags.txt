@@ -90,6 +90,7 @@ drm:sprd:gsp:
 input:keyboard:
 leds:trigger:
 leds:sc27xx:
+tcpm:sc27xx_pd:
 input:sprd:
 input:touchscreen:
 iio:sprd:
