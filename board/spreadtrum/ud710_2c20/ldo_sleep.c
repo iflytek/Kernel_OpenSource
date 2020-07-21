@@ -31,7 +31,7 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vddmodem");
 	//regulator_enable("vdddcxo");
 	//regulator_enable("vddgen0");
-	//regulator_enable("vddgen1");
+	regulator_enable("vddgen1");
 	//regulator_enable("vddmem");
 	//regulator_enable("vddcore");
 	//regulator_enable("vddcpu");
@@ -60,7 +60,7 @@ void dcdc_ldo_power_on()
 	//regulator_enable("vddsim2");
 	//regulator_enable("vddwifipa");
 	//regulator_enable("vddldo0");
-	regulator_enable("vddldo1");
+	//regulator_enable("vddldo1");
 	regulator_enable("vddldo2");
 #endif
 #endif
@@ -217,7 +217,7 @@ static void pmic_lowpower_config(void)
 			BIT_SLP_DCDCGPU_LP_EN |
 			BIT_SLP_DCDCCORE_LP_EN |
 			BIT_SLP_DCDCCPU_LP_EN |        //AI use
-			//BIT_SLP_DCDCGEN1_LP_EN |
+			BIT_SLP_DCDCGEN1_LP_EN |
 			BIT_SLP_DCDCGEN0_LP_EN |
 			BIT_SLP_DCDCWPA_LP_EN |
 			0
@@ -252,7 +252,7 @@ static void pmic_lowpower_config(void)
 		//BIT_SLP_LDO_VDDCAMA1_PD_EN | //camera use.should shutdown by user self
 		//BIT_SLP_LDO_VDDSIM0_PD_EN |  //sim0 use.should shutdown by user self
 		BIT_SLP_LDO_AVDD18_PD_EN |     //pcie/ufs/dsi/usb/marlin...marlin config later--temp configure here
-		//BIT_SLP_LDO_VDDLDO1_PD_EN |  //marlin use
+		BIT_SLP_LDO_VDDLDO1_PD_EN |
 		0
 	);
 
@@ -284,7 +284,7 @@ static void pmic_lowpower_config(void)
 		//BIT_SLP_LDO_VDDLDO0_LP_EN |
 		//BIT_SLP_LDO_VDDSIM0_LP_EN |
 		BIT_SLP_LDO_AVDD18_LP_EN |
-		//BIT_SLP_LDO_VDDLDO1_LP_EN |
+		BIT_SLP_LDO_VDDLDO1_LP_EN |
 		0
 	);
 
