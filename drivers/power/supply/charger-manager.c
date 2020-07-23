@@ -839,6 +839,14 @@ static bool is_full_charged(struct charger_manager *cm)
 		if (ret)
 			goto out;
 
+		if (desc->first_fullbatt_uA > 0 && uV >= desc->fullbatt_uV &&
+		    uA > desc->fullbatt_uA && uA <= desc->first_fullbatt_uA) {
+			if (++desc->first_trigger_cnt > 1)
+				cm->desc->force_set_full = true;
+		} else {
+			desc->first_trigger_cnt = 0;
+		}
+
 		if (uV >= desc->fullbatt_uV && uA <= desc->fullbatt_uA && uA > 0) {
 			if (++desc->trigger_cnt > 1) {
 				if (cm->desc->cap >= CM_CAP_FULL_PERCENT) {
@@ -3164,6 +3172,7 @@ static struct charger_desc *of_cm_parse_desc(struct device *dev)
 					&desc->fullbatt_vchkdrop_uV);
 	of_property_read_u32(np, "cm-fullbatt-voltage", &desc->fullbatt_uV);
 	of_property_read_u32(np, "cm-fullbatt-current", &desc->fullbatt_uA);
+	of_property_read_u32(np, "cm-first-fullbatt-current", &desc->first_fullbatt_uA);
 	of_property_read_u32(np, "cm-fullbatt-soc", &desc->fullbatt_soc);
 	of_property_read_u32(np, "cm-fullbatt-capacity",
 					&desc->fullbatt_full_capacity);
