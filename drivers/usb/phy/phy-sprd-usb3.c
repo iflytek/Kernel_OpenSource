@@ -287,7 +287,7 @@ static int sprd_ssphy_init(struct usb_phy *x)
 	ret |= regmap_read(phy->ana_g3,
 			   REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, &reg);
 	reg &= ~msk;
-	reg |= TUNEHSAMP_3_9MA;
+	reg |= TUNEHSAMP_3_9MA | MASK_ANLG_PHY_G3_ANALOG_USB20_USB20_TUNEDSC;
 	ret |= regmap_write(phy->ana_g3,
 			    REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, reg);
 
