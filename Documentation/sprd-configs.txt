@@ -11992,6 +11992,27 @@ CONFIG_RING_BUFFER_ALLOW_SWAP
 	[must] debug
 	[missing plat description] none
 	[function] Exchange two cpu ring buffer.
+CONFIG_RPMB
+	[arch] arm64
+	[plat] roc1
+	[missing plat] none
+	[field] make
+	[subsys] rpmb
+	[must] user
+	[missing plat description] none
+	[function] Unified RPMB partition interface for eMMC and UFS.
+		   Provides interface for in kernel security controllers to
+		   access RPMB partition
+CONFIG_RPMB_INTF_DEV
+	[arch] arm64
+	[plat] roc1
+	[missing plat] none
+	[field] make
+	[subsys] rpmb
+	[must] user
+	[missing plat description] none
+	[function] Say yes here if you want to access RPMB from user space
+		   via character device interface /dev/rpmb%d
 CONFIG_RPS
 	[arch] all
 	[plat] all
