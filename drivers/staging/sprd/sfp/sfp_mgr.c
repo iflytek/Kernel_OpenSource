@@ -204,9 +204,11 @@ static void sfp_mgr_fwd_death_by_timeout(unsigned long ul_fwd_entry_conn)
 {
 	struct sfp_conn *sfp_entry;
 
+	spin_lock_bh(&mgr_lock);
 	sfp_entry = (struct sfp_conn *)ul_fwd_entry_conn;
 
 	if (!sfp_entry) {
+		spin_unlock_bh(&mgr_lock);
 		FP_PRT_DBG(FP_PRT_ERR, "sfp_entry was free when time out.\n");
 		return;
 	}
@@ -218,6 +220,7 @@ static void sfp_mgr_fwd_death_by_timeout(unsigned long ul_fwd_entry_conn)
 		spin_lock_bh(&fwd_tbl.sp_lock);
 		if (!sfp_ipa_tbl_timeout(sfp_entry)) {
 			spin_unlock_bh(&fwd_tbl.sp_lock);
+			spin_unlock_bh(&mgr_lock);
 			return;
 		}
 
@@ -228,7 +231,6 @@ static void sfp_mgr_fwd_death_by_timeout(unsigned long ul_fwd_entry_conn)
 		sfp_ipa_fwd_delete(&sfp_entry->tuplehash[IP_CT_DIR_REPLY],
 				   sfp_entry->hash[IP_CT_DIR_REPLY]);
 		spin_unlock_bh(&fwd_tbl.sp_lock);
-		spin_lock_bh(&mgr_lock);
 	} else {
 		spin_lock_bh(&mgr_lock);
 		delete_in_sfp_fwd_table(

@@ -509,6 +509,8 @@ static ssize_t sfp_net_tether_scheme_proc_write(
 			sysctl_net_sfp_tether_scheme = 1;
 		else if (status == 0 && sysctl_net_sfp_tether_scheme == 1)
 			sysctl_net_sfp_tether_scheme = 0;
+
+		pr_info("set tether_scheme to %d\n", sysctl_net_sfp_tether_scheme);
 	}
 	return count;
 }
