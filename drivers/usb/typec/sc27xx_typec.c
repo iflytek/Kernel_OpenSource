@@ -29,6 +29,7 @@
 #define SC27XX_INT_RAW			0x14
 #define SC27XX_INT_MASK			0x18
 #define SC27XX_STATUS			0x1c
+#define SC27XX_TCCDE_CNT		0x20
 #define SC27XX_RTRIM			0x3c
 #define SC27XX_DBG1			0x60
 
@@ -80,6 +81,9 @@
 
 #define SC2721_STATE_MASK		GENMASK(3, 0)
 #define SC2721_EVENT_MASK		GENMASK(6, 0)
+
+/* modify sc2730 tcc debunce */
+#define SC27XX_TCC_DEBOUNCE_CNT		0xc7f
 
 /* sc2730 registers definitions for controller REGS_TYPEC */
 #define SC2730_TYPEC_PD_CFG		0x08
@@ -369,6 +373,17 @@ static int sc27xx_typec_enable(struct sc27xx_typec *sc)
 		ret = regmap_update_bits(sc->regmap, sc->base + SC27XX_EN,
 					 SC27XX_TYPEC_USB20_ONLY,
 					 SC27XX_TYPEC_USB20_ONLY);
+		if (ret)
+			return ret;
+	}
+
+	/* modify sc2730 tcc debounce to 100ms while PD signal occur at 150ms
+	 * and effect tccde reginize.Reason is hardware signal and clk not
+	 * accurate.
+	 */
+	if (sc->var_data->efuse_shift == SC2730_EFUSE_SHIFT) {
+		ret = regmap_write(sc->regmap, sc->base + SC27XX_TCCDE_CNT,
+				SC27XX_TCC_DEBOUNCE_CNT);
 		if (ret)
 			return ret;
 	}
