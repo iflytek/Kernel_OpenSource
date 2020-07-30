@@ -14,6 +14,7 @@
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>
 #include <chipram_env.h>
+#include <uboot_sec_drv.h>
 
 static DL_EMMC_FILE_STATUS g_status;
 static DL_EMMC_STATUS g_dl_eMMCStatus;

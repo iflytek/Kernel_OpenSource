@@ -286,10 +286,12 @@ extern struct   ufs_driver_info ufs_info;
 #define DEVICE_DESC        0x00
 #define CONFIGURATION_DESC 0x01
 #define UNIT_DESC          0x02
+#define RPMB_UNIT_DESC     0x02
 #define GEOMETRY_DESC      0x07
 
 #define DEVICE_DESC_LENGTH 0x1f
 #define UNIT_DESC_LENGTH   0x23
+#define RPMB_UNIT_DESC_LENGTH 0x23
 #define GEOMETRY_DESC_LENGTH 0x44
 #define CONFIGURATION_DESC_LENGTH 0x90
 
@@ -748,6 +750,25 @@ struct ufs_unit_desc_tbl {
 	uint64_t	qPhyMemResourceCount;
 	uint16_t	wContextCapabilities;
 	uint8_t	bLargeUnitGranularity_M1;
+} __attribute__ ((packed));
+
+struct ufs_rpmb_unit_desc_tbl {
+	uint8_t	bLength;
+	uint8_t	bDescriptorType;
+	uint8_t	bUnitIndex;
+	uint8_t	bLUEnable;
+	uint8_t	bBootLunID;
+	uint8_t	bLUWriteProtect;
+	uint8_t	bLUQueueDepth;
+	uint8_t	reserved;
+	uint8_t	bMemoryType;
+	uint8_t	reserved1;
+	uint8_t	bLogicalBlockSize;
+	uint64_t	qLogicalBlockCount;
+	uint32_t	dEraseBlockSize;
+	uint8_t	bProvisioningType;
+	uint64_t	qPhyMemResourceCount;
+	uint8_t	reserved2[3];
 } __attribute__ ((packed));
 
 struct ufs_unit_cfg_tbl {
