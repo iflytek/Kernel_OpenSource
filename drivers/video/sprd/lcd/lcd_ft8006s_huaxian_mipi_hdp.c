@@ -245,11 +245,6 @@ static int ft8006s_power(int on)
 	uint8_t val =0;
 
 	if (on) {
-		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_RSTN);
-		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 0);
-		sprd_gpio_request(NULL, CONFIG_CTP_GPIO_RSTN);
-		sprd_gpio_direction_output(NULL, CONFIG_CTP_GPIO_RSTN, 0);
-
 #ifdef CONFIG_LCM_GPIO_AVDDEN
 		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_AVDDEN);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVDDEN, 1);
@@ -260,6 +255,19 @@ static int ft8006s_power(int on)
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_AVEEEN, 1);
 		mdelay(3);
 #endif
+#ifdef CONFIG_LCM_GPIO_1V8_EN
+		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_1V8_EN);
+		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_1V8_EN, 1);
+		mdelay(20);
+#endif
+		sprd_gpio_request(NULL, CONFIG_LCM_GPIO_RSTN);
+		sprd_gpio_request(NULL, CONFIG_CTP_GPIO_RSTN);
+
+		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 1);
+		mdelay(5);
+		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 0);
+		sprd_gpio_direction_output(NULL, CONFIG_CTP_GPIO_RSTN, 0);
+		mdelay(5);
 		sprd_gpio_direction_output(NULL, CONFIG_CTP_GPIO_RSTN, 1);
 		sprd_gpio_direction_output(NULL, CONFIG_LCM_GPIO_RSTN, 1);
 		mdelay(60);
