@@ -323,6 +323,7 @@
 		#size-cells = <0>;
 		reg = <0>;
 		reset-gpio = <&ap_gpio 50 GPIO_ACTIVE_HIGH>;
+		lcd1v8-gpio = <&ap_gpio 9 GPIO_ACTIVE_HIGH>;
 		power-supply = <&lcd_vdd>;
 		port {
 			reg = <1>;
