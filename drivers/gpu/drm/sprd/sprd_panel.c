@@ -87,6 +87,11 @@ static int sprd_panel_unprepare(struct drm_panel *p)
 		mdelay(5);
 	}
 
+	if (panel->info.lcd1v8_gpio) {
+		gpiod_direction_output(panel->info.lcd1v8_gpio, 0);
+		mdelay(5);
+	}
+
 	if (panel->info.reset_gpio) {
 		items = panel->info.rst_off_seq.items;
 		timing = panel->info.rst_off_seq.timing;
@@ -121,6 +126,11 @@ static int sprd_panel_prepare(struct drm_panel *p)
 
 	if (panel->info.avee_gpio) {
 		gpiod_direction_output(panel->info.avee_gpio, 1);
+		mdelay(5);
+	}
+
+	if (panel->info.lcd1v8_gpio) {
+		gpiod_direction_output(panel->info.lcd1v8_gpio, 1);
 		mdelay(5);
 	}
 
@@ -398,6 +408,11 @@ static int sprd_panel_gpio_request(struct device *dev,
 		DRM_WARN("can't get panel reset gpio: %ld\n",
 				 PTR_ERR(panel->info.reset_gpio));
 
+	panel->info.lcd1v8_gpio = devm_gpiod_get_optional(dev,
+					"lcd1v8", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.lcd1v8_gpio))
+		DRM_WARN("can't get panel lcd1v8 gpio: %ld\n",
+				 PTR_ERR(panel->info.lcd1v8_gpio));
 	return 0;
 }
 
