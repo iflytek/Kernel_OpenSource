@@ -62,6 +62,7 @@
 #define MODEM_REBOOT_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0xf)
 #define MODEM_POWERON_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0x10)
 #define MODEM_POWEROFF_EXT_MODEM_CMD _IO(MODEM_MAGIC, 0x11)
+#define MODEM_ENTER_SLEEP_CMD _IO(MODEM_MAGIC, 0x12)
 
 #define	MODEM_READ_ALL_MEM 0xff
 #define	MODEM_READ_MODEM_MEM 0xfe
@@ -162,6 +163,14 @@ static int modem_poweroff_ext_modem(struct modem_device *modem)
 #endif
 }
 #endif
+
+static int modem_enter_sleep(struct modem_device *modem)
+{
+	int ret = sprd_mpm_disable_later_idle_for_sleep(modem->modem_dst);
+
+	dev_info(modem->p_dev, "modem enter sleep, ret=%d!\n", ret);
+	return ret;
+}
 
 static int modem_open(struct inode *inode, struct file *filp)
 {
@@ -753,6 +762,10 @@ static long modem_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		ret = modem_poweroff_ext_modem(modem);
 		break;
 #endif
+
+	case MODEM_ENTER_SLEEP_CMD:
+		ret = modem_enter_sleep(modem);
+		break;
 
 	case MODEM_STOP_CMD:
 		ret = modem_run(modem, 0);

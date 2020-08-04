@@ -72,6 +72,14 @@ int sprd_mpm_create(unsigned int dst,
 		    unsigned int later_idle);
 
 /**
+ * sprd_mpm_disable_later_idle_for_sleep - disable later to idle
+ *  function for sleep cmd, will auto restore it after system wakeup.
+ *
+ * @dst, which mpm (PSCP, SP, WCN, etc.) will be created.
+ */
+int sprd_mpm_disable_later_idle_for_sleep(unsigned int dst);
+
+/**
  * sprd_mpm_init_resource_ops - int resource ops for mpm.
  *
  * @wait_resource, used to wait request resource ready.

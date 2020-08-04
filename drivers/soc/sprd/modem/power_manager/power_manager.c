@@ -37,6 +37,7 @@ struct sprd_mpm_data {
 	unsigned int		mpm_state;
 	unsigned long		expires;
 	unsigned int		later_idle;
+	unsigned int		old_later;
 
 	/* resource ops functions */
 	int (*wait_resource)(unsigned int dst, int timeout);
@@ -103,6 +104,12 @@ static int sprd_mpm_pm_event(struct notifier_block *notifier,
 
 			cur = g_sprd_mpm[i];
 			sprd_mpm_print_awake(cur);
+
+			/* exit sleep, restore */
+			if (cur->old_later) {
+				cur->later_idle = cur->old_later;
+				cur->old_later = 0;
+			}
 		}
 		break;
 
@@ -545,6 +552,40 @@ static void sprd_pms_relax_wakelock_timer(unsigned long data)
 		sprd_pms_relax(pms);
 }
 
+/**
+ * sprd_mpm_set_later_idle
+ * the return value is the old value.
+ */
+static unsigned int sprd_mpm_set_later_idle(struct sprd_mpm_data *mpm,
+					    unsigned int later)
+{
+	unsigned long flags;
+	unsigned int later_old;
+
+	spin_lock_irqsave(&mpm->mpm_lock, flags);
+	later_old = mpm->later_idle;
+	mpm->later_idle = later;
+
+	pr_info("mpm: %s set later_idle = %d.\n", mpm->name, later);
+
+	if (mpm->up_cnt || mpm->mpm_state == SPRD_MPM_IDLE) {
+		spin_unlock_irqrestore(&mpm->mpm_lock, flags);
+		return later_old;
+	}
+
+	/* first cancel deactive timer */
+	sprd_mpm_cancel_timer(mpm);
+
+	if (!later)
+		sprd_mpm_deactive(mpm);
+	else
+		sprd_mpm_start_deactive(mpm);
+
+	spin_unlock_irqrestore(&mpm->mpm_lock, flags);
+
+	return later_old;
+}
+
 int sprd_mpm_create(unsigned int dst, const char *name,
 		    unsigned int later_idle)
 {
@@ -571,6 +612,23 @@ int sprd_mpm_create(unsigned int dst, const char *name,
 		    (unsigned long)mpm);
 
 	g_sprd_mpm[dst] = mpm;
+
+	return 0;
+}
+
+int sprd_mpm_disable_later_idle_for_sleep(unsigned int dst)
+{
+	struct sprd_mpm_data *mpm;
+
+	if (dst >= SIPC_ID_NR)
+		return -EINVAL;
+
+	mpm = g_sprd_mpm[dst];
+	if (!mpm)
+		return -ENODEV;
+
+	if (!mpm->old_later)
+		mpm->old_later = sprd_mpm_set_later_idle(mpm, 0);
 
 	return 0;
 }
@@ -816,6 +874,8 @@ static int sprd_mpm_stats_show(struct seq_file *m, void *unused)
 		cur = g_sprd_mpm[i];
 		seq_puts(m, "------------------------------------\n");
 		seq_printf(m, "mpm = %s info:\n", cur->name);
+		seq_printf(m, "later = %d, old_later =%d\n",
+			   cur->later_idle, cur->old_later);
 		seq_printf(m, "last up module = %s info:\n",
 			cur->last_name ? cur->last_name : "null");
 

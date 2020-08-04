@@ -78,6 +78,12 @@ void sprd_pcie_resource_reboot_ep(u32 dst, bool b_warm_reboot);
 int sprd_pcie_wait_load_resource(u32 dst);
 
 /*
+ * sprd_pcie_wait_remove_resource
+ * max wait 5s for pcie remove.
+ */
+int sprd_pcie_wait_remove_resource(u32 dst);
+
+/*
  * sprd_pcie_img_load_done
  * If the chip is AA chip, It has 2 times pcie scan action in host side
  * boot process. After the first scan, the ep only have 2 bar can be
@@ -92,7 +98,8 @@ void sprd_pcie_img_load_done(u32 dst);
  * sprd_pcie_ep_power_on
  */
 bool sprd_pcie_ep_power_on(void);
-
+#else
+static inline int sprd_pcie_wait_remove_resource(u32 dst) { return 0; }
 #endif /* CONFIG_SPRD_PCIE_EP_DEVICE */
 
 #endif /* _SPRD_PCIE_RESOURCE_H */

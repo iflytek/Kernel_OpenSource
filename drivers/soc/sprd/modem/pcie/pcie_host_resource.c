@@ -87,6 +87,7 @@ struct sprd_pcie_res {
 	bool	reboot_ep_wait_removed;
 	bool	pcie_configured;
 	bool	ep_remove_respond;
+	bool	wait_removed;
 
 	unsigned long	action_jiff;
 
@@ -97,6 +98,7 @@ struct sprd_pcie_res {
 	wait_queue_head_t	wait_pcie_ready;
 	wait_queue_head_t	wait_load_ready;
 	wait_queue_head_t	wait_ep_respond;
+	wait_queue_head_t	wait_remove_ep;
 
 #ifdef CONFIG_SPRD_SIPA
 	void *sipa_res;
@@ -399,6 +401,27 @@ void sprd_pcie_img_load_done(u32 dst)
 
 	res = g_pcie_res[dst];
 	sprd_add_action(res->actions_queue, EP_LOAD_DONE_ACTION);
+}
+
+int sprd_pcie_wait_remove_resource(u32 dst)
+{
+	struct sprd_pcie_res *res;
+
+	if (dst >= SIPC_ID_NR || !g_pcie_res[dst])
+		return -EINVAL;
+
+	res = g_pcie_res[dst];
+
+	/* can load image, return immediately */
+	if (res->state == SPRD_PCIE_REMOVED)
+		return 0;
+
+	res->wait_removed = true;
+
+	return wait_event_interruptible_timeout(
+		res->wait_remove_ep,
+		res->state == SPRD_PCIE_REMOVED,
+		msecs_to_jiffies(5000));
 }
 
 int sprd_pcie_wait_load_resource(u32 dst)
@@ -836,6 +859,13 @@ static void sprd_pcie_resource_do_ep_remove(struct sprd_pcie_res *res)
 
 	pcie_resource_host_change_state(res, REMOVED_MSG);
 
+	/* wake up wait removed. */
+	if (res->wait_removed) {
+		res->wait_removed = false;
+		wake_up_interruptible_all(&res->wait_remove_ep);
+		return;
+	}
+
 	/* wake up ep reboot wait removed. */
 	if (res->reboot_ep_wait_removed) {
 		wake_up_interruptible_all(&res->wait_reboot_ep);
@@ -981,6 +1011,7 @@ int sprd_pcie_resource_host_init(u32 dst, u32 ep_dev,
 	init_waitqueue_head(&res->wait_pcie_ready);
 	init_waitqueue_head(&res->wait_reboot_ep);
 	init_waitqueue_head(&res->wait_ep_respond);
+	init_waitqueue_head(&res->wait_remove_ep);
 
 	wakeup_source_init(&res->ws, "pcie_res");
 
