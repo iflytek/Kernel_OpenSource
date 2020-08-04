@@ -139,7 +139,7 @@
 		charge-dcp-current-microamp = <2000000 3000000>;
 		charge-cdp-current-microamp = <1500000 1500000>;
 		charge-unknown-current-microamp = <500000 500000>;
-		charge-fchg-current-microamp = <1500000 2000000>;
+		charge-fchg-current-microamp = <3000000 2000000>;
 	};
 
 	charger-manager {
@@ -156,8 +156,10 @@
 		cm-fullbatt-current = <120000>;
 		cm-fullbatt-capacity = <100>;
 
-		cm-num-chargers = <2>;
-		cm-chargers = "sc2703_charger", "bq2560x_charger";
+		cm-num-chargers = <1>;
+		cm-num-fast-chargers = <1>;
+		cm-chargers = "sc2703_charger";
+		cm-fast-chargers = "sc2730_fast_charger";
 		cm-fuel-gauge = "sc27xx-fgu";
 
 		/* in deci centigrade */
@@ -1083,9 +1085,8 @@
 		power-role = "dual";
 		try-power-role = "sink";
 		source-pdos = <PDO_FIXED(5000, 400, PDO_FIXED_USB_COMM)>;
-		sink-pdos = <PDO_FIXED(5000, 500, PDO_FIXED_USB_COMM)
-			     PDO_FIXED(9000, 2000, PDO_FIXED_USB_COMM)>;
-		op-sink-microwatt = <18000000>;
+		sink-pdos = <PDO_FIXED(5000, 2000, PDO_FIXED_USB_COMM)>;
+		op-sink-microwatt = <10000000>;
 	};
 };
 
