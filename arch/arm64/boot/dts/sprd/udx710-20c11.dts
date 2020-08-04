@@ -172,6 +172,10 @@
 	stauts = "disabled";
 };
 
+&vddldo1 {
+	regulator-always-on;
+};
+
 &vddrf1v25 {
 	status = "disabled";
 };
