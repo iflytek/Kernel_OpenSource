@@ -69,6 +69,24 @@ enum cm_fast_charge_command {
 	CM_FAST_CHARGE_DISABLE_CMD,
 };
 
+struct wireless_data {
+	struct power_supply_desc psd;
+	struct power_supply *psy;
+	int WIRELESS_ONLINE;
+};
+
+struct ac_data {
+	struct power_supply_desc psd;
+	struct power_supply *psy;
+	int AC_ONLINE;
+};
+
+struct usb_data {
+	struct power_supply_desc psd;
+	struct power_supply *psy;
+	int USB_ONLINE;
+};
+
 /**
  * struct charger_cable
  * @extcon_name: the name of extcon device.
