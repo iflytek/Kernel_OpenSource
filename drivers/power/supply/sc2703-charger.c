@@ -46,6 +46,7 @@
 #define SC2703_OTG_NORMAL_VALID_MS	1500
 #define SC2703_CHARGER_VOLTAGE_MAX	6500000
 #define SC2703_FAST_CHARGER_VOLTAGE_MAX	11000000
+
 #define SC2703_FAST_CHARGER_DETECT_MS	1000
 #define SC2703_INPUT_CUR_MASK		GENMASK(7, 0)
 
@@ -66,7 +67,6 @@ struct sc2703_charger_info {
 	bool long_key_detect;
 	u32 charger_type;
 	bool otg_enable;
-	struct delayed_work fchg_detect_work;
 };
 
 /* sc2703 input limit current, Milliamp */
@@ -780,10 +780,47 @@ static int sc2703_charger_get_online(struct sc2703_charger_info *info,
 	return 0;
 }
 
+static int sc2703_charger_set_fchg_current(struct sc2703_charger_info *info, u32 val)
+{
+	int ret, limit_cur, cur;
+
+	if (val == CM_FAST_CHARGE_ENABLE_CMD) {
+		limit_cur = info->cur.fchg_limit;
+		cur = info->cur.fchg_cur;
+	} else if (val == CM_FAST_CHARGE_DISABLE_CMD) {
+		limit_cur = info->cur.dcp_limit;
+		cur = info->cur.dcp_cur;
+	} else {
+		return 0;
+	}
+
+	ret = sc2703_charger_set_limit_current(info, limit_cur);
+	if (ret) {
+		dev_err(info->dev, "failed to set fchg limit current\n");
+		return ret;
+	}
+
+	ret = sc2703_charger_set_current(info, cur);
+	if (ret) {
+		dev_err(info->dev, "failed to set fchg current\n");
+		return ret;
+	}
+
+	return 0;
+}
+
 static int sc2703_charger_set_status(struct sc2703_charger_info *info, u32 val,
 				     bool present)
 {
 	int ret = 0;
+
+	ret = sc2703_charger_set_fchg_current(info, val);
+
+	if (ret)
+		return ret;
+
+	if (val > CM_FAST_CHARGE_NORMAL_CMD)
+		return 0;
 
 	if (!val && info->charging) {
 		sc2703_charger_stop_charge(info, present);
@@ -908,8 +945,6 @@ static void sc2703_charger_work(struct work_struct *data)
 
 		info->charging = true;
 
-		schedule_delayed_work(&info->fchg_detect_work,
-			      msecs_to_jiffies(SC2703_FAST_CHARGER_DETECT_MS));
 	} else if ((!info->limit && info->charging) || !present) {
 		/* Stop charging */
 		info->charging = false;
@@ -922,27 +957,6 @@ out:
 	dev_info(info->dev, "battery present = %d, charger type = %d\n",
 		 present, info->usb_phy->chg_type);
 	cm_notify_event(info->psy_usb, CM_EVENT_CHG_START_STOP, NULL);
-}
-
-/*
- * Due to SFCP detect need cost 2 second, in order to let
- * charger plug in event report to android layer to bright
- * screen as soon as possible, we move sc2703_charger_fchg
- * _is_support_fchg from sc2703_charger_work to sc2703_
- * charger_fchg_work, and this fchg work will be sheduled
- * 1000ms later.
- */
-
-static void sc2703_charger_fchg_work(struct work_struct *work)
-{
-	struct delayed_work *dwork = to_delayed_work(work);
-	struct sc2703_charger_info *info = container_of(dwork,
-			struct sc2703_charger_info, fchg_detect_work);
-
-	if (!sc2703_charger_is_support_fchg(info) || !info->charging)
-		return;
-
-	cm_notify_event(info->psy_usb, CM_EVENT_FAST_CHARGE, NULL);
 }
 
 static int sc2703_charger_usb_change(struct notifier_block *nb,
@@ -1485,7 +1499,6 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 	mutex_init(&info->lock);
 	info->dev = &pdev->dev;
 	INIT_WORK(&info->work, sc2703_charger_work);
-	INIT_DELAYED_WORK(&info->fchg_detect_work, sc2703_charger_fchg_work);
 
 	info->regmap = dev_get_regmap(pdev->dev.parent, NULL);
 	if (!info->regmap) {

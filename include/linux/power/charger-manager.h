@@ -62,6 +62,12 @@ enum cm_charge_status {
 	CM_CHARGE_DURATION_ABNORMAL = BIT(3),
 };
 
+enum cm_fast_charge_command {
+	CM_FAST_CHARGE_NORMAL_CMD = 1,
+	CM_FAST_CHARGE_ENABLE_CMD,
+	CM_FAST_CHARGE_DISABLE_CMD,
+};
+
 /**
  * struct charger_cable
  * @extcon_name: the name of extcon device.
@@ -251,6 +257,15 @@ struct cm_track_capacity {
  * @internal_resist: the battery internal resistance in mOhm
  * @cap_table_len: the length of ocv-capacity table
  * @cap_table: capacity table with corresponding ocv
+ * @is_fast_charge: if it is support fast charge or not
+ * @enable_fast_charge: if is it start fast charge or not
+ * @fast_charge_enable_count: to count the number that satisfy start
+ *	fast charge condition.
+ * @fast_charge_disable_count: to count the number that satisfy stop
+ *	fast charge condition.
+ * @double_IC_total_limit_current: if it use two charge IC to support
+ *	fast charge, we use total limit current to campare with thermal_val,
+ *	to limit the thermal_val under total limit current.
  */
 struct charger_desc {
 	const char *psy_name;
@@ -327,6 +342,12 @@ struct charger_desc {
 	int internal_resist;
 	int cap_table_len;
 	struct power_supply_battery_ocv_table *cap_table;
+
+	bool is_fast_charge;
+	bool enable_fast_charge;
+	u32 fast_charge_enable_count;
+	u32 fast_charge_disable_count;
+	u32 double_ic_total_limit_current;
 };
 
 #define PSY_NAME_MAX	30
