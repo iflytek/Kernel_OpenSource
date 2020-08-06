@@ -63,6 +63,9 @@ int board_init(void)
 	TDPllRefConfig(1);
 	enable_global_clocks();
 	thm_overheate_en();
+#ifdef CONFIG_ADIE_SC2730
+	sci_adi_write(ANA_REG_GLB_MIXED_CTRL, 0, BIT_XOSC32K_CTL);
+#endif
 #endif
 	return 0;
 }
