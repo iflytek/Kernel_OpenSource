@@ -43,11 +43,13 @@ struct rpmb_data_frame {
 * success return 0 ;
 */
 #ifdef CONFIG_UFS
+extern struct lu_info_tbl rpmb_lu_info;
 uint8_t ufs_rpmb_blk_read(char *blk_data, uint16_t blk_index,
 			  uint8_t block_count);
 int check_ufs_rpmb_key(uint8_t *package, int package_size);
 /* @retrun 0 rpmb key unwritten */
 int is_wr_ufs_rpmb_key(void);
+int prepare_rpmb_lu(void);
 #endif
 
 #ifdef CONFIG_MMC

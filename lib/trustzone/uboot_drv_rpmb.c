@@ -8,6 +8,7 @@
 #include <sprd_rpmb.h>
 #include <common.h>
 #include <chipram_env.h>
+#include <sprd_ufs.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -65,7 +66,17 @@ int is_wr_rpmb_key(void)
 
 int uboot_set_rpmb_size()
 {
-	rpmb_size = emmc_get_capacity(PARTITION_RPMB);
+#ifdef CONFIG_MMC
+	if (gd->boot_device == BOOT_DEVICE_EMMC)
+		rpmb_size = emmc_get_capacity(PARTITION_RPMB);
+#endif
+#ifdef CONFIG_UFS
+	if (gd->boot_device == BOOT_DEVICE_UFS) {
+		prepare_rpmb_lu();
+		rpmb_size = (1 << rpmb_lu_info.log2blksz) *
+			    (rpmb_lu_info.blkcnt);
+	}
+#endif
 	printf("%s: rpmb size %lld\n", __func__, rpmb_size);
 	smc_param *param = tee_common_call(FUNCTYPE_SET_RPMB_SIZE,
 					   (uint32_t)(&rpmb_size),
