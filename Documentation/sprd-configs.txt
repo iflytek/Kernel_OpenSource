@@ -12221,6 +12221,15 @@ CONFIG_SC27XX_EFUSE
 	[must] home
 	[missing plat description] none
 	[function] get sc27xx series efuse value
+CONFIG_SC27XX_PD
+	[arch] arm64
+	[plat] roc1
+	[missing plat] orca sharkl3 sharkl5
+	[field] make
+	[subsys] tcpm
+	[must] usr
+	[missing plat description] none
+	[function] power delivery is fast charging protocol used to support fast charger
 CONFIG_SC27XX_TSENSOR_THERMAL
 	[arch] all
 	[plat] sharkl5,sharkl5_32
