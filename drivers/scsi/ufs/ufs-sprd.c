@@ -274,12 +274,6 @@ static int ufs_sprd_init(struct ufs_hba *hba)
 		return -ENODEV;
 	}
 
-
-	ret = ufs_sprd_get_syscon_reg(dev->of_node, &host->ap_apb_ufs_en,
-				      "ap_apb_ufs_en");
-	if (ret < 0)
-		return -ENODEV;
-
 	ret = ufs_sprd_get_syscon_reg(dev->of_node, &host->ap_apb_ufs_rst,
 				      "ap_apb_ufs_rst");
 	if (ret < 0)
@@ -313,10 +307,6 @@ void ufs_sprd_hw_init(struct ufs_hba *hba)
 {
 	struct ufs_sprd_host *host = ufshcd_get_variant(hba);
 
-	regmap_update_bits(host->ap_apb_ufs_en.regmap,
-			   host->ap_apb_ufs_en.reg,
-			   host->ap_apb_ufs_en.mask,
-			   host->ap_apb_ufs_en.mask);
 	ufs_sprd_reset(host);
 }
 
