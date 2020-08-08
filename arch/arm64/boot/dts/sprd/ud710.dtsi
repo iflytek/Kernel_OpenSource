@@ -1203,10 +1203,14 @@
 };
 
 &ufs {
-	clock-names = "ufs_ao_eb", "ufs_ao_en", "ufs_ahb_enable";
+	clock-names = "ufs_ao_eb", "ufs_ao_en", "ufs_ahb_enable",
+		      "ufs_hci_eb", "ufs_unipro_eb", "ufs_utp_eb";
 	clocks = <&aonapb_gate CLK_UFS_AO_EB>,
 		 <&aonapb_gate CLK_UFS_AO_EN>,
-		 <&apapb_gate CLK_UFS_EB>;
+		 <&apapb_gate CLK_UFS_EB>,
+		 <&apapb_gate CLK_UFS_HCI_EB>,
+		 <&apapb_gate CLK_UFS_UNIPRO_EB>,
+		 <&apapb_gate CLK_UFS_UTP_EB>;
 };
 
 &i2c0 {
