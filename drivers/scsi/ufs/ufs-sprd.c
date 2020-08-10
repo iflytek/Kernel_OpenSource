@@ -493,6 +493,7 @@ static int ufs_sprd_probe(struct platform_device *pdev)
 	err = ufshcd_pltfrm_init(pdev, &ufs_hba_sprd_vops);
 	if (err)
 		dev_err(dev, "ufshcd_pltfrm_init() failed %d\n", err);
+	device_enable_async_suspend(dev);
 
 	return err;
 }
