@@ -461,6 +461,19 @@ static void ufs_sprd_hibern8_notify(struct ufs_hba *hba,
 	}
 }
 
+static int ufs_sprd_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
+{
+	hba->rpm_lvl = UFS_PM_LVL_1;
+	hba->spm_lvl = UFS_PM_LVL_5;
+	hba->uic_link_state = UIC_LINK_OFF_STATE;
+	return 0;
+}
+
+static int ufs_sprd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
+{
+	return 0;
+}
+
 /**
  * struct ufs_hba_sprd_vops - UFS sprd specific variant operations
  *
@@ -476,6 +489,8 @@ static struct ufs_hba_variant_ops ufs_hba_sprd_vops = {
 	.link_startup_notify = ufs_sprd_link_startup_notify,
 	.pwr_change_notify = ufs_sprd_pwr_change_notify,
 	.hibern8_notify = ufs_sprd_hibern8_notify,
+	.suspend = ufs_sprd_suspend,
+	.resume = ufs_sprd_resume,
 };
 
 /**
