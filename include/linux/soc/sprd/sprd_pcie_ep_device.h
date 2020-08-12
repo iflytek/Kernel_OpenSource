@@ -75,6 +75,7 @@ int sprd_ep_dev_unregister_irq_handler_ex(int ep,
 					  int to_irq);
 
 int sprd_ep_dev_raise_irq(int ep, int irq);
+int sprd_ep_dev_raise_irq_ex(int ep, u32 value);
 int sprd_ep_dev_clear_doolbell_irq(int ep, int irq);
 
 void __iomem *sprd_ep_map_memory(int ep,

@@ -442,6 +442,32 @@ int sprd_ep_dev_raise_irq(int ep, int irq)
 }
 EXPORT_SYMBOL_GPL(sprd_ep_dev_raise_irq);
 
+int sprd_ep_dev_raise_irq_ex(int ep, u32 value)
+{
+	struct pci_dev *pdev;
+	struct device *dev;
+	struct sprd_pci_ep_dev *ep_dev;
+	void __iomem	*base;
+
+	if (ep >= PCIE_EP_NR || !g_ep_dev[ep]) {
+		pr_err("pcie res: raise irq err, nodev value=%d", value);
+		return -ENODEV;
+	}
+
+	ep_dev = g_ep_dev[ep];
+	pdev = ep_dev->pdev;
+	dev = &pdev->dev;
+
+	dev_dbg(dev, "ep: raise, ep=%d, value=0x%x\n", ep, value);
+
+	spin_lock(&ep_dev->set_irq_lock);
+	base = ep_dev->cfg_base + DOOR_BELL_BASE;
+	writel_relaxed(value, base + DOOR_BELL_STATUS);
+	spin_unlock(&ep_dev->set_irq_lock);
+
+	return 0;
+}
+
 int sprd_ep_dev_clear_doolbell_irq(int ep, int irq)
 {
 	struct pci_dev *pdev;

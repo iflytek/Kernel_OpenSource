@@ -686,6 +686,7 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 	unsigned long diff;
 	unsigned int delay;
 	int ret;
+	u32 value;
 
 	if (res->state != SPRD_PCIE_SCANNED &&
 		res->state != SPRD_PCIE_SCANNED_2BAR) {
@@ -744,11 +745,9 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 	if ((res->ep_up_cnt || res->requested) &&
 	    !res->reboot_ep_wait_removed) {
 		pcie_resource_host_change_state(res, SCANNED_MSG);
-		/* clear removed irq and notify ep scanned */
-		sprd_ep_dev_clear_doolbell_irq(res->ep_dev,
-					       PCIE_DBEL_EP_REMOVING);
-		sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
-		sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBELL_SIPC_IRQ);
+		/* notify ep scanned and sipc irq. */
+		value = BIT(PCIE_DBEL_EP_SCANNED) | BIT(PCIE_DBELL_SIPC_IRQ);
+		sprd_ep_dev_raise_irq_ex(res->ep_dev, value);
 
 		/* wakeup all blocked thread */
 		wake_up_interruptible_all(&res->wait_pcie_ready);
@@ -812,6 +811,8 @@ static void sprd_pcie_resource_do_release_res(struct sprd_pcie_res *res)
 
 static void sprd_pcie_resource_do_ep_probe(struct sprd_pcie_res *res)
 {
+	u32 value;
+
 	pr_info("pcie res: ep_notify, probed cnt=%d.\n",
 		res->scan_cnt);
 
@@ -823,11 +824,9 @@ static void sprd_pcie_resource_do_ep_probe(struct sprd_pcie_res *res)
 	/* power up for ep until recieve ep resond scan. */
 	sprd_pms_power_up(res->pms);
 
-	/* clear removed irq and notify ep scanned */
-	sprd_ep_dev_clear_doolbell_irq(res->ep_dev,
-					   PCIE_DBEL_EP_REMOVING);
-	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_SCANNED);
-	sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBELL_SIPC_IRQ);
+	/* notify ep scanned and sipc irq. */
+	value = BIT(PCIE_DBEL_EP_SCANNED) | BIT(PCIE_DBELL_SIPC_IRQ);
+	sprd_ep_dev_raise_irq_ex(res->ep_dev, value);
 
 	/* wakeup all blocked thread */
 	wake_up_interruptible_all(&res->wait_pcie_ready);
