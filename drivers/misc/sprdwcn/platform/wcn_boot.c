@@ -1458,7 +1458,7 @@ static int check_cp_ready(void)
 {
 	int i, ret = 0;
 
-	for (i = 0; i <= 75; i++) {
+	for (i = 0; i <= 250; i++) {
 		ret = sprdwcn_bus_direct_read(SYNC_ADDR,
 			&(marlin_dev->sync_f), sizeof(struct wcn_sync_info_t));
 		if (ret < 0) {
