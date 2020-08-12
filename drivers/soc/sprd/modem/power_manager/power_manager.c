@@ -104,12 +104,6 @@ static int sprd_mpm_pm_event(struct notifier_block *notifier,
 
 			cur = g_sprd_mpm[i];
 			sprd_mpm_print_awake(cur);
-
-			/* exit sleep, restore */
-			if (cur->old_later) {
-				cur->later_idle = cur->old_later;
-				cur->old_later = 0;
-			}
 		}
 		break;
 
