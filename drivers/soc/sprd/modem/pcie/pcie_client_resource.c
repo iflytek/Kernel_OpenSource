@@ -31,6 +31,7 @@
 #include "../include/sprd_actions_queue.h"
 
 #define MAX_PMS_WAIT_TIME	5000
+#define PCIE_REMOVE_SCAN_GAP	msecs_to_jiffies(100)
 
 enum ep_msg {
 	RC_SCANNED_MSG = 0,
@@ -69,6 +70,7 @@ struct sprd_pcie_res {
 	u32	dst;
 	u32	ep_fun;
 	u32	linkup_cnt;
+	unsigned long	action_jiff;
 	enum pcie_ep_state	state;
 	bool	msi_later;
 	bool	release_later;
@@ -397,6 +399,22 @@ int sprd_register_pcie_resource_first_ready(u32 dst,
 	return 0;
 }
 
+static void sprd_pcie_resource_wakeup_rc(struct sprd_pcie_res *res)
+{
+	unsigned long diff;
+	unsigned int delay;
+
+	diff = jiffies - res->action_jiff;
+	if (diff < PCIE_REMOVE_SCAN_GAP) {
+		/* must ensure that wakeup rc after a period of remove. */
+		delay = jiffies_to_msecs(PCIE_REMOVE_SCAN_GAP - diff);
+		msleep(delay);
+	}
+
+	pr_info("pcie res: send wakeup to rc.\n");
+	sprd_pci_epf_start(res->ep_fun);
+}
+
 static void sprd_pcie_resource_do_request_res(struct sprd_pcie_res *res)
 {
 	pr_info("pcie res: request res, state=%d.\n", res->state);
@@ -427,8 +445,7 @@ static void sprd_pcie_resource_do_request_res(struct sprd_pcie_res *res)
 		 * if pcie state is removed, poll wake_up singnal
 		 * to host, and he host will rescan the pcie.
 		 */
-		pr_info("pcie res: send wakeup to rc.\n");
-		sprd_pci_epf_start(res->ep_fun);
+		sprd_pcie_resource_wakeup_rc(res);
 		res->msi_later = true;
 		break;
 
@@ -512,6 +529,9 @@ static void sprd_pcie_resource_do_epf_unlink(struct sprd_pcie_res *res)
 {
 	pr_info("pcie res: epf unlink.\n");
 
+	/* record the last remove jiffies */
+	res->action_jiff = jiffies;
+
 	if (pcie_resource_client_change_state(res, EPC_UNLINK_MSG))
 		pr_warn("pcie res: change state err.\n");
 
@@ -522,8 +542,7 @@ static void sprd_pcie_resource_do_epf_unlink(struct sprd_pcie_res *res)
 
 		res->msi_later = true;
 		pr_info("pcie res: later send request msi to rc.\n");
-		if (sprd_pci_epf_start(res->ep_fun))
-			pr_err("pcie res: send wakeup to rc failed.\n");
+		sprd_pcie_resource_wakeup_rc(res);
 	}
 
 	/* relax a wakelock */
