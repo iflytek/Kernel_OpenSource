@@ -161,6 +161,13 @@ int block_dev_write(block_dev_desc_t *dev_desc, uint64_t size, uint64_t offset, 
 
 	if (NULL != temp)
 		free(temp);
+
+	if(NULL == dev_desc->block_sync)
+		return 0;
+
+	if (0 != dev_desc->block_sync(dev_desc->dev))
+		return -1;
+
 	return 0;
 
 fail:
