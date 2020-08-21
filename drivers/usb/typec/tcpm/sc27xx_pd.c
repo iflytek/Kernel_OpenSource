@@ -215,6 +215,7 @@ enum sc27xx_state {
 
 struct sc27xx_pd {
 	struct device *dev;
+	struct extcon_dev *edev;
 	struct extcon_dev *extcon;
 	struct notifier_block extcon_nb;
 	struct tcpm_port *tcpm_port;
@@ -432,9 +433,16 @@ static int sc27xx_pd_send_hardreset(struct sc27xx_pd *pd)
 		return ret;
 	}
 
-	return regmap_update_bits(pd->regmap,
+	ret = regmap_update_bits(pd->regmap,
 				  pd->base + SC27XX_PD_CTRL,
 				  SC27XX_PD_HARD_RESET, SC27XX_PD_HARD_RESET);
+	if (ret < 0)
+		return ret;
+
+	dev_warn(pd->dev, "IRQ: PD send hardreset\n");
+	extcon_set_state_sync(pd->edev, EXTCON_CHG_USB_PD, true);
+
+	return 0;
 }
 
 static int sc27xx_pd_set_rx(struct tcpc_dev *tcpc, bool on)
@@ -905,6 +913,8 @@ static irqreturn_t sc27xx_pd_irq(int irq, void *dev_id)
 		if (ret < 0)
 			goto done;
 
+		extcon_set_state_sync(pd->edev, EXTCON_CHG_USB_PD, true);
+
 		tcpm_pd_hard_reset(pd->tcpm_port);
 	}
 
@@ -1212,6 +1222,11 @@ static void sc27xx_pd_detect_typec_work(struct work_struct *work)
 		sc27xx_pd_check_vbus_cc_status(pd);
 }
 
+static const u32 sc27xx_pd_hardreset[] = {
+	EXTCON_CHG_USB_PD,
+	EXTCON_NONE,
+};
+
 static int sc27xx_pd_probe(struct platform_device *pdev)
 {
 	struct sc27xx_pd *pd;
@@ -1226,6 +1241,18 @@ static int sc27xx_pd_probe(struct platform_device *pdev)
 	if (!pd->regmap) {
 		dev_err(&pdev->dev, "failed to get pd regmap\n");
 		return -ENODEV;
+	}
+
+	pd->edev = devm_extcon_dev_allocate(&pdev->dev, sc27xx_pd_hardreset);
+	if (IS_ERR(pd->edev)) {
+		dev_err(&pdev->dev, "failed to allocate extcon device\n");
+		return PTR_ERR(pd->edev);
+	}
+
+	ret = devm_extcon_dev_register(&pdev->dev, pd->edev);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "can't register extcon device: %d\n", ret);
+		return ret;
 	}
 
 	if (of_property_read_bool(pdev->dev.of_node, "extcon")) {
