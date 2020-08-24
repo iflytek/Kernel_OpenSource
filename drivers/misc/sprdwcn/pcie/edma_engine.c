@@ -323,7 +323,7 @@ static int dscr_polling(struct desc *dscr, int loop)
 		 */
 		barrier();
 		if (loop < 1000000)
-			ndelay(1);
+			ndelay(2);
 	} while (loop--);
 
 	return -1;
