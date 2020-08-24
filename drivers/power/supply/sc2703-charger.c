@@ -5,6 +5,7 @@
  * Copyright (c) 2018 Dialog Semiconductor.
  */
 #include <linux/delay.h>
+#include <linux/extcon.h>
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -48,6 +49,7 @@
 #define SC2703_FAST_CHARGER_VOLTAGE_MAX	11000000
 
 #define SC2703_FAST_CHARGER_DETECT_MS	1000
+#define SC2703_PD_HARD_RESET_MS		500
 #define SC2703_INPUT_CUR_MASK		GENMASK(7, 0)
 
 struct sc2703_charger_info {
@@ -67,6 +69,10 @@ struct sc2703_charger_info {
 	bool long_key_detect;
 	u32 charger_type;
 	bool otg_enable;
+	struct extcon_dev *pd_extcon;
+	struct notifier_block pd_extcon_nb;
+	struct delayed_work pd_hard_reset_work;
+	bool pd_hard_reset;
 };
 
 /* sc2703 input limit current, Milliamp */
@@ -965,11 +971,101 @@ static int sc2703_charger_usb_change(struct notifier_block *nb,
 	struct sc2703_charger_info *info =
 		container_of(nb, struct sc2703_charger_info, usb_notify);
 
-	info->limit = limit;
+	if (!info->pd_hard_reset) {
+		info->limit = limit;
 
-	schedule_work(&info->work);
+		schedule_work(&info->work);
+	} else {
+		info->pd_hard_reset = false;
+		dev_info(info->dev, "USB PD hard reset, ignore vbus off\n");
+		cancel_delayed_work_sync(&info->pd_hard_reset_work);
+	}
 	return NOTIFY_OK;
 }
+
+#ifdef CONFIG_SC27XX_PD
+static int sc2703_charger_pd_extcon_event(struct notifier_block *nb,
+				 unsigned long event, void *param)
+{
+	struct sc2703_charger_info *info =
+		container_of(nb, struct sc2703_charger_info, pd_extcon_nb);
+
+	if (info->pd_hard_reset) {
+		dev_info(info->dev, "Already receive USB PD hard reset\n");
+		return NOTIFY_OK;
+	}
+
+	info->pd_hard_reset = true;
+	dev_info(info->dev, "Receive USB PD hard reset request\n");
+	schedule_delayed_work(&info->pd_hard_reset_work,
+			      msecs_to_jiffies(SC2703_PD_HARD_RESET_MS));
+
+	return NOTIFY_OK;
+}
+
+static void
+sc2703_charger_detect_pd_extcon_status(struct sc2703_charger_info *info)
+{
+	if (extcon_get_state(info->pd_extcon, EXTCON_CHG_USB_PD)) {
+		info->pd_hard_reset = true;
+		dev_info(info->dev, "Detect USB PD hard reset request\n");
+		schedule_delayed_work(&info->pd_hard_reset_work,
+			      msecs_to_jiffies(SC2703_PD_HARD_RESET_MS));
+	}
+}
+
+static void sc2703_charger_pd_hard_reset_work(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct sc2703_charger_info *info = container_of(dwork,
+			struct sc2703_charger_info, pd_hard_reset_work);
+
+	info->pd_hard_reset = false;
+}
+
+static int
+sc2703_charger_register_pd_extcon(struct platform_device *pdev,
+				  struct sc2703_charger_info *info)
+{
+	int ret;
+
+	INIT_DELAYED_WORK(&info->pd_hard_reset_work, sc2703_charger_pd_hard_reset_work);
+
+	if (of_property_read_bool(pdev->dev.of_node, "extcon")) {
+		info->pd_extcon = extcon_get_edev_by_phandle(&pdev->dev, 1);
+		if (IS_ERR(info->pd_extcon)) {
+			dev_err(&pdev->dev, "failed to find pd extcon device.\n");
+			return PTR_ERR(info->pd_extcon);
+		}
+
+		info->pd_extcon_nb.notifier_call = sc2703_charger_pd_extcon_event;
+		ret = devm_extcon_register_notifier_all(&pdev->dev,
+							info->pd_extcon,
+							&info->pd_extcon_nb);
+		if (ret) {
+			dev_err(&pdev->dev, "Can't register pd extcon\n");
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+#else
+static void
+sc2703_charger_detect_pd_extcon_status(struct sc2703_charger_info *info)
+{
+
+}
+
+static int
+sc2703_charger_register_pd_extcon(struct platform_device *pdev,
+				  struct sc2703_charger_info *info)
+{
+	return 0;
+}
+#endif
+
 
 static int sc2703_charger_usb_get_property(struct power_supply *psy,
 					   enum power_supply_property psp,
@@ -1506,6 +1602,12 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
+	ret = sc2703_charger_register_pd_extcon(pdev, info);
+	if (ret) {
+		dev_err(&pdev->dev, "failed to register pd extcon\n");
+		return ret;
+	}
+
 	platform_set_drvdata(pdev, info);
 
 	info->usb_phy = devm_usb_get_phy_by_phandle(&pdev->dev, "phys", 0);
@@ -1572,6 +1674,7 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 
 	sc2703_charger_detect_status(info);
 	INIT_DELAYED_WORK(&info->otg_work, sc2703_charger_otg_work);
+	sc2703_charger_detect_pd_extcon_status(info);
 
 	return 0;
 }
@@ -1582,6 +1685,7 @@ static void sc2703_shutdown(struct platform_device *pdev)
 	int ret;
 
 	cancel_delayed_work_sync(&info->otg_work);
+	cancel_delayed_work_sync(&info->pd_hard_reset_work);
 
 	ret = regmap_update_bits(info->regmap, SC2703_DCDC_CTRL_A,
 				 SC2703_OTG_EN_MASK, 0);
