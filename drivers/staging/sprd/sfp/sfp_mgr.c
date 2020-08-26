@@ -723,6 +723,11 @@ int sfp_filter_mgr_fwd_create_entries(u8 pf, struct sk_buff *skb)
 		return 0;
 
 	tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+
+	/*
+	 * we may fail to get l4proto from a fragment pkt,
+	 * we better pass frags to the Network.
+	 */
 	l4proto = tuple->dst.protonum;
 	dir = CTINFO2DIR(ctinfo);
 

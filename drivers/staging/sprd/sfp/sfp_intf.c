@@ -521,6 +521,28 @@ static void sfp_maybe_trim_skb(struct sk_buff *skb)
 	}
 }
 
+static bool sfp_check_filter_frag(struct sk_buff *skb)
+{
+	int err;
+	bool is_frag = false;
+	unsigned int ptr = 0;
+	struct iphdr *piphdr;
+
+	piphdr = ip_hdr(skb);
+
+	if (piphdr->version == 0x04) {
+		is_frag = ip_is_fragment(ip_hdr(skb));
+	} else if (piphdr->version == 0x6) {
+		err = ipv6_find_hdr(skb, &ptr, NEXTHDR_FRAGMENT, NULL, NULL);
+		if (err >= 0) {
+			FP_PRT_DBG(FP_PRT_DEBUG, "skb %p is v6 frag\n", skb);
+			is_frag = true;
+		}
+	}
+
+	return is_frag;
+}
+
 /*
  * 1.check the data if it will be forward. If it will be,
  * modify the header according to spread fast path forwarding
@@ -570,6 +592,10 @@ int soft_fastpath_process(int in_if,
 
 	/* aqc driver may pass some pkts with 6 bytes paddings */
 	sfp_maybe_trim_skb(skb);
+
+	/* ignore the frag-ed pkt in hook func */
+	if (sfp_check_filter_frag(skb))
+		return 1;
 
 	/*
 	 * Some ethernet drivers(For example, atlantic-fwd)
