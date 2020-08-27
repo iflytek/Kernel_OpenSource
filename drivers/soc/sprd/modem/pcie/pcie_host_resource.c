@@ -235,6 +235,10 @@ static void sprd_pcie_resource_host_first_probe_do(struct sprd_pcie_res *res)
 
 static void sprd_pcie_resource_do_ep_request(struct sprd_pcie_res *res)
 {
+	/* reboot_ep_wait_removed, don't response request. */
+	if (res->reboot_ep_wait_removed)
+		return;
+
 	pr_info("pcie res: ep request res up cnt=%d.\n", res->ep_up_cnt);
 
 	if (!res->ep_up_cnt++) {
@@ -305,9 +309,6 @@ static void sprd_pcie_resource_host_ep_notify(int event, void *data)
 static irqreturn_t sprd_pcie_resource_host_irq_handler(int irq, void *private)
 {
 	struct sprd_pcie_res *res = (struct sprd_pcie_res *)private;
-
-	if (res->reboot_ep_wait_removed)
-		return IRQ_HANDLED;
 
 	switch (irq) {
 	case PCIE_MSI_SCANNED_RESPOND:
@@ -725,6 +726,10 @@ static void sprd_pcie_resource_do_remove_pcie(struct sprd_pcie_res *res)
 	/* notify ep removed, must before removed */
 	if (!res->ep_up_cnt && !res->requested)
 		sprd_ep_dev_raise_irq(res->ep_dev, PCIE_DBEL_EP_REMOVING);
+
+	/* reboot ep don't wait ep response. */
+	if (res->reboot_ep_wait_removed)
+		res->ep_remove_respond = true;
 
 	/* waiting for ep remove respond, max time 4s,
 	 * remove it when wait ep remove respond or time out.
