@@ -20,6 +20,8 @@
 #include <linux/suspend.h>
 #include <linux/types.h>
 
+#define SPRD_MPM_PRINT_TIMER	msecs_to_jiffies(60 * 1000)
+
 /*
  * The data struct of modem power manager.
  */
@@ -27,6 +29,7 @@ struct sprd_mpm_data {
 	struct wakeup_source	ws;
 	struct list_head	pms_list;
 	struct timer_list	timer;
+	struct timer_list	print_timer;
 	spinlock_t		mpm_lock;
 	char			name[20];
 	const char		*last_name;
@@ -84,6 +87,31 @@ static void sprd_mpm_print_awake(struct sprd_mpm_data *mpm)
 	kfree(awake_info);
 }
 
+static void sprd_mpm_stop_print_timer(struct sprd_mpm_data *mpm)
+{
+	del_timer(&mpm->print_timer);
+}
+
+static void sprd_mpm_start_print_timer(struct sprd_mpm_data *mpm)
+{
+	unsigned long expires;
+
+	expires = jiffies + SPRD_MPM_PRINT_TIMER;
+	if (!expires)
+		expires = 1;
+
+	mod_timer(&mpm->print_timer, expires);
+}
+
+static void sprd_mpm_print_timer_fn(unsigned long data)
+{
+	struct sprd_mpm_data *mpm = (struct sprd_mpm_data *)data;
+
+	sprd_mpm_print_awake(mpm);
+
+	sprd_mpm_start_print_timer(mpm);
+}
+
 /**
  * sprd_mpm_pm_event
  * monitor the PM_SUSPEND_PREPARE event.
@@ -96,6 +124,16 @@ static int sprd_mpm_pm_event(struct notifier_block *notifier,
 
 	switch (pm_event) {
 	case PM_SUSPEND_PREPARE:
+		/* check if has wake lock. */
+		for (i = 0; i < SIPC_ID_NR; i++) {
+			if (!g_sprd_mpm[i])
+				continue;
+
+			cur = g_sprd_mpm[i];
+			sprd_mpm_stop_print_timer(cur);
+		}
+		break;
+
 	case PM_POST_SUSPEND:
 		/* check if has wake lock. */
 		for (i = 0; i < SIPC_ID_NR; i++) {
@@ -104,6 +142,7 @@ static int sprd_mpm_pm_event(struct notifier_block *notifier,
 
 			cur = g_sprd_mpm[i];
 			sprd_mpm_print_awake(cur);
+			sprd_mpm_start_print_timer(cur);
 		}
 		break;
 
@@ -604,6 +643,11 @@ int sprd_mpm_create(unsigned int dst, const char *name,
 	setup_timer(&mpm->timer,
 		    sprd_mpm_deactive_timer_fn,
 		    (unsigned long)mpm);
+	setup_timer(&mpm->print_timer,
+		    sprd_mpm_print_timer_fn,
+		    (unsigned long)mpm);
+
+	sprd_mpm_start_print_timer(mpm);
 
 	g_sprd_mpm[dst] = mpm;
 
