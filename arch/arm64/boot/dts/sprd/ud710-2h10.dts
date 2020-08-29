@@ -397,7 +397,7 @@
 			compatible = "sprd,sc2703-charger";
 			phys = <&ssphy>;
 			monitored-battery = <&bat>;
-			extcon = <&pmic_typec>;
+			extcon = <&pmic_typec>, <&pmic_pd>;
 			sprd,long-key-detection;
 			vddvbus:otg-vbus {
 				regulator-name = "vddvbus";
