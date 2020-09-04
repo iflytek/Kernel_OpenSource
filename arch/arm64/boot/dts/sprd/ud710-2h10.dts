@@ -399,6 +399,7 @@
 			monitored-battery = <&bat>;
 			extcon = <&pmic_typec>, <&pmic_pd>;
 			sprd,long-key-detection;
+			pd-extcon-enable;
 			vddvbus:otg-vbus {
 				regulator-name = "vddvbus";
 			};
