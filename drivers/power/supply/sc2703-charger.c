@@ -73,6 +73,7 @@ struct sc2703_charger_info {
 	struct notifier_block pd_extcon_nb;
 	struct delayed_work pd_hard_reset_work;
 	bool pd_hard_reset;
+	bool pd_extcon_enable;
 };
 
 /* sc2703 input limit current, Milliamp */
@@ -1006,6 +1007,9 @@ static int sc2703_charger_pd_extcon_event(struct notifier_block *nb,
 static void
 sc2703_charger_detect_pd_extcon_status(struct sc2703_charger_info *info)
 {
+	if (!info->pd_extcon_enable)
+		return;
+
 	if (extcon_get_state(info->pd_extcon, EXTCON_CHG_USB_PD)) {
 		info->pd_hard_reset = true;
 		dev_info(info->dev, "Detect USB PD hard reset request\n");
@@ -1028,6 +1032,12 @@ sc2703_charger_register_pd_extcon(struct platform_device *pdev,
 				  struct sc2703_charger_info *info)
 {
 	int ret;
+
+	info->pd_extcon_enable =
+		device_property_read_bool(&pdev->dev, "pd-extcon-enable");
+
+	if (!info->pd_extcon_enable)
+		return 0;
 
 	INIT_DELAYED_WORK(&info->pd_hard_reset_work, sc2703_charger_pd_hard_reset_work);
 
