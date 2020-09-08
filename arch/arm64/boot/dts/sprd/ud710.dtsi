@@ -133,44 +133,48 @@
 	energy-costs {
 		CPU_COST_0: core-cost0 {
 			busy-cost-data = <
-				165	59		//614MHz
-				206	76		//768MHz
-				329	120		//1229MHz
-				397	156		//1482MHz
-				418	182		//1560MHz
-				460	218		//1716MHz
-				488	254		//1820MHz
+				183	58		//614MHz
+				229	69		//768MHz
+				287	82		//962MHz
+				342	94		//1144MHZ
+				367	106		//1229MHz
+				443	149		//1482MHz
+				459	159		//1534MHz
+				513	198		//1716MHz
+				544	223		//1820MHz
 			>;
 			idle-cost-data = <
-				31		/* ACTIVE-IDLE */
-				31		/* WFI */
+				20		/* ACTIVE-IDLE */
+				20		/* WFI */
 				0		/* CORE_PD */
 			>;
 		};
 		CPU_COST_1: core-cost1 {
 			busy-cost-data = <
-				621	472		//1229MHz
-				748	623		//1482MHz
-				776	720		//1536MHz
-				880	897		//1742MHz
-				945	1063		//1872MHz
-				1024	1265		//2028MHz
+				691	445		//1229MHz
+				834	623		//1482MHz
+				863	674		//1534MHz
+				980	883		//1742MHz
+				1009	926		//1794MHz
+				1024	959		//1820MHz
 			>;
 			idle-cost-data = <
-				108		/* ACTIVE-IDLE */
-				108		/* WFI */
+				73		/* ACTIVE-IDLE */
+				73		/* WFI */
 				0		/* CORE_PD */
 			>;
 		};
 		CLUSTER_COST_0: cluster-cost0 {
 			busy-cost-data = <
-				164	1		//614MHz
-				206	2		//768MHz
-				329	3		//1229MHz
-				397	4		//1482MHz
-				412	5		//1560MHz
-				460	6		//1716MHz
-				488	7		//1820MHz
+				183	1		//614MHz
+				229	2		//768MHz
+				287	3		//962MHz
+				342	4		//1144MHz
+				367	5		//1229MHz
+				443	7		//1482MHz
+				459	8		//1534MHz
+				513	9		//1716MHz
+				544	10		//1820MHz
 			>;
 			idle-cost-data = <
 				0		/* ACTIVE-IDLE */
@@ -180,17 +184,17 @@
 		};
 		CLUSTER_COST_1: cluster-cost1 {
 			busy-cost-data = <
-				621	36		//1229MHz
-				748	40		//1482MHz
-				776	43		//1536MHz
-				880	47		//1742MHz
-				945	52		//1872MHz
-				1024	58		//2028MHz
+				691	25		//1229MHz
+				834	26		//1482MHz
+				863	28		//1534MHz
+				980	33		//1742MHz
+				1009	34		//1794MHz
+				1024	46		//1820MHz
 			>;
 			idle-cost-data = <
-				45		/* ACTIVE-IDLE */
-				45		/* WFI */
-				45		/* CORE_PD */
+				31		/* ACTIVE-IDLE */
+				31		/* WFI */
+				31		/* CORE_PD */
 			>;
 		};
 	};
