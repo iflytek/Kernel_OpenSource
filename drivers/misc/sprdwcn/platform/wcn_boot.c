@@ -2058,6 +2058,8 @@ static int marlin_set_power(int subsys, int val)
 				WCN_ERR("marlin download timeout\n");
 				goto out;
 			}
+			/* delay to wait CP2 inited EDMA finish. */
+			usleep_range(30000, 35000);
 			atomic_set(&marlin_dev->download_finish_flag, 1);
 			WCN_INFO("then marlin download finished and run ok\n");
 
@@ -2154,6 +2156,8 @@ static int marlin_set_power(int subsys, int val)
 					WCN_ERR("marlin download timeout\n");
 					goto out;
 				}
+				/* delay to wait CP2 inited EDMA finish. */
+				usleep_range(30000, 35000);
 				atomic_set(&marlin_dev->download_finish_flag,
 					   1);
 				WCN_INFO("marlin dl finished and run ok\n");
@@ -2183,6 +2187,8 @@ static int marlin_set_power(int subsys, int val)
 					WCN_ERR("marlin download timeout\n");
 					goto out;
 				}
+				/* delay to wait CP2 inited EDMA finish. */
+				usleep_range(30000, 35000);
 				atomic_set(&marlin_dev->download_finish_flag,
 					   1);
 				WCN_INFO("BTWF download finished and run ok\n");
