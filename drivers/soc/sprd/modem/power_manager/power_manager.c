@@ -21,6 +21,7 @@
 #include <linux/types.h>
 
 #define SPRD_MPM_PRINT_TIMER	msecs_to_jiffies(60 * 1000)
+#define MAX_WAKEUP_LENTH	256
 
 /*
  * The data struct of modem power manager.
@@ -41,6 +42,7 @@ struct sprd_mpm_data {
 	unsigned long		expires;
 	unsigned int		later_idle;
 	unsigned int		old_later;
+	char			awake_info[MAX_WAKEUP_LENTH];
 
 	/* resource ops functions */
 	int (*wait_resource)(unsigned int dst, int timeout);
@@ -60,12 +62,7 @@ static struct sprd_mpm_data *g_sprd_mpm[SIPC_ID_NR];
 static void sprd_mpm_print_awake(struct sprd_mpm_data *mpm)
 {
 	struct sprd_pms *pms;
-	char *awake_info;
-	int len = 0, max_len = 512;
-
-	awake_info = kmalloc(max_len, GFP_KERNEL);
-	if (!awake_info)
-		return;
+	int len = 0, max_len = MAX_WAKEUP_LENTH;
 
 	/* print pms list */
 	list_for_each_entry(pms, &mpm->pms_list, entry) {
@@ -73,18 +70,17 @@ static void sprd_mpm_print_awake(struct sprd_mpm_data *mpm)
 			continue;
 
 		pms->pre_awake_cnt = pms->awake_cnt;
-		snprintf(awake_info + len,
+		snprintf((mpm->awake_info) + len,
 			 max_len - len,
 			 "%s is awake, awake_cnt = %d\n",
 			 pms->name,
 			 pms->awake_cnt);
-		len = strlen(awake_info);
+		len = strlen(mpm->awake_info);
 	}
 
 	if (len)
-		pr_info("mpm: %s\n", awake_info);
+		pr_info("mpm: %s\n", mpm->awake_info);
 
-	kfree(awake_info);
 }
 
 static void sprd_mpm_stop_print_timer(struct sprd_mpm_data *mpm)
