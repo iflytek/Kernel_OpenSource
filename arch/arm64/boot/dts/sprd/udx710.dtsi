@@ -534,6 +534,10 @@
 			};
 		};
 
+		tmc_group {
+			compatible = "arm,coresight-tmc_group", "arm,tmc_group";
+		};
+
 		etb@78003000 {
 			compatible = "arm,coresight-tmc", "arm,primecell";
 			reg = <0 0x78003000 0 0x1000>;
