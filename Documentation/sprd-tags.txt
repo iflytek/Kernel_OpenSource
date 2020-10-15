@@ -66,6 +66,7 @@ power:supply:fan54015:
 power:supply:sc27xx:
 power:supply:sc2703:
 power:supply:bq2560x:
+power:supply:sc2730:
 power:supply:sc2731:
 power:supply:sc2721:
 power:supply:sc2720:
