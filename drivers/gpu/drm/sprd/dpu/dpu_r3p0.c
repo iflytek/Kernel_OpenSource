@@ -677,8 +677,8 @@ static void dpu_write_back(struct dpu_context *ctx,
 	region[0].index = 0;
 	region[0].pos_x = 0;
 	region[0].pos_y = 0;
-	region[0].size_w = mode_width;
-	region[0].size_h = mode_height;
+	region[0].size_w = ALIGN(mode_width, 8);
+	region[0].size_h = ALIGN(mode_height, 8);
 
 	wb_layer.dst_w = mode_width;
 	wb_layer.dst_h = mode_height;
