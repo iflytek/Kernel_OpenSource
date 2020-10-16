@@ -184,7 +184,9 @@ static irqreturn_t sc2730_fchg_interrupt(int irq, void *dev_id)
 			 "met some errors, now status = 0x%x, status0 = 0x%x\n",
 			 int_sts, int_sts0);
 
-	if ((int_sts & FCHG_INT_STS_DETDONE) && (int_sts0 & FCHG_OUT_OK_BIT))
+	if (info->state == POWER_SUPPLY_USB_TYPE_PD)
+		dev_info(info->dev, "Already PD, don't update SFCP\n");
+	else if ((int_sts & FCHG_INT_STS_DETDONE) && (int_sts0 & FCHG_OUT_OK_BIT))
 		info->state = POWER_SUPPLY_CHARGE_TYPE_FAST;
 	else
 		info->state = POWER_SUPPLY_CHARGE_TYPE_TRICKLE;
@@ -498,7 +500,8 @@ static void sc2730_fchg_pd_change_work(struct work_struct *data)
 		goto out1;
 	} else if (pd_type == POWER_SUPPLY_USB_TYPE_C) {
 		info->pd_enable = false;
-		info->state = POWER_SUPPLY_USB_TYPE_C;
+		if (info->state != POWER_SUPPLY_CHARGE_TYPE_FAST)
+			info->state = POWER_SUPPLY_USB_TYPE_C;
 		ret = tcpm_update_sink_capabilities(port, sc2730_snk_pdo,
 						    ARRAY_SIZE(sc2730_snk_pdo),
 						    SC2730_PD_STOP_POWER_MW);
@@ -615,6 +618,8 @@ static void sc2730_fchg_work(struct work_struct *data)
 			info->sfcp_enable = true;
 			mutex_unlock(&info->lock);
 			cm_notify_event(info->psy_usb, CM_EVENT_FAST_CHARGE, NULL);
+			dev_info(info->dev, "pd_enable = %d, sfcp_enable = %d\n",
+				info->pd_enable, info->sfcp_enable);
 			return;
 		} else {
 			sc2730_fchg_disable(info);
