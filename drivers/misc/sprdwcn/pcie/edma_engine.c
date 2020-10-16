@@ -570,13 +570,16 @@ static void edma_tx_timer_expire(unsigned long data)
 		return;
 	wcn_set_tx_complete_status(1);
 
+	WCN_INFO("edma cur chn status =0x%lx\n", edma->cur_chn_status);
+	if (test_bit(31, &edma->cur_chn_status))
+		return;
+	set_bit(31, &edma->cur_chn_status);
+
 	if (edma_dump_glb_reg() < 0)
 		return;
 
-	for (i = 0; i < 16; i++) {
-		if (test_bit(i, &edma->cur_chn_status))
-			edma_dump_chn_reg(i);
-	}
+	for (i = 0; i < 16; i++)
+		edma_dump_chn_reg(i);
 }
 
 void edma_del_tx_timer(void)
@@ -1666,7 +1669,7 @@ int edma_dump_chn_reg(int chn)
 		return -1;
 	}
 
-	wcn_dump_ep_regs(pdev);
+	/* wcn_dump_ep_regs(pdev); */
 	WCN_INFO("------------[ chn=%d ]------------\n", chn);
 	value = sprd_pcie_read_reg32(pdev, CHN_DMA_INT(chn));
 	WCN_INFO("[dma_int  ] = 0x%08x\n",  value);
@@ -1704,7 +1707,7 @@ int edma_dump_glb_reg(void)
 		return -1;
 	}
 
-	wcn_dump_ep_regs(pdev);
+	/* wcn_dump_ep_regs(pdev); */
 	WCN_INFO("------------[ DMA glb Reg ]------------\n");
 	value = sprd_pcie_read_reg32(pdev, DMA_PAUSE);
 	WCN_INFO("[dma_pause  ] = 0x%08x\n", value);
