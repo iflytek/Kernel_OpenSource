@@ -400,6 +400,7 @@ static const u32 sc2730_snk9v_pdo[] = {
 	PDO_FIXED(9000, 2000, 0),
 };
 
+#ifdef CONFIG_TYPEC_TCPM
 static int sc2730_fchg_pd_adjust_voltage(struct sc2730_fchg_info *info,
 					 u32 input_vol)
 {
@@ -518,6 +519,22 @@ out:
 out1:
 	dev_info(info->dev, "pd type = %d\n", pd_type);
 }
+#else
+static int sc2730_fchg_pd_adjust_voltage(struct sc2730_fchg_info *info,
+					 u32 input_vol)
+{
+	return 0;
+}
+static int sc2730_fchg_pd_change(struct notifier_block *nb,
+				 unsigned long event, void *data)
+{
+	return NOTIFY_OK;
+}
+static void sc2730_fchg_pd_change_work(struct work_struct *data)
+{
+
+}
+#endif
 
 static int sc2730_fchg_usb_get_property(struct power_supply *psy,
 					enum power_supply_property psp,
