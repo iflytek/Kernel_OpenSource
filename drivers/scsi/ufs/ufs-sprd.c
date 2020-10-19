@@ -175,9 +175,6 @@ void ufs_sprd_reset(struct ufs_sprd_host *host)
 
 	val = mask = RMMI_TX_DIRDY_SEL;
 	ufs_sprd_rmwl(host->unipro_reg, mask, val, REG_PA_27);
-
-	val = ufshcd_readl(host->hba, 0xa4);
-	ufshcd_writel(host->hba, val | (1 << 29), 0xa4);
 }
 
 /**
