@@ -2915,8 +2915,7 @@ static void sd_read_block_limits(struct scsi_disk *sdkp)
 	sdkp->max_xfer_blocks = get_unaligned_be32(&buffer[8]);
 	sdkp->opt_xfer_blocks = get_unaligned_be32(&buffer[12]);
 
-	if (sdkp->max_xfer_blocks == 0 && sdkp->opt_xfer_blocks < 4)
-		sdkp->opt_xfer_blocks = 4;
+	sdkp->opt_xfer_blocks = 2;
 
 	if (buffer[3] == 0x3c) {
 		unsigned int lba_count, desc_count;
