@@ -32,6 +32,11 @@
 #include <linux/of_device.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
+#include <net/tcp.h>
+#include <net/udp.h>
+#include <net/ip.h>
+#include <net/ipv6.h>
+#include <net/ip6_checksum.h>
 #include "sipa_eth.h"
 
 /* Device status */
@@ -67,6 +72,83 @@ static inline void sipa_eth_tx_stats_update(
 {
 	stats->tx_sum += len;
 	stats->tx_cnt++;
+}
+
+static void sipa_eth_rx_csum(struct sk_buff *skb, unsigned int real_len)
+{
+	struct iphdr *iph;
+	struct ipv6hdr *ipv6h;
+	bool csum_ready = false;
+
+	if (!(ntohs(skb->protocol) == ETH_P_IP ||
+	      ntohs(skb->protocol) == ETH_P_IPV6))
+		return;
+
+	/*
+	 * Downlink skb with csum 0, we need the IP stack help to
+	 * calculate csum
+	 */
+	if (!skb->csum) {
+		skb->ip_summed = CHECKSUM_NONE;
+		return;
+	}
+
+	switch (ntohs(skb->protocol)) {
+	case ETH_P_IP:
+		iph = ip_hdr(skb);
+		if (iph->protocol == IPPROTO_TCP) {
+			if (!tcp_v4_check(real_len - ip_hdrlen(skb),
+					  iph->saddr, iph->daddr,
+					  skb->csum))
+				csum_ready = true;
+			else
+				pr_debug("ipv4 rx tcp chechsum fail\n");
+		} else if (iph->protocol == IPPROTO_UDP) {
+			if (!udp_v4_check(real_len - ip_hdrlen(skb),
+					  iph->saddr, iph->daddr,
+					  skb->csum))
+				csum_ready = true;
+			else
+				pr_debug("ipv4 rx udp chechsum fail\n");
+		}
+		break;
+	case ETH_P_IPV6:
+		ipv6h = ipv6_hdr(skb);
+		if (ipv6_ext_hdr(ipv6h->nexthdr)) {
+			skb->ip_summed = CHECKSUM_NONE;
+			return;
+		}
+
+		if (ipv6h->nexthdr == NEXTHDR_TCP) {
+			if (!tcp_v6_check(htons(ipv6h->payload_len),
+					  &ipv6h->saddr, &ipv6h->daddr,
+					  skb->csum))
+				csum_ready = true;
+			else
+				pr_debug("ipv6 rx tcp chechsum fail\n");
+		} else if (ipv6h->nexthdr == NEXTHDR_UDP) {
+			if (!udp_v6_check(htons(ipv6h->payload_len),
+					  &ipv6h->saddr, &ipv6h->daddr,
+					  skb->csum))
+				csum_ready = true;
+			else
+				pr_debug("ipv6 rx tcp chechsum fail\n");
+		}
+		break;
+	}
+
+	if (csum_ready) {
+		skb->ip_summed = CHECKSUM_UNNECESSARY;
+	} else {
+		skb->ip_summed = CHECKSUM_NONE;
+
+		if (skb->protocol == htons(ETH_P_IP))
+			pr_debug("protocol %x proto %x sipa hw csum nosupport csum %x\n",
+				 skb->protocol, iph->protocol, skb->csum);
+		else if (skb->protocol == htons(ETH_P_IPV6))
+			pr_debug("protocol %x nexthdr %x sipa hw csum nosupport csum %x\n",
+				 skb->protocol, ipv6h->nexthdr, skb->csum);
+	}
 }
 
 static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
@@ -162,6 +244,7 @@ static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
 			pr_warn("skb %p is neither v4 nor v6\n", skb);
 		}
 	}
+	sipa_eth_rx_csum(skb, real_len);
 
 	peth->h_proto = skb->protocol;
 	skb_pull_inline(skb, ETH_HLEN);
@@ -171,8 +254,6 @@ static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
 		skb_trim(skb, real_len);
 
 out:
-	/* TODO chechsum ... */
-	skb->ip_summed = CHECKSUM_NONE;
 	skb->dev = dev;
 }
 
@@ -364,6 +445,7 @@ static int sipa_eth_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	struct sipa_eth_dtrans_stats *dt_stats;
 	int ret = 0;
 	int netid;
+	struct ethhdr *peth;
 
 	dt_stats = &sipa_eth->dt_stats;
 	if (sipa_eth->state != DEV_ON) {
@@ -375,9 +457,20 @@ static int sipa_eth_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	}
 
 	netid = pdata->netid;
+	peth = eth_hdr(skb);
 	/* eth is rawip, so pull 14 bytes */
 	if (!pdata->mac_h)
 		skb_pull_inline(skb, ETH_HLEN);
+
+	/* calculate uplink ipv6 pkt with extension header */
+	if (ntohs(peth->h_proto) == ETH_P_IPV6) {
+		struct ipv6hdr *ipv6h = ipv6_hdr(skb);
+
+		if (ipv6_ext_hdr(ipv6h->nexthdr)) {
+			if (skb->ip_summed == CHECKSUM_PARTIAL)
+				skb_checksum_help(skb);
+		}
+	}
 
 	ret = sipa_nic_tx(sipa_eth->nic_id, pdata->term_type, netid, skb);
 	if (unlikely(ret != 0)) {
@@ -612,6 +705,9 @@ static int sipa_eth_probe(struct platform_device *pdev)
 		       &sipa_eth->napi,
 		       sipa_eth_rx_poll_handler,
 		       SIPA_ETH_NAPI_WEIGHT);
+	netdev->hw_features |= NETIF_F_RXCSUM | NETIF_F_IP_CSUM |
+		NETIF_F_IPV6_CSUM;
+	netdev->features = netdev->hw_features;
 
 	/* Register new Ethernet interface */
 	ret = register_netdev(netdev);

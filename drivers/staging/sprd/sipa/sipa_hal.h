@@ -115,6 +115,12 @@ struct sipa_hal_fifo_item {
 	u8 intr;
 	u32 err_code;
 	u32 reserved;
+	u8 hash;
+	__wsum csum;
+
+	bool ul_csum_en;
+	u8 ul_tcp_udp_flag;
+	u16 ul_upper_layer_hdr_offset;
 };
 
 struct sipa_reg_res_tag {

@@ -742,7 +742,8 @@ int sipa_hal_recv_conversion_node_to_item(sipa_hal_hdl hdl,
 {
 	struct sipa_hal_context *hal_cfg = (struct sipa_hal_context *)hdl;
 	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
-	struct sipa_node_description_tag *node =
+	struct sipa_recv_node_description_tag *node =
+		(struct sipa_recv_node_description_tag *)
 		hal_cfg->fifo_ops.get_tx_fifo_node(fifo_id, fifo_cfg, index);
 
 	if (unlikely(!node))
@@ -756,6 +757,8 @@ int sipa_hal_recv_conversion_node_to_item(sipa_hal_hdl hdl,
 	item->err_code = node->err_code;
 	item->netid = node->net_id;
 	item->intr = node->intr;
+	item->hash = node->hash;
+	item->csum = csum_unfold((__sum16)node->pld_checksum);
 
 	return 0;
 }
@@ -964,7 +967,8 @@ int sipa_hal_cache_rx_fifo_item(sipa_hal_hdl hdl,
 {
 	struct sipa_hal_context *hal_cfg = (struct sipa_hal_context *)hdl;
 	struct sipa_common_fifo_cfg_tag *fifo_cfg = hal_cfg->cmn_fifo_cfg;
-	struct sipa_node_description_tag *node =
+	struct sipa_send_node_description_tag *node =
+		(struct sipa_send_node_description_tag *)
 		hal_cfg->fifo_ops.get_rx_fifo_node(fifo_id, fifo_cfg, index);
 
 	if (unlikely(!node)) {
@@ -990,6 +994,10 @@ int sipa_hal_cache_rx_fifo_item(sipa_hal_hdl hdl,
 	node->net_id = item->netid;
 	node->intr = item->intr;
 	node->reserved = item->reserved;
+
+	node->csum_en = item->ul_csum_en;
+	node->tcp_udp_flag = item->ul_tcp_udp_flag;
+	node->upper_layer_hdr_offset = item->ul_upper_layer_hdr_offset;
 
 	return 0;
 }

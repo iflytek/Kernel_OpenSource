@@ -41,6 +41,62 @@ struct sipa_node_description_tag {
 	u32 reserved : 22;
 } __attribute__((__packed__));
 
+struct sipa_recv_node_description_tag {
+	/*soft need to set*/
+	u64 address : 40;
+	/*soft need to set*/
+	u32 length : 20;
+	/*soft need to set*/
+	u16 offset : 12;
+	/*soft need to set*/
+	u8 net_id;
+	/*soft need to set*/
+	u8 src : 5;
+	/*soft need to set*/
+	u8 dst : 5;
+	u8 prio : 3;
+	u8 bear_id : 7;
+	/*soft need to set*/
+	u8 intr : 1;
+	/*soft need to set*/
+	u8 indx : 1;
+	u8 err_code : 4;
+	u8 reserved : 2;
+	u8 hash : 4;
+	u16 pld_checksum;
+} __attribute__((__packed__));
+
+struct sipa_send_node_description_tag {
+	/*soft need to set*/
+	u64 address : 40;
+	/*soft need to set*/
+	u32 length : 20;
+	/*soft need to set*/
+	u16 offset : 12;
+	/*soft need to set*/
+	u8 net_id;
+	/*soft need to set*/
+	u8 src : 5;
+	/*soft need to set*/
+	u8 dst : 5;
+	u8 prio : 3;
+	u8 bear_id : 7;
+	/*soft need to set*/
+	u8 intr : 1;
+	/*soft need to set*/
+	u8 indx : 1;
+	u8 err_code : 4;
+
+	u8 ipv6_ext_hdr : 1;
+	u8 ipv6_frag : 1;
+	u8 ipv6_first_frag : 1;
+	u8 reserved : 1;
+	u8 tcp_udp_flag : 1;
+	u8 csum_en : 1;
+	u8 upper_layer_protocol;
+	u8 upper_layer_hdr_offset;
+} __attribute__((__packed__));
+
 struct sipa_cmn_fifo_tag {
 	u32 depth;
 	u32 wr;

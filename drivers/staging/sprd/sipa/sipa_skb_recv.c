@@ -45,7 +45,6 @@
 #define SIPA_RECV_BUF_LEN     1600
 #define SIPA_RECV_RSVD_LEN     128
 
-
 static int put_recv_array_node(struct sipa_skb_array *p,
 			       struct sk_buff *skb, dma_addr_t dma_addr)
 {
@@ -310,7 +309,7 @@ static int dispath_to_nic(struct sipa_skb_receiver *receiver,
 		}
 	}
 
-	if (atomic_read(&ctrl->recv_cnt) > (depth >> 1)) {
+	if (atomic_read(&ctrl->recv_cnt) > (depth << 1)) {
 		receiver->need_sched_cnt++;
 		atomic_set(&receiver->need_sched, 1);
 	}
@@ -335,6 +334,7 @@ static int do_recv(struct sipa_skb_receiver *receiver)
 	struct sk_buff *recv_skb = NULL;
 	struct sipa_hal_fifo_item item;
 	enum sipa_cmn_fifo_index id = receiver->ep->recv_fifo.idx;
+	struct sipa_control *ipa = sipa_get_ctrl_pointer();
 
 	depth = receiver->ep->recv_fifo.tx_fifo.fifo_depth;
 	num = sipa_hal_get_tx_fifo_items(receiver->ctx->hdl,
@@ -383,6 +383,8 @@ read_again:
 				 SIPA_RECV_BUF_LEN + skb_headroom(recv_skb),
 				 DMA_FROM_DEVICE);
 
+		if (!ipa->eps[SIPA_EP_USB]->connected)
+			recv_skb->csum = item.csum;
 		dispath_to_nic(receiver, &item, recv_skb);
 
 		if (atomic_read(&receiver->need_sched)) {
@@ -499,7 +501,7 @@ void sipa_receiver_clean_stop_recv(void)
 
 		depth = recv->ep->recv_fifo.tx_fifo.fifo_depth;
 		if (atomic_read(&recv->need_sched) &&
-		    atomic_read(&ctrl->recv_cnt) < (depth / 4)) {
+		    atomic_read(&ctrl->recv_cnt) < depth) {
 			atomic_set(&recv->need_sched, 0);
 			wake_up(&recv->recv_waitq);
 		}

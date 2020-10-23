@@ -24,7 +24,9 @@
 #include <linux/seq_file.h>
 #include <linux/of_device.h>
 #include <linux/sipa.h>
+#include <net/ipv6.h>
 #include <uapi/linux/sched/types.h>
+#include <uapi/linux/ipv6.h>
 
 #include "sipa_priv.h"
 #include "sipa_hal.h"
@@ -367,6 +369,40 @@ int sipa_skb_sender_send_data(struct sipa_skb_sender *sender,
 	item.netid = netid;
 	item.dst = dst;
 	item.src = sender->ep->send_fifo.src_id;
+
+	if ((s8)netid != -1 && skb->ip_summed == CHECKSUM_PARTIAL) {
+		struct iphdr *iph;
+		struct ipv6hdr *ipv6h;
+
+		if (skb->protocol == htons(ETH_P_IP)) {
+			iph = ip_hdr(skb);
+			item.ul_csum_en = true;
+
+			if (iph->protocol == IPPROTO_TCP)
+				item.ul_tcp_udp_flag = 0;
+			else if (iph->protocol == IPPROTO_UDP)
+				item.ul_tcp_udp_flag = 1;
+		} else if (skb->protocol == htons(ETH_P_IPV6)) {
+			ipv6h = ipv6_hdr(skb);
+			item.ul_csum_en = true;
+
+			if (ipv6h->nexthdr == NEXTHDR_TCP)
+				item.ul_tcp_udp_flag = 0;
+			else if (ipv6h->nexthdr == NEXTHDR_UDP)
+				item.ul_tcp_udp_flag = 1;
+		}
+
+		if (item.ul_csum_en &&
+		    skb->transport_header > skb_headroom(skb))
+			item.ul_upper_layer_hdr_offset = skb->transport_header -
+				skb_headroom(skb);
+		else
+			dev_err(sender->ctx->pdev,
+				"trans header = %d headroom = %d proto = %d\n",
+				skb->transport_header,
+				skb_headroom(skb),
+				skb->protocol);
+	}
 
 	spin_lock_irqsave(&sender->send_lock, flags);
 	if (!atomic_read(&sender->left_cnt)) {
