@@ -445,7 +445,11 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 		ret = pm_runtime_get_sync(&pdev->dev);
 		if (ret) {
 			dev_err(&pdev->dev,
-				"pm_runtime_get_sync failed, ret:%d\n", ret);
+				"ret = %d dd = %d is = %d rs = %d uc = %d\n",
+				ret, pdev->dev.power.disable_depth,
+				pdev->dev.power.is_suspended,
+				pdev->dev.power.runtime_status,
+				atomic_read(&pdev->dev.power.usage_count));
 			goto err_get_sync;
 		}
 	}
@@ -461,7 +465,7 @@ static int sprd_pcie_host_reinit(struct platform_device *pdev)
 
 	ret = sprd_pcie_check_vendor_id(pci);
 	if (ret)
-		return ret;
+		goto power_off;
 
 	dw_pcie_setup_rc(pp);
 
@@ -485,10 +489,11 @@ power_off:
 err_get_sync:
 	if (!ctrl->is_suspended) {
 		err = pm_runtime_put(&pdev->dev);
-		if (err < 0)
-			dev_warn(&pdev->dev,
-				"pm runtime put fail,ret:%d, usage_count:%d\n",
-				err,
+		dev_err(&pdev->dev,
+				"err = %d dd = %d is = %d rs = %d uc = %d\n",
+				err, pdev->dev.power.disable_depth,
+				pdev->dev.power.is_suspended,
+				pdev->dev.power.runtime_status,
 				atomic_read(&pdev->dev.power.usage_count));
 	}
 	return ret;
@@ -528,6 +533,7 @@ int sprd_pcie_configure_device(struct platform_device *pdev)
 		ret = sprd_pcie_host_reinit(pdev);
 		if (!ret)
 			break;
+		usleep_range(150000, 200000);
 		if (retries == 2) {
 			dev_err(&pdev->dev, "pcie reinit failed three times\n");
 			mutex_unlock(&ctrl->sprd_pcie_mutex);
