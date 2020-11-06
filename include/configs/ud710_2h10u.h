@@ -24,6 +24,7 @@
 #define CONFIG_BOARD_LATE_INIT         /* call board_late_init() */
 //#define CONFIG_SUPPORT_RAW_INITRD
 
+#define CONFIG_EMMC_DDR_CHECK_TYPE
 /*the SPL is erased, the romcode will enter the download process.*/
 #define CONFIG_ERASE_SPL_AUTO_DOWNLOAD
 

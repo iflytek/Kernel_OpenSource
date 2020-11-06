@@ -9,13 +9,14 @@
 #include <sprd_common_rw.h>
 #include <sprd_rpmb.h>
 #include <mmc.h>
+#include <sprd_ufs.h>
 
 #include <secure_boot.h>
 #include <secureboot/sec_common.h>
 #include <otp_helper.h>
 #include <chipram_env.h>
 #include <uboot_sec_drv.h>
-
+DECLARE_GLOBAL_DATA_PTR;
 static DL_EMMC_FILE_STATUS g_status;
 static DL_EMMC_STATUS g_dl_eMMCStatus;
 
@@ -1194,13 +1195,22 @@ OPERATE_STATUS dl_get_flashtype(uchar * content, uint16_t * size)
 	flash_type.mid = get_correct_size(dram_size_inMB);
 
 	/* calculate emmc size in GB */
-	int emmc_size = 0, emmc_size_inMB = 0;
-	emmc_size = emmc_get_capacity(PARTITION_USER)/1000/1000;
-	emmc_size_inMB = (emmc_size+500)/1000*1024;
-
+	int mem_size = 0, size_inMB = 0;
+	if (gd->boot_device == BOOT_DEVICE_EMMC) {
+		mem_size = emmc_get_capacity(PARTITION_USER) / 1000 / 1000;
+		size_inMB = (mem_size + 500) / 1000 * 1024;
+		debugf("emmc_size:%llu Byte, (%d MByte)\n",
+                    emmc_get_capacity(PARTITION_USER), size_inMB);
+	}
+	if (gd->boot_device == BOOT_DEVICE_UFS) {
+		mem_size = ufs_info.dev_total_cap * 512 / 1000 / 1000;
+		size_inMB = (mem_size + 500) / 1000 * 1024;
+		debugf("ufs_size:%llu Byte, (%d MByte)\n",
+                    ufs_info.dev_total_cap*512, size_inMB);
+	}
 	/* did field is used for emmc size */
-	flash_type.did = get_correct_size(emmc_size_inMB);
-	printf("emmc_size:%llu,emmc_size_inMB:%d\n", emmc_get_capacity(PARTITION_USER), emmc_size_inMB);
+	flash_type.did = get_correct_size(size_inMB);
+
 	*size = sizeof(struct FLASH_TYPE);
 	memcpy(temp, &flash_type, *size);
 	for (i = 0; i < *size; i++) {
