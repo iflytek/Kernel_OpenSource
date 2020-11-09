@@ -1463,7 +1463,7 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 
 	if (0 != (ulong)dst % 4) {
 		errorf("UFS read destination addr not aligned to 4 bytes, it will harm the read efficiency!\n");
-		max_read_size = ufs_info.max_prdt_cap > SZ_1M ? SZ_1M : ufs_info.max_prdt_cap;
+		max_read_size = ufs_info.max_read_prdt_cap > SZ_1M ? SZ_1M : ufs_info.max_read_prdt_cap;
 		max_read_blk = max_read_size >> lu_info->log2blksz;
 		/*malloc can guarantee 8 bytes aligned*/
 		temp_buff = malloc(max_read_size);
@@ -1485,7 +1485,7 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 		} while (blocks_todo > 0);
 		free(temp_buff);
 	} else {
-		max_read_blk = ufs_info.max_prdt_cap >> lu_info->log2blksz;
+		max_read_blk = ufs_info.max_read_prdt_cap >> lu_info->log2blksz;
 		do {
 			cur = (blocks_todo > max_read_blk) ? max_read_blk : blocks_todo;
 			/* Send Read 10 Command and handle its completion */
@@ -1724,6 +1724,7 @@ int ufs_update_native(void)
 
 	ufs_info.prdt_entry_size = PRDT_BUFFER_SIZE;
 	ufs_info.max_prdt_cap =  TOTAL_PRDT_CAP;
+	ufs_info.max_read_prdt_cap =  TOTAL_READ_PRDT_CAP;
 	ret = get_descriptor_data((void **)(&main_desc), DEVICE_DESC, 0);
 	if (UFS_SUCCESS != ret) {
 		errorf("get device descriptor data fail!\n");

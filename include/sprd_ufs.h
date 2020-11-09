@@ -23,8 +23,10 @@
 #define UIC_LINK_STARTUP_CMD   0x16
 #define UIC_EXIT_HIBERNATE     0x18
 #define MAX_PRDT_ENTRIES       128
+#define MAX_READ_PRDT_ENTRIES  2
 #define PRDT_BUFFER_SIZE       SZ_256K
-#define TOTAL_PRDT_CAP		((MAX_PRDT_ENTRIES) * (PRDT_BUFFER_SIZE))
+#define TOTAL_PRDT_CAP	       ((MAX_PRDT_ENTRIES) * (PRDT_BUFFER_SIZE))
+#define TOTAL_READ_PRDT_CAP    ((MAX_READ_PRDT_ENTRIES) * (PRDT_BUFFER_SIZE))
 #define LOGICAL_BLK_SIZE       4096
 #define NUM_OF_DESC            1
 #define ALIGN_SIZE             1024
@@ -221,6 +223,7 @@ struct ufs_driver_info {
 	uint32_t		   alloc_unit_sz;  /*in unit of 512 bytes*/
 	uint32_t		prdt_entry_size;   /*Physical Region Description Table entry size, unit of bytes*/
 	uint64_t		max_prdt_cap;   /*Physical Region Description Table total capability, unit of bytes*/
+	uint64_t		max_read_prdt_cap;   /*Physical Region Description Table total capability for read, unit of bytes*/
 	uint64_t		dev_total_cap;   /*total capacity, in unit of 512 bytes*/
 	block_dev_desc_t  block_dev[UFS_MAX_DEV_NUM];
 	struct lu_info_tbl       lu_info[UFS_MAX_LU_NUM];
