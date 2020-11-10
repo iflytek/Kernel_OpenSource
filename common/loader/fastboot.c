@@ -39,6 +39,7 @@
 #include <asm/arch/chip_releted_def.h>
 #include <linux/input.h>
 #include <secureboot/sec_common.h>
+#include "../../fs/f2fs-tools/include/f2fs_fs.h"
 
 extern SPECIAL_PARTITION_CFG const s_special_partition_cfg[];
 extern uchar *_get_backup_partition_name(uchar * partition_name);
@@ -319,6 +320,36 @@ int _fb_write_nv_img(char * partition_name, uint64_t size)
 	return 1;
 }
 
+static int is_f2fs_filesystem(uchar *part_name)
+{
+#if 1
+	__le32 f2fs_magic = 0;
+	if (strcmp(part_name, "userdata"))
+		return 0;
+	if (0 != common_raw_read(part_name, (uint64_t)sizeof(f2fs_magic), (uint64_t)0x400, &f2fs_magic)) {
+		return 0;
+	}
+	if (F2FS_SUPER_MAGIC == f2fs_magic)
+		return 1;
+#endif
+	return 0;
+}
+static int f2fs_write_callback(void* handle, uint64_t size, uint64_t offset, void *buf)
+{
+	if (0 != common_raw_write((char*)handle, size, (uint64_t)0, offset,  buf)) {
+		return -1;
+	}
+	return 0;
+}
+static int f2fs_read_callback(void* handle, uint64_t size, uint64_t offset, void *buf)
+{
+	if (0 != common_raw_read((char*)handle, size, offset, buf)) {
+		return -1;
+	}
+	return 0;
+}
+
+
 
 int _fb_download_image(char *partition_name,ulong offset)
 {
@@ -329,6 +360,7 @@ int _fb_download_image(char *partition_name,ulong offset)
 	void *buf = ImageInfo.base_address;
 	PARTITION_PURPOSE partition_purpose = PARTITION_PURPOSE_NORMAL;
 	sparse_header_t *sparse_header;
+	uint64_t total_size = 0;
 
 	if (0 == strcmp("splloader", partition_name)) {
 		splFillCheckData(buf);
@@ -350,6 +382,15 @@ int _fb_download_image(char *partition_name,ulong offset)
 	if ((sparse_header->magic == SPARSE_HEADER_MAGIC) && (sparse_header->major_version == SPARSE_HEADER_MAJOR_VER)) {
 		img_format = IMG_WITH_SPARSE;
 		debugf("img_format =FB_IMG_WITH_SPARSE\n");
+	} else {
+		img_format = IMG_RAW;
+		debugf("img_format = IMG_RAW\n");
+	}
+
+	if (!strcmp(partition_name, "userdata")) {
+		debugf("userdata image format is %d\n", img_format);
+		get_img_partition_size(partition_name, &total_size);
+		common_raw_erase(partition_name, total_size/100, (uint64_t)0LL);
 	}
 
 	if (IMG_WITH_SPARSE == img_format) {
@@ -372,6 +413,29 @@ int _fb_download_image(char *partition_name,ulong offset)
 			return 0;
 		}
 	}
+	if (is_f2fs_filesystem(partition_name)) {
+		total_size = 0;
+		debugf("write %s size 0x%x ok\n", partition_name, write_size);
+		get_img_partition_size(partition_name, &total_size);
+		if (ImageInfo.max_size < (total_size/128)) {
+			errorf("resize skip! small buffer, config dts!\n");
+		} else {
+			retval = f2fs_resize_main(total_size,
+					512,
+					f2fs_write_callback,
+					f2fs_read_callback,
+					(void*)partition_name,
+					ImageInfo.base_address,
+					ImageInfo.max_size);
+			if (retval==0) {
+				debugf("resize userdata ok\n");
+			} else {
+				debugf("resize usedata error\n");
+			}
+		}
+	}
+
+
 	debugf("cmd_flash: success!\n");
 	return 1;
 }

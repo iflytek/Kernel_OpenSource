@@ -125,7 +125,8 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 		 *   from last block
 		 */
 		if (!offset && !current_chunks
-				&& (chunk_header.chunk_type != CHUNK_TYPE_DONT_CARE)) {
+			&& (chunk_header.chunk_type != CHUNK_TYPE_DONT_CARE)
+			&& strcmp(partname, "userdata")) {
 			/* erase partition before spare image write */
 			sparse_sz = (u64)sparse_header.total_blks * (u64)sparse_header.blk_sz;
 			if (sparse_sz) {

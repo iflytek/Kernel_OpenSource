@@ -16,6 +16,8 @@
 #include <otp_helper.h>
 #include <chipram_env.h>
 #include <uboot_sec_drv.h>
+#include "../../fs/f2fs-tools/include/f2fs_fs.h"
+
 DECLARE_GLOBAL_DATA_PTR;
 static DL_EMMC_FILE_STATUS g_status;
 static DL_EMMC_STATUS g_dl_eMMCStatus;
@@ -633,6 +635,37 @@ OPERATE_STATUS _img_write_with_backup(uchar *partition)
 	return OPERATE_SUCCESS;
 }
 
+static int is_f2fs_filesystem(uchar *part_name)
+{
+#if 1
+	__le32 f2fs_magic = 0;
+	if (strcmp(part_name, "userdata"))
+		return 0;
+	if (0 != common_raw_read(part_name, (uint64_t)sizeof(f2fs_magic), (uint64_t)0x400, &f2fs_magic)) {
+		return 0;
+	}
+	if (F2FS_SUPER_MAGIC == f2fs_magic)
+		return 1;
+#endif
+	return 0;
+}
+
+static int f2fs_write_callback(void* handle, uint64_t size, uint64_t offset, void *buf)
+{
+	if (0 != common_raw_write((char*)handle, size, (uint64_t)0, offset,  buf)) {
+		return -1;
+	}
+	return 0;
+}
+
+static int f2fs_read_callback(void* handle, uint64_t size, uint64_t offset, void *buf)
+{
+	if (0 != common_raw_read((char*)handle, size, offset, buf)) {
+		return -1;
+	}
+	return 0;
+}
+
 
 OPERATE_STATUS _download_image(void)
 {
@@ -643,6 +676,7 @@ OPERATE_STATUS _download_image(void)
 	uchar * write_start = NULL;
 	uint32_t fix_nv_checksum;
 	sys_img_header *bakup_header = NULL;
+	uint64_t total_size = 0;
 
 #if defined (CONFIG_SECURE_BOOT) ||defined (CONFIG_SECBOOT)
 	VERIFY_RESULT verify_res;
@@ -705,6 +739,12 @@ OPERATE_STATUS _download_image(void)
 	}
 	write_start = g_eMMCBuf + strip_header;
 
+	if (!strcmp(g_dl_eMMCStatus.curUserPartitionName, "userdata")) {
+		debugf("userdata image format is %d\n", g_dl_eMMCStatus.curImgType);
+		get_img_partition_size(g_dl_eMMCStatus.curUserPartitionName, &total_size);
+		common_raw_erase(g_dl_eMMCStatus.curUserPartitionName, total_size/100, (uint64_t)0LL);
+	}
+
 	/*sparse image*/
 	if (IMG_WITH_SPARSE == g_dl_eMMCStatus.curImgType) {
 		debugf("Handle the saving of image with sparse,name=%s,buf start at %p,size=0x%x\n",
@@ -715,13 +755,33 @@ OPERATE_STATUS _download_image(void)
 			errorf("Write sparse img fail\n");
 			return OPERATE_WRITE_ERROR;
 		}
-		debugf("Write packed img success,return value=%d\n", retval);
+		debugf("Write packed img %s success,return value=%d\n", g_dl_eMMCStatus.curUserPartitionName,retval);
 		if (retval > 0) {
 			memmove(g_eMMCBuf, write_start + retval, write_size - retval);
 			g_status.unsave_recv_size = write_size - retval;
 			debugf("After simg , unsave_recv_size=%lld, saved value=%d\n", g_status.unsave_recv_size, retval);
 		} else {
 			g_status.unsave_recv_size = 0;
+			if (is_f2fs_filesystem(g_dl_eMMCStatus.curUserPartitionName)) {
+				total_size = 0;
+				get_img_partition_size(g_dl_eMMCStatus.curUserPartitionName, &total_size);
+				if (emmc_buf_size < (total_size/128)) {
+					errorf("resize skip! small buffer, config dts!\n");
+				} else {
+					retval = f2fs_resize_main(total_size,
+						512,
+						f2fs_write_callback,
+						f2fs_read_callback,
+						(void*)g_dl_eMMCStatus.curUserPartitionName,
+						g_eMMCBuf,
+						emmc_buf_size);
+					if (retval==0) {
+						debugf("resize userdata ok\n");
+					} else {
+						errorf("resize userdata error or Nothing to resize\n");
+					}
+				}
+			}
 		}
 	} else {
 		if (0 != common_raw_write(g_dl_eMMCStatus.curUserPartitionName, (uint64_t)write_size, (uint64_t)0,
@@ -729,8 +789,27 @@ OPERATE_STATUS _download_image(void)
 			errorf("write %s size 0x%x offset 0x%x fail\n", g_dl_eMMCStatus.curUserPartitionName, write_size, g_dl_eMMCStatus.offset);
 			g_status.unsave_recv_size = 0;
 			return OPERATE_WRITE_ERROR;
+		} else if (is_f2fs_filesystem(g_dl_eMMCStatus.curUserPartitionName)) {
+			total_size = 0;
+			debugf("write %s size 0x%x offset 0x%x ok\n", g_dl_eMMCStatus.curUserPartitionName, write_size, g_dl_eMMCStatus.offset);
+			get_img_partition_size(g_dl_eMMCStatus.curUserPartitionName, &total_size);
+			if (emmc_buf_size < (total_size/128)) {
+				errorf("resize skip! small buffer, config dts!\n");
+			} else {
+				retval = f2fs_resize_main(total_size,
+					512,
+					f2fs_write_callback,
+					f2fs_read_callback,
+					(void*)g_dl_eMMCStatus.curUserPartitionName,
+					g_eMMCBuf,
+					emmc_buf_size);
+				if (retval==0) {
+					debugf("resize userdata ok\n");
+				} else {
+					errorf("resize userdata error or Nothing to resize\n");
+				}
+			}
 		}
-
 		g_dl_eMMCStatus.offset += write_size;
 		g_status.unsave_recv_size = 0;
 	}
@@ -742,7 +821,9 @@ OPERATE_STATUS regular_download_process(uint16_t size, char *buf)
 {
 	uint32_t lastSize;
 	OPERATE_STATUS ret;
-	if (emmc_buf_size >= (g_status.unsave_recv_size + size)) {
+	uint64_t buf_size = emmc_buf_size > SZ_256M ? SZ_256M : emmc_buf_size;
+
+	if (buf_size >= (g_status.unsave_recv_size + size)) {
 		memcpy((uchar *) g_sram_addr, buf, size);
 		g_sram_addr += size;
 		g_status.unsave_recv_size += size;
@@ -752,12 +833,12 @@ OPERATE_STATUS regular_download_process(uint16_t size, char *buf)
 			return ret;
 		}
 	} else {
-		lastSize = emmc_buf_size - g_status.unsave_recv_size;
+		lastSize = buf_size - g_status.unsave_recv_size;
 		debugf("Unsaved buf size overflow the whole buffer size,lastsize=%u,unsavedsize=%u\n", lastSize, g_status.unsave_recv_size);
 		if (0 != lastSize)
 			memcpy((unsigned char *)g_sram_addr, buf, lastSize);
 
-		g_status.unsave_recv_size = emmc_buf_size;
+		g_status.unsave_recv_size = buf_size;
 
 		ret = _download_image();
 		if (OPERATE_SUCCESS != ret)
