@@ -967,6 +967,7 @@ sprd_dma_prep_dma_memcpy(struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
 	struct sprd_dma_chn_hw *hw;
 	enum sprd_dma_datawidth datawidth;
 	u32 step, temp;
+	size_t frag_len, frag_max, blk_max;
 
 	sdesc = kzalloc(sizeof(*sdesc), GFP_NOWAIT);
 	if (!sdesc)
@@ -986,24 +987,36 @@ sprd_dma_prep_dma_memcpy(struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
 	if (IS_ALIGNED(len, 8)) {
 		datawidth = SPRD_DMA_DATAWIDTH_8_BYTES;
 		step = SPRD_DMA_DWORD_STEP;
+		frag_max = ALIGN_DOWN(SPRD_DMA_FRG_LEN_MASK, 8);
+		blk_max = ALIGN_DOWN(SPRD_DMA_BLK_LEN_MASK, 8);
 	} else if (IS_ALIGNED(len, 4)) {
 		datawidth = SPRD_DMA_DATAWIDTH_4_BYTES;
 		step = SPRD_DMA_WORD_STEP;
+		frag_max = ALIGN_DOWN(SPRD_DMA_FRG_LEN_MASK, 4);
+		blk_max = ALIGN_DOWN(SPRD_DMA_BLK_LEN_MASK, 4);
 	} else if (IS_ALIGNED(len, 2)) {
 		datawidth = SPRD_DMA_DATAWIDTH_2_BYTES;
 		step = SPRD_DMA_SHORT_STEP;
+		frag_max = ALIGN_DOWN(SPRD_DMA_FRG_LEN_MASK, 2);
+		blk_max = ALIGN_DOWN(SPRD_DMA_BLK_LEN_MASK, 2);
 	} else {
 		datawidth = SPRD_DMA_DATAWIDTH_1_BYTE;
 		step = SPRD_DMA_BYTE_STEP;
+		frag_max = ALIGN_DOWN(SPRD_DMA_FRG_LEN_MASK, 1);
+		blk_max = ALIGN_DOWN(SPRD_DMA_BLK_LEN_MASK, 1);
 	}
 
+	frag_len = (len & SPRD_DMA_FRG_LEN_MASK) ?
+		len & SPRD_DMA_FRG_LEN_MASK : frag_max;
 	temp = datawidth << SPRD_DMA_SRC_DATAWIDTH_OFFSET;
 	temp |= datawidth << SPRD_DMA_DES_DATAWIDTH_OFFSET;
 	temp |= SPRD_DMA_TRANS_REQ << SPRD_DMA_REQ_MODE_OFFSET;
-	temp |= len & SPRD_DMA_FRG_LEN_MASK;
+	temp |= frag_len;
 	hw->frg_len = temp;
 
-	hw->blk_len = len & SPRD_DMA_BLK_LEN_MASK;
+	hw->blk_len = (len & SPRD_DMA_BLK_LEN_MASK) ?
+		len & SPRD_DMA_BLK_LEN_MASK : blk_max;
+
 	hw->trsc_len = len & SPRD_DMA_TRSC_LEN_MASK;
 
 	temp = (step & SPRD_DMA_TRSF_STEP_MASK) << SPRD_DMA_DEST_TRSF_STEP_OFFSET;
