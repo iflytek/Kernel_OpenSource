@@ -79,9 +79,10 @@ int sprd_ep_dev_raise_irq_ex(int ep, u32 value);
 int sprd_ep_dev_clear_doolbell_irq(int ep, int irq);
 
 void __iomem *sprd_ep_map_memory(int ep,
-				 phys_addr_t cpu_addr,
+				 phys_addr_t target_addr,
 				 size_t size);
 void sprd_ep_unmap_memory(int ep, const void __iomem *bar_addr);
+phys_addr_t sprd_ep_virtophy(int ep, const void __iomem *vir);
 
 #ifdef CONFIG_SPRD_SIPA
 phys_addr_t sprd_ep_ipa_map(int type, phys_addr_t target_addr, size_t size);

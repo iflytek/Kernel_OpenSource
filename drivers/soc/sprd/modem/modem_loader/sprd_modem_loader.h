@@ -64,6 +64,16 @@ struct modem_ctrl {
 	struct regmap *ctrl_map[MODEM_CTRL_NR];
 };
 
+struct dma_copy_data {
+	struct dma_chan	*dma_chn;
+	size_t		dma_size;
+	dma_addr_t	buf_p;
+	void		*buf_v;
+	struct device	*p_dev;
+	const char	*dma_name;
+	struct completion	dma_comp;
+};
+
 struct modem_device {
 	struct modem_load_info	*load;
 	const char		*modem_name;
@@ -74,6 +84,9 @@ struct modem_device {
 	struct gpio_desc	*modem_reset;
 	struct gpio_desc	*modem_power;
 #endif
+
+	struct dma_copy_data	*read_dma;
+	struct dma_copy_data	*write_dma;
 
 #ifdef CONFIG_DEBUG_FS
 	struct dentry	*debug_file;

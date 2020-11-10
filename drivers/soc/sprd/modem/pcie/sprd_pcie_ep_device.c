@@ -161,13 +161,13 @@ static struct sprd_ep_dev_notify g_ep_dev_notify[PCIE_EP_NR];
 
 static int sprd_ep_dev_get_bar(int ep);
 static int sprd_ep_dev_adjust_region(struct sprd_pci_ep_dev *ep_dev,
-				     int bar, dma_addr_t *cpu_addr_ptr,
+				     int bar, dma_addr_t *target_addr_ptr,
 				     size_t *size_ptr, dma_addr_t *offset_ptr);
 static int sprd_ep_dev_just_map_bar(struct sprd_pci_ep_dev *ep_dev, int bar,
-				    dma_addr_t cpu_addr, size_t size);
+				    dma_addr_t target_addr, size_t size);
 static int sprd_ep_dev_just_unmap_bar(struct sprd_pci_ep_dev *ep_dev, int bar);
 static void __iomem *sprd_ep_dev_map_bar(int ep, int bar,
-					 dma_addr_t cpu_addr,
+					 dma_addr_t target_addr,
 					 size_t size);
 static int sprd_ep_dev_unmap_bar(int ep, int bar);
 static void sprd_pci_ep_dev_backup(struct sprd_pci_ep_dev *ep_dev);
@@ -272,7 +272,7 @@ int sprd_ep_dev_unregister_irq_handler_ex(int ep,
 }
 
 void __iomem *sprd_ep_map_memory(int ep,
-				 phys_addr_t cpu_addr,
+				 phys_addr_t target_addr,
 				 size_t size)
 {
 	int bar;
@@ -284,7 +284,7 @@ void __iomem *sprd_ep_map_memory(int ep,
 		return NULL;
 	}
 
-	bar_addr = sprd_ep_dev_map_bar(ep, bar, cpu_addr, size);
+	bar_addr = sprd_ep_dev_map_bar(ep, bar, target_addr, size);
 	if (!bar_addr) {
 		pr_err("%s: map bar = %d err!\n", __func__, bar);
 		return NULL;
@@ -312,6 +312,25 @@ void sprd_ep_unmap_memory(int ep, const void __iomem *bar_addr)
 	}
 }
 EXPORT_SYMBOL_GPL(sprd_ep_unmap_memory);
+
+phys_addr_t sprd_ep_virtophy(int ep, const void __iomem *vir)
+{
+	int bar;
+	struct sprd_pci_ep_dev *ep_dev;
+
+	if (ep >= PCIE_EP_NR || !g_ep_dev[ep])
+		return 0;
+
+	ep_dev = g_ep_dev[ep];
+
+	for (bar = 0; bar < BAR_MAX; bar++) {
+		if (vir == ep_dev->cpu_vir[bar])
+			return ep_dev->src_addr[bar];
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(sprd_ep_virtophy);
 
 #ifdef CONFIG_SPRD_SIPA
 phys_addr_t sprd_ep_ipa_map(int type, phys_addr_t target_addr, size_t size)
@@ -535,7 +554,7 @@ static int sprd_ep_dev_get_bar(int ep)
 
 static int sprd_ep_dev_unr_set_bar(struct sprd_pci_ep_dev *ep_dev,
 				   int bar,
-				   dma_addr_t cpu_addr, size_t size)
+				   dma_addr_t target_addr, size_t size)
 {
 	u32 retries, val;
 	struct pci_dev *pdev = ep_dev->pdev;
@@ -546,11 +565,11 @@ static int sprd_ep_dev_unr_set_bar(struct sprd_pci_ep_dev *ep_dev,
 	sprd_pci_ep_iatu_writel(ep_dev,
 				PCIE_ATU_IB_REGION(bar) +
 				PCIE_ATU_UNR_LOWER_TARGET,
-				lower_32_bits(cpu_addr));
+				lower_32_bits(target_addr));
 	sprd_pci_ep_iatu_writel(ep_dev,
 				PCIE_ATU_IB_REGION(bar) +
 				PCIE_ATU_UNR_UPPER_TARGET,
-				upper_32_bits(cpu_addr));
+				upper_32_bits(target_addr));
 
 	sprd_pci_ep_iatu_writel(ep_dev,
 				PCIE_ATU_IB_REGION(bar) +
@@ -604,25 +623,25 @@ static int sprd_ep_dev_unr_clear_bar(struct sprd_pci_ep_dev *ep_dev, int bar)
 }
 
 static int sprd_ep_dev_adjust_region(struct sprd_pci_ep_dev *ep_dev, int bar,
-					     dma_addr_t *cpu_addr_ptr,
+					     dma_addr_t *target_addr_ptr,
 					     size_t *size_ptr,
 					     dma_addr_t *offset_ptr)
 {
-	dma_addr_t cpu_addr, base, offset;
+	dma_addr_t target_addr, base, offset;
 	resource_size_t bar_size, size;
 	struct pci_dev *pdev = ep_dev->pdev;
 	struct resource *res = &pdev->resource[bar];
 
 	size = (resource_size_t)*size_ptr;
-	cpu_addr = *cpu_addr_ptr;
+	target_addr = *target_addr_ptr;
 	bar_size = resource_size(res);
 
 	/* size must align with page */
 	size = PAGE_ALIGN(size);
 
 	/* base must be divisible by bar size for bar match mode */
-	base = cpu_addr / bar_size * bar_size;
-	offset = cpu_addr - base;
+	base = target_addr / bar_size * bar_size;
+	offset = target_addr - base;
 	size += PAGE_ALIGN(offset);
 
 	/* size must < bar size  */
@@ -635,7 +654,7 @@ static int sprd_ep_dev_adjust_region(struct sprd_pci_ep_dev *ep_dev, int bar,
 		return -EINVAL;
 	}
 
-	dev_dbg(&pdev->dev,
+	dev_info(&pdev->dev,
 		"bar[%d]: base=0x%lx,size=0x%lx,offset=0x%lx\n",
 		bar, (unsigned long)base,
 		(unsigned long)size,
@@ -643,13 +662,13 @@ static int sprd_ep_dev_adjust_region(struct sprd_pci_ep_dev *ep_dev, int bar,
 
 	*size_ptr = (size_t)size;
 	*offset_ptr = offset;
-	*cpu_addr_ptr = base;
+	*target_addr_ptr = base;
 
 	return 0;
 }
 
 static int sprd_ep_dev_just_map_bar(struct sprd_pci_ep_dev *ep_dev, int bar,
-			 dma_addr_t cpu_addr, size_t size)
+			 dma_addr_t target_addr, size_t size)
 {
 	u32 retries, val;
 	struct pci_dev *pdev;
@@ -660,11 +679,11 @@ static int sprd_ep_dev_just_map_bar(struct sprd_pci_ep_dev *ep_dev, int bar,
 
 	dev_dbg(dev, "ep: map bar=%d, addr=0x%lx, size=0x%lx\n",
 		bar,
-		(unsigned long)cpu_addr,
+		(unsigned long)target_addr,
 		(unsigned long)size);
 
 	if (ep_dev->iatu_unroll_enabled)
-		return sprd_ep_dev_unr_set_bar(ep_dev, bar, cpu_addr, size);
+		return sprd_ep_dev_unr_set_bar(ep_dev, bar, target_addr, size);
 
 	spin_lock(&ep_dev->set_bar_lock);
 
@@ -673,9 +692,9 @@ static int sprd_ep_dev_just_map_bar(struct sprd_pci_ep_dev *ep_dev, int bar,
 				PCIE_ATU_VIEWPORT,
 				PCIE_ATU_REGION_INBOUND | bar);
 	sprd_pci_ep_iatu_writel(ep_dev, PCIE_ATU_LOWER_TARGET,
-				lower_32_bits(cpu_addr));
+				lower_32_bits(target_addr));
 	sprd_pci_ep_iatu_writel(ep_dev, PCIE_ATU_UPPER_TARGET,
-				upper_32_bits(cpu_addr));
+				upper_32_bits(target_addr));
 	sprd_pci_ep_iatu_writel(ep_dev,
 				PCIE_ATU_CR1,
 				PCIE_ATU_TYPE_MEM);
@@ -730,7 +749,7 @@ static int sprd_ep_dev_just_unmap_bar(struct sprd_pci_ep_dev *ep_dev, int bar)
 }
 
 static void __iomem *sprd_ep_dev_map_bar(int ep, int bar,
-			 dma_addr_t cpu_addr, size_t size)
+			 dma_addr_t target_addr, size_t size)
 {
 	resource_size_t offset;
 	struct pci_dev *pdev;
@@ -753,7 +772,8 @@ static void __iomem *sprd_ep_dev_map_bar(int ep, int bar,
 	}
 
 	/* 1st, adjust the map region */
-	if (sprd_ep_dev_adjust_region(ep_dev, bar, &cpu_addr, &size, &offset))
+	if (sprd_ep_dev_adjust_region(ep_dev, bar, &target_addr,
+				      &size, &offset))
 		return NULL;
 
 	/* than, ioremap, if map failed, no need to set bar */
@@ -762,12 +782,12 @@ static void __iomem *sprd_ep_dev_map_bar(int ep, int bar,
 	if (!bar_vir) {
 		dev_err(dev, "ep: map error, bar=%d, addr=0x%lx, size=0x%lx\n",
 			bar,
-			(unsigned long)cpu_addr,
+			(unsigned long)target_addr,
 			(unsigned long)size);
 		return NULL;
 	}
 
-	if (sprd_ep_dev_just_map_bar(ep_dev, bar, cpu_addr, size)) {
+	if (sprd_ep_dev_just_map_bar(ep_dev, bar, target_addr, size)) {
 		dev_err(dev, "ep: map bar =%d\n", bar);
 		iounmap(bar_vir);
 		return NULL;
@@ -776,7 +796,7 @@ static void __iomem *sprd_ep_dev_map_bar(int ep, int bar,
 	ep_dev->bar_vir[bar] = (void __iomem *)bar_vir;
 	ep_dev->cpu_vir[bar] = (void __iomem *)(bar_vir + offset);
 	ep_dev->src_addr[bar] = res->start + offset;
-	ep_dev->target_addr[bar] = cpu_addr;
+	ep_dev->target_addr[bar] = target_addr;
 	ep_dev->map_size[bar] = size;
 
 	return ep_dev->cpu_vir[bar];

@@ -12,12 +12,18 @@
  */
 
 #include <linux/cdev.h>
+#include <linux/completion.h>
+#include <linux/dmaengine.h>
+#include <linux/dma-mapping.h>
+#include <linux/dma/sprd-dma.h>
 #include <linux/kernel.h>
 #include <linux/mdm_ctrl.h>
 #include <linux/mm.h>
 #include <linux/module.h>
 #include <linux/io.h>
 #include <linux/of_device.h>
+#include <linux/of_dma.h>
+#include <linux/of_address.h>
 #include <linux/poll.h>
 #include <linux/delay.h>
 #include <linux/platform_device.h>
@@ -29,6 +35,7 @@
 #include <linux/gpio/consumer.h>
 
 #ifdef CONFIG_SPRD_PCIE_EP_DEVICE
+#include <linux/soc/sprd/sprd_pcie_ep_device.h>
 #include "../include/sprd_pcie_resource.h"
 #endif
 
@@ -67,6 +74,9 @@
 #define	MODEM_READ_ALL_MEM 0xff
 #define	MODEM_READ_MODEM_MEM 0xfe
 #define RUN_STATE_INVALID 0xff
+
+#define SRPD_DMA_MAX_SIZE	(0x800000)
+#define SRPD_DMA_FAST_SIZE	(0x100000)
 
 enum {
 	SPRD_5G_MODEM_DP = 0,
@@ -204,7 +214,7 @@ static void modem_get_base_range(struct modem_device *modem,
 			size = modem->all_size;
 			break;
 
-		case  MODEM_READ_MODEM_MEM:
+		case MODEM_READ_MODEM_MEM:
 			base = modem->modem_base;
 			size = modem->modem_size;
 			break;
@@ -237,6 +247,9 @@ static void *modem_map_memory(struct modem_device *modem, phys_addr_t start,
 
 	do {
 		map_size = PAGE_ALIGN(map_size);
+		if (map_size == 0)
+			return NULL;
+
 		map = modem_ram_vmap_nocache(modem->modem_type,
 					     start, map_size);
 		if (map) {
@@ -314,15 +327,124 @@ static int modem_rescan_pcie(struct modem_device *modem, struct sprd_pms *pms)
 	return ret;
 }
 
+static void modem_dma_copy_complete(void *data)
+{
+	struct dma_copy_data *dma_ptr = data;
+
+	dev_dbg(dma_ptr->p_dev, "%s dma copy complete!\n", dma_ptr->dma_name);
+	complete(&dma_ptr->dma_comp);
+}
+
+static void modem_dma_free_mem(struct dma_copy_data *dma_ptr)
+{
+	if (dma_ptr && dma_ptr->buf_v) {
+		dma_free_coherent(dma_ptr->p_dev, dma_ptr->dma_size,
+				  dma_ptr->buf_v, dma_ptr->buf_p);
+		dma_ptr->buf_v = NULL;
+		dma_ptr->buf_p = 0;
+		dma_ptr->dma_size = 0;
+	}
+}
+
+static size_t modem_dma_alloc(struct dma_copy_data *dma_ptr, size_t dma_size)
+{
+	size_t size = dma_size;
+
+	if (size > SRPD_DMA_MAX_SIZE)
+		size = SRPD_DMA_MAX_SIZE;
+
+	do {
+		/* if size < PAGE_SIZE, don't copy with dma. */
+		dev_dbg(dma_ptr->p_dev, "%s alloc size = 0x%lx!\n",
+			dma_ptr->dma_name,
+			(unsigned long)size);
+
+		size = size & ~(PAGE_SIZE - 1);
+		if (size == 0)
+			break;
+
+		dma_ptr->buf_v = dma_zalloc_coherent(dma_ptr->p_dev,
+						     size,
+						     &dma_ptr->buf_p,
+						     GFP_KERNEL);
+		if (dma_ptr->buf_v) {
+			dma_ptr->dma_size = size;
+			return size;
+		}
+
+		if (size <= SRPD_DMA_FAST_SIZE)
+			break;
+
+		size -= SRPD_DMA_FAST_SIZE;
+	} while (size > SRPD_DMA_FAST_SIZE);
+
+	return 0;
+}
+
+static size_t modem_dma_copy(struct dma_copy_data *dma_ptr,
+			  size_t dma_size,
+			  dma_addr_t src_buf,
+			  dma_addr_t dst_buf)
+{
+	enum dma_status dma_s = DMA_ERROR;
+	struct dma_tx_state dma_tx_s;
+	struct dma_async_tx_descriptor *tx;
+	dma_cookie_t cookie;
+	dma_cap_mask_t mask;
+
+	dev_dbg(dma_ptr->p_dev, "%s dma copy! src_buf = 0x%lx, dst_buf = 0x%lx!\n",
+		dma_ptr->dma_name,
+		(unsigned long)src_buf,
+		(unsigned long)dst_buf);
+
+	dma_cap_zero(mask);
+	dma_cap_set(DMA_MEMCPY, mask);
+
+	tx = dmaengine_prep_dma_memcpy(dma_ptr->dma_chn, dst_buf,
+				       src_buf, dma_size, 0);
+	if (!tx) {
+		dev_err(dma_ptr->p_dev, "%s dma get descriptor failed!\n",
+			dma_ptr->dma_name);
+		return 0;
+	}
+
+	dev_dbg(dma_ptr->p_dev, "%s dma copy submit!\n", dma_ptr->dma_name);
+
+	tx->callback = modem_dma_copy_complete;
+	tx->callback_param = dma_ptr;
+	cookie = dmaengine_submit(tx);
+	if (dma_submit_error(cookie)) {
+		dev_err(dma_ptr->p_dev, "%s submit failed!\n",
+			dma_ptr->dma_name);
+		return 0;
+	}
+
+	dma_async_issue_pending(dma_ptr->dma_chn);
+	wait_for_completion_timeout(&dma_ptr->dma_comp, msecs_to_jiffies(3000));
+	dma_s = dmaengine_tx_status(dma_ptr->dma_chn, cookie, &dma_tx_s);
+	if (dma_s != DMA_COMPLETE) {
+		dev_info(dma_ptr->p_dev, "%s dma transfer timeout dma_s = %d\n",
+			 dma_ptr->dma_name,
+			 dma_s);
+		return 0;
+	}
+
+	dev_dbg(dma_ptr->p_dev, "%s dma copy done! size = 0x%lx!\n",
+		dma_ptr->dma_name,
+		(unsigned long)dma_size);
+
+	return dma_size;
+}
+
 static ssize_t modem_read(struct file *filp,
 			  char __user *buf, size_t count, loff_t *ppos)
 {
-	phys_addr_t base;
-	size_t size, offset, copy_size, map_size, r;
-	void *vmem;
-	struct modem_device *modem = filp->private_data;
-	phys_addr_t addr;
+	phys_addr_t base, addr, src_buf;
+	size_t size, offset, copy_size, map_size, r, dma_size;
+	void *vmem, *vmem_cpy;
 	int ret;
+	struct modem_device *modem = filp->private_data;
+	struct dma_copy_data *dma_ptr = modem->read_dma;
 
 	dev_dbg(modem->p_dev, "read, %s!\n", modem->modem_name);
 
@@ -335,11 +457,19 @@ static ssize_t modem_read(struct file *filp,
 
 	modem_get_base_range(modem, &base, &size, 1);
 	offset = *ppos;
-	dev_dbg(modem->p_dev, "read, offset = 0x%lx, count = 0x%lx!\n",
+	dev_dbg(modem->p_dev, "read start, offset = 0x%lx, count = 0x%lx!\n",
 		offset, count);
 
 	if (size <= offset)
 		return -EINVAL;
+
+	if (dma_ptr) {
+		dma_ptr->dma_chn = dma_request_slave_channel(dma_ptr->p_dev,
+							     dma_ptr->dma_name);
+		if (IS_ERR_OR_NULL(dma_ptr->dma_chn))
+			dev_err(modem->p_dev, "%s request dma chan failed!\n",
+				dma_ptr->dma_name);
+	}
 
 	count = min_t(size_t, size - offset, count);
 	r = count;
@@ -356,22 +486,53 @@ static ssize_t modem_read(struct file *filp,
 			sprd_pms_release_resource(modem->rd_pms);
 			return -ENOMEM;
 		}
-
+		vmem_cpy = vmem;
 		copy_size = min_t(size_t, r, map_size);
-		if (unalign_copy_to_user(buf, vmem, copy_size)) {
+
+		/* if dma is ok, use dma copy. */
+		if (dma_ptr && dma_ptr->dma_chn) {
+			src_buf = addr;
+#ifdef CONFIG_SPRD_PCIE_EP_DEVICE
+			if (modem->modem_type == PCIE_MODEM)
+				src_buf = sprd_ep_virtophy(PCIE_EP_MODEM, vmem);
+#endif
+			dma_size = modem_dma_alloc(dma_ptr, copy_size);
+			if (dma_size > 0) {
+				/* if dam copy succ, use dst buf to copy to user.*/
+				dma_size = modem_dma_copy(dma_ptr, dma_size,
+							  src_buf,
+							  dma_ptr->buf_p);
+				if (dma_size > 0) {
+					vmem_cpy = dma_ptr->buf_v;
+					copy_size = dma_size;
+				}
+			}
+		}
+
+		if (unalign_copy_to_user(buf, vmem_cpy, copy_size)) {
 			dev_err(modem->p_dev,
 				"read, copy data from user err!\n");
+			modem_dma_free_mem(dma_ptr);
 			modem_ram_unmap(modem->modem_type, vmem);
 			sprd_pms_release_resource(modem->rd_pms);
 			return -EFAULT;
 		}
+
+		modem_dma_free_mem(dma_ptr);
 		modem_ram_unmap(modem->modem_type, vmem);
 		sprd_pms_release_resource(modem->rd_pms);
 		r -= copy_size;
 		buf += copy_size;
 	} while (r > 0);
 
+	if (dma_ptr && dma_ptr->dma_chn) {
+		dma_release_channel(dma_ptr->dma_chn);
+		dma_ptr->dma_chn = NULL;
+	}
+
 	*ppos += (count - r);
+	dev_dbg(modem->p_dev, "read complete\n");
+
 	return count - r;
 }
 
@@ -379,12 +540,12 @@ static ssize_t modem_write(struct file *filp,
 			   const char __user *buf,
 			   size_t count, loff_t *ppos)
 {
-	phys_addr_t base;
-	size_t size, offset, copy_size, map_size, r;
-	void *vmem;
+	phys_addr_t base, addr, dst_buf;
+	size_t size, offset, copy_size, map_size, r, dma_size;
+	void *vmem, *vmem_cpy;
 	struct modem_device *modem = filp->private_data;
-	phys_addr_t addr;
 	int ret;
+	struct dma_copy_data *dma_ptr = modem->write_dma;
 
 	dev_dbg(modem->p_dev, "write, %s!\n", modem->modem_name);
 
@@ -403,6 +564,14 @@ static ssize_t modem_write(struct file *filp,
 	if (size <= offset)
 		return -EINVAL;
 
+	if (dma_ptr) {
+		dma_ptr->dma_chn = dma_request_slave_channel(dma_ptr->p_dev,
+							     dma_ptr->dma_name);
+		if (IS_ERR_OR_NULL(dma_ptr->dma_chn))
+			dev_err(modem->p_dev, "%s request dma chan failed!\n",
+				dma_ptr->dma_name);
+	}
+
 	count = min_t(size_t, size - offset, count);
 	r = count;
 	do {
@@ -419,19 +588,53 @@ static ssize_t modem_write(struct file *filp,
 			sprd_pms_release_resource(modem->wt_pms);
 			return -ENOMEM;
 		}
+		vmem_cpy = vmem;
 		copy_size = min_t(size_t, r, map_size);
-		if (unalign_copy_from_user(vmem, buf, copy_size)) {
+
+		/* if dma is ok, alloc a dma buf to recv user data. */
+		if (dma_ptr && dma_ptr->dma_chn) {
+			dma_size = modem_dma_alloc(dma_ptr, copy_size);
+			if (dma_size > 0) {
+				copy_size = dma_size;
+				vmem_cpy = dma_ptr->buf_v;
+			}
+		}
+
+		if (unalign_copy_from_user(vmem_cpy, buf, copy_size)) {
 			dev_err(modem->p_dev,
 				"write, copy data from user err!\n");
+			modem_dma_free_mem(dma_ptr);
 			modem_ram_unmap(modem->modem_type, vmem);
 			sprd_pms_release_resource(modem->wt_pms);
 			return -EFAULT;
 		}
+
+			/* if dma is ok, use dma copy. */
+		if (dma_ptr && dma_ptr->dma_chn && dma_size > 0) {
+			dst_buf = addr;
+#ifdef CONFIG_SPRD_PCIE_EP_DEVICE
+			if (modem->modem_type == PCIE_MODEM)
+				dst_buf = sprd_ep_virtophy(PCIE_EP_MODEM, vmem);
+#endif
+			/* if dam copy succ, use dst buf to copy to user.*/
+			dma_size = modem_dma_copy(dma_ptr, dma_size,
+						  dma_ptr->buf_p, dst_buf);
+			if (dma_size != copy_size)
+				memcpy(dma_ptr->buf_v, vmem, copy_size);
+		}
+		modem_dma_free_mem(dma_ptr);
 		modem_ram_unmap(modem->modem_type, vmem);
 		sprd_pms_release_resource(modem->wt_pms);
 		r -= copy_size;
 		buf += copy_size;
 	} while (r > 0);
+
+	if (dma_ptr && dma_ptr->dma_chn) {
+		dma_release_channel(dma_ptr->dma_chn);
+		dma_ptr->dma_chn = NULL;
+	}
+
+	dev_dbg(modem->p_dev, "write complete!\n");
 
 	*ppos += (count - r);
 	return count - r;
@@ -1022,6 +1225,37 @@ static const struct of_device_id modem_match_table[] = {
 	{ },
 };
 
+static void modem_alloc_dma(struct modem_device *modem,
+			    const char *dma_name,
+			    struct dma_copy_data **dma_pptr)
+{
+	struct dma_copy_data *dma_ptr;
+
+	dma_ptr = devm_kzalloc(modem->p_dev, sizeof(*dma_ptr), GFP_KERNEL);
+	if (dma_ptr) {
+		dma_ptr->dma_name = dma_name;
+		init_completion(&dma_ptr->dma_comp);
+		*dma_pptr = dma_ptr;
+		dma_ptr->p_dev = modem->p_dev;
+	}
+}
+
+static void modem_init_dma(struct modem_device *modem,
+			   struct device_node *np)
+{
+	const char *dma_name[2];
+
+	/* get and init dma config. */
+	if (of_property_read_string_array(np, "dma-names", dma_name, 2) < 2)
+		return;
+
+	dev_info(modem->p_dev, "dma_name[0]=%s, dma_name[1]=%s\n",
+		 dma_name[0], dma_name[1]);
+
+	modem_alloc_dma(modem, dma_name[0], &modem->read_dma);
+	modem_alloc_dma(modem, dma_name[1], &modem->write_dma);
+}
+
 static int modem_probe(struct platform_device *pdev)
 {
 	struct modem_device *modem;
@@ -1053,6 +1287,8 @@ static int modem_probe(struct platform_device *pdev)
 	ret = dt_parse(modem, np);
 	if (ret)
 		return ret;
+
+	modem_init_dma(modem, np);
 
 	ret = alloc_chrdev_region(&modem->devid, 0, 1, modem->modem_name);
 	if (ret != 0) {
