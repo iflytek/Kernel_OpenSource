@@ -317,6 +317,7 @@ CONFIG_BLK_SCSI_REQUEST=y
 # CONFIG_BLK_WBT is not set
 CONFIG_BLK_DEBUG_FS=y
 # CONFIG_BLK_SED_OPAL is not set
+# CONFIG_BLK_INLINE_ENCRYPTION is not set
 
 #
 # Partition Types
