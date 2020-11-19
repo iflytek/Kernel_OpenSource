@@ -251,7 +251,7 @@ static int wait_for_cmd_completion()
 	/*instruction "invd" must be excuted inline, it's strange*/
 	invd();
 #else
-	invalidate_dcache_range(0, 0);
+	invalidate_dcache_all();
 #endif
 
 	return UFS_SUCCESS;
@@ -288,7 +288,7 @@ static int wait_for_previous_scsi_completion()
 	/*instruction "invd" must be excuted inline, it's strange*/
 	//invd();
 #else
-	invalidate_dcache_range(0, 0);
+	invalidate_dcache_all();
 #endif
 
 	return UFS_SUCCESS;
