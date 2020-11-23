@@ -1065,7 +1065,7 @@
 			0>;
 
 	sprd,pcie-resume-syscons =
-		<&pmu_apb_regs 0 0
+		<&pmu_apb_regs 0 200
 			REG_PMU_APB_PCIEPLL_H_REL_CFG
 			MASK_PMU_APB_PCIEPLL_H_FRC_ON
 			(0x1 << 8)>,
@@ -1081,7 +1081,7 @@
 			REG_PMU_APB_PWR_STATUS0_DBG
 			MASK_PMU_APB_PD_IPA_SYS_STATE
 			0x0>,
-		<&ipa_ahb_regs 0 0
+		<&ipa_ahb_regs 0 200
 			REG_IPA_AHB_IPA_EB
 			MASK_IPA_AHB_PCIE2_EB
 			(0x1 << 8)>,
