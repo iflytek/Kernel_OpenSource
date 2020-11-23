@@ -21,7 +21,7 @@
 #include <linux/pci-epc.h>
 #include <linux/pci-epf.h>
 
-#define LINK_WAIT_MAX_RETRIES		1000
+#define LINK_WAIT_MAX_RETRIES		10000
 #define LINK_WAIT_USLEEP_MIN		900
 #define LINK_WAIT_USLEEP_MAX		1000
 
