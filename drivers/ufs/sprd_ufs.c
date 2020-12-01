@@ -1376,6 +1376,14 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 		return UFS_INVALID_PARTITIONING;
 	}
 
+	/* Set RF CLK 26M */
+	val[3] = 0x1;
+	ret = write_attribute(B_REFCLK_FREQ, val, 0);
+	if (UFS_SUCCESS != ret) {
+		errorf("UFS set RF CLK fail!ret=%d\n",ret);
+		return ret;
+	}
+
 	/*Enable boot from Boot LU A*/
 	val[3] = BOOT_LU_A_ENABLE;
 	ret = write_attribute(B_BOOT_LUNEN, val, 0);
