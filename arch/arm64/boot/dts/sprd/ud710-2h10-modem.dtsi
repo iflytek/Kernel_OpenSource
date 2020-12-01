@@ -32,6 +32,8 @@
 
 	nr_pscp: modem@2 {
 		compatible = "sprd,pcie-modem";
+		dmas = <&ap_dma 1 &ap_dma 2>;
+		dma-names = "mem_read", "mem_write";
 		5g-modem-support;
 	};
 
