@@ -204,17 +204,18 @@ static void sfp_mgr_fwd_death_by_timeout(unsigned long ul_fwd_entry_conn)
 {
 	struct sfp_conn *sfp_entry;
 
-	spin_lock_bh(&mgr_lock);
 	sfp_entry = (struct sfp_conn *)ul_fwd_entry_conn;
+
+	FP_PRT_DBG(FP_PRT_DEBUG, "SFP:<<check death by timeout(%p)>>.\n",
+		   sfp_entry);
+
+	spin_lock_bh(&mgr_lock);
 
 	if (!sfp_entry) {
 		spin_unlock_bh(&mgr_lock);
 		FP_PRT_DBG(FP_PRT_ERR, "sfp_entry was free when time out.\n");
 		return;
 	}
-
-	FP_PRT_DBG(FP_PRT_DEBUG, "SFP:<<check death by timeout(%p)>>.\n",
-		   sfp_entry);
 
 	if (!get_sfp_tether_scheme()) {
 		spin_lock_bh(&fwd_tbl.sp_lock);
@@ -232,7 +233,6 @@ static void sfp_mgr_fwd_death_by_timeout(unsigned long ul_fwd_entry_conn)
 				   sfp_entry->hash[IP_CT_DIR_REPLY]);
 		spin_unlock_bh(&fwd_tbl.sp_lock);
 	} else {
-		spin_lock_bh(&mgr_lock);
 		delete_in_sfp_fwd_table(
 			&sfp_entry->tuplehash[IP_CT_DIR_ORIGINAL]);
 		delete_in_sfp_fwd_table(
