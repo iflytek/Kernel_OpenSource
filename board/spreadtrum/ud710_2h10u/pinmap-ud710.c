@@ -1,7 +1,7 @@
-/*Device: ROC1_UDS710
- *Version: UDS710_1_IRD_UDX710_SCH_V1.0.0_Pinmap_V1.0
- *Creat Time: 2020/05/27 14:51:38
- *Author: na.li
+/*Device: /ROC1_UDS710
+ *Version: UDS710_1_IRD_UDX710_SCH_V1.1.1_PINMAP_V1.0
+ *Create Time: 2020/5/26 17:52:24
+ *Author: alvin.xiao
  */
 
 /*
@@ -231,7 +231,7 @@ static pinmap_t pinmap[]={
 {REG_PIN_RFSDA0,                        BITS_PIN_AF(3)},
 {REG_MISC_PIN_RFSDA0,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPD|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPD|BIT_PIN_SLP_Z},//NC
 {REG_PIN_RFSEN0,                        BITS_PIN_AF(1)},
-{REG_MISC_PIN_RFSEN0,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_NUL|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPU|BIT_PIN_SLP_IE},//AP_CP_PCIE_WAKE
+{REG_MISC_PIN_RFSEN0,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPU|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPU|BIT_PIN_SLP_IE},//AP_CP_PCIE_WAKE
 {REG_PIN_RFSCK1,                        BITS_PIN_AF(3)},
 {REG_MISC_PIN_RFSCK1,                   BITS_PIN_DS(1)|BIT_PIN_NULL|BIT_PIN_WPD|BIT_PIN_SLP_AP|BIT_PIN_SLP_WPD|BIT_PIN_SLP_Z},//NC
 {REG_PIN_RFSDA1,                        BITS_PIN_AF(1)},
