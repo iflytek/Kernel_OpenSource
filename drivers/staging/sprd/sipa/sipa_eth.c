@@ -137,18 +137,10 @@ static void sipa_eth_rx_csum(struct sk_buff *skb, unsigned int real_len)
 		break;
 	}
 
-	if (csum_ready) {
+	if (csum_ready)
 		skb->ip_summed = CHECKSUM_UNNECESSARY;
-	} else {
+	else
 		skb->ip_summed = CHECKSUM_NONE;
-
-		if (skb->protocol == htons(ETH_P_IP))
-			pr_debug("protocol %x proto %x sipa hw csum nosupport csum %x\n",
-				 skb->protocol, iph->protocol, skb->csum);
-		else if (skb->protocol == htons(ETH_P_IPV6))
-			pr_debug("protocol %x nexthdr %x sipa hw csum nosupport csum %x\n",
-				 skb->protocol, ipv6h->nexthdr, skb->csum);
-	}
 }
 
 static void sipa_eth_prepare_skb(struct SIPA_ETH *sipa_eth, struct sk_buff *skb)
