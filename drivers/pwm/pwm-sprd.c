@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  */
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -14,7 +15,8 @@
 
 #define NUM_PWM		4
 #define PWM_REGS_SHIFT	5
-#define PWM_MOD_MAX	GENMASK(7, 0)
+//#define PWM_MOD_MAX	GENMASK(7, 0)
+#define PWM_MOD_MAX GENMASK(9, 0)
 #define PWM_REG_MSK	GENMASK(15, 0)
 
 #define PWM_PRESCALE	0x0
@@ -59,7 +61,7 @@ static int sprd_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 {
 	struct sprd_pwm_chip *spc = container_of(chip,
 		struct sprd_pwm_chip, chip);
-	u64 clk_rate, div, val;
+	u64 clk_rate, div, val, tmp;
 	int rc, prescale, level;
 
 	if (!duty_ns)
@@ -74,7 +76,9 @@ static int sprd_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 		spc->eb_enabled[pwm->hwpwm] = true;
 	}
 
-	level = duty_ns * PWM_MOD_MAX / period_ns;
+	//level = duty_ns * PWM_MOD_MAX / period_ns;
+    tmp = duty_ns * PWM_MOD_MAX;
+    level = DIV_ROUND_CLOSEST_ULL(tmp, period_ns);
 	dev_dbg(chip->dev, "duty_ns = %d, period_ns = %d, level = %d\n",
 		duty_ns, period_ns, level);
 
@@ -94,11 +98,47 @@ static int sprd_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	val = clk_rate * period_ns;
 	prescale = div64_u64(val, div) - 1;
 
+    if (prescale < 0)
+        prescale = 0;
+
 	sprd_pwm_writel(spc, pwm->hwpwm, PWM_MOD, PWM_MOD_MAX);
 	sprd_pwm_writel(spc, pwm->hwpwm, PWM_DUTY, level);
 	sprd_pwm_writel(spc, pwm->hwpwm, PWM_PAT_LOW, PWM_REG_MSK);
 	sprd_pwm_writel(spc, pwm->hwpwm, PWM_PAT_HIGH, PWM_REG_MSK);
 	sprd_pwm_writel(spc, pwm->hwpwm, PWM_PRESCALE, prescale);
+
+	if(pwm->hwpwm == 1){
+		dev_err(chip->dev, "pwm->hwpwm == 1 period_ns=%d \n", period_ns);
+		dev_err(chip->dev, "pwm->hwpwm == 1 period_ns=%d prescale =%x \n", period_ns,prescale);
+		if(period_ns == 104666)
+		{
+
+			prescale = 3;
+			sprd_pwm_writel(spc, pwm->hwpwm, PWM_PRESCALE, prescale);
+			prescale = 0x2aa;
+			sprd_pwm_writel(spc, pwm->hwpwm, PWM_MOD, prescale);
+			level = 0x155;
+			sprd_pwm_writel(spc, pwm->hwpwm, PWM_DUTY, level);
+
+		}else if(period_ns == 208333)
+		{
+			prescale = 5;
+			sprd_pwm_writel(spc, pwm->hwpwm, PWM_PRESCALE, prescale);
+			prescale = 0x386;
+			sprd_pwm_writel(spc, pwm->hwpwm, PWM_MOD, prescale);
+			level = 0x1C3;
+			sprd_pwm_writel(spc, pwm->hwpwm, PWM_DUTY, level);
+		}else if(period_ns == 250000)
+		{
+			prescale = 6;
+			sprd_pwm_writel(spc, pwm->hwpwm, PWM_PRESCALE, prescale);
+			prescale = 0x3a0;
+			sprd_pwm_writel(spc, pwm->hwpwm, PWM_MOD, prescale);
+			level = 0x1D0;
+			sprd_pwm_writel(spc, pwm->hwpwm, PWM_DUTY, level);
+		}
+
+	}
 
 	return 0;
 }
@@ -191,9 +231,11 @@ static void sprd_pwm_get_state(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * PV = (PWM_CLK_RATE * period_ns) / (10^9 * (PRESCALE + 1))
 	 * DC = (PWM_CLK_RATE * duty_ns) / (10^9 * (PRESCALE + 1))
 	 */
-	val = (prescale + 1) * 1000000000 * PWM_MOD_MAX;
+	//val = (prescale + 1) * 1000000000 * PWM_MOD_MAX;
+    val = ((u64)prescale + 1) * NSEC_PER_SEC * PWM_MOD_MAX;
 	period_ns = div64_u64(val, clk_rate);
-	val = (prescale + 1) * 1000000000 * duty;
+	//val = (prescale + 1) * 1000000000 * duty;
+    val = ((u64)prescale + 1) * NSEC_PER_SEC * duty;
 	duty_ns = div64_u64(val, clk_rate);
 
 	state->period = period_ns;

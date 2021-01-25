@@ -4,6 +4,7 @@
  * SpreadTrum pcm routing
  *
  * Copyright (C) 2018 SpreadTrum Ltd.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -211,8 +212,7 @@ static const struct snd_kcontrol_new sprd_audio_be_switch[S_SWITCH_CASE_MAX] = {
 		1, 0),
 	[S_CODEC_TEST_P] = SOC_DAPM_SINGLE("SWITCH", SND_SOC_NOPM, 0,
 	1, 0),
-	[S_CAPTURE_RECOGNISE_CODEC] = SOC_DAPM_SINGLE("SWITCH", SND_SOC_NOPM, 0,
-						      1, 0),
+	[S_CAPTURE_RECOGNISE_CODEC] = SOC_DAPM_SINGLE("SWITCH", SND_SOC_NOPM, 0, 1, 0),
 
 };
 
@@ -276,8 +276,7 @@ static const struct snd_soc_dapm_widget sprd_pcm_routing_widgets[] = {
 	SND_SOC_DAPM_AIF_OUT("FE_IF_DUMP_C", "FE_DAI_DUMP_C", 0, 0, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("FE_IF_BTCAP_AP_C", "FE_DAI_BTCAP_AP_C",
 		0, 0, 0, 0),
-	SND_SOC_DAPM_AIF_IN("FE_IF_RECOGNISE_CAP_C", "FE_DAI_RECOGNISE_CAP_C",
-			    0, 0, 0, 0),
+	SND_SOC_DAPM_AIF_IN("FE_IF_RECOGNISE_CAP_C", "FE_DAI_RECOGNISE_CAP_C", 0, 0, 0, 0),
 	/* Backend AIF */
 	SND_SOC_DAPM_AIF_IN("BE_IF_NORMAL_AP01_CODEC_P",
 		"BE_DAI_NORMAL_AP01_CODEC_P", 0, 0, 0, 0),
@@ -388,8 +387,7 @@ static const struct snd_soc_dapm_widget sprd_pcm_routing_widgets[] = {
 	SND_SOC_DAPM_AIF_OUT("BE_IF_CAP_DSP_BTSCO_C", "BE_DAI_CAP_DSP_BTSCO_C",
 		0, 0, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("BE_IF_DUMP_C", "BE_DAI_DUMP_C", 0, 0, 0, 0),
-	SND_SOC_DAPM_AIF_IN("BE_IF_CAP_RECOGNISE_CODEC_C",
-			    "BE_DAI_CAP_RECOGNISE_CODEC_C", 0, 0, 0, 0),
+	SND_SOC_DAPM_AIF_IN("BE_IF_CAP_RECOGNISE_CODEC_C", "BE_DAI_CAP_RECOGNISE_CODEC_C", 0, 0, 0, 0),
 	/* Switches */
 	SND_SOC_DAPM_SWITCH("S_NORMAL_AP01_P_CODEC", SND_SOC_NOPM,
 		0, 0, &sprd_audio_be_switch[S_NORMAL_AP01_P_CODEC]),
@@ -713,6 +711,7 @@ static const struct snd_soc_dapm_route sprd_pcm_routing_intercon[] = {
 	/* S_CAPTURE_RECOGNISE_CODEC */
 	{"S_CAPTURE_RECOGNISE_CODEC", "SWITCH", "BE_IF_CAP_RECOGNISE_CODEC_C"},
 	{"FE_IF_RECOGNISE_CAP_C", NULL, "S_CAPTURE_RECOGNISE_CODEC"},
+
 };
 
 static struct snd_soc_platform_driver sprd_soc_routing_platform = {

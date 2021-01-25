@@ -3,6 +3,7 @@
  *
  * Copyright (c) 2018 Spreadtrum Co., Ltd.
  *		http://www.spreadtrum.com
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * Author: Miao Zhu <miao.zhu@spreadtrum.com>
  *
@@ -21,6 +22,7 @@
 #include <linux/err.h>
 #include <linux/of.h>
 #include <linux/io.h>
+#include <linux/iio/consumer.h>
 #include <linux/delay.h>
 #include <linux/regmap.h>
 #include <linux/of_platform.h>
@@ -33,7 +35,8 @@
 #include <dt-bindings/soc/sprd,roc1-regs.h>
 
 #define TUNEHSAMP_3_9MA		(GENMASK(26, 25))
-#define TFREGRES_TUNE_VALUE	(0x6 << 19)
+#define TFREGRES_TUNE_VALUE	(0xC << 19)
+#define TUNEDSC_VALUE     (0x3 << 7)
 
 #define PHY_REG_BASE			(phy->base)
 
@@ -97,7 +100,14 @@ struct sprd_ssphy {
 	atomic_t		inited;
 	atomic_t		susped;
 	bool			is_host;
+	struct iio_channel	*dp;
+	struct iio_channel	*dm;
 };
+
+#define SC2730_CHARGE_DET_FGU_CTRL	0x3A0
+#define SC2730_ADC_OFFSET		0x1800
+#define BIT_DP_DM_AUX_EN		BIT(1)
+#define BIT_DP_DM_BC_ENB		BIT(0)
 
 /* Rest USB Core*/
 static inline void sprd_ssphy_reset_core(struct sprd_ssphy *phy)
@@ -298,6 +308,14 @@ static int sprd_ssphy_init(struct usb_phy *x)
 	reg |= TFREGRES_TUNE_VALUE;
 	ret |= regmap_write(phy->ana_g3,
 			    REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, reg);
+
+    msk = MASK_ANLG_PHY_G3_ANALOG_USB20_USB20_TUNEDSC;
+    ret |= regmap_read(phy->ana_g3,
+            REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, &reg);
+    reg &= ~msk;
+    reg |= TUNEDSC_VALUE;
+    ret |= regmap_write(phy->ana_g3,
+            REG_ANLG_PHY_G3_ANALOG_USB20_USB20_TRIMMING, reg);
 
 	/* Configure USB30 PHY register */
 	value = readl_relaxed(phy->base + REG_ANALOG_USB30_CFGA_ANA_CFG7);
@@ -515,6 +533,62 @@ static enum usb_charger_type sprd_ssphy_charger_detect(struct usb_phy *x)
 	return sc27xx_charger_detect(phy->pmic);
 }
 
+static int sc2730_voltage_cali(int voltage)
+{
+	return voltage*3/2;
+}
+
+static enum usb_charger_type sprd_ssphy_retry_charger_detect(struct usb_phy *x)
+{
+	struct sprd_ssphy *phy = container_of(x, struct sprd_ssphy, phy);
+	enum usb_charger_type type = UNKNOWN_TYPE;
+	int dm_voltage, dp_voltage;
+	int cnt = 20;
+	int ret;
+
+	if (!phy->dm || !phy->dp) {
+		dev_err(x->dev, " phy->dp:%p, phy->dm:%p\n",
+			phy->dp, phy->dm);
+		return UNKNOWN_TYPE;
+	}
+
+	ret = regmap_update_bits(phy->pmic,
+		SC2730_ADC_OFFSET | SC2730_CHARGE_DET_FGU_CTRL,
+		BIT_DP_DM_AUX_EN | BIT_DP_DM_BC_ENB,
+		BIT_DP_DM_AUX_EN);
+
+	msleep(100);
+	iio_read_channel_processed(phy->dp, &dp_voltage);
+	dp_voltage = sc2730_voltage_cali(dp_voltage);
+	if (dp_voltage > 1200) {
+		do {
+			iio_read_channel_processed(phy->dm, &dm_voltage);
+			dm_voltage = sc2730_voltage_cali(dm_voltage);
+			if (dm_voltage > 1200) {
+				type = DCP_TYPE;
+				break;
+			}
+			msleep(100);
+			cnt--;
+			iio_read_channel_processed(phy->dp, &dp_voltage);
+			dp_voltage = sc2730_voltage_cali(dp_voltage);
+			if (dp_voltage  < 600) {
+				type = SDP_TYPE;
+				break;
+			}
+		} while ((x->chg_state == USB_CHARGER_PRESENT) && cnt > 0);
+	}
+
+	regmap_update_bits(phy->pmic,
+		SC2730_ADC_OFFSET | SC2730_CHARGE_DET_FGU_CTRL,
+		BIT_DP_DM_AUX_EN | BIT_DP_DM_BC_ENB, 0);
+	if (type != UNKNOWN_TYPE) {
+		x->chg_type = type;
+		schedule_work(&x->chg_work);
+	}
+	return type;
+}
+
 static int sprd_ssphy_probe(struct platform_device *pdev)
 {
 	struct device_node *regmap_np;
@@ -614,6 +688,20 @@ static int sprd_ssphy_probe(struct platform_device *pdev)
 		}
 	}
 
+	phy->dp = devm_iio_channel_get(dev, "dp");
+	phy->dm = devm_iio_channel_get(dev, "dm");
+	if (IS_ERR(phy->dp)) {
+		phy->dp = NULL;
+		dev_warn(dev, "failed to get dp or dm channel\n");
+		return PTR_ERR(phy->dp);
+	}
+	if (IS_ERR(phy->dm)) {
+		phy->dm = NULL;
+		dev_warn(dev, "failed to get dp or dm channel\n");
+		return PTR_ERR(phy->dm);
+	}
+
+
 	if (!phy->pmic) {
 		/*
 		 * USB PHY must init before DWC3 phy setup in haps,
@@ -638,6 +726,7 @@ static int sprd_ssphy_probe(struct platform_device *pdev)
 	phy->phy.type				= USB_PHY_TYPE_USB3;
 	phy->phy.vbus_nb.notifier_call		= sprd_ssphy_vbus_notify;
 	phy->phy.charger_detect			= sprd_ssphy_charger_detect;
+	phy->phy.retry_charger_detect 		= sprd_ssphy_retry_charger_detect;
 
 	ret = usb_add_phy_dev(&phy->phy);
 	if (ret) {

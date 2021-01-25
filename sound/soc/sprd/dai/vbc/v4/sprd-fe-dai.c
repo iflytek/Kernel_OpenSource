@@ -4,6 +4,7 @@
  * Front end cpu dai of sprd audio driver
  *
  * Copyright (C) 2018 SpreadTrum Ltd.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -227,6 +228,7 @@ static int mcdt_dma_config_init(struct snd_soc_dai *fe_dai, int stream)
 		uid = mcdt_adc_dma_enable(MCDT_CHAN_RECOGNISE_CAPTURE,
 			MCDT_FULL_WMK_RECOGNISE_CAPTURE);
 		vbc_pcm_recognise_capture_mcdt.channels[0] = uid;
+		pr_debug("%s in RECOGNISE_CAPTURE dai_id=%d stream=%d\n", __func__, fe_dai->id, stream);
 		break;
 	}
 
@@ -573,19 +575,17 @@ static void sprd_dma_config(struct snd_pcm_substream *substream,
 		break;
 	case FE_DAI_ID_RECOGNISE_CAPTURE:
 		/*recognise capture*/
-		vbc_pcm_recognise_capture_mcdt.name =
-			"VBC PCM recognise C With MCDT";
+		vbc_pcm_recognise_capture_mcdt.name = "VBC PCM recognise C With MCDT";
 		vbc_pcm_recognise_capture_mcdt.irq_type = SPRD_DMA_BLK_INT;
 		vbc_pcm_recognise_capture_mcdt.desc.datawidth =
 			DMA_SLAVE_BUSWIDTH_4_BYTES;
 		vbc_pcm_recognise_capture_mcdt.desc.fragmens_len =
 			MCDT_RECOGNISE_C_FRAGMENT;
 		vbc_pcm_recognise_capture_mcdt.use_mcdt = 1;
-		/* dma src address */
 		vbc_pcm_recognise_capture_mcdt.dev_paddr[0] =
+		/* dma src address*/
 			mcdt_adc_dma_phy_addr(MCDT_CHAN_RECOGNISE_CAPTURE);
-		vbc_pcm_recognise_capture_mcdt.used_dma_channel_name[0] =
-			"recognise_c";
+		vbc_pcm_recognise_capture_mcdt.used_dma_channel_name[0] = "recognise_c";
 		break;
 	}
 }
@@ -1180,7 +1180,6 @@ static struct snd_soc_dai_driver sprd_fe_dais[FE_DAI_ID_MAX] = {
 			.rate_max = 192000,
 		},
 	},
-
 	/* 19: FE_DAI_ID_RECOGNISE_CAPTURE */
 	{
 		.id = FE_DAI_ID_RECOGNISE_CAPTURE,

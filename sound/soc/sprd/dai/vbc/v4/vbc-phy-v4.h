@@ -4,6 +4,7 @@
  * SPRD SoC VBC -- SpreadTrum SOC R3P0 VBC driver function.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -532,6 +533,7 @@ enum VBC_FIFO_WARTERMARK_TYPE {
 #define SND_VBC_DSP_IO_KCTL_SET 9
 #define SND_VBC_DSP_IO_SHAREMEM_GET 10
 #define SND_VBC_DSP_IO_SHAREMEM_SET 11
+#define SND_VBC_DSP_FUNC_HW_TRIGGER_AFTER_DMA 12
 
 /************************************************************
  * define for SND_VBC_DSP_IO_KCTL_GET / SND_VBC_DSP_IO_KCTL_SET
@@ -1518,6 +1520,7 @@ int vbc_dsp_func_shutdown(int scene_id, int stream,
 int vbc_dsp_func_hwparam(int scene_id, int stream,
 	struct sprd_vbc_stream_hw_paras *hw_data);
 int vbc_dsp_func_trigger(int id, int stream, int up_down);
+int vbc_dsp_func_trigger_after_dma(int id, int stream, int up_down);
 int aud_dig_iis_master(struct snd_soc_card *card, int setting);
 int pm_shutdown(void);
 #endif /* __VBC_V4_PHY_DRV_H */

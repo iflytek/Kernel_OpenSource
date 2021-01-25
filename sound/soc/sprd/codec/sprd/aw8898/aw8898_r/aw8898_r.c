@@ -4,6 +4,7 @@
  * Version: v1.1.5
  *
  * Copyright (c) 2018 AWINIC Technology CO., LTD
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * Author: Nick Li <liweilei@awinic.com.cn>
  *
@@ -65,7 +66,8 @@ static char *aw8898_r_cfg_name = "aw8898_r_cfg.bin";
 
 struct aw8898_r *g_aw8898_r;
 
-
+extern int sys_vbat_vol;
+extern int sys_vbat_soc;
 #ifdef AW8898_R_VBAT_MONITOR
 static int aw8898_r_vbat_monitor_start(struct aw8898_r *aw8898_r);
 static int aw8898_r_vbat_monitor_stop(struct aw8898_r *aw8898_r);
@@ -261,7 +263,7 @@ static void aw8898_r_start(struct aw8898_r *aw8898_r)
     unsigned int reg_val = 0;
     unsigned int iis_check_max = 10;
     unsigned int i = 0;
-
+	
     pr_debug("%s enter\n", __func__);
 
     aw8898_r_run_pwd(aw8898_r, false);
@@ -269,6 +271,28 @@ static void aw8898_r_start(struct aw8898_r *aw8898_r)
     for(i=0; i<iis_check_max; i++) {
         aw8898_r_i2c_read(aw8898_r, AW8898_R_REG_SYSST, &reg_val);
         if(reg_val & AW8898_R_BIT_SYSST_PLLS) {
+			  if( sys_vbat_vol == 0) {
+				sys_vbat_vol = aw8898_r_get_sys_battery_info(SYS_BAT_VBAT);
+				sys_vbat_soc = aw8898_r_get_sys_battery_info(SYS_BAT_SOC);
+			  }
+			  pr_info("%s: get sys vbat = %d, soc = %d\n", __func__, sys_vbat_vol, sys_vbat_soc);
+			  if((sys_vbat_vol < AW8898_R_SYS_VBAT_DOWN) || (sys_vbat_soc < AW8898_R_SYS_VBAT_SOC_DOWN)){
+				pr_info("%s: set aw8898 volume down", __func__);				  
+				aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_HAGCCFG7,
+					AW8898_R_BIT_HAGCCFG7_VOL_MASK, AW8898_R_VOLUME_DATA);
+				aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+					AW8898_R_BIT_GENCTRL_BST_ILIMIT_MASK, AW8898_R_IPEAK_LOW);
+				aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+					AW8898_R_BIT_GENCTRL_BST_VOUT_MASK, AW8898_R_VMAX_LOW);
+			  }else {
+				pr_info("%s: set aw8898 volume up", __func__);				  
+				aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_HAGCCFG7,
+					AW8898_R_BIT_HAGCCFG7_VOL_MASK, AW8898_R_VOLUME_MAX);
+				aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+					AW8898_R_BIT_GENCTRL_BST_ILIMIT_MASK, AW8898_R_IPEAK_HIGH);
+				aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+					AW8898_R_BIT_GENCTRL_BST_VOUT_MASK, AW8898_R_VMAX_HIGH);
+			  }
               aw8898_r_run_mute(aw8898_r, false);
               pr_debug("%s iis signal check pass!\n", __func__);
 #ifdef AW8898_R_VBAT_MONITOR
@@ -624,7 +648,29 @@ int aw8898_r_startup(struct snd_pcm_substream *substream,
     aw8898_r = g_aw8898_r;
 
     aw8898_r_run_pwd(aw8898_r, false);
-
+	if( sys_vbat_vol == 0) {
+		sys_vbat_vol = aw8898_r_get_sys_battery_info(SYS_BAT_VBAT);
+		sys_vbat_soc = aw8898_r_get_sys_battery_info(SYS_BAT_SOC);
+	}
+	pr_info("%s: get sys vbat = %d, soc = %d\n", __func__, sys_vbat_vol, sys_vbat_soc);
+	if((sys_vbat_vol < AW8898_R_SYS_VBAT_DOWN) || (sys_vbat_soc < AW8898_R_SYS_VBAT_SOC_DOWN)){
+		pr_info("%s: set aw8898 volume down", __func__);
+		aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_HAGCCFG7,
+			AW8898_R_BIT_HAGCCFG7_VOL_MASK, AW8898_R_VOLUME_DATA);
+		aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+			AW8898_R_BIT_GENCTRL_BST_ILIMIT_MASK, AW8898_R_IPEAK_LOW);
+		aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+			AW8898_R_BIT_GENCTRL_BST_VOUT_MASK, AW8898_R_VMAX_LOW);
+	}else{
+		pr_info("%s: set aw8898 volume up", __func__);		
+		aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_HAGCCFG7,
+			AW8898_R_BIT_HAGCCFG7_VOL_MASK, AW8898_R_VOLUME_MAX);
+		aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+			AW8898_R_BIT_GENCTRL_BST_ILIMIT_MASK, AW8898_R_IPEAK_HIGH);
+		aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+			AW8898_R_BIT_GENCTRL_BST_VOUT_MASK, AW8898_R_VMAX_HIGH);
+	}
+	
     return 0;
 }
 
@@ -699,6 +745,8 @@ int aw8898_r_hw_params(struct snd_pcm_substream *substream,
     pr_debug("%s: requested rate: %d, sample size: %d\n", __func__, rate,
             snd_pcm_format_width(params_format(params)));
     //match rate
+	/* fix sprd hal bug, now smartpa is only 48k */ 
+    aw8898_r->rate = rate = 48000;
     switch(rate)
     {
         case 8000:
@@ -730,6 +778,8 @@ int aw8898_r_hw_params(struct snd_pcm_substream *substream,
     //get bit width
     width = params_width(params);
     pr_debug("%s: width = %d \n",__func__,width);
+	/*fix sprd hal bug, now smartpa is only 24bit*/ 
+	width = 24;
     switch(width)
     {
         case 16:
@@ -1185,18 +1235,34 @@ static void aw8898_r_vbat_monitor_work_routine(struct work_struct *work)
 {
     struct aw8898_r *aw8898_r = container_of(work, struct aw8898_r, vbat_monitor_work);
     unsigned int reg_val = 0;
-    int sys_vbat_vol = 0;
+
 
     pr_info("%s enter\n", __func__);
 
     aw8898_r_i2c_read(aw8898_r, AW8898_R_REG_PWMCTRL, &reg_val);
     if((reg_val&AW8898_R_BIT_PWMCTRL_HMUTE_ENABLE) == AW8898_R_BIT_PWMCTRL_HMUTE_DISABLE) {
-        sys_vbat_vol = aw8898_r_get_sys_battery_info(SYS_BAT_DEV);
-        pr_info("%s: get sys battery = %d\n", __func__, sys_vbat_vol);
-        if((sys_vbat_vol < AW8898_R_SYS_VBAT_LIMIT) && (sys_vbat_vol > AW8898_R_SYS_VBAT_MIN)) {
-            aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
-                AW8898_R_BIT_GENCTRL_BST_ILIMIT_MASK, (aw8898_r->bst_ilimit<<4));
-        }
+		if( sys_vbat_vol == 0) {
+			sys_vbat_vol = aw8898_r_get_sys_battery_info(SYS_BAT_VBAT);
+			sys_vbat_soc = aw8898_r_get_sys_battery_info(SYS_BAT_SOC);
+		}
+        pr_info("%s: get sys vbat = %d, soc = %d\n", __func__, sys_vbat_vol, sys_vbat_soc);
+        if((sys_vbat_vol < AW8898_R_SYS_VBAT_DOWN) || (sys_vbat_soc < AW8898_R_SYS_VBAT_SOC_DOWN)) {
+			pr_info("%s: set aw8898 volume down", __func__);			
+            aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_HAGCCFG7,
+					AW8898_R_BIT_HAGCCFG7_VOL_MASK, AW8898_R_VOLUME_DATA);
+			aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+					AW8898_R_BIT_GENCTRL_BST_ILIMIT_MASK, AW8898_R_IPEAK_LOW);
+			aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+					AW8898_R_BIT_GENCTRL_BST_VOUT_MASK, AW8898_R_VMAX_LOW);
+        } else if((sys_vbat_vol > AW8898_R_SYS_VBAT_UP) && (sys_vbat_soc > AW8898_R_SYS_VBAT_SOC_UP)) {
+			pr_info("%s: set aw8898 volume up", __func__);				
+			aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_HAGCCFG7,
+					AW8898_R_BIT_HAGCCFG7_VOL_MASK, AW8898_R_VOLUME_MAX);
+			aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+					AW8898_R_BIT_GENCTRL_BST_ILIMIT_MASK, AW8898_R_IPEAK_HIGH);
+			aw8898_r_i2c_write_bits(aw8898_r, AW8898_R_REG_GENCTRL,
+					AW8898_R_BIT_GENCTRL_BST_VOUT_MASK, AW8898_R_VMAX_HIGH);
+		}
         aw8898_r_vbat_monitor_start(aw8898_r);
     }
 }

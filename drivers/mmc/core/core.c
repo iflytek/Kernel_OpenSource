@@ -5,6 +5,7 @@
  *  SD support Copyright (C) 2004 Ian Molton, All Rights Reserved.
  *  Copyright (C) 2005-2008 Pierre Ossman, All Rights Reserved.
  *  MMCv4 support Copyright (C) 2006 Philip Langdale, All Rights Reserved.
+ *  Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -939,7 +940,15 @@ EXPORT_SYMBOL(mmc_put_card);
 static inline void mmc_set_ios(struct mmc_host *host)
 {
 	struct mmc_ios *ios = &host->ios;
+#ifdef CONFIG_MMC_SDHCI_BH201
+	host->ops->set_ios(host, ios);
 
+	pr_info("%s: clock %uHz busmode %u powermode %u cs %u Vdd %u "
+		"width %u timing %u\n",
+		 mmc_hostname(host), ios->clock, ios->bus_mode,
+		 ios->power_mode, ios->chip_select, ios->vdd,
+		 1 << ios->bus_width, ios->timing);
+#else
 	pr_info("%s: clock %uHz busmode %u powermode %u cs %u Vdd %u "
 		"width %u timing %u\n",
 		 mmc_hostname(host), ios->clock, ios->bus_mode,
@@ -947,6 +956,8 @@ static inline void mmc_set_ios(struct mmc_host *host)
 		 1 << ios->bus_width, ios->timing);
 
 	host->ops->set_ios(host, ios);
+#endif
+
 }
 
 /*

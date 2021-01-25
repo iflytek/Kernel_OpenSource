@@ -578,6 +578,18 @@ config MMC_SPRD_SDHCR11
 
 	  If unsure, say N.
 
+# Bayhub add for SD card bringup by Chevron at 20200326 start
+config MMC_SDHCI_BH201
+	bool "Bayhub BH201 SD bridge for SPRD SDHCR Controller Support"
+	depends on MMC_SPRD_SDHCR11
+	help
+	  This selects the Bayhub BH201 SD bus bridge additions for get better
+	  signal integrity.
+
+	  Select this if you have BH201 supported for SDHCR on SPRD chipset.
+	  If unsure, say N.
+# Bayhub add for SD card bringup by Chevron at 20200326 end
+
 config MMC_TMIO_CORE
 	tristate
 

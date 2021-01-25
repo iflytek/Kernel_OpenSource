@@ -5,6 +5,8 @@
  * 1) pin configuration so PWM waveforms can output
  * 2) platform_data being correctly configured
  *
+ * Modified: Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
@@ -23,6 +25,7 @@
 #include <linux/pwm_backlight.h>
 #include <linux/regulator/consumer.h>
 #include <linux/slab.h>
+#include <linux/delay.h>
 
 struct pwm_bl_data {
 	struct pwm_device	*pwm;
@@ -98,11 +101,16 @@ static int compute_duty_cycle(struct pwm_bl_data *pb, int brightness)
 	return duty_cycle + lth;
 }
 
+static int last_brightness = 0;
+
 static int pwm_backlight_update_status(struct backlight_device *bl)
 {
 	struct pwm_bl_data *pb = bl_get_data(bl);
 	int brightness = bl->props.brightness;
 	struct pwm_state state;
+    int target_brightness, step = 3, step_counts, delay_num;
+
+    printk(KERN_ERR "super drm pwm_backlight_update_status, brightness = %d\n", brightness);
 
 	if (bl->props.power != FB_BLANK_UNBLANK ||
 	    bl->props.fb_blank != FB_BLANK_UNBLANK ||
@@ -112,16 +120,46 @@ static int pwm_backlight_update_status(struct backlight_device *bl)
 	if (pb->notify)
 		brightness = pb->notify(pb->dev, brightness);
 
-	if (brightness > 0) {
-		pwm_get_state(pb->pwm, &state);
-		state.duty_cycle = compute_duty_cycle(pb, brightness);
-		pwm_apply_state(pb->pwm, &state);
-		pwm_backlight_power_on(pb);
-	} else
-		pwm_backlight_power_off(pb);
+    if (brightness >= last_brightness) {
+        if (brightness > 0) {
+            pwm_get_state(pb->pwm, &state);
+            state.duty_cycle = compute_duty_cycle(pb, brightness);
+            pwm_apply_state(pb->pwm, &state);
+            pwm_backlight_power_on(pb);
+        } else
+            pwm_backlight_power_off(pb);
+    } else {
+        target_brightness = brightness;
+        step_counts = (last_brightness - target_brightness) / step;
+        delay_num = 250000 / step_counts;
+        while ((last_brightness - target_brightness) > step) {
+            last_brightness = last_brightness - step;
+            //printk(KERN_ERR "..... drm last_brightness = %d\n", last_brightness);
+            if (last_brightness > 0) {
+                pwm_get_state(pb->pwm, &state);
+                state.duty_cycle = compute_duty_cycle(pb, last_brightness);
+                pwm_apply_state(pb->pwm, &state);
+                pwm_backlight_power_on(pb);
+            } else
+                pwm_backlight_power_off(pb);
+
+            udelay(delay_num);;
+        }
+
+        if (target_brightness > 0) {
+            pwm_get_state(pb->pwm, &state);
+            state.duty_cycle = compute_duty_cycle(pb, target_brightness);
+            pwm_apply_state(pb->pwm, &state);
+            pwm_backlight_power_on(pb);
+        } else
+            pwm_backlight_power_off(pb);
+    }
 
 	if (pb->notify_after)
 		pb->notify_after(pb->dev, brightness);
+
+    last_brightness = brightness;
+    printk(KERN_ERR "drm last_brightness = %d\n", last_brightness);
 
 	return 0;
 }

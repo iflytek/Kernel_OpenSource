@@ -1,0 +1,3 @@
+config SND_SOC_AW881XX
+	tristate "AWINIC AW881XX driver"
+	depends on I2C

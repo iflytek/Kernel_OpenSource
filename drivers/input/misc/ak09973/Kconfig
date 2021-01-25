@@ -1,0 +1,18 @@
+#
+# Magnetic ak09973 driver
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
+config MAG_AK09973
+	bool "D driver"
+	help
+	  This is the main file for Magnetic ak09973 driver.
+
+	  Say Y here if you have a Magnetic ak09973 connected
+	  to your system.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called ak09973.

@@ -4,6 +4,7 @@
  * SPRD-CODEC -- SpreadTrum Tiger intergrated codec.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -796,6 +797,49 @@ static int das_dc_os_event(struct snd_soc_dapm_widget *w,
 	return 0;
 }
 
+static int dmic0_clk_event(struct snd_soc_dapm_widget *w,
+		       struct snd_kcontrol *kcontrol, int event)
+{
+	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+
+	sp_asoc_pr_info("%s, %s\n", w->name, get_event_name(event));
+	switch (event) {
+	case SND_SOC_DAPM_PRE_PMU:
+		snd_soc_update_bits(codec, SOC_REG(AUD_DMIC_CTL), ADC_DMIC_CLK_MODE(0x3), ADC_DMIC_CLK_MODE(0x2));
+		break;
+	case SND_SOC_DAPM_POST_PMD:
+		snd_soc_update_bits(codec, SOC_REG(AUD_DMIC_CTL), ADC_DMIC_CLK_MODE(0x3), ADC_DMIC_CLK_MODE(0));
+		break;
+	default:
+		WARN_ON(1);
+		break;
+	}
+
+	return 0;
+}
+
+static int dmic1_clk_event(struct snd_soc_dapm_widget *w,
+		       struct snd_kcontrol *kcontrol, int event)
+{
+	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
+
+	sp_asoc_pr_info("%s, %s\n", w->name, get_event_name(event));
+	switch (event) {
+	case SND_SOC_DAPM_PRE_PMU:
+		snd_soc_update_bits(codec, SOC_REG(AUD_DMIC_CTL), ADC1_DMIC_CLK_MODE(0x3), ADC1_DMIC_CLK_MODE(0x2));
+		break;
+	case SND_SOC_DAPM_POST_PMD:
+		snd_soc_update_bits(codec, SOC_REG(AUD_DMIC_CTL), ADC1_DMIC_CLK_MODE(0x3), ADC1_DMIC_CLK_MODE(0));
+		break;
+	default:
+		WARN_ON(1);
+		break;
+	}
+
+	return 0;
+}
+
+
 static int dacs_switch_event(struct snd_soc_dapm_widget *w,
 			struct snd_kcontrol *kcontrol, int event)
 {
@@ -1453,7 +1497,7 @@ static int digital_power_event(struct snd_soc_dapm_widget *w,
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	struct sprd_codec_priv *sprd_codec = snd_soc_codec_get_drvdata(codec);
 
-	sp_asoc_pr_dbg("%s Event is %s\n", __func__, get_event_name(event));
+	sp_asoc_pr_info("wname %s , %s\n", w->name, get_event_name(event));
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
@@ -1500,7 +1544,7 @@ static int analog_power_event(struct snd_soc_dapm_widget *w,
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	int ret = 0;
 
-	sp_asoc_pr_dbg("%s Event is %s\n", __func__, get_event_name(event));
+	sp_asoc_pr_info("wname %s , %s\n", w->name, get_event_name(event));
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
@@ -1556,8 +1600,8 @@ static int chan_event(struct snd_soc_dapm_widget *w,
 	int chan_id = FUN_REG(w->reg);
 	int on = !!SND_SOC_DAPM_EVENT_ON(event);
 
-	sp_asoc_pr_info("%s %s\n", sprd_codec_chan_get_name(chan_id),
-			STR_ON_OFF(on));
+	sp_asoc_pr_info("wname %s, sname %s, %s %s\n", w->name, w->sname, sprd_codec_chan_get_name(chan_id),
+ 			STR_ON_OFF(on));
 
 	return 0;
 }
@@ -2612,10 +2656,12 @@ static const struct snd_soc_dapm_widget sprd_codec_dapm_widgets[] = {
 	SND_SOC_DAPM_INPUT("DMIC1 Pin"),
 
 	/* add DMIC */
-	SND_SOC_DAPM_PGA_S("DMIC Switch", 3, SOC_REG(AUD_DMIC_CTL),
-		ADC_DMIC_EN, 0, NULL, 0),
-	SND_SOC_DAPM_PGA_S("DMIC1 Switch", 3, SOC_REG(AUD_DMIC_CTL),
-		ADC1_DMIC1_EN, 0, NULL, 0),
+ 	SND_SOC_DAPM_PGA_S("DMIC Switch", 3, SOC_REG(AUD_DMIC_CTL),
+			   ADC_DMIC_EN, 0, dmic0_clk_event,
+			   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
+ 	SND_SOC_DAPM_PGA_S("DMIC1 Switch", 3, SOC_REG(AUD_DMIC_CTL),
+			   ADC1_DMIC1_EN, 0, dmic1_clk_event,
+			   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_SWITCH("ADC-DAC Adie Loop",
 		SND_SOC_NOPM, 0, 0, &loop_controls[0]),
 	SND_SOC_DAPM_SWITCH("ADC1-DAC Adie Loop",

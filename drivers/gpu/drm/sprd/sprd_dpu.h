@@ -1,5 +1,6 @@
 /*
  *Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  *This software is licensed under the terms of the GNU General Public
  *License version 2, as published by the Free Software Foundation, and
@@ -168,6 +169,7 @@ struct dpu_context {
 	int irq;
 	u8 if_type;
 	u8 id;
+	bool is_hsv_bypass;
 	bool is_inited;
 	bool is_stopped;
 	bool disable_flip;

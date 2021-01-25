@@ -2,6 +2,7 @@
  * SPRD SoC VBC -- SpreadTrum SOC for VBC DAI function.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -146,8 +147,7 @@ static const char *dai_id_to_str(int dai_id)
 		[BE_DAI_ID_FM_SMTPA] = TO_STRING(BE_DAI_ID_FM_SMTPA),
 		[BE_DAI_ID_LOOP_SMTPA] = TO_STRING(BE_DAI_ID_LOOP_SMTPA),
 		[BE_DAI_ID_FM_DSP_SMTPA] = TO_STRING(BE_DAI_ID_FM_DSP_SMTPA),
-		[BE_DAI_ID_RECOGNISE_CAPTURE] =
-			TO_STRING(BE_DAI_ID_RECOGNISE_CAPTURE),
+		[BE_DAI_ID_RECOGNISE_CAPTURE] = TO_STRING(BE_DAI_ID_RECOGNISE_CAPTURE),
 	};
 
 	if (dai_id >= BE_DAI_ID_MAX) {
@@ -187,8 +187,7 @@ static const char *scene_id_to_str(int scene_id)
 		[VBC_DAI_ID_BT_SCO_CAPTURE_DSP] =
 			TO_STRING(VBC_DAI_ID_BT_SCO_CAPTURE_DSP),
 		[VBC_DAI_ID_FM_DSP] = TO_STRING(VBC_DAI_ID_FM_DSP),
-		[VBC_DAI_ID_RECOGNISE_CAPTURE] =
-			TO_STRING(VBC_DAI_ID_RECOGNISE_CAPTURE),
+		[VBC_DAI_ID_RECOGNISE_CAPTURE] = TO_STRING(VBC_DAI_ID_RECOGNISE_CAPTURE),
 	};
 
 	if (scene_id >= VBC_DAI_ID_MAX) {
@@ -819,13 +818,14 @@ static void fill_dsp_startup_data(struct vbc_codec_priv *vbc_codec,
 	info->stream = stream;
 	para->dac_id = get_startup_scene_dac_id(scene_id);
 
-	pr_debug("adc_id %d, dmic_chn_sel 0x%x\n", para->adc_id,
-		 vbc_codec->dmic_chn_sel << VBC_DMIC_ADC_ID_SHIFT);
+	pr_info("adc_id %d, dmic_chn_sel 0x%x (%d)\n", para->adc_id,
+		 vbc_codec->dmic_chn_sel << VBC_DMIC_ADC_ID_SHIFT, vbc_codec->dmic_chn_sel);
 	if (vbc_codec->dmic_chn_sel)
-		//para->adc_id = get_startup_scene_adc_id(scene_id) | vbc_codec->dmic_chn_sel << VBC_DMIC_ADC_ID_SHIFT;
 		para->adc_id = vbc_codec->dmic_chn_sel;
+		//para->adc_id = get_startup_scene_adc_id(scene_id) | vbc_codec->dmic_chn_sel << VBC_DMIC_ADC_ID_SHIFT;
 	else
 		para->adc_id = get_startup_scene_adc_id(scene_id);
+	pr_info("dmic_chn_sel %d\n", vbc_codec->dmic_chn_sel);
 
 	/* vbc_if or iis */
 	for (i = VBC_MUX_ADC0_SOURCE; i < VBC_MUX_ADC_SOURCE_MAX; i++) {
@@ -1086,6 +1086,27 @@ static int dsp_trigger(struct vbc_codec_priv *vbc_codec,
 
 	return 0;
 }
+
+static int triggered_flag(int cmd);
+
+int dsp_send_data_trigger(int cmd, int scene_id, int stream)
+{
+	int ret, up_down;
+
+	up_down = triggered_flag(cmd);
+	scene_id = VBC_DAI_ID_CAPTURE_DSP;
+
+	pr_err("%s scene_id %d, stream %d, up_down %d\n", __func__, scene_id, stream, up_down);
+	ret = vbc_dsp_func_trigger_after_dma(scene_id, stream, up_down);
+	if (ret < 0) {
+		pr_err("%s vbc_dsp_func_trigger return error %d\n", __func__, ret);
+		return ret;
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(dsp_send_data_trigger);
+
 
 void set_kctrl_vbc_dac_iis_wd(struct vbc_codec_priv *vbc_codec, int dac_id,
 			      int data_fmt)
@@ -2282,6 +2303,7 @@ static int scene_capture_dsp_trigger(struct snd_pcm_substream *substream,
 		trigger_add_ref(scene_id, stream);
 		if (trigger_get_ref(scene_id, stream) == 1)
 			ret = dsp_trigger(vbc_codec, scene_id, stream, up_down);
+		    pr_err("%s trigger here\n", __func__);
 
 		trigger_unlock_spin(scene_id, stream);
 	} else {
@@ -2335,19 +2357,17 @@ static int scene_recognise_capture_startup(struct snd_pcm_substream *substream,
 	return ret;
 }
 
-static void
-scene_recognise_capture_shutdown(struct snd_pcm_substream *substream,
-				 struct snd_soc_dai *dai)
+static void scene_recognise_capture_shutdown(struct snd_pcm_substream *substream,
+				       struct snd_soc_dai *dai)
 {
 	int stream = substream->stream;
 	int scene_id = VBC_DAI_ID_RECOGNISE_CAPTURE;
 	int be_dai_id = dai->id;
 	struct vbc_codec_priv *vbc_codec = dev_get_drvdata(dai->dev);
 
-	pr_debug("%s dai:%s(%d) scene:%s %s\n", __func__,
-		 dai_id_to_str(be_dai_id),
-		 be_dai_id, scene_id_to_str(scene_id), stream_to_str(stream));
-
+	pr_info("%s dai:%s(%d) scene:%s %s\n", __func__,
+		dai_id_to_str(be_dai_id),
+		be_dai_id, scene_id_to_str(scene_id), stream_to_str(stream));
 	if (scene_id != check_be_dai_id(be_dai_id)) {
 		pr_err("%s check_be_dai_id failed\n", __func__);
 		return;
@@ -2355,7 +2375,6 @@ scene_recognise_capture_shutdown(struct snd_pcm_substream *substream,
 
 	if (!vbc_codec)
 		return;
-
 	startup_lock_mtx(scene_id, stream);
 	startup_dec_ref(scene_id, stream);
 	if (startup_get_ref(scene_id, stream) == 0) {
@@ -2363,12 +2382,11 @@ scene_recognise_capture_shutdown(struct snd_pcm_substream *substream,
 		dsp_shutdown(vbc_codec, scene_id, stream);
 	}
 	startup_unlock_mtx(scene_id, stream);
+
 }
 
-static int
-scene_recognise_capture_hw_params(struct snd_pcm_substream *substream,
-				  struct snd_pcm_hw_params *params,
-				  struct snd_soc_dai *dai)
+static int scene_recognise_capture_hw_params(struct snd_pcm_substream *substream,
+	struct snd_pcm_hw_params *params, struct snd_soc_dai *dai)
 {
 	unsigned int rate;
 	int data_fmt = VBC_DAT_L16;
@@ -2377,10 +2395,8 @@ scene_recognise_capture_hw_params(struct snd_pcm_substream *substream,
 	struct vbc_codec_priv *vbc_codec = dev_get_drvdata(dai->dev);
 	int chan_cnt;
 
-	pr_debug("%s dai:%s(%d) scene:%s %s\n", __func__,
-		 dai_id_to_str(dai->id),
-		 dai->id, scene_id_to_str(scene_id), stream_to_str(stream));
-
+	pr_info("%s dai:%s(%d) scene:%s %s\n", __func__, dai_id_to_str(dai->id),
+		dai->id, scene_id_to_str(scene_id), stream_to_str(stream));
 	if (scene_id != check_be_dai_id(dai->id)) {
 		pr_err("%s check_be_dai_id failed\n", __func__);
 		return -EINVAL;
@@ -2402,8 +2418,8 @@ scene_recognise_capture_hw_params(struct snd_pcm_substream *substream,
 	}
 	chan_cnt = params_channels(params);
 	rate = params_rate(params);
-	pr_debug("%s data_fmt=%s, chan=%u, rate =%u\n", __func__,
-		 vbc_data_fmt_to_str(data_fmt), chan_cnt, rate);
+	pr_info("%s data_fmt=%s, chan=%u, rate =%u\n", __func__,
+		vbc_data_fmt_to_str(data_fmt), chan_cnt, rate);
 
 	if (chan_cnt > 2)
 		pr_warn("%s channel count invalid\n", __func__);
@@ -2426,10 +2442,8 @@ static int scene_recognise_capture_hw_free(struct snd_pcm_substream *substream,
 	int scene_id = VBC_DAI_ID_RECOGNISE_CAPTURE;
 	struct vbc_codec_priv *vbc_codec = dev_get_drvdata(dai->dev);
 
-	pr_debug("%s dai:%s(%d) scene:%s %s\n", __func__,
-		 dai_id_to_str(dai->id),
-		 dai->id, scene_id_to_str(scene_id), stream_to_str(stream));
-
+	pr_info("%s dai:%s(%d) scene:%s %s\n", __func__, dai_id_to_str(dai->id),
+		dai->id, scene_id_to_str(scene_id), stream_to_str(stream));
 	if (scene_id != check_be_dai_id(dai->id)) {
 		pr_err("%s check_be_dai_id failed\n", __func__);
 		return -EINVAL;
@@ -2450,13 +2464,12 @@ static int scene_recognise_capture_trigger(struct snd_pcm_substream *substream,
 	int up_down;
 	int stream = substream->stream;
 	int scene_id = VBC_DAI_ID_RECOGNISE_CAPTURE;
-	int ret = 0;
+	int ret;
 	struct vbc_codec_priv *vbc_codec = dev_get_drvdata(dai->dev);
 
-	pr_debug("%s dai:%s(%d) scene:%s %s, cmd=%d\n", __func__,
-		 dai_id_to_str(dai->id),
-		 dai->id, scene_id_to_str(scene_id),
-		 stream_to_str(stream), cmd);
+	pr_info("%s dai:%s(%d) scene:%s %s, cmd=%d\n", __func__,
+		dai_id_to_str(dai->id),
+		dai->id, scene_id_to_str(scene_id), stream_to_str(stream), cmd);
 	if (scene_id != check_be_dai_id(dai->id)) {
 		pr_err("%s check_be_dai_id failed\n", __func__);
 		return -EINVAL;
@@ -2464,8 +2477,9 @@ static int scene_recognise_capture_trigger(struct snd_pcm_substream *substream,
 
 	if (!vbc_codec)
 		return 0;
-
 	up_down = triggered_flag(cmd);
+	/* default ret is 0 */
+	ret = 0;
 	if (up_down == 1) {
 		trigger_lock_spin(scene_id, stream);
 		trigger_add_ref(scene_id, stream);
@@ -2489,6 +2503,7 @@ static struct snd_soc_dai_ops recognise_capture_ops = {
 	.trigger = scene_recognise_capture_trigger,
 	.hw_free = scene_recognise_capture_hw_free,
 };
+
 
 /* fast */
 static int scene_fast_startup(struct snd_pcm_substream *substream,
@@ -5067,6 +5082,7 @@ void scene_dump_set(enum vbc_dump_position_e pos)
 		dsp_vbc_mux_adc_set(VBC_MUX_IN_ADC3, ADC_IN_DAC0);
 		break;
 	}
+	pr_err("dump scene pos = %s\n", vbc_dumppos2name(pos));
 }
 
 /* vbc dump */
@@ -5098,7 +5114,8 @@ static int scene_dump_startup(struct snd_pcm_substream *substream,
 			return ret;
 		}
 		pos = vbc_codec->vbc_dump_position;
-		pr_info("dump scene pos = %s\n", vbc_dumppos2name(pos));
+		pr_info("scene dump startup pos %s, vbc_dump_position_cmd %s\n",
+			vbc_dumppos2name(pos), vbc_dumppos2name(vbc_codec->vbc_dump_position_cmd));
 		scene_dump_set(pos);
 		dsp_vbc_mux_audrcd_set(VBC_MUX_AUDRCD01, AUDRCD_IN_ADC0);
 	}
@@ -6081,7 +6098,6 @@ static struct snd_soc_dai_driver vbc_dais[BE_DAI_ID_MAX] = {
 		.probe = sprd_dai_vbc_probe,
 		.ops = &fm_dsp_ops,
 	},
-
 	/* 43: BE_DAI_ID_RECOGNISE_CAPTURE */
 	{
 		.name = TO_STRING(BE_DAI_ID_RECOGNISE_CAPTURE),
@@ -6097,7 +6113,7 @@ static struct snd_soc_dai_driver vbc_dais[BE_DAI_ID_MAX] = {
 		},
 		.probe = sprd_dai_vbc_probe,
 		.ops = &recognise_capture_ops,
-	},
+	},	
 };
 
 static struct aud_pm_vbc *aud_pm_vbc_get(void)

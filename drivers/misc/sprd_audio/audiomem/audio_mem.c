@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -447,9 +448,10 @@ void audio_mem_unmap(const void *mem)
 		list_for_each_entry_safe(map, next, &smem->map_head, map_list) {
 			if (map->mem_real == mem) {
 				list_del(&map->map_list);
+				spin_unlock_irqrestore(&smem->lock, flags);
 				vm_unmap_ram(map->mem, map->count);
 				kfree(map);
-				break;
+				return;
 			}
 		}
 		spin_unlock_irqrestore(&smem->lock, flags);

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -26,6 +27,8 @@
 #include "sysfs/sysfs_display.h"
 
 #define SPRD_MIPI_DSI_FMT_DSC 0xff
+
+struct sprd_panel *sprd_mipi_panel;
 
 const char *lcd_name;
 static int __init lcd_name_get(char *str)
@@ -69,13 +72,40 @@ static int sprd_panel_send_cmds(struct mipi_dsi_device *dsi,
 	return 0;
 }
 
+static bool boot_charging;
+static int __init lcd_charger_mode(char *str)
+{
+    if (strcmp(str, "charger"))
+        boot_charging = false;
+    else
+        boot_charging = true;
+
+    return 0;
+}
+__setup("androidboot.mode=", lcd_charger_mode);
+
+static int boardid;
+static int __init get_boardid(char *str)
+{
+    int ret = 0;
+
+    ret = kstrtoint(str, 0, &boardid);
+    if (ret) {
+        pr_err("aprd_panel %s failed, ret = %d\n", __func__, ret);
+        return 1;
+    }
+
+    return boardid;
+}
+__setup("rfboard.id=", get_boardid);
+
 static int sprd_panel_unprepare(struct drm_panel *p)
 {
 	struct sprd_panel *panel = to_sprd_panel(p);
 	struct gpio_timing *timing;
 	int items, i;
 
-	DRM_INFO("%s()\n", __func__);
+	DRM_INFO("%s(), boardid = %d\n", __func__, boardid);
 
 	if (panel->info.avee_gpio) {
 		gpiod_direction_output(panel->info.avee_gpio, 0);
@@ -87,10 +117,25 @@ static int sprd_panel_unprepare(struct drm_panel *p)
 		mdelay(5);
 	}
 
-	if (panel->info.lcd1v8_gpio) {
-		gpiod_direction_output(panel->info.lcd1v8_gpio, 0);
-		mdelay(5);
+
+
+	if (panel->info.pwmen_gpio) {
+		gpiod_direction_output(panel->info.pwmen_gpio, 0);
 	}
+	mdelay(100);
+	if (panel->info.lcm3v3_gpio) {
+		gpiod_direction_output(panel->info.lcm3v3_gpio, 0);
+	}
+	if (panel->info.edp3v3_gpio) {
+		gpiod_direction_output(panel->info.edp3v3_gpio, 0);
+	}
+	if (panel->info.edp1v2_gpio) {
+		gpiod_direction_output(panel->info.edp1v2_gpio, 0);
+	}
+	if (panel->info.edp1v8_gpio) {
+		gpiod_direction_output(panel->info.edp1v8_gpio, 0);
+	}
+
 
 	if (panel->info.reset_gpio) {
 		items = panel->info.rst_off_seq.items;
@@ -101,9 +146,40 @@ static int sprd_panel_unprepare(struct drm_panel *p)
 			mdelay(timing[i].delay);
 		}
 	}
-
-	regulator_disable(panel->supply);
-
+/*
+	if(strcmp(lcd_name, "lcd_tv105wum_mipi_hd") == 0){
+		if ((boardid == 0) || (boardid == 1)) {
+	        if (panel->is_should_shutdown == true) {
+	            DRM_INFO("%s(), now shutdown\n", __func__);
+				if(!IS_ERR_OR_NULL(panel->supply))
+	            	regulator_disable(panel->supply);
+				spin_lock(&panel->lock);
+	        	panel->is_already_shutdown = true;
+				spin_unlock(&panel->lock);
+	        }
+	        if (boot_charging == true) {
+	            DRM_INFO("%s(), boot_charging == true\n", __func__);
+				if(regulator_is_enabled(panel->supply))
+	            	regulator_disable(panel->supply);
+	        }
+		}  else if (boardid == 2) {
+			if((!IS_ERR_OR_NULL(panel->supply)) && (!IS_ERR_OR_NULL(panel->supply_1v8))) {
+				regulator_disable(panel->supply);
+				regulator_disable(panel->supply_1v8);
+			}
+		} else {
+			if(!IS_ERR_OR_NULL(panel->supply)) {
+				if(regulator_is_enabled(panel->supply))
+	        		regulator_disable(panel->supply);
+			}
+		}
+	} else {
+		if(!IS_ERR_OR_NULL(panel->supply)) {
+			if(regulator_is_enabled(panel->supply))
+        		regulator_disable(panel->supply);
+		}
+	}
+*/
 	return 0;
 }
 
@@ -111,15 +187,48 @@ static int sprd_panel_prepare(struct drm_panel *p)
 {
 	struct sprd_panel *panel = to_sprd_panel(p);
 	struct gpio_timing *timing;
-	int items, i, ret;
+	int items, i;
 
 	DRM_INFO("%s()\n", __func__);
+/*
+	if(strcmp(lcd_name, "lcd_tv105wum_mipi_hd") == 0){
+		if ((boardid == 0) || (boardid == 1)) {
+			if(!regulator_is_enabled(panel->supply)) {
+				ret = regulator_enable(panel->supply);
+				if (ret < 0)
+					DRM_ERROR("enable lcd regulator failed\n");
+			}
+		} else if (boardid == 2) {
+			ret = regulator_enable(panel->supply_1v8);
+			if (ret < 0)
+				DRM_ERROR("enable lcd regulator 1v8 failed\n");
 
-	ret = regulator_enable(panel->supply);
-	if (ret < 0)
-		DRM_ERROR("enable lcd regulator failed\n");
+			ret = regulator_enable(panel->supply);
+			if (ret < 0)
+				DRM_ERROR("enable lcd regulator failed\n");
+		} else {
+			if(!IS_ERR_OR_NULL(panel->supply)) {
+				if(!regulator_is_enabled(panel->supply))
+					ret = regulator_enable(panel->supply);
+					if (ret < 0)
+						DRM_ERROR("enable lcd regulator failed\n");
 
-	if (panel->info.avdd_gpio) {
+				}
+	    }
+	}	else {
+		if(!IS_ERR_OR_NULL(panel->supply)) {
+		if(!regulator_is_enabled(panel->supply))
+			ret = regulator_enable(panel->supply);
+			if (ret < 0)
+				DRM_ERROR("enable lcd regulator failed\n");
+
+		}
+	}*/
+	if (panel->info.lcm3v3_gpio) {
+		gpiod_direction_output(panel->info.lcm3v3_gpio, 1);
+	}
+	mdelay(2);
+/* 	if (panel->info.avdd_gpio) {
 		gpiod_direction_output(panel->info.avdd_gpio, 1);
 		mdelay(5);
 	}
@@ -127,12 +236,29 @@ static int sprd_panel_prepare(struct drm_panel *p)
 	if (panel->info.avee_gpio) {
 		gpiod_direction_output(panel->info.avee_gpio, 1);
 		mdelay(5);
-	}
+	} */
 
-	if (panel->info.lcd1v8_gpio) {
-		gpiod_direction_output(panel->info.lcd1v8_gpio, 1);
-		mdelay(5);
+	if (panel->info.edp1v2_gpio) {
+		gpiod_direction_output(panel->info.edp1v2_gpio, 1);
 	}
+	mdelay(2);
+	if (panel->info.edp3v3_gpio) {
+		gpiod_direction_output(panel->info.edp3v3_gpio, 1);
+	}
+	mdelay(2);
+	if (panel->info.edp1v8_gpio) {
+		gpiod_direction_output(panel->info.edp1v8_gpio, 1);
+	}
+	mdelay(15);
+	/*
+	if (panel->info.pwmen_gpio) {
+		gpiod_direction_output(panel->info.pwmen_gpio, 1);
+	}
+	mdelay(2);
+	if (panel->info.lcdblen_gpio) {
+		gpiod_direction_output(panel->info.lcdblen_gpio, 1);
+	}
+	*/
 
 	if (panel->info.reset_gpio) {
 		items = panel->info.rst_on_seq.items;
@@ -144,8 +270,96 @@ static int sprd_panel_prepare(struct drm_panel *p)
 		}
 	}
 
+/* 	if (panel->info.lcm3v3_gpio) {
+		gpiod_direction_output(panel->info.lcm3v3_gpio, 1);
+	} */
 	return 0;
 }
+
+int sprd_panel_prepare_shutdown(struct sprd_panel *panel)
+{
+	struct gpio_timing *timing;
+	int items, i;
+
+	DRM_INFO("%s(), boardid = %d\n", __func__, boardid);
+
+	if (panel->info.avee_gpio) {
+		gpiod_direction_output(panel->info.avee_gpio, 0);
+		mdelay(5);
+	}
+
+	if (panel->info.avdd_gpio) {
+		gpiod_direction_output(panel->info.avdd_gpio, 0);
+		mdelay(5);
+	}
+
+	if (panel->info.edp3v3_gpio) {
+		gpiod_direction_output(panel->info.edp3v3_gpio, 0);
+	}
+	if (panel->info.edp1v2_gpio) {
+		gpiod_direction_output(panel->info.edp1v2_gpio, 0);
+	}
+	if (panel->info.edp1v8_gpio) {
+		gpiod_direction_output(panel->info.edp1v8_gpio, 0);
+	}
+
+	if (panel->info.lcdblen_gpio) {
+		gpiod_direction_output(panel->info.lcdblen_gpio, 0);
+	}
+	mdelay(5);
+	if (panel->info.pwmen_gpio) {
+		gpiod_direction_output(panel->info.pwmen_gpio, 0);
+	}
+	if (panel->info.reset_gpio) {
+		items = panel->info.rst_off_seq.items;
+		timing = panel->info.rst_off_seq.timing;
+		for (i = 0; i < items; i++) {
+			gpiod_direction_output(panel->info.reset_gpio,
+						timing[i].level);
+			mdelay(timing[i].delay);
+		}
+	}
+	if (panel->info.lcm3v3_gpio) {
+		gpiod_direction_output(panel->info.lcm3v3_gpio, 0);
+	}
+/*
+	if(strcmp(lcd_name, "lcd_tv105wum_mipi_hd") == 0){
+		if ((boardid == 0) || (boardid == 1)) {
+			if (panel->is_should_shutdown == true) {
+				DRM_INFO("%s(), now shutdown\n", __func__);
+				if(!IS_ERR_OR_NULL(panel->supply))
+					regulator_disable(panel->supply);
+				spin_lock(&panel->lock);
+				panel->is_already_shutdown = true;
+				spin_unlock(&panel->lock);
+			}
+			if (boot_charging == true) {
+				DRM_INFO("%s(), boot_charging == true\n", __func__);
+				if(regulator_is_enabled(panel->supply))
+					regulator_disable(panel->supply);
+			}
+		}  else if (boardid == 2) {
+			if((!IS_ERR_OR_NULL(panel->supply)) && (!IS_ERR_OR_NULL(panel->supply_1v8))) {
+				regulator_disable(panel->supply);
+				regulator_disable(panel->supply_1v8);
+			}
+		} else {
+			if(!IS_ERR_OR_NULL(panel->supply)) {
+				if(regulator_is_enabled(panel->supply))
+					regulator_disable(panel->supply);
+			}
+		}
+	} else {
+		if(!IS_ERR_OR_NULL(panel->supply)) {
+			if(regulator_is_enabled(panel->supply))
+				regulator_disable(panel->supply);
+		}
+	}
+*/
+
+	return 0;
+}
+
 
 static int sprd_panel_disable(struct drm_panel *p)
 {
@@ -161,11 +375,19 @@ static int sprd_panel_disable(struct drm_panel *p)
 	 * CMD mode yet. Since there is no VBLANK timing for
 	 * LP cmd transmission.
 	 */
+	if (panel->info.lcdblen_gpio) {
+		gpiod_direction_output(panel->info.lcdblen_gpio, 0);
+	}
+	mdelay(35);
 	if (panel->esd_work_pending) {
 		cancel_delayed_work_sync(&panel->esd_work);
 		panel->esd_work_pending = false;
 	}
+	if (panel->backlight_work_pending) {
+		cancel_delayed_work_sync(&panel->backlight_work);
+		panel->backlight_work_pending = false;
 
+	}
 	if (panel->backlight) {
 		panel->backlight->props.power = FB_BLANK_POWERDOWN;
 		panel->backlight->props.state |= BL_CORE_FBBLANK;
@@ -189,12 +411,21 @@ static int sprd_panel_enable(struct drm_panel *p)
 			     panel->info.cmds[CMD_CODE_INIT],
 			     panel->info.cmds_len[CMD_CODE_INIT]);
 
+
+#if 0
 	if (panel->backlight) {
 		panel->backlight->props.power = FB_BLANK_UNBLANK;
 		panel->backlight->props.state &= ~BL_CORE_FBBLANK;
 		backlight_update_status(panel->backlight);
 	}
-
+#endif
+#if 1
+	if (panel->backlight) {
+		schedule_delayed_work(&panel->backlight_work,
+				      msecs_to_jiffies(350));
+		panel->backlight_work_pending = true;
+	}
+#endif
 	if (panel->info.esd_check_en) {
 		schedule_delayed_work(&panel->esd_work,
 				      msecs_to_jiffies(1000));
@@ -203,7 +434,21 @@ static int sprd_panel_enable(struct drm_panel *p)
 
 	return 0;
 }
-
+//
+void edp_reset(void){
+	if(sprd_mipi_panel!=NULL){
+	if (sprd_mipi_panel->info.reset_gpio) {
+		gpiod_direction_output(sprd_mipi_panel->info.reset_gpio, 0);
+	}
+	mdelay(3);
+	if (sprd_mipi_panel->info.reset_gpio) {
+		gpiod_direction_output(sprd_mipi_panel->info.reset_gpio, 1);
+	}
+	}
+	printk("edp_reset \n");
+}
+EXPORT_SYMBOL(edp_reset);
+//
 static int sprd_panel_get_modes(struct drm_panel *p)
 {
 	struct drm_display_mode *mode;
@@ -289,6 +534,27 @@ static int sprd_panel_esd_check(struct sprd_panel *panel)
 	}
 
 	return 0;
+}
+
+static void sprd_panel_backlight_work_func(struct work_struct *work)
+{
+	struct sprd_panel *panel = container_of(work, struct sprd_panel,
+						backlight_work.work);
+
+	if (panel->info.pwmen_gpio) {
+		gpiod_direction_output(panel->info.pwmen_gpio, 1);
+	}
+	mdelay(10);
+	if (panel->backlight) {
+		panel->backlight->props.power = FB_BLANK_UNBLANK;
+		panel->backlight->props.state &= ~BL_CORE_FBBLANK;
+		backlight_update_status(panel->backlight);
+	}
+	mdelay(15);
+	if (panel->info.lcdblen_gpio) {
+		gpiod_direction_output(panel->info.lcdblen_gpio, 1);
+	}
+
 }
 
 static int sprd_panel_te_check(struct sprd_panel *panel)
@@ -407,12 +673,79 @@ static int sprd_panel_gpio_request(struct device *dev,
 	if (IS_ERR_OR_NULL(panel->info.reset_gpio))
 		DRM_WARN("can't get panel reset gpio: %ld\n",
 				 PTR_ERR(panel->info.reset_gpio));
+	if (panel->info.reset_gpio) {
+		gpiod_direction_output(panel->info.reset_gpio, 1);
+	}
 
-	panel->info.lcd1v8_gpio = devm_gpiod_get_optional(dev,
-					"lcd1v8", GPIOD_ASIS);
-	if (IS_ERR_OR_NULL(panel->info.lcd1v8_gpio))
-		DRM_WARN("can't get panel lcd1v8 gpio: %ld\n",
-				 PTR_ERR(panel->info.lcd1v8_gpio));
+	panel->info.edp3v3_gpio = devm_gpiod_get_optional(dev,
+					"edp3v3", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.edp3v3_gpio))
+		DRM_WARN("can't get panel edp3v3 gpio: %ld\n",
+				 PTR_ERR(panel->info.edp3v3_gpio));
+	if (panel->info.edp3v3_gpio) {
+		gpiod_direction_output(panel->info.edp3v3_gpio, 1);
+	}
+
+	panel->info.edp1v2_gpio = devm_gpiod_get_optional(dev,
+					"edp1v2", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.edp1v2_gpio))
+		DRM_WARN("can't get panel edp1v2 gpio: %ld\n",
+				 PTR_ERR(panel->info.edp1v2_gpio));
+	if (panel->info.edp1v2_gpio) {
+		gpiod_direction_output(panel->info.edp1v2_gpio, 1);
+	}
+
+
+	panel->info.edp1v8_gpio = devm_gpiod_get_optional(dev,
+					"edp1v8", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.edp1v8_gpio))
+		DRM_WARN("can't get panel edp1v8 gpio: %ld\n",
+				 PTR_ERR(panel->info.edp1v8_gpio));
+	if (panel->info.edp1v8_gpio) {
+		gpiod_direction_output(panel->info.edp1v8_gpio, 1);
+	}
+
+
+	panel->info.lcm3v3_gpio = devm_gpiod_get_optional(dev,
+					"lcm3v3", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.lcm3v3_gpio))
+		DRM_WARN("can't get panel lcm3v3 gpio: %ld\n",
+				 PTR_ERR(panel->info.lcm3v3_gpio));
+	if (panel->info.lcm3v3_gpio) {
+		gpiod_direction_output(panel->info.lcm3v3_gpio, 1);
+	}
+
+	panel->info.edpiicen_gpio = devm_gpiod_get_optional(dev,
+					"edpiicen", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.edpiicen_gpio))
+		DRM_WARN("can't get panel edpiicen gpio: %ld\n",
+				 PTR_ERR(panel->info.edpiicen_gpio));
+	if (panel->info.edpiicen_gpio) {
+		gpiod_direction_output(panel->info.edpiicen_gpio, 1);
+		printk("edpiicen_gpio enable hi\n");
+	}
+
+	panel->info.pwmen_gpio = devm_gpiod_get_optional(dev,
+					"pwmen", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.pwmen_gpio))
+		DRM_WARN("can't get panel pwmen gpio: %ld\n",
+				 PTR_ERR(panel->info.pwmen_gpio));
+	if (panel->info.pwmen_gpio) {
+		gpiod_direction_output(panel->info.pwmen_gpio, 1);
+		printk("pwmen_gpio enable hi\n");
+	}
+
+	panel->info.lcdblen_gpio = devm_gpiod_get_optional(dev,
+					"lcdblen", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.lcdblen_gpio))
+		DRM_WARN("can't get panel lcdblen gpio: %ld\n",
+				 PTR_ERR(panel->info.lcdblen_gpio));
+	if (panel->info.lcdblen_gpio) {
+		gpiod_direction_output(panel->info.lcdblen_gpio, 1);
+		printk("lcdblen_gpio enable hi\n");
+	}
+
+//end
 	return 0;
 }
 
@@ -737,9 +1070,30 @@ static int sprd_panel_probe(struct mipi_dsi_device *slave)
 
 		return PTR_ERR(panel->supply);
 	}
+	ret = regulator_disable(panel->supply);
+        if (ret < 0)
+            DRM_ERROR("enable lcd regulator 5V failed\n");
+
+   // if (boardid ==2)
+	/*{
+        panel->supply_1v8 = devm_regulator_get(&slave->dev, "power1v8");
+        if (IS_ERR(panel->supply_1v8)) {
+            if (PTR_ERR(panel->supply_1v8) == -EPROBE_DEFER)
+                DRM_ERROR("regulator driver not initialized, probe deffer\n");
+            else
+                DRM_ERROR("can't get 1v8 regulator: %ld\n", PTR_ERR(panel->supply_1v8));
+
+            return PTR_ERR(panel->supply_1v8);
+        }
+
+        ret = regulator_disable(panel->supply_1v8);
+        if (ret < 0)
+            DRM_ERROR("enable lcd regulator 1v8 failed\n");
+
+    }*/
 
 	INIT_DELAYED_WORK(&panel->esd_work, sprd_panel_esd_work_func);
-
+	INIT_DELAYED_WORK(&panel->backlight_work, sprd_panel_backlight_work_func);
 	ret = sprd_panel_parse_dt(slave->dev.of_node, panel);
 	if (ret) {
 		DRM_ERROR("parse panel info failed\n");
@@ -795,6 +1149,11 @@ static int sprd_panel_probe(struct mipi_dsi_device *slave)
 				      msecs_to_jiffies(2000));
 		panel->esd_work_pending = true;
 	}
+panel->backlight_work_pending = false;
+	sprd_mipi_panel = panel;
+	spin_lock_init(&panel->lock);
+	panel->is_already_shutdown = false;
+	panel->is_should_shutdown = false;
 
 	DRM_INFO("panel driver probe success\n");
 

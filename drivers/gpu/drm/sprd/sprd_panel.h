@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -78,7 +79,16 @@ struct panel_info {
 	struct gpio_desc *avdd_gpio;
 	struct gpio_desc *avee_gpio;
 	struct gpio_desc *reset_gpio;
-	struct gpio_desc *lcd1v8_gpio;
+
+	struct gpio_desc *edp3v3_gpio;
+	struct gpio_desc *edp1v2_gpio;
+	struct gpio_desc *edp1v8_gpio;
+	struct gpio_desc *lcm3v3_gpio;
+	struct gpio_desc *edpiicen_gpio;
+
+	struct gpio_desc *pwmen_gpio;
+	struct gpio_desc *lcdblen_gpio;
+
 	struct reset_sequence rst_on_seq;
 	struct reset_sequence rst_off_seq;
 	const void *cmds[CMD_CODE_MAX];
@@ -105,8 +115,14 @@ struct sprd_panel {
 	struct panel_info info;
 	struct backlight_device *backlight;
 	struct regulator *supply;
+	struct regulator *supply_1v8;
 	struct delayed_work esd_work;
 	bool esd_work_pending;
+	struct delayed_work backlight_work;
+	bool backlight_work_pending;
+	bool is_already_shutdown;
+	bool is_should_shutdown;
+	spinlock_t lock;
 };
 
 #endif

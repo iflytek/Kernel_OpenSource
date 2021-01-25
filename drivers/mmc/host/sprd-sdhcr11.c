@@ -3,6 +3,7 @@
  * Interface driver
  *
  * Copyright (C) 2018 Spreadtrum corporation.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,26 +26,31 @@
 
 #include "sprd-sdhcr11.h"
 
+#ifdef CONFIG_MMC_SDHCI_BH201
+#include "sdhci-bh201.h"
+#endif
+
 #define DRIVER_NAME "sprd_sdhcr11"
 
+
 #ifdef CONFIG_PM
-static int sprd_sdhc_runtime_pm_get(struct sprd_sdhc_host *host)
+int sprd_sdhc_runtime_pm_get(struct sprd_sdhc_host *host)
 {
 	return pm_runtime_get_sync(host->mmc->parent);
 }
 
-static int sprd_sdhc_runtime_pm_put(struct sprd_sdhc_host *host)
+int sprd_sdhc_runtime_pm_put(struct sprd_sdhc_host *host)
 {
 	pm_runtime_mark_last_busy(host->mmc->parent);
 	return pm_runtime_put_autosuspend(host->mmc->parent);
 }
 #else
-static inline int sprd_sdhc_runtime_pm_get(struct sprd_sdhc_host *host)
+int sprd_sdhc_runtime_pm_get(struct sprd_sdhc_host *host)
 {
 	return 0;
 }
 
-static inline int sprd_sdhc_runtime_pm_put(struct sprd_sdhc_host *host)
+int sprd_sdhc_runtime_pm_put(struct sprd_sdhc_host *host)
 {
 	return 0;
 }
@@ -891,6 +897,9 @@ static irqreturn_t sprd_sdhc_irq(int irq, void *param)
 	sprd_sdhc_clear_int(host, intmask);
 	/* just care about the interrupt that we want */
 	intmask &= host->int_filter;
+#ifdef CONFIG_MMC_SDHCI_BH201
+	host->cmd->err_int_mask = intmask;
+#endif
 
 	while (intmask) {
 		int ret = 0;
@@ -1019,8 +1028,75 @@ static void sprd_sdhc_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	spin_unlock_irqrestore(&host->lock, flags);
 }
 
+#ifdef CONFIG_MMC_SDHCI_BH201
+static void bh201_signal_voltage_on_off(struct sprd_sdhc_host *host, u32 on_off)
+{
+/* bayhub chevron.li add for bh201 tuning at 20200114 start */
+#ifdef CONFIG_MMC_SDHCI_BH201
+		struct sdhci_host *sdhc_host = sprd_priv(host);
+#endif
+/* bayhub chevron.li add for bh201 tuning at 20200114 end */
+
+
+/* bayhub chevron.li add for bh201 tuning at 20200114 start */
+#ifdef CONFIG_MMC_SDHCI_BH201
+	if (on_off) {
+		if (bht_target_host(host)) {
+
+			//card_present_status = gpio_direction_input(GPIO_SD_CARD_PRESENT);
+			pr_info("%s: apply bht power on patch\n", mmc_hostname(host->mmc));
+
+			ggc_dll_voltage_init(sdhc_host);
+
+			ggc_chip_init(sdhc_host);
+
+			if(gpio_is_valid(host->pwr_gpio)){
+				gpio_set_value(host->pwr_gpio, 1);
+				pr_info("%s: pwr_gpio pin %d status is %d\n", mmc_hostname(host->mmc), host->pwr_gpio,\
+					gpio_get_value(host->pwr_gpio));
+			}else
+			{
+				pr_err("%s: no pwr_gpio provided\n", mmc_hostname(host->mmc));
+			}
+
+		}
+	 }	else {
+		if (bht_target_host(host)){
+
+			//card_present_status = gpio_direction_input(GPIO_SD_CARD_PRESENT);
+			pr_info("%s: apply bht power off patch\n", mmc_hostname(host->mmc));
+
+			ggc_dll_voltage_init(sdhc_host);
+			// when GPIO_SD_CARD_PRESENT is 1, the card is removed
+			if (mmc_gpio_get_cd(host->mmc) <= 0)
+			{
+				pr_info("%s: clear tuning result for power off and card removed\n", mmc_hostname(host->mmc));
+				ggc_tuning_result_reset(sdhc_host);
+			}
+			ggc_chip_init(sdhc_host);
+
+			if(gpio_is_valid(host->pwr_gpio)){
+
+				gpio_set_value(host->pwr_gpio, 0);
+				pr_info("%s: pwr_gpio pin %d status is %d\n", mmc_hostname(host->mmc), host->pwr_gpio,\
+					gpio_get_value(host->pwr_gpio));
+			}else
+			{
+				pr_err("%s: no pwr_gpio provided\n", mmc_hostname(host->mmc));
+			}
+
+		}
+	 }
+#endif
+/* bayhub chevron.li add for bh201 tuning at 20200114 end */
+
+}
+#endif
+
 static void sprd_signal_voltage_on_off(struct sprd_sdhc_host *host, u32 on_off)
 {
+
+
 	if (IS_ERR(host->mmc->supply.vqmmc)) {
 		pr_err("%s(%s) there is no signal voltage!\n",
 			__func__, host->device_name);
@@ -1290,8 +1366,13 @@ static void sprd_sdhc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		sprd_sdhc_clk_set_and_on(host, div);
 		sprd_sdhc_sd_clk_on(host);
 		host->ios.clock = ios->clock;
+#ifdef CONFIG_MMC_SDHCI_BH201
+//avoid BH201 issue#328[data timeout error]
+		host->data_timeout_val = 0x0E;
+#else
 		host->data_timeout_val = sprd_sdhc_calc_timeout(ios->clock,
 						SPRD_SDHC_MAX_TIMEOUT);
+#endif
 		mmc->max_busy_timeout = (1 << 31) / (ios->clock / 1000);
 
 		if (ios->clock <= 400000) {
@@ -1300,7 +1381,7 @@ static void sprd_sdhc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 					 SPRD_SDHC_REG_32_DLL_DLY);
 		}
 
-		if (ios->clock <= 400000 || ios->timing == MMC_TIMING_SD_HS ||
+/*		if (ios->clock <= 400000 || ios->timing == MMC_TIMING_SD_HS ||
 		    ios->clock == MMC_TIMING_MMC_HS ||
 		    ios->timing == MMC_TIMING_LEGACY)
 			sdhc_set_dll_invert(host, SPRD_SDHC_BIT_CMD_DLY_INV |
@@ -1309,7 +1390,28 @@ static void sprd_sdhc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 			sdhc_set_dll_invert(host, SPRD_SDHC_BIT_CMD_DLY_INV |
 					    SPRD_SDHC_BIT_POSRD_DLY_INV, 0);
 			sdhc_enable_auto_gate(host);
+		}*/
+
+		if ((ios->clock <= 400000 || ios->timing == MMC_TIMING_SD_HS ||
+		    ios->clock == MMC_TIMING_MMC_HS ||
+		    ios->timing == MMC_TIMING_LEGACY)
+#ifdef CONFIG_MMC_SDHCI_BH201
+			&& (strcmp(host->device_name, "sdio_sd"))
+#endif
+			)
+
+
+			sdhc_set_dll_invert(host, SPRD_SDHC_BIT_CMD_DLY_INV |
+					    SPRD_SDHC_BIT_POSRD_DLY_INV, 1);
+		else {
+			if(strcmp(host->device_name, "sdio_sd") == 0)
+				pr_err("remove invert ios->clock <= 400000 \n");
+			sdhc_set_dll_invert(host, SPRD_SDHC_BIT_CMD_DLY_INV |
+					    SPRD_SDHC_BIT_POSRD_DLY_INV, 0);
+			sdhc_enable_auto_gate(host);
 		}
+
+		pr_err("remove ios->clock <= 400000\n");
 	}
 
 	if (ios->power_mode != host->ios.power_mode) {
@@ -1322,8 +1424,17 @@ static void sprd_sdhc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 			spin_unlock_irqrestore(&host->lock, flags);
 			sprd_signal_voltage_on_off(host, 0);
 			if (!IS_ERR(mmc->supply.vmmc))
-				mmc_regulator_set_ocr(host->mmc,
-						mmc->supply.vmmc, 0);
+			{
+					mmc_regulator_set_ocr(host->mmc,
+				mmc->supply.vmmc, 0);
+
+			}
+#ifdef CONFIG_MMC_SDHCI_BH201
+			if(bht_target_host(host))
+			{
+				bh201_signal_voltage_on_off(host, 0);
+			}
+#endif
 			spin_lock_irqsave(&host->lock, flags);
 			sprd_reset_ios(host);
 			host->ios.power_mode = ios->power_mode;
@@ -1333,8 +1444,17 @@ static void sprd_sdhc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 			mmiowb();
 			spin_unlock_irqrestore(&host->lock, flags);
 			if (!IS_ERR(mmc->supply.vmmc))
+			{
 				mmc_regulator_set_ocr(host->mmc,
 					mmc->supply.vmmc, ios->vdd);
+
+			}
+#ifdef CONFIG_MMC_SDHCI_BH201
+			if(bht_target_host(host))
+			{
+				bh201_signal_voltage_on_off(host, 1);
+			}
+#endif
 			udelay(200);
 			sprd_signal_voltage_on_off(host, 1);
 			spin_lock_irqsave(&host->lock, flags);
@@ -1521,7 +1641,7 @@ static int sprd_sdhc_prepare_hs400_tuning(struct mmc_host *mmc,
 	return 0;
 }
 
-static int sprd_calc_tuning_range(struct sprd_sdhc_host *host, int *value_t)
+int sprd_calc_tuning_range(struct sprd_sdhc_host *host, int *value_t)
 {
 	int i;
 	bool prev_vl = 0;
@@ -1577,7 +1697,7 @@ static int sprd_calc_tuning_range(struct sprd_sdhc_host *host, int *value_t)
 	return range_count;
 }
 
-static int sprd_sdhc_execute_tuning(struct mmc_host *mmc, u32 opcode)
+int sprd_sdhc_execute_tuning(struct mmc_host *mmc, u32 opcode)
 {
 	struct sprd_sdhc_host *host = mmc_priv(mmc);
 
@@ -1771,7 +1891,13 @@ static const struct mmc_host_ops sprd_sdhc_ops = {
 	.card_busy = sprd_sdhc_card_busy,
 	.hw_reset = sprd_sdhc_emmc_hw_reset,
 	.prepare_hs400_tuning = sprd_sdhc_prepare_hs400_tuning,
+// bayhub chevron.li add for bh201 tuning at 2020/1/6 start
+#ifdef CONFIG_MMC_SDHCI_BH201
+	.execute_tuning = sdhci_bht_execute_tuning,
+#else
 	.execute_tuning = sprd_sdhc_execute_tuning,
+#endif
+// bayhub chevron.li add for bh201 tuning at 2020/1/6 end
 	.hs400_enhanced_strobe = sprd_sdhc_hs400_enhanced_strobe,
 };
 
@@ -1904,7 +2030,31 @@ static int sprd_get_dt_resource(struct platform_device *pdev,
 #endif
 		dev_info(&pdev->dev, "find sdio-adma\n");
 	}
+// bayhub chevron.li add for bh201 tuning at 2020/4/9 start
+/*  used to allocate GPIO resource to avoid collision  */
+#ifdef CONFIG_MMC_SDHCI_BH201
+	if(bht_target_host(host))
+	{
+		host->pwr_gpio = of_get_named_gpio(np, "pwr-gpios", 0);
+		if (!gpio_is_valid(host->pwr_gpio)) {
+			dev_err(&pdev->dev, "no pwr-gpio provided !\n");
+		}else
+		{
+			dev_info(&pdev->dev, "pwr-gpio provided\n");
+		}
 
+		if(gpio_is_valid(host->pwr_gpio)){
+			devm_gpio_request_one(&host->pdev->dev, host->pwr_gpio, GPIOF_OUT_INIT_LOW,
+				"sprd-1-pwr");
+			pr_info("%s: pwr_gpio pin %d\n", mmc_hostname(host->mmc), host->pwr_gpio);
+		}else
+		{
+			pr_err("%s: no pwr_gpio provided\n", mmc_hostname(host->mmc));
+		}
+
+	}
+#endif
+// bayhub chevron.li add for bh201 tuning at 2020/4/9 end
 	host->detect_gpio = of_get_named_gpio_flags(np, "cd-gpios", 0, &flags);
 	if (!gpio_is_valid(host->detect_gpio)) {
 		host->detect_gpio = -1;
@@ -2217,10 +2367,17 @@ static int sprd_sdhc_probe(struct platform_device *pdev)
 {
 	struct mmc_host *mmc;
 	struct sprd_sdhc_host *host;
+#ifdef CONFIG_MMC_SDHCI_BH201
+	struct sdhci_host *sdhci_host;
+#endif
 	int ret;
 
 	/* globe resource */
+#ifdef CONFIG_MMC_SDHCI_BH201
+	mmc = mmc_alloc_host(sizeof(struct sprd_sdhc_host)+sizeof(struct sdhci_host), &pdev->dev);
+#else
 	mmc = mmc_alloc_host(sizeof(struct sprd_sdhc_host), &pdev->dev);
+#endif
 	if (!mmc) {
 		dev_err(&pdev->dev, "no memory for mmc host\n");
 		return -ENOMEM;
@@ -2228,6 +2385,13 @@ static int sprd_sdhc_probe(struct platform_device *pdev)
 
 	host = mmc_priv(mmc);
 	host->mmc = mmc;
+// bayhub chevron.li add for bh201 tuning at 2020/1/8 start
+#ifdef CONFIG_MMC_SDHCI_BH201
+	host->hw_name = dev_name(&pdev->dev);
+	sdhci_host = sprd_priv(host);
+	sdhci_host->mmc = mmc;
+#endif
+// bayhub chevron.li add for bh201 tuning at 2020/1/8 end
 	host->pdev = pdev;
 	host->flags = 0;
 	spin_lock_init(&host->lock);
@@ -2284,6 +2448,10 @@ static int sprd_sdhc_probe(struct platform_device *pdev)
 	return 0;
 
 err_free_host:
+#ifdef CONFIG_MMC_SDHCI_BH201
+	if(gpio_is_valid(host->pwr_gpio))
+		devm_gpio_free(&host->pdev->dev, host->pwr_gpio);
+#endif
 	mmc_free_host(mmc);
 	return ret;
 }
@@ -2292,7 +2460,10 @@ static int sprd_sdhc_remove(struct platform_device *pdev)
 {
 	struct sprd_sdhc_host *host = platform_get_drvdata(pdev);
 	struct mmc_host *mmc = host->mmc;
-
+#ifdef CONFIG_MMC_SDHCI_BH201
+	if(gpio_is_valid(host->pwr_gpio))
+		devm_gpio_free(&host->pdev->dev, host->pwr_gpio);
+#endif
 	mmc_remove_host(mmc);
 	clk_disable_unprepare(host->clk);
 	clk_disable_unprepare(host->sdio_ahb);

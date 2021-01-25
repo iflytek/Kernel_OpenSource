@@ -1,3 +1,4 @@
+# Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
 # SPDX-License-Identifier: GPL-2.0
 dtb-$(CONFIG_ARCH_SPRD) += sc9836-openphone.dtb \
 			   sp9860g-1h10.dtb	\
@@ -32,6 +33,7 @@ dtb-$(CONFIG_ARCH_SPRD) += sc9836-openphone.dtb \
 			   ums312-20c10.dtb	\
 			   ums518-haps.dtb	\
 			   ums518-haps-bkd.dtb  \
+			   ctg2-hw-val.dtb  \
 			   sp9832ep-haps.dtb
 
 dtbo-$(CONFIG_ARCH_SPRD) += \
@@ -57,6 +59,7 @@ dtbo-$(CONFIG_ARCH_SPRD) += \
 	ud710-20c11-overlay.dtbo \
 	ums518-haps-overlay.dtbo \
 	ums518-haps-bkd-overlay.dtbo \
+	ctg2-hw-val-overlay.dtbo  \
 	sp9832ep-haps-overlay.dtbo
 
 always		:= $(dtb-y) $(dtbo-y)

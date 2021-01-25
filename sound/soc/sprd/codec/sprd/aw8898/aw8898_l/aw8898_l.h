@@ -20,11 +20,42 @@
 
 #define AW8898_L_START_WORK_DELAY_MS      400
 
-//#define AW8898_L_VBAT_MONITOR
+#define AW8898_L_BST_ILIMIT_4P5A          ( 7<< 4)
+#define AW8898_L_BST_ILIMIT_4P25A         ( 6<< 4)
+#define AW8898_L_BST_ILIMIT_4A            ( 5<< 4)
+#define AW8898_L_BST_ILIMIT_3P75A         ( 4<< 4)
+#define AW8898_L_BST_ILIMIT_3P5A          ( 3<< 4)
+#define AW8898_L_BST_ILIMIT_3P25A         ( 2<< 4)
+#define AW8898_L_BST_ILIMIT_3A            ( 1<< 4)
+#define AW8898_L_BST_ILIMIT_2P75A         ( 0<< 4)
+#define AW8898_L_BST_VOUT_10P25V          (15<< 0)
+#define AW8898_L_BST_VOUT_10V             (14<< 0)
+#define AW8898_L_BST_VOUT_9P75V           (13<< 0)
+#define AW8898_L_BST_VOUT_9P5V            (12<< 0)
+#define AW8898_L_BST_VOUT_9P25V           (11<< 0)
+#define AW8898_L_BST_VOUT_9V              (10<< 0)
+#define AW8898_L_BST_VOUT_8P75V           ( 9<< 0)
+#define AW8898_L_BST_VOUT_8P5V            ( 8<< 0)
+#define AW8898_L_BST_VOUT_8P25V           ( 7<< 0)
+#define AW8898_L_BST_VOUT_8V              ( 6<< 0)
+#define AW8898_L_BST_VOUT_7P75V           ( 5<< 0)
+#define AW8898_L_BST_VOUT_7P5V            ( 4<< 0)
+#define AW8898_L_BST_VOUT_7P25V           ( 3<< 0)
+#define AW8898_L_BST_VOUT_7V              ( 2<< 0)
+#define AW8898_L_BST_VOUT_6P75V           ( 1<< 0)
+#define AW8898_L_BST_VOUT_6P5V            ( 0<< 0)
+#define AW8898_L_VBAT_MONITOR
 #ifdef AW8898_L_VBAT_MONITOR
-#define SYS_BAT_DEV "/sys/class/power_supply/battery/voltage_now"
-#define AW8898_L_SYS_VBAT_LIMIT           3600000
-#define AW8898_L_SYS_VBAT_MIN             3000000
+#define SYS_BAT_VBAT "/sys/class/power_supply/battery/voltage_now"
+#define SYS_BAT_SOC "/sys/class/power_supply/battery/capacity"
+#define AW8898_L_SYS_VBAT_UP              3700000
+#define AW8898_L_SYS_VBAT_DOWN            3600000
+#define AW8898_L_SYS_VBAT_SOC_UP          30
+#define AW8898_L_SYS_VBAT_SOC_DOWN        20
+#define AW8898_L_IPEAK_LOW        	      AW8898_L_BST_ILIMIT_2P75A
+#define AW8898_L_IPEAK_HIGH        	      AW8898_L_BST_ILIMIT_3P5A
+#define AW8898_L_VMAX_LOW        	      AW8898_L_BST_VOUT_7P5V
+#define AW8898_L_VMAX_HIGH         	      AW8898_L_BST_VOUT_9P5V
 #endif
 
 
@@ -74,5 +105,7 @@ struct aw8898_l_container{
     unsigned char data[];
 };
 
-
+#ifdef AW8898_L_VBAT_MONITOR
+static int aw8898_l_get_sys_battery_info(char *dev);
+#endif
 #endif

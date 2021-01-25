@@ -1,3 +1,6 @@
+# Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
+# SPDX-License-Identifier: GPL-2.0-only
+
 ccflags-y += -Iinclude/drm
 subdir-ccflags-y += -Idrivers/staging/android/ion/
 subdir-ccflags-y += -Idrivers/devfreq/apsys/
@@ -29,3 +32,5 @@ obj-y += roc1/
 obj-$(CONFIG_DRM_SPRD_GSP) += gsp/
 
 obj-$(CONFIG_DRM_SPRD_HDMI) += lt9611_i2c.o
+
+obj-$(CONFIG_LT9711EXB_LONTIUM)		+= edp/

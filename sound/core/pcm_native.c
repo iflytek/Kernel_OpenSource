@@ -1,6 +1,7 @@
 /*
  *  Digital Audio (PCM) abstract layer
  *  Copyright (c) by Jaroslav Kysela <perex@perex.cz>
+ *  Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -1473,7 +1474,7 @@ int snd_pcm_suspend_all(struct snd_pcm *pcm)
 		for (substream = pcm->streams[stream].substream;
 		     substream; substream = substream->next) {
 			/* FIXME: the open/close code should lock this as well */
-			if (substream->runtime == NULL)
+			if (substream->runtime == NULL || !substream->ops)
 				continue;
 			err = snd_pcm_suspend(substream);
 			if (err < 0 && err != -EBUSY)

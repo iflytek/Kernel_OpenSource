@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 // Copyright (C) 2018 Spreadtrum Communications Inc.
+// Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -11,8 +12,6 @@
 #include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/power/charger-manager.h>
-#include <linux/usb/tcpm.h>
-#include <linux/usb/pd.h>
 
 #define FCHG1_TIME1				0x0
 #define FCHG1_TIME2				0x4
@@ -53,7 +52,7 @@
 #define FCHG_TIME2_MASK				GENMASK(11, 0)
 #define FCHG_DET_VOL_MASK			GENMASK(1, 0)
 #define FCHG_DET_VOL_SHIFT			3
-#define FCHG_DET_VOL_EXIT_SFCP			3
+#define FCHG_DET_VOL_EXIT_SFCP      3
 #define FCHG_CALI_MASK				GENMASK(15, 9)
 #define FCHG_CALI_SHIFT				9
 
@@ -76,19 +75,24 @@
 #define SC2730_FCHG_TIMEOUT			msecs_to_jiffies(5000)
 #define SC2730_FAST_CHARGER_DETECT_MS		msecs_to_jiffies(1000)
 
-#define SC2730_PD_START_POWER_MW		18000
-#define SC2730_PD_STOP_POWER_MW			10000
+static int sc2730_debug_mask;
+module_param_named(
+    sc2730_debug_mask, sc2730_debug_mask, int, 00600
+);
+
+#define pr_dbg(fmt, ...)                \
+    do {                            \
+        if (sc2730_debug_mask)       \
+            pr_err(fmt, ##__VA_ARGS__);   \
+    } while (0)
 
 struct sc2730_fchg_info {
 	struct device *dev;
 	struct regmap *regmap;
 	struct usb_phy *usb_phy;
 	struct notifier_block usb_notify;
-	struct notifier_block pd_notify;
 	struct power_supply *psy_usb;
-	struct power_supply *psy_tcpm;
 	struct delayed_work work;
-	struct work_struct pd_change_work;
 	struct mutex lock;
 	struct completion completion;
 	u32 state;
@@ -96,8 +100,6 @@ struct sc2730_fchg_info {
 	int input_vol;
 	u32 limit;
 	bool detected;
-	bool pd_enable;
-	bool sfcp_enable;
 };
 
 static int sc2730_fchg_internal_cur_calibration(struct sc2730_fchg_info *info)
@@ -157,6 +159,7 @@ static irqreturn_t sc2730_fchg_interrupt(int irq, void *dev_id)
 	u32 int_sts, int_sts0;
 	int ret;
 
+	pr_dbg("fqchen %s start\n", __func__);
 	ret = regmap_read(info->regmap, info->base + FCHG_INT_STS, &int_sts);
 	if (ret)
 		return IRQ_RETVAL(ret);
@@ -184,13 +187,14 @@ static irqreturn_t sc2730_fchg_interrupt(int irq, void *dev_id)
 			 "met some errors, now status = 0x%x, status0 = 0x%x\n",
 			 int_sts, int_sts0);
 
-	if (info->state == POWER_SUPPLY_USB_TYPE_PD)
-		dev_info(info->dev, "Already PD, don't update SFCP\n");
-	else if ((int_sts & FCHG_INT_STS_DETDONE) && (int_sts0 & FCHG_OUT_OK_BIT))
+	if ((int_sts & FCHG_INT_STS_DETDONE) && (int_sts0 & FCHG_OUT_OK_BIT)) {
+        pr_dbg("fqchen %s here set is_fchg flag\n", __func__);
 		info->state = POWER_SUPPLY_CHARGE_TYPE_FAST;
-	else
+    } else {
 		info->state = POWER_SUPPLY_CHARGE_TYPE_TRICKLE;
+    }
 
+	pr_dbg("fqchen %s info->state = %d\n", __func__, info->state);
 	complete(&info->completion);
 
 	return IRQ_HANDLED;
@@ -226,25 +230,19 @@ static int sc2730_fchg_usb_change(struct notifier_block *nb,
 		container_of(nb, struct sc2730_fchg_info, usb_notify);
 
 	info->limit = limit;
-	if (!info->limit) {
-		cancel_delayed_work(&info->work);
-		schedule_delayed_work(&info->work, 0);
-	} else {
-		/*
-		 * There is a confilt between charger detection and fast charger
-		 * detection, and BC1.2 detection time consumption is <300ms,
-		 * so we delay fast charger detection to avoid this issue.
-		 */
-		schedule_delayed_work(&info->work, SC2730_FAST_CHARGER_DETECT_MS);
-	}
-
+	/*
+	 * There is a confilt between charger detection and fast charger
+	 * detection, and BC1.2 detection time consumption is <300ms,
+	 * so we delay fast charger detection to avoid this issue.
+	 */
+	schedule_delayed_work(&info->work, SC2730_FAST_CHARGER_DETECT_MS);
 	return NOTIFY_OK;
 }
 
 static u32 sc2730_fchg_get_detect_status(struct sc2730_fchg_info *info)
 {
 	unsigned long timeout;
-	int ret;
+	int ret = 0;
 
 	/*
 	 * In cold boot phase, system will detect fast charger status,
@@ -252,8 +250,10 @@ static u32 sc2730_fchg_get_detect_status(struct sc2730_fchg_info *info)
 	 * to detect fast charger status, so we detect fast charger
 	 * status only when DCP charger is plugged in
 	 */
-	if (info->usb_phy->chg_type != DCP_TYPE)
+	pr_dbg("fqchen %s info->usb_phy->chg_type = %d\n", __func__, info->usb_phy->chg_type);
+	if (info->usb_phy->chg_type != DCP_TYPE) {
 		return POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
+    }
 
 	reinit_completion(&info->completion);
 
@@ -363,9 +363,8 @@ static void sc2730_fchg_disable(struct sc2730_fchg_info *info)
 		dev_err(info->dev, "failed to disable charger clock.\n");
 }
 
-
-static int sc2730_fchg_sfcp_adjust_voltage(struct sc2730_fchg_info *info,
-					   u32 input_vol)
+static int sc2730_fchg_adjust_voltage(struct sc2730_fchg_info *info,
+				      u32 input_vol)
 {
 	int ret, value;
 
@@ -379,8 +378,8 @@ static int sc2730_fchg_sfcp_adjust_voltage(struct sc2730_fchg_info *info,
 		value = 3;
 
 	ret = regmap_update_bits(info->regmap, info->base + FCHG_CTRL,
-			FCHG_DET_VOL_MASK << FCHG_DET_VOL_SHIFT,
-			(value & FCHG_DET_VOL_MASK) << FCHG_DET_VOL_SHIFT);
+		FCHG_DET_VOL_MASK << FCHG_DET_VOL_SHIFT,
+		(value & FCHG_DET_VOL_MASK) << FCHG_DET_VOL_SHIFT);
 	if (ret) {
 		dev_err(info->dev,
 			"failed to set fast charger detect voltage.\n");
@@ -389,152 +388,6 @@ static int sc2730_fchg_sfcp_adjust_voltage(struct sc2730_fchg_info *info,
 
 	return 0;
 }
-
-
-static const u32 sc2730_snk_pdo[] = {
-	PDO_FIXED(5000, 2000, 0),
-};
-
-static const u32 sc2730_snk9v_pdo[] = {
-	PDO_FIXED(5000, 2000, 0),
-	PDO_FIXED(9000, 2000, 0),
-};
-
-#ifdef CONFIG_TYPEC_TCPM
-static int sc2730_fchg_pd_adjust_voltage(struct sc2730_fchg_info *info,
-					 u32 input_vol)
-{
-	struct tcpm_port *port;
-	int ret;
-
-	if (!info->psy_tcpm) {
-		dev_err(info->dev, "psy_tcpm is NULL !!!\n");
-		return -EINVAL;
-	}
-
-	port = power_supply_get_drvdata(info->psy_tcpm);
-	if (!port) {
-		dev_err(info->dev, "failed to get tcpm port\n");
-		return -EINVAL;
-	}
-
-	if (input_vol < FCHG_VOLTAGE_9V) {
-		ret = tcpm_update_sink_capabilities(port, sc2730_snk_pdo,
-						    ARRAY_SIZE(sc2730_snk_pdo),
-						    SC2730_PD_STOP_POWER_MW);
-		if (ret) {
-			dev_err(info->dev,
-				"failed to set pd 5V ret = %d\n", ret);
-			return ret;
-		}
-	} else if (input_vol < FCHG_VOLTAGE_12V) {
-		ret = tcpm_update_sink_capabilities(port, sc2730_snk9v_pdo,
-						    ARRAY_SIZE(sc2730_snk9v_pdo),
-						    SC2730_PD_START_POWER_MW);
-		if (ret) {
-			dev_err(info->dev,
-				"failed to set pd 9V ret = %d\n", ret);
-			return ret;
-		}
-	}
-
-	return 0;
-}
-
-static int sc2730_fchg_pd_change(struct notifier_block *nb,
-				 unsigned long event, void *data)
-{
-	struct sc2730_fchg_info *info =
-		container_of(nb, struct sc2730_fchg_info, pd_notify);
-	struct power_supply *psy = data;
-
-	if (strcmp(psy->desc->name, "tcpm-source-psy-sc27xx-pd") != 0)
-		goto out;
-
-	if (event != PSY_EVENT_PROP_CHANGED)
-		goto out;
-
-	info->psy_tcpm = data;
-
-	schedule_work(&info->pd_change_work);
-
-out:
-	return NOTIFY_OK;
-}
-
-static void sc2730_fchg_pd_change_work(struct work_struct *data)
-{
-	struct sc2730_fchg_info *info =
-		container_of(data, struct sc2730_fchg_info, pd_change_work);
-	union power_supply_propval val;
-	struct tcpm_port *port;
-	int pd_type, ret;
-
-	mutex_lock(&info->lock);
-
-	if (!info->psy_tcpm) {
-		dev_err(info->dev, "psy_tcpm NULL !!!\n");
-		goto out;
-	}
-
-	port = power_supply_get_drvdata(info->psy_tcpm);
-	if (!port) {
-		dev_err(info->dev, "failed to get tcpm port!\n");
-		goto out;
-	}
-
-	ret = power_supply_get_property(info->psy_tcpm,
-					POWER_SUPPLY_PROP_USB_TYPE,
-					&val);
-	if (ret) {
-		dev_err(info->dev, "failed to get pd type\n");
-		goto out;
-	}
-
-	pd_type = val.intval;
-	if (pd_type == POWER_SUPPLY_USB_TYPE_PD_PPS ||
-	    pd_type == POWER_SUPPLY_USB_TYPE_PD) {
-		info->pd_enable = true;
-		info->state = POWER_SUPPLY_USB_TYPE_PD;
-		mutex_unlock(&info->lock);
-		cm_notify_event(info->psy_usb, CM_EVENT_FAST_CHARGE, NULL);
-		goto out1;
-	} else if (pd_type == POWER_SUPPLY_USB_TYPE_C) {
-		info->pd_enable = false;
-		if (info->state != POWER_SUPPLY_CHARGE_TYPE_FAST)
-			info->state = POWER_SUPPLY_USB_TYPE_C;
-		ret = tcpm_update_sink_capabilities(port, sc2730_snk_pdo,
-						    ARRAY_SIZE(sc2730_snk_pdo),
-						    SC2730_PD_STOP_POWER_MW);
-		if (ret) {
-			dev_err(info->dev,
-				"failed to adjust pd 5V ret = %d\n", ret);
-			goto out;
-		}
-	}
-
-out:
-	mutex_unlock(&info->lock);
-
-out1:
-	dev_info(info->dev, "pd type = %d\n", pd_type);
-}
-#else
-static int sc2730_fchg_pd_adjust_voltage(struct sc2730_fchg_info *info,
-					 u32 input_vol)
-{
-	return 0;
-}
-static int sc2730_fchg_pd_change(struct notifier_block *nb,
-				 unsigned long event, void *data)
-{
-	return NOTIFY_OK;
-}
-static void sc2730_fchg_pd_change_work(struct work_struct *data)
-{
-
-}
-#endif
 
 static int sc2730_fchg_usb_get_property(struct power_supply *psy,
 					enum power_supply_property psp,
@@ -547,7 +400,10 @@ static int sc2730_fchg_usb_get_property(struct power_supply *psy,
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-		val->intval = info->state;
+		val->intval = sc2730_fchg_get_detect_status(info);
+		pr_dbg("fqchen %s val->intval = %d\n", __func__, val->intval);
+		if (val->intval != POWER_SUPPLY_CHARGE_TYPE_FAST)
+			sc2730_fchg_disable(info);
 		break;
 
 	default:
@@ -569,15 +425,9 @@ static int sc2730_fchg_usb_set_property(struct power_supply *psy,
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
-		if (info->pd_enable) {
-			ret = sc2730_fchg_pd_adjust_voltage(info, val->intval);
-			if (ret)
-				dev_err(info->dev, "failed to adjust pd vol\n");
-		} else if (info->sfcp_enable) {
-			ret = sc2730_fchg_sfcp_adjust_voltage(info, val->intval);
-			if (ret)
-				dev_err(info->dev, "failed to adjust sfcp vol\n");
-		}
+		ret = sc2730_fchg_adjust_voltage(info, val->intval);
+		if (ret < 0)
+			dev_err(info->dev, "failed to adjust fchg voltage\n");
 		break;
 
 	default:
@@ -591,7 +441,18 @@ static int sc2730_fchg_usb_set_property(struct power_supply *psy,
 static int sc2730_fchg_property_is_writeable(struct power_supply *psy,
 					     enum power_supply_property psp)
 {
-	return psp == POWER_SUPPLY_PROP_VOLTAGE_MAX;
+	int ret;
+
+	switch (psp) {
+	case  POWER_SUPPLY_PROP_VOLTAGE_MAX:
+		ret = 1;
+		break;
+
+	default:
+		ret = 0;
+	}
+
+	return ret;
 }
 
 static enum power_supply_property sc2730_fchg_usb_props[] = {
@@ -620,23 +481,17 @@ static void sc2730_fchg_work(struct work_struct *data)
 	if (!info->limit) {
 		info->state = POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
 		info->detected = false;
-		info->sfcp_enable = false;
 		sc2730_fchg_disable(info);
 	} else if (!info->detected) {
 		info->detected = true;
-		if (info->pd_enable) {
-			sc2730_fchg_disable(info);
-		} else if (sc2730_fchg_get_detect_status(info) ==
+		if (sc2730_fchg_get_detect_status(info) ==
 		    POWER_SUPPLY_CHARGE_TYPE_FAST) {
 			/*
 			 * Must release info->lock before send fast charge event
 			 * to charger manager, otherwise it will cause deadlock.
 			 */
-			info->sfcp_enable = true;
 			mutex_unlock(&info->lock);
 			cm_notify_event(info->psy_usb, CM_EVENT_FAST_CHARGE, NULL);
-			dev_info(info->dev, "pd_enable = %d, sfcp_enable = %d\n",
-				info->pd_enable, info->sfcp_enable);
 			return;
 		} else {
 			sc2730_fchg_disable(info);
@@ -644,9 +499,6 @@ static void sc2730_fchg_work(struct work_struct *data)
 	}
 
 	mutex_unlock(&info->lock);
-
-	dev_info(info->dev, "pd_enable = %d, sfcp_enable = %d\n",
-		 info->pd_enable, info->sfcp_enable);
 }
 
 static int sc2730_fchg_probe(struct platform_device *pdev)
@@ -664,7 +516,6 @@ static int sc2730_fchg_probe(struct platform_device *pdev)
 	info->dev = &pdev->dev;
 	info->state = POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
 	INIT_DELAYED_WORK(&info->work, sc2730_fchg_work);
-	INIT_WORK(&info->pd_change_work, sc2730_fchg_pd_change_work);
 	init_completion(&info->completion);
 
 	info->regmap = dev_get_regmap(pdev->dev.parent, NULL);
@@ -718,14 +569,6 @@ static int sc2730_fchg_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	info->pd_notify.notifier_call = sc2730_fchg_pd_change;
-	ret = power_supply_reg_notifier(&info->pd_notify);
-	if (ret) {
-		dev_err(info->dev, "failed to register pd notifier:%d\n", ret);
-		usb_unregister_notifier(info->usb_phy, &info->usb_notify);
-		return ret;
-	}
-
 	charger_cfg.drv_data = info;
 	charger_cfg.of_node = np;
 
@@ -735,7 +578,6 @@ static int sc2730_fchg_probe(struct platform_device *pdev)
 	if (IS_ERR(info->psy_usb)) {
 		dev_err(&pdev->dev, "failed to register power supply\n");
 		usb_unregister_notifier(info->usb_phy, &info->usb_notify);
-		power_supply_unreg_notifier(&info->pd_notify);
 		return PTR_ERR(info->psy_usb);
 	}
 
@@ -755,22 +597,22 @@ static int sc2730_fchg_remove(struct platform_device *pdev)
 
 static void sc2730_fchg_shutdown(struct platform_device *pdev)
 {
-	struct sc2730_fchg_info *info = platform_get_drvdata(pdev);
-	int ret;
-	u32 value = FCHG_DET_VOL_EXIT_SFCP;
+    struct sc2730_fchg_info *info = platform_get_drvdata(pdev);
+    int ret;
+    u32 value = FCHG_DET_VOL_EXIT_SFCP;
 
-	/*
-	 * SFCP will handsharke failed from charging in shut down
-	 * to charging in power up, because SFCP is not exit before
-	 * shut down. Set bit3:4 to 2b'11 to exit SFCP.
-	 */
+    /*
+     * SFCP will handsharke failed from charging in shut down
+     * to charging in power up, because SFCP is not exit before
+     * shut down. Set bit3:4 to 2b'11 to exit SFCP.
+     */
 
-	ret = regmap_update_bits(info->regmap, info->base + FCHG_CTRL,
-			FCHG_DET_VOL_MASK << FCHG_DET_VOL_SHIFT,
-			(value & FCHG_DET_VOL_MASK) << FCHG_DET_VOL_SHIFT);
-	if (ret)
-		dev_err(info->dev,
-			"failed to set fast charger detect voltage.\n");
+    ret = regmap_update_bits(info->regmap, info->base + FCHG_CTRL,
+            FCHG_DET_VOL_MASK << FCHG_DET_VOL_SHIFT,
+            (value & FCHG_DET_VOL_MASK) << FCHG_DET_VOL_SHIFT);
+    if (ret)
+        dev_err(info->dev,
+                "failed to set fast charger detect voltage.\n");
 }
 
 static const struct of_device_id sc2730_fchg_of_match[] = {
@@ -785,7 +627,7 @@ static struct platform_driver sc2730_fchg_driver = {
 	},
 	.probe = sc2730_fchg_probe,
 	.remove = sc2730_fchg_remove,
-	.shutdown = sc2730_fchg_shutdown,
+    .shutdown = sc2730_fchg_shutdown,
 };
 
 module_platform_driver(sc2730_fchg_driver);

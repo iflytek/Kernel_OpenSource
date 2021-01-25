@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2016-2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
  * may be copied, distributed, and modified under those terms.
@@ -45,6 +47,8 @@
 
 static int (*scan_card_notify)(void);
 static struct wcn_pcie_info *g_pcie_dev;
+
+
 
 void wcn_dump_ep_mems(struct wcn_pcie_info *priv)
 {
@@ -1073,6 +1077,8 @@ static void sprd_pcie_remove(struct pci_dev *pdev)
 	WCN_INFO("%s end\n", __func__);
 }
 
+
+
 static int sprd_ep_suspend(struct device *dev)
 {
 	int ret;
@@ -1080,11 +1086,16 @@ static int sprd_ep_suspend(struct device *dev)
 	int chn;
 	struct pci_dev *pdev = to_pci_dev(dev);
 	struct wcn_pcie_info *priv = pci_get_drvdata(pdev);
+	struct edma_info *edma =edma_info();
 
 	WCN_INFO("%s[+]\n", __func__);
 	if (!pdev)
 		return 0;
 
+	if (chn == 10){
+       del_timer(&edma->edma_wf_tx_timer);
+	   //WCN_INFO("%s del_timer", __func__);
+	}
 	wcn_bus_change_state(priv, WCN_BUS_DOWN);
 	atomic_set(&priv->is_suspending, 1);
 
@@ -1114,6 +1125,7 @@ static int sprd_ep_suspend(struct device *dev)
 	WCN_INFO("pci_enable_wake(PCI_D3hot) ret %d\n", ret);
 	ret = pci_set_power_state(pdev, PCI_D3hot);
 	WCN_INFO("pci_set_power_state(PCI_D3hot) ret %d\n", ret);
+
 	WCN_INFO("%s[-]\n", __func__);
 
 	return 0;

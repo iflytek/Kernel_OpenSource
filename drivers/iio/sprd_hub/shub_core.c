@@ -2,6 +2,7 @@
  * File:shub_core.c
  *
  * Copyright (C) 2015 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by
@@ -1008,7 +1009,7 @@ static void shub_save_calibration_data(struct work_struct *work)
 		calibration_filename[sensor->cal_id]);
 	dev_info(&sensor->sensor_pdev->dev,
 		 "sensor_id=%d,file_path=%s\n", sensor->cal_id, file_path);
-	pfile = filp_open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+	pfile = filp_open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (IS_ERR(pfile)) {
 		err = PTR_ERR(pfile);
 		dev_err(&sensor->sensor_pdev->dev,

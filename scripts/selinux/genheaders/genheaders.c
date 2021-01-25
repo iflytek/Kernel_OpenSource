@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0
+// Modified: Anhui Yunshu Zhihui Technology Co., Ltd.
 
 /* NOTE: we really do want to use the kernel headers here */
 #define __EXPORTED_HEADERS__
@@ -9,7 +10,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-#include <sys/socket.h>
+//#include <sys/socket.h>
 
 struct security_class_mapping {
 	const char *name;

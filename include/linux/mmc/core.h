@@ -1,6 +1,8 @@
 /*
  *  linux/include/linux/mmc/core.h
  *
+ * Modified: Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
@@ -94,7 +96,9 @@ struct mmc_command {
 
 	unsigned int		retries;	/* max number of retries */
 	int			error;		/* command error */
-
+#ifdef CONFIG_MMC_SDHCI_BH201
+	unsigned int		err_int_mask;	//bh201
+#endif
 /*
  * Standard errno values are used for errors, but some have specific
  * meaning in the MMC layer:
@@ -110,6 +114,9 @@ struct mmc_command {
  */
 
 	unsigned int		busy_timeout;	/* busy detect timeout in ms */
+#ifdef CONFIG_MMC_SDHCI_BH201
+	unsigned int		sw_cmd_timeout;
+#endif
 	/* Set this flag only for blocking sanitize request */
 	bool			sanitize_busy;
 
@@ -125,6 +132,9 @@ struct mmc_data {
 	unsigned int		blk_addr;	/* block address */
 	int			error;		/* data error */
 	unsigned int		flags;
+#ifdef CONFIG_MMC_SDHCI_BH201
+	unsigned int		err_int_mask;
+#endif
 
 #define MMC_DATA_WRITE		BIT(8)
 #define MMC_DATA_READ		BIT(9)

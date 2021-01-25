@@ -450,8 +450,8 @@ config CHARGER_MANAGER
           runtime and in suspend-to-RAM by waking up the system periodically
           with help of suspend_again support.
 
-config IFLYTEK_CHARGER_MANAGER
-	bool "Battery charger manager for iflytek multiple chargers"
+config CUSTOM_CHARGER_MANAGER
+	bool "Battery charger manager for multiple chargers"
 	depends on REGULATOR
 	select EXTCON
 	help

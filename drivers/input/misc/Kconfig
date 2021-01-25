@@ -1,6 +1,8 @@
 #
 # Input misc drivers configuration
 #
+# SPDX-License-Identifier: GPL-2.0-only
+#
 menuconfig INPUT_MISC
 	bool "Miscellaneous devices"
 	help
@@ -881,4 +883,9 @@ config INPUT_SC27XX_VIBRA
 	  To compile this driver as a module, choose M here. The module will
 	  be called sc27xx_vibra.
 
+##SPRD EDP driver
+##
+source "drivers/input/misc/tcs3430/Kconfig"
+source drivers/input/misc/ak09973/Kconfig
+source "drivers/input/misc/ucs12cm0/Kconfig"
 endif

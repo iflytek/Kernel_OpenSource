@@ -1,3 +1,6 @@
+# Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
+# SPDX-License-Identifier: GPL-2.0-only
+
 config DRM_SPRD
 	tristate "DRM Support for Spreadtrum SoCs Platform"
 	depends on DRM && OF
@@ -21,3 +24,7 @@ config DRM_SPRD_HDMI
 	bool "SPRD DRM HDMI DRIVER"
 	help
 	  Choose this option when you need mipi switch hdmi.
+
+##SPRD EDP driver
+##
+source "drivers/gpu/drm/sprd/edp/Kconfig"

@@ -2,6 +2,7 @@
  * CPUFreq governor based on scheduler-provided CPU utilization data.
  *
  * Copyright (C) 2016, Intel Corporation
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,8 +20,9 @@
 
 #include "sched.h"
 
-#define MIN_CAP_CPUMASK_FREQ_MARGIN 0
-#define OTHER_CPUMASK_FREQ_MARGIN -10
+
+#define MIN_CAP_CPUMASK_FREQ_MARGIN 50
+#define OTHER_CPUMASK_FREQ_MARGIN 30
 
 unsigned long cpu_util_freq(int cpu);
 unsigned long boosted_cpu_util(int cpu, unsigned long other_util);

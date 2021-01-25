@@ -4,6 +4,7 @@
  * SPRD SoC VBC Codec -- SpreadTrum SOC VBC Codec function.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -808,6 +809,7 @@ static int vbc_dmic_chn_sel_put(struct snd_kcontrol *kcontrol,
 		return -EINVAL;
 	}
 	vbc_codec->dmic_chn_sel = ucontrol->value.integer.value[0];
+	sp_asoc_pr_info("set dmic_chn_sel 0x%x\n", vbc_codec->dmic_chn_sel);
 
 	return 0;
 }
@@ -3079,9 +3081,8 @@ static int vbc_put_dump_pos(struct snd_kcontrol *kcontrol,
 		return -EINVAL;
 	}
 
-	sp_asoc_pr_dbg("%s %s -> %s, vbc_dump_position %s\n", __func__,
-		       vbc_dumppos2name(val), texts->texts[val],
-		       vbc_dumppos2name(vbc_codec->vbc_dump_position_cmd));
+	sp_asoc_pr_info("%s %s -> %s, vbc_dump_position %s\n", __func__,
+		       vbc_dumppos2name(val), texts->texts[val], vbc_dumppos2name(vbc_codec->vbc_dump_position_cmd));
 	vbc_codec->vbc_dump_position = val;
 
 	return 0;
@@ -3112,9 +3113,8 @@ static int vbc_put_dump_pos_cmd(struct snd_kcontrol *kcontrol,
 	}
 
 	vbc_codec->vbc_dump_position_cmd = val;
-	sp_asoc_pr_dbg("%s -> %s, vbc_dump_position %s\n",
-		       vbc_dumppos2name(val), texts->texts[val],
-		       vbc_dumppos2name(vbc_codec->vbc_dump_position));
+	sp_asoc_pr_info("%s -> %s, vbc_dump_position %s\n", vbc_dumppos2name(val), texts->texts[val],
+		vbc_dumppos2name(vbc_codec->vbc_dump_position));
 	scene_dump_set(vbc_codec->vbc_dump_position_cmd);
 
 	return 0;
@@ -3693,12 +3693,9 @@ static int dsp_vbc_reg_shm_proc_read(struct snd_info_buffer *buffer)
 	return 0;
 }
 
-static int ap_vbc_reg_proc_read(struct snd_info_buffer *buffer)
+static u32 ap_vbc_reg_proc_read(struct snd_info_buffer *buffer)
 {
 	int reg, ret;
-	bool active = false;
-	struct aud_pm_vbc *pm_vbc;
-	int scene_idx, stream;
 
 	ret = agdsp_access_enable();
 	if (ret) {
@@ -3706,33 +3703,6 @@ static int ap_vbc_reg_proc_read(struct snd_info_buffer *buffer)
 		return ret;
 	}
 	snd_iprintf(buffer, "ap-vbc register dump\n");
-
-	pm_vbc = aud_pm_vbc_get();
-	if (pm_vbc == NULL) {
-		agdsp_access_disable();
-		return -EPERM;
-	}
-	mutex_lock(&pm_vbc->lock_scene_flag);
-
-	for (scene_idx = 0; scene_idx < VBC_DAI_ID_MAX; scene_idx++) {
-		for (stream = 0; stream < STREAM_CNT; stream++) {
-			if (pm_vbc->scene_flag[scene_idx][stream] > 0) {
-				active = true;
-				break;
-			}
-		}
-		if (active == true)
-			break;
-	}
-
-	if (active == false) {
-		mutex_unlock(&pm_vbc->lock_scene_flag);
-		agdsp_access_disable();
-		snd_iprintf(buffer,
-			"vbc is inactive, can't dump ap-vbc register\n");
-		return -EPERM;
-	}
-
 	for (reg = REG_VBC_AUDPLY_FIFO_CTRL;
 	     reg <= VBC_AP_ADDR_END; reg += 0x10) {
 		snd_iprintf(buffer, "0x%04x | 0x%04x 0x%04x 0x%04x 0x%04x\n",
@@ -3741,7 +3711,6 @@ static int ap_vbc_reg_proc_read(struct snd_info_buffer *buffer)
 			    , ap_vbc_reg_read(reg + 0x08)
 			    , ap_vbc_reg_read(reg + 0x0C));
 	}
-	mutex_unlock(&pm_vbc->lock_scene_flag);
 	agdsp_access_disable();
 
 	return 0;
@@ -3859,6 +3828,7 @@ EXPORT_SYMBOL(sprd_vbc_codec);
 
 static void init_vbc_codec_data(struct vbc_codec_priv *vbc_codec)
 {
+	 unsigned char i;
 	/* vbc dac */
 	vbc_codec->mux_iis_tx[VBC_MUX_IIS_TX_DAC0].id = VBC_MUX_IIS_TX_DAC0;
 	vbc_codec->mux_iis_tx[VBC_MUX_IIS_TX_DAC0].val = VBC_IIS_PORT_IIS0;
@@ -3931,6 +3901,22 @@ static void init_vbc_codec_data(struct vbc_codec_priv *vbc_codec)
 	vbc_codec->mst_sel_para[IIS_MST_SEL_2].mst_type = VBC_MASTER_EXTERNAL;
 	vbc_codec->mst_sel_para[IIS_MST_SEL_3].id = IIS_MST_SEL_3;
 	vbc_codec->mst_sel_para[IIS_MST_SEL_3].mst_type = VBC_MASTER_EXTERNAL;
+
+       /* mixer */
+       for (i = VBC_MIXER0_DAC0; i < VBC_MIXER_MAX; i++) {
+              vbc_codec->mixer[i].mixer_id = i;
+               vbc_codec->mixer[i].type = NOT_MIX;
+       }
+
+       /* vbc_if or iis */
+       for (i = VBC_MUX_ADC0_SOURCE; i < VBC_MUX_ADC_SOURCE_MAX; i++) {
+               vbc_codec->mux_adc_source[i].id = i;
+               vbc_codec->mux_adc_source[i].val = ADC_SOURCE_IIS;
+       }
+       for (i = VBC_MUX_DAC0_OUT_SEL; i < VBC_MUX_DAC_OUT_MAX ; i++) {
+               vbc_codec->mux_dac_out[i].id = i;
+               vbc_codec->mux_dac_out[i].val = VBC_MUX_DAC0_OUT_SEL;
+       }
 }
 
 int sprd_vbc_codec_probe(struct platform_device *pdev)

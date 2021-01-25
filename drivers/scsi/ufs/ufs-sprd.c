@@ -1,5 +1,6 @@
  /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -346,6 +347,8 @@ static int ufs_sprd_link_startup_notify(struct ufs_hba *hba,
 {
 	int err = 0;
 
+    struct ufs_sprd_host *host = ufshcd_get_variant(hba);
+
 	switch (status) {
 	case PRE_CHANGE:
 		/*
@@ -359,7 +362,10 @@ static int ufs_sprd_link_startup_notify(struct ufs_hba *hba,
 			err = ufshcd_dme_set(hba,
 					UIC_ARG_MIB(PA_LOCAL_TX_LCC_ENABLE),
 					0);
-
+#if 1
+        ufs_sprd_rmwl(host->unipro_reg, 0x1<<16, 0x0, 0x820);
+        ufs_sprd_rmwl(host->unipro_reg, 0x1<<16, (0x1<<16), 0x1e0);
+#endif
 		break;
 	case POST_CHANGE:
 		break;

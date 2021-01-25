@@ -2,6 +2,7 @@
  * Spreadtrum Roc1 board common DTS file
  *
  * Copyright (C) 2018, Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This file is licensed under a dual GPLv2 or X11 license.
  */
@@ -27,14 +28,14 @@
 				compatible = "android,fstab";
 				fs_vendor: vendor {
 					compatible = "android,vendor";
-					dev = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/vendor";
+					dev = "/dev/block/platform/soc/soc:ap-apb/71900000.ufs/by-name/vendor";
 					type = "ext4";
 					mnt_flags = "ro,barrier=1";
 					fsmgr_flags = "wait";
 				};
 				fs_product: product {
 					compatible = "android,product";
-					dev = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/product";
+					dev = "/dev/block/platform/soc/soc:ap-apb/71900000.ufs/by-name/product";
 					type = "ext4";
 					mnt_flags = "ro,barrier=1";
 					fsmgr_flags = "wait";
@@ -422,20 +423,30 @@
 			reg = <0x0 0x94020000 0x0 0x03fe0000>;
 		};
 
+		/*
 		pstore_reserved: pstore-mem@9f000000 {
 			reg = <0x0 0x9f000000 0x0 0x00040000>;
 		};
+		*/
 
-		fd_reserved: fd-mem@fbdc0000 {
-			reg = <0x0 0xfbdc0000 0x0 0x01e00000>;
+		ramoops@98200000{
+			compatible = "ramoops";
+			reg = <0x0 0x98200000 0x0 0x400000>;
+
+			record-size = <0x200000>;
+			pmsg-size = <0x200000>;
 		};
 
-		fb_reserved: framebuffer-mem@fdbc0000 {
-			reg = <0x0 0xfdbc0000 0x0 0x01b00000>;
-		};
+        fd_reserved: fd-mem@fb204000 {
+            reg = <0x0 0xfb204000 0x0 0x01e00000>;
+        };
 
-		wb_reserved: writeback-mem@ff6c0000 {
-			reg = <0x0 0xff6c0000 0x0 0x00900000>;
+        fb_reserved: framebuffer-mem@fd004000 {
+            reg = <0x0 0xfd004000 0x0 0x023cd000>;
+        };
+
+        wb_reserved: writeback-mem@ff3d1000 {
+            reg = <0x0 0xff3d1000 0x0 0x00bef000>;
 		};
 	};
 
@@ -484,7 +495,7 @@
 	sprd,ddr50-dly=<0x1a 0x19 0x19 0x19>;
 	sprd,sdhs-dly=<0x7f 0x92 0x96 0x96>;
 	vmmc-supply = <&vddsdcore>;
-	vqmmc-supply = <&vddsdio>;
+	//vqmmc-supply = <&vddsdio>;
 	voltage-ranges = <3000 3000>;
 	bus-width = <4>;
 	sd-uhs-sdr104;
@@ -535,7 +546,7 @@
 
 &pcie1 {
 	no-suspend;
-	status = "okay";
+	//status = "okay";
 };
 
 &iommu_ai {

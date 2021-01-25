@@ -1,0 +1,19 @@
+#
+#	Lontium LT9711EXB Driver
+#
+#	SPDX-License-Identifier: GPL-2.0-only
+#
+
+config	LT9711EXB_LONTIUM
+	bool "Lontium LT9711exb driver"
+	help
+	  This is the main file for LT9711exb driver for Lontium
+	  mipi_edp.
+
+	  Say Y here if you have a Lontium mipi_edp connected
+	  to your system.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called Lontium.

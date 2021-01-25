@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -1484,6 +1485,7 @@ static void dpu_enhance_backup(u32 id, void *param)
 			slp_copy.second_bright_factor = 16;
 			slp_copy.first_max_bright_th = 48;
 		}
+		/*if hsv is disabled, hsv will bypass when dpu_enhance_reload*/
 		enhance_en &= ~(*p);
 		pr_info("enhance module disable backup: 0x%x\n", *p);
 		break;
@@ -1539,6 +1541,9 @@ static void dpu_enhance_set(struct dpu_context *ctx, u32 id, void *param)
 	u32 *p;
 	int i;
 
+	if (id == ENHANCE_CFG_ID_HSV)
+		ctx->is_hsv_bypass = false;
+
 	if (!ctx->is_inited) {
 		dpu_enhance_backup(id, param);
 		return;
@@ -1573,6 +1578,18 @@ static void dpu_enhance_set(struct dpu_context *ctx, u32 id, void *param)
 					(slp_copy.high_clip << 12) |
 					slp_copy.low_clip;
 		}
+
+		if (*p & BIT(2)) {
+			*p &= (~BIT(2));
+			for (i = 0; i < 360; i++) {
+				reg->hsv_lut_addr = i;
+				udelay(1);
+				reg->hsv_lut_wdata = (1024 << 16) | i;
+			}
+			ctx->is_hsv_bypass = true;
+			pr_info("enhance hsv force bypass\n");
+		}
+
 		reg->dpu_enhance_cfg &= ~(*p);
 		pr_info("enhance module disable: 0x%x\n", *p);
 		break;
@@ -1817,7 +1834,8 @@ static void dpu_enhance_reload(struct dpu_context *ctx)
 		pr_info("enhance epf reload\n");
 	}
 
-	if (enhance_en & BIT(2)) {
+	//if (enhance_en & BIT(2)) {
+      if ((enhance_en & BIT(2)) && (!ctx->is_hsv_bypass)) {
 		hsv = &hsv_copy;
 		for (i = 0; i < 360; i++) {
 			reg->hsv_lut_addr = i;
@@ -1826,6 +1844,14 @@ static void dpu_enhance_reload(struct dpu_context *ctx)
 						hsv->table[i].hue;
 		}
 		pr_info("enhance hsv reload\n");
+	}  else {
+		for (i = 0; i < 360; i++) {
+			reg->hsv_lut_addr = i;
+			udelay(1);
+			reg->hsv_lut_wdata = (1024 << 16) | i;
+		}
+		ctx->is_hsv_bypass = true;
+		pr_info("enhance hsv reload bypass\n");
 	}
 
 	if (enhance_en & BIT(3)) {
@@ -1871,7 +1897,8 @@ static void dpu_enhance_reload(struct dpu_context *ctx)
 				slp->low_clip;
 		pr_info("enhance ltm reload\n");
 	}
-
+ 	/* FORCE ENABLE HSV */
+ 	enhance_en |=  BIT(2);
 	reg->dpu_enhance_cfg = enhance_en;
 }
 
@@ -2050,7 +2077,7 @@ static int dpu_capability(struct dpu_context *ctx,
 	if (!cap)
 		return -EINVAL;
 
-	cap->max_layers = 4;
+	cap->max_layers = 2;
 	cap->fmts_ptr = primary_fmts;
 	cap->fmts_cnt = ARRAY_SIZE(primary_fmts);
 

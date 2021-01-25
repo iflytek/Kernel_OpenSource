@@ -2,6 +2,8 @@
 /*
  * USB PHY defines
  *
+ * Modified: Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
  * These APIs may be used between USB controllers.  USB device drivers
  * (for either host or peripheral roles) don't use these calls; they
  * continue to use just usb_device and usb_gadget.
@@ -158,6 +160,12 @@ struct usb_phy {
 	 * manually detect the charger type.
 	 */
 	enum usb_charger_type (*charger_detect)(struct usb_phy *x);
+
+	/*
+	 * Charger re-detection method can be implemented if you need to
+	 * manually detect the charger type.
+	 */
+	enum usb_charger_type (*retry_charger_detect)(struct usb_phy *x);
 
 	/* reset the PHY */
 	int	(*reset_phy)(struct usb_phy *x);

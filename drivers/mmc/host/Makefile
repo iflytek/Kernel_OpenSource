@@ -91,7 +91,11 @@ obj-$(CONFIG_MMC_SDHCI_ST)		+= sdhci-st.o
 obj-$(CONFIG_MMC_SDHCI_MICROCHIP_PIC32)	+= sdhci-pic32.o
 obj-$(CONFIG_MMC_SDHCI_BRCMSTB)		+= sdhci-brcmstb.o
 obj-$(CONFIG_MMC_SPRD_SDHCR11)		+= sprd-sdhcr11.o
-
+# Bayhub add for SD card bringup by Chevron at 20200330 start
+ifeq ($(CONFIG_MMC_SDHCI_BH201),y)
+obj-$(CONFIG_MMC_SPRD_SDHCR11)		+= sdhci-bh201.o
+endif
+# Bayhub add for SD card bringup by Chevron at 20200330 end
 ifeq ($(CONFIG_CB710_DEBUG),y)
 	CFLAGS-cb710-mmc	+= -DDEBUG
 endif

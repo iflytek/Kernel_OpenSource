@@ -19,6 +19,7 @@ obj-$(CONFIG_SND_SOC_SPRD_VAUDIO)	+= dai/vaudio/
 obj-$(CONFIG_SND_SOC_SPRD_I2S)		+= dai/i2s/
 obj-$(CONFIG_SND_SOC_SPRD_CODEC_SC2730)	+= codec/sprd/sc2730/
 obj-$(CONFIG_SND_SOC_AW8898) += codec/sprd/aw8898/
+obj-$(CONFIG_SND_SOC_AW881XX) += codec/sprd/AW881XX/
 obj-$(CONFIG_SND_SOC_SPRD_CODEC_SC2721)	+= codec/sprd/sc2721/
 obj-$(CONFIG_SND_SOC_SPRD_PA_UCP1301)	+= codec/sprd/ucp1301/
 

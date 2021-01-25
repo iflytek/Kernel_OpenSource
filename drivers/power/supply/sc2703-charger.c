@@ -3,9 +3,9 @@
  * Charger device driver for SC2703
  *
  * Copyright (c) 2018 Dialog Semiconductor.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  */
 #include <linux/delay.h>
-#include <linux/extcon.h>
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -21,6 +21,8 @@
 #include <linux/mfd/sc2703_regs.h>
 #include <linux/usb/phy.h>
 #include <uapi/linux/usb/charger.h>
+#include <linux/usb/tcpm.h>
+#include <linux/usb/pd.h>
 
 #define SC2703_BATTERY_NAME		"sc27xx-fgu"
 #define SC2703_EVENT_CLR_MASK		GENMASK(7, 0)
@@ -49,17 +51,49 @@
 #define SC2703_FAST_CHARGER_VOLTAGE_MAX	11000000
 
 #define SC2703_FAST_CHARGER_DETECT_MS	1000
-#define SC2703_PD_HARD_RESET_MS		500
-#define SC2703_INPUT_CUR_MASK		GENMASK(7, 0)
+#define SC2703_SET_FCHG_MS	100
+#define SFCP_START_VOLTAGE      9000000
+#define SFCP_STOP_VOLTAGE      6000000
+
+#define SC2703_FCHG_BQ2560X_START				2
+#define SC2703_FCHG_BQ2560X_STOP				3
+
+#define DEBUG_PRINT_REGS
+
+static int sc2703_debug_mask;
+module_param_named(
+    sc2703_debug_mask, sc2703_debug_mask, int, 00600
+);
+
+static int boardid = -1;
+enum boardid {
+    BOARD_ID_DVT = 0,
+    BOARD_ID_PVT,
+};
+
+static int psy_val = 0;
+
+extern void read_boardid(int *boardid);
+#define CTG_DEBUG 1
+#define pr_dbg(fmt, ...)                \
+    do {                            \
+        if (CTG_DEBUG)       \
+            pr_err(fmt, ##__VA_ARGS__);   \
+    } while (0)
 
 struct sc2703_charger_info {
 	struct device *dev;
 	struct regmap *regmap;
 	struct usb_phy *usb_phy;
 	struct notifier_block usb_notify;
+    struct notifier_block pd_notify;
 	struct power_supply *psy_usb;
+    struct power_supply *tcpm_psy;
 	struct power_supply_charge_current cur;
 	struct work_struct work;
+#ifdef DEBUG_PRINT_REGS
+    struct delayed_work print_reg_work;
+#endif
 	struct mutex lock;
 	bool charging;
 	u32 limit;
@@ -68,12 +102,10 @@ struct sc2703_charger_info {
 	u32 charger_detect;
 	bool long_key_detect;
 	u32 charger_type;
-	bool otg_enable;
-	struct extcon_dev *pd_extcon;
-	struct notifier_block pd_extcon_nb;
-	struct delayed_work pd_hard_reset_work;
-	bool pd_hard_reset;
-	bool pd_extcon_enable;
+    bool is_pd;
+    bool is_sfcp;
+	struct delayed_work fchg_detect_work;
+	struct delayed_work set_fchg_work;
 };
 
 /* sc2703 input limit current, Milliamp */
@@ -92,7 +124,12 @@ static const char * const sc2703_fast_charger_supply_name[] = {
 	"sc2730_fast_charger",
 };
 
+static const char * const sc2703_second_charger_supply_name[] = {
+	"bq2560x_charger",
+};
+
 static bool need_disable_dcdc;
+static bool enable_fast_charge;
 static bool sc2703_charger_is_support_fchg(struct sc2703_charger_info *info);
 static int sc2703_charger_get_online(struct sc2703_charger_info *info,
 				     u32 *online);
@@ -221,7 +258,7 @@ static int sc2703_charger_hw_init(struct sc2703_charger_info *info)
 	/* Set charge termination voltage */
 	if (vol_val > SC2703_VBAT_CHG_MAX)
 		vol_val = SC2703_VBAT_CHG_MAX;
-
+	pr_dbg("ctg set_term vol %d\n",vol_val);
 	ret = regmap_update_bits(info->regmap, SC2703_CHG_CTRL_A,
 				 SC2703_VBAT_CHG_MASK, vol_val);
 	if (ret) {
@@ -311,9 +348,9 @@ static int sc2703_charger_hw_init(struct sc2703_charger_info *info)
 		return ret;
 	}
 
-	/* Set constant current/constant voltage charging timeout 10hour */
+	/* Set constant current/constant voltage charging timeout 18hour */
 	ret = regmap_update_bits(info->regmap, SC2703_CHG_TIMER_CTRL_A,
-				 SC2703_TIMEOUT_CCCV_MASK, 0x04);
+				 SC2703_TIMEOUT_CCCV_MASK, 0x07);
 	if (ret) {
 		dev_err(info->dev, "Failed to set cc timeout:%d\n", ret);
 		return ret;
@@ -412,6 +449,7 @@ static int sc2703_charger_hw_init(struct sc2703_charger_info *info)
 	}
 
 	if (info->long_key_detect) {
+#ifndef CONFIG_SPRD_DEBUG
 		/* Enable the detection of long key presses */
 		ret = regmap_update_bits(info->regmap, SC2703_CONF_A,
 					 SC2703_ONKEY_DET_EN_MASK,
@@ -421,6 +459,7 @@ static int sc2703_charger_hw_init(struct sc2703_charger_info *info)
 				 "Failed to enable the long key:%d\n", ret);
 			return ret;
 		}
+#endif
 	}
 
 	/* Set flash voltage output 4800mv */
@@ -502,6 +541,7 @@ static void sc2703_clear_event(struct sc2703_charger_info *info)
 static int sc2703_charger_start_charge(struct sc2703_charger_info *info)
 {
 	int ret;
+    pr_dbg("fqchen %s start\n", __func__);
 
 	sc2703_clear_event(info);
 	ret = regmap_update_bits(info->regmap, SC2703_DCDC_CTRL_A,
@@ -574,38 +614,52 @@ static void sc2703_charger_stop_charge(struct sc2703_charger_info *info,
 				       bool present)
 {
 	int mask, charge_vol, online, ret;
+    pr_dbg("fqchen %s start\n", __func__);
 
 	ret = sc2703_charger_get_charge_voltage(info, &charge_vol);
 	if (ret)
 		return;
-
+	pr_dbg("fqchen %s charge_vol = %d\n", __func__, charge_vol);
 	ret = sc2703_charger_get_online(info, &online);
 	if (ret)
 		return;
 
-	if (!online)
+	pr_dbg("fqchen %s online = %d\n", __func__, online);
+	if (!online) {
 		need_disable_dcdc = true;
-	else if (sc2703_charger_is_support_fchg(info) &&
-		 charge_vol > SC2703_FAST_CHARGER_VOLTAGE_MAX)
+		 pr_dbg("fqchen %s not online\n", __func__);
+	} else if (sc2703_charger_is_support_fchg(info) &&
+		 charge_vol > SC2703_FAST_CHARGER_VOLTAGE_MAX) {
 		need_disable_dcdc = true;
-	else if (!sc2703_charger_is_support_fchg(info) &&
-		 charge_vol > SC2703_CHARGER_VOLTAGE_MAX)
+		pr_dbg("fqchen %s is fchg\n", __func__);
+	} else if (!sc2703_charger_is_support_fchg(info) &&
+		 charge_vol > SC2703_CHARGER_VOLTAGE_MAX) {
 		need_disable_dcdc = true;
+		pr_dbg("fqchen %s is not fchg\n", __func__);
+	}
 
-	if (need_disable_dcdc)
+    if (psy_val == 2)
+        need_disable_dcdc = true;
+
+	if (need_disable_dcdc) {
 		mask = SC2703_CHG_EN_MASK | SC2703_DCDC_EN_MASK;
-	else
+		pr_dbg("fqchen %s disable DCDC\n", __func__);
+	} else {
 		mask = SC2703_CHG_EN_MASK;
+		pr_dbg("fqchen %s disable chg en\n", __func__);
+	}
 
 	need_disable_dcdc = false;
 
 	if (present) {
+		pr_dbg("fqchen %s disable battery present\n", __func__);
 		ret = regmap_update_bits(info->regmap, SC2703_DCDC_CTRL_A,
 					 mask, 0);
 		if (ret)
 			dev_err(info->dev,
 				"Failed to set chg_en and dcdc_en:%d\n", ret);
 	} else {
+		pr_dbg("fqchen %s disable battery  not present\n", __func__);
 		ret = regmap_update_bits(info->regmap, SC2703_DCDC_CTRL_A,
 					 SC2703_CHG_EN_MASK, 0);
 		if (ret) {
@@ -661,6 +715,22 @@ sc2703_charger_set_current(struct sc2703_charger_info *info, u32 val)
 			   reg << SC2703_IBAT_CHG_SHIFT);
 }
 
+static int
+sc2703_charger_set_shipmode(struct sc2703_charger_info *info)
+{
+    if (boardid == BOARD_ID_DVT) {
+        /*set delay 500ms to change to shipmode*/
+        regmap_update_bits(info->regmap, SC2703_BATSW_CTRL_A,
+            SC2703_T_PRE_BAT_ISO_MASK,
+            0x1 << SC2703_T_PRE_BAT_ISO_SHIFT);
+
+        return regmap_update_bits(info->regmap, SC2703_BATSW_CTRL_A,
+            SC2703_BAT_ISO_LONG_MASK,
+            0x1 << SC2703_BAT_ISO_LONG_SHIFT);
+    } else
+        return 0;
+}
+
 static u32
 sc2703_charger_get_current(struct sc2703_charger_info *info, u32 *cur)
 {
@@ -680,40 +750,24 @@ sc2703_charger_get_current(struct sc2703_charger_info *info, u32 *cur)
 	return 0;
 }
 
-static u32
-sc2703_charger_get_input_current(struct sc2703_charger_info *info, u32 *cur)
-{
-	u32 val;
-	int ret;
-
-	ret = regmap_read(info->regmap, SC2703_ADC_RES_2, &val);
-	if (ret)
-		return ret;
-
-	/* The value of the SC2703_ADC_RES_2 register is converted
-	 * to the charge input  current value.
-	 * Calculation formula:(x * 25)ma
-	 */
-	*cur = ((val & SC2703_INPUT_CUR_MASK) * 25 * 1000);
-
-	return 0;
-}
-
 static int
 sc2703_charger_set_limit_current(struct sc2703_charger_info *info, u32 val)
 {
 	u32 limit_index;
-	int i;
+	int ret, i;
 
 	for (i = 1; i < ARRAY_SIZE(sc2703_limit_current); ++i)
 		if (val < sc2703_limit_current[i])
 			break;
 
 	limit_index = i - 1;
-	regmap_update_bits(info->regmap, SC2703_DCDC_CTRL_D,
+	pr_dbg("ctg sc2703 set_limit_current %d limit_index %d\n",val,limit_index);
+	ret = regmap_update_bits(info->regmap, SC2703_DCDC_CTRL_D,
 			   SC2703_IIN_LIM0_MASK | SC2703_IIN_LIM1_MASK,
 			   limit_index |
 			   (limit_index << SC2703_IIN_LIM1_SHIFT));
+    if (ret)
+        pr_err("%s err, val = %u\n", __func__, val);
 
 	return 0;
 }
@@ -734,23 +788,257 @@ sc2703_charger_get_limit_current(struct sc2703_charger_info *info, u32 *cur)
 	return 0;
 }
 
+static int sc2703_enable_second_charge(bool enable)
+{
+	union power_supply_propval val;
+    struct power_supply *psy;
+	int ret, i;
+
+	pr_dbg("fqchen %s start\n", __func__);
+	for (i = 0; i < ARRAY_SIZE(sc2703_second_charger_supply_name); i++) {
+        psy = power_supply_get_by_name(
+                sc2703_second_charger_supply_name[i]);
+        if (!psy)
+            continue;
+
+		if (enable)
+			val.intval = SC2703_FCHG_BQ2560X_START;
+		else
+			val.intval = SC2703_FCHG_BQ2560X_STOP;
+
+		pr_dbg("fqchen %s val.intval = %d\n", __func__, val.intval);
+        ret = power_supply_set_property(psy,
+                POWER_SUPPLY_PROP_STATUS,
+                &val);
+        power_supply_put(psy);
+        if (ret) {
+            pr_err("failed to set sfcp voltage ret = %d\n", ret);
+            return ret;
+        }
+    }
+    return 0;
+}
+#if 1
+
+static int sc2703_sfcp_adjust_voltage(u32 input_voltage)
+{
+	union power_supply_propval val;
+    struct power_supply *psy;
+	int ret, i;
+
+	pr_dbg("fqchen %s start\n", __func__);
+	for (i = 0; i < ARRAY_SIZE(sc2703_fast_charger_supply_name); i++) {
+        psy = power_supply_get_by_name(
+                sc2703_fast_charger_supply_name[i]);
+        if (!psy)
+            continue;
+
+        val.intval = input_voltage;
+		pr_dbg("fqchen %s val.intval = %d\n", __func__, val.intval);
+        ret = power_supply_set_property(psy,
+                POWER_SUPPLY_PROP_VOLTAGE_MAX,
+                &val);
+        power_supply_put(psy);
+        if (ret) {
+            pr_err("failed to set sfcp voltage ret = %d\n", ret);
+            return ret;
+        }
+    }
+    return 0;
+}
+
+
+static int sc2703_charger_start_sfcp(struct sc2703_charger_info *info)
+{
+    int ret;
+    int limit_cur = info->cur.fchg_limit;
+    int cur = info->cur.fchg_cur;
+	u32 input_vol = SFCP_START_VOLTAGE;
+
+   pr_dbg("ctg %s start\n", __func__);
+	/* adjust current first */
+    ret = sc2703_charger_set_limit_current(info, limit_cur);
+    if (ret) {
+        dev_err(info->dev, "failed to set sfcp limit cur\n");
+        return ret;
+    }
+
+    ret = sc2703_charger_set_current(info, cur);
+    if (ret) {
+        dev_err(info->dev, "failed to set sfcp cur\n");
+        return ret;
+    }
+
+	/* adjust voltage from 5V to 9V */
+	ret = sc2703_sfcp_adjust_voltage(input_vol);
+	if (ret) {
+        dev_err(info->dev, "sfcp failed to adjust 9V vol\n");
+        return ret;
+    }
+
+	/* start second charge */
+	ret = sc2703_enable_second_charge(true);
+	if (ret) {
+        dev_err(info->dev, "sfcp failed to start second charge\n");
+        return ret;
+    }
+
+    return 0;
+}
+
+static int sc2703_charger_stop_sfcp(struct sc2703_charger_info *info)
+{
+    int ret;
+	int limit_cur = info->cur.dcp_limit;
+    int cur = info->cur.dcp_cur;
+    u32 input_vol = SFCP_STOP_VOLTAGE;
+
+	pr_dbg("fqchen %s start\n", __func__);
+	/* stop second charge */
+	ret = sc2703_enable_second_charge(false);
+	if (ret) {
+        dev_err(info->dev, "sfcp failed to stop second charge\n");
+        return ret;
+    }
+
+	/* adjust vol from 9V to 5V */
+	ret = sc2703_sfcp_adjust_voltage(input_vol);
+	if (ret) {
+        dev_err(info->dev, "sfcp failed to adjust 5V vol\n");
+        return ret;
+    }
+
+	/* adjust current from fchg to dcp */
+    ret = sc2703_charger_set_limit_current(info, limit_cur);
+    if (ret) {
+        dev_err(info->dev, "failed to set sfcp limit cur\n");
+        return ret;
+    }
+
+    ret = sc2703_charger_set_current(info, cur);
+    if (ret) {
+        dev_err(info->dev, "failed to set sfcp cur\n");
+        return ret;
+    }
+
+    return 0;
+}
+#endif
+static const u32 snk_pdo[] = {
+    PDO_FIXED(5000, 2000, 0),
+};
+
+static const u32 snk9v_pdo[] = {
+    PDO_FIXED(5000, 2000, 0),
+    PDO_FIXED(9000, 2000, 0),
+};
+
+static int sc2703_charger_start_pd(struct sc2703_charger_info *info)
+{
+    int limit_cur, cur, ret;
+    struct tcpm_port *port;
+
+    pr_dbg("ctg %s start\n", __func__);
+
+    port = power_supply_get_drvdata(info->tcpm_psy);
+    if (!port) {
+        dev_err(info->dev, "failed to get port\n");
+        return -EINVAL;
+    }
+    limit_cur = info->cur.fchg_limit;
+    cur = info->cur.fchg_cur;
+
+	/* adjust current first */
+    ret = sc2703_charger_set_limit_current(info, limit_cur);
+    if (ret) {
+        dev_err(info->dev,
+                "failed to set pps limit cur ret = %d\n", ret);
+        return ret;
+    }
+
+    ret = sc2703_charger_set_current(info, cur);
+    if (ret) {
+        dev_err(info->dev, "failed to set pps cur ret = %d\n", ret);
+        return ret;
+    }
+
+	/* adjust voltage from 5V to 9V */
+	ret = tcpm_update_sink_capabilities(port, snk9v_pdo, 2, 18000);
+    if (ret) {
+        dev_err(info->dev, "failed to set pd 9V vol ret = %d\n", ret);
+        return ret;
+    }
+
+	/* start second charge */
+	ret = sc2703_enable_second_charge(true);
+	if (ret) {
+        dev_err(info->dev, "pd failed to start second charge\n");
+        return ret;
+    }
+
+    return 0;
+}
+
+static int sc2703_charger_stop_pd(struct sc2703_charger_info *info)
+{
+    int limit_cur, cur, ret;
+    struct tcpm_port *port;
+
+    port = power_supply_get_drvdata(info->tcpm_psy);
+    if (!port) {
+        dev_err(info->dev, "failed to get port\n");
+        return -EINVAL;
+    }
+    limit_cur = info->cur.dcp_limit;
+    cur = info->cur.dcp_cur;
+
+	/* stop second charge */
+	ret = sc2703_enable_second_charge(false);
+	if (ret) {
+        dev_err(info->dev, "pd failed to stop second charge\n");
+        return ret;
+    }
+
+	/* adjust vol from 9V to 5V */
+    ret = tcpm_update_sink_capabilities(port, snk_pdo, 1, 10000);
+    if (ret) {
+        dev_err(info->dev, "failed to set pd 5V vol ret = %d\n", ret);
+        return ret;
+    }
+
+	/* adjust current from fchg to dcp */
+    ret = sc2703_charger_set_limit_current(info, limit_cur);
+    if (ret) {
+        dev_err(info->dev, "failed to set pps limit cur\n");
+        return ret;
+    }
+
+    ret = sc2703_charger_set_current(info, cur);
+    if (ret) {
+        dev_err(info->dev, "failed to set pps cur\n");
+        return ret;
+    }
+
+    return 0;
+}
+
 static int sc2703_charger_get_status(struct sc2703_charger_info *info)
 {
-	if (info->charging == true)
-		return POWER_SUPPLY_STATUS_CHARGING;
-	else
-		return POWER_SUPPLY_STATUS_NOT_CHARGING;
+    if (info->charging == true)
+        return POWER_SUPPLY_STATUS_CHARGING;
+    else
+        return POWER_SUPPLY_STATUS_NOT_CHARGING;
 }
 
 static int sc2703_charger_get_health(struct sc2703_charger_info *info,
-				     u32 *health)
+        u32 *health)
 {
-	struct regmap *regmap = info->regmap;
-	u8 status[4];
-	int ret;
+    struct regmap *regmap = info->regmap;
+    u8 status[4];
+    int ret;
 
-	ret = regmap_bulk_read(regmap, SC2703_STATUS_A, status,
-			       ARRAY_SIZE(status));
+    ret = regmap_bulk_read(regmap, SC2703_STATUS_A, status,
+            ARRAY_SIZE(status));
 	if (ret)
 		return ret;
 
@@ -787,52 +1075,40 @@ static int sc2703_charger_get_online(struct sc2703_charger_info *info,
 	return 0;
 }
 
-static int sc2703_charger_set_fchg_current(struct sc2703_charger_info *info, u32 val)
-{
-	int ret, limit_cur, cur;
-
-	if (val == CM_FAST_CHARGE_ENABLE_CMD) {
-		limit_cur = info->cur.fchg_limit;
-		cur = info->cur.fchg_cur;
-	} else if (val == CM_FAST_CHARGE_DISABLE_CMD) {
-		limit_cur = info->cur.dcp_limit;
-		cur = info->cur.dcp_cur;
-	} else {
-		return 0;
-	}
-
-	ret = sc2703_charger_set_limit_current(info, limit_cur);
-	if (ret) {
-		dev_err(info->dev, "failed to set fchg limit current\n");
-		return ret;
-	}
-
-	ret = sc2703_charger_set_current(info, cur);
-	if (ret) {
-		dev_err(info->dev, "failed to set fchg current\n");
-		return ret;
-	}
-
-	return 0;
-}
-
 static int sc2703_charger_set_status(struct sc2703_charger_info *info, u32 val,
 				     bool present)
 {
 	int ret = 0;
 
-	ret = sc2703_charger_set_fchg_current(info, val);
+    pr_dbg("fqchen %s info->is_pd = %d\n", __func__, info->is_pd);
+    pr_dbg("fqchen %s info->is_sfcp = %d\n", __func__, info->is_sfcp);
+    pr_dbg("fqchen %s val = %d\n", __func__, val);
+    pr_dbg("fqchen %s enable_fast_charge = %d\n", __func__, enable_fast_charge);
 
-	if (ret)
-		return ret;
+    if (val == 2 && !enable_fast_charge) {
+        if (info->is_pd)
+            sc2703_charger_start_pd(info);
+        if (!info->is_pd && info->is_sfcp)
+            sc2703_charger_start_sfcp(info);
+        enable_fast_charge = true;
+    } else if (val == 3 && enable_fast_charge) {
+        if (info->is_pd)
+            sc2703_charger_stop_pd(info);
+        if (!info->is_pd && info->is_sfcp)
+            sc2703_charger_stop_sfcp(info);
+        enable_fast_charge = false;
+    }
 
-	if (val > CM_FAST_CHARGE_NORMAL_CMD)
-		return 0;
+    if (val > 1)
+        return 0;
 
-	if (!val && info->charging) {
-		sc2703_charger_stop_charge(info, present);
-		info->charging = false;
+    pr_dbg("fqchen %s start2\n", __func__);
+    if (!val && info->charging) {
+        pr_dbg("fqchen %s start to stop charge, present = %d\n", __func__, present);
+        sc2703_charger_stop_charge(info, present);
+        info->charging = false;
 	} else if (val && !info->charging) {
+		pr_dbg("fqchen %s start to start charge, present = %d\n", __func__, present);
 		ret = sc2703_charger_start_charge(info);
 		if (ret)
 			dev_err(info->dev, "start charge failed\n");
@@ -901,11 +1177,47 @@ static bool sc2703_charger_is_support_fchg(struct sc2703_charger_info *info)
 		power_supply_put(psy);
 		if (ret)
 			return false;
-		info->charger_type = val.intval;
+        pr_dbg("fqchen %s info->charger_type1 = %d\n", __func__, info->charger_type);
+		if (val.intval == POWER_SUPPLY_CHARGE_TYPE_FAST)
+			info->charger_type = val.intval;
+        pr_dbg("fqchen %s info->charger_type2 = %d\n", __func__, info->charger_type);
 	}
 
 	return info->charger_type == POWER_SUPPLY_CHARGE_TYPE_FAST;
 }
+#ifdef DEBUG_PRINT_REGS
+#define PRINT_REG_START SC2703_DCDC_CTRL_A
+#define PRINT_REG_NUM 11
+static void print_reg_work_handler(struct work_struct *work)
+{
+    u8 status[PRINT_REG_NUM];
+	u32 S_CHG_STAT;
+    int i = 0, ret;
+    struct delayed_work *dwork = to_delayed_work(work);
+    struct sc2703_charger_info *info = container_of(dwork,
+                                   struct sc2703_charger_info, print_reg_work);
+    struct regmap *regmap = info->regmap;
+
+	ret = regmap_read(regmap, SC2703_STATUS_D, &S_CHG_STAT);
+	if (ret){
+        pr_err("regmap_read failed\n");
+	}
+	pr_err("sc2703 REG[0x%x]= 0x%x", SC2703_STATUS_D, S_CHG_STAT);
+
+    ret = regmap_bulk_read(regmap, PRINT_REG_START, status,
+            ARRAY_SIZE(status));
+	if (ret)
+        pr_err("regmap_bulk_read failed\n");
+    else {
+        for (; i < ARRAY_SIZE(status); ++i)
+            pr_err("sc2703 REG[0x%x]= 0x%2x", PRINT_REG_START + i, status[i]);
+    }
+	 pr_err("sc2703 reg dumpend\n");
+    schedule_delayed_work(&info->print_reg_work, HZ * 15);
+
+    return;
+}
+#endif
 
 static void sc2703_charger_work(struct work_struct *data)
 {
@@ -914,29 +1226,43 @@ static void sc2703_charger_work(struct work_struct *data)
 	int limit_cur, cur, ret;
 	bool present = sc2703_charger_is_bat_present(info);
 
+    pr_dbg("fqchen %s sc2703 start_debug, present = %d\n", __func__, present);
 	mutex_lock(&info->lock);
+#if 0
+    if (info->limit > 0 && present && !info->is_sfcp)
+		if(sc2703_charger_is_support_fchg(info))
+            info->is_sfcp = true;
+#endif
 
-	if (info->limit > 0 && !info->charging && present) {
+    if (info->is_pd)
+        info->usb_phy->chg_type= DCP_TYPE;
+
+	if (info->limit > 0 && present) {
+        pr_dbg("fqchen %s sc2703 start_debug, chg_type = %d\n", __func__,
+            info->usb_phy->chg_type);
 		/* set current limitation and start to charge */
 		switch (info->usb_phy->chg_type) {
 		case SDP_TYPE:
 			limit_cur = info->cur.sdp_limit;
 			cur = info->cur.sdp_cur;
+			pr_dbg("ctg chg_type sdp\n");
 			break;
 		case DCP_TYPE:
 			limit_cur = info->cur.dcp_limit;
 			cur = info->cur.dcp_cur;
+			pr_dbg("ctg chg_type dcp\n");
 			break;
 		case CDP_TYPE:
 			limit_cur = info->cur.cdp_limit;
 			cur = info->cur.cdp_cur;
+			pr_dbg("ctg chg_type cdp\n");
 			break;
 		default:
 			limit_cur = info->cur.unknown_limit;
 			cur = info->cur.unknown_cur;
+			pr_dbg("ctg chg_type unknown\n");
 		}
 
-		sc2703_charger_is_support_fchg(info);
 
 		ret = sc2703_charger_set_limit_current(info, limit_cur);
 		if (ret)
@@ -946,24 +1272,79 @@ static void sc2703_charger_work(struct work_struct *data)
 		if (ret)
 			goto out;
 
+        pr_dbg("fqchen %s sc2703 start_charge\n", __func__);
 		ret = sc2703_charger_start_charge(info);
 		if (ret)
 			goto out;
+        pr_dbg("fqchen %s sc2703 start_charge2\n", __func__);
 
 		info->charging = true;
 
+		schedule_delayed_work(&info->fchg_detect_work,
+			      msecs_to_jiffies(SC2703_FAST_CHARGER_DETECT_MS));
+
 	} else if ((!info->limit && info->charging) || !present) {
+        pr_dbg("fqchen %s sc2703 stop_charge, is_pd = %d, info->charging = %d, present = %d\n",
+                __func__, info->is_pd, info->charging, present);
+
 		/* Stop charging */
 		info->charging = false;
 		sc2703_charger_stop_charge(info, present);
 		info->charger_type = POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
+#if 1
+        if (info->is_pd)
+            info->is_pd = false;
+        if (info->is_sfcp)
+            info->is_sfcp = false;
+        if (enable_fast_charge)
+            enable_fast_charge = false;
+    }
+#else
+    } else if (!info->limit) {
+        if (info->is_pd)
+            info->is_pd = false;
+        if (info->is_sfcp)
+            info->is_sfcp = false;
+        if (enable_fast_charge)
+            enable_fast_charge = false;
+        pr_dbg("fqchen %s sc2703 stop_charge2, is_pd = %d\n", __func__, info->is_pd);
 	}
+#endif
 
 out:
 	mutex_unlock(&info->lock);
 	dev_info(info->dev, "battery present = %d, charger type = %d\n",
 		 present, info->usb_phy->chg_type);
 	cm_notify_event(info->psy_usb, CM_EVENT_CHG_START_STOP, NULL);
+	if (info->is_pd) {
+		pr_dbg("fqchen %s  is_pd = %d\n", __func__, info->is_pd);
+		cm_notify_event(info->psy_usb, CM_EVENT_FAST_CHARGE, NULL);
+	}
+}
+
+/*
+ * Due to SFCP detect need cost 2 second, in order to let
+ * charger plug in event report to android layer to bright
+ * screen as soon as possible, we move sc2703_charger_fchg
+ * _is_support_fchg from sc2703_charger_work to sc2703_
+ * charger_fchg_work, and this fchg work will be sheduled
+ * 1000ms later.
+ */
+
+static void sc2703_charger_fchg_work(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct sc2703_charger_info *info = container_of(dwork,
+			struct sc2703_charger_info, fchg_detect_work);
+	/* if it is pd already, no need to detect SFCP*/
+	if (info->is_pd)
+		return;
+
+	if (!sc2703_charger_is_support_fchg(info) || !info->charging)
+		return;
+
+	info->is_sfcp = true;
+	cm_notify_event(info->psy_usb, CM_EVENT_FAST_CHARGE, NULL);
 }
 
 static int sc2703_charger_usb_change(struct notifier_block *nb,
@@ -972,110 +1353,11 @@ static int sc2703_charger_usb_change(struct notifier_block *nb,
 	struct sc2703_charger_info *info =
 		container_of(nb, struct sc2703_charger_info, usb_notify);
 
-	if (!info->pd_hard_reset) {
-		info->limit = limit;
+	info->limit = limit;
 
-		schedule_work(&info->work);
-	} else {
-		info->pd_hard_reset = false;
-		dev_info(info->dev, "USB PD hard reset, ignore vbus off\n");
-		cancel_delayed_work_sync(&info->pd_hard_reset_work);
-	}
+	schedule_work(&info->work);
 	return NOTIFY_OK;
 }
-
-#ifdef CONFIG_SC27XX_PD
-static int sc2703_charger_pd_extcon_event(struct notifier_block *nb,
-				 unsigned long event, void *param)
-{
-	struct sc2703_charger_info *info =
-		container_of(nb, struct sc2703_charger_info, pd_extcon_nb);
-
-	if (info->pd_hard_reset) {
-		dev_info(info->dev, "Already receive USB PD hard reset\n");
-		return NOTIFY_OK;
-	}
-
-	info->pd_hard_reset = true;
-	dev_info(info->dev, "Receive USB PD hard reset request\n");
-	schedule_delayed_work(&info->pd_hard_reset_work,
-			      msecs_to_jiffies(SC2703_PD_HARD_RESET_MS));
-
-	return NOTIFY_OK;
-}
-
-static void
-sc2703_charger_detect_pd_extcon_status(struct sc2703_charger_info *info)
-{
-	if (!info->pd_extcon_enable)
-		return;
-
-	if (extcon_get_state(info->pd_extcon, EXTCON_CHG_USB_PD)) {
-		info->pd_hard_reset = true;
-		dev_info(info->dev, "Detect USB PD hard reset request\n");
-		schedule_delayed_work(&info->pd_hard_reset_work,
-			      msecs_to_jiffies(SC2703_PD_HARD_RESET_MS));
-	}
-}
-
-static void sc2703_charger_pd_hard_reset_work(struct work_struct *work)
-{
-	struct delayed_work *dwork = to_delayed_work(work);
-	struct sc2703_charger_info *info = container_of(dwork,
-			struct sc2703_charger_info, pd_hard_reset_work);
-
-	info->pd_hard_reset = false;
-}
-
-static int
-sc2703_charger_register_pd_extcon(struct platform_device *pdev,
-				  struct sc2703_charger_info *info)
-{
-	int ret;
-
-	info->pd_extcon_enable =
-		device_property_read_bool(&pdev->dev, "pd-extcon-enable");
-
-	if (!info->pd_extcon_enable)
-		return 0;
-
-	INIT_DELAYED_WORK(&info->pd_hard_reset_work, sc2703_charger_pd_hard_reset_work);
-
-	if (of_property_read_bool(pdev->dev.of_node, "extcon")) {
-		info->pd_extcon = extcon_get_edev_by_phandle(&pdev->dev, 1);
-		if (IS_ERR(info->pd_extcon)) {
-			dev_err(&pdev->dev, "failed to find pd extcon device.\n");
-			return PTR_ERR(info->pd_extcon);
-		}
-
-		info->pd_extcon_nb.notifier_call = sc2703_charger_pd_extcon_event;
-		ret = devm_extcon_register_notifier_all(&pdev->dev,
-							info->pd_extcon,
-							&info->pd_extcon_nb);
-		if (ret) {
-			dev_err(&pdev->dev, "Can't register pd extcon\n");
-			return ret;
-		}
-	}
-
-	return 0;
-}
-
-#else
-static void
-sc2703_charger_detect_pd_extcon_status(struct sc2703_charger_info *info)
-{
-
-}
-
-static int
-sc2703_charger_register_pd_extcon(struct platform_device *pdev,
-				  struct sc2703_charger_info *info)
-{
-	return 0;
-}
-#endif
-
 
 static int sc2703_charger_usb_get_property(struct power_supply *psy,
 					   enum power_supply_property psp,
@@ -1143,6 +1425,9 @@ static int sc2703_charger_usb_get_property(struct power_supply *psy,
 		break;
 
 	case POWER_SUPPLY_PROP_USB_TYPE:
+        if (info->is_pd)
+            info->usb_phy->chg_type= DCP_TYPE;
+
 		type = info->usb_phy->chg_type;
 
 		switch (type) {
@@ -1165,18 +1450,25 @@ static int sc2703_charger_usb_get_property(struct power_supply *psy,
 		break;
 
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
+        pr_dbg("fqchen %s info->charging = %d\n", __func__, info->charging);
+        pr_dbg("fqchen %s info->charger_type = %d\n", __func__, info->charger_type);
+        pr_dbg("fqchen %s info->is_pd = %d\n", __func__, info->is_pd);
 		if (!info->charging)
 			val->intval = POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
-		else
-			val->intval = info->charger_type;
+		else {
+            if (info->is_pd) {
+                pr_dbg("fqchen %s info->is_pd2 = %d\n", __func__, info->is_pd);
+			    val->intval = POWER_SUPPLY_USB_TYPE_PD;
+            } else {
+			    val->intval = info->charger_type;
+            }
+        }
+        pr_dbg("fqchen %s val->intval = %d\n", __func__, val->intval);
 		break;
 
-	case POWER_SUPPLY_PROP_INPUT_CURRENT_NOW:
-		ret = sc2703_charger_get_input_current(info, &cur);
-		if (ret)
-			goto out;
-		val->intval = cur;
-		break;
+    case POWER_SUPPLY_PROP_SHIP_MODE:
+        val->intval = 0;
+        break;
 
 	default:
 		ret = -EINVAL;
@@ -1217,6 +1509,7 @@ sc2703_charger_usb_set_property(struct power_supply *psy,
 		break;
 
 	case POWER_SUPPLY_PROP_STATUS:
+        psy_val = psy->value;
 		ret = sc2703_charger_set_status(info, val->intval, present);
 		if (ret < 0)
 			dev_err(info->dev, "set charge status failed\n");
@@ -1234,6 +1527,12 @@ sc2703_charger_usb_set_property(struct power_supply *psy,
 			dev_err(info->dev, "failed to set terminate voltage\n");
 		break;
 
+    case POWER_SUPPLY_PROP_SHIP_MODE:
+        ret = sc2703_charger_set_shipmode(info);
+        if (ret < 0)
+            dev_err(info->dev, "set charge shipmode failed\n");
+        break;
+
 	default:
 		ret = -EINVAL;
 	}
@@ -1242,8 +1541,92 @@ sc2703_charger_usb_set_property(struct power_supply *psy,
 	return ret;
 }
 
+static void sc2703_set_fchg_work(struct work_struct *work)
+{
+	struct delayed_work *dwork = to_delayed_work(work);
+	struct sc2703_charger_info *info = container_of(dwork,
+			struct sc2703_charger_info, fchg_detect_work);
+    int ret, limit_cur, cur;
+
+    limit_cur = info->cur.dcp_limit;
+    cur = info->cur.dcp_cur;
+
+    ret = sc2703_charger_set_limit_current(info, limit_cur);
+    if (ret) {
+        dev_err(info->dev, "failed to set limit cur ret = %d\n",
+                ret);
+        return;
+    }
+
+    ret = sc2703_charger_set_current(info, cur);
+    if (ret)
+        dev_err(info->dev, "failed to set cur ret = %d\n", ret);
+}
+
+static int sc2703_charger_pd_change(struct notifier_block *nb,
+        unsigned long data, void *v)
+{
+    struct sc2703_charger_info *info =
+        container_of(nb, struct sc2703_charger_info, pd_notify);
+    union power_supply_propval val;
+    struct power_supply *psy = v;
+    int usb_type;
+    int ret;
+    pr_dbg("fqchen %s start\n", __func__);
+    pr_dbg("fqchen %s info->is_pd = %d\n", __func__, info->is_pd);
+
+    //mutex_lock(&info->lock);
+    if (info->is_pd)
+        goto out1;
+
+    if (data != PSY_EVENT_PROP_CHANGED)
+        goto out1;
+    pr_dbg("fqchen %s start2, psy_name = %s\n", __func__, psy->desc->name);
+
+    if (strcmp(psy->desc->name, "tcpm-source-psy-sc27xx-pd") != 0)
+        goto out1;
+    pr_dbg("fqchen %s start3\n", __func__);
+
+    mutex_lock(&info->lock);
+    info->tcpm_psy = v;
+
+    ret = power_supply_get_property(info->tcpm_psy,
+            POWER_SUPPLY_PROP_USB_TYPE,
+            &val);
+    if (ret) {
+        dev_err(info->dev, "failed to get pd type\n");
+        goto out;
+    }
+
+    usb_type = val.intval;
+    pr_dbg("fqchen %s usb_type = %d\n", __func__, usb_type);
+
+    if (usb_type == POWER_SUPPLY_USB_TYPE_PD_PPS ||
+            usb_type == POWER_SUPPLY_USB_TYPE_PD) {
+        pr_dbg("fqchen %s start4\n", __func__);
+        info->is_pd = true;
+        info->charger_type = POWER_SUPPLY_USB_TYPE_PD;
+		//cm_notify_event(info->psy_usb, CM_EVENT_FAST_CHARGE, NULL);
+    } else {
+		info->is_pd = false;
+    }
+
+    if (info->is_pd)
+		schedule_delayed_work(&info->fchg_detect_work,
+			                        msecs_to_jiffies(SC2703_SET_FCHG_MS));
+
+    mutex_unlock(&info->lock);
+    cm_notify_event(info->psy_usb, CM_EVENT_FAST_CHARGE, NULL);
+    goto out1;
+
+out:
+    mutex_unlock(&info->lock);
+out1:
+    return NOTIFY_OK;
+}
+
 static int sc2703_charger_property_is_writeable(struct power_supply *psy,
-						enum power_supply_property psp)
+        enum power_supply_property psp)
 {
 	int ret;
 
@@ -1253,6 +1636,7 @@ static int sc2703_charger_property_is_writeable(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT:
 	case POWER_SUPPLY_PROP_FEED_WATCHDOG:
 	case POWER_SUPPLY_PROP_STATUS:
+    case POWER_SUPPLY_PROP_SHIP_MODE:
 		ret = 1;
 		break;
 
@@ -1278,13 +1662,13 @@ static enum power_supply_property sc2703_usb_props[] = {
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT,
 	POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT,
-	POWER_SUPPLY_PROP_INPUT_CURRENT_NOW,
 	POWER_SUPPLY_PROP_ONLINE,
 	POWER_SUPPLY_PROP_HEALTH,
 	POWER_SUPPLY_PROP_FEED_WATCHDOG,
 	POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX,
 	POWER_SUPPLY_PROP_USB_TYPE,
 	POWER_SUPPLY_PROP_CHARGE_TYPE,
+    POWER_SUPPLY_PROP_SHIP_MODE,
 };
 
 static const struct power_supply_desc sc2703_charger_desc = {
@@ -1321,8 +1705,17 @@ static void sc2703_charger_detect_status(struct sc2703_charger_info *info)
 static int sc2703_charger_vbus_is_enabled(struct regulator_dev *dev)
 {
 	struct sc2703_charger_info *info = rdev_get_drvdata(dev);
+	int ret;
+	u32 val;
 
-	return info->otg_enable;
+	ret = regmap_read(info->regmap, SC2703_DCDC_CTRL_A, &val);
+	if (ret) {
+		dev_err(info->dev, "failed to get sc2703 otg status.\n");
+		return ret;
+	}
+	val &= SC2703_OTG_EN_MASK;
+
+	return val;
 }
 
 static int sc2703_charger_enable_otg(struct regulator_dev *dev)
@@ -1399,8 +1792,6 @@ static int sc2703_charger_enable_otg(struct regulator_dev *dev)
 		return ret;
 	}
 
-	info->otg_enable = true;
-
 	schedule_delayed_work(&info->otg_work,
 			      msecs_to_jiffies(SC2703_OTG_VALID_MS));
 
@@ -1412,7 +1803,6 @@ static int sc2703_charger_disable_otg(struct regulator_dev *dev)
 	struct sc2703_charger_info *info = rdev_get_drvdata(dev);
 	int ret;
 
-	info->otg_enable = false;
 	cancel_delayed_work_sync(&info->otg_work);
 
 	/* Disable 2703 otg mode */
@@ -1512,7 +1902,8 @@ static void sc2703_charger_otg_work(struct work_struct *work)
 	struct sc2703_charger_info *info = container_of(dwork,
 			struct sc2703_charger_info, otg_work);
 	bool otg_valid = sc2703_charger_otg_is_valid(info);
-	int ret, retry = 0;
+	//int ret, retry = 0;
+	int retry = 0;
 
 	if (otg_valid)
 		goto out;
@@ -1533,6 +1924,7 @@ static void sc2703_charger_otg_work(struct work_struct *work)
 	}
 
 out:
+#if 0 // delete to keep OTG current 0.5A
 	/* Set dc-dc output limit cur 2000ma in reverse boost mode */
 	ret = regmap_update_bits(info->regmap, SC2703_DCDC_CTRL_B,
 				 SC2703_IIN_REV_LIM_MASK,
@@ -1542,6 +1934,7 @@ out:
 			"Failed to set dc-dc 2000ma limit cur:%d\n", ret);
 		return;
 	}
+#endif
 	schedule_delayed_work(&info->otg_work,
 			      msecs_to_jiffies(SC2703_OTG_NORMAL_VALID_MS));
 }
@@ -1605,17 +1998,12 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 	mutex_init(&info->lock);
 	info->dev = &pdev->dev;
 	INIT_WORK(&info->work, sc2703_charger_work);
+	INIT_DELAYED_WORK(&info->fchg_detect_work, sc2703_charger_fchg_work);
 
 	info->regmap = dev_get_regmap(pdev->dev.parent, NULL);
 	if (!info->regmap) {
 		dev_err(&pdev->dev, "failed to get charger regmap\n");
 		return -ENODEV;
-	}
-
-	ret = sc2703_charger_register_pd_extcon(pdev, info);
-	if (ret) {
-		dev_err(&pdev->dev, "failed to register pd extcon\n");
-		return ret;
 	}
 
 	platform_set_drvdata(pdev, info);
@@ -1657,6 +2045,9 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
+    read_boardid(&boardid);
+    dev_err(&pdev->dev, "boardid = %d\n", boardid);
+
 	info->long_key_detect =
 		device_property_read_bool(&pdev->dev, "sprd,long-key-detection");
 
@@ -1666,6 +2057,13 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to register notifier:%d\n", ret);
 		return ret;
 	}
+
+    info->pd_notify.notifier_call = sc2703_charger_pd_change;
+    ret = power_supply_reg_notifier(&info->pd_notify);
+    if (ret) {
+        dev_err(&pdev->dev, "failed to register notifier:%d\n", ret);
+        return ret;
+    }
 
 	charger_cfg.drv_data = info;
 	charger_cfg.of_node = np;
@@ -1681,10 +2079,14 @@ static int sc2703_charger_probe(struct platform_device *pdev)
 	ret = sc2703_charger_hw_init(info);
 	if (ret)
 		return ret;
+	INIT_DELAYED_WORK(&info->set_fchg_work, sc2703_set_fchg_work);
 
 	sc2703_charger_detect_status(info);
 	INIT_DELAYED_WORK(&info->otg_work, sc2703_charger_otg_work);
-	sc2703_charger_detect_pd_extcon_status(info);
+#ifdef DEBUG_PRINT_REGS
+    INIT_DELAYED_WORK(&info->print_reg_work, print_reg_work_handler);
+    schedule_delayed_work(&info->print_reg_work, HZ * 15);
+#endif
 
 	return 0;
 }
@@ -1695,7 +2097,6 @@ static void sc2703_shutdown(struct platform_device *pdev)
 	int ret;
 
 	cancel_delayed_work_sync(&info->otg_work);
-	cancel_delayed_work_sync(&info->pd_hard_reset_work);
 
 	ret = regmap_update_bits(info->regmap, SC2703_DCDC_CTRL_A,
 				 SC2703_OTG_EN_MASK, 0);

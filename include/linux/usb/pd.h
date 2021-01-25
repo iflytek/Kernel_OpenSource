@@ -1,5 +1,6 @@
 /*
  * Copyright 2015-2017 Google, Inc
+ * Copyright 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -434,7 +435,7 @@ static inline unsigned int rdo_max_power(u32 rdo)
 #define PD_T_SENDER_RESPONSE	60	/* 24 - 30 ms, relaxed */
 #define PD_T_SOURCE_ACTIVITY	45
 #define PD_T_SINK_ACTIVITY	135
-#define PD_T_SINK_WAIT_CAP	460	/* 310 - 620 ms */
+#define PD_T_SINK_WAIT_CAP	400
 #define PD_T_PS_TRANSITION	500
 #define PD_T_SRC_TRANSITION	35
 #define PD_T_DRP_SNK		40

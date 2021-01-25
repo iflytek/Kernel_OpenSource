@@ -1,5 +1,6 @@
 /*
  *Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  *This software is licensed under the terms of the GNU General Public
  *License version 2, as published by the Free Software Foundation, and
@@ -26,6 +27,8 @@
 #include "sprd_drm_gsp.h"
 #include "sprd_gem.h"
 #include <uapi/drm/sprd_drm_gsp.h>
+#include "sprd_panel.h"
+
 
 #define DRIVER_NAME	"sprd"
 #define DRIVER_DESC	"Spreadtrum SoCs' DRM Driver"
@@ -36,6 +39,8 @@
 #define SPRD_FENCE_WAIT_TIMEOUT 3000 /* ms */
 
 static bool cali_mode;
+extern struct sprd_panel *sprd_mipi_panel;
+extern int sprd_panel_prepare_shutdown(struct sprd_panel *panel);
 
 static int boot_mode_check(char *str)
 {
@@ -649,6 +654,14 @@ static int sprd_drm_remove(struct platform_device *pdev)
 static void sprd_drm_shutdown(struct platform_device *pdev)
 {
 	struct drm_device *drm = platform_get_drvdata(pdev);
+	if(IS_ERR_OR_NULL(sprd_mipi_panel))
+		DRM_WARN("%s(), sprd_mipi_panel is not available \n", __func__);
+	else {
+		spin_lock(&sprd_mipi_panel->lock);
+        sprd_mipi_panel->is_should_shutdown = true;
+		spin_unlock(&sprd_mipi_panel->lock);
+		DRM_INFO("%s(), now should shutdown \n", __func__);
+	}
 
 	if (!drm) {
 		DRM_WARN("drm device is not available, no shutdown\n");
@@ -656,6 +669,14 @@ static void sprd_drm_shutdown(struct platform_device *pdev)
 	}
 
 	drm_atomic_helper_shutdown(drm);
+
+	if(!IS_ERR_OR_NULL(sprd_mipi_panel)) {
+		if(sprd_mipi_panel->is_already_shutdown)
+			DRM_INFO("%s(), is already shutdown \n", __func__);
+		else {
+			sprd_panel_prepare_shutdown(sprd_mipi_panel);
+		}
+	}
 }
 
 static int sprd_drm_pm_suspend(struct device *dev)

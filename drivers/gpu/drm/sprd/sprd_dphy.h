@@ -1,3 +1,6 @@
+//Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
+//SPDX-License-Identifier: GPL-2.0-only
+
 #ifndef _SPRD_DPHY_H_
 #define _SPRD_DPHY_H_
 
@@ -19,6 +22,7 @@ struct dphy_context {
 	u8 lanes;
 	u8 id;
 	bool is_enabled;
+    u8 capability;
 };
 
 struct dphy_pll_ops {

@@ -3,6 +3,7 @@
  *
  * Copyright 2002 Hewlett-Packard Company
  * Copyright 2005-2008 Pierre Ossman
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * Use consistent with the GNU GPL is permitted,
  * provided that this copyright notice is
@@ -1927,6 +1928,13 @@ static void mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *new_req)
 			}
 			break;
 		case MMC_BLK_CMD_ERR:
+// bayhub chevron.li add for degrade code at 2019/8/30 start
+#ifdef CONFIG_MMC_SDHCI_BH201
+			/* Set degrade flag */
+			card->host->degrade = 1;
+			pr_err("### Bayhub debug: Set degrade flag, because MMC_BLK_CMD_ERR retry %d ###", retry);
+#endif
+// bayhub chevron.li add for degrade code at 2019/8/30 end
 			req_pending = mmc_blk_rw_cmd_err(md, card, brq, old_req, req_pending);
 			if (mmc_blk_reset(md, card->host, type)) {
 				mmc_remove_defective_card(card->host);
@@ -1949,7 +1957,16 @@ static void mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *new_req)
 				break;
 			/* Fall through */
 		case MMC_BLK_ABORT:
+// bayhub chevron.li add for degrade code at 2019/8/30 start
+#ifdef CONFIG_MMC_SDHCI_BH201
+		/* Set degrade flag */
+			card->host->degrade = 1;
+			pr_err("### Bayhub debug: Set degrade flag, because MMC_BLK_ABORT retry %d ###", retry);
+#endif
+// bayhub chevron.li add for degrade code at 2019/8/30 end
+
 			if (!mmc_blk_reset(md, card->host, type))
+//				(retry++ < (MMC_BLK_MAX_RETRIES + 1)))
 				break;
 			mmc_remove_defective_card(card->host);
 			mmc_blk_rw_cmd_abort(mq, card, old_req, mq_rq);
@@ -1957,7 +1974,13 @@ static void mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *new_req)
 			return;
 		case MMC_BLK_DATA_ERR: {
 			int err;
-
+// bayhub chevron.li add for degrade code at 2019/8/30 start
+#ifdef CONFIG_MMC_SDHCI_BH201
+			/* Set degrade flag */
+			card->host->degrade = 1;
+			pr_err("### Bayhub debug: Set degrade flag, because MMC_BLK_DATA_ERR ###");
+#endif
+// bayhub chevron.li add for degrade code at 2019/8/30 end
 			err = mmc_blk_reset(md, card->host, type);
 			if (!err)
 				break;

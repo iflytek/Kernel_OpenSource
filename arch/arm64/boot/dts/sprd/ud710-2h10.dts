@@ -2,6 +2,7 @@
  * Spreadtrum Roc1 board DTS file
  *
  * Copyright (C) 2018, Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This file is licensed under a dual GPLv2 or X11 license.
  */
@@ -19,6 +20,8 @@
 #include "lcd/lcd_td4310_truly_mipi_fhd.dtsi"
 #include "lcd/lcd_ssd2092_truly_mipi_fhd.dtsi"
 #include "lcd/lcd_tv105wum_mipi_hd.dtsi"
+#include "lcd/lcd_lt9711_mipi_fhd.dtsi"
+
 
 / {
 	model = "Spreadtrum UD710 2h10 Board";
@@ -40,7 +43,7 @@
 
 	chosen {
 		stdout-path = &uart1;
-		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=1 init=/init root=/dev/mmcblk0p30 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_2h10 androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat";
+		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=1 init=/init root=/dev/sda39 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_2h10 androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat";
 	};
 
 	ipi: interrupt-controller {
@@ -90,8 +93,8 @@
 		clocks = <&aon_clk CLK_AON_AUX0>,
 			 <&ext_32k>,
 			 <&aonapb_gate CLK_AUX0_EB>;
-		sprd,btwf-file-name = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/wcnmodem";
-		sprd,gnss-file-name = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/gnssmodem";
+		sprd,btwf-file-name = "/dev/block/platform/soc/soc:ap-apb/71900000.ufs/by-name/wcnmodem";
+		sprd,gnss-file-name = "/dev/block/platform/soc/soc:ap-apb/71900000.ufs/by-name/gnssmodem";
 		sprd,rc-ctrl = <&pcie0>;
 	};
 
@@ -107,39 +110,41 @@
 		syscon-names = "enable";
 	};
 
-	gnss-common-ctl {
-		compatible = "sprd,gnss-common-ctl";
-		sprd,name = "gnss-common-ctl";
-	};
+//# bwwei add 2022.07.28 for remove gnss
+//	gnss-common-ctl {
+//		compatible = "sprd,gnss-common-ctl";
+//		sprd,name = "gnss-common-ctl";
+//	};
+//# bwwei end 2022.07.28 for remove gnss
 
 	bat: battery {
 		compatible = "simple-battery";
-		charge-full-design-microamp-hours = <3690000>;
-		charge-term-current-microamp = <120000>;
+		charge-full-design-microamp-hours = <9900000>;
+		charge-term-current-microamp = <240000>;
 		constant_charge_voltage_max_microvolt = <4400000>;
-		factory-internal-resistance-micro-ohms = <147000>;
+		factory-internal-resistance-micro-ohms = <102000>;
 		voltage-min-design-microvolt = <3450000>;
 		ocv-capacity-celsius = <20>;
-		ocv-capacity-table-0 = <4380000 100>, <4317000 95>, <4258000 90>,
-					<4200000 85>, <4145000 80>, <4092000 75>,
-					<4047000 70>, <3990000 65>, <3955000 60>,
-					<3900000 55>, <3861000 50>, <3834000 45>,
-					<3813000 40>, <3796000 35>, <3783000 30>,
-					<3770000 25>, <3752000 20>, <3730000 15>,
-					<3698000 10>, <3687000 5>, <3400000 0>;
-		voltage-temp-table = <1095000 800>, <986000 850>, <878000 900>,
-				      <775000 950>, <678000 1000>, <590000 1050>,
-				      <510000 1100>, <440000 1150>, <378000 1200>,
-				      <324000 1250>, <278000 1300>, <238000 1350>,
-				      <204000 1400>, <175000 1450>, <150000 1500>,
-				      <129000 1550>, <111000 1600>, <96000 1650>;
-		capacity-temp-table = <45 100>, <25 100>, <10 97>, <0 95>, <(-10) 82>, <(-20) 62>;
-		resistance-temp-table = <45 100>, <25 100>, <10 483>, <0 680>, <(-10) 789>, <(-20) 816>;
+		ocv-capacity-table-0 = <4353000 100>, <4291000 95>, <4233000 90>,
+					<4177000 85>, <4123000 80>, <4075000 75>,
+					<4019000 70>, <3977000 65>, <3938000 60>,
+					<3882000 55>, <3851000 50>, <3827000 45>,
+					<3808000 40>, <3793000 35>, <3779000 30>,
+					<3761000 25>, <3744000 20>, <3720000 15>,
+					<3693000 10>, <3677000 5>, <3400000 0>;
+		voltage-temp-table = <1220000 750>, <1111000 800>, <1000000 850>, <891000 900>,
+				      <786000 950>, <687000 1000>, <596000 1050>,
+				      <515000 1100>, <443000 1150>, <379000 1200>,
+				      <325000 1250>, <278000 1300>, <237000 1350>,
+				      <203000 1400>, <174000 1450>, <149000 1500>,
+				      <129000 1550>, <111000 1600>, <96000 1650>, <83000 1700>;
+		capacity-temp-table = <45 100>, <25 100>, <10 98>, <0 98>, <(-10) 88>, <(-20) 72>;
+		resistance-temp-table = <45 75>, <25 100>, <10 133>, <0 417>, <(-10) 551>, <(-20) 602>;
 		charge-sdp-current-microamp = <500000 500000>;
-		charge-dcp-current-microamp = <2000000 3000000>;
+		charge-dcp-current-microamp = <2000000 2000000>;
 		charge-cdp-current-microamp = <1500000 1500000>;
-		charge-unknown-current-microamp = <500000 500000>;
-		charge-fchg-current-microamp = <3000000 2000000>;
+		charge-unknown-current-microamp = <1000000 1000000>;
+		charge-fchg-current-microamp = <2000000 1000000>;
 	};
 
 	charger-manager {
@@ -151,15 +156,12 @@
 
 		cm-fullbatt-vchkdrop-ms = <30000>;
 		cm-fullbatt-vchkdrop-volt = <60000>;
-		cm-fullbatt-voltage = <4350000>;
-		cm-first-fullbatt-current = <150000>;
-		cm-fullbatt-current = <120000>;
+		cm-fullbatt-voltage = <4370000>;
+		cm-fullbatt-current = <300000>;
 		cm-fullbatt-capacity = <100>;
 
-		cm-num-chargers = <1>;
-		cm-num-fast-chargers = <1>;
-		cm-chargers = "sc2703_charger";
-		cm-fast-chargers = "sc2730_fast_charger";
+		cm-num-chargers = <2>;
+		cm-chargers = "sc2703_charger", "bq2560x_charger";
 		cm-fuel-gauge = "sc27xx-fgu";
 
 		/* in deci centigrade */
@@ -169,7 +171,7 @@
 		cm-battery-temp-diff = <100>;
 
 		/* Allow charging for 10hr */
-		cm-charging-max = <36000000>;
+		cm-charging-max = <64800000>;
 		/* recovery charging after stop charging 3hr */
 		cm-discharging-max = <10800000>;
 
@@ -177,10 +179,10 @@
 		cm-wdt-interval = <60>;
 
 		/* drop voltage in microVolts to allow shutdown */
-		cm-shutdown-voltage = <3150000>;
+		cm-shutdown-voltage = <3100000>;
 
 		/* when 99% of the time is exceeded, it will be forced to 100% */
-		cm-tickle-time-out = <1500>;
+		cm-tickle-time-out = <300>;   // 25min -> 5min
 
 		/* how much time to allow capacity change */
 		cm-one-cap-time = <30>;
@@ -194,17 +196,22 @@
 		cm-fast-charge-voltage-max = <10500000>;
 		/* drop voltage in microVolts to restart charging */
 		cm-fast-charge-voltage-drop = <700000>;
-#if 0
-		cm-dcp-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 700000 4400000>,
-			<1450 1420 2000000 4400000>, <1600 1570 700000 4100000>;
+
+		/* double charge IC all current */
+		cm-fast-charge-all-current = <2000000>;
+
+#if 1
+		cm-dcp-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 2000000 4400000>,
+			<1450 1420 2000000 4400000>, <1600 1570 2000000 4300000>;
 		cm-sdp-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 500000 4400000>,
-			<1450 1420 500000 4400000>, <1600 1570 500000 4100000>;
-		cm-cdp-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 700000 4400000>,
-			<1450 1420 1500000 4400000>, <1600 1570 500000 4100000>;
-		cm-unknown-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 500000 4400000>,
-			<1450 1420 500000 4400000>, <1600 1570 500000 4100000>;
-		cm-fchg-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 700000 4400000>,
-			<1450 1420 3250000 4400000>, <1600 1570 700000 4100000>;
+			<1450 1420 500000 4400000>, <1600 1570 500000 4300000>;
+		cm-cdp-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 500000 4400000>,
+			<1450 1420 1500000 4400000>, <1600 1570 500000 4300000>;
+		cm-unknown-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 1000000 4400000>,
+			<1450 1420 1000000 4400000>, <1600 1570 500000 4300000>;
+		cm-fchg-jeita-temp-table = <1000 1030 0 4400000>, <1150 1180 1000000 4400000>,
+			<1450 1420 2000000 4400000>, <1600 1570 1500000 4300000>;
+
 #endif
 
 		monitored-battery = <&bat>;
@@ -278,7 +285,6 @@
 				<350 0x14c 0 0xffff 0x3300>;
 		tuning-latency-us = <200>;
 		chnl-in-i2c = <1>;
-		slew-rate = <10000>; /* 10000uV/us */
 	};
 
 	tboard_thermistor:thermal-sensor {
@@ -286,21 +292,21 @@
 		#thermal-sensor-cells = <0>;
 		io-channels = <&pmic_adc 1>;
 		io-channel-names = "sensor-channel";
-		temperature-lookup-table = <	(-39742) 1131
-						(-29777) 1110
-						(-19480) 1074
-						(-4679) 983
-						10110 838
-						24805 654
-						44922 413
-						54903 316
-						64895 238
-						74884 178
-						84883 133
-						94883 100
-						104880 75
-						114889 57
-						124872 43 >;
+		temperature-lookup-table = <	(-39742) 1161
+						(-29777) 1141
+						(-19480) 1105
+						(-4679) 1012
+						10110 863
+						24805 672
+						44922 423
+						54903 323
+						64895 243
+						74884 182
+						84883 136
+						94883 102
+						104880 77
+						114889 58
+						124872 45 >;
 	};
 
 	extcon_gpio: extcon-gpio {
@@ -342,7 +348,17 @@
 		#size-cells = <0>;
 		reg = <0>;
 		reset-gpio = <&ap_gpio 50 GPIO_ACTIVE_HIGH>;
+		edp3v3-gpio = <&ap_gpio 157 GPIO_ACTIVE_HIGH>;
+		edp1v2-gpio = <&ap_gpio 22 GPIO_ACTIVE_HIGH>;
+		edp1v8-gpio = <&ap_gpio 159 GPIO_ACTIVE_HIGH>;
+		lcm3v3-gpio = <&ap_gpio 139 GPIO_ACTIVE_HIGH>;
+		edpiicen-gpio = <&ap_gpio 9 GPIO_ACTIVE_HIGH>;
+
+		pwmen-gpio = <&ap_gpio 62 GPIO_ACTIVE_HIGH>;
+		lcdblen-gpio = <&ap_gpio 136 GPIO_ACTIVE_HIGH>;
+
 		power-supply = <&lcd_vdd>;
+        power1v8-supply = <&vddldo1>;
 		port {
 			reg = <1>;
 			panel_in: endpoint {
@@ -352,6 +368,9 @@
 	};
 };
 
+&vddldo1 {
+    status = "okay";
+};
 
 &dphy {
 	status = "okay";
@@ -401,9 +420,8 @@
 			compatible = "sprd,sc2703-charger";
 			phys = <&ssphy>;
 			monitored-battery = <&bat>;
-			extcon = <&pmic_typec>, <&pmic_pd>;
+			extcon = <&pmic_typec>;
 			sprd,long-key-detection;
-			pd-extcon-enable;
 			vddvbus:otg-vbus {
 				regulator-name = "vddvbus";
 			};
@@ -432,9 +450,9 @@
 &i2c0 {
 	status = "okay";
 
-    sensor_sub: sensor-sub@6e {
-        compatible = "sprd,sensor-sub";
-        reg = <0x6e>;
+    sensor_main2: sensor-main2@6c {
+        compatible = "sprd,sensor-main2";
+        reg = <0x6c>;
 
         clock-names = "clk_src","sensor_eb",
             "clk_96m","clk_76m8",
@@ -479,6 +497,28 @@
 
         status = "okay";
     };
+
+    sensor_sub: sensor-sub@6c {
+        compatible = "sprd,sensor-sub";
+        reg = <0x6c>;
+
+        clock-names = "clk_src","sensor_eb",
+            "clk_96m","clk_76m8",
+            "clk_48m","clk_26m";
+        clocks = <&mm_clk CLK_SENSOR0>,<&mm_gate CLK_MM_SENSOR0_EB>,
+            <&g12_pll CLK_TWPLL_96M>,<&g12_pll CLK_TWPLL_76M8>,
+            <&g12_pll CLK_TWPLL_48M>,<&ext_26m>;
+        vddio-supply = <&vddcamio>;
+        vddcama-supply = <&vddcama1>;
+        vddcamd-supply = <&vddcamd1>;
+        vddcammot-supply = <&vddcammot>;
+        sprd,phyid = <1>;
+        csi = <&csi0>;
+        reset-gpios = <&ap_gpio 44 0>;
+        power-down-gpios = <&ap_gpio 46 0>;
+
+        status = "okay";
+    };
 };
 
 &i2c2 {
@@ -490,28 +530,76 @@
 		phys = <&ssphy>;
 		monitored-battery = <&bat>;
 		extcon = <&pmic_typec>;
-		enable-gpio = <&ap_gpio 52 GPIO_ACTIVE_HIGH>;
+		enable-gpio = <&ap_gpio 92 GPIO_ACTIVE_HIGH>;
 	};
+    lt9711: lt9711@41{
+        status = "okay";
+        compatible = "lontium,lt9711exb";
+        reg = <0x41>;
+		/*
+        edp3v3-gpio=<&ap_gpio 157  GPIO_ACTIVE_HIGH>;
+        edp1v2-gpio=<&ap_gpio 158  GPIO_ACTIVE_HIGH>;
+        edp1v8-gpio=<&ap_gpio 159  GPIO_ACTIVE_HIGH>;
+        edpreset-gpio = <&ap_gpio  50  GPIO_ACTIVE_LOW>;
+		*/
+    };
 };
 
 &i2c4 {
 	status = "okay";
 	clock-frequency = <400000>;
-	aw8898_l_smartpa: aw8898_smartpa@34 {
-		compatible = "awinic,aw8898_l_smartpa";
-		#sound-dai-cells = <1>;
+	aw881xx_r1_aif: aw881xx_smartpa@34 {
+		compatible = "awinic,aw881xx_smartpa";
 		reg = <0x34>;
-		reset-gpio = <&ap_gpio 16 1>;
+		#sound-dai-cells = <1>;
+		reset-gpio = <&ap_gpio 16 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&ap_gpio 15 GPIO_ACTIVE_HIGH>;
+		fade-enable = <0>;
+		pa-syn-enable = <0>;
+		sound-channel = <0>;
+		spin_data = "L R R L";
 		status = "okay";
 	};
-	
-	aw8898_r_smartpa: aw8898_smartpa@35 {
-		compatible = "awinic,aw8898_r_smartpa";
-		#sound-dai-cells = <1>;
+
+	aw881xx_r2_aif: aw881xx_smartpa@35 {
+		compatible = "awinic,aw881xx_smartpa";
 		reg = <0x35>;
-		reset-gpio = <&ap_gpio 37 1>;
+		#sound-dai-cells = <1>;
+		reset-gpio = <&ap_gpio 37 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&ap_gpio 36 GPIO_ACTIVE_HIGH>;
+		fade-enable = <0>;
+		pa-syn-enable = <0>;
+		sound-channel = <1>;
+		spin_data = "R R L L";
 		status = "okay";
-	};	
+	};
+
+	aw881xx_l1_aif: aw881xx_smartpa@36 {
+		compatible = "awinic,aw881xx_smartpa";
+		reg = <0x36>;
+		#sound-dai-cells = <1>;
+		reset-gpio = <&ap_gpio 8 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&ap_gpio 7 GPIO_ACTIVE_HIGH>;
+		fade-enable = <0>;
+		pa-syn-enable = <0>;
+		sound-channel = <2>;
+		spin_data = "R L L R";
+		status = "okay";
+	};
+
+	aw881xx_l2_aif: aw881xx_smartpa@37 {
+		compatible = "awinic,aw881xx_smartpa";
+		reg = <0x37>;
+		#sound-dai-cells = <1>;
+		reset-gpio = <&ap_gpio 11 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&ap_gpio 10 GPIO_ACTIVE_HIGH>;
+		fade-enable = <0>;
+		pa-syn-enable = <0>;
+		sound-channel = <3>;
+		spin_data = "L L R R";
+		status = "okay";
+	};
+
 };
 
 &dmc_mpu {
@@ -519,7 +607,12 @@
 };
 
 &sdio0 {
-	cd-gpios = <&eic_async 35 GPIO_ACTIVE_LOW>;
+	cd-gpios = <&eic_async 25 GPIO_ACTIVE_LOW>;
+	pwr-gpios = <&ap_gpio 31 GPIO_ACTIVE_HIGH>;
+};
+
+&ufs {
+	status = "okay";
 };
 
 &spi0 {
@@ -603,8 +696,6 @@
 	monitored-battery = <&bat>;
 	sprd,calib-resistance-real = <10000>;
 	sprd,calib-resistance-spec = <20000>;
-	first-calib-voltage = <3630000>;
-	first-calib-capacity = <40>;
 };
 
 &pmic_fchg {
@@ -676,6 +767,8 @@
 	extcon = <&pmic_typec>;
 //	mic-gpios = <&ap_gpio 52 GPIO_ACTIVE_HIGH>;
 	lr-gpios = <&ap_gpio 55 GPIO_ACTIVE_HIGH>;
+	switch-supply = <&vddusb33>;
+	sprd,switch-voltage = <3300000>;
 	sprd,3pole-adc-threshold = <112>;
 };
 
@@ -714,7 +807,7 @@
 			sound-dai = <&vbc_v4 34>;
 		};
 		codec {
-			sound-dai = <&aw8898_l_smartpa 0>;
+			sound-dai = <&aw881xx_l1_aif 0>,<&aw881xx_l2_aif 0>,<&aw881xx_r1_aif 0>,<&aw881xx_r2_aif 0>;
 		};
 	};
 
@@ -734,7 +827,7 @@
 			sound-dai = <&vbc_v4 35>;
 		};
 		codec {
-			sound-dai = <&aw8898_l_smartpa 0>;
+			sound-dai = <&aw881xx_l1_aif 0>,<&aw881xx_l2_aif 0>,<&aw881xx_r1_aif 0>,<&aw881xx_r2_aif 0>;
 		};
 	};
 	/* 40: smart pa fast playback */
@@ -753,7 +846,7 @@
 			sound-dai = <&vbc_v4 36>;
 		};
 		codec {
-			sound-dai = <&aw8898_l_smartpa 0>;
+			sound-dai = <&aw881xx_l1_aif 0>,<&aw881xx_l2_aif 0>,<&aw881xx_r1_aif 0>,<&aw881xx_r2_aif 0>;
 		};
 	};
 	/* 41: smart pa offload */
@@ -772,7 +865,7 @@
 			sound-dai = <&vbc_v4 37>;
 		};
 		codec {
-			sound-dai = <&aw8898_l_smartpa 0>;
+			sound-dai = <&aw881xx_l1_aif 0>,<&aw881xx_l2_aif 0>,<&aw881xx_r1_aif 0>,<&aw881xx_r2_aif 0>;
 		};
 	};
 
@@ -792,7 +885,7 @@
 			sound-dai = <&vbc_v4 38>;
 		};
 		codec {
-			sound-dai = <&aw8898_l_smartpa 0>;
+			sound-dai = <&aw881xx_l1_aif 0>,<&aw881xx_l2_aif 0>,<&aw881xx_r1_aif 0>,<&aw881xx_r2_aif 0>;
 		};
 	};
 	/* 43: smart pa voip */
@@ -811,7 +904,7 @@
 			sound-dai = <&vbc_v4 39>;
 		};
 		codec {
-			sound-dai = <&aw8898_l_smartpa 0>;
+			sound-dai = <&aw881xx_l1_aif 0>,<&aw881xx_l2_aif 0>,<&aw881xx_r1_aif 0>,<&aw881xx_r2_aif 0>;
 		};
 	};
 	/* 44: smart pa fm */
@@ -830,7 +923,7 @@
 			sound-dai = <&vbc_v4 40>;
 		};
 		codec {
-			sound-dai = <&aw8898_l_smartpa 0>;
+			sound-dai = <&aw881xx_l1_aif 0>,<&aw881xx_l2_aif 0>,<&aw881xx_r1_aif 0>,<&aw881xx_r2_aif 0>;
 		};
 	};
 	/* 45: smart pa loopback */
@@ -849,7 +942,7 @@
 			sound-dai = <&vbc_v4 41>;
 		};
 		codec {
-			sound-dai = <&aw8898_l_smartpa 0>;
+			sound-dai = <&aw881xx_l1_aif 0>,<&aw881xx_l2_aif 0>,<&aw881xx_r1_aif 0>,<&aw881xx_r2_aif 0>;
 		};
 	};
 
@@ -869,10 +962,48 @@
 			sound-dai = <&vbc_v4 42>;
 		};
 		codec {
-			sound-dai = <&aw8898_l_smartpa 0>;
+			sound-dai = <&aw881xx_l1_aif 0>,<&aw881xx_l2_aif 0>,<&aw881xx_r1_aif 0>,<&aw881xx_r2_aif 0>;
 		};
 	};
-#if 0	
+	/* 47: fe recognise capture */
+	sprd-audio-card,dai-link@65 {
+		link-name = "FE_RECOGNISE_CAPTURE";
+		stream-name = "FE_ST_RECOGNISE_CAPTURE";
+		ignore-suspend = <1>;
+		dynamic = <1>;
+		trigger = <1 1>;
+		dpcm-capture = <1>;
+		be-id = <0>;
+		plat {
+			sound-dai = <&sprd_pcm>;
+		};
+		cpu {
+			sound-dai = <&sprd_fe_dai 19>;
+		};
+		codec {
+			sound-dai = <0 0>;
+		};
+	};
+
+	/* 48: be recognise capture codec */
+	sprd-audio-card,dai-link@66 {
+		ignore-suspend = <0>;
+		link-name = "BE_RECOGNISE_CAPTURE_CODEC";
+		stream-name = "BE_ST_RECOGNISE_CAPTURE_CODEC";
+		no-pcm = <1>;
+		dpcm-capture = <1>;
+		be-id = <0>;
+		plat {
+			sound-dai = <&sprd_route_pcm>;
+		};
+		cpu {
+			sound-dai = <&vbc_v4 43>;
+		};
+		codec {
+			sound-dai = <&sprd_audio_codec_ana 15>;
+		};
+	};
+#if 0
 		/* 47: smart pa normal ap01 */
 	sprd-audio-card,dai-link@65 {
 		ignore-suspend = <1>;

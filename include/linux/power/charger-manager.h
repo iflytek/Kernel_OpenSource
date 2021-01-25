@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2011 Samsung Electronics Co., Ltd.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  * MyungJoo.Ham <myungjoo.ham@samsung.com>
  *
  * Charger Manager.
@@ -55,36 +56,17 @@ enum cm_jeita_types {
 	CM_JEITA_MAX,
 };
 
+enum cm_capacity_cmd {
+	CM_CAPACITY = 0,
+	CM_BOOT_CAPACITY,
+};
+
+
 enum cm_charge_status {
-	CM_CHARGE_TEMP_OVERHEAT = BIT(0),
-	CM_CHARGE_TEMP_COLD = BIT(1),
-	CM_CHARGE_VOLTAGE_ABNORMAL = BIT(2),
-	CM_CHARGE_HEALTH_ABNORMAL = BIT(3),
-	CM_CHARGE_DURATION_ABNORMAL = BIT(4),
-};
-
-enum cm_fast_charge_command {
-	CM_FAST_CHARGE_NORMAL_CMD = 1,
-	CM_FAST_CHARGE_ENABLE_CMD,
-	CM_FAST_CHARGE_DISABLE_CMD,
-};
-
-struct wireless_data {
-	struct power_supply_desc psd;
-	struct power_supply *psy;
-	int WIRELESS_ONLINE;
-};
-
-struct ac_data {
-	struct power_supply_desc psd;
-	struct power_supply *psy;
-	int AC_ONLINE;
-};
-
-struct usb_data {
-	struct power_supply_desc psd;
-	struct power_supply *psy;
-	int USB_ONLINE;
+	CM_CHARGE_TEMP_ABNORMAL = BIT(0),
+	CM_CHARGE_VOLTAGE_ABNORMAL = BIT(1),
+	CM_CHARGE_HEALTH_ABNORMAL = BIT(2),
+	CM_CHARGE_DURATION_ABNORMAL = BIT(3),
 };
 
 /**
@@ -209,7 +191,6 @@ struct cm_track_capacity {
  * @fullbatt_uV: voltage in microvolt
  *	If VBATT >= fullbatt_uV, it is assumed to be full.
  * @fullbatt_uA: battery current in microamp
- * @first_fullbatt_uA: battery current in microamp of first_full charged
  * @fullbatt_soc: state of Charge in %
  *	If state of Charge >= fullbatt_soc, it is assumed to be full.
  * @fullbatt_full_capacity: full capacity measure
@@ -246,12 +227,11 @@ struct cm_track_capacity {
  *	maximum fast charge voltage in microVolts
  * @fast_charge_voltage_drop:
  *	drop voltage in microVolts to allow restart fast charging
+ * @double_charge_all_current:
+ *	double charge ic all current
  * @charger_status: Recording state of charge
  * @charger_type: Recording type of charge
- * @first_trigger_cnt: The number of times the battery is first_fully charged
  * @trigger_cnt: The number of times the battery is fully charged
- * @uvlo_trigger_cnt: The number of times the battery voltage is
- *	less than under voltage lock out
  * @low_temp_trigger_cnt: The number of times the battery temperature
  *	is less than 10 degree.
  * @cap_one_time: The percentage of electricity is not
@@ -272,19 +252,6 @@ struct cm_track_capacity {
  * @jeita_tab_size: Specify the size of jeita temperature table.
  * @jeita_tab_array: Specify the jeita temperature table array, which is used to
  *	save the point of adjust the charging current according to the battery temperature.
- * @temperature: the battery temperature
- * @internal_resist: the battery internal resistance in mOhm
- * @cap_table_len: the length of ocv-capacity table
- * @cap_table: capacity table with corresponding ocv
- * @is_fast_charge: if it is support fast charge or not
- * @enable_fast_charge: if is it start fast charge or not
- * @fast_charge_enable_count: to count the number that satisfy start
- *	fast charge condition.
- * @fast_charge_disable_count: to count the number that satisfy stop
- *	fast charge condition.
- * @double_IC_total_limit_current: if it use two charge IC to support
- *	fast charge, we use total limit current to campare with thermal_val,
- *	to limit the thermal_val under total limit current.
  */
 struct charger_desc {
 	const char *psy_name;
@@ -296,7 +263,6 @@ struct charger_desc {
 	unsigned int fullbatt_vchkdrop_uV;
 	unsigned int fullbatt_uV;
 	unsigned int fullbatt_uA;
-	unsigned int first_fullbatt_uA;
 	unsigned int fullbatt_soc;
 	unsigned int fullbatt_full_capacity;
 
@@ -328,12 +294,11 @@ struct charger_desc {
 	u32 normal_charge_voltage_drop;
 	u32 fast_charge_voltage_max;
 	u32 fast_charge_voltage_drop;
+	u32 double_charge_all_current;
 
 	int charger_status;
 	u32 charger_type;
 	int trigger_cnt;
-	int first_trigger_cnt;
-	int uvlo_trigger_cnt;
 	int low_temp_trigger_cnt;
 
 	u32 cap_one_time;
@@ -361,12 +326,6 @@ struct charger_desc {
 	int internal_resist;
 	int cap_table_len;
 	struct power_supply_battery_ocv_table *cap_table;
-
-	bool is_fast_charge;
-	bool enable_fast_charge;
-	u32 fast_charge_enable_count;
-	u32 fast_charge_disable_count;
-	u32 double_ic_total_limit_current;
 };
 
 #define PSY_NAME_MAX	30
@@ -383,7 +342,6 @@ struct charger_desc {
  * @fullbatt_vchk_jiffies_at:
  *	jiffies at the time full battery check will occur.
  * @fullbatt_vchk_work: work queue for full battery check
- * @uvlo_work: work queue to check uvlo state
  * @emergency_stop:
  *	When setting true, stop charging
  * @psy_name_buf: the name of power-supply-class for charger manager
@@ -409,7 +367,6 @@ struct charger_manager {
 	unsigned long fullbatt_vchk_jiffies_at;
 	struct delayed_work fullbatt_vchk_work;
 	struct delayed_work cap_update_work;
-	struct delayed_work uvlo_work;
 	int emergency_stop;
 
 	char psy_name_buf[PSY_NAME_MAX + 1];
@@ -420,17 +377,11 @@ struct charger_manager {
 	u64 charging_end_time;
 	u32 charging_status;
 	struct cm_track_capacity track;
+    /* Managment of charging Path.*/
+    u32 value;
 };
 
-#ifdef CONFIG_CHARGER_MANAGER
-extern void cm_notify_event(struct power_supply *psy,
-				enum cm_event_types type, char *msg);
-#elif CONFIG_IFLYTEK_CHARGER_MANAGER
 extern void cm_notify_event(struct power_supply *psy,
 				enum cm_event_types type, char *msg);
 
-#else
-static inline void cm_notify_event(struct power_supply *psy,
-				enum cm_event_types type, char *msg) { }
-#endif
 #endif /* _CHARGER_MANAGER_H */

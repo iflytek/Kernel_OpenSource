@@ -2,6 +2,7 @@
  *	linux/mm/filemap.c
  *
  * Copyright (C) 1994-1999  Linus Torvalds
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  */
 
 /*
@@ -997,7 +998,10 @@ static inline int wait_on_page_bit_common(wait_queue_head_t *q,
 		spin_unlock_irq(&q->lock);
 
 		if (likely(test_bit(bit_nr, &page->flags))) {
-			io_schedule();
+			if (!io_schedule_timeout(60*HZ)) {
+				if (test_bit(bit_nr, &page->flags))
+					clear_bit_unlock(bit_nr, &page->flags);
+			}
 		}
 
 		if (lock) {

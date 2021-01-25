@@ -3,6 +3,7 @@
  * Interface driver
  *
  * Copyright (C) 2018 Spreadtrum corporation.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +62,87 @@ struct register_hotplug {
 	u32 reg;
 	u32 mask;
 };
+//BH201LN driver--ernest.zhang@bayhubtech.com modify at 20190620 begin
+#ifdef CONFIG_MMC_SDHCI_BH201
+
+#ifndef TUNING_PHASE_SIZE
+#define TUNING_PHASE_SIZE 11
+#endif
+typedef struct
+{
+
+    u32 tx_selb_tb[TUNING_PHASE_SIZE];
+    u32 all_selb_tb[TUNING_PHASE_SIZE];
+    u32 tx_selb_failed_history;
+    int bus_mode;
+//
+    int default_sela;
+    int default_selb;
+    u32 default_delaycode;
+    u32 * dll_voltage_unlock_cnt;
+
+    u32 max_delaycode;
+    u32 min_delaycode;
+    u32  delaycode_narrowdown_index;
+    u32 fail_phase;
+} ggc_bus_mode_cfg_t, * pggc_bus_mode_cfg_t;
+
+typedef enum
+{
+    NO_TUNING = 0,
+    OUTPUT_PASS_TYPE = 1,
+    SET_PHASE_FAIL_TYPE = 2,
+    TUNING_FAIL_TYPE = 3,
+    READ_STATUS_FAIL_TYPE = 4,
+    TUNING_CMD7_TIMEOUT = 5,
+    RETUNING_CASE = 6,
+} tuning_stat_et;
+
+typedef struct ggc_platform_data
+{
+//
+    ggc_bus_mode_cfg_t sdr50;
+    ggc_bus_mode_cfg_t sdr104;
+    pggc_bus_mode_cfg_t  cur_bus_mode;
+//
+    u8 _cur_cfg_data[512];//for write data & cache it for merge
+    u8 _cur_read_buf[512];//only for read
+//
+    u32 ggc_cur_ssc_level;
+
+//
+    int ssc_crc_recovery_retry_cnt;
+
+    u32 crc_retry_cnt;
+//
+
+
+    u32 cclk_ds_18v;
+    u32 cdata_ds_18v;
+    u32 ds_inc_cnt;
+    bool ggc_400k_update_ds_flg;
+    bool ggc_400k_update_ssc_arg_flg;
+
+//
+    bool ggc_ocb_in_check;
+    bool dll_unlock_reinit_flg;
+    u8 driver_strength_reinit_flg;
+    bool tuning_cmd7_timeout_reinit_flg;
+    u32 tuning_cmd7_timeout_reinit_cnt;
+    u32  ggc_400k_setting_change_flg: 1;
+    u32 ggc_cur_sela;
+    u32 ggc_target_selb;
+    u32 target_tuning_pass_win;
+    bool selx_tuning_done_flag;
+    u32 ggc_cmd_tx_selb_failed_range;
+    int ggc_sw_selb_tuning_first_selb;
+    tuning_stat_et ggc_sela_tuning_result[11];
+    int dll_voltage_scan_map[4];
+    int cur_dll_voltage_idx;
+    //bool ggc_read_delay_code_flg;
+} ggc_platform_t;
+//BH201LN driver--ernest.zhang@bayhubtech.com modify at 20190620 end
+#endif
 
 struct sprd_sdhc_host {
 	/* --globe resource--- */
@@ -119,7 +201,18 @@ struct sprd_sdhc_host {
 	struct mmc_request *mrq;	/* Current request */
 	struct mmc_command *cmd;	/* Current command */
 	u16 auto_cmd_mode;
-
+/* huaqin add for SD card bringup by liufurong at 20190201 start */
+#ifdef CONFIG_MMC_SDHCI_BH201
+	/* Data set by hardware interface driver */
+	const char *hw_name;	/* Hardware bus name */
+	int pwr_gpio;
+	ggc_platform_t  ggc;
+	int sdr50_notuning_sela_inject_flag;
+	int sdr50_notuning_crc_error_flag;
+	u32 sdr50_notuning_sela_rx_inject;
+	bool tuning_in_progress;
+#endif
+/* huaqin add for SD card bringup by liufurong at 20190201 end */
 	u32 flags;
 	bool detect_gpio_polar;
 	struct register_hotplug reg_detect_polar;
@@ -138,8 +231,17 @@ struct sprd_sdhc_host {
 #define SPRD_USE_64_BIT_DMA	(1<<5)
 /* Auto CMD23 support */
 #define SPRD_AUTO_CMD23	(1<<6)
-};
 
+#ifdef CONFIG_MMC_SDHCI_BH201
+unsigned long		private[0] ____cacheline_aligned;
+#endif
+};
+#ifdef CONFIG_MMC_SDHCI_BH201
+static inline void *sprd_priv(struct sprd_sdhc_host *host)
+{
+	return (void *)host->private;
+}
+#endif
 /* Controller flag */
 #define SPRD_SDHC_FLAG_ENABLE_ACMD12	0
 #define SPRD_SDHC_FLAG_ENABLE_ACMD23	0
@@ -835,4 +937,23 @@ sprd_sdhc_set_dll_backup(struct sprd_sdhc_host *host, u8 mask)
 	sprd_sdhc_writel(host, tmp, SPRD_SDHC_REG_DEBOUNCE);
 }
 
+// bayhub chevron.li add for tuning code at 2020/01/13 start
+#ifdef CONFIG_MMC_SDHCI_BH201
+
+static inline bool bht_target_host(struct sprd_sdhc_host *host)
+{
+	return 0 == strcmp(host->hw_name, "71100000.sdio");
+}
+
+#define   GGC_CFG_DATA {0x07000000, 0x07364022, 0x01015412, 0x01062400,\
+  0x10400076, 0x00025432, 0x01046076, 0x62011000,\
+  0x30503106, 0x64141711, 0x10057513, 0x00336200,\
+  0x00020006, 0x40000400, 0x12200310, 0x4A414177}
+
+int sprd_sdhc_runtime_pm_put(struct sprd_sdhc_host *host);
+int sprd_sdhc_runtime_pm_get(struct sprd_sdhc_host *host);
+int sprd_calc_tuning_range(struct sprd_sdhc_host *host, int *value_t);
+int sprd_sdhc_execute_tuning(struct mmc_host *mmc, u32 opcode);
+#endif
+// bayhub chevron.li add for tuning code at 2020/01/13 end
 #endif /* __SPRD_SDHC_H_ */

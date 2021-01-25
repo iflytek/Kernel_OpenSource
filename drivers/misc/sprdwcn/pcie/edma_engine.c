@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2016-2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
  * may be copied, distributed, and modified under those terms.
@@ -548,9 +550,17 @@ static int edma_pop_link(int chn, struct desc *__head, struct desc *__tail,
 	return 0;
 }
 
-
+#if 0
 static void edma_wf_tx_timer_expire(unsigned long data)
 {
+	unsigned int val32;
+
+	struct wcn_pcie_info *priv;
+	struct pci_dev *pdev;
+
+	priv = get_wcn_device_info();
+	pdev=priv->dev;
+
 	WCN_ERR("edma wifi tx send timeout\n");
 	if (!wcn_get_edma_status())
 		return;
@@ -558,7 +568,12 @@ static void edma_wf_tx_timer_expire(unsigned long data)
 		return;
 
 	edma_dump_chn_reg(10);
+    pci_read_config_dword(pdev, 0x0728, &val32);
+      WCN_INFO("EP link status 728=0x%x\n", val32);
+    pci_read_config_dword(pdev, 0x072c, &val32);
+      WCN_INFO("EP link status 72c=0x%x\n", val32);
 }
+#endif
 
 static void edma_tx_timer_expire(unsigned long data)
 {
@@ -587,23 +602,24 @@ void edma_del_tx_timer(void)
 	struct edma_info *edma = edma_info();
 
 	del_timer_sync(&edma->edma_tx_timer);
-	del_timer_sync(&edma->edma_wf_tx_timer);
+	//del_timer_sync(&edma->edma_wf_tx_timer);
 }
 
 static int edma_hw_tx_req(int chn)
 {
 	struct edma_info *edma = edma_info();
 
+
+
 	/* 1s timeout */
 	mod_timer(&edma->edma_tx_timer, jiffies +
 		  EDMA_TX_TIMER_INTERVAL_MS * HZ / 1000);
 
 	/* wifi tx 200ms timeout */
-	if (chn == 10) {
-		mod_timer(&edma->edma_wf_tx_timer, jiffies +
-			  EDMA_WIFI_TX_TIMER_INTERVAL_MS * HZ / 1000);
-	}
-
+	// if (chn == 10) {
+		// mod_timer(&edma->edma_wf_tx_timer, jiffies +
+			  // EDMA_WIFI_TX_TIMER_INTERVAL_MS * HZ / 1000);
+	// }
 	wcn_set_tx_complete_status(2);
 	edma->dma_chn_reg[chn].dma_tx_req.reg = 1;
 
@@ -820,6 +836,11 @@ int edma_push_link(int chn, void *head, void *tail, int num)
 		return -1;
 	}
 
+       if (atomic_read(&edma->pcie_info->is_suspending)&&chn==10){
+			 // WCN_ERR("%s: chn=10 return\n", __func__);
+              return -1;
+        }
+
 	if (!atomic_read(&edma->pcie_info->is_suspending))
 		__pm_stay_awake(&edma->edma_push_ws);
 
@@ -866,6 +887,7 @@ int edma_push_link(int chn, void *head, void *tail, int num)
 		dma_cfg.reg = edma->dma_chn_reg[chn].dma_cfg.reg;
 		dma_cfg.bit.rf_chn_en = 1;
 		edma->dma_chn_reg[chn].dma_cfg.reg = dma_cfg.reg;
+		//WCN_INFO("edma_hw_tx_req,%s(chn=%d, head=0x%p, tail=0x%p, num=%d)\n", __func__, chn, head, tail, num);
 		edma_hw_tx_req(chn);
 	} else
 		edma_hw_rx_req(chn);
@@ -1294,10 +1316,12 @@ int msi_irq_handle(int irq)
 	if (edma->chn_sw[chn].inout == TX) {
 		wcn_set_tx_complete_status(1);
 		clear_bit(chn, &edma->cur_chn_status);
-		del_timer(&edma->edma_tx_timer);
+		//del_timer(&edma->edma_tx_timer);
+
+
 		/* wifi tx timer handle */
-		if (chn == 10)
-			del_timer(&edma->edma_wf_tx_timer);
+		// if (chn == 10)
+			// del_timer(&edma->edma_wf_tx_timer);
 
 		if (irq % 2 == 0) {
 			dma_int.bit.rf_chn_tx_pop_int_clr = 1;
@@ -1830,8 +1854,8 @@ int edma_init(struct wcn_pcie_info *pcie_info)
 				(unsigned long) edma);
 
 	/* Init edma wifi tx send timeout timer */
-	setup_timer(&edma->edma_wf_tx_timer, edma_wf_tx_timer_expire,
-				(unsigned long) edma);
+	// setup_timer(&edma->edma_wf_tx_timer, edma_wf_tx_timer_expire,
+				// (unsigned long) edma);
 
 	WCN_INFO("%s done\n", __func__);
 
