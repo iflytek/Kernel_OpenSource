@@ -54,7 +54,8 @@ enum cm_jeita_types {
 	CM_JEITA_FCHG,
 	CM_JEITA_MAX,
 };
-
+/* begin 我们修改了原生目录下的代码，为了编译通过，此处采用我们的修改 iflytek 20210121 */
+#if 0
 enum cm_charge_status {
 	CM_CHARGE_TEMP_OVERHEAT = BIT(0),
 	CM_CHARGE_TEMP_COLD = BIT(1),
@@ -62,6 +63,14 @@ enum cm_charge_status {
 	CM_CHARGE_HEALTH_ABNORMAL = BIT(3),
 	CM_CHARGE_DURATION_ABNORMAL = BIT(4),
 };
+#endif
+enum cm_charge_status {
+	CM_CHARGE_TEMP_ABNORMAL = BIT(0),
+	CM_CHARGE_VOLTAGE_ABNORMAL = BIT(1),
+	CM_CHARGE_HEALTH_ABNORMAL = BIT(2),
+	CM_CHARGE_DURATION_ABNORMAL = BIT(3),
+};
+/* 我们修改了原生目录下的代码，为了编译通过，此处采用我们的修改 end */
 
 enum cm_fast_charge_command {
 	CM_FAST_CHARGE_NORMAL_CMD = 1,
