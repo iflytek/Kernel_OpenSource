@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -343,6 +344,7 @@ static u32 dpu_isr(struct dispc_context *ctx)
 static int32_t dpu_wait_stop_done(struct dispc_context *ctx)
 {
 	int rc;
+    struct dpu_reg *reg = (struct dpu_reg *)ctx->base;
 
 	/* if this function was called more than once without */
 	/* calling dpu_run() in the middle, return directly */
@@ -352,8 +354,10 @@ static int32_t dpu_wait_stop_done(struct dispc_context *ctx)
 	}
 
 	/*wait for stop done interrupt*/
-	rc = wait_event_interruptible_timeout(ctx->wait_queue, evt_stop,
-					       msecs_to_jiffies(500));
+    rc = wait_event_interruptible_timeout(ctx->wait_queue,
+            reg->dpu_int_sts & DISPC_INT_DONE_MASK,
+            msecs_to_jiffies(500));
+    reg->dpu_int_clr = DISPC_INT_DONE_MASK;
 	evt_stop = false;
 
 	if (!rc) {

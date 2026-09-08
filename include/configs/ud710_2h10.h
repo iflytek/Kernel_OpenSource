@@ -2,6 +2,9 @@
  * Configuration for Versatile Express. Parts were derived from other ARM
  *   configurations.
  *
+ * Copyright (C) 2015-2016 Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
@@ -12,8 +15,6 @@
 
 #define CONFIG_KERNEL_BOOT_CP
 //#define CONFIG_MEM_LAYOUT_DECOUPLING
-#define CONFIG_POWERON_EXTERN_MODEM
-#define EXT_MODEM_PBINT		15
 
 #define CONFIG_CP_MAX_REGION_NUM	0xC
 
@@ -23,6 +24,8 @@
 #define CONFIG_MISC_INIT_R                     /* call misc_init_r()	      */
 #define CONFIG_BOARD_LATE_INIT         /* call board_late_init() */
 //#define CONFIG_SUPPORT_RAW_INITRD
+
+#define CONFIG_EMMC_DDR_CHECK_TYPE
 
 /*the SPL is erased, the romcode will enter the download process.*/
 #define CONFIG_ERASE_SPL_AUTO_DOWNLOAD
@@ -84,6 +87,7 @@
 
 /* log config */
 #define CONFIG_SPRD_LOG
+#define CONFIG_SHOW_CHGLOGO
 
 /*sprd watchdog*/
 #define CONFIG_HW_WATCHDOG
@@ -294,9 +298,11 @@
 #define CONFIG_DPU_R3P0
 #define CONFIG_DSIH_SPRD_CTRL_RXP0
 #define CONFIG_DPHY_SPRD_ROC1
-#define CONFIG_LCD_TD4310_TRULY_MIPI_FHD
-#define CONFIG_LCD_SSD2092_TRULY_MIPI_FHD
-#define CONFIG_LCD_TV105WUM_MIPI_HD
+#define CONFIG_MIPI_DRIVE_CAPABILITY 6
+//#define CONFIG_LCD_TD4310_TRULY_MIPI_FHD
+//#define CONFIG_LCD_SSD2092_TRULY_MIPI_FHD
+//#define CONFIG_LCD_TV105WUM_MIPI_HD
+#define CONFIG_LCD_LT9711_MIPI_FHD
 #define CONFIG_LCM_GPIO_RSTN    50
 #define CONFIG_SYS_WHITE_ON_BLACK
 #define LCD_BPP LCD_COLOR32
@@ -326,8 +332,8 @@
 #endif
 
 #define CONFIG_7S_RST_SHORT_MODE	1	//0:long press then release key to trigger;1:press key some time to trigger
-#define CONFIG_7S_RST_2KEY_MODE		1	//0:1Key--Normal mode; 1:2KEY
-#define CONFIG_7S_RST_THRESHOLD		7	//7S, hold key down for this time to trigger
+#define CONFIG_7S_RST_2KEY_MODE		0	//0:1Key--Normal mode; 1:2KEY
+#define CONFIG_7S_RST_THRESHOLD		15	//7S, hold key down for this time to trigger
 
  /*SMPL config*/
 //#define CONFIG_SMPL_EN

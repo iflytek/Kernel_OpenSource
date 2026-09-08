@@ -2,6 +2,7 @@
  * (C) Copyright 2014
  * David Feng <fenghua@phytium.com.cn>
  * Sharma Bhupesh <bhupesh.sharma@freescale.com>
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -201,12 +202,12 @@ void board_boot_mode_regist(CBOOT_MODE_ENTRY *array)
 
 static const int adc2deltanv_table[] = {
 	-1, /* reserved */
+	1, /* PVT */
 	-1, /* reserved */
 	-1, /* reserved */
-	-1, /* reserved */
-	2, /* hw_ver02.nv */
-	1, /* hw_ver01.nv  */
-	0, /* hw_ver00.nv  */
+	2, /* PVT2 */
+	-1, /* reserved  */
+	0, /* DVT1/DVT2  */
 	-1 /* reserved */
 };
 

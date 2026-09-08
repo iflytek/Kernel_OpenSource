@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -36,8 +37,16 @@ extern struct panel_driver rm67191_edo_driver;
 extern struct panel_driver r61350_truly_driver;
 extern struct panel_driver td4310_truly_driver;
 extern struct panel_driver tv105wum_driver;
+extern struct panel_driver lt9711_driver;
 
 static struct panel_cfg supported_panel[] = {
+#ifdef CONFIG_LCD_LT9711_MIPI_FHD
+	{
+		.lcd_id = 0x9711,
+		.drv = &lt9711_driver,
+	},
+#endif
+
 #ifdef CONFIG_LCD_FT8006S_HUAXIAN_MIPI_HDP
 	{
 		.lcd_id = 0x8006,

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 Spreadtrum Communications Inc.
+ * Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -47,6 +48,7 @@
 char dumpbuf_pc[MAX_DUMP_PKT_SIZE] = {0};
 smp_header_t pkt_header;
 int usb_init_count = 0;
+int usb_insert_count = 0;
 uint8_t handshake_buf[10];
 extern int usb_trans_status;
 extern unsigned short calc_checksum(unsigned char *dat, unsigned long len);
@@ -188,6 +190,7 @@ void display_special_mode(void)
 	set_vibrator(0);
 #endif
 }
+#if 0
 /*display without character*/
 void display_sysdump(ivoid)
 {
@@ -199,6 +202,8 @@ void display_sysdump(ivoid)
 	set_vibrator(0);
 #endif
 }
+#endif
+
 void display_sysdump_header(void)
 {
 #ifdef CONFIG_SPLASH_SCREEN
@@ -1407,7 +1412,7 @@ void check_split_dump_mem(void)
 	for (i = 0; i < sprd_dump_mem_num; i++) {
 		dump_logd("mem block %d :paddr "LLX" , vaddr: "LLX" size: "LLX"\n", i, sprd_dump_mem[i].paddr, sprd_dump_mem[i].vaddr, sprd_dump_mem[i].size);
 		for(j = 0; j < linux_mem_num; j++ ){
-			if ((sprd_dump_mem[i].paddr >= linux_memory[j].addr) && (sprd_dump_mem[i].paddr <= linux_memory[j].addr + linux_memory[j].size)){ 
+			if ((sprd_dump_mem[i].paddr >= linux_memory[j].addr) && (sprd_dump_mem[i].paddr <= linux_memory[j].addr + linux_memory[j].size)){
 				copy_sysdump_mem_struct(&sprd_ptload_mem[sprd_ptload_mem_num ++],&sprd_dump_mem[i]);
 				sprd_ptload_mem_flag = 1;
 				break;
@@ -1887,6 +1892,7 @@ int handle_minidump(struct dumpdb_header *header_g, int rst_mode)
 	}
 
 
+
 	free(compressed_buf);
 	dump_logd("%s: %s ok \n", SYSDUMPDB_LOG_TAG, __FUNCTION__);
 	return 0;
@@ -1945,7 +1951,7 @@ int save_sysdumpdb(int rst_mode)
 int sysdump_initusb(void)
 {
 	ulong now;
-
+	int key_code;
 	now = 0;
 	while(!usb_is_configured()){
 		mdelay(1);
@@ -1954,7 +1960,17 @@ int sysdump_initusb(void)
 			printf("USB SERIAL CONFIGED failed \n");
 			return -1;
 		}
+		if( !(now % 100)) {
+			printf("now = %d \n", now);
+			key_code = board_key_scan();
+			if (key_code == KEY_VOLUMEUP){
+				dump_logd("Key pressed detect ,Do not wait usb cable,abort sysdump ...\n");
+				return -1;
+			}
+		}
 	}
+	printf("now = %d \n", now);
+
 	printf("USB SERIAL CONFIGED\n");
 
 	now = 0;
@@ -1965,8 +1981,16 @@ int sysdump_initusb(void)
 			printf("USB SERIAL PORT OPEN failed \n");
 			return -1;
 		}
+		if( !(now % 1000)) {
+			printf("now = %d \n", now);
+			key_code = board_key_scan();
+			if (key_code == KEY_VOLUMEUP){
+				dump_logd("Key pressed detect ,Do not wait usb cable,abort sysdump ...\n");
+				return -1;
+			}
+		}
 	}
-
+	printf("now = %d \n", now);
 	gs_open();
 	printf("USB SERIAL PORT OPENED\n");
 	return 0;
@@ -2007,6 +2031,7 @@ static int usb_sysdump_handler(void)
 	static int usb_status_old = 0;
 	static int usb_status_new = 0;
 	static int first_enter_flag = 1;
+	static int handshake_error_flag = 1;
 	if(first_enter_flag){
 		first_enter_flag = 0;
 		usb_status_old = usb_status_new = charger_connected();
@@ -2020,7 +2045,10 @@ static int usb_sysdump_handler(void)
 	 */
 	if(usb_status_old == 0 && usb_status_new == 1) {
 		dump_logd("sysdump: usb cable is inserted\n");
-		sysdump_lcd_printf("usb cable is inserted...\n");
+	//sysdump_lcd_printf("usb cable is inserted...\n");
+		usb_insert_count ++;
+		if( handshake_error_flag && (usb_insert_count <= 1))
+			sysdump_lcd_printf("usb cable is inserted...\n");
 		sysdump_led_pattern_clear(Blue);
 		sysdump_led_set_brightness(Blue, BRIGHTNESS_MAX);
 		dcache_disable();
@@ -2029,11 +2057,12 @@ static int usb_sysdump_handler(void)
 			dcache_enable();
 			dump_logd("ERROR: sysdump_initusb failed.\n");
 			usb_init_count ++;
+			if (usb_init_count <= 1)
+				sysdump_lcd_printf(" please start dump to pc Or press vol_up key to abort sysdump ...\n");
 
-			if (usb_init_count > 5) {
-				usb_init_count = 0;
-				sysdump_lcd_printf("\nsysdump_initusb failed, Please check usb!!!.\nPress volume up key (Exp power key) to continue...");
-				wait_for_keypress();
+			key_code = board_key_scan();
+			if (key_code == KEY_VOLUMEUP){
+				dump_logd("Key pressed detect ,Do not wait usb cable,abort sysdump ...\n");
 				return -1;
 			} else {
 				return 0;
@@ -2052,8 +2081,22 @@ static int usb_sysdump_handler(void)
 		} else {
 			gs_close();
 			dump_logd(" handshakeis abnormal from pc tools to sysdump\n");
-			sysdump_lcd_printf("\nhandshakeis abnormal from pc tools to sysdump!!!.\nplease check PC tools");
-			return -1;
+//			sysdump_lcd_printf("\nhandshakeis abnormal from pc tools to sysdump!!!.\nplease check PC tools");
+//			return -1;
+
+
+			if( handshake_error_flag) {
+				handshake_error_flag = 0;
+				sysdump_lcd_printf("\nhandshakeis abnormal from pc tools to sysdump!!!.\nplease check PC tools\n");
+			}
+			key_code = board_key_scan();
+			if (key_code == KEY_VOLUMEUP){
+				dump_logd("Key pressed detect, abort sysdump ...\n");
+				sysdump_lcd_printf("PC tools maybe incorrect, abort sysdump ...\n");
+				return -1;
+			}
+			return 0;
+
 		}
 	} else {
 		/*	update usb cable status detection */
@@ -2448,6 +2491,10 @@ void x86_dump_info_crash_data(void)
 			send_mem_to_pc(dumpbuf_pc, fnbuf, &pkt_header, (char *)(info_crash_data), (uint64_t)strlen(info_crash_data));
 		}
 	}
+
+
+
+
 	return;
 }
 #endif
@@ -2852,6 +2899,11 @@ retry_dump_to_pc:
 	get_sprd_dump_size_auto();
 	if(ERROR_FNISH == prepare_sd_env())
 		goto FINISH;
+
+#ifdef CONFIG_ARM7_RAM_ACTIVE
+	pmic_arm7_RAM_active();
+#endif
+
 #ifdef CONFIG_X86
 	x86_dump_info_crash_data();
 #endif

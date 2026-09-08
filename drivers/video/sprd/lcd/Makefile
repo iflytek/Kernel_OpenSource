@@ -21,3 +21,4 @@ obj-$(CONFIG_LCD_RM67191_EDO_MIPI_FHD) += lcd_rm67191_edo_mipi_fhd.o
 obj-$(CONFIG_LCD_R61350_TRULY_MIPI_HD) += lcd_r61350_truly_mipi_hd.o
 obj-$(CONFIG_LCD_TD4310_TRULY_MIPI_FHD) += lcd_td4310_truly_mipi_fhd.o
 obj-$(CONFIG_LCD_TV105WUM_MIPI_HD) += lcd_tv105wum_mipi_hd.o
+obj-$(CONFIG_LCD_LT9711_MIPI_FHD) += lcd_lt9711_mipi_fhd.o

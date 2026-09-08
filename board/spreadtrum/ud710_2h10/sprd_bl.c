@@ -1,3 +1,16 @@
+/*
+* Copyright (C) 2015-2016 Spreadtrum Communications Inc.
+* Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
+*
+* This software is licensed under the terms of the GNU General Public
+* License version 2, as published by the Free Software Foundation, and
+* may be copied, distributed, and modified under those terms.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*/
 #include <common.h>
 #include <asm/arch/hardware.h>
 #include <asm/io.h>
@@ -64,12 +77,12 @@ void set_backlight_pwms(uint32_t brightness)
 }
 
 /* sc2703 power on */
-void lcd_use_sc2703l_to_power_on(void)
+void lcd_use_sc2703l_to_power_on(bool on)
 {
 	int loop = 100;
 
 	i2c_set_bus_num(SC2703_LCD_I2C_BUS);
-	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, SC2703_DISPLAY_EN_MASK);
+	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, on & SC2703_DISPLAY_EN_MASK);
 	printf("SC2703 status is %d\n", \
 			i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_STATUS));
 	while(loop --);
@@ -94,7 +107,7 @@ void lcd_use_sc2703l_to_power_boost(void)
 void set_backlight(uint32_t brightness)
 {
 	u8 value;
-
+	mdelay(400);
 	i2c_set_bus_num(SC2703_LCD_I2C_BUS);
 
 	value = SC2703_IDAC_LINEAR_MASK

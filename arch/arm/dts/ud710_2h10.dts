@@ -2,6 +2,7 @@
  * Spreadtrum SP9860g board DTS file
  *
  * Copyright (C) 2016, Spreadtrum Communications Inc.
+ * Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This file is licensed under a dual GPLv2 or X11 license.
  */
@@ -69,9 +70,9 @@
 			reg = <0x0 0x9d000000 0x0 0x9e4000>;
 		};
 
-		wb_reserved: writeback-mem@ff6c0000 {
-			reg = <0x0 0xff6c0000 0x0 0x00900000>;
-		};
+        wb_reserved: writeback-mem@ff3e2000 {
+			reg = <0x0 0xff3e2000 0x0 0xbef000>;
+        };
 	};
 
 	ion {

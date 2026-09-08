@@ -1,3 +1,16 @@
+/*
+* Copyright (C) 2015-2016 Spreadtrum Communications Inc.
+* Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
+*
+* This software is licensed under the terms of the GNU General Public
+* License version 2, as published by the Free Software Foundation, and
+* may be copied, distributed, and modified under those terms.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*/
 #include <common.h>
 #include <asm/io.h>
 
@@ -17,7 +30,7 @@
 #define DCP_LIMIT_CUR	3000
 #define SDP_LIMIT_CUR	500
 #ifndef DCP_CHG_CUR
-#define DCP_CHG_CUR	1000
+#define DCP_CHG_CUR	2000
 #endif
 #define SDP_CHG_CUR	450
 #define FAST_CHG_VOL 3000

@@ -1,3 +1,16 @@
+/*
+* Copyright (C) 2015-2016 Spreadtrum Communications Inc.
+* Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
+*
+* This software is licensed under the terms of the GNU General Public
+* License version 2, as published by the Free Software Foundation, and
+* may be copied, distributed, and modified under those terms.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*/
 #include "loader_common.h"
 #include <mmc.h>
 #include <fat.h>
@@ -29,6 +42,7 @@
 unsigned char raw_header[8192];
 unsigned int g_charger_mode = 0;
 char serial_number_to_transfer[SP15_MAX_SN_LEN];
+char serial_number_to_transfer2[SP15_MAX_SN_LEN];
 
 extern int charger_connected(void);
 extern void modem_entry(void);
@@ -96,6 +110,42 @@ char *get_product_sn(void)
 	return serial_number_to_transfer;
 }
 
+
+/*SN2 is using for PCBA SN.*/
+char *get_product_sn2(void)
+{
+	SP09_PHASE_CHECK_T phase_check_sp09;
+	SP15_PHASE_CHECK_T phase_check_sp15;
+	uint32_t magic;
+
+	memset(serial_number_to_transfer2, 0x0, SP15_MAX_SN_LEN);
+
+	strcpy(serial_number_to_transfer2, "JOSHUA821217TY");
+	if (0 != common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(magic), (uint64_t)0, (char *)&magic)) {
+		errorf("read miscdata error.\n");
+		return serial_number_to_transfer2;
+	}
+	if(magic == SP09_SPPH_MAGIC_NUMBER){
+		if(common_raw_read(PRODUCTINFO_FILE_PATITION,sizeof(phase_check_sp09), (uint64_t)0, (char *)&phase_check_sp09)){
+			debugf("sp09 read miscdata error.\n");
+			return serial_number_to_transfer2;
+		}
+		if(strlen(phase_check_sp09.SN2)){
+			memcpy(serial_number_to_transfer2, phase_check_sp09.SN2, SP09_MAX_SN_LEN);
+		}
+	}else if(magic == SP15_SPPH_MAGIC_NUMBER){
+		if(common_raw_read(PRODUCTINFO_FILE_PATITION, sizeof(phase_check_sp15), (uint64_t)0 ,(char *)&phase_check_sp15)){
+			debugf("sp15 read miscdata error.\n");
+			return serial_number_to_transfer2;
+		}
+		if(strlen(phase_check_sp15.SN2)){
+			memcpy(serial_number_to_transfer2, phase_check_sp15.SN2, SP15_MAX_SN_LEN);
+		}
+	}
+	return serial_number_to_transfer2;
+}
+
+
 void fdt_fixup_all(u8 *fdt_blob)
 {
 	uint32_t fdt_size;
@@ -157,6 +207,9 @@ void fdt_fixup_all(u8 *fdt_blob)
 	fdt_fixup_flash_lock_state(fdt_blob);
 #ifndef CONFIG_ZEBU
 	fdt_fixup_serialno(fdt_blob);
+    extern int fdt_fixup_serialno2(void *fdt);
+	fdt_fixup_serialno2(fdt_blob);
+
 #endif
 	fdt_fixup_chosen_bootargs_board_private(fdt_blob);
 
@@ -172,8 +225,10 @@ void fdt_fixup_all(u8 *fdt_blob)
 	fdt_fixup_board_kernel_cmdline(fdt_blob);
 #endif
 
+#if DEBUG
 	/* if enabled, set loglevel = 7*/
 	fdt_fixup_loglevel(fdt_blob);
+#endif
 	fdt_fixup_system_mount_part_num(fdt_blob);
 	fdt_fixup_first_mode(fdt_blob);
 
@@ -242,8 +297,10 @@ void fdt_fixup_all_x86(u8 *fdt_blob)
 	fdt_fixup_board_kernel_cmdline(fdt_blob);
 #endif
 
+#if DEBUG
 	/* if enabled, set loglevel = 7*/
 	fdt_fixup_loglevel(fdt_blob);
+#endif
 	fdt_fixup_system_mount_part_num(fdt_blob);
 
 #ifdef CONFIG_VBOOT_V2

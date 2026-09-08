@@ -1,3 +1,16 @@
+/*
+* Copyright (C) 2015-2016 Spreadtrum Communications Inc.
+* Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
+*
+* This software is licensed under the terms of the GNU General Public
+* License version 2, as published by the Free Software Foundation, and
+* may be copied, distributed, and modified under those terms.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*/
 #include <common.h>
 #include <sprd_ufs.h>
 #include "protocol_util.h"
@@ -65,7 +78,7 @@ int dwc_reset_hc()
 /****************************************************************
  *
  * check_uic_link_startup_result
- * Description: The function returns the result of the sent 
+ * Description: The function returns the result of the sent
  * UIC Command, Returns 0 on success , non zero number on failure
  *
  ***************************************************************/
@@ -122,7 +135,7 @@ static void create_nop_out_upiu()
 /***************************************************************
  *
  * handle_query_response
- * Description: The functon does the following 
+ * Description: The functon does the following
  *              1. validates the query command's response received
  *              2.updates the ret argument with query data
  *              3. returns the status
@@ -211,7 +224,7 @@ static void create_query_upiu(uint8_t opcode, uint8_t query_func, uint8_t select
 /***************************************************************
  *
  * wait_for_cmd_completion
- * Description: Sets the DoorBell Register and waits for the 
+ * Description: Sets the DoorBell Register and waits for the
  *              Doorbell to Clear. Returns Zero on Success or
  *		error number on Failure
  *
@@ -358,8 +371,8 @@ int ToggleFlag(enum flags_id idn, uint8_t *flags_ret)
 
 /***************************************************************
  *
- * ReadFlag 
- * Description: The function invokes do_flag_operation for Read 
+ * ReadFlag
+ * Description: The function invokes do_flag_operation for Read
  *               flag operation
  *
  ***************************************************************/
@@ -392,7 +405,7 @@ int ClearFlag(enum flags_id idn, uint8_t *flags_ret)
  *
  * read_attribute
  * Description: The functon sends the query command to read an
- *              attribute and updates the ret_value with the 
+ *              attribute and updates the ret_value with the
  *              content of the attribute
  *
  ***************************************************************/
@@ -449,7 +462,7 @@ int write_attribute(enum attr_id idn, uint8_t *value, uint8_t selector)
 /***************************************************************
  *
  * handle_scsi_completion
- * Description: The functon validates the SCSI command's 
+ * Description: The functon validates the SCSI command's
  *              response received
  *
  ***************************************************************/
@@ -675,10 +688,10 @@ void preconfig_utrd_descriptor(void)
 void preconfig_utm_descriptor()
 {
 	int i;
-	
+
 	for(i = 0; i < 3; i++)
 		ufs_info.utm_desc->reserved_1[i] = 0x0;
-		
+
 	ufs_info.utm_desc->intr_flag  = 0x0;
 	ufs_info.utm_desc->reserved_2 = 0x0;
 	ufs_info.utm_desc->ocs = 0xf;
@@ -725,6 +738,8 @@ int init_ufs_hostc()
 	 * Link Startup Procedure
 	 * keep sending the DME_LINKSTARTUP command until the device is detected
 	 */
+    CHIP_REG_AND(0x71800820,~(BIT(16)));
+    CHIP_REG_OR(0x718001e0, BIT(16));
 	while(retry > 0) {
 		if(ufs_readl(DW_UFS_HCS) & DW_UFS_HCS_UCRDY) {
 			debugf("Send link startup UIC command\n");
@@ -758,7 +773,7 @@ int init_ufs_hostc()
 	/* Initialize the transfer request descriptor */
 	preconfig_utrd_descriptor();
 
-	/* 
+	/*
 	 * Write the descriptor base address in the UTRLBA register
 	 * for the Transfer Requests
 	 */
@@ -768,7 +783,7 @@ int init_ufs_hostc()
 	/* Initialize the task management descriptor */
 	preconfig_utm_descriptor();
 
-	/* 
+	/*
 	 * Write the descriptor base address in the UTRLBA register
 	 * for the Transfer Requests
 	 */
@@ -1023,9 +1038,10 @@ int compare_cfg_lu_table(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cf
 	return ret;
 }
 
-void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu, 
-			struct ufs_cfg_desc_tbl *default_desc, struct lu_specific_cfg_tbl *new_cfg,
-			struct lu_common_cfg_tbl *common_cfg)
+ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
+				 uint8_t *default_desc,
+				 struct lu_specific_cfg_tbl *new_cfg,
+				 struct lu_common_cfg_tbl *common_cfg)
 {
 	uint16_t data_len = 0;
 	int lu_index = 0;
@@ -1033,9 +1049,11 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 	uint32_t id = 0;
 	uint64_t assigned_au = 0;
 	struct ufs_cfg_desc_tbl *req_cfg_desc;
+	struct  ufs_unit_cfg_tbl *unit_cfg_desc;
 	uint16_t assigned_context = 0;
 	uint16_t context = 0;
-
+	uint8_t cfg_length = ufs_info.unit_offset + (UFS_MAX_LU_NUM * ufs_info.unit_length);
+	uint8_t *cfg_desc_ptr;
 	/* Command Descriptor Programming */
 	req_upiu->trans_type        = 0x16;
 	req_upiu->flags             = UPIU_CMD_FLAGS_NONE;
@@ -1049,7 +1067,7 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 	req_upiu->reserved_3        = 0x00;
 	req_upiu->tot_ehs_len       = 0x00;
 
-	data_len = (uint16_t) (sizeof(struct ufs_cfg_desc_tbl) & 0xFFFF);
+	data_len =(uint16_t) ((cfg_length) & 0xFFFF);
 	/*in big endian*/
 	req_upiu->data_seg_len      = cpu_to_be16(data_len);
 
@@ -1060,17 +1078,20 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 	req_upiu->tsf[4]            = 0x0;
 	req_upiu->tsf[5]            = 0x0;
 
-	req_upiu->tsf[6]            = (uint8_t) ((sizeof(struct ufs_cfg_desc_tbl) >> 8)  & 0xFF);
-	req_upiu->tsf[7]            = (uint8_t) (sizeof(struct ufs_cfg_desc_tbl) & 0xFF);
+	req_upiu->tsf[6]	    = (uint8_t) ((cfg_length >> 8)  & 0xFF);
+	req_upiu->tsf[7]            = (uint8_t) (cfg_length & 0xFF);
 
 	for(id = 8; id < 15 ;id++)
 		req_upiu->tsf[id]    = 0x00;
 
 	for(id = 0; id < 3 ;id++)
 		req_upiu->reserved_5[id] = 0x00;
+
+	cfg_desc_ptr =((uchar *)req_upiu + sizeof(struct dwc_ufs_query_upiu));
+	memcpy(cfg_desc_ptr, default_desc, cfg_length);
+
 	req_cfg_desc = (struct ufs_cfg_desc_tbl *)((uchar *)req_upiu + sizeof(struct dwc_ufs_query_upiu));
-	if (req_cfg_desc != default_desc)
-		memcpy(req_cfg_desc, default_desc, sizeof(struct ufs_cfg_desc_tbl));
+
 	req_cfg_desc->bBootEnable = 0x01;
 	req_cfg_desc->bDescrAccessEn = 0x01;
 	assigned_au = 0;
@@ -1085,13 +1106,16 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 
 	id = 0;
 	for (lu_index = 0; lu_index < UFS_MAX_LU_NUM; lu_index++) {
+		unit_cfg_desc = (struct ufs_unit_cfg_tbl*)((uchar*)req_cfg_desc
+							   +(ufs_info.unit_offset)
+							   +(lu_index * (ufs_info.unit_length)));
 		if (UFS_PLATFORM_LU_NUM == id)
 			break;
 		if (lu_index == new_cfg[id].lu_index) {
-			req_cfg_desc->unit_cfg[lu_index].bLUEnable = 0x01;
-			req_cfg_desc->unit_cfg[lu_index].bBootLunID = new_cfg[id].bootable;
-			req_cfg_desc->unit_cfg[lu_index].bLogicalBlockSize = new_cfg[id].log2blksz;
-			req_cfg_desc->unit_cfg[lu_index].bMemoryType = new_cfg[id].memory_type;
+			unit_cfg_desc->bLUEnable = 0x01;
+			unit_cfg_desc->bBootLunID = new_cfg[id].bootable;
+			unit_cfg_desc->bLogicalBlockSize = new_cfg[id].log2blksz;
+			unit_cfg_desc->bMemoryType = new_cfg[id].memory_type;
 
 			if (0xFF == new_cfg[id].lu_context) {
 				context = (uint16_t)ufs_info.max_context - assigned_context;
@@ -1100,20 +1124,19 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 				assigned_context += context;
 			}
 			context = cpu_to_be16(context & 0xF);
-			req_cfg_desc->unit_cfg[lu_index].wContextCapabilities = context;
-
-			req_cfg_desc->unit_cfg[lu_index].bLUWriteProtect = common_cfg->write_protect;
-			req_cfg_desc->unit_cfg[lu_index].bProvisioningType = common_cfg->provisioning_type;
-			req_cfg_desc->unit_cfg[lu_index].bDataReliability = common_cfg->data_reliability;
+			unit_cfg_desc->wContextCapabilities = context;
+			unit_cfg_desc->bLUWriteProtect = common_cfg->write_protect;
+			unit_cfg_desc->bProvisioningType = common_cfg->provisioning_type;
+			unit_cfg_desc->bDataReliability = common_cfg->data_reliability;
 
 			if (0 == new_cfg[id].blkcnt) {
 				au_num = (ufs_info.dev_total_cap / ufs_info.alloc_unit_sz) - assigned_au;
-				req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
-				debugf("Use all remain space, alloc unit=0x%x, big endian=0x%x\n", au_num, req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits);
+				unit_cfg_desc->dNumAllocUnits = cpu_to_be32(au_num);
+				debugf("Use all remain space, alloc unit=0x%x, big endian=0x%x\n", au_num, unit_cfg_desc->dNumAllocUnits);
 			} else {
 				au_num = enhance_memory_alloc_unit(new_cfg[id].memory_type, new_cfg[id].blkcnt, new_cfg[id].log2blksz);
-				req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits = cpu_to_be32(au_num);
-				debugf("Assign space, alloc unit=0x%x, big endian=0x%x\n", au_num, req_cfg_desc->unit_cfg[lu_index].dNumAllocUnits);
+				unit_cfg_desc->dNumAllocUnits = cpu_to_be32(au_num);
+				debugf("Assign space, alloc unit=0x%x, big endian=0x%x\n", au_num, unit_cfg_desc->dNumAllocUnits);
 			}
 		id++;
 		}
@@ -1123,12 +1146,12 @@ void prepare_write_desc_upiu(struct dwc_ufs_query_upiu *req_upiu,
 }
 
 
-int set_descriptor_data(struct ufs_cfg_desc_tbl *default_desc, struct lu_specific_cfg_tbl *new_cfg,
-		struct lu_common_cfg_tbl *common_cfg)
+int set_descriptor_data(uint8_t *default_desc, struct lu_specific_cfg_tbl *new_cfg,
+			    struct lu_common_cfg_tbl  *common_cfg)
 {
 	int ret = 0;
 	int retry = 3;
-	struct   dwc_ufs_query_upiu *req_upiu;
+	struct dwc_ufs_query_upiu *req_upiu;
 
 	do {
 		req_upiu = (struct dwc_ufs_query_upiu *)(ufs_info.cmd_desc->command_upiu);
@@ -1139,7 +1162,7 @@ int set_descriptor_data(struct ufs_cfg_desc_tbl *default_desc, struct lu_specifi
 		retry--;
 	} while (UFS_SUCCESS != ret && retry > 0);
 
-	return ret;
+
 }
 
 int verify_lu_cfg(struct lu_specific_cfg_tbl *lu_cfg)
@@ -1155,7 +1178,7 @@ int verify_lu_cfg(struct lu_specific_cfg_tbl *lu_cfg)
 
 	if (0 == lu_cfg[0].log2blksz)
 		return LU_INFO_ILLEGAL;
-	
+
 	for (loop = 0; loop < UFS_PLATFORM_LU_NUM; loop++) {
 		if (MAIN_BOOT == lu_cfg[loop].bootable) {
 			if (1 == boota_occupied)
@@ -1170,16 +1193,16 @@ int verify_lu_cfg(struct lu_specific_cfg_tbl *lu_cfg)
 			else
 				bootb_occupied = 1;
 		}
-		
+
 		if (0 == lu_cfg[loop].blkcnt) {
 			if (0xFF != lu_cfg[loop].lu_context)
 				assigned_context += lu_cfg[loop].lu_context;
 			break;
 		}
-		
+
 		if (loop != 0 && lu_cfg[loop].lu_index <= lu_cfg[loop-1].lu_index)
 			return LU_INFO_ILLEGAL;
-		
+
 		if (0 == lu_cfg[loop].log2blksz)
 			return LU_INFO_ILLEGAL;
 		multi = (1 << lu_cfg[loop].log2blksz) / SZ_512;
@@ -1199,12 +1222,12 @@ int verify_lu_cfg(struct lu_specific_cfg_tbl *lu_cfg)
 
 	if (assigned_context > (uint16_t)ufs_info.max_context)
 		return LU_INFO_ILLEGAL;
-	
+
 	return 0;
 }
 
 
-static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction, 
+static void create_cmd_upiu(uint32_t opcode, enum dma_data_direction direction,
 							struct lu_info_tbl *lu_info, void *buf_addr,
 							lbaint_t start, lbaint_t blkcnt, uint8_t cmd_set_type)
 {
@@ -1368,7 +1391,9 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 	int ret = 0;
 	uint8_t val[4] = {0, 0, 0, 0};
 
-	struct ufs_cfg_desc_tbl *cfg_desc;
+	uint8_t *cfg_desc;
+
+	cfg_desc = (uint8_t *)malloc(ufs_info.unit_offset+ (UFS_MAX_LU_NUM * ufs_info.unit_length));
 
 	ret = verify_lu_cfg(lu_cfg);
 	if (LU_INFO_ILLEGAL == ret) {
@@ -1383,6 +1408,13 @@ int ufs_lu_reconstruct(struct lu_specific_cfg_tbl *lu_cfg, struct lu_common_cfg_
 		errorf("UFS set RF CLK fail!ret=%d\n",ret);
 		return ret;
 	}
+    /* Set RF CLK 26M */
+    val[3] = 0x1;
+    ret = write_attribute(B_REFCLK_FREQ, val, 0);
+    if (UFS_SUCCESS != ret) {
+        errorf("UFS set RF CLK fail!ret=%d\n",ret);
+        return ret;
+    }
 
 	/*Enable boot from Boot LU A*/
 	val[3] = BOOT_LU_A_ENABLE;
@@ -1485,7 +1517,7 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 				free(temp_buff);
 				return 0;
 			}
-	
+
 			blocks_todo -= cur;
 			start += cur;
 			memcpy(dst, temp_buff, cur << lu_info->log2blksz);
@@ -1500,7 +1532,7 @@ static ulong ufs_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 			ret = send_scsi_cmd(UFS_OP_READ_10, DMA_FROM_DEVICE, lu_info, dst, start, cur, 0);
 			if (ret != UFS_SUCCESS)
 				return 0;
-			
+
 			blocks_todo -= cur;
 			start += cur;
 			dst += cur << lu_info->log2blksz;
@@ -1545,7 +1577,7 @@ static ulong ufs_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void
 				free(temp_buff);
 				return 0;
 			}
-	
+
 			blocks_todo -= cur;
 			start += cur;
 			src += cur << lu_info->log2blksz;

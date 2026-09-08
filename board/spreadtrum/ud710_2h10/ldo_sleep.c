@@ -1,3 +1,16 @@
+/*
+* Copyright (C) 2015-2016 Spreadtrum Communications Inc.
+* Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
+*
+* This software is licensed under the terms of the GNU General Public
+* License version 2, as published by the Free Software Foundation, and
+* may be copied, distributed, and modified under those terms.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*/
 #include <asm/arch-sc9630/sci_types.h>
 #include <adi_hal_internal.h>
 #include <asm/arch/common.h>
@@ -76,6 +89,7 @@ static void dcdccore_deep_drop_config(u32 sleep_voltage)
 
 static void pmic_lowpower_config(void)
 {
+    int boardid = 0;
 #if defined(CONFIG_ADIE_SC2730)
 	uint32_t adie_id;
 #ifdef ROC1_CACHE_MODIFICATION
@@ -224,11 +238,15 @@ static void pmic_lowpower_config(void)
 		);
 	}
 
+    boardid = sprd_get_bandinfo();
+
+printf("boardid: %d \n",boardid);
+
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0,
 		BIT_SLP_LDO_VDDRF1V8_PD_EN |  //ORCA refered by EXT_XTL_EN4 and ROC NTC use
 		//BIT_SLP_LDO_VDDRF1V25_PD_EN |   //ORCA use, only refered by EXT_XTL_EN4
 		//BIT_SLP_LDO_VDDEMMCCORE_PD_EN | //EMMC use.should shutdown by user self
-		BIT_SLP_LDO_VDD18_DCXO_PD_EN |  //has 32k dcxo need sleep_pd
+		//BIT_SLP_LDO_VDD18_DCXO_PD_EN |  //has 32k dcxo need sleep_pd
 		//BIT_SLP_LDO_VDDWIFIPA_PD_EN | //Marlin use.should shutdown by user self
 		//BIT_SLP_LDO_VDD28_PD_EN |     //keep on
 		//BIT_SLP_LDO_VDDSDCORE_PD_EN | //sd use.should shutdown by user self
@@ -242,6 +260,10 @@ static void pmic_lowpower_config(void)
 		//BIT_SLP_LDO_VDDSIM1_PD_EN |   //not use
 		0
 	);
+
+    if (boardid != 0)    //PVT
+	    ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL0, BIT_SLP_LDO_VDD18_DCXO_PD_EN | 0);
+
 
 	ANA_REG_SET(ANA_REG_GLB_SLP_LDO_PD_CTRL1,
 		//BIT_SLP_LDO_VDDLDO2_PD_EN |  //type c use.should shutdown by user self
@@ -372,7 +394,7 @@ static void pmic_lowpower_config(void)
 		BIT_LDO_VDD18_DCXO_EXT_XTL0_EN |
 		//BIT_LDO_VDD18_DCXO_EXT_XTL1_EN |
 		//BIT_LDO_VDD18_DCXO_EXT_XTL2_EN |
-		//BIT_LDO_VDD18_DCXO_EXT_XTL3_EN |
+		BIT_LDO_VDD18_DCXO_EXT_XTL3_EN |
 		BIT_LDO_VDD18_DCXO_EXT_XTL4_EN |
 		BIT_LDO_VDD18_DCXO_EXT_XTL5_EN |
 		//BIT_LDO_VDD28_EXT_XTL0_EN |
@@ -606,22 +628,37 @@ static void pmic_lowpower_config(void)
 		0
 	);
 
-	ANA_REG_SET(ANA_REG_GLB_TSX_CTRL2,
-		//BIT_DCXO_26M_REF_OUT0_EXT_XTL2_EN |
-		//BIT_DCXO_26M_REF_OUT1_EXT_XTL2_EN |
-		//BIT_DCXO_26M_REF_OUT2_EXT_XTL2_EN |
-		//BIT_DCXO_26M_REF_OUT3_EXT_XTL2_EN |
-		//BIT_DCXO_26M_REF_OUT4_EXT_XTL2_EN |
-		//BIT_DCXO_26M_REF_OUT0_EXT_XTL3_EN |
-		//BIT_DCXO_26M_REF_OUT1_EXT_XTL3_EN |
-		//BIT_DCXO_26M_REF_OUT2_EXT_XTL3_EN |
-		//BIT_DCXO_26M_REF_OUT3_EXT_XTL3_EN |
-		//BIT_DCXO_26M_REF_OUT4_EXT_XTL3_EN |
-		0
-	);
+	if(boardid == 1)
+		ANA_REG_SET(ANA_REG_GLB_TSX_CTRL2,
+			//BIT_DCXO_26M_REF_OUT0_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT1_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT2_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT3_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT4_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT0_EXT_XTL3_EN |
+			//BIT_DCXO_26M_REF_OUT1_EXT_XTL3_EN |
+			//BIT_DCXO_26M_REF_OUT2_EXT_XTL3_EN |
+			//BIT_DCXO_26M_REF_OUT3_EXT_XTL3_EN |
+			BIT_DCXO_26M_REF_OUT4_EXT_XTL3_EN |
+			0
+		);
+	else
+		ANA_REG_SET(ANA_REG_GLB_TSX_CTRL2,
+			//BIT_DCXO_26M_REF_OUT0_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT1_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT2_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT3_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT4_EXT_XTL2_EN |
+			//BIT_DCXO_26M_REF_OUT0_EXT_XTL3_EN |
+			//BIT_DCXO_26M_REF_OUT1_EXT_XTL3_EN |
+			//BIT_DCXO_26M_REF_OUT2_EXT_XTL3_EN |
+			//BIT_DCXO_26M_REF_OUT3_EXT_XTL3_EN |
+			//BIT_DCXO_26M_REF_OUT4_EXT_XTL3_EN |
+			0
+		);
 
 	ANA_REG_SET(ANA_REG_GLB_TSX_CTRL3,
-		BIT_DCXO_26M_REF_OUT0_EXT_XTL4_EN |
+		//BIT_DCXO_26M_REF_OUT0_EXT_XTL4_EN |
 		BIT_DCXO_26M_REF_OUT1_EXT_XTL4_EN |
 		//BIT_DCXO_26M_REF_OUT2_EXT_XTL4_EN |
 		//BIT_DCXO_26M_REF_OUT3_EXT_XTL4_EN |
@@ -682,13 +719,25 @@ static void pmic_lowpower_config(void)
 	 *0x2: REFOUT0/1/2/3/4 DRV_LEVEL 0.9K
 	 *0x1: REFOUT0/1/2/3/4 DRV_LEVEL 1.8K
 	*/
-	//default 0x1f : bypass refout0~refout4 drv lvl is highest
-	ANA_REG_MSK_OR(ANA_REG_GLB_TSX_CTRL14, BITS_DCXO_26M_REF_BUF_OUTPUT_BYPASS(0x1f), BITS_DCXO_26M_REF_BUF_OUTPUT_BYPASS(~0));
+	ANA_REG_MSK_OR(ANA_REG_GLB_TSX_CTRL14, BITS_DCXO_26M_REF_BUF_OUTPUT_BYPASS(0x0), BITS_DCXO_26M_REF_BUF_OUTPUT_BYPASS(~0));
 	ANA_REG_MSK_OR(ANA_REG_GLB_TSX_CTRL14, BITS_DCXO_26M_REF_BUF0_DRV_LEVEL_CTRL(0x6), BITS_DCXO_26M_REF_BUF0_DRV_LEVEL_CTRL(~0));
 	ANA_REG_MSK_OR(ANA_REG_GLB_TSX_CTRL14, BITS_DCXO_26M_REF_BUF1_DRV_LEVEL_CTRL(0x6), BITS_DCXO_26M_REF_BUF1_DRV_LEVEL_CTRL(~0));
 	ANA_REG_MSK_OR(ANA_REG_GLB_TSX_CTRL4, BITS_DCXO_26M_REF_BUF2_DRV_LEVEL_CTRL(0x6), BITS_DCXO_26M_REF_BUF2_DRV_LEVEL_CTRL(~0));
 	ANA_REG_MSK_OR(ANA_REG_GLB_TSX_CTRL4, BITS_DCXO_26M_REF_BUF3_DRV_LEVEL_CTRL(0x6), BITS_DCXO_26M_REF_BUF3_DRV_LEVEL_CTRL(~0));
 	ANA_REG_MSK_OR(ANA_REG_GLB_TSX_CTRL4, BITS_DCXO_26M_REF_BUF4_DRV_LEVEL_CTRL(0x6), BITS_DCXO_26M_REF_BUF4_DRV_LEVEL_CTRL(~0));
+
+
+	//Adjust the clock frequency in the PMU
+	if(boardid == 1){
+		ANA_REG_SET(ANA_REG_GLB_TSX_CTRL10,
+                BITS_DCXO_CORE_CBANK_LP(0x60) |
+                0
+        );
+		ANA_REG_SET(ANA_REG_GLB_TSX_CTRL11,
+		        BITS_DCXO_CORE_CBANK_LP(0x5) |
+		        0
+	    );
+	}
 #endif
 }
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -186,4 +187,14 @@ int sprd_dispc_probe(void)
 	sprd_dispc_resume(dispc);
 
 	return 0;
+}
+
+
+int sprd_dispc_uninit(void)
+{
+    struct sprd_dispc *dispc = &dispc_device;
+
+    sprd_dispc_suspend(dispc);
+
+    return 0;
 }

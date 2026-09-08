@@ -1,3 +1,16 @@
+/*
+* Copyright (C) 2015-2016 Spreadtrum Communications Inc.
+* Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
+*
+* This software is licensed under the terms of the GNU General Public
+* License version 2, as published by the Free Software Foundation, and
+* may be copied, distributed, and modified under those terms.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*/
 #include <common.h>
 #include <part.h>
 #include <sparse_format.h>
@@ -16,6 +29,12 @@ typedef enum EXT4_DL_STATUS_DEF
 	END
 } EXT4_DL_STATUS_E;
 
+typedef struct {
+	chunk_header_t header;    /* chunk header */
+	int idx;                  /* index of chunk */
+	u64 saved_len;            /* length of chunk which was already saved */
+} uncomplete_chunk_t;
+
 static u8 copybuf[COPY_BUF_SIZE];
 static unsigned int g_buf_index = 0;
 
@@ -23,6 +42,7 @@ static sparse_header_t sparse_header;
 static EXT4_DL_STATUS_E download_status = END;
 static unsigned long current_chunks = 0;
 static u32 total_blocks = 0;
+static uncomplete_chunk_t uncomplete_ck;/* save chunk relative information */
 
 static int read_all(void *buf_src, u32 src_index, void *buf_dest, size_t len)
 {
@@ -76,6 +96,8 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 	g_buf_index = 0;
 
 	if (download_status == END) {
+		memset(&uncomplete_ck, 0, sizeof(uncomplete_ck));
+		uncomplete_ck.idx = -1;
 		current_chunks = 0;
 		total_blocks = 0;
 		offset = 0;
@@ -100,7 +122,7 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 
 		if (sparse_header.file_hdr_sz > SPARSE_HEADER_LEN) {
 			/* Skip the remaining bytes in a header that is longer than
-		 	* we expected.
+			* we expected.
 			 */
 			g_buf_index += (sparse_header.file_hdr_sz - SPARSE_HEADER_LEN);
 		}
@@ -110,93 +132,125 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 	for (i = current_chunks; i < sparse_header.total_chunks; i++) {
 		memset(&chunk_header, 0, sizeof(chunk_header_t));
 		if ((g_buf_index + sizeof(chunk_header)) > length) {
-			debugf("bufferindex(%d) + sizeof(chunk_header)(%d) exceed length\n", g_buf_index, sizeof(chunk_header));
+			debugf("bufferindex(%d) + sizeof(chunk_header)(%lu) exceed length\n", g_buf_index, sizeof(chunk_header));
 			current_chunks = i;
 			break;
 		}
 
-		preread_chunk((void*)buf, g_buf_index, &chunk_header, sizeof(chunk_header));
-		//debugf("chunk_header.total_sz(%d)\n", chunk_header.total_sz);
+		if (!i || (i != uncomplete_ck.idx)) {
+			preread_chunk((void*)buf, g_buf_index, &chunk_header, sizeof(chunk_header));
+			//debugf("chunk_header.total_sz(%d)\n", chunk_header.total_sz);
 
-		/*
-		 * fixup for "fastboot flash -S 200M system system.img"
-		 *   1. first block(200M): the first chunk type must not be 0xCAC3
-		 *   2. other blocks: the first chuck type is 0xCAC3 and chunk_len was offset continue
-		 *   from last block
-		 */
-		if (!offset && !current_chunks
-			&& (chunk_header.chunk_type != CHUNK_TYPE_DONT_CARE)
-			&& strcmp(partname, "userdata")) {
-			/* erase partition before spare image write */
-			sparse_sz = (u64)sparse_header.total_blks * (u64)sparse_header.blk_sz;
-			if (sparse_sz) {
-				if ((get_img_partition_size(partname, &part_sz) >= 0)
-						&& (part_sz > 0)) {
-					if (sparse_sz > part_sz) {
-						errorf("fail: sparse sz(0x%llx) large than partition sz(0x%llx)\n", sparse_sz, part_sz);
-						goto fail;
-					} else {
-						debugf("??? sparse img write, erase partition %s sz 0x%llx\n", partname, sparse_sz);
-						if (common_raw_erase(partname, sparse_sz > part_sz ? part_sz : sparse_sz, offset)) {
-							errorf("sparse image write, erase partition %s fail\n", partname);
+			/*
+			 * fixup for "fastboot flash -S 200M system system.img"
+			 *   1. first block(200M): the first chunk type must not be 0xCAC3
+			 *   2. other blocks: the first chuck type is 0xCAC3 and chunk_len was offset continue
+			 *   from last block
+			 */
+			if (!offset && !current_chunks
+				&& (chunk_header.chunk_type != CHUNK_TYPE_DONT_CARE)
+				&& strcmp(partname, "userdata")) {
+				/* erase partition before spare image write */
+				sparse_sz = (u64)sparse_header.total_blks * (u64)sparse_header.blk_sz;
+				if (sparse_sz) {
+					if ((get_img_partition_size(partname, &part_sz) >= 0)
+							&& (part_sz > 0)) {
+						if (sparse_sz > part_sz) {
+							errorf("fail: sparse sz(0x%llx) large than partition sz(0x%llx)\n", sparse_sz, part_sz);
 							goto fail;
+						} else {
+							debugf("??? sparse img write, erase partition %s sz 0x%llx\n", partname, sparse_sz);
+							if (common_raw_erase(partname, sparse_sz > part_sz ? part_sz : sparse_sz, offset)) {
+								errorf("sparse image write, erase partition %s fail\n", partname);
+								goto fail;
+							}
 						}
 					}
 				}
 			}
-		}
 
-		ret = 0;
-		switch (chunk_header.chunk_type) {
-		case CHUNK_TYPE_RAW:
-		case CHUNK_TYPE_FILL:
-		case CHUNK_TYPE_DONT_CARE:
-		case CHUNK_TYPE_CRC32:
-			if ((g_buf_index + chunk_header.total_sz) > length) {
-				debugf("bufferindex(%d)+chunk_header.total_sz(%d) exceed  length(%d) \n", g_buf_index, chunk_header.total_sz, length);
-				ret = 1;
+			ret = 0;
+			switch (chunk_header.chunk_type) {
+			case CHUNK_TYPE_RAW:
+			case CHUNK_TYPE_FILL:
+			case CHUNK_TYPE_DONT_CARE:
+			case CHUNK_TYPE_CRC32:
+				if ((g_buf_index + chunk_header.total_sz) > length) {
+					debugf("bufferindex(%d)+chunk_header.total_sz(%d) exceed  length(%lu) \n", g_buf_index, chunk_header.total_sz, length);
+					ret = 1;
+				}
+				break;
+			default:
+				errorf("Unknown chunk type 0x%4.4x\n", chunk_header.chunk_type);
 			}
-			break;
-		default:
-			errorf("Unknown chunk type 0x%4.4x\n", chunk_header.chunk_type);
-		}
 
-		if (ret == 1) {
-			current_chunks = i;
-			break;
-		}
+			if (ret == 1) {
+				/* save uncomplete chunk header only for type RAW */
+				current_chunks = i;
+				if (chunk_header.chunk_type == CHUNK_TYPE_RAW) {
+					memcpy(&uncomplete_ck.header, &chunk_header, sizeof(chunk_header_t));
+					uncomplete_ck.idx = i;
+					uncomplete_ck.saved_len = 0;
+				} else
+					break;
+			}
 
-		memset(&chunk_header, 0, sizeof(chunk_header_t));
-		ret = read_all((void*)buf, g_buf_index, &chunk_header, sizeof(chunk_header));
+			memset(&chunk_header, 0, sizeof(chunk_header_t));
+			ret = read_all((void*)buf, g_buf_index, &chunk_header, sizeof(chunk_header));
 
-		if (ret != sizeof(chunk_header)) {
-			errorf("Error reading chunk header\n");
-			goto fail;
-		}
+			if (ret != sizeof(chunk_header)) {
+				errorf("Error reading chunk header\n");
+				goto fail;
+			}
 
-		if (sparse_header.chunk_hdr_sz > CHUNK_HEADER_LEN) {
-			/* Skip the remaining bytes in a header that is longer than
-			 * we expected.*/
-			g_buf_index += sparse_header.chunk_hdr_sz - CHUNK_HEADER_LEN;
+			if (sparse_header.chunk_hdr_sz > CHUNK_HEADER_LEN) {
+				/* Skip the remaining bytes in a header that is longer than
+				 * we expected.*/
+				g_buf_index += sparse_header.chunk_hdr_sz - CHUNK_HEADER_LEN;
+			}
+
+			/* write current part of this chunk to flash */
+			if ((chunk_header.chunk_type == CHUNK_TYPE_RAW)
+				&& i && (i == uncomplete_ck.idx)) {
+				chunk_len = length - g_buf_index;
+			} else
+				chunk_len = (uint64_t)chunk_header.chunk_sz * sparse_header.blk_sz;
+		} else {
+			memcpy(&chunk_header, &uncomplete_ck.header, sizeof(chunk_header_t));
+
+			chunk_len = (uint64_t)chunk_header.total_sz - sizeof(chunk_header_t)
+							- uncomplete_ck.saved_len;
+			if (chunk_len > (length - g_buf_index))
+				chunk_len = length - g_buf_index;
 		}
-		chunk_len = (uint64_t)chunk_header.chunk_sz * sparse_header.blk_sz;
 
 		switch (chunk_header.chunk_type) {
 		case CHUNK_TYPE_RAW:
-			if (chunk_header.total_sz != (sparse_header.chunk_hdr_sz + chunk_len) ) {
+			if ((i != uncomplete_ck.idx)
+				&& (chunk_header.total_sz != (sparse_header.chunk_hdr_sz + chunk_len))) {
 				errorf("Bogus chunk size for chunk %d, type Raw\n", i);
 				goto fail;
 			}
 
 			if (0 != common_raw_write(partname, chunk_len, (uint64_t)0, offset, buf + g_buf_index)) {
-				errorf("Write raw chunk fail, trunk_len=0x%x!\n", chunk_len);
+				errorf("Write raw chunk fail, trunk_len=0x%llx!\n", chunk_len);
 				goto fail;
-			} else {
-				crc32 = sparse_crc32(crc32, buf + g_buf_index, chunk_len);
-				g_buf_index += chunk_len;
-				offset += chunk_len;
-				total_blocks += chunk_header.chunk_sz;
 			}
+
+			crc32 = sparse_crc32(crc32, buf + g_buf_index, chunk_len);
+			g_buf_index += chunk_len;
+			offset += chunk_len;
+			if (i == uncomplete_ck.idx) {
+				uncomplete_ck.saved_len += chunk_len;
+				if (uncomplete_ck.saved_len == (uint64_t)chunk_header.total_sz - sizeof(chunk_header_t)) {
+					total_blocks += chunk_header.chunk_sz;
+					memset(&uncomplete_ck, 0, sizeof(uncomplete_ck));
+					uncomplete_ck.idx = -1;
+				} else
+					goto out;
+			} else
+				total_blocks += chunk_header.chunk_sz;
+
 			break;
 		case CHUNK_TYPE_FILL:
 			if (chunk_header.total_sz != (sparse_header.chunk_hdr_sz + sizeof(fill_val)) ) {
@@ -212,7 +266,7 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 			while (chunk_len) {
 				chunk = (chunk_len > COPY_BUF_SIZE) ? COPY_BUF_SIZE : chunk_len;
 				if (0 != common_raw_write(partname, (uint64_t)chunk, (uint64_t)0, offset, copybuf)) {
-					errorf("Write fill chunk fail, trunk_len=0x%x!\n", chunk_len);
+					errorf("Write fill chunk fail, trunk_len=0x%llx!\n", chunk_len);
 					goto fail;
 				}
 				crc32 = sparse_crc32(crc32, copybuf, chunk);
@@ -240,6 +294,7 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 
 	}
 
+out:
 	if (sparse_header.total_blks != total_blocks) {
 		return g_buf_index;
 	} else {
@@ -253,5 +308,3 @@ int write_sparse_img(uchar * partname, u8* buf, unsigned long length)
 fail:
 	return -1;
 }
-
-

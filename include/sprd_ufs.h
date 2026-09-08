@@ -1,3 +1,16 @@
+/*
+* Copyright (C) 2015-2016 Spreadtrum Communications Inc.
+* Copyright (C) 2021, Anhui Yunshu Zhihui Technology Co., Ltd.
+*
+* This software is licensed under the terms of the GNU General Public
+* License version 2, as published by the Free Software Foundation, and
+* may be copied, distributed, and modified under those terms.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*/
 #ifndef _SPRD_UFS_H
 #define _SPRD_UFS_H
 
@@ -784,7 +797,6 @@ struct ufs_unit_cfg_tbl {
 	uint8_t	bLogicalBlockSize;
 	uint8_t	bProvisioningType;
 	uint16_t	wContextCapabilities;
-	uint8_t	reserved[3];
 }  __attribute__ ((packed));
 
 struct ufs_cfg_desc_tbl {
@@ -798,8 +810,7 @@ struct ufs_cfg_desc_tbl {
 	uint8_t	bSecureRemovalType;
 	uint8_t	bInitActiveICCLevel;
 	uint16_t	wPeriodicRTCUpdate;
-	uint8_t	reserved_2[5];
-	struct ufs_unit_cfg_tbl	unit_cfg[UFS_MAX_LU_NUM];
+//	struct ufs_unit_cfg_tbl	unit_cfg[UFS_MAX_LU_NUM];
 } __attribute__ ((packed));
 
 struct um_block_descriptor {

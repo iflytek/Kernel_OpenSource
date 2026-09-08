@@ -1,3 +1,16 @@
+/*
+* Copyright (C) 2015-2016 Spreadtrum Communications Inc.
+* Copyright (C) 2021 Anhui Yunshu Zhihui Technology Co., Ltd.
+*
+* This software is licensed under the terms of the GNU General Public
+* License version 2, as published by the Free Software Foundation, and
+* may be copied, distributed, and modified under those terms.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*/
 #include <common.h>
 #include <command.h>
 #include <linux/types.h>
@@ -89,12 +102,13 @@ boot_mode_enum_type get_mode_from_bat_low(void)
 #else
 	  if(charger_connected()) {
 #endif
-		  debugf("cboot:low battery,charging...\n");
-		  sprdbat_show_chglogo();
+		  printf("cboot:low battery,charging...\n");
+		  sprdbat_show_chglogo(true);
 		  sprdbat_lowbat_chg();
 		  mdelay(SPRDBAT_CHG_POLLING_T);
 	  }else{
-		  debugf("cboot:low battery and shutdown\n");
+		  sprdbat_show_chglogo(false);
+		  printf("cboot:low battery and shutdown\n");
 		  return CMD_POWER_DOWN_DEVICE;
 	  }
 	}
