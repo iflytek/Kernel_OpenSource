@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2016-2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2024 Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
  * may be copied, distributed, and modified under those terms.
@@ -350,11 +352,13 @@ static int sprd_ep_addr_map(struct wcn_pcie_info *priv)
 		mdelay(LINK_WAIT_IATU);
 	}
 
+	/*
 	val = sprd_pcie_read_reg32(priv, WCN_PCIE_DEV_AND_VND_ID);
 	if (val != 0x23551db3) {
 		WCN_ERR("%s: read EP memory fail, val = 0x%x\n", __func__, val);
 		return -1;
 	}
+	*/
 
 	writel(0x00000000, &obreg0->type);
 	writel(0x00000000, &obreg0->lower_base_addr);

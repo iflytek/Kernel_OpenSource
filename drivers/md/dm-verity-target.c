@@ -5,6 +5,8 @@
  *
  * Based on Chromium dm-verity driver (C) 2011 The Chromium OS Authors
  *
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
  * This file is released under the GPLv2.
  *
  * In the file "/sys/module/dm_verity/parameters/prefetch_cluster" you can set
@@ -19,7 +21,7 @@
 
 #include <linux/module.h>
 #include <linux/reboot.h>
-
+#include <linux/delay.h>
 #define DM_MSG_PREFIX			"verity"
 
 #define DM_VERITY_ENV_LENGTH		42
@@ -982,7 +984,7 @@ int verity_ctr(struct dm_target *ti, unsigned argc, char **argv)
 	int i;
 	sector_t hash_position;
 	char dummy;
-
+	int retry = 20;
 	v = kzalloc(sizeof(struct dm_verity), GFP_KERNEL);
 	if (!v) {
 		ti->error = "Cannot allocate verity structure";
@@ -1016,12 +1018,29 @@ int verity_ctr(struct dm_target *ti, unsigned argc, char **argv)
 	v->version = num;
 
 	r = dm_get_device(ti, argv[1], FMODE_READ, &v->data_dev);
+
+	while (r && retry > 0) {
+		DMERR("Data device %s lookup failed, Waiting 100 ms and try again...", argv[1]);
+		msleep(100);
+		r = dm_get_device(ti, argv[1], FMODE_READ, &v->data_dev);
+		retry--;
+	}
+
 	if (r) {
 		ti->error = "Data device lookup failed";
 		goto bad;
 	}
 
 	r = dm_get_device(ti, argv[2], FMODE_READ, &v->hash_dev);
+
+	retry = 10;
+	while (r && retry > 0) {
+	DMERR("Hash device %s lookup failed, Waiting 100 ms and try again...", argv[2]);
+		msleep(100);
+		r = dm_get_device(ti, argv[2], FMODE_READ, &v->hash_dev);
+		retry--;
+	}
+
 	if (r) {
 		ti->error = "Hash device lookup failed";
 		goto bad;

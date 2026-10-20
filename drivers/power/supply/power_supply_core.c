@@ -4,6 +4,7 @@
  *  Copyright © 2007  Anton Vorontsov <cbou@mail.ru>
  *  Copyright © 2004  Szabolcs Gyurko
  *  Copyright © 2003  Ian Molton <spyro@f2s.com>
+ *  Copyright © 2023  Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  *  Modified: 2004, Oct     Szabolcs Gyurko
  *
@@ -23,6 +24,9 @@
 #include <linux/property.h>
 #include <linux/thermal.h>
 #include "power_supply.h"
+
+#include <linux/of_platform.h>
+#include <linux/iio/consumer.h>
 
 /* exported for the APM Power driver, APM emulation */
 struct class *power_supply_class;
@@ -565,6 +569,20 @@ struct power_supply *devm_power_supply_get_by_phandle(struct device *dev,
 EXPORT_SYMBOL_GPL(devm_power_supply_get_by_phandle);
 #endif /* CONFIG_OF */
 
+void read_bat_id(int *bat_id)
+{
+    char * ptr;
+    ptr = strstr(saved_command_line, "bat.id=");
+    if (!ptr) {
+        pr_err("parse saved_command_line bat_id err!\n");
+        return;
+    }
+
+    ptr += strlen("bat.id=");
+    *bat_id = simple_strtol(ptr, NULL, 10);
+}
+
+#define BATTERY_ID_DIFF	(1024/10)
 int power_supply_get_battery_info(struct power_supply *psy,
 				  struct power_supply_battery_info *info)
 {
@@ -575,6 +593,13 @@ int power_supply_get_battery_info(struct power_supply *psy,
 	const char *value;
 	const __be32 *list;
 	int err, len, index, size;
+	int bat_id;
+
+	struct platform_device *bat_dev = NULL;
+	struct iio_channel *bat_id_chann = NULL;
+	int battery_id_adc = -1;
+	int temp = -1;
+	struct device_node *child;
 
 	info->energy_full_design_uwh         = -EINVAL;
 	info->charge_full_design_uah         = -EINVAL;
@@ -622,6 +647,39 @@ int power_supply_get_battery_info(struct power_supply *psy,
 	if (strcmp("simple-battery", value))
 		return -ENODEV;
 
+	read_bat_id(&bat_id);
+	pr_debug("bat_id: %d\n", bat_id);
+
+	bat_dev = of_find_device_by_node(battery_np);
+	if (IS_ERR(bat_dev)) {
+		pr_err("%s, cannot get battery platform device\n", __func__);
+	} else {
+		bat_id_chann = iio_channel_get(&bat_dev->dev, NULL);
+		if (IS_ERR(bat_id_chann)) {
+			dev_err(&bat_dev->dev, "%s, cannot get io-channels property, will use legacy battery info.\n", __func__);
+		} else {
+			err = iio_read_channel_processed(bat_id_chann, &battery_id_adc);
+			if (err < 0) {
+				dev_err(&bat_dev->dev, "read iio for battery id failed:%d\n", err);
+				iio_channel_release(bat_id_chann);
+				return err;
+			} else {
+				dev_info(&bat_dev->dev, "read battery ID in adc:%d\n", battery_id_adc);
+
+				for_each_child_of_node(battery_np, child) {
+					err = of_property_read_u32(child, "bat-id-adc", &temp);
+					if (battery_id_adc >= temp - BATTERY_ID_DIFF &&
+					    battery_id_adc <= temp + BATTERY_ID_DIFF ) {
+						dev_info(&bat_dev->dev, "matched battery id:%d(+-%d)\n", temp, BATTERY_ID_DIFF);
+						battery_np = child;
+					}
+				}
+			}
+			iio_channel_release(bat_id_chann);
+		}
+		put_device(&bat_dev->dev);
+	}
+
 	/* The property and field names below must correspond to elements
 	 * in enum power_supply_property. For reasoning, see
 	 * Documentation/power/power_supply_class.txt.
@@ -629,8 +687,21 @@ int power_supply_get_battery_info(struct power_supply *psy,
 
 	of_property_read_u32(battery_np, "energy-full-design-microwatt-hours",
 			     &info->energy_full_design_uwh);
+#ifdef CONFIG_BATTERY_PARAM_COMPAT
+	if (bat_id > 700) {
+		of_property_read_u32(battery_np, "charge-full-design-microamp-hours",
+			     &info->charge_full_design_uah);
+		pr_info("loads lf charge-full-design-microamp-hours\n");
+	} else {
+		of_property_read_u32(battery_np, "charge-full-design-microamp-hours1",
+			     &info->charge_full_design_uah);
+		pr_info("loads gf charge-full-design-microamp-hours\n");
+	}
+#else
 	of_property_read_u32(battery_np, "charge-full-design-microamp-hours",
 			     &info->charge_full_design_uah);
+	pr_info("loads common charge-full-design-microamp-hours");
+#endif
 	of_property_read_u32(battery_np, "voltage-min-design-microvolt",
 			     &info->voltage_min_design_uv);
 	of_property_read_u32(battery_np, "precharge-current-microamp",
@@ -641,8 +712,8 @@ int power_supply_get_battery_info(struct power_supply *psy,
 			     &info->constant_charge_current_max_ua);
 	of_property_read_u32(battery_np, "constant_charge_voltage_max_microvolt",
 			     &info->constant_charge_voltage_max_uv);
-	of_property_read_u32(battery_np, "factory-internal-resistance-micro-ohms",
-			     &info->factory_internal_resistance_uohm);
+	//of_property_read_u32(battery_np, "factory-internal-resistance-micro-ohms",
+	//		     &info->factory_internal_resistance_uohm);
 	of_property_read_u32_index(battery_np, "charge-sdp-current-microamp", 0,
 				   &info->cur.sdp_cur);
 	of_property_read_u32_index(battery_np, "charge-sdp-current-microamp", 1,
@@ -668,6 +739,23 @@ int power_supply_get_battery_info(struct power_supply *psy,
 	of_property_read_u32_index(battery_np, "charge-fchg-current-microamp", 1,
 				   &info->cur.fchg_limit);
 
+	/**
+	 * add "battery_id_adc" to compatible with previous modify,
+	 * ensure read the property default,
+	 * otherwish the result may not we want
+	 **/
+	if(bat_id > 700 || battery_id_adc != -1){
+		of_property_read_u32(battery_np, "factory-internal-resistance-micro-ohms",
+				     &info->factory_internal_resistance_uohm);
+		pr_err("get battery factory-internal-resistance-micro-ohms: %d\n",
+		       info->factory_internal_resistance_uohm);
+	}else{
+		of_property_read_u32(battery_np, "factory-internal-resistance-micro-ohms1",
+				     &info->factory_internal_resistance_uohm);
+		pr_err("get battery factory-internal-resistance-micro-ohms1: %d\n",
+		       info->factory_internal_resistance_uohm);
+	}
+
 	len = of_property_count_u32_elems(battery_np, "ocv-capacity-celsius");
 	if (len < 0 && len != -EINVAL) {
 		return len;
@@ -685,7 +773,18 @@ int power_supply_get_battery_info(struct power_supply *psy,
 		const __be32 *list;
 		int i, tab_len, size;
 
+#ifdef CONFIG_BATTERY_PARAM_COMPAT
+		if (bat_id > 700) {
+			propname = kasprintf(GFP_KERNEL, "ocv-capacity-table-%d", index);
+			pr_info("loads lf ocv-capacity-table\n");
+		} else {
+			propname = kasprintf(GFP_KERNEL, "ocv-capacity-table1-%d", index);
+			pr_info("loads gf ocv-capacity-table\n");
+		}
+#else
 		propname = kasprintf(GFP_KERNEL, "ocv-capacity-table-%d", index);
+		pr_info("loads common ocv-capacity-table");
+#endif
 		list = of_get_property(battery_np, propname, &size);
 		if (!list || !size) {
 			dev_err(&psy->dev, "failed to get %s\n", propname);
@@ -709,6 +808,7 @@ int power_supply_get_battery_info(struct power_supply *psy,
 		for (i = 0; i < tab_len; i++) {
 			table[i].ocv = be32_to_cpu(*list++);
 			table[i].capacity = be32_to_cpu(*list++);
+			//pr_info("table[%d] ocv=%d, capacity=%d\n", i, table[i].ocv, table[i].capacity);
 		}
 	}
 
@@ -731,7 +831,23 @@ int power_supply_get_battery_info(struct power_supply *psy,
 		temp_table[index].temp = be32_to_cpu(*list++);
 	}
 
-	list = of_get_property(battery_np, "capacity-temp-table", &size);
+	read_bat_id(&bat_id);
+
+	pr_debug("bat_id: %d\n", bat_id);
+	/**
+	 * add "battery_id_adc" to compatible with previous modify,
+	 * ensure read the property default,
+	 * otherwish the result may not we want
+	 **/
+	if(bat_id > 700 ||  battery_id_adc != -1){
+		list = of_get_property(battery_np, "capacity-temp-table", &size);
+		pr_err("get battery info capacity-temp-table");
+	}else{
+		list = of_get_property(battery_np, "capacity-temp-table1", &size);
+		pr_err("get battery info capacity-temp-table1");
+	}
+
+	//list = of_get_property(battery_np, "capacity-temp-table", &size);
 	if (!list || !size)
 		return 0;
 

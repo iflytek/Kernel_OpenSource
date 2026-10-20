@@ -1,0 +1,13 @@
+ifdef BUILD_FROM_KERNEL
+include sprd-board-config/roc1/sa30pro/sa30pro_base
+else
+include  $(KERNEL_PATH)/sprd-board-config/roc1/sa30pro/sa30pro_base
+endif
+
+#DEFCONFIG
+KERNEL_DEFCONFIG := sa30pro_defconfig
+
+#DTS
+TARGET_DTB := sa30pro
+TARGET_DTBO := sa30pro-overlay
+

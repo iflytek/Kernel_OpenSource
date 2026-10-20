@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -74,6 +75,16 @@ enum TIMING {
 };
 
 struct pll_regs {
+#ifdef CONFIG_DRM_SPRD_MIPI_RECONFIG
+	union __reg_02__ {
+		struct __02 {
+			u8 testpll: 2;
+			u8 trimbg: 4;
+			u8 lp_sel: 2;
+			} bits;
+		u8 val;
+	} _02;
+#endif
 	union __reg_03__ {
 		struct __03 {
 			u8 prbs_bist: 1;
@@ -167,6 +178,13 @@ struct pll_regs {
 		u8 val;
 	} _0f;
 
+    union __reg_25__ {
+        struct __25 {
+            u8 ldoop4_sel: 3;
+            u8 reserved: 5;
+        } bits;
+        u8 val;
+    } _25;
 };
 
 struct dphy_pll {
@@ -295,6 +313,11 @@ static int dphy_set_pll_reg(struct regmap *regmap, struct dphy_pll *pll)
 	if (!pll || !pll->fvco)
 		goto FAIL;
 
+#ifdef CONFIG_DRM_SPRD_MIPI_RECONFIG
+	regs._02.bits.lp_sel = 0x3;
+	regs._02.bits.trimbg = 1 << 3;
+	regs._02.bits.testpll = 0;
+#endif
 	regs._03.bits.prbs_bist = 1;
 	regs._03.bits.en_lp_treot = true;
 	regs._03.bits.lpf_sel = pll->lpf_sel;
@@ -325,6 +348,9 @@ static int dphy_set_pll_reg(struct regmap *regmap, struct dphy_pll *pll)
 	regs._0f.bits.det_delay = pll->det_delay;
 	regs._0f.bits.kdelta =  pll->kdelta >> 12;
 
+#ifdef CONFIG_DRM_SPRD_MIPI_RECONFIG
+	regmap_write(regmap, 0x02, regs._02.val);
+#endif
 	regmap_write(regmap, 0x03, regs._03.val);
 	regmap_write(regmap, 0x04, regs._04.val);
 	regmap_write(regmap, 0x07, regs._07.val);
@@ -346,6 +372,23 @@ FAIL:
 	return -1;
 }
 
+static void mipi_drive_capability_config(struct regmap *regmap,
+                    struct dphy_context *ctx)
+{
+    if (ctx->capability) {
+        regs._25.bits.ldoop4_sel =  ctx->capability;
+        regmap_write(regmap, 0x25, regs._25.val);
+        pr_info("Set the mipi drive capability to the highest\n");
+    } else {
+#ifdef CONFIG_DRM_SPRD_MIPI_DRIVER_STRENGTH
+        regmap_write(regmap, 0x25, CONFIG_DRM_SPRD_MIPI_DRIVER_STRENGTH);
+        pr_info("Set the mipi drive capability %d\n", CONFIG_DRM_SPRD_MIPI_DRIVER_STRENGTH);
+#else
+        pr_info("Use the default mipi drive capability\n");
+#endif
+    }
+}
+
 static int dphy_pll_config(struct dphy_context *ctx)
 {
 	int ret;
@@ -360,6 +403,8 @@ static int dphy_pll_config(struct dphy_context *ctx)
 	ret = dphy_set_pll_reg(regmap, &pll);
 	if (ret)
 		goto FAIL;
+
+    mipi_drive_capability_config(regmap, ctx);
 
 	return 0;
 
@@ -498,11 +543,11 @@ static int dphy_timing_config(struct dphy_context *ctx)
 	range[L] = 300 * scale;
 	range[H] = INFINITY;
 	val[CLK] = ROUND_UP(range[L] * factor + (tmp & 0xffff)
-			- 525 * t_byteck / 100, t_byteck) - 2;
+			- 525 * t_byteck / 100, t_byteck) - 4;
 	range[L] = 145 * scale + 10 * t_ui;
 	val[DATA] = ROUND_UP(range[L] * factor
 			+ ((tmp >> 16) & 0xffff) - 525 * t_byteck / 100,
-			t_byteck) - 2;
+			t_byteck) - 4;
 	dphy_set_timing_regs(regmap, ZERO_TIME, val);
 
 	/* TRAIL_TIME: HS-TRAIL */

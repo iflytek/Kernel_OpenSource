@@ -19,6 +19,7 @@ struct dphy_context {
 	u8 lanes;
 	u8 id;
 	bool is_enabled;
+    u8 capability;
 };
 
 struct dphy_pll_ops {

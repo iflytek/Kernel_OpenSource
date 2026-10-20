@@ -1,0 +1,13 @@
+ifdef BUILD_FROM_KERNEL
+include sprd-board-config/roc1/cb/cb_base
+else
+include  $(KERNEL_PATH)/sprd-board-config/roc1/cb/cb_base
+endif
+
+#DEFCONFIG
+KERNEL_DEFCONFIG := cb_defconfig
+
+#DTS
+TARGET_DTB := cb
+TARGET_DTBO := cb-overlay
+

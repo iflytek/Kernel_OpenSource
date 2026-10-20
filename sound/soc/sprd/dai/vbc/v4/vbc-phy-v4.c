@@ -4,6 +4,7 @@
  * SPRD SoC VBC -- SpreadTrum SOC for VBC driver function.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -439,7 +440,7 @@ int ap_vbc_fifo_enable(int fifo_id, int chan, int enable)
 		val = bit;
 	else
 		val = ~bit;
-	ap_vbc_reg_update(reg, val, mask);
+	ap_vbc_reg_update(reg, bit, mask);
 	pr_info("%s fifo_id=%s, vbc_chan =%s, enable=%d\n",
 		__func__, ap_vbc_fifo_id2name(fifo_id),
 		ap_vbc_chan_id2name(chan), enable);
@@ -584,7 +585,7 @@ void ap_vbc_aud_dma_chn_en(int fifo_id, int vbc_chan, int enable)
 		val = bit;
 	else
 		val = ~bit;
-	ap_vbc_reg_update(reg, val, mask);
+	ap_vbc_reg_update(reg, bit, mask);
 	pr_info("%s fifo_id=%s, vbc_chan =%s, enable=%d\n",
 		__func__, ap_vbc_fifo_id2name(fifo_id),
 		ap_vbc_chan_id2name(vbc_chan), enable);
@@ -1401,6 +1402,23 @@ int vbc_dsp_func_trigger(int id, int stream, int up_down)
 }
 
 /*********************************************************
+ * cmd for SND_VBC_DSP_FUNC_HW_TRIGGER_AFTER_DMA
+ *********************************************************/
+int vbc_dsp_func_trigger_after_dma(int id, int stream, int up_down)
+{
+	int ret;
+
+	ret = aud_send_cmd_no_wait(AMSG_CH_VBC_CTL,
+		SND_VBC_DSP_FUNC_HW_TRIGGER_AFTER_DMA, id, stream,
+		up_down, 0);
+	if (ret < 0)
+		return -EIO;
+
+	return 0;
+}
+
+/*********************************************************
+
  * others
  *********************************************************/
 

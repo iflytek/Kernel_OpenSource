@@ -3,6 +3,7 @@
  *
  * Copyright 2002 Hewlett-Packard Company
  * Copyright 2005-2008 Pierre Ossman
+ * Copyright (C) 2019 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * Use consistent with the GNU GPL is permitted,
  * provided that this copyright notice is
@@ -1927,6 +1928,11 @@ static void mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *new_req)
 			}
 			break;
 		case MMC_BLK_CMD_ERR:
+#ifdef CONFIG_MMC_SDHCI_BH201
+			/* Set degrade flag */
+			card->host->degrade = 1;
+			pr_err("### Bayhub debug: Set degrade flag, because MMC_BLK_CMD_ERR retry %d ###", retry);
+#endif
 			req_pending = mmc_blk_rw_cmd_err(md, card, brq, old_req, req_pending);
 			if (mmc_blk_reset(md, card->host, type)) {
 				mmc_remove_defective_card(card->host);
@@ -1949,7 +1955,14 @@ static void mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *new_req)
 				break;
 			/* Fall through */
 		case MMC_BLK_ABORT:
+#ifdef CONFIG_MMC_SDHCI_BH201
+		/* Set degrade flag */
+			card->host->degrade = 1;
+			pr_err("### Bayhub debug: Set degrade flag, because MMC_BLK_ABORT retry %d ###", retry);
+#endif
+
 			if (!mmc_blk_reset(md, card->host, type))
+//				(retry++ < (MMC_BLK_MAX_RETRIES + 1)))
 				break;
 			mmc_remove_defective_card(card->host);
 			mmc_blk_rw_cmd_abort(mq, card, old_req, mq_rq);
@@ -1957,7 +1970,11 @@ static void mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *new_req)
 			return;
 		case MMC_BLK_DATA_ERR: {
 			int err;
-
+#ifdef CONFIG_MMC_SDHCI_BH201
+			/* Set degrade flag */
+			card->host->degrade = 1;
+			pr_err("### Bayhub debug: Set degrade flag, because MMC_BLK_DATA_ERR ###");
+#endif
 			err = mmc_blk_reset(md, card->host, type);
 			if (!err)
 				break;

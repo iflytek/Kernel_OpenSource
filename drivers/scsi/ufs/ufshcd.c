@@ -4,6 +4,7 @@
  * This code is based on drivers/scsi/ufs/ufshcd.c
  * Copyright (C) 2011-2013 Samsung India Software Operations
  * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -7421,6 +7422,7 @@ static int ufshcd_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	enum ufs_dev_pwr_mode req_dev_pwr_mode;
 	enum uic_link_state req_link_state;
 
+	dev_err(hba->dev, "%s start.\n", __func__);
 	hba->pm_op_in_progress = 1;
 	if (!ufshcd_is_shutdown_pm(pm_op)) {
 		pm_lvl = ufshcd_is_runtime_pm(pm_op) ?
@@ -7498,6 +7500,7 @@ disable_clks:
 	 * vendor specific host controller register space call them before the
 	 * host clocks are ON.
 	 */
+	mdelay(50);
 	ret = ufshcd_vops_suspend(hba, pm_op);
 	if (ret)
 		goto set_link_active;
@@ -7537,6 +7540,7 @@ enable_gating:
 	ufshcd_release(hba);
 out:
 	hba->pm_op_in_progress = 0;
+	dev_err(hba->dev, "%s end.\n", __func__);
 	return ret;
 }
 
@@ -7555,6 +7559,7 @@ static int ufshcd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	int ret;
 	enum uic_link_state old_link_state;
 
+	dev_err(hba->dev, "%s start.\n", __func__);
 	hba->pm_op_in_progress = 1;
 	old_link_state = hba->uic_link_state;
 
@@ -7578,6 +7583,7 @@ static int ufshcd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	 * vendor specific host controller register space call them when the
 	 * host clocks are ON.
 	 */
+	udelay(100);
 	ret = ufshcd_vops_resume(hba, pm_op);
 	if (ret)
 		goto disable_vreg;
@@ -7589,7 +7595,7 @@ static int ufshcd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 		else
 			goto vendor_suspend;
 	} else if (ufshcd_is_link_off(hba)) {
-		ret = ufshcd_host_reset_and_restore(hba);
+		ret = ufshcd_reset_and_restore(hba);//modified by sprd ufs patch
 		/*
 		 * ufshcd_host_reset_and_restore() should have already
 		 * set the link state as active
@@ -7635,6 +7641,7 @@ disable_irq_and_vops_clks:
 	ufshcd_setup_clocks(hba, false);
 out:
 	hba->pm_op_in_progress = 0;
+	dev_err(hba->dev, "%s end.\n", __func__);
 	return ret;
 }
 

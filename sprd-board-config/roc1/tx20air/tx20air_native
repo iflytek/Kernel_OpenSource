@@ -1,0 +1,13 @@
+ifdef BUILD_FROM_KERNEL
+include sprd-board-config/roc1/tx20air/tx20air_base
+else
+include  $(KERNEL_PATH)/sprd-board-config/roc1/tx20air/tx20air_base
+endif
+
+#DEFCONFIG
+KERNEL_DEFCONFIG := tx20air_defconfig
+
+#DTS
+TARGET_DTB := tx20air
+TARGET_DTBO := tx20air-overlay
+

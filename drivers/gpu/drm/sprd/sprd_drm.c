@@ -1,5 +1,6 @@
 /*
  *Copyright (C) 2018 Spreadtrum Communications Inc.
+ *Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  *This software is licensed under the terms of the GNU General Public
  *License version 2, as published by the Free Software Foundation, and
@@ -26,6 +27,8 @@
 #include "sprd_drm_gsp.h"
 #include "sprd_gem.h"
 #include <uapi/drm/sprd_drm_gsp.h>
+#include "sprd_panel.h"
+
 
 #define DRIVER_NAME	"sprd"
 #define DRIVER_DESC	"Spreadtrum SoCs' DRM Driver"

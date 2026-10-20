@@ -4,6 +4,7 @@
  * SPRD SoC VBC Codec -- SpreadTrum SOC VBC Codec function.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -3018,8 +3019,6 @@ static const char * const vbc_dump_pos_txt[DUMP_POS_MAX] = {
 	[DUMP_POS_V2] = TO_STRING(DUMP_POS_V2),
 	[DUMP_POS_V1] = TO_STRING(DUMP_POS_V1),
 	[DUMP_POS_DAC0_TO_ADC1] = TO_STRING(DUMP_POS_DAC0_TO_ADC1),
-	[DUMP_POS_DAC0_TO_ADC2] = TO_STRING(DUMP_POS_DAC0_TO_ADC2),
-	[DUMP_POS_DAC0_TO_ADC3] = TO_STRING(DUMP_POS_DAC0_TO_ADC3),
 };
 
 static const struct soc_enum vbc_dump_pos_enum =
@@ -3038,8 +3037,6 @@ static const char *vbc_dumppos2name(int pos)
 		[DUMP_POS_V2] = TO_STRING(DUMP_POS_V2),
 		[DUMP_POS_V1] = TO_STRING(DUMP_POS_V1),
 		[DUMP_POS_DAC0_TO_ADC1] = TO_STRING(DUMP_POS_DAC0_TO_ADC1),
-		[DUMP_POS_DAC0_TO_ADC2] = TO_STRING(DUMP_POS_DAC0_TO_ADC2),
-		[DUMP_POS_DAC0_TO_ADC3] = TO_STRING(DUMP_POS_DAC0_TO_ADC3),
 	};
 
 	if (pos >= DUMP_POS_MAX) {
@@ -3079,9 +3076,8 @@ static int vbc_put_dump_pos(struct snd_kcontrol *kcontrol,
 		return -EINVAL;
 	}
 
-	sp_asoc_pr_dbg("%s %s -> %s, vbc_dump_position %s\n", __func__,
-		       vbc_dumppos2name(val), texts->texts[val],
-		       vbc_dumppos2name(vbc_codec->vbc_dump_position_cmd));
+	sp_asoc_pr_dbg("%s %s -> %s\n", __func__,
+		       vbc_dumppos2name(val), texts->texts[val]);
 	vbc_codec->vbc_dump_position = val;
 
 	return 0;
@@ -3112,9 +3108,7 @@ static int vbc_put_dump_pos_cmd(struct snd_kcontrol *kcontrol,
 	}
 
 	vbc_codec->vbc_dump_position_cmd = val;
-	sp_asoc_pr_dbg("%s -> %s, vbc_dump_position %s\n",
-		       vbc_dumppos2name(val), texts->texts[val],
-		       vbc_dumppos2name(vbc_codec->vbc_dump_position));
+	sp_asoc_pr_dbg("%s -> %s\n", vbc_dumppos2name(val), texts->texts[val]);
 	scene_dump_set(vbc_codec->vbc_dump_position_cmd);
 
 	return 0;
@@ -3693,12 +3687,9 @@ static int dsp_vbc_reg_shm_proc_read(struct snd_info_buffer *buffer)
 	return 0;
 }
 
-static int ap_vbc_reg_proc_read(struct snd_info_buffer *buffer)
+static u32 ap_vbc_reg_proc_read(struct snd_info_buffer *buffer)
 {
 	int reg, ret;
-	bool active = false;
-	struct aud_pm_vbc *pm_vbc;
-	int scene_idx, stream;
 
 	ret = agdsp_access_enable();
 	if (ret) {
@@ -3706,33 +3697,6 @@ static int ap_vbc_reg_proc_read(struct snd_info_buffer *buffer)
 		return ret;
 	}
 	snd_iprintf(buffer, "ap-vbc register dump\n");
-
-	pm_vbc = aud_pm_vbc_get();
-	if (pm_vbc == NULL) {
-		agdsp_access_disable();
-		return -EPERM;
-	}
-	mutex_lock(&pm_vbc->lock_scene_flag);
-
-	for (scene_idx = 0; scene_idx < VBC_DAI_ID_MAX; scene_idx++) {
-		for (stream = 0; stream < STREAM_CNT; stream++) {
-			if (pm_vbc->scene_flag[scene_idx][stream] > 0) {
-				active = true;
-				break;
-			}
-		}
-		if (active == true)
-			break;
-	}
-
-	if (active == false) {
-		mutex_unlock(&pm_vbc->lock_scene_flag);
-		agdsp_access_disable();
-		snd_iprintf(buffer,
-			"vbc is inactive, can't dump ap-vbc register\n");
-		return -EPERM;
-	}
-
 	for (reg = REG_VBC_AUDPLY_FIFO_CTRL;
 	     reg <= VBC_AP_ADDR_END; reg += 0x10) {
 		snd_iprintf(buffer, "0x%04x | 0x%04x 0x%04x 0x%04x 0x%04x\n",
@@ -3741,7 +3705,6 @@ static int ap_vbc_reg_proc_read(struct snd_info_buffer *buffer)
 			    , ap_vbc_reg_read(reg + 0x08)
 			    , ap_vbc_reg_read(reg + 0x0C));
 	}
-	mutex_unlock(&pm_vbc->lock_scene_flag);
 	agdsp_access_disable();
 
 	return 0;

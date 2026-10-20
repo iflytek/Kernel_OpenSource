@@ -21,3 +21,17 @@ config DRM_SPRD_HDMI
 	bool "SPRD DRM HDMI DRIVER"
 	help
 	  Choose this option when you need mipi switch hdmi.
+
+config DRM_SPRD_MIPI_RECONFIG
+	bool "DRM SPRD MIPI RECONFIG"
+	help
+	  Choose this option while building bestservice's product.
+
+config DRM_SPRD_MIPI_DRIVER_STRENGTH
+	int "DRM SPRD MIPI DRIVER STRENGTH"
+	default 3
+	help
+	  Choose this option while setting mipi driver strength.
+
+source "drivers/gpu/drm/sprd/lcd/Kconfig"
+source "drivers/gpu/drm/sprd/aw37504/Kconfig"

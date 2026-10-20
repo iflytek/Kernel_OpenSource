@@ -2,6 +2,7 @@
  * gadget.h - DesignWare USB3 DRD Gadget Header
  *
  * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * Authors: Felipe Balbi <balbi@ti.com>,
  *	    Sebastian Andrzej Siewior <bigeasy@linutronix.de>
@@ -114,5 +115,5 @@ static inline u32 dwc3_gadget_ep_get_transfer_index(struct dwc3_ep *dep)
 
 	return DWC3_DEPCMD_GET_RSC_IDX(res_id);
 }
-
+extern int dwc3_sprd_retry_run(struct dwc3 *dwc);
 #endif /* __DRIVERS_USB_DWC3_GADGET_H */

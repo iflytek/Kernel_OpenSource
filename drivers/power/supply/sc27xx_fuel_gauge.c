@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 // Copyright (C) 2018 Spreadtrum Communications Inc.
+// Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
 
 #include <linux/gpio/consumer.h>
 #include <linux/iio/consumer.h>
@@ -64,31 +65,42 @@
 #define SC27XX_FGU_CLBCNT_DELTA_INT	BIT(2)
 
 #define SC27XX_FGU_MODE_AREA_MASK	GENMASK(15, 12)
-#define SC27XX_FGU_CAP_AREA_MASK	GENMASK(11, 0)
+#define SC27XX_FGU_CAP_ALL_AREA_MASK	GENMASK(11, 0)
+#define SC27XX_FGU_CAP_AREA_MASK	GENMASK(6, 0)
+#define SC27XX_FGU_DELTA_CAP_AREA_MASK	GENMASK(10, 7)
+#define SC27XX_FGU_DELTA_CAP_AREA_SHIFT	7
+#define SC27XX_FGU_DELTA_FLAG_AREA_MASK	BIT(11)
+#define SC27XX_FGU_DELTA_FLAG_AREA_SHIFT	11
 #define SC27XX_FGU_MODE_AREA_SHIFT	12
-#define SC27XX_FGU_CAP_INTEGER_MASK	GENMASK(7, 0)
-#define SC27XX_FGU_CAP_DECIMAL_MASK	GENMASK(3, 0)
-#define SC27XX_FGU_CAP_DECIMAL_SHIFT	8
 
 #define SC27XX_FGU_FIRST_POWERTON	GENMASK(3, 0)
 #define SC27XX_FGU_DEFAULT_CAP		GENMASK(11, 0)
+#define SC27XX_FGU_DEFAULT_NORMAL_TEMPERATURE_CAP		GENMASK(6, 0)
+
 #define SC27XX_FGU_NORMAIL_POWERTON	0x5
 
 #define SC27XX_FGU_CUR_BASIC_ADC	8192
-#define SC27XX_FGU_POCV_VOLT_THRESHOLD	3400
 #define SC27XX_FGU_SAMPLE_HZ		2
 #define SC27XX_FGU_TEMP_BUFF_CNT	10
 #define SC27XX_FGU_LOW_TEMP_REGION	100
 #define SC27XX_FGU_BOOT_CAPACITY_THRESHOLD	10
 #define SC27XX_FGU_DENSE_CAPACITY_HIGH	3850000
 #define SC27XX_FGU_DENSE_CAPACITY_LOW	3750000
-#define SC27XX_FGU_LOW_VBAT_REGION	3300
+#define SC27XX_FGU_LOW_VBAT_REGION  3300
+
+#define START_CALI_CAP   95
+#define CALI_CAP_MAX_TIME_SEC  300    //5min
 
 #define interpolate(x, x1, y1, x2, y2) \
 	((y1) + ((((y2) - (y1)) * ((x) - (x1))) / ((x2) - (x1))));
 
+static int jeita_debug_temp;
+module_param_named(
+	jeita_debug_temp, jeita_debug_temp, int, 00600
+);
+
 /*
- * struct sc27xx_fgu_data: describe the FGU device
+ * struct sc27xx_fgu_data: describe the	 FGU device
  * @regmap: regmap for register access
  * @dev: platform device
  * @battery: battery power supply
@@ -172,20 +184,6 @@ static const struct sc27xx_fgu_variant_data sc2720_info = {
 	.clk_en = SC2720_CLK_EN0,
 };
 
-static bool is_charger_mode;
-
-static int __init get_boot_mode(char *str)
-{
-	if (!str)
-		return 0;
-
-	if (!strncmp(str, "charger", strlen("charger")))
-		is_charger_mode =  true;
-
-	return 0;
-}
-__setup("androidboot.mode=", get_boot_mode);
-
 static int sc27xx_fgu_cap_to_clbcnt(struct sc27xx_fgu_data *data, int capacity);
 static void sc27xx_fgu_low_capacity_calibration(struct sc27xx_fgu_data *data,
 						int cap, int int_mode,
@@ -193,7 +191,6 @@ static void sc27xx_fgu_low_capacity_calibration(struct sc27xx_fgu_data *data,
 static int sc27xx_fgu_get_temp(struct sc27xx_fgu_data *data, int *temp);
 static void sc27xx_fgu_adjust_cap(struct sc27xx_fgu_data *data, int cap);
 static int sc27xx_fgu_get_vbat_ocv(struct sc27xx_fgu_data *data, int *val);
-static int sc27xx_fgu_get_vbat_vol(struct sc27xx_fgu_data *data, int *val);
 
 static const char * const sc27xx_charger_supply_name[] = {
 	"sc2731_charger",
@@ -202,8 +199,44 @@ static const char * const sc27xx_charger_supply_name[] = {
 	"sc2723_charger",
 	"sc2703_charger",
 	"fan54015_charger",
-	"bq2560x_charger",
+	//"bq2560x_charger",
 };
+
+static struct cali_cap_struct {
+	int disp_cap;      // display capacity to user
+	int max_keep_time;    // Maximum duration of every 1 percent capacity
+	struct timespec64 chg_stime;
+	int chg_time;		// Real time duration of every 1 percent capacity while charge
+	struct timespec64 dischg_stime;
+	int dischg_time;
+} cali_cap_st = {
+	.disp_cap = START_CALI_CAP,
+	.chg_time = 0,
+	.dischg_time = 0,
+	.max_keep_time = CALI_CAP_MAX_TIME_SEC,
+};
+
+static int boardid = -1;
+extern char *saved_command_line;
+
+enum boardid {
+	BOARD_ID_DVT = 0,
+	BOARD_ID_PVT,
+};
+
+void read_boardid(int *boardid)
+{
+	char * ptr;
+	ptr = strstr(saved_command_line, "rfboard.id=");
+	if (!ptr) {
+		pr_err("parse saved_command_line boardid err!\n");
+		return;
+	}
+
+	ptr += strlen("rfboard.id=");
+	*boardid = simple_strtol(ptr, NULL, 10);
+}
+
 
 static int sc27xx_fgu_adc_to_current(struct sc27xx_fgu_data *data, int adc)
 {
@@ -298,7 +331,7 @@ static bool sc27xx_fgu_is_first_poweron(struct sc27xx_fgu_data *data)
 	 * to save the system boot mode.
 	 */
 	mode = (status & SC27XX_FGU_MODE_AREA_MASK) >> SC27XX_FGU_MODE_AREA_SHIFT;
-	cap = status & SC27XX_FGU_CAP_AREA_MASK;
+	cap = status & SC27XX_FGU_DEFAULT_CAP;
 
 	/*
 	 * When FGU has been powered down, the user area registers became
@@ -312,7 +345,7 @@ static bool sc27xx_fgu_is_first_poweron(struct sc27xx_fgu_data *data)
 }
 
 static int sc27xx_fgu_save_boot_mode(struct sc27xx_fgu_data *data,
-				     int boot_mode)
+					 int boot_mode)
 {
 	int ret;
 
@@ -352,17 +385,53 @@ static int sc27xx_fgu_save_boot_mode(struct sc27xx_fgu_data *data,
 				  0);
 }
 
+#define DELTA_TRUE_BELOW    0
+#define DELTA_TRUE_HIGH    1
+
 static int sc27xx_fgu_save_last_cap(struct sc27xx_fgu_data *data, int cap)
 {
-	int ret, value;
+	int ret, delta_cap = 0, delta_flag = 0;
 
 	ret = regmap_update_bits(data->regmap,
 				 data->base + SC27XX_FGU_USER_AREA_CLEAR,
-				 SC27XX_FGU_CAP_AREA_MASK,
-				 SC27XX_FGU_CAP_AREA_MASK);
+				 SC27XX_FGU_CAP_ALL_AREA_MASK,
+				 SC27XX_FGU_CAP_ALL_AREA_MASK);
 	if (ret)
 		return ret;
 
+	if (cap <= START_CALI_CAP)
+		cali_cap_st.disp_cap = cap;
+
+	/*calc delta_cap between true cap & disp cap*/
+	delta_cap = cap - cali_cap_st.disp_cap;
+	if (abs(delta_cap) > 10)
+		pr_err("%s error, delta_cap is wrong!!!\n", __func__);
+
+	udelay(200);
+
+	/*save delta cap*/
+	ret = regmap_update_bits(data->regmap,
+			data->base + SC27XX_FGU_USER_AREA_SET,
+			SC27XX_FGU_DELTA_CAP_AREA_MASK, abs(delta_cap));
+	if (ret)
+		return ret;
+
+	udelay(200);
+
+	if (delta_cap < 0)
+		delta_flag = DELTA_TRUE_BELOW;
+	else
+		delta_flag = DELTA_TRUE_HIGH;
+
+	/*save delta flag*/
+	ret = regmap_update_bits(data->regmap,
+			data->base + SC27XX_FGU_USER_AREA_SET,
+			SC27XX_FGU_DELTA_FLAG_AREA_MASK, delta_flag);
+	if (ret)
+		return ret;
+
+	pr_err("%s cap = %d, disp_cap = %d, delta_cap = %d, delta_flag = %d\n",
+			__func__, cap, cali_cap_st.disp_cap, delta_cap, delta_flag);
 	/*
 	 * Since the user area registers are put on power always-on region,
 	 * then these registers changing time will be a little long. Thus
@@ -371,12 +440,9 @@ static int sc27xx_fgu_save_last_cap(struct sc27xx_fgu_data *data, int cap)
 	 */
 	udelay(200);
 
-	value = (cap / 10) & SC27XX_FGU_CAP_INTEGER_MASK;
-	value |= ((cap % 10) & SC27XX_FGU_CAP_DECIMAL_MASK) << SC27XX_FGU_CAP_DECIMAL_SHIFT;
-
 	ret = regmap_update_bits(data->regmap,
 				 data->base + SC27XX_FGU_USER_AREA_SET,
-				 SC27XX_FGU_CAP_AREA_MASK, value);
+				 SC27XX_FGU_CAP_AREA_MASK, cap);
 	if (ret)
 		return ret;
 
@@ -390,7 +456,7 @@ static int sc27xx_fgu_save_last_cap(struct sc27xx_fgu_data *data, int cap)
 
 	return regmap_update_bits(data->regmap,
 				  data->base + SC27XX_FGU_USER_AREA_CLEAR,
-				  SC27XX_FGU_CAP_AREA_MASK, 0);
+				  SC27XX_FGU_CAP_ALL_AREA_MASK, 0);
 }
 
 /*
@@ -451,22 +517,77 @@ static int sc27xx_fgu_read_normal_temperature_cap(struct sc27xx_fgu_data *data, 
 
 static int sc27xx_fgu_read_last_cap(struct sc27xx_fgu_data *data, int *cap)
 {
-	int ret, value;
+	int ret, value, delta_cap = 0, delta_flag = 0;
 
 	ret = regmap_read(data->regmap,
 			  data->base + SC27XX_FGU_USER_AREA_STATUS, &value);
 	if (ret)
 		return ret;
 
-	*cap = (value & SC27XX_FGU_CAP_INTEGER_MASK) * 10;
-	*cap += (value >> SC27XX_FGU_CAP_DECIMAL_SHIFT) & SC27XX_FGU_CAP_DECIMAL_MASK;
+	*cap = value & SC27XX_FGU_CAP_AREA_MASK;
+	delta_cap = (value & SC27XX_FGU_DELTA_CAP_AREA_MASK) >> SC27XX_FGU_DELTA_CAP_AREA_SHIFT;
+	delta_flag = (value & SC27XX_FGU_DELTA_FLAG_AREA_MASK) >> SC27XX_FGU_DELTA_FLAG_AREA_SHIFT;
+
+	if (delta_flag == DELTA_TRUE_BELOW)
+		cali_cap_st.disp_cap = *cap + delta_cap;
+	else
+		cali_cap_st.disp_cap = *cap - delta_cap;
+
+	if (cali_cap_st.disp_cap < START_CALI_CAP)
+		cali_cap_st.disp_cap = START_CALI_CAP;
+
+	if (*cap < 1)
+		*cap = 1;
+
+	pr_err("%s value = %x, cap = %d, delta_cap = %d, delta_flag = %d, disp_cap = %d\n",
+			__func__, value, *cap, delta_cap, delta_flag, cali_cap_st.disp_cap);
 
 	return 0;
 }
 
-static int sc27xx_fgu_get_boot_voltage(struct sc27xx_fgu_data *data, int *pocv)
+
+
+/*
+ * When system boots on, we can not read battery capacity from coulomb
+ * registers, since now the coulomb registers are invalid. So we should
+ * calculate the battery open circuit voltage, and get current battery
+ * capacity according to the capacity table.
+ */
+static int sc27xx_fgu_get_boot_capacity(struct sc27xx_fgu_data *data, int *cap)
 {
-	int volt, cur, oci, ret, ocv;
+	int volt, cur, oci, ocv, ret;
+	bool is_first_poweron = sc27xx_fgu_is_first_poweron(data);
+
+	/*
+	 * If system is not the first power on, we should use the last saved
+	 * battery capacity as the initial battery capacity. Otherwise we should
+	 * re-calculate the initial battery capacity.
+	 */
+	if (!is_first_poweron) {
+		ret = sc27xx_fgu_read_last_cap(data, cap);
+		if (ret) {
+			dev_err(data->dev, "Failed to read last cap, ret = %d\n",
+				ret);
+			return ret;
+		}
+
+		data->boot_cap = *cap;
+		ret = sc27xx_fgu_read_normal_temperature_cap(data, cap);
+		if (ret) {
+			dev_err(data->dev, "Failed to read normal temperature cap, ret = %d\n",
+				ret);
+			return ret;
+		}
+
+		if (*cap == SC27XX_FGU_DEFAULT_NORMAL_TEMPERATURE_CAP) {
+			*cap = data->boot_cap;
+			ret = sc27xx_fgu_save_normal_temperature_cap(data, data->boot_cap);
+			if (ret < 0)
+				dev_err(data->dev, "Failed to initialize fgu user area status1 register\n");
+		}
+		return sc27xx_fgu_save_boot_mode(data, SC27XX_FGU_NORMAIL_POWERTON);
+	}
+
 
 	/*
 	 * After system booting on, the SC27XX_FGU_CLBCNT_QMAXL register saved
@@ -495,64 +616,14 @@ static int sc27xx_fgu_get_boot_voltage(struct sc27xx_fgu_data *data, int *pocv)
 	}
 
 	volt = sc27xx_fgu_adc_to_voltage(data, volt);
-	if (volt < SC27XX_FGU_POCV_VOLT_THRESHOLD) {
-		ret = sc27xx_fgu_get_vbat_ocv(data, &ocv);
-		if (ret) {
-			dev_err(data->dev, "Failed to read volt, ret = %d\n", ret);
-			return ret;
-		}
-		volt = ocv / 1000;
-	}
-	*pocv = volt * 1000 - oci * data->internal_resist;
-	dev_info(data->dev, "oci = %d, volt = %d, pocv = %d\n", oci, volt, *pocv);
+	ocv = volt * 1000 - oci * data->internal_resist;
 
-	return 0;
-}
-
-/*
- * When system boots on, we can not read battery capacity from coulomb
- * registers, since now the coulomb registers are invalid. So we should
- * calculate the battery open circuit voltage, and get current battery
- * capacity according to the capacity table.
- */
-static int sc27xx_fgu_get_boot_capacity(struct sc27xx_fgu_data *data, int *cap)
-{
-	int ocv, ret;
-	bool is_first_poweron = sc27xx_fgu_is_first_poweron(data);
-
-	if (is_charger_mode)
-		sc27xx_fgu_get_boot_voltage(data, &data->boot_vol);
 	/*
-	 * If system is not the first power on, we should use the last saved
-	 * battery capacity as the initial battery capacity. Otherwise we should
-	 * re-calculate the initial battery capacity.
+	 * BESTSERVICE Use soft ocv to replace pocv due HW BUG
 	 */
-	if (!is_first_poweron) {
-		ret = sc27xx_fgu_read_last_cap(data, cap);
-		if (ret) {
-			dev_err(data->dev, "Failed to read last cap, ret = %d\n",
-				ret);
-			return ret;
-		}
-
-		data->boot_cap = *cap;
-		ret = sc27xx_fgu_read_normal_temperature_cap(data, cap);
-		if (ret) {
-			dev_err(data->dev, "Failed to read normal temperature cap, ret = %d\n",
-				ret);
-			return ret;
-		}
-
-		if (*cap == SC27XX_FGU_DEFAULT_CAP) {
-			*cap = data->boot_cap;
-			ret = sc27xx_fgu_save_normal_temperature_cap(data, data->boot_cap);
-			if (ret < 0)
-				dev_err(data->dev, "Failed to initialize fgu user area status1 register\n");
-		}
-		return sc27xx_fgu_save_boot_mode(data, SC27XX_FGU_NORMAIL_POWERTON);
-	}
-
-	sc27xx_fgu_get_boot_voltage(data, &ocv);
+	if (boardid == BOARD_ID_DVT)
+		sc27xx_fgu_get_vbat_ocv(data, &ocv);
+	data->boot_vol = ocv;
 
 	/*
 	 * Parse the capacity table to look up the correct capacity percent
@@ -561,7 +632,6 @@ static int sc27xx_fgu_get_boot_capacity(struct sc27xx_fgu_data *data, int *cap)
 	*cap = power_supply_ocv2cap_simple(data->cap_table, data->table_len,
 					   ocv);
 
-	*cap *= 10;
 	data->boot_cap = *cap;
 	ret = sc27xx_fgu_save_last_cap(data, *cap);
 	if (ret) {
@@ -569,7 +639,8 @@ static int sc27xx_fgu_get_boot_capacity(struct sc27xx_fgu_data *data, int *cap)
 		return ret;
 	}
 
-	dev_info(data->dev, "First_poweron: ocv = %d, cap = %d\n", ocv, *cap);
+	dev_info(data->dev, "First_poweron:ocv = %d, cap = %d\n", ocv, *cap);
+
 	return sc27xx_fgu_save_boot_mode(data, SC27XX_FGU_NORMAIL_POWERTON);
 }
 
@@ -672,25 +743,19 @@ static int sc27xx_fgu_get_capacity(struct sc27xx_fgu_data *data, int *cap,
 	 * as 10 to improve the precision.
 	 */
 	temp = DIV_ROUND_CLOSEST(delta_clbcnt * 10, 36 * SC27XX_FGU_SAMPLE_HZ);
-	if (temp > 0)
-		temp = temp + data->cur_1000ma_adc / 2;
-	else
-		temp = temp - data->cur_1000ma_adc / 2;
-
-	temp = div_s64(temp, data->cur_1000ma_adc);
+	temp = sc27xx_fgu_adc_to_current(data, temp / 1000);
 
 	/*
 	 * Convert to capacity percent of the battery total capacity,
 	 * and multiplier is 100 too.
 	 */
-	delta_cap = DIV_ROUND_CLOSEST(temp * 1000, data->total_cap);
+	delta_cap = DIV_ROUND_CLOSEST(temp * 100, data->total_cap);
 	*cap = delta_cap + data->init_cap;
 	data->normal_temperature_cap = *cap;
 	if (data->normal_temperature_cap < 0)
 		data->normal_temperature_cap = 0;
-	else if (data->normal_temperature_cap > 1000)
-		data->normal_temperature_cap = 1000;
-
+	else if (data->normal_temperature_cap > 100)
+		data->normal_temperature_cap = 100;
 	if (*cap < 0) {
 		*cap = 0;
 		sc27xx_fgu_adjust_cap(data, 0);
@@ -715,19 +780,22 @@ static int sc27xx_fgu_get_capacity(struct sc27xx_fgu_data *data, int *cap,
 		 * Capacity_temp = (Capacity_Percentage(current) -
 		 * Capacity_Delta) * 100 /(100 - Capacity_Delta)
 		 */
-		temp_cap *= 10;
+		*cap = DIV_ROUND_CLOSEST((*cap + temp_cap - 100) * 100, temp_cap);
 
-		*cap = DIV_ROUND_CLOSEST((*cap + temp_cap - 1000) * 1000, temp_cap);
-		if (*cap < 0)
+
+		if (*cap < 0) {
 			*cap = 0;
+		}
 	}
 
-	if (*cap > 1000) {
-		*cap = 1000;
-		data->init_cap = 1000 - delta_cap;
-		return 0;
-	}
+	pr_info(" %s init_clbcnt %d cur_clbcnt %d delta_clbcnt %d delta_cap %d temp %d temp_cap %d cap %d init_cap %d normal_temperature_cap %d total_cap %d cur_1000ma_adc %d\n",
+		__func__, data->init_clbcnt, cur_clbcnt, delta_clbcnt, delta_cap, temp, temp_cap , *cap, data->init_cap, data->normal_temperature_cap, data->total_cap, data->cur_1000ma_adc);
 
+	if (*cap > 100) {
+ 		*cap = 100;
+ 		data->init_cap = 100 - delta_cap;
+ 		return 0;
+	 }
 	sc27xx_fgu_low_capacity_calibration(data, *cap, false, chg_sts);
 
 	return 0;
@@ -783,13 +851,16 @@ static int sc27xx_fgu_get_vbat_ocv(struct sc27xx_fgu_data *data, int *val)
 	if (data->resist_table_len > 0) {
 		resistance =
 			sc27xx_fgu_temp_to_resistance(data->resistance_table,
-						      data->resist_table_len,
-						      data->bat_temp);
+							  data->resist_table_len,
+							  data->bat_temp);
 		resistance = data->internal_resist * resistance / 100;
 	}
 
 	/* Return the battery OCV in micro volts. */
 	*val = vol * 1000 - cur * resistance;
+
+	pr_info("%s cur = %d, volt = %d, resistance = %d\n",
+					 __func__, cur, vol, resistance);
 
 	return 0;
 }
@@ -865,6 +936,12 @@ static int sc27xx_fgu_get_temp(struct sc27xx_fgu_data *data, int *temp)
 {
 	int vol, ret;
 
+	if (jeita_debug_temp) {
+		*temp = jeita_debug_temp;
+		data->bat_temp = jeita_debug_temp;
+		return 0;
+	}
+
 	ret = iio_read_channel_processed(data->channel, &vol);
 	if (ret < 0)
 		return ret;
@@ -899,8 +976,8 @@ static int sc27xx_fgu_get_temp(struct sc27xx_fgu_data *data, int *temp)
 
 	if (data->temp_table_len > 0) {
 		*temp = sc27xx_fgu_vol_to_temp(data->temp_table,
-					       data->temp_table_len,
-					       vol * 1000);
+						   data->temp_table_len,
+						   vol * 1000);
 		*temp = sc27xx_fgu_get_average_temp(data, *temp);
 	} else {
 		*temp = 200;
@@ -950,6 +1027,102 @@ static int sc27xx_fgu_get_status(struct sc27xx_fgu_data *data, int *status)
 	return ret;
 }
 
+static void disp_cap_chg_cali(struct timespec64 cur_time, int true_cap)
+{
+	if ((true_cap <= cali_cap_st.disp_cap) && (cali_cap_st.disp_cap < 100)) {
+		if (cali_cap_st.chg_time >  cali_cap_st.max_keep_time) {
+			cali_cap_st.disp_cap++;
+			cali_cap_st.chg_time = 0;
+			cali_cap_st.chg_stime = cur_time;
+		}
+	}
+
+	if ((true_cap > cali_cap_st.disp_cap) && (true_cap <= 100)) {
+		cali_cap_st.disp_cap = true_cap;
+		cali_cap_st.chg_time = 0;
+		cali_cap_st.chg_stime = cur_time;
+	}
+
+	if (0 == cali_cap_st.chg_time) {
+		cali_cap_st.chg_stime = cur_time;
+		++cali_cap_st.chg_time;
+	} else {
+		cali_cap_st.chg_time += cur_time.tv_sec - cali_cap_st.chg_stime.tv_sec;
+		cali_cap_st.chg_stime = cur_time;
+	}
+
+	cali_cap_st.dischg_time = 0;
+}
+
+static int get_cali_delta_time(int avg_current)
+{
+	if (abs(avg_current) <= 500)
+		return 300;   // while dischg current in [0-500mA], set 5min
+	else if (abs(avg_current) <= 1000)
+		return 120;   // while dischg current in [500mA-1A], set 2min
+	else
+		return 60;   // in [> 1A], set 1min
+}
+
+static void disp_cap_dischg_cali(struct sc27xx_fgu_data *data,
+					 struct timespec64 cur_time, int true_cap, int avg_current)
+{
+	int delta_keep_time = 0;
+
+	if ((true_cap >= cali_cap_st.disp_cap) && (true_cap <= 100)) {
+		cali_cap_st.disp_cap = true_cap;
+		cali_cap_st.dischg_time = 0;
+		cali_cap_st.dischg_stime = cur_time;
+	}
+
+	if ((true_cap < cali_cap_st.disp_cap) && (cali_cap_st.disp_cap <= 100)) {
+		delta_keep_time = get_cali_delta_time(avg_current);
+		pr_err("%s delta_keep_time = %d\n", __func__, delta_keep_time);
+
+		if (cali_cap_st.dischg_time > delta_keep_time) {
+			cali_cap_st.disp_cap--;
+			cali_cap_st.dischg_time = 0;
+			cali_cap_st.dischg_stime = cur_time;
+		}
+	}
+
+	if (0 == cali_cap_st.dischg_time) {
+		cali_cap_st.dischg_stime = cur_time;
+		++cali_cap_st.dischg_time;
+	} else {
+		cali_cap_st.dischg_time += cur_time.tv_sec - cali_cap_st.dischg_stime.tv_sec;
+		cali_cap_st.dischg_stime = cur_time;
+	}
+
+	cali_cap_st.chg_time = 0;
+}
+
+static int disp_cap_cali(struct sc27xx_fgu_data *data, int true_cap)
+{
+	int avg_current = 0, ret = 0;
+	struct timespec64 cur_time = ktime_to_timespec64(ktime_get_boottime());
+
+	ret = sc27xx_fgu_get_current(data, &avg_current);
+	if (ret) {
+		pr_err("%s failed to get avg curent\n", __func__);
+		return 0;
+	}
+
+	pr_err("%s avg_current = %d\n", __func__, avg_current);
+
+	if (avg_current > 0)
+		disp_cap_chg_cali(cur_time, true_cap);
+
+	if (avg_current < 0)
+		disp_cap_dischg_cali(data, cur_time, true_cap, avg_current);
+
+	pr_err("%s true_cap = %d, disp_cap = %d, max_keep_time = %d, chg_time = %d, dischg_time = %d\n",
+			__func__, true_cap, cali_cap_st.disp_cap, cali_cap_st.max_keep_time,
+			cali_cap_st.chg_time, cali_cap_st.dischg_time);
+
+	return cali_cap_st.disp_cap;
+}
+
 static int sc27xx_fgu_get_property(struct power_supply *psy,
 				   enum power_supply_property psp,
 				   union power_supply_propval *val)
@@ -959,7 +1132,7 @@ static int sc27xx_fgu_get_property(struct power_supply *psy,
 	int value, chg_sts;
 
 	if (psp == POWER_SUPPLY_PROP_CAPACITY ||
-	    psp == POWER_SUPPLY_PROP_STATUS) {
+		psp == POWER_SUPPLY_PROP_STATUS) {
 		ret = sc27xx_fgu_get_status(data, &chg_sts);
 		if (ret) {
 			dev_err(data->dev, "failed to get charger status\n");
@@ -1004,11 +1177,22 @@ static int sc27xx_fgu_get_property(struct power_supply *psy,
 		break;
 
 	case POWER_SUPPLY_PROP_CAPACITY:
+		if (val->intval == CM_BOOT_CAPACITY) {
+			val->intval = data->boot_cap;
+			break;
+		}
 		ret = sc27xx_fgu_get_capacity(data, &value, chg_sts);
 		if (ret)
 			goto error;
 
-		val->intval = value;
+		pr_err("%s true_cap = %d\n", __func__, value);
+
+		if ((value >= START_CALI_CAP) ||
+				(cali_cap_st.disp_cap > START_CALI_CAP))
+			val->intval = disp_cap_cali(data, value);
+		else
+			val->intval = value;
+
 		break;
 
 	case POWER_SUPPLY_PROP_VOLTAGE_AVG:
@@ -1078,9 +1262,6 @@ static int sc27xx_fgu_get_property(struct power_supply *psy,
 		val->intval = data->boot_vol;
 		break;
 
-	case POWER_SUPPLY_PROP_CAPACITY_LEVEL:
-		val->intval = data->boot_cap;
-		break;
 
 	default:
 		ret = -EINVAL;
@@ -1141,7 +1322,7 @@ static void sc27xx_fgu_external_power_changed(struct power_supply *psy)
 }
 
 static int sc27xx_fgu_property_is_writeable(struct power_supply *psy,
-					    enum power_supply_property psp)
+						enum power_supply_property psp)
 {
 	switch (psp) {
 	case POWER_SUPPLY_PROP_CAPACITY:
@@ -1197,7 +1378,7 @@ static void sc27xx_fgu_adjust_cap(struct sc27xx_fgu_data *data, int cap)
 }
 
 static void sc27xx_fgu_low_capacity_match_ocv(struct sc27xx_fgu_data *data,
-					      int cap)
+						  int cap)
 {
 	int ret, ocv, batt_uV;
 
@@ -1214,7 +1395,7 @@ static void sc27xx_fgu_low_capacity_match_ocv(struct sc27xx_fgu_data *data,
 	}
 
 	if ((batt_uV < SC27XX_FGU_LOW_VBAT_REGION || ocv < data->min_volt) &&
-	    cap > data->alarm_cap) {
+		cap > data->alarm_cap) {
 		data->init_cap -= 5;
 		if (data->init_cap < 0)
 			data->init_cap = 0;
@@ -1248,7 +1429,7 @@ static void sc27xx_fgu_low_capacity_calibration(struct sc27xx_fgu_data *data,
 	 * lower capacity.
 	 */
 	if (chg_sts == POWER_SUPPLY_STATUS_CHARGING ||
-	    data->bat_temp <= SC27XX_FGU_LOW_TEMP_REGION)
+		data->bat_temp <= SC27XX_FGU_LOW_TEMP_REGION)
 		return;
 
 	sc27xx_fgu_low_capacity_match_ocv(data, cap);
@@ -1263,8 +1444,8 @@ static void sc27xx_fgu_low_capacity_calibration(struct sc27xx_fgu_data *data,
 		 */
 		data->min_volt = data->cap_table[data->table_len - 1].ocv;
 		data->alarm_cap = power_supply_ocv2cap_simple(data->cap_table,
-							      data->table_len,
-							      data->min_volt);
+								  data->table_len,
+								  data->min_volt);
 
 		data->alarm_cap *= 10;
 
@@ -1358,7 +1539,7 @@ static int sc27xx_fgu_cap_to_clbcnt(struct sc27xx_fgu_data *data, int capacity)
 	 * Get current capacity (mAh) = battery total capacity (mAh) *
 	 * current capacity percent (capacity / 100).
 	 */
-	int cur_cap = DIV_ROUND_CLOSEST(data->total_cap * capacity, 1000);
+	int cur_cap = DIV_ROUND_CLOSEST(data->total_cap * capacity, 100);
 
 	/*
 	 * Convert current capacity (mAh) to coulomb counter according to the
@@ -1402,7 +1583,7 @@ static int sc27xx_fgu_calibration(struct sc27xx_fgu_data *data)
 }
 
 static int sc27xx_fgu_hw_init(struct sc27xx_fgu_data *data,
-			      const struct sc27xx_fgu_variant_data *pdata)
+				  const struct sc27xx_fgu_variant_data *pdata)
 {
 	struct power_supply_battery_info info = { };
 	struct power_supply_battery_ocv_table *table;
@@ -1428,8 +1609,8 @@ static int sc27xx_fgu_hw_init(struct sc27xx_fgu_data *data,
 		return -EINVAL;
 
 	data->cap_table = devm_kmemdup(data->dev, table,
-				       data->table_len * sizeof(*table),
-				       GFP_KERNEL);
+					   data->table_len * sizeof(*table),
+					   GFP_KERNEL);
 	if (!data->cap_table) {
 		power_supply_put_battery_info(data->battery, &info);
 		return -ENOMEM;
@@ -1455,9 +1636,9 @@ static int sc27xx_fgu_hw_init(struct sc27xx_fgu_data *data,
 	data->cap_table_len = info.cap_table_size;
 	if (data->cap_table_len > 0) {
 		data->cap_temp_table = devm_kmemdup(data->dev, info.cap_table,
-						    data->cap_table_len *
-						    sizeof(struct power_supply_capacity_temp_table),
-						    GFP_KERNEL);
+							data->cap_table_len *
+							sizeof(struct power_supply_capacity_temp_table),
+							GFP_KERNEL);
 		if (!data->cap_temp_table) {
 			power_supply_put_battery_info(data->battery, &info);
 			return -ENOMEM;
@@ -1467,9 +1648,9 @@ static int sc27xx_fgu_hw_init(struct sc27xx_fgu_data *data,
 	data->resist_table_len = info.resistance_table_size;
 	if (data->resist_table_len > 0) {
 		data->resistance_table = devm_kmemdup(data->dev, info.resistance_table,
-						      data->resist_table_len *
-						      sizeof(struct power_supply_resistance_temp_table),
-						      GFP_KERNEL);
+							  data->resist_table_len *
+							  sizeof(struct power_supply_resistance_temp_table),
+							  GFP_KERNEL);
 		if (!data->resistance_table) {
 			power_supply_put_battery_info(data->battery, &info);
 			return -ENOMEM;
@@ -1477,9 +1658,8 @@ static int sc27xx_fgu_hw_init(struct sc27xx_fgu_data *data,
 	}
 
 	data->alarm_cap = power_supply_ocv2cap_simple(data->cap_table,
-						      data->table_len,
-						      data->min_volt);
-	data->alarm_cap *= 10;
+							  data->table_len,
+							  data->min_volt);
 	/*
 	 * We must keep the alarm capacity is larger than 0%. When in monkey
 	 * test, the precision power supply setting 4000mv, but the fake battery
@@ -1490,7 +1670,7 @@ static int sc27xx_fgu_hw_init(struct sc27xx_fgu_data *data,
 	 * small alarm capacity. We will recalculate the battery capacity based on ocv voltage.
 	 */
 	if (!data->alarm_cap)
-		data->alarm_cap += 10;
+		data->alarm_cap += 1;
 
 	power_supply_put_battery_info(data->battery, &info);
 
@@ -1541,7 +1721,7 @@ static int sc27xx_fgu_hw_init(struct sc27xx_fgu_data *data,
 	 * capacity. Now we set the delta threshold as a counter value of 1%
 	 * capacity.
 	 */
-	delta_clbcnt = sc27xx_fgu_cap_to_clbcnt(data, 10);
+	delta_clbcnt = sc27xx_fgu_cap_to_clbcnt(data, 1);
 
 	ret = regmap_update_bits(data->regmap, data->base + SC27XX_FGU_CLBCNT_DELTL,
 				 SC27XX_FGU_CLBCNT_MASK, delta_clbcnt);
@@ -1604,6 +1784,7 @@ static int sc27xx_fgu_probe(struct platform_device *pdev)
 	struct power_supply_config fgu_cfg = { };
 	struct sc27xx_fgu_data *data;
 	const struct sc27xx_fgu_variant_data *pdata;
+	int value;
 	int ret, irq;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
@@ -1629,36 +1810,36 @@ static int sc27xx_fgu_probe(struct platform_device *pdev)
 	}
 
 	ret = device_property_read_u32(&pdev->dev,
-				       "sprd,calib-resistance-real",
-				       &data->calib_resist_real);
+					   "sprd,calib-resistance-real",
+					   &data->calib_resist_real);
 	if (ret) {
 		dev_err(&pdev->dev, "failed to get fgu real calibration resistance\n");
 		return ret;
 	}
 
 	ret = device_property_read_u32(&pdev->dev,
-				       "sprd,calib-resistance-spec",
-				       &data->calib_resist_spec);
+					   "sprd,calib-resistance-spec",
+					   &data->calib_resist_spec);
 	if (ret) {
 		dev_err(&pdev->dev, "failed to get fgu specification calibration resistance\n");
 		return ret;
 	}
 
 	ret = device_property_read_u32(&pdev->dev,
-				       "first-calib-voltage",
-				       &data->first_calib_volt);
+					   "first-calib-voltage",
+					   &data->first_calib_volt);
 	if (ret)
 		dev_warn(&pdev->dev, "failed to get fgu first calibration voltage\n");
 
 	ret = device_property_read_u32(&pdev->dev,
-				       "first-calib-capacity",
-				       &data->first_calib_cap);
+					   "first-calib-capacity",
+					   &data->first_calib_cap);
 	if (ret)
 		dev_warn(&pdev->dev, "failed to get fgu first calibration capacity\n");
 
 	ret = device_property_read_u32(&pdev->dev,
-				       "sprd,comp-resistance-mohm",
-				       &data->comp_resistance);
+					   "sprd,comp-resistance-mohm",
+					   &data->comp_resistance);
 	if (ret)
 		dev_warn(&pdev->dev, "no fgu compensated resistance support\n");
 
@@ -1685,6 +1866,9 @@ static int sc27xx_fgu_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to get gpio state\n");
 		return ret;
 	}
+
+	read_boardid(&boardid);
+	dev_err(&pdev->dev, "boardid = %d\n", boardid);
 
 	data->bat_present = !!ret;
 	mutex_init(&data->lock);
@@ -1744,6 +1928,20 @@ static int sc27xx_fgu_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+	pr_info(" %s , internal_resist %d, total_cap %d, init_cap %d, alarm_cap %d, boot_cap %d,\
+	normal_temperature_cap %d, init_clbcnt %d, max_volt %d, min_volt %d, table_len %d, table_len %d,\
+	temp_table_len %d, cap_table_len %d,  resist_table_len %d, cur_1000ma_adc %d, vol_1000mv_adc %d,\
+	calib_resist_real %d, calib_resist_spec %d, comp_resistance %d, index %d, boot_vol %d, bat_temp %d \n",
+	__func__, data->internal_resist, data->total_cap, data->init_cap , data->alarm_cap, data->boot_cap,
+	data->normal_temperature_cap, data->init_clbcnt, data->max_volt, data->min_volt, data->table_len, data->table_len,
+	data->temp_table_len, data->cap_table_len, data->resist_table_len, data->cur_1000ma_adc, data->vol_1000mv_adc,
+	data->calib_resist_real, data->calib_resist_spec, data->comp_resistance, data->index, data->boot_vol, data->bat_temp);
+	regmap_read(data->regmap, data->base + SC27XX_FGU_USER_AREA_STATUS, &value);
+	pr_info(" %s ,SC27XX_FGU_USER_AREA_STATUS 0x%08x \n", __func__,  value);
+	regmap_read(data->regmap, data->base + SC27XX_FGU_USER_AREA_STATUS1, &value);
+	pr_info(" %s ,SC27XX_FGU_USER_AREA_STATUS1 0x%08x \n", __func__,  value);
+
+
 	return 0;
 }
 
@@ -1778,7 +1976,7 @@ static int sc27xx_fgu_suspend(struct device *dev)
 	 * adjust the battery capacity.
 	 */
 	if (status != POWER_SUPPLY_STATUS_NOT_CHARGING &&
-	    status != POWER_SUPPLY_STATUS_DISCHARGING)
+		status != POWER_SUPPLY_STATUS_DISCHARGING)
 		return 0;
 
 	ret = regmap_update_bits(data->regmap, data->base + SC27XX_FGU_INT_EN,

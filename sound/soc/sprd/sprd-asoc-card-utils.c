@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2015 Renesas Solutions Corp.
  * Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -479,6 +480,9 @@ static int asoc_sprd_card_dai_link_of(struct device_node *node,
 	char *prefix = "";
 	int ret, cpu_args;
 	u32 val;
+#ifdef CONFIG_SND_SMARTPA_AW882XX
+	int i = 0;
+#endif
 
 	/* For single DAI link & old style of DT node */
 	if (is_top_level_node)
@@ -525,6 +529,27 @@ static int asoc_sprd_card_dai_link_of(struct device_node *node,
 				goto dai_link_of_err;
 		}
 	}
+#ifdef CONFIG_SND_SMARTPA_AW882XX
+	/* -- awinic add for register multi codec -- start */
+	pr_info("plat parse info : awinic codec_name = %s codec_dai_name = %s cpu_dai_name = %s\n",
+			dai_link->codec_name, dai_link->codec_dai_name, dai_link->cpu_dai_name);
+
+	/* get multi codec */
+	ret = snd_soc_of_get_dai_link_codecs(dev, codec, dai_link);
+	if (ret < 0) {
+		dai_link->codecs = NULL;
+		dai_link->num_codecs = 0;
+		pr_info("%s: snd_soc_of_get_dai_link_codecs failed. NOw we use default one codec codec_dai_name %s\n",
+		     __func__, dai_link->codec_dai_name);
+	}
+	if(dai_link->num_codecs > 0) {
+		for (i = 0; i < dai_link->num_codecs; i++) {
+			pr_info("Asoc codecs info: codec[%d], codec_name = %s codec_dai_name = %s\n",
+				i, dai_link->codecs[i].name, dai_link->codecs[i].dai_name);
+		}
+	}
+	/* -- awinic add for register multi codec -- end */
+#endif
 
 	if (!dai_link->cpu_dai_name || !dai_link->codec_dai_name) {
 		dev_err(dev, "%s: xx_dai_name is NULL\n", __func__);
@@ -554,6 +579,18 @@ static int asoc_sprd_card_dai_link_of(struct device_node *node,
 		dai_link->cpu_dai_name, dai_props->cpu_dai.sysclk);
 	dev_dbg(dev, "\tcodec : %s / %d\n",
 		dai_link->codec_dai_name, dai_props->codec_dai.sysclk);
+
+#ifdef CONFIG_SND_SMARTPA_AW882XX
+	/* -- awinic add for register multi codec -- start */
+	/* clear old parse info */
+	if (dai_link->num_codecs > 1) {
+		pr_info("Asoc use codecs bind, clear codec_dai_name and codec_of_node\n");
+		dai_link->codec_dai_name = NULL;
+		dai_link->codec_of_node = NULL;
+		dai_link->codec_name = NULL;
+	}
+	/* -- awinic add for register multi codec -- end */
+#endif
 
 	/*
 	 * In soc_bind_dai_link() will check cpu name after

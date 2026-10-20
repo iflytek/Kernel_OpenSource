@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -214,6 +215,9 @@ static int sprd_dphy_context_init(struct sprd_dphy *dphy,
 
 	if (!of_property_read_u32(np, "dev-id", &tmp))
 		dphy->ctx.id = tmp;
+
+    if (!of_property_read_u32(np, "sprd,mipi-drive-capability", &tmp))
+        dphy->ctx.capability = tmp;
 
 	mutex_init(&dphy->ctx.lock);
 

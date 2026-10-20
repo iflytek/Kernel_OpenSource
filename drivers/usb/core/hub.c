@@ -5,6 +5,7 @@
  * (C) Copyright 1999 Johannes Erdfelt
  * (C) Copyright 1999 Gregory P. Smith
  * (C) Copyright 2001 Brad Hards (bhards@bigpond.net.au)
+ * (C) Copyright 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * Released under the GPLv2 only.
  * SPDX-License-Identifier: GPL-2.0
@@ -2275,6 +2276,22 @@ static int usb_enumerate_device_otg(struct usb_device *udev)
 	return err;
 }
 
+static int isBestServiceWhiteList(struct usb_device *dev){
+	if ((le16_to_cpu(dev->descriptor.idVendor) == 0x1d6b
+		&& (le16_to_cpu(dev->descriptor.idProduct) == 0x0002 || le16_to_cpu(dev->descriptor.idProduct) == 0x0003))
+			|| (le16_to_cpu(dev->descriptor.idVendor) == 0x4c4a && le16_to_cpu(dev->descriptor.idProduct) == 0x4155)
+			|| (le16_to_cpu(dev->descriptor.idVendor) == 0x0d28 && le16_to_cpu(dev->descriptor.idProduct) == 0x0204)
+			|| (le16_to_cpu(dev->descriptor.idVendor) == 0x0483 && le16_to_cpu(dev->descriptor.idProduct) == 0x6035)){
+		dev_info(&dev->dev, "AIClass OTG Device Found, idVendor=%04x, idProduct=%04x\n",
+				le16_to_cpu(dev->descriptor.idVendor),le16_to_cpu(dev->descriptor.idProduct));
+		return 1;
+	}
+
+	dev_err(&dev->dev, "AIClass OTG Device Control:device v%04x p%04x is not supported\n",
+		le16_to_cpu(dev->descriptor.idVendor),
+		le16_to_cpu(dev->descriptor.idProduct));
+	return 0;
+}
 
 /**
  * usb_enumerate_device - Read device configs/intfs/otg (usbcore-internal)
@@ -2314,9 +2331,8 @@ static int usb_enumerate_device(struct usb_device *udev)
 	err = usb_enumerate_device_otg(udev);
 	if (err < 0)
 		return err;
-
-	if (IS_ENABLED(CONFIG_USB_OTG_WHITELIST) && hcd->tpl_support &&
-		!is_targeted(udev)) {
+	if ((IS_ENABLED(CONFIG_USB_OTG_BESTSERVICE_WHITELIST) && !isBestServiceWhiteList(udev))
+		|| (IS_ENABLED(CONFIG_USB_OTG_WHITELIST) && hcd->tpl_support && !is_targeted(udev))) {
 		/* Maybe it can talk to us, though we can't talk to it.
 		 * (Includes HNP test device.)
 		 */

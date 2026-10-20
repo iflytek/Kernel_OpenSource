@@ -1,0 +1,124 @@
+
+/*
+ * tv105wum LCD config dtsi file for spreadtrum
+ *
+ * Copyright (C) 2018, Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/ { lcds {
+	lcd_hx83102_boe_option_mipi_hd: lcd_hx83102_boe_option_mipi_hd {
+
+		sprd,dsi-work-mode = <1>; /* video burst mode*/
+		sprd,dsi-lane-number = <4>;
+		sprd,dsi-color-format = "rgb888";
+
+		sprd,phy-bit-clock = <1200000>;	/* kbps */
+		sprd,phy-escape-clock = <20000>;/* kHz */
+
+		/*
+		sprd,width-mm = <68>;
+		sprd,height-mm = <121>;
+		*/
+
+		sprd,esd-check-enable = <0>;
+		sprd,esd-check-mode = <0>;
+		sprd,esd-check-period = <1000>;
+		sprd,esd-check-register = <0x0A>;
+		sprd,esd-check-value = <0x9C>;
+
+		sprd,reset-on-sequence = <0 60>, <1 70>;
+		sprd,reset-off-sequence = <0 60>;
+
+		sprd,use-dcs-write;
+		sprd,initial-command = [
+			39 00 00 06 B9 83 10 21 55 00
+			39 00 00 1b B1 2C B1 B1 2D ED 32 D7 4D 36 36 36 36 1A 8B 11 65 00 88 FA FF FF 8F FF 08 7A 33
+			39 00 00 12 B2 00 47 B0 80 00 22 61 3C A3 11 00 00 00 88 F5 22 8F
+			39 00 00 0d B4 49 49 32 32 14 32 84 6E 84 6E 01 9C
+			15 00 00 02 E9 CD
+			15 00 00 02 BA 84
+			15 00 00 02 E9 3F
+			39 00 00 03 BC 1B 04
+			15 00 00 02 BE 20
+			39 00 00 03 BF FC 84
+			39 00 00 0b C0 36 36 22 00 00 A0 61 08 F5 03
+			15 00 00 02 E9 CC
+			15 00 00 02 C7 80
+			15 00 00 02 E9 3F
+			15 00 00 02 E9 C6
+			15 00 00 02 C8 97
+			15 00 00 02 E9 3F
+			39 00 00 06 C9 00 1E 30 D4 01
+			39 00 00 07 CB 08 13 07 00 0F 34
+			39 00 00 04 CC 02 03 44
+			15 00 00 02 E9 C4
+			15 00 00 02 D0 03
+			15 00 00 02 E9 3F
+			39 00 00 08 D1 37 06 00 02 04 0C FF
+			39 00 00 05 D2 1F 11 1F 11
+			39 00 00 23 D3 06 00 00 00 00 04 08 04 08 37 37 64 4B 21 21 03 03 32 10 1E 00 1E 32 10 1A 00 1A 32 17 A8 07 A8 00 00
+			39 00 00 2d D5 18 18 18 18 1E 1E 1E 1E 1F 1F 1F 1F 24 24 24 24 07 06 07 06 05 04 05 04 03 02 03 02 01 00 01 00 21 20 21 20 18 18 18 18 18 18 18 18
+			39 00 00 0d D8 AF AA AA AA AA A0 AF AA AA AA AA A0
+			39 00 00 2f E0 00 08 13 1B 24 40 5A 61 68 63 7D 82 87 94 8F 94 9B AC AA 53 5B 66 73 00 08 13 1B 24 40 5A 61 68 63 7D 82 87 94 8F 94 9B AC AA 53 5B 66 73
+			39 00 00 0c E7 08 10 10 2C 34 9E 00 53 9B 14 14
+			15 00 00 02 BD 01
+			39 00 00 0d D8 FF FF FF FF FA A0 FF FF FF FF FA A0
+			39 00 00 04 B1 01 BF 11
+			15 00 00 02 CB 86
+			15 00 00 02 D2 96
+			15 00 00 02 E9 C9
+			15 00 00 02 D3 84
+			15 00 00 02 E9 3F
+			39 00 00 0c E7 02 00 2B 01 7E 0F 7E 10 A0 00 00
+			15 00 00 02 BD 02
+			39 00 00 05 B4 02 00 BB 11
+			39 00 00 0d D8 FF AF FF FF FA A0 FF AF FF FF FA A0
+			39 00 00 1d E7 FE 01 FE 01 FE 01 00 00 00 23 00 23 81 02 40 00 20 65 02 01 00 00 00 00 00 00 01 00
+			15 00 00 02 BD 03
+			39 00 00 19 D8 AA AF AA AA A0 00 AA AF AA AA A0 00 AA AF AA AA A0 00 AA AF AA AA A0 00
+			15 00 00 02 E9 C6
+			39 00 00 04 B4 03 FF F8
+			15 00 00 02 E9 3F
+			15 00 00 02 E1 00
+			15 00 00 02 BD 00
+			15 00 00 02 E9 C4
+			15 00 00 02 BA 96
+			15 00 00 02 E9 3F
+			15 00 00 02 BD 01
+			15 00 00 02 E9 C5
+			15 00 00 02 BA 4F
+			15 00 00 02 E9 3F
+			15 00 00 02 BD 00
+			39 00 00 04 B9 00 00 00
+			05 78 00 01 11
+			05 14 00 01 29
+			];
+
+		sprd,sleep-in-command = [
+            05 0A 00 01 28
+            05 65 00 01 10
+			];
+
+/*		sprd,sleep-out-command = [
+            13 64 00 01 11
+            13 32 00 01 29
+			]; */
+
+		display-timings {
+			timing0 {
+				clock-frequency = <192000000>;
+				hactive = <1200>;
+				vactive = <1920>;
+				hback-porch = <90>;
+				hfront-porch = <90>;
+				vback-porch = <28>;
+				vfront-porch = <99>;
+				hsync-len = <177>;
+				vsync-len = <8>;
+			};
+		};
+	};
+};};

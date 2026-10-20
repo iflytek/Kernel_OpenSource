@@ -19,9 +19,8 @@
 
 #include "sched.h"
 
-#define MIN_CAP_CPUMASK_FREQ_MARGIN 0
-#define OTHER_CPUMASK_FREQ_MARGIN -10
-
+#define MIN_CAP_CPUMASK_FREQ_MARGIN 50
+#define OTHER_CPUMASK_FREQ_MARGIN 30
 unsigned long cpu_util_freq(int cpu);
 unsigned long boosted_cpu_util(int cpu, unsigned long other_util);
 
@@ -1029,13 +1028,13 @@ static void sugov_stop(struct cpufreq_policy *policy)
 	struct sugov_policy *sg_policy = policy->governor_data;
 	unsigned int cpu;
 
-	if (slack_timer_setup)
-		del_timer_sync(&sg_policy->slack_timer);
-
 	del_timer_sync(&sg_policy->freq_margin_timer);
 
 	for_each_cpu(cpu, policy->cpus)
 		cpufreq_remove_update_util_hook(cpu);
+
+	if (slack_timer_setup)
+		del_timer_sync(&sg_policy->slack_timer);
 
 	synchronize_sched();
 

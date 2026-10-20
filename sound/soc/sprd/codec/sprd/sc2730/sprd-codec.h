@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
@@ -88,10 +89,12 @@
 #define DAC_MUTE_D		0
 
 /*AUD_DMIC_CTL*/
-#define ADC_DMIC_CLK_MODE	0
+//#define ADC_DMIC_CLK_MODE	0
+//#define ADC1_DMIC_CLK_MODE	3
+#define ADC_DMIC_CLK_MODE(x)                 (((x) & GENMASK(1, 0)))
+#define ADC1_DMIC_CLK_MODE(x)                 (((x) & GENMASK(1, 0)) << 3)
 #define ADC_DMIC_CLK_MODE_MASK	0x3
 #define ADC_DMIC_LR_SEL		2
-#define ADC1_DMIC_CLK_MODE	3
 #define ADC1_DMIC_CLK_MODE_MASK	0x3
 #define ADC1_DMIC_LR_SEL	5
 #define ADC_DMIC_EN		6

@@ -2,6 +2,7 @@
  * Spreadtrum Roc1 platform DTS file
  *
  * Copyright (C) 2018, Spreadtrum Communications Inc.
+ * Copyright (C) 2026 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This file is licensed under a dual GPLv2 or X11 license.
  */
@@ -1084,6 +1085,8 @@
 				sprd,syscon-anatop = <&anlg_phy_top_regs>;
 				sprd,syscon-anatop1 = <&anlg_phy_top1_regs>;
 				sprd,vdd-voltage = <3300000>;
+				io-channels = <&pmic_adc 30>, <&pmic_adc 31>;
+				io-channel-names = "dp", "dm";
 				status = "disabled";
 			};
 
@@ -1111,6 +1114,7 @@
 
 				sprd,ip = "sprd,dsi-ctrl", "r3p0";
 				sprd,soc = "roc1";
+                sprd,mipi-drive-capability = <6>;
 
 				ports {
 					#address-cells = <1>;
@@ -3202,7 +3206,7 @@
 			&agcp_dma 13 &agcp_dma 14
 			&agcp_dma 15 &agcp_dma 16
 			&agcp_dma 9 &agcp_dma 9
-			&agcp_dma 11>;
+			&agcp_dma 11>; // agcp_dma 11 is voice_c
 		dma-names =
 			"normal_p_l", "normal_p_r",
 			"normal_c_l", "normal_c_r",
@@ -3214,8 +3218,7 @@
 			"voip_c", "voip_p",
 			/* dspfmcap_c and dspbtscocap_c same as dspcap_c */
 			"dspfmcap_c", "dspbtscocap_c",
-			/* recognise_c same as voice_c */
-			"recognise_c";
+			"recognise_c";//same as voice_c (agcp_dma 11)
 	};
 
 	sprd_compr: sprd-compr-audio {

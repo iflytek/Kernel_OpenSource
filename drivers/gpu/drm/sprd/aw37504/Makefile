@@ -1,0 +1,1 @@
+obj-$(CONFIG_LCM_AW37504) += aw37504.o

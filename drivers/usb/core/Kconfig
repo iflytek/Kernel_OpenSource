@@ -66,6 +66,13 @@ config USB_OTG_WHITELIST
 	  "Targeted Peripherals List".  "Embedded Hosts" are likewise
 	  allowed to support only a limited number of peripherals.
 
+config USB_OTG_BESTSERVICE_WHITELIST
+	bool "Disable devices not in whitelist"
+	default n
+	help
+	  If you say Y here, then Linux will refuse to not on
+	  the BESTSERVICE whitelist hubs.
+
 config USB_OTG_BLACKLIST_HUB
 	bool "Disable external hubs"
 	depends on USB_OTG || EXPERT

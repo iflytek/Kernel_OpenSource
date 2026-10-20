@@ -1,0 +1,67 @@
+#
+# Goodix touchscreen driver configuration
+#
+menuconfig TOUCHSCREEN_GOODIX_GT738X
+	bool "Goodix GT738x touchscreen"
+	depends on I2C
+	default y
+	help
+	  Say Y here if you have a Goodix GT738x touch controller
+	  to your system.
+
+	  If unsure, say N.
+
+if TOUCHSCREEN_GOODIX_GT738X
+
+config TOUCHSCREEN_GOODIX_GT738X_UPDATE
+	tristate "Goodix GT738x firmware update module"
+	default y
+	help
+	  Say Y here to enable support for doing firmware update.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here.
+
+config TOUCHSCREEN_GOODIX_GT738X_GESTURE
+	tristate "Goodix GT738x gesture wakeup feature"
+	default n
+	help
+	  Say Y here to enable support for gesture wakeup feature..
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here.
+
+config TOUCHSCREEN_GOODIX_GT738X_TOOLS
+	tristate "Goodix touch tools support"
+	default n
+	help
+	  Say Y here to enable debug tools.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here.
+
+# 用于 TX20 兼容其他项目
+config TOUCHSCREEN_GOODIX_GT738X_TX20
+	tristate "Goodix GT738x compatible TX20"
+	default n
+	help
+	  Say Y to compatible TX20
+
+# 用于 CB3.0 兼容其他项目
+config TOUCHSCREEN_GOODIX_GT738X_CB3
+    tristate "Goodix GT738x compatible 3.0"
+    default n
+    help
+      Say Y to compatible CB3
+
+# mpp1.5 协议压感值只支持到 1024 因此需要兼容
+config TOUCHSCREEN_GOODIX_GT738X_MPP1V5
+    tristate "IS USE mpp1.5 or not"
+    default n
+    help
+      Say Y to use mpp v1.5
+
+endif

@@ -2,6 +2,7 @@
  * Spreadtrum SC2730 PMIC dts file
  *
  * Copyright (C) 2018, Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
@@ -147,6 +148,7 @@
 			nvmem-cells = <&fgu_calib>;
 			io-channels = <&pmic_adc 0>, <&pmic_adc 14>;
 			io-channel-names = "bat-temp", "charge-vol";
+            sprd,comp-resistance-mohm = <20>;
 			interrupt-parent = <&sc2730_pmic>;
 			interrupts = <3 IRQ_TYPE_LEVEL_HIGH>;
 		};
@@ -270,7 +272,8 @@
 				regulator-min-microvolt = <1175000>;
 				regulator-max-microvolt = <1805000>;
 				regulator-ramp-delay = <25000>;
-				regulator-always-on;
+				regulator-boot-on;
+				//regulator-always-on;
 			};
 
 			vddcamio: LDO_VDDCAMIO {
@@ -357,6 +360,7 @@
 				regulator-min-microvolt = <1200000>;
 				regulator-max-microvolt = <3750000>;
 				regulator-ramp-delay = <25000>;
+				regulator-always-on;
 			};
 
 			vddsdio: LDO_VDDSDIO {
@@ -408,6 +412,8 @@
 				regulator-min-microvolt = <1200000>;
 				regulator-max-microvolt = <3750000>;
 				regulator-ramp-delay = <25000>;
+                regulator-boot-on;
+                //regulator-always-on;
 			};
 
 			vddldo2: LDO_VDDLDO2 {

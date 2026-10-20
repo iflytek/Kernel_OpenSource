@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -78,7 +79,8 @@ struct panel_info {
 	struct gpio_desc *avdd_gpio;
 	struct gpio_desc *avee_gpio;
 	struct gpio_desc *reset_gpio;
-	struct gpio_desc *lcd1v8_gpio;
+	struct gpio_desc *en3v3_gpio;
+	struct gpio_desc *bl_enable_gpio;
 	struct reset_sequence rst_on_seq;
 	struct reset_sequence rst_off_seq;
 	const void *cmds[CMD_CODE_MAX];
@@ -96,6 +98,8 @@ struct panel_info {
 	u32 lanes;
 	u32 mode_flags;
 	bool use_dcs;
+
+	struct panel_driver* panel_drv;
 };
 
 struct sprd_panel {
@@ -105,8 +109,34 @@ struct sprd_panel {
 	struct panel_info info;
 	struct backlight_device *backlight;
 	struct regulator *supply;
+	struct regulator *supply_1v8;
+	struct delayed_work backlight_work;
+	bool backlight_work_pending;
+
 	struct delayed_work esd_work;
 	bool esd_work_pending;
+	bool is_already_shutdown;
+	bool is_should_shutdown;
+	spinlock_t lock;
+};
+
+struct panel_ops {
+	int (*init)(struct sprd_panel* panel);
+	int (*read_id)(struct sprd_panel* panel);
+	int (*power)(struct sprd_panel* panel, int on);
+	int (*set_brightness)(int level);
+	int (*uninit)(struct sprd_panel* panel);
+	int (*get_backlight_delay_time)(void);
+};
+
+struct panel_driver {
+    char* lcd_name;
+	struct panel_ops *ops;
+};
+
+struct panel_cfg {
+	uint32_t lcd_id;
+	struct panel_driver *drv;
 };
 
 #endif

@@ -1,0 +1,53 @@
+config  LCD_TV101WUM_AW2_MIPI_HD
+    tristate "use lcd_tv101wum_aw2_mipi_hd"
+    default n
+    help
+      Say Y here to enable if use lcd_tv101wum_aw2_mipi_hd.
+
+config  LCD_TV105WUM_MIPI_HD
+    tristate "use lcd_tv105wum_mipi_hd"
+    default n
+    help
+      Say Y here to enable if use lcd_tv105wum_mipi_hd.
+
+config  TV105_2THWUM_DRIVER
+    tristate "use tv105_2thwum_driver"
+    default n
+    help
+      Say Y here to enable if use tv105_2thwum_driver.
+
+config  LCD_CBLITE_5TH_OPTION_MIPI_HD
+    tristate "use lcd_cblite_5th_option_mipi_hd"
+    default n
+    help
+      Say Y here to enable if use lcd_cblite_5th_option_mipi_hd.
+
+config  LCD_TV101WUM_AW3_MIPI_HD
+    tristate "use lcd_tv105wum_aw3_mipi_hd"
+    default n
+    help
+      Say Y here to enable if use lcd_tv105wum_aw3_mipi_hd.
+
+config  LCD_HX83102_BOE_MIPI_HD
+    tristate "use lcd_HX83102_BOE_mipi_hd"
+    default n
+    help
+      Say Y here to enable if use lcd_HX83102_BOE_mipi_hd.
+
+config  LCD_HX83102_MD_MIPI_HD
+    tristate "use lcd_HX83102_MD_mipi_hd"
+    default n
+    help
+      Say Y here to enable if use lcd_HX83102_MD_mipi_hd.
+
+config  LCD_HX83102_1197_BOE_MIPI_HD
+    tristate "use lcd_HX83102_1197_BOE_mipi_hd"
+    default n
+    help
+      Say Y here to enable if use lcd_HX83102_1197_BOE_mipi_hd.
+
+config  LCD_HX83102_1197_JT_MIPI_HD
+    tristate "use lcd_HX83102_1197_JT_mipi_hd"
+    default n
+    help
+      Say Y here to enable if use lcd_HX83102_1197_JT_mipi_hd.

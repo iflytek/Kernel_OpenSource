@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2011 Samsung Electronics Co., Ltd.
  * MyungJoo Ham <myungjoo.ham@samsung.com>
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This driver enables to monitor battery health and control charger
  * during suspend-to-mem.
@@ -69,22 +70,18 @@ static const char *const cm_fast_charger_supply_name[] = {
 	"sc2730_fast_charger",
 };
 
-static const char *const cm_double_fast_charger_IC_name[] = {
-	"bq2560x_charger",
-};
-
 static const char *const cm_double_fast_charger_IC_name2[] = {
 	"sc2703_charger",
 };
 
 #define FCHG_START_BATTERY_VOLTAGE			3400000
-#define FCHG_START_CHARGE_CURRENT			1500000
+#define FCHG_START_CHARGE_CURRENT			500000
 
-#define FCHG_STOP_BATTERY_VOLTAGE			3200000
-#define FCHG_STOP_CHARGE_CURRENT			1500000
+#define FCHG_STOP_BATTERY_VOLTAGE			3400000
+#define FCHG_STOP_CHARGE_CURRENT			500000
 
-#define FCHG_BQ2560X_START				2
-#define FCHG_BQ2560X_STOP				3
+#define CM_FCHG_START				2
+#define CM_FCHG_STOP				3
 
 /*
  * Regard CM_JIFFIES_SMALL jiffies is small enough to ignore for
@@ -103,6 +100,17 @@ static const char *const cm_double_fast_charger_IC_name2[] = {
 #define CM_RTC_SMALL		(2)
 
 #define UEVENT_BUF_SIZE		32
+
+static int cm_debug_mask;
+module_param_named(
+    cm_debug_mask, cm_debug_mask, int, 00600
+);
+
+#define pr_dbg(fmt, ...)                \
+    do {                            \
+        if (cm_debug_mask)       \
+            pr_err(fmt, ##__VA_ARGS__);   \
+    } while (0)
 
 static LIST_HEAD(cm_list);
 static DEFINE_MUTEX(cm_list_mtx);
@@ -125,10 +133,17 @@ static struct delayed_work cm_monitor_work; /* init at driver add */
 static bool allow_charger_enable;
 static void cm_notify_type_handle(struct charger_manager *cm, enum cm_event_types type, char *msg);
 static bool cm_charger_is_support_fchg(struct charger_manager *cm);
+static int cm_get_battery_temperature_by_psy(struct charger_manager *cm, int *temp);
+static bool cm_manager_adjust_current(struct charger_manager *cm, int jeita_status);
+static int cm_manager_get_jeita_status(struct charger_manager *cm, int cur_temp);
 static bool enable_fast_charger;
 static bool is_fchg;
 static int fchg_start_count;
 static int fchg_stop_count;
+
+#ifdef CONFIG_LONG_CHARGE_PROTECTION
+static bool is_shutdown_charge_mode = false;
+#endif
 
 static int __init boot_calibration_mode(char *str)
 {
@@ -138,7 +153,12 @@ static int __init boot_calibration_mode(char *str)
 	if (!strncmp(str, "cali", strlen("cali")) ||
 	    !strncmp(str, "autotest", strlen("autotest")))
 		allow_charger_enable = true;
-
+#ifdef CONFIG_LONG_CHARGE_PROTECTION
+	if (!strncmp(str, "charger", strlen("charger")))
+	{
+		is_shutdown_charge_mode = true;
+	}
+#endif
 	return 0;
 }
 __setup("androidboot.mode=", boot_calibration_mode);
@@ -333,7 +353,7 @@ static int get_batt_cap(struct charger_manager *cm, int *cap)
 	fuel_gauge = power_supply_get_by_name(cm->desc->psy_fuel_gauge);
 	if (!fuel_gauge)
 		return -ENODEV;
-
+	val.intval = 0;
 	ret = power_supply_get_property(fuel_gauge,
 				POWER_SUPPLY_PROP_CAPACITY, &val);
 	power_supply_put(fuel_gauge);
@@ -376,6 +396,35 @@ static int get_charger_type(struct charger_manager *cm, u32 *type)
 	}
 
 	return ret;
+}
+
+/*
+ * get_boot_cap - Get the battery boot capacity
+ * of the battery.
+ * @cm: the Charger Manager representing the battery.
+ * @cap: the battery capacity returned.
+ *
+ * Returns 0 if there is no error.
+ * Returns a negative value on error.
+ */
+static int get_boot_cap(struct charger_manager *cm, int *cap)
+{
+	union power_supply_propval val;
+	struct power_supply *fuel_gauge;
+	int ret;
+
+	fuel_gauge = power_supply_get_by_name(cm->desc->psy_fuel_gauge);
+	if (!fuel_gauge)
+		return -ENODEV;
+    val.intval = CM_BOOT_CAPACITY;
+	ret = power_supply_get_property(fuel_gauge,
+				POWER_SUPPLY_PROP_CAPACITY, &val);
+	power_supply_put(fuel_gauge);
+	if (ret)
+		return ret;
+
+	*cap = val.intval;
+	return 0;
 }
 
 /**
@@ -679,27 +728,268 @@ static bool is_polling_required(struct charger_manager *cm)
 	return false;
 }
 
+static bool cm_charger_is_support_pd(struct charger_manager *cm)
+{
+    struct charger_desc *desc = cm->desc;
+    struct power_supply *psy;
+    union power_supply_propval val;
+    int ret, i;
+
+    pr_dbg("%s start\n", __func__);
+
+    for (i = 0; desc->psy_charger_stat[i]; i++) {
+        psy = power_supply_get_by_name(desc->psy_charger_stat[i]);
+        pr_dbg("%s psy_charger_stat[%d] = %s\n", __func__, i, desc->psy_charger_stat[i]);
+        if (!psy) {
+            dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
+                    desc->psy_charger_stat[i]);
+            continue;
+        }
+
+        ret = power_supply_get_property(psy,
+                POWER_SUPPLY_PROP_CHARGE_TYPE,
+                &val);
+        pr_dbg("%s type = %d\n", __func__, val.intval);
+        power_supply_put(psy);
+        if (!ret) {
+            if (val.intval == POWER_SUPPLY_USB_TYPE_PD) {
+                pr_dbg("%s This is PD_charger\n", __func__);
+                is_fchg = true;
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    return false;
+}
+
 static int try_charger_enable_by_psy(struct charger_manager *cm, bool enable)
 {
-	struct charger_desc *desc = cm->desc;
-	union power_supply_propval val;
-	struct power_supply *psy;
-	int i, err;
+    struct charger_desc *desc = cm->desc;
+    union power_supply_propval val;
+    struct power_supply *psy;
+    int i, err;
 
-	for (i = 0; desc->psy_charger_stat[i]; i++) {
-		psy = power_supply_get_by_name(desc->psy_charger_stat[i]);
-		if (!psy) {
-			dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
-				desc->psy_charger_stat[i]);
-			continue;
-		}
+    for (i = 0; desc->psy_charger_stat[i]; i++) {
+        psy = power_supply_get_by_name(desc->psy_charger_stat[i]);
+        if (!psy) {
+            dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
+                    desc->psy_charger_stat[i]);
+            continue;
+        }
 
-		val.intval = enable;
-		err = power_supply_set_property(psy, POWER_SUPPLY_PROP_STATUS,
+        val.intval = enable;
+        psy->value = cm->value;
+
+        err = power_supply_set_property(psy, POWER_SUPPLY_PROP_STATUS,
 						&val);
 		power_supply_put(psy);
 		if (err)
 			return err;
+	}
+
+	return 0;
+}
+
+/*
+ * This function is for fast charge and double charge.
+ * when battery voltage more than FCH_START_BATTERY_VOLTAGE
+ * and charge current more than FCHG_START_CHARGE_CURRENT,
+ * fchg_start_count increase, if fchg_start_count more than
+ * 1, it will set the charge voltage to 9V, and start bq2560x
+ * to charge.
+ *
+ */
+
+static int cm_fast_charge_start(struct charger_manager *cm)
+{
+	union power_supply_propval val;
+	struct power_supply *psy;
+	int bat_uV, bat_uA, ret, i;
+
+    pr_dbg("%s is_fchg = %d\n", __func__, is_fchg);
+	if (!is_fchg || enable_fast_charger)
+		return 0;
+
+	ret = get_batt_uV(cm, &bat_uV);
+	if (ret) {
+		dev_err(cm->dev, "get_batt_uV error = %d\n", ret);
+		return ret;
+	}
+
+	ret = get_batt_uA(cm, &bat_uA);
+	if (ret) {
+		dev_err(cm->dev, "get_batt_uA error = %d\n", ret);
+		return ret;
+	}
+
+    pr_dbg("%s bat_uA = %d\n", __func__, bat_uA);
+    pr_dbg("%s bat_uV = %d\n", __func__, bat_uV);
+
+	if (bat_uV > FCHG_START_BATTERY_VOLTAGE &&
+	    bat_uA > FCHG_START_CHARGE_CURRENT)
+		fchg_start_count++;
+    pr_dbg("%s fchg_start_count = %d\n", __func__, fchg_start_count);
+
+	if (fchg_start_count > 1) {
+        pr_dbg("%s start to cnfig 2-IC charge...\n", __func__);
+		for (i = 0; i < ARRAY_SIZE(cm_double_fast_charger_IC_name2); i++) {
+			psy = power_supply_get_by_name(
+					cm_double_fast_charger_IC_name2[i]);
+			if (!psy) {
+				dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
+					cm_double_fast_charger_IC_name2[i]);
+				continue;
+			}
+
+            val.intval = CM_FCHG_START;
+			pr_dbg("%s val = %d\n", __func__, val.intval);
+            ret = power_supply_set_property(psy, POWER_SUPPLY_PROP_STATUS,
+                                         &val);
+            power_supply_put(psy);
+            if (ret) {
+                dev_err(cm->dev, "failed to start fast charge\n");
+                return ret;
+            }
+        }
+
+		enable_fast_charger = true;
+		fchg_start_count = 0;
+
+		cm->desc->charge_voltage_max =
+			cm->desc->fast_charge_voltage_max;
+		cm->desc->charge_voltage_drop =
+			cm->desc->fast_charge_voltage_drop;
+		cm->desc->jeita_tab =
+			cm->desc->jeita_tab_array[CM_JEITA_FCHG];
+
+		if (cm->desc->jeita_tab_size) {
+			int cur_temp, cur_jeita_status;
+
+			ret = cm_get_battery_temperature_by_psy(cm, &cur_temp);
+			pr_dbg("%s cur_temp = %d\n", __func__, cur_temp);
+			if (ret) {
+				dev_err(cm->dev, "failed to get battery temperature\n");
+				return ret;
+			}
+
+			cur_jeita_status = cm_manager_get_jeita_status(cm, cur_temp);
+			pr_dbg("%s cur_jeita_status = %d\n", __func__, cur_jeita_status);
+			cm_manager_adjust_current(cm, cur_jeita_status);
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * This function is to stop fast charge and double charge.
+ * It will set the charge voltage from 9V to 5V, and stop
+ * bq2560x--the sub-charger IC.
+ *
+ */
+
+static int cm_fast_double_charge_stop(struct charger_manager *cm)
+{
+	union power_supply_propval val;
+	struct power_supply *psy;
+	int ret, i;
+
+	if (!enable_fast_charger)
+		return 0;
+
+	for (i = 0; i < ARRAY_SIZE(cm_double_fast_charger_IC_name2); i++) {
+		psy = power_supply_get_by_name(
+				cm_double_fast_charger_IC_name2[i]);
+		if (!psy) {
+			dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
+				cm_double_fast_charger_IC_name2[i]);
+			continue;
+		}
+
+        val.intval = CM_FCHG_STOP;
+		pr_dbg("%s val = %d\n", __func__, val.intval);
+        ret = power_supply_set_property(psy, POWER_SUPPLY_PROP_STATUS,
+                &val);
+        power_supply_put(psy);
+        if (ret) {
+            dev_err(cm->dev, "failed to stop fast charge\n");
+            return ret;
+        }
+    }
+
+	enable_fast_charger = false;
+
+	cm->desc->charge_voltage_max =
+		cm->desc->normal_charge_voltage_max;
+	cm->desc->charge_voltage_drop =
+		cm->desc->normal_charge_voltage_drop;
+    cm->desc->jeita_tab =
+        cm->desc->jeita_tab_array[CM_JEITA_DCP];
+
+	if (cm->desc->jeita_tab_size) {
+		int cur_temp, cur_jeita_status;
+
+		ret = cm_get_battery_temperature_by_psy(cm, &cur_temp);
+		pr_dbg("%s cur_temp = %d\n", __func__, cur_temp);
+		if (ret) {
+			dev_err(cm->dev, "failed to get battery temperature\n");
+			return ret;
+		}
+
+		cur_jeita_status = cm_manager_get_jeita_status(cm, cur_temp);
+		pr_dbg("%s cur_jeita_status = %d\n", __func__, cur_jeita_status);
+		cm_manager_adjust_current(cm, cur_jeita_status);
+	}
+
+	return 0;
+}
+
+/*
+ * This function is for fast charge to check battery voltage and
+ * charge current. if not to start fast charge,then return.
+ * when the battery voltage less than FCHG_STOP_BATTERY_VOLTAGE
+ * or charge current less than FCHG_STOP_CHARGE_CURRENT, the
+ * fchg_stop_count increase, if fchg_stop_count more than 1, It
+ * will stop fast charge.
+ *
+ */
+
+static int fast_charge_check_voltage_current(struct charger_manager *cm)
+{
+	int bat_uV, bat_uA, ret;
+
+	if (!enable_fast_charger)
+		return 0;
+
+	pr_dbg("%s enter\n", __func__);
+	ret = get_batt_uV(cm, &bat_uV);
+	if (ret) {
+		dev_err(cm->dev, "get_batt_uV error = %d\n", ret);
+		return ret;
+	}
+
+	ret = get_batt_uA(cm, &bat_uA);
+	if (ret) {
+		dev_err(cm->dev, "get_batt_uA error = %d\n", ret);
+		return ret;
+	}
+
+	pr_dbg("%s bat_uV = %d, bat_uA = %d\n", __func__, bat_uV, bat_uA);
+	if (bat_uV < FCHG_STOP_BATTERY_VOLTAGE ||
+	    bat_uA < FCHG_STOP_CHARGE_CURRENT)
+		fchg_stop_count++;
+
+	if (fchg_stop_count > 1) {
+		pr_dbg("%s fchg_stop_count = %d\n", __func__, fchg_stop_count);
+		fchg_stop_count = 0;
+		ret = cm_fast_double_charge_stop(cm);
+		if (ret) {
+			dev_err(cm->dev, "failed to stop fast charger\n");
+			return ret;
+		}
 	}
 
 	return 0;
@@ -719,6 +1009,10 @@ static int try_charger_enable(struct charger_manager *cm, bool enable)
 {
 	int err = 0;
 
+    pr_dbg("%s start, enable = %d\n", __func__, enable);
+
+    cm_fast_charge_start(cm);
+    fast_charge_check_voltage_current(cm);
 	/* Ignore if it's redundant command */
 	if (enable == cm->charger_enabled)
 		return 0;
@@ -750,6 +1044,7 @@ static int try_charger_enable(struct charger_manager *cm, bool enable)
 		cm->charging_start_time = 0;
 		cm->charging_end_time = ktime_to_ms(ktime_get());
 
+        cm_fast_double_charge_stop(cm);
 		err = try_charger_enable_by_psy(cm, enable);
 	}
 
@@ -777,224 +1072,6 @@ static int try_charger_restart(struct charger_manager *cm)
 		return err;
 
 	return try_charger_enable(cm, true);
-}
-
-/*
- * This function is for fast charge and double charge.
- * when battery voltage more than FCH_START_BATTERY_VOLTAGE
- * and charge current more than FCHG_START_CHARGE_CURRENT,
- * fchg_start_count increase, if fchg_start_count more than
- * 1, it will set the charge voltage to 9V, and start bq2560x
- * to charge.
- *
- */
-
-static int cm_fast_charge_start(struct charger_manager *cm)
-{
-	union power_supply_propval val;
-	struct power_supply *psy;
-	int bat_uV, bat_uA, ret, i;
-
-	if (!is_fchg || enable_fast_charger)
-		return 0;
-
-	ret = get_batt_uV(cm, &bat_uV);
-	if (ret) {
-		dev_err(cm->dev, "get_batt_uV error = %d\n", ret);
-		return ret;
-	}
-
-	ret = get_batt_uA(cm, &bat_uA);
-	if (ret) {
-		dev_err(cm->dev, "get_batt_uA error = %d\n", ret);
-		return ret;
-	}
-
-	if (bat_uV > FCHG_START_BATTERY_VOLTAGE &&
-	    bat_uA > FCHG_START_CHARGE_CURRENT)
-		fchg_start_count++;
-
-	if (fchg_start_count > 1) {
-		for (i = 0; i < ARRAY_SIZE(cm_double_fast_charger_IC_name2); i++) {
-			psy = power_supply_get_by_name(
-					cm_double_fast_charger_IC_name2[i]);
-			if (!psy) {
-				dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
-					cm_double_fast_charger_IC_name2[i]);
-				continue;
-			}
-
-			val.intval = 1500000;
-			ret = power_supply_set_property(psy,
-					POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT,
-					&val);
-			if (ret) {
-				power_supply_put(psy);
-				dev_err(cm->dev,
-					"failed to set fast sc2703 limit cur, ret = %d\n",
-					ret);
-				continue;
-			}
-
-			val.intval = 1500000;
-			ret = power_supply_set_property(psy,
-				POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT,
-				&val);
-			if (ret) {
-				power_supply_put(psy);
-				dev_err(cm->dev,
-				"failed to set fast sc2703 charge cur, ret = %d\n",
-				ret);
-				continue;
-			}
-		}
-
-		for (i = 0; i < ARRAY_SIZE(cm_double_fast_charger_IC_name); i++) {
-			psy = power_supply_get_by_name(
-					cm_double_fast_charger_IC_name[i]);
-			if (!psy) {
-				dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
-					cm_double_fast_charger_IC_name[i]);
-				continue;
-			}
-
-			val.intval = FCHG_BQ2560X_START;
-			ret = power_supply_set_property(psy,
-						POWER_SUPPLY_PROP_STATUS,
-						&val);
-			power_supply_put(psy);
-			if (ret) {
-				dev_err(cm->dev,
-					"failed to set fast sc2703 limit cur, ret = %d\n",
-					ret);
-				continue;
-			}
-
-		}
-
-		enable_fast_charger = true;
-		fchg_start_count = 0;
-	}
-
-	return 0;
-}
-
-/*
- * This function is to stop fast charge and double charge.
- * It will set the charge voltage from 9V to 5V, and stop
- * bq2560x--the sub-charger IC.
- *
- */
-
-static int cm_fast_double_charge_stop(struct charger_manager *cm)
-{
-	union power_supply_propval val;
-	struct power_supply *psy;
-	int ret, i;
-
-	if (!enable_fast_charger)
-		return 0;
-
-	for (i = 0; i < ARRAY_SIZE(cm_double_fast_charger_IC_name2); i++) {
-		psy = power_supply_get_by_name(
-				cm_double_fast_charger_IC_name2[i]);
-		if (!psy) {
-			dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
-				cm_double_fast_charger_IC_name2[i]);
-			continue;
-		}
-
-		val.intval = 2000000;
-		ret = power_supply_set_property(psy,
-				POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT,
-				&val);
-		if (ret) {
-			power_supply_put(psy);
-			dev_err(cm->dev,
-				"failed to set fast sc2703 limit cur, ret = %d\n",
-				ret);
-			continue;
-		}
-
-		val.intval = 2000000;
-		ret = power_supply_set_property(psy,
-			POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT,
-			&val);
-		if (ret) {
-			power_supply_put(psy);
-			dev_err(cm->dev,
-			"failed to set fast sc2703 charge cur, ret = %d\n",
-			ret);
-			continue;
-		}
-	}
-
-	for (i = 0; i < ARRAY_SIZE(cm_double_fast_charger_IC_name); i++) {
-		psy = power_supply_get_by_name(
-				cm_double_fast_charger_IC_name[i]);
-		if (!psy) {
-			dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
-				cm_double_fast_charger_IC_name[i]);
-			continue;
-		}
-
-		val.intval = FCHG_BQ2560X_STOP;
-		ret = power_supply_set_property(psy,
-						POWER_SUPPLY_PROP_STATUS,
-							&val);
-		power_supply_put(psy);
-		if (ret)
-			return ret;
-	}
-
-	enable_fast_charger = false;
-
-	return 0;
-}
-
-/*
- * This function is for fast charge to check battery voltage and
- * charge current. if not to start fast charge,then return.
- * when the battery voltage less than FCHG_STOP_BATTERY_VOLTAGE
- * or charge current less than FCHG_STOP_CHARGE_CURRENT, the
- * fchg_stop_count increase, if fchg_stop_count more than 1, It
- * will stop fast charge.
- *
- */
-
-static int fast_charge_check_voltage_current(struct charger_manager *cm)
-{
-	int bat_uV, bat_uA, ret;
-
-	if (!enable_fast_charger)
-		return 0;
-
-	ret = get_batt_uV(cm, &bat_uV);
-	if (ret) {
-		dev_err(cm->dev, "get_batt_uV error = %d\n", ret);
-		return ret;
-	}
-
-	ret = get_batt_uA(cm, &bat_uA);
-	if (ret) {
-		dev_err(cm->dev, "get_batt_uA error = %d\n", ret);
-		return ret;
-	}
-
-	if (bat_uV < FCHG_STOP_BATTERY_VOLTAGE ||
-	    bat_uA < FCHG_STOP_CHARGE_CURRENT)
-		fchg_stop_count++;
-
-	if (fchg_stop_count > 1) {
-		fchg_stop_count = 0;
-		ret = cm_fast_double_charge_stop(cm);
-		if (ret) {
-			dev_err(cm->dev, "failed to stop fast charger\n");
-			return ret;
-		}
-	}
-
-	return 0;
 }
 
 /**
@@ -1093,6 +1170,88 @@ static void fullbatt_vchk(struct work_struct *work)
 	}
 }
 
+#ifdef CONFIG_LONG_CHARGE_PROTECTION
+static bool check_entry_protection_mode_time(struct charger_manager *cm)
+{
+//	struct charger_desc *desc = cm->desc;
+	/*
+	 * https://www.kernel.org/doc/html/latest/core-api/timekeeping.html
+	 * FIX: Inaccurate timing due to sleep.
+	 * ktime_get(void)  CLOCK_MONOTONIC
+	 * Useful for reliable timestamps and measuring short time intervals accurately.
+	 * Starts at system boot time but stops during suspend.
+	 */
+//	u64 curr = ktime_to_ms(ktime_get_boottime());
+//	u64 duration;
+	bool ret = false;
+	int fuel_cap;
+#if 0
+	if (!desc->entry_protection_mode_ms)
+	{
+		dev_err(cm->dev, "failed to get cm-entry-protection-mode-time\n");
+		return ret;
+	}
+
+	duration = curr - cm->charging_start_time;
+	pr_dbg("%s curr = %lld, cm->charging_start_time = %lld, \
+			duration = %lld, desc->entry_protection_mode_ms = %u\n",
+			__func__, curr, cm->charging_start_time, duration,
+			desc->entry_protection_mode_ms);
+#endif
+	/*
+	 * When the duration of continuous charging reaches 7X24 hours,
+	 * the battery status is cleared and the protection mode
+	 * is forced to enter.
+	 */
+	if (is_ext_pwr_online(cm) && (is_full_charged(cm) || cm->desc->force_set_full)
+		&& !(cm->charging_status & CM_CHARGE_PROTECTED_MODE))
+	{
+		cm->charging_status = 0;
+		cm->charging_status |= CM_CHARGE_PROTECTED_MODE; // Set the battery status to the long charge protection mode status.
+		// charger->externally_control = true;
+		/*
+		 * It is uncertain whether charging is currently enabled.
+		 * To ensure that charging can be turned off later, it is set to enable.
+		 */
+		cm->charger_enabled = false;
+		cm->value = 0;
+		try_charger_enable(cm, true);
+		pr_err("%s, %d, battery charging is full, entering protection mode!", __func__, __LINE__);
+	}
+
+	pr_dbg("%s Is PROTECTED_MODE ? %s", __func__, (cm->charging_status & CM_CHARGE_PROTECTED_MODE ? "Yes" : "No"));
+
+	if (cm->charging_status & CM_CHARGE_PROTECTED_MODE)
+	{
+		if (get_batt_cap(cm, &fuel_cap)) {
+			dev_err(cm->dev, "%s, %d, get fuel_cap error.\n", __func__, __LINE__);
+			return ret;
+		}
+
+		pr_dbg("%s cm->charger_enabled = %d , fuel_cap = %d", __func__, cm->charger_enabled, fuel_cap);
+
+		if (cm->charger_enabled && fuel_cap > 80)
+		{
+			// Stop charging. Close DCDC In.
+			pr_dbg("Protection mode! Stop charging, Close DCDC In.\n");
+			cm->value = 2;
+			try_charger_enable(cm, false);
+		}
+		else if(!cm->charger_enabled && fuel_cap < 61)
+		{
+			// Open charging. Open DCDC In.
+			cm->value = 0;
+			pr_dbg("Protection mode! Start charging, Open DCDC In.\n");
+			try_charger_enable(cm, true);
+		}
+		power_supply_changed(cm->charger_psy);
+		ret = true;
+	}
+
+	return ret;
+}
+#endif
+
 /**
  * check_charging_duration - Monitor charging/discharging duration
  * @cm: the Charger Manager representing the battery.
@@ -1134,7 +1293,6 @@ static int check_charging_duration(struct charger_manager *cm)
 				 desc->charging_max_duration_ms);
 			uevent_notify(cm, "Discharging");
 			try_charger_enable(cm, false);
-			cm_fast_double_charge_stop(cm);
 			cm->charging_status |= CM_CHARGE_DURATION_ABNORMAL;
 			ret = true;
 		}
@@ -1268,7 +1426,6 @@ static int cm_check_charge_voltage(struct charger_manager *cm)
 			 desc->charge_voltage_max);
 		uevent_notify(cm, "Discharging");
 		try_charger_enable(cm, false);
-		cm_fast_double_charge_stop(cm);
 		cm->charging_status |= CM_CHARGE_VOLTAGE_ABNORMAL;
 		return 0;
 	} else if (is_ext_pwr_online(cm) && !cm->charger_enabled &&
@@ -1323,7 +1480,6 @@ static int cm_check_charge_health(struct charger_manager *cm)
 		dev_info(cm->dev, "Charging health is not good\n");
 		uevent_notify(cm, "Discharging");
 		try_charger_enable(cm, false);
-		cm_fast_double_charge_stop(cm);
 		cm->charging_status |= CM_CHARGE_HEALTH_ABNORMAL;
 		return 0;
 	} else if (is_ext_pwr_online(cm) && !cm->charger_enabled &&
@@ -1445,6 +1601,12 @@ static bool cm_manager_adjust_current(struct charger_manager *cm,
 				ret);
 			continue;
 		}
+
+		/* if only one charge IC , only set one charge IC
+		 * if start two charge IC , set the two charge IC at the sametime.
+		 */
+		if (!enable_fast_charger)
+			break;
 	}
 
 	if (ret)
@@ -1585,7 +1747,7 @@ static bool _cm_monitor(struct charger_manager *cm)
 		dev_warn(cm->dev, "Failed to feed charger watchdog\n");
 		return false;
 	}
-
+#ifndef CONFIG_LONG_CHARGE_PROTECTION
 	for (i = 0; i < cm->desc->num_charger_regulators; i++) {
 		if (cm->desc->charger_regulators[i].externally_control) {
 			dev_info(cm->dev,
@@ -1593,7 +1755,7 @@ static bool _cm_monitor(struct charger_manager *cm)
 			return false;
 		}
 	}
-
+#endif
 	temp_alrt = cm_check_thermal_status(cm);
 
 	/* It has been stopped already */
@@ -1624,7 +1786,12 @@ static bool _cm_monitor(struct charger_manager *cm)
 			"Temperature is out of range normal state, stop charging\n");
 		if (!try_charger_enable(cm, false))
 			uevent_notify(cm, default_event_names[temp_alrt]);
-		cm_fast_double_charge_stop(cm);
+
+	#ifdef CONFIG_LONG_CHARGE_PROTECTION
+	} else if (is_shutdown_charge_mode && !cm->emergency_stop && check_entry_protection_mode_time(cm)) {
+		dev_info(cm->dev, "Entry protection mode, stop charging\n");
+	#endif
+
 	/*
 	 * Check if the charge voltage is in the normal range.
 	 */
@@ -1664,16 +1831,22 @@ static bool _cm_monitor(struct charger_manager *cm)
 		uevent_notify(cm, default_event_names[CM_EVENT_BATT_FULL]);
 
 		try_charger_enable(cm, false);
-		cm_fast_double_charge_stop(cm);
 
 		fullbatt_vchk(&cm->fullbatt_vchk_work.work);
 	} else {
+#ifdef CONFIG_LONG_CHARGE_PROTECTION
+		for (i = 0; i < cm->desc->num_charger_regulators; i++) {
+			if (cm->desc->charger_regulators[i].externally_control) {
+				dev_info(cm->dev,
+				 	"Charger has been controlled externally, so no need monitoring\n");
+				return false;
+			}
+		}
+#endif
 		cm->emergency_stop = 0;
 		cm->charging_status = 0;
 		if (is_ext_pwr_online(cm)) {
 			dev_info(cm->dev, "No emergency stop, charging\n");
-			cm_fast_charge_start(cm);
-			fast_charge_check_voltage_current(cm);
 			if (!try_charger_enable(cm, true))
 				uevent_notify(cm, "CHARGING");
 		}
@@ -1821,33 +1994,62 @@ static void battout_handler(struct charger_manager *cm)
 
 static bool cm_charger_is_support_fchg(struct charger_manager *cm)
 {
-	struct power_supply *psy;
-	union power_supply_propval val;
-	int ret, i;
+    struct charger_desc *desc = cm->desc;
+    struct power_supply *psy;
+    union power_supply_propval val;
+    int ret, i;
 
-	for (i = 0; i < ARRAY_SIZE(cm_fast_charger_supply_name); i++) {
-		psy = power_supply_get_by_name(cm_fast_charger_supply_name[i]);
-		if (!psy) {
-			dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
-				cm_fast_charger_supply_name[i]);
-			continue;
-		}
+    pr_dbg("%s start\n", __func__);
+    for (i = 0; desc->psy_charger_stat[i]; i++) {
+        psy = power_supply_get_by_name(desc->psy_charger_stat[i]);
+        if (!psy) {
+            dev_err(cm->dev, "Cannot find power supply \"%s\"\n",
+                    desc->psy_charger_stat[i]);
+            continue;
+        }
 
-		ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_CHARGE_TYPE,
-						&val);
-		power_supply_put(psy);
-		if (!ret) {
-			if (val.intval == POWER_SUPPLY_CHARGE_TYPE_FAST) {
-				is_fchg = true;
-				return true;
-			} else {
-				is_fchg = false;
-				return false;
-			}
-		}
+        ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_CHARGE_TYPE,
+                &val);
+        power_supply_put(psy);
+        pr_dbg("%s val.intval = %d\n", __func__, val.intval);
+        if (!ret) {
+            if (val.intval == POWER_SUPPLY_CHARGE_TYPE_FAST) {
+                pr_dbg("%s is_fchg = true\n", __func__);
+                is_fchg = true;
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
+ * fast_charge_handler - Event handler for CM_EVENT_FAST_CHARGE
+ * @cm: the Charger Manager representing the battery.
+ */
+static void fast_charge_handler(struct charger_manager *cm)
+{
+	pr_dbg("%s enter \n", __func__);
+	if (cm_suspended)
+		device_set_wakeup_capable(cm->dev, true);
+
+	if (!is_ext_pwr_online(cm))
+		return;
+
+	pr_dbg("%s pwr online \n", __func__);
+	if (cm_charger_is_support_fchg(cm) ||
+	    cm_charger_is_support_pd(cm)) {
+		pr_dbg("%s is fchg \n", __func__);
+		cm->desc->charge_voltage_max =
+			cm->desc->fast_charge_voltage_max;
+		cm->desc->charge_voltage_drop =
+			cm->desc->fast_charge_voltage_drop;
+		cm->desc->jeita_tab =
+			cm->desc->jeita_tab_array[CM_JEITA_FCHG];
 	}
-
-	return false;
 }
 
 /**
@@ -1856,18 +2058,22 @@ static bool cm_charger_is_support_fchg(struct charger_manager *cm)
  * @type: the Charger Manager representing the battery.
  */
 static void misc_event_handler(struct charger_manager *cm,
-			enum cm_event_types type)
+        enum cm_event_types type)
 {
-	int ret;
+    int ret;
 
-	if (cm_suspended)
-		device_set_wakeup_capable(cm->dev, true);
+    if (cm_suspended)
+        device_set_wakeup_capable(cm->dev, true);
 
-	if (is_ext_pwr_online(cm)) {
-		try_charger_enable(cm, true);
-		ret = get_charger_type(cm, &cm->desc->charger_type);
-		if (ret)
-			return;
+    pr_dbg("%s start, pwr_online = %d\n", __func__, is_ext_pwr_online(cm));
+
+    if (is_ext_pwr_online(cm)) {
+        try_charger_enable(cm, true);
+        ret = get_charger_type(cm, &cm->desc->charger_type);
+        if (ret)
+            return;
+
+        pr_dbg("%s charger_type=%u\n", __func__, cm->desc->charger_type);
 
 		switch (cm->desc->charger_type) {
 		case POWER_SUPPLY_USB_TYPE_DCP:
@@ -1890,31 +2096,28 @@ static void misc_event_handler(struct charger_manager *cm,
 				cm->desc->jeita_tab_array[CM_JEITA_UNKNOWN];
 		}
 
-		if (cm_charger_is_support_fchg(cm)) {
-			cm->desc->charge_voltage_max =
-				cm->desc->fast_charge_voltage_max;
-			cm->desc->charge_voltage_drop =
-				cm->desc->fast_charge_voltage_drop;
-			cm->desc->jeita_tab =
-				cm->desc->jeita_tab_array[CM_JEITA_FCHG];
-		} else {
-			cm->desc->charge_voltage_max =
-				cm->desc->normal_charge_voltage_max;
-			cm->desc->charge_voltage_drop =
-				cm->desc->normal_charge_voltage_drop;
-		}
+		cm->desc->charge_voltage_max =
+			cm->desc->normal_charge_voltage_max;
+		cm->desc->charge_voltage_drop =
+			cm->desc->normal_charge_voltage_drop;
 
 
 		if (cm->desc->jeita_tab_size) {
 			int cur_temp, cur_jeita_status;
 
 			ret = cm_get_battery_temperature_by_psy(cm, &cur_temp);
+			pr_dbg("%s cur_temp = %d\n", __func__, cur_temp);
 			if (ret) {
 				dev_err(cm->dev, "failed to get battery temperature\n");
 				return;
 			}
 
 			cur_jeita_status = cm_manager_get_jeita_status(cm, cur_temp);
+			pr_dbg("%s cur_jeita_status = %d\n", __func__, cur_jeita_status);
+
+            if (cm->desc->charger_type == POWER_SUPPLY_USB_TYPE_DCP)
+                    cm->desc->thm_adjust_cur  = 2000000;
+
 			cm_manager_adjust_current(cm, cur_jeita_status);
 		}
 	} else {
@@ -1923,6 +2126,8 @@ static void misc_event_handler(struct charger_manager *cm,
 		if (enable_fast_charger)
 			enable_fast_charger = false;
 		try_charger_enable(cm, false);
+        fchg_stop_count = 0;
+        fchg_start_count = 0;
 	}
 
 
@@ -1931,6 +2136,9 @@ static void misc_event_handler(struct charger_manager *cm,
 
 	if (cm->charging_status)
 		cm->charging_status = 0;
+
+	if (cm->emergency_stop)
+		cm->emergency_stop = 0;
 
 	if (is_polling_required(cm) && cm->desc->polling_interval_ms)
 		schedule_work(&setup_polling);
@@ -2191,18 +2399,33 @@ charger_set_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT:
 		cm->desc->thm_adjust_cur = val->intval;
 		ret = cm_get_battery_temperature_by_psy(cm, &cur_temp);
+		pr_dbg("%s cur_temp = %d\n", __func__, cur_temp);
 		if (ret) {
 			dev_err(cm->dev, "failed to get battery temperature\n");
 			return ret;
 		}
 
 		thermal_val.intval = val->intval;
+		pr_dbg("%s val->intval = %d\n", __func__, thermal_val.intval);
 
 		if (cm->desc->jeita_tab_size) {
 			cur_jeita_status = cm_manager_get_jeita_status(cm, cur_temp);
+			pr_dbg("%s cur_jeita_status = %d\n", __func__, cur_jeita_status);
 			if (val->intval > cm->desc->jeita_tab[cur_jeita_status].current_ua)
 				thermal_val.intval = cm->desc->jeita_tab[cur_jeita_status].current_ua;
 		}
+
+        pr_dbg("%s enable_fast_charger = %d\n", __func__, enable_fast_charger);
+		//if (is_fchg) {
+		if (enable_fast_charger) {
+			if (cm->desc->double_charge_all_current &&
+			thermal_val.intval >= cm->desc->double_charge_all_current)
+				thermal_val.intval = cm->desc->double_charge_all_current;
+
+			thermal_val.intval = thermal_val.intval / 2;
+		}
+		pr_dbg("%s double_charge_all_current = %d\n", __func__, cm->desc->double_charge_all_current);
+        pr_dbg("%s thermal_val.intval = %d\n", __func__, thermal_val.intval);
 
 		for (i = 0; cm->desc->psy_charger_stat[i]; i++) {
 			psy = power_supply_get_by_name(cm->desc->psy_charger_stat[i]);
@@ -2213,11 +2436,13 @@ charger_set_property(struct power_supply *psy,
 			}
 
 			ret = power_supply_set_property(psy,
-							POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT,
-							(const union power_supply_propval *)&thermal_val);
+							POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT, val);
 			if (!ret) {
 				power_supply_put(psy);
-				break;
+				if (enable_fast_charger)
+					continue;
+				else
+					break;
 			}
 
 			ret = power_supply_set_property(psy,
@@ -2225,7 +2450,10 @@ charger_set_property(struct power_supply *psy,
 							(const union power_supply_propval *)&thermal_val);
 			if (!ret) {
 				power_supply_put(psy);
-				break;
+				if (enable_fast_charger)
+					continue;
+				else
+					break;
 			}
 		}
 		break;
@@ -2519,6 +2747,8 @@ static ssize_t charger_stop_store(struct device *dev,
 
 	if (!is_ext_pwr_online(cm))
 		return -EINVAL;
+
+    cm->value = stop_charge;
 
 	if (!stop_charge) {
 		ret = try_charger_enable(cm, true);
@@ -2870,6 +3100,15 @@ static struct charger_desc *of_cm_parse_desc(struct device *dev)
 			     &desc->fast_charge_voltage_max);
 	of_property_read_u32(np, "cm-fast-charge-voltage-drop",
 			     &desc->fast_charge_voltage_drop);
+	of_property_read_u32(np, "cm-fast-charge-all-current",
+			     &desc->double_charge_all_current);
+
+	/*
+	#ifdef CONFIG_LONG_CHARGE_PROTECTION
+	of_property_read_u32(np, "cm-entry-protection-mode-time",
+			     &desc->entry_protection_mode_ms);
+	#endif
+	*/
 
 	/* Initialize the jeita temperature table. */
 	ret = cm_init_jeita_table(desc, dev);
@@ -3054,9 +3293,10 @@ static void cm_batt_works(struct work_struct *work)
 	dev_info(cm->dev, "battery voltage = %d, OCV = %d, current = %d, "
 		 "capacity = %d, charger status = %d, force set full = %d, "
 		 "charging current = %d, charging limit current = %d, "
-		 "battery temperature = %d\n",
+		 "battery temperature = %d, desc->cap = %d, is_full_charged = %d\n",
 		 batt_uV, batt_ocV, bat_uA, fuel_cap, cm->desc->charger_status,
-		 cm->desc->force_set_full, chg_cur, chg_limit_cur, cur_temp);
+		 cm->desc->force_set_full, chg_cur, chg_limit_cur, cur_temp,
+        	 cm->desc->cap,is_full_charged(cm));
 
 
 	switch (cm->desc->charger_status) {
@@ -3129,6 +3369,17 @@ static void cm_batt_works(struct work_struct *work)
 
 	case POWER_SUPPLY_STATUS_FULL:
 		cm->desc->update_capacity_time = cur_time.tv_sec;
+#ifdef CONFIG_LONG_CHARGE_PROTECTION
+		if ((batt_ocV < (cm->desc->fullbatt_uV - 25000)) && (bat_uA < 0))
+			cm->desc->force_set_full = false;
+		if (is_ext_pwr_online(cm)) {
+			if (fuel_cap != 100)
+				fuel_cap = 100;
+
+			if (fuel_cap > cm->desc->cap)
+				fuel_cap = cm->desc->cap + 1;
+		}
+#else
 		if ((batt_ocV < (cm->desc->fullbatt_uV - cm->desc->fullbatt_vchkdrop_uV - 50000))
 		    && (bat_uA < 0))
 			cm->desc->force_set_full = false;
@@ -3139,7 +3390,7 @@ static void cm_batt_works(struct work_struct *work)
 			if (fuel_cap > cm->desc->cap)
 				fuel_cap = cm->desc->cap + 1;
 		}
-
+#endif
 		break;
 	default:
 		break;
@@ -3311,7 +3562,7 @@ static int charger_manager_probe(struct platform_device *pdev)
 		cm->charger_psy_desc.num_properties++;
 	}
 
-	ret = get_batt_cap(cm, &cm->desc->cap);
+	ret = get_boot_cap(cm, &cm->desc->cap);
 	if (ret) {
 		dev_err(&pdev->dev, "Failed to get initial battery capacity\n");
 		return ret;
@@ -3592,6 +3843,9 @@ static void cm_notify_type_handle(struct charger_manager *cm, enum cm_event_type
 	case CM_EVENT_UNKNOWN:
 	case CM_EVENT_OTHERS:
 		uevent_notify(cm, msg ? msg : default_event_names[type]);
+		break;
+	case CM_EVENT_FAST_CHARGE:
+		fast_charge_handler(cm);
 		break;
 	default:
 		dev_err(cm->dev, "%s: type not specified\n", __func__);

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -19,13 +20,21 @@
 #include <video/mipi_display.h>
 #include <video/of_display_timing.h>
 #include <video/videomode.h>
+#include <linux/regulator/driver.h>
 
 #include "sprd_dpu.h"
 #include "sprd_panel.h"
 #include "dsi/sprd_dsi_api.h"
 #include "sysfs/sysfs_display.h"
+#include "../../../../drivers/regulator/internal.h"
+
+#include "lcd/panel_cfg.h"
 
 #define SPRD_MIPI_DSI_FMT_DSC 0xff
+
+struct sprd_panel *sprd_mipi_panel;
+
+volatile bool if_shutdown = false;
 
 const char *lcd_name;
 static int __init lcd_name_get(char *str)
@@ -36,13 +45,15 @@ static int __init lcd_name_get(char *str)
 	return 0;
 }
 __setup("lcd_name=", lcd_name_get);
+EXPORT_SYMBOL(lcd_name);
 
 static inline struct sprd_panel *to_sprd_panel(struct drm_panel *panel)
 {
 	return container_of(panel, struct sprd_panel, base);
 }
 
-static int sprd_panel_send_cmds(struct mipi_dsi_device *dsi,
+
+int sprd_panel_send_cmds(struct mipi_dsi_device *dsi,
 				const void *data, int size)
 {
 	struct sprd_panel *panel = mipi_dsi_get_drvdata(dsi);
@@ -68,41 +79,51 @@ static int sprd_panel_send_cmds(struct mipi_dsi_device *dsi,
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(sprd_panel_send_cmds);
+
+static bool boot_charging;
+static int __init lcd_charger_mode(char *str)
+{
+    if (strcmp(str, "charger"))
+        boot_charging = false;
+    else
+        boot_charging = true;
+
+    return 0;
+}
+__setup("androidboot.mode=", lcd_charger_mode);
+
+int boardid;
+EXPORT_SYMBOL_GPL(boardid);
+
+static int __init get_boardid(char *str)
+{
+    int ret = 0;
+
+    ret = kstrtoint(str, 0, &boardid);
+    if (ret) {
+        pr_err("aprd_panel %s failed, ret = %d\n", __func__, ret);
+        return 1;
+    }
+
+    return boardid;
+}
+__setup("rfboard.id=", get_boardid);
 
 static int sprd_panel_unprepare(struct drm_panel *p)
 {
 	struct sprd_panel *panel = to_sprd_panel(p);
-	struct gpio_timing *timing;
-	int items, i;
+	struct panel_driver *panel_drv = panel->info.panel_drv;
+	struct panel_ops *ops = panel_drv->ops;
 
 	DRM_INFO("%s()\n", __func__);
 
-	if (panel->info.avee_gpio) {
-		gpiod_direction_output(panel->info.avee_gpio, 0);
-		mdelay(5);
+	if(ops && ops->power){
+		ops->power(panel, false);
+	}else{
+		DRM_ERROR("panel_ops or ops->power is NULL\n");
+		return -1;
 	}
-
-	if (panel->info.avdd_gpio) {
-		gpiod_direction_output(panel->info.avdd_gpio, 0);
-		mdelay(5);
-	}
-
-	if (panel->info.lcd1v8_gpio) {
-		gpiod_direction_output(panel->info.lcd1v8_gpio, 0);
-		mdelay(5);
-	}
-
-	if (panel->info.reset_gpio) {
-		items = panel->info.rst_off_seq.items;
-		timing = panel->info.rst_off_seq.timing;
-		for (i = 0; i < items; i++) {
-			gpiod_direction_output(panel->info.reset_gpio,
-						timing[i].level);
-			mdelay(timing[i].delay);
-		}
-	}
-
-	regulator_disable(panel->supply);
 
 	return 0;
 }
@@ -110,38 +131,16 @@ static int sprd_panel_unprepare(struct drm_panel *p)
 static int sprd_panel_prepare(struct drm_panel *p)
 {
 	struct sprd_panel *panel = to_sprd_panel(p);
-	struct gpio_timing *timing;
-	int items, i, ret;
+	struct panel_driver *panel_drv = panel->info.panel_drv;
+	struct panel_ops *ops = panel_drv->ops;
 
 	DRM_INFO("%s()\n", __func__);
 
-	ret = regulator_enable(panel->supply);
-	if (ret < 0)
-		DRM_ERROR("enable lcd regulator failed\n");
-
-	if (panel->info.avdd_gpio) {
-		gpiod_direction_output(panel->info.avdd_gpio, 1);
-		mdelay(5);
-	}
-
-	if (panel->info.avee_gpio) {
-		gpiod_direction_output(panel->info.avee_gpio, 1);
-		mdelay(5);
-	}
-
-	if (panel->info.lcd1v8_gpio) {
-		gpiod_direction_output(panel->info.lcd1v8_gpio, 1);
-		mdelay(5);
-	}
-
-	if (panel->info.reset_gpio) {
-		items = panel->info.rst_on_seq.items;
-		timing = panel->info.rst_on_seq.timing;
-		for (i = 0; i < items; i++) {
-			gpiod_direction_output(panel->info.reset_gpio,
-						timing[i].level);
-			mdelay(timing[i].delay);
-		}
+	if(ops && ops->power){
+		ops->power(panel, true);
+	}else{
+		DRM_ERROR("panel_ops or ops->power is NULL\n");
+		return -1;
 	}
 
 	return 0;
@@ -150,6 +149,8 @@ static int sprd_panel_prepare(struct drm_panel *p)
 static int sprd_panel_disable(struct drm_panel *p)
 {
 	struct sprd_panel *panel = to_sprd_panel(p);
+	struct panel_driver *panel_drv = panel->info.panel_drv;
+	struct panel_ops *ops = panel_drv->ops;
 
 	DRM_INFO("%s()\n", __func__);
 
@@ -166,33 +167,54 @@ static int sprd_panel_disable(struct drm_panel *p)
 		panel->esd_work_pending = false;
 	}
 
-	if (panel->backlight) {
+	if (panel->backlight_work_pending) {
+		cancel_delayed_work_sync(&panel->backlight_work);
+		panel->backlight_work_pending = false;
+	}
+
+    if (panel->backlight) {
 		panel->backlight->props.power = FB_BLANK_POWERDOWN;
 		panel->backlight->props.state |= BL_CORE_FBBLANK;
 		backlight_update_status(panel->backlight);
 	}
 
-	sprd_panel_send_cmds(panel->slave,
-			     panel->info.cmds[CMD_CODE_SLEEP_IN],
-			     panel->info.cmds_len[CMD_CODE_SLEEP_IN]);
+	if(ops && ops->uninit){
+		ops->uninit(panel);
+	}else{
+		DRM_ERROR("panel_ops or ops->uninit is NULL\n");
+		return -1;
+	}
 
 	return 0;
 }
 
 static int sprd_panel_enable(struct drm_panel *p)
 {
+	int time = 0;
 	struct sprd_panel *panel = to_sprd_panel(p);
+	struct panel_driver *panel_drv = panel->info.panel_drv;
+	struct panel_ops *ops = panel_drv->ops;
 
 	DRM_INFO("%s()\n", __func__);
 
-	sprd_panel_send_cmds(panel->slave,
-			     panel->info.cmds[CMD_CODE_INIT],
-			     panel->info.cmds_len[CMD_CODE_INIT]);
+	if(ops && ops->get_backlight_delay_time){
+		time = ops->get_backlight_delay_time();
+	}else{
+		DRM_ERROR("use default delay time: 150\n");
+		time = 150;
+	}
+
+	if(ops && ops->init){
+		ops->init(panel);
+	}else{
+		DRM_ERROR("panel_ops or ops->init is NULL\n");
+		return -1;
+	}
 
 	if (panel->backlight) {
-		panel->backlight->props.power = FB_BLANK_UNBLANK;
-		panel->backlight->props.state &= ~BL_CORE_FBBLANK;
-		backlight_update_status(panel->backlight);
+		schedule_delayed_work(&panel->backlight_work,
+				msecs_to_jiffies(time));
+		panel->backlight_work_pending = true;
 	}
 
 	if (panel->info.esd_check_en) {
@@ -348,6 +370,18 @@ static int sprd_panel_te_check(struct sprd_panel *panel)
 	return ret < 0 ? ret : 0;
 }
 
+static void sprd_panel_backlight_work_func(struct work_struct *work)
+{
+	struct sprd_panel *panel = container_of(work, struct sprd_panel, backlight_work.work);
+
+	if (panel->backlight) {
+		panel->backlight->props.power = FB_BLANK_UNBLANK;
+		panel->backlight->props.state &= ~BL_CORE_FBBLANK;
+		backlight_update_status(panel->backlight);
+	}
+
+}
+
 static void sprd_panel_esd_work_func(struct work_struct *work)
 {
 	struct sprd_panel *panel = container_of(work, struct sprd_panel,
@@ -408,11 +442,18 @@ static int sprd_panel_gpio_request(struct device *dev,
 		DRM_WARN("can't get panel reset gpio: %ld\n",
 				 PTR_ERR(panel->info.reset_gpio));
 
-	panel->info.lcd1v8_gpio = devm_gpiod_get_optional(dev,
-					"lcd1v8", GPIOD_ASIS);
-	if (IS_ERR_OR_NULL(panel->info.lcd1v8_gpio))
-		DRM_WARN("can't get panel lcd1v8 gpio: %ld\n",
-				 PTR_ERR(panel->info.lcd1v8_gpio));
+	panel->info.en3v3_gpio = devm_gpiod_get_optional(dev,
+					"en3v3", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.en3v3_gpio))
+		DRM_WARN("can't get panel en3v3 gpio: %ld\n",
+				PTR_ERR(panel->info.en3v3_gpio));
+
+	panel->info.bl_enable_gpio = devm_gpiod_get_optional(dev,
+					"bl_enable", GPIOD_ASIS);
+	if (IS_ERR_OR_NULL(panel->info.bl_enable_gpio))
+		DRM_WARN("can't get panel bl_enable gpio: %ld\n",
+				PTR_ERR(panel->info.bl_enable_gpio));
+
 	return 0;
 }
 
@@ -701,6 +742,49 @@ static int sprd_panel_device_create(struct device *parent,
 	return device_register(&panel->dev);
 }
 
+int match_tp_with_lcd(void)
+{
+
+	if(!IS_ERR_OR_NULL(lcd_name)) {
+		if(strcmp(lcd_name,"lcd_tv105wum_mipi_hd")==0){
+			printk("cb  1th lcd use goodix tp\n");
+			return 1; //cb_lite 1th lcd use goodix tp
+		}
+		if(strcmp(lcd_name,"lcd_tv105_2thwum_mipi_hd")==0){
+			printk("cb  2th lcd use goodix tp\n");
+			return 2; //cb_lite 2th lcd use goodix tp
+		}
+		if(strcmp(lcd_name,"lcd_tv105wum_aw3_mipi_hd")==0){
+			printk("lcd use goodix tp\n");
+			return 2; //lcd use goodix tp
+		}
+		pr_err("not match any lcd,use default tp");
+	} else {
+		pr_err("lcd_name is NULL");
+	}
+
+	return -1;
+
+}
+EXPORT_SYMBOL(match_tp_with_lcd);
+
+
+static int sprd_match_lcd_drv(struct sprd_panel *panel)
+{
+	int i=0;
+
+	for(i = 0; i < sizeof(supported_panel)/sizeof(supported_panel[0]); i++){
+
+		if(!strcmp(lcd_name, supported_panel[i].drv->lcd_name)){
+			panel->info.panel_drv = supported_panel[i].drv;
+			break;
+		}
+						    }
+
+	return (panel->info.panel_drv!=NULL) ? 0 : -1;
+}
+
+
 static int sprd_panel_probe(struct mipi_dsi_device *slave)
 {
 	int ret;
@@ -734,15 +818,30 @@ static int sprd_panel_probe(struct mipi_dsi_device *slave)
 			DRM_ERROR("regulator driver not initialized, probe deffer\n");
 		else
 			DRM_ERROR("can't get regulator: %ld\n", PTR_ERR(panel->supply));
+	}
 
-		return PTR_ERR(panel->supply);
+	panel->supply_1v8 = devm_regulator_get(&slave->dev, "power1v8");
+   	if (IS_ERR(panel->supply_1v8)) {
+		if (PTR_ERR(panel->supply_1v8) == -EPROBE_DEFER)
+			DRM_ERROR("regulator driver not initialized, probe deffer\n");
+		else
+			DRM_ERROR("can't get 1v8 regulator: %ld\n", PTR_ERR(panel->supply_1v8));
+    }else{
+		panel->supply_1v8->rdev->use_count ++;
 	}
 
 	INIT_DELAYED_WORK(&panel->esd_work, sprd_panel_esd_work_func);
+	INIT_DELAYED_WORK(&panel->backlight_work, sprd_panel_backlight_work_func);
 
 	ret = sprd_panel_parse_dt(slave->dev.of_node, panel);
 	if (ret) {
 		DRM_ERROR("parse panel info failed\n");
+		return ret;
+	}
+
+    ret = sprd_match_lcd_drv(panel);
+	if(ret){
+		DRM_ERROR("match lcd drv err: %s\n", lcd_name);
 		return ret;
 	}
 
@@ -796,6 +895,13 @@ static int sprd_panel_probe(struct mipi_dsi_device *slave)
 		panel->esd_work_pending = true;
 	}
 
+//	sprd_mipi_panel = panel;
+//	spin_lock_init(&panel->lock);
+//	panel->is_already_shutdown = false;
+//	panel->is_should_shutdown = false;
+
+	panel->backlight_work_pending = false;
+
 	DRM_INFO("panel driver probe success\n");
 
 	return component_add(&slave->dev, &panel_component_ops);
@@ -823,6 +929,13 @@ static int sprd_panel_remove(struct mipi_dsi_device *slave)
 	return 0;
 }
 
+static void sprd_panel_shutdown(struct mipi_dsi_device *slave)
+{
+	DRM_INFO("%s\n", __FUNCTION__);
+	if_shutdown = true;
+	return;
+}
+
 static const struct of_device_id panel_of_match[] = {
 	{ .compatible = "sprd,generic-mipi-panel", },
 	{ }
@@ -836,6 +949,7 @@ static struct mipi_dsi_driver sprd_panel_driver = {
 	},
 	.probe = sprd_panel_probe,
 	.remove = sprd_panel_remove,
+	.shutdown = sprd_panel_shutdown,
 };
 module_mipi_dsi_driver(sprd_panel_driver);
 

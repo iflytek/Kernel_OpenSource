@@ -4,6 +4,7 @@
  * Front end pcm (not include offload)
  *
  * Copyright (C) 2018 SpreadTrum Ltd.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -287,7 +288,7 @@ static int sprd_pcm_open(struct snd_pcm_substream *substream)
 
 	pm_dma = get_pm_dma();
 
-	pr_info("%s Open %s\n", sprd_dai_pcm_name(srtd->cpu_dai),
+	pr_info("%s %s Open %s\n", __func__, sprd_dai_pcm_name(srtd->cpu_dai),
 			PCM_DIR_NAME(substream->stream));
 
 	if (sprd_is_i2s(srtd->cpu_dai)) {
@@ -791,8 +792,8 @@ static int sprd_pcm_request_dma_channel(
 		rtd->dma_chn[i] = dma_chn_request;
 		rtd->transform_type = sprd_pcm_get_transf_type(substream,
 			dma_chn_request);
-		pr_info("Chan%d DMA ID=%d\n",
-			       rtd->dma_chn[i]->chan_id,
+		pr_info("%s Chan%d DMA ID=%d\n",
+			       __func__, rtd->dma_chn[i]->chan_id,
 			       rtd->params->channels[i]);
 		normal_dma_protect_spin_unlock(substream);
 		normal_dma_protect_mutex_unlock(substream);
@@ -1192,12 +1193,14 @@ static int sprd_pcm_prepare(struct snd_pcm_substream *substream)
 	return 0;
 }
 
+extern int dsp_send_data_trigger(int cmd, int scene_id, int stream);
 static int sprd_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 {
 	struct sprd_runtime_data *rtd = substream->runtime->private_data;
 	struct snd_soc_pcm_runtime *srtd = substream->private_data;
 	struct sprd_pcm_dma_params *dma = rtd->params;
 	int ret = 0;
+	int scene_id, stream = substream->stream;
 	int i;
 	struct audio_pm_dma *pm_dma;
 
@@ -1238,6 +1241,11 @@ static int sprd_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 
 		pr_info("pcm Start\n");
 		normal_dma_protect_spin_unlock(substream);
+		if (srtd->cpu_dai->id == FE_DAI_ID_CAPTURE_DSP &&
+		    substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
+			pr_info("%s add command here\n", __func__);
+			dsp_send_data_trigger(cmd, scene_id, stream);
+		}
 		break;
 	case SNDRV_PCM_TRIGGER_STOP:
 	case SNDRV_PCM_TRIGGER_SUSPEND:

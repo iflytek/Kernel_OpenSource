@@ -1,0 +1,5 @@
+config LCM_AW37504
+    tristate "LCM_AW37504"
+    default n
+    help
+      Say Y here to enable if use LCM_AW37504.

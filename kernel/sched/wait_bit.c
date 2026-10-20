@@ -1,4 +1,6 @@
 /*
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
  * The implementation of the wait_bit*() and related waiting APIs:
  */
 #include <linux/wait_bit.h>
@@ -246,7 +248,10 @@ EXPORT_SYMBOL(bit_wait);
 
 __sched int bit_wait_io(struct wait_bit_key *word, int mode)
 {
-	io_schedule();
+	if (!io_schedule_timeout(60*HZ)) {
+		if (test_bit(word->bit_nr, word->flags))
+			clear_bit_unlock(word->bit_nr, word->flags);
+	}
 	if (signal_pending_state(mode, current))
 		return -EINTR;
 	return 0;

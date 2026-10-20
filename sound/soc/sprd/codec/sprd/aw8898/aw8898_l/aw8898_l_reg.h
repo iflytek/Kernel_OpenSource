@@ -302,9 +302,10 @@ const unsigned char aw8898_l_reg_access[AW8898_L_REG_MAX]={
 // HAGCCFG6
 
 // HAGCCFG7
-#define AW8898_L_BIT_HAGCCFG7_VOL_MASK                (~(255< 8))
+#define AW8898_L_BIT_HAGCCFG7_VOL_MASK                (~(255<< 8))
 #define AW8898_L_VOLUME_MAX                           (0)
 #define AW8898_L_VOLUME_MIN                           (-255)
+#define AW8898_L_VOLUME_DATA                          ( 6 << 8)
 #define AW8898_L_VOL_REG_SHIFT                        (8)
 
 // HAGCST
