@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: GPL-2.0-only
+ * Copyright (C) 2023, Anhui Yunshu Zhihui Technology Co., Ltd.
+ */
 #include <common.h>
 #include <stdio_dev.h>
 #include <linux/ctype.h>
@@ -949,6 +953,21 @@ int fdt_fixup_serialno(void *fdt)
 	memset(buf, 0, 255);
 
 	sprintf(buf, " androidboot.serialno=%s", get_product_sn());
+	str_len = strlen(buf);
+	buf[str_len] = '\0';
+	ret = fdt_chosen_bootargs_append(fdt, buf, 1);
+	return ret;
+}
+
+/* New properity is Added for AudioTesting. */
+int fdt_fixup_serialno2(void *fdt)
+{
+	char buf[255];
+	int str_len;
+	int ret;
+	memset(buf, 0, 255);
+
+	sprintf(buf, " androidboot.serialno2=%s", get_product_sn2());
 	str_len = strlen(buf);
 	buf[str_len] = '\0';
 	ret = fdt_chosen_bootargs_append(fdt, buf, 1);

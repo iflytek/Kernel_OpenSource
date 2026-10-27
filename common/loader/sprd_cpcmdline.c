@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: GPL-2.0-only
+ * Copyright (C) 2023, Anhui Yunshu Zhihui Technology Co., Ltd.
+ */
 #include "sprd_cpcmdline.h"
 #include "loader_common.h"
 
@@ -12,6 +16,7 @@ static const char *cmd_arr[] = {
 	LTE_MODE,
 	AP_VERSION,
 	RF_BOARD_ID,
+	RF_BAT_ID,
 	RF_HW_INFO,
 	K32_LESS,
 	AUTO_TEST,
@@ -111,10 +116,13 @@ void cp_cmdline_fixup(void)
 {
 	char *value = NULL;
 	int boardid = 0;
+	int bat_id = 0;
 	unsigned int pmicid = 0;
 	int value_less = 0;
 	char buf[30] = {0};
 	unsigned char v32kless;
+
+	printf("cp_cmdline_fixup\n");
 
 	cmdline_prepare();
 
@@ -162,9 +170,17 @@ void cp_cmdline_fixup(void)
 /* Using RF band adaption in each board configuration and print information in cpcmdline*/
 #if (defined(CONFIG_BOARD_ID) || defined(CONFIG_BAND_DETECT))
 	//rf band auto adaption
+	printf("set boardid\n");
 	boardid = sprd_get_bandinfo();
 	sprintf(buf,"%d",boardid);
 	cmdline_add_cp_cmdline(RF_BOARD_ID, buf);
+#endif
+/* add for get bat id*/
+#ifdef CONFIG_BAT_ID
+	bat_id = sprd_get_bat_id();
+    sprintf(buf,"%d",bat_id);
+    cmdline_add_cp_cmdline(RF_BAT_ID, buf);
+	printf("bat_id:%d\n",bat_id);
 #endif
 /* Printing the clock and crystal type in cpcmdline by clk & crystal adaption */
 #if (defined(CONFIG_BOARD_ID) || defined(CONFIG_ADIE_SC2730))

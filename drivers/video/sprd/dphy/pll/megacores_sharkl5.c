@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -160,6 +161,13 @@ struct pll_regs {
 		u8 val;
 	} _0f;
 
+    union __reg_25__ {
+        struct __25 {
+            u8 ldoop4_sel: 3;
+            u8 reserved: 5;
+        } bits;
+        u8 val;
+    } _25;
 };
 
 struct dphy_pll {
@@ -355,6 +363,11 @@ static int dphy_pll_config(struct dphy_context *ctx)
 	if (ret)
 		goto FAIL;
 
+#ifdef CONFIG_MIPI_DRIVE_CAPABILITY
+    regs._25.bits.ldoop4_sel = CONFIG_MIPI_DRIVE_CAPABILITY;
+    regmap_write(regmap, 0x25, regs._25.val);
+#endif
+
 	return 0;
 
 FAIL:
@@ -492,11 +505,11 @@ static int dphy_timing_config(struct dphy_context *ctx)
 	range[L] = 300 * scale;
 	range[H] = INFINITY;
 	val[CLK] = ROUND_UP(range[L] * factor + (tmp & 0xffff)
-			- 525 * t_byteck / 100, t_byteck) - 2;
+			- 525 * t_byteck / 100, t_byteck) - 4;
 	range[L] = 145 * scale + 10 * t_ui;
 	val[DATA] = ROUND_UP(range[L] * factor
 			+ ((tmp >> 16) & 0xffff) - 525 * t_byteck / 100,
-			t_byteck) - 2;
+			t_byteck) - 4;
 	dphy_set_timing_regs(regmap, ZERO_TIME, val);
 
 	/* TRAIL_TIME: HS-TRAIL */

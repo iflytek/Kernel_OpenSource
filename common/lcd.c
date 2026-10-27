@@ -4,6 +4,9 @@
  * (C) Copyright 2001-2002
  * Wolfgang Denk, DENX Software Engineering -- wd@denx.de
  *
+ * (C) Copyright 2023
+ * Anhui Yunshu Zhihui Technology Co., Ltd.
+ *
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
@@ -69,7 +72,7 @@ do { \
 } while(0)
 
 #ifdef CONFIG_SC2703_LCD_POWERON
-extern void lcd_use_sc2703l_to_power_on();
+extern void lcd_use_sc2703l_to_power_on(bool on);
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -202,7 +205,7 @@ int drv_lcd_init(void)
 		return 0;
 
 #ifdef CONFIG_SC2703_LCD_POWERON
-	lcd_use_sc2703l_to_power_on();
+	lcd_use_sc2703l_to_power_on(true);
 #endif
 
 	lcd_base = map_sysmem(gd->fb_base, 0);
@@ -221,6 +224,29 @@ int drv_lcd_init(void)
 	rc = stdio_register(&lcddev);
 
 	return (rc == 0) ? 1 : rc;
+}
+
+int drv_lcd_uninit(void)
+{
+    struct stdio_dev *lcddev;
+
+    /* if lcd is disabled, no need to uninit it again*/
+    if (!lcd_is_enabled)
+        return 0;
+
+    lcd_ctrl_uninit();
+
+    lcddev = stdio_get_by_name("lcd");
+    /* device not found */
+    if (!lcddev)
+        return -ENODEV;
+
+    list_del(&(lcddev->list));
+    free(lcddev);
+
+    lcd_is_enabled = 0;
+
+    return 0;
 }
 
 void lcd_clear(void)

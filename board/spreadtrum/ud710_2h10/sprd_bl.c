@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: GPL-2.0-only
+ * Copyright (C) 2023, Anhui Yunshu Zhihui Technology Co., Ltd.
+ */
 #include <common.h>
 #include <asm/arch/hardware.h>
 #include <asm/io.h>
@@ -64,12 +68,12 @@ void set_backlight_pwms(uint32_t brightness)
 }
 
 /* sc2703 power on */
-void lcd_use_sc2703l_to_power_on(void)
+void lcd_use_sc2703l_to_power_on(bool on)
 {
 	int loop = 100;
 
 	i2c_set_bus_num(SC2703_LCD_I2C_BUS);
-	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, SC2703_DISPLAY_EN_MASK);
+	i2c_reg_write(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_ACTIVE, on & SC2703_DISPLAY_EN_MASK);
 	printf("SC2703 status is %d\n", \
 			i2c_reg_read(SC2703_LCD_I2C_ADDRESS, SC2703_SYSCTRL_DISPLAY_STATUS));
 	while(loop --);

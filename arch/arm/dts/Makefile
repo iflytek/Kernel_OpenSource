@@ -191,6 +191,12 @@ dtb-$(CONFIG_VENDOR_SPRD) += sp9850s-1h10-native.dtb \
 	sp9855a_haps.dtb \
 	ud710_haps.dtb	\
 	ud710_2h10.dtb	\
+	cb3.dtb	\
+	tx20.dtb	\
+	sa30.dtb	\
+	sa30pro.dtb	\
+	tx20air.dtb	\
+	cb.dtb	\
 	ud710_2c20.dtb	\
 	ud710_2h10u.dtb	\
 	ud710_2c10.dtb	\

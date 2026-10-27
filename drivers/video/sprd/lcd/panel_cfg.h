@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -36,8 +37,49 @@ extern struct panel_driver rm67191_edo_driver;
 extern struct panel_driver r61350_truly_driver;
 extern struct panel_driver td4310_truly_driver;
 extern struct panel_driver tv105wum_driver;
+extern struct panel_driver tv105_2thwum_driver;
+extern struct panel_driver cblite_5th_option_driver;
+extern struct panel_driver lcd_tv101wum_aw2_option_driver;
+extern struct panel_driver lcd_tv105wum_aw3_driver;
+extern struct panel_driver lcd_hx83102_boe_option_driver;
+extern struct panel_driver lcd_hx83102_md_option_driver;
+extern struct panel_driver lcd_hx83102_1197_boe_option_driver;
+extern struct panel_driver lcd_hx83102_1197_jt_option_driver;
 
 static struct panel_cfg supported_panel[] = {
+#ifdef CONFIG_LCD_HX83102_BOE_MIPI_HD
+	{
+		.lcd_id = 0x8310201,
+		.drv = &lcd_hx83102_boe_option_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_HX83102_MD_MIPI_HD
+	{
+		.lcd_id = 0x8310202,
+		.drv = &lcd_hx83102_md_option_driver,
+	},
+#endif
+
+#ifdef CONFIG_LCD_HX83102_1197_BOE_MIPI_HD
+	{
+		.drv = &lcd_hx83102_1197_boe_option_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_HX83102_1197_JT_MIPI_HD
+	{
+		.drv = &lcd_hx83102_1197_jt_option_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_TV101WUM_AW3_MIPI_HD
+	{
+		.drv = &lcd_tv105wum_aw3_driver,
+	},
+#endif
+#ifdef CONFIG_LCD_TV101WUM_AW2_MIPI_HD
+	{
+		.drv = &lcd_tv101wum_aw2_option_driver,
+	},
+#endif
 #ifdef CONFIG_LCD_FT8006S_HUAXIAN_MIPI_HDP
 	{
 		.lcd_id = 0x8006,
@@ -45,10 +87,10 @@ static struct panel_cfg supported_panel[] = {
 	},
 #endif
 #ifdef CONFIG_LCD_ICNL9911_TXD_MIPI_HDP
-        {
-                .lcd_id = 0x9911,
-                .drv = &icnl9911_txd_driver,
-        },
+	{
+		.lcd_id = 0x9911,
+		.drv = &icnl9911_txd_driver,
+	},
 #endif
 #ifdef CONFIG_LCD_ILI9881C_TRULY_MIPI_HD
 	{
@@ -158,11 +200,17 @@ static struct panel_cfg supported_panel[] = {
 		.drv = &td4310_truly_driver,
 	},
 #endif
+#ifdef CONFIG_LCD_TV105_2THWUM_MIPI_HD
+	{
+		.lcd_id = 0x5431,
+		.drv = &tv105_2thwum_driver,
+	},
+#endif
 #ifdef CONFIG_LCD_TV105WUM_MIPI_HD
-    {
-        .lcd_id = 0x5432,
-        .drv = &tv105wum_driver,
-    },
+	{
+		.lcd_id = 0x5432,
+		.drv = &tv105wum_driver,
+	},
 #endif
 #ifdef CONFIG_LCD_LT9611_MIPI_FHD
 	{
@@ -170,6 +218,13 @@ static struct panel_cfg supported_panel[] = {
 		.drv = &lt9611_driver,
 	},
 #endif
+#ifdef CONFIG_LCD_CBLITE_5TH_OPTION_MIPI_HD
+	{
+		.lcd_id = 0x5435,
+		.drv = &cblite_5th_option_driver,
+	},
+#endif
+
 /* warning: the dummy lcd must be the last item in this array */
 	{
 		.lcd_id = 0xFFFF,

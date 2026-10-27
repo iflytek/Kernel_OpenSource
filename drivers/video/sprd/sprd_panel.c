@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -136,8 +137,9 @@ int sprd_panel_probe(void)
 		if (ops && ops->read_id) {
 			ret = ops->read_id();
 			if (!ret) {
-				pr_info("attach panel 0x%x success\n",
-					supported_panel[i].lcd_id);
+				//reduce delay
+				//pr_info("attach panel 0x%x success\n",
+				//	supported_panel[i].lcd_id);
 				break;
 			}
 		}
@@ -158,4 +160,19 @@ int sprd_panel_probe(void)
 	lcd_id_to_kernel = supported_panel[i].lcd_id;
 
 	return 0;
+}
+
+int sprd_panel_uninit(void)
+{
+    struct panel_ops *ops = panel_drv->ops;
+
+    if (ops && ops->uninit)
+        ops->uninit();
+
+    if (ops && ops->power)
+        ops->power(false);
+
+    panel_if_uinit();
+
+    return 0;
 }

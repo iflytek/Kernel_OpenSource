@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2012 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -30,7 +31,8 @@ void sprdbat_get_vbatauxadc_caldata(void);
 void sprdbat_init(void);
 void sprdbat_lowbat_chg(void);
 int sprdbat_is_battery_connected(void);
-void sprdbat_show_chglogo(void);
+void sprdbat_show_chglogo(bool is_chg_connect);
+//void sprdbat_show_chglogo(void);
 void sprdbat_chg_led(int on);
 uint32_t sprdbat_get_aux_vbatvol(void);
 void sprdchg_common_cfg(void);

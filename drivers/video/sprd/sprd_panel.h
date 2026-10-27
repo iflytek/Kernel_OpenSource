@@ -1,5 +1,6 @@
 /*
  *Copyright (C) 2017 Spreadtrum Communications Inc.
+ *Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  *This software is licensed under the terms of the GNU General Public
  *License version 2, as published by the Free Software Foundation, and
@@ -147,6 +148,7 @@ struct panel_ops {
 	int (*read_id)(void);
 	int (*power)(int on);
 	int (*set_brightness)(int level);
+    int (*uninit)(void);
 };
 
 struct panel_cfg {
@@ -161,5 +163,6 @@ struct panel_driver {
 
 struct panel_info *panel_info_attach(void);
 int sprd_panel_probe(void);
+int sprd_panel_uninit(void);
 
 #endif

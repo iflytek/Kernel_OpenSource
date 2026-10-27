@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: GPL-2.0-only
+ * Copyright (C) 2023, Anhui Yunshu Zhihui Technology Co., Ltd.
+ */
 #include <common.h>
 #include <asm/io.h>
 
@@ -17,7 +21,7 @@
 #define DCP_LIMIT_CUR	3000
 #define SDP_LIMIT_CUR	500
 #ifndef DCP_CHG_CUR
-#define DCP_CHG_CUR	1000
+#define DCP_CHG_CUR	2000
 #endif
 #define SDP_CHG_CUR	450
 #define FAST_CHG_VOL 3000

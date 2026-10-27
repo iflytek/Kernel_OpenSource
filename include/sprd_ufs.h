@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: GPL-2.0-only
+ * Copyright (C) 2023, Anhui Yunshu Zhihui Technology Co., Ltd.
+ */
 #ifndef _SPRD_UFS_H
 #define _SPRD_UFS_H
 
@@ -784,7 +788,6 @@ struct ufs_unit_cfg_tbl {
 	uint8_t	bLogicalBlockSize;
 	uint8_t	bProvisioningType;
 	uint16_t	wContextCapabilities;
-	uint8_t	reserved[3];
 }  __attribute__ ((packed));
 
 struct ufs_cfg_desc_tbl {
@@ -798,8 +801,7 @@ struct ufs_cfg_desc_tbl {
 	uint8_t	bSecureRemovalType;
 	uint8_t	bInitActiveICCLevel;
 	uint16_t	wPeriodicRTCUpdate;
-	uint8_t	reserved_2[5];
-	struct ufs_unit_cfg_tbl	unit_cfg[UFS_MAX_LU_NUM];
+//	struct ufs_unit_cfg_tbl	unit_cfg[UFS_MAX_LU_NUM];
 } __attribute__ ((packed));
 
 struct um_block_descriptor {

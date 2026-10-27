@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2023 Anhui Yunshu Zhihui Technology Co., Ltd.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -176,6 +177,17 @@ static int sprdfb_probe(void)
 	return 0;
 }
 
+static int sprdfb_uninit(void)
+{
+    struct sprd_dispc *dispc = &dispc_device;
+
+    sprd_dispc_stop(dispc);
+    sprd_panel_uninit();
+    sprd_dispc_uninit();
+
+    return 0;
+}
+
 void lcd_disable(void)
 {
 	pr_info("lcd disable\n");
@@ -225,5 +237,10 @@ void lcd_ctrl_init(void *lcdbase)
 	pr_info("splashimage addr is 0x%p, fb size is 0x%x\n",
 		(void *)addr, size);
 	lcd_set_flush_dcache(TRUE);
+}
+
+void lcd_ctrl_uninit(void)
+{
+    sprdfb_uninit();
 }
 

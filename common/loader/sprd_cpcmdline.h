@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: GPL-2.0-only
+ * Copyright (C) 2023, Anhui Yunshu Zhihui Technology Co., Ltd.
+ */
 #ifndef _MODEM_COMMON_H_
 #define _MODEM_COMMON_H_
 
@@ -15,6 +19,7 @@
 #define LTE_MODE         "ltemode"
 #define AP_VERSION       "apv"
 #define RF_BOARD_ID      "rfboard.id"
+#define RF_BAT_ID        "bat.id"
 #define RF_HW_INFO       "hardware.version"
 #define K32_LESS         "32k.less"
 #define AUTO_TEST        "autotest"

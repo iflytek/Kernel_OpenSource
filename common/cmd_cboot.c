@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: GPL-2.0-only
+ * Copyright (C) 2023, Anhui Yunshu Zhihui Technology Co., Ltd.
+ */
 #include <common.h>
 #include <command.h>
 #include <linux/types.h>
@@ -55,20 +59,24 @@ boot_mode_enum_type get_mode_from_arg(char* mode_name)
 
 }
 
-
 unsigned reboot_mode_check(void)
 {
-	  static unsigned rst_mode = 0;
-	   static unsigned check_times = 0;
-	   if(!check_times)
-	  {
-		  rst_mode = check_reboot_mode();
-		  check_times++;
-	  }
-	  debugf("reboot_mode_check rst_mode=0x%x\n",rst_mode);
-	  return rst_mode;
-  }
-
+	static unsigned rst_mode = 0;
+	static unsigned check_times = 0;
+	if (!check_times)
+	{
+		rst_mode = check_reboot_mode();
+#ifdef CONFIG_OF_MDM_REBOOT_MODE
+		if (rst_mode == CMD_FASTBOOT_MODE)
+		{
+			rst_mode = CMD_NORMAL_MODE;
+		}
+#endif
+		check_times++;
+	}
+	debugf("reboot_mode_check rst_mode=0x%x\n", rst_mode);
+	return rst_mode;
+}
 
   // 0 get mode from pc tool
 boot_mode_enum_type get_mode_from_pctool(void)
@@ -89,12 +97,13 @@ boot_mode_enum_type get_mode_from_bat_low(void)
 #else
 	  if(charger_connected()) {
 #endif
-		  debugf("cboot:low battery,charging...\n");
-		  sprdbat_show_chglogo();
+		  printf("cboot:low battery,charging...\n");
+		  sprdbat_show_chglogo(true);
 		  sprdbat_lowbat_chg();
 		  mdelay(SPRDBAT_CHG_POLLING_T);
 	  }else{
-		  debugf("cboot:low battery and shutdown\n");
+		  sprdbat_show_chglogo(false);
+		  printf("cboot:low battery and shutdown\n");
 		  return CMD_POWER_DOWN_DEVICE;
 	  }
 	}
